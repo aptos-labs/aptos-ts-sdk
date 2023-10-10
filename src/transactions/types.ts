@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AptosConfig } from "../api/aptos_config";
 import { Serializable } from "../bcs";
 import { AccountAddress } from "../core";

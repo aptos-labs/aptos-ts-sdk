@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { Account } from "./account";
 import { AptosConfig } from "./aptos_config";
 import { General } from "./general";

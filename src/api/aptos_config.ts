@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AptosSettings, ClientConfig } from "../types";
 import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/api-endpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";

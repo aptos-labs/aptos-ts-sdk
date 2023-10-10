@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AptosConfig } from "../api/aptos_config";
 import { AnyNumber, ClientConfig } from "../types";
 import { aptosRequest } from "./core";

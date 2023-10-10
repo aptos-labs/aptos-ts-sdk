@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 export const NetworkToIndexerAPI: Record<string, string> = {
   mainnet: "https://indexer.mainnet.aptoslabs.com/v1/graphql",
   testnet: "https://indexer-testnet.staging.gcp.aptosdev.com/v1/graphql",

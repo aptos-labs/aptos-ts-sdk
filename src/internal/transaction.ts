@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * This file contains the underlying implementations for exposed API surface in
  * the {@link api/transaction}. By moving the methods out into a separate file,

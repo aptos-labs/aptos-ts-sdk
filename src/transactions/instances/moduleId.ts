@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { Serializer, Deserializer } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
