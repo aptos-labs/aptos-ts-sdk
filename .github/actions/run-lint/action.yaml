@@ -1,0 +1,19 @@
+name: "Lint SDK Code"
+description: |
+  Run eslint on the codebase to ensure consistency
+
+runs:
+  using: composite
+  steps:
+    # Install node and pnpm.
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: .node-version
+        registry-url: "https://registry.npmjs.org"
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 8.9.0
+
+    # Run eslint
+    - run: pnpm install --frozen-lockfile && pnpm lint
+      shell: bash
