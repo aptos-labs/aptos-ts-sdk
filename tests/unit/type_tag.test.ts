@@ -14,7 +14,7 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from "../../src/transactions/types/typeTag";
+} from "../../src/transactions/typeTag/typeTag";
 import { Deserializer, Serializer } from "../../src/bcs";
 import { AccountAddress, AddressInvalidReason, ParsingError } from "../../src/core";
 
@@ -70,7 +70,7 @@ describe("TypeTagParser", () => {
       expect(error).toBeInstanceOf(ParsingError);
       const typeTagError = error as ParsingError<AddressInvalidReason>;
       expect(typeTagError.message).toEqual(
-        "The given hex string is a special address not in LONG form, it must be 0x0 to 0xf without padding zeroes.",
+        `The given hex string ${typeTag} is a special address not in LONG form, it must be 0x0 to 0xf without padding zeroes.`,
       );
     }
 
