@@ -10,9 +10,7 @@ import { ScriptTransactionArgument } from "./scriptTransactionArguments";
 import { ModuleId } from "./moduleId";
 import { TransactionPayloadVariants } from "../../types";
 import { TypeTag } from "../typeTag/typeTag";
-import { U8 } from "../../bcs/serializable/move-primitives";
-import { MoveVector } from "../../bcs/serializable/move-structs";
-import { FixedBytes } from "../../bcs/serializable/fixed-bytes";
+import { EntryFunctionArgument, EntryFunctionBytes, ScriptFunctionArgument } from "./transactionArgument";
 
 /**
  * Representation of the supported Transaction Payload
@@ -119,7 +117,7 @@ export class EntryFunction {
 
   public readonly type_args: Array<TypeTag>;
 
-  public readonly args: Array<Serializable>;
+  public readonly args: Array<EntryFunctionArgument>;
 
   /**
    * Contains the payload to run a function within a module.
@@ -140,7 +138,7 @@ export class EntryFunction {
    * public entry fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    */
-  constructor(module_name: ModuleId, function_name: Identifier, type_args: Array<TypeTag>, args: Array<Serializable>) {
+  constructor(module_name: ModuleId, function_name: Identifier, type_args: Array<TypeTag>, args: Array<EntryFunctionArgument>) {
     this.module_name = module_name;
     this.function_name = function_name;
     this.type_args = type_args;
@@ -172,7 +170,7 @@ export class EntryFunction {
     module_name: `${string}::${string}`,
     function_name: string,
     type_args: Array<TypeTag>,
-    args: Array<Serializable>,
+    args: Array<EntryFunctionArgument>,
   ): EntryFunction {
     return new EntryFunction(ModuleId.fromStr(module_name), new Identifier(function_name), type_args, args);
   }
@@ -181,20 +179,20 @@ export class EntryFunction {
     this.module_name.serialize(serializer);
     this.function_name.serialize(serializer);
     serializer.serializeVector<TypeTag>(this.type_args);
-
     serializer.serializeU32AsUleb128(this.args.length);
-    this.args.forEach((item: Serializable) => {
-      const bytes = item.bcsToBytes();
-      serializer.serializeBytes(bytes);
+    this.args.forEach((item: EntryFunctionArgument) => {
+      item.serializeForEntryFunction(serializer);
     });
   }
 
   /**
-   * Deserializes an entry function payload with the arguments represented as FixedBytes instances.
-   * @see FixedBytes
+   * Deserializes an entry function payload with the arguments represented as EntryFunctionBytes instances.
+   * @see EntryFunctionBytes
    *
    * NOTE: When you deserialize an EntryFunction payload with this method, the entry function
-   * arguments are populated as type-agnostic, raw fixed bytes in the form of the FixedBytes class.
+   * arguments are populated into the deserialized instance as type-agnostic, raw fixed bytes
+   * in the form of the EntryFunctionBytes class.
+   * 
    * In order to correctly deserialize these arguments as their actual type representations, you
    * must know the types of the arguments beforehand and deserialize them yourself individually.
    *
@@ -211,15 +209,13 @@ export class EntryFunction {
     const type_args = deserializer.deserializeVector(TypeTag);
 
     const length = deserializer.deserializeUleb128AsU32();
-    const list: Array<Serializable> = new Array<MoveVector<U8>>();
+    const args: Array<EntryFunctionArgument> = new Array<EntryFunctionBytes>();
 
     for (let i = 0; i < length; i += 1) {
       const fixedBytesLength = deserializer.deserializeUleb128AsU32();
-      const fixedBytes = FixedBytes.deserialize(deserializer, fixedBytesLength);
-      list.push(fixedBytes);
+      const fixedBytes = EntryFunctionBytes.deserialize(deserializer, fixedBytesLength);
+      args.push(fixedBytes);
     }
-
-    const args = list;
 
     return new EntryFunction(module_name, function_name, type_args, args);
   }
@@ -242,7 +238,7 @@ export class Script {
   /**
    * The arguments that the bytecode function requires.
    */
-  public readonly args: Array<ScriptTransactionArgument>;
+  public readonly args: Array<ScriptFunctionArgument>;
 
   /**
    * Scripts contain the Move bytecodes payload that can be submitted to Aptos chain for execution.
@@ -263,7 +259,7 @@ export class Script {
    * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
    * ```
    */
-  constructor(bytecode: Uint8Array, type_args: Array<TypeTag>, args: Array<ScriptTransactionArgument>) {
+  constructor(bytecode: Uint8Array, type_args: Array<TypeTag>, args: Array<ScriptFunctionArgument>) {
     this.bytecode = bytecode;
     this.type_args = type_args;
     this.args = args;
@@ -272,7 +268,10 @@ export class Script {
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.bytecode);
     serializer.serializeVector<TypeTag>(this.type_args);
-    serializer.serializeVector<ScriptTransactionArgument>(this.args);
+    serializer.serializeU32AsUleb128(this.args.length);
+    this.args.forEach((item: ScriptFunctionArgument) => {
+      item.serializeForScriptFunction(serializer);
+    });
   }
 
   static deserialize(deserializer: Deserializer): Script {

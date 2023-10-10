@@ -5,6 +5,8 @@ import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { HexInput } from "../types";
 import { ParsingError, ParsingResult } from "./common";
 import { Deserializer, Serializable, Serializer } from "../bcs";
+import { TransactionArgument } from "../transactions/instances/transactionArgument";
+import { ScriptTransactionArgumentAddress } from "../transactions/instances";
 
 /**
  * This enum is used to explain why an address was invalid.
@@ -35,7 +37,7 @@ export enum AddressInvalidReason {
  * The comments in this class make frequent reference to the LONG and SHORT formats,
  * as well as "special" addresses. To learn what these refer to see AIP-40.
  */
-export class AccountAddress extends Serializable {
+export class AccountAddress extends Serializable implements TransactionArgument {
   /*
    * This is the internal representation of an account address.
    */
@@ -179,6 +181,15 @@ export class AccountAddress extends Serializable {
    */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.data);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    serializer.serialize(this);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    const scriptTxArg = new ScriptTransactionArgumentAddress(this);
+    serializer.serialize(scriptTxArg);
   }
 
   /**

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptos_config";
-import { Serializable } from "../bcs";
 import { AccountAddress } from "../core";
 import { PublicKey } from "../core/crypto/asymmetric_crypto";
 import { HexInput, MoveStructType } from "../types";
@@ -10,11 +9,11 @@ import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
   RawTransaction,
-  ScriptTransactionArgument,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
+import { EntryFunctionArgument, ScriptFunctionArgument } from "./instances/transactionArgument";
 import { TypeTag } from "./typeTag/typeTag";
 
 /**
@@ -54,7 +53,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
 export type EntryFunctionData = {
   function: MoveStructType;
   type_arguments: Array<TypeTag>;
-  arguments: Array<Serializable>;
+  arguments: Array<EntryFunctionArgument>;
 };
 
 /**
@@ -70,7 +69,7 @@ export type MultiSigData = {
 export type ScriptData = {
   bytecode: string;
   type_arguments: Array<TypeTag>;
-  arguments: Array<ScriptTransactionArgument>;
+  arguments: Array<ScriptFunctionArgument>;
 };
 
 /**

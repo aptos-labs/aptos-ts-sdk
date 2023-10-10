@@ -5,6 +5,10 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializer } from "../deserializer";
 import { HexInput } from "../../types";
 import { Hex } from "../../core";
+import {
+  EntryFunctionArgument,
+  TransactionArgument,
+} from "../../transactions/instances/transactionArgument";
 
 /**
  *  This class exists to represent a contiguous sequence of BCS bytes that when serialized
@@ -30,7 +34,7 @@ import { Hex } from "../../core";
  * const fixedBytes = FixedBytes.deserialize(deserializer, 32);
  * @see EntryFunction
  */
-export class FixedBytes extends Serializable {
+export class FixedBytes extends Serializable implements TransactionArgument {
   public value: Uint8Array;
 
   constructor(value: HexInput) {
@@ -40,6 +44,14 @@ export class FixedBytes extends Serializable {
 
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    serializer.serialize(this);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer, length: number): FixedBytes {

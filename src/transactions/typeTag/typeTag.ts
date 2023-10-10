@@ -235,7 +235,7 @@ export class StructTag extends Serializable {
   }
 }
 
-export const stringStructTag = new StructTag(
+export const stringStructTag = () => new StructTag(
   AccountAddress.ONE,
   new Identifier("string"),
   new Identifier("String"),
@@ -352,7 +352,7 @@ export class TypeTagParser {
       return new TypeTagVector(res);
     }
     if (tokenVal === "string") {
-      return new TypeTagStruct(stringStructTag);
+      return new TypeTagStruct(stringStructTag());
     }
     if (tokenTy === "IDENT" && (tokenVal.startsWith("0x") || tokenVal.startsWith("0X"))) {
       const address = AccountAddress.fromHexInput({ input: tokenVal });

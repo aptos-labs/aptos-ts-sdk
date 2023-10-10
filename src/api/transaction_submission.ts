@@ -14,6 +14,7 @@ import {
   GenerateSingleSignerRawTransactionInput,
   SingleSignerTransaction,
   SimulateTransactionData,
+  GenerateSingleSignerRawTransactionArgs,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse } from "../types";
 import {
