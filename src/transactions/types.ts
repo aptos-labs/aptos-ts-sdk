@@ -196,7 +196,7 @@ export interface GenerateSingleSignerRawTransactionInput {
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
   options?: GenerateTransactionOptions;
-  data: EntryFunctionData | ScriptData | MultiSigData;
+  data: GenerateTransactionPayloadData;
 }
 
 /**
@@ -207,7 +207,7 @@ export interface GenerateFeePayerRawTransactionInput {
   feePayerAddress: HexInput;
   secondarySignerAddresses?: HexInput[];
   options?: GenerateTransactionOptions;
-  data: EntryFunctionData | ScriptData | MultiSigData;
+  data: GenerateTransactionPayloadData;
 }
 
 /**

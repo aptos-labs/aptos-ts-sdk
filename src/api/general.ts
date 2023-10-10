@@ -63,7 +63,10 @@ export class General {
    * @returns Block
    */
   async getBlockByVersion(args: { blockVersion: number; options?: { withTransactions?: boolean } }): Promise<Block> {
-    const block = await getBlockByVersion({ aptosConfig: this.config, ...args });
+    const block = await getBlockByVersion({
+      aptosConfig: this.config,
+      ...args,
+    });
     return block;
   }
 
@@ -139,7 +142,10 @@ export class General {
    * @return The provided T type
    */
   async queryIndexer<T>(args: { query: GraphqlQuery }): Promise<T> {
-    const response = await queryIndexer<T>({ aptosConfig: this.config, ...args });
+    const response = await queryIndexer<T>({
+      aptosConfig: this.config,
+      ...args,
+    });
     return response;
   }
 }
