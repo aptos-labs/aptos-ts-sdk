@@ -25,6 +25,8 @@
     "fmt": "pnpm _fmt --write",
     "lint": "eslint \"**/*.ts\"",
     "test": "pnpm jest",
+    "unit-test": "pnpm jest tests/unit",
+    "e2e-test": "pnpm jest tests/e2e",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml"
   },
   "dependencies": {
