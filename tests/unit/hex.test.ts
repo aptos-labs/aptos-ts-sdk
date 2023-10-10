@@ -54,7 +54,9 @@ test("converts hex bytes to string", () => {
 });
 
 test("converts hex bytes to string without 0x prefix", () => {
-  const hex = Hex.fromHexInput({ hexInput: mockHex.withPrefix }).toStringWithoutPrefix();
+  const hex = Hex.fromHexInput({
+    hexInput: mockHex.withPrefix,
+  }).toStringWithoutPrefix();
   expect(hex).toEqual(mockHex.withoutPrefix);
 });
 

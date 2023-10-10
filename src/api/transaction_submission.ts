@@ -50,7 +50,7 @@ export class TransactionSubmission {
    * @param args.options optional. GenerateTransactionOptions type
    *
    * @example
-   * For a singale signer entry function
+   * For a single signer entry function
    * move function name, move function type arguments, move function arguments
    * `
    * data: {
@@ -61,7 +61,7 @@ export class TransactionSubmission {
    * `
    *
    * @example
-   * For a singale signer script function
+   * For a single signer script function
    * module bytecode, move function type arguments, move function arguments
    * ```
    * data: {
@@ -125,7 +125,9 @@ export class TransactionSubmission {
    * @param options optional. A config to simulate the transaction with
    */
   async simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>> {
-    const signedTransaction = generateSignedTransactionForSimulation({ ...args });
+    const signedTransaction = generateSignedTransactionForSimulation({
+      ...args,
+    });
     const { data } = await postAptosFullNode<Uint8Array, Array<UserTransactionResponse>>({
       aptosConfig: this.config,
       body: signedTransaction,
