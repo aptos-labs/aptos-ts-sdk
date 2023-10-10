@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * This file handles the transaction creation lifecycle.
  * It holds different operations to generate a transaction payload, a raw transaciotn,

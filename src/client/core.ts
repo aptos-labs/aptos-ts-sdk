@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import aptosClient from "@aptos-labs/aptos-client";
 import { AptosApiError, AptosResponse, MimeType } from "./types";
 import { VERSION } from "../version";

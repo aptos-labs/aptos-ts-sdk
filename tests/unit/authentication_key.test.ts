@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AuthenticationKey } from "../../src/crypto/authentication_key";
 import { Ed25519PublicKey } from "../../src/crypto/ed25519";
 import { MultiEd25519PublicKey } from "../../src/crypto/multi_ed25519";

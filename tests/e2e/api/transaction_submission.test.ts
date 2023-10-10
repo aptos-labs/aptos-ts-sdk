@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AptosConfig, Network, Aptos, Deserializer } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";

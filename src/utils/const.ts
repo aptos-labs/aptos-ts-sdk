@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { Network } from "./api-endpoints";
 
 export const DEFAULT_NETWORK = Network.DEVNET;

@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 /**
  * GENERATED QUERY TYPES FROM GRAPHQL SCHEMA
  *

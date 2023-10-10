@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { AptosConfig, Aptos } from "../../../src";
 import { GraphqlQuery, ViewRequest } from "../../../src/types";
 import { Network } from "../../../src/utils/api-endpoints";
