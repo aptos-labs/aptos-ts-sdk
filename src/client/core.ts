@@ -44,7 +44,14 @@ async function request<Req, Res>(
    * make a call using the @aptos-labs/aptos-client package
    * {@link https://www.npmjs.com/package/@aptos-labs/aptos-client}
    */
-  const response = await aptosClient<Res>({ url, method, body, params, headers, overrides });
+  const response = await aptosClient<Res>({
+    url,
+    method,
+    body,
+    params,
+    headers,
+    overrides,
+  });
   return response;
 }
 

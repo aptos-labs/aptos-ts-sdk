@@ -24,7 +24,9 @@ export async function fundAccount(args: {
     aptosConfig,
     path: "mint",
     params: {
-      accountAddress: AccountAddress.fromHexInput({ input: accountAddress }).toString(),
+      accountAddress: AccountAddress.fromHexInput({
+        input: accountAddress,
+      }).toString(),
       amount,
     },
     originMethod: "fundAccount",

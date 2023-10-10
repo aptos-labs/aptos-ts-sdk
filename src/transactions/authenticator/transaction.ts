@@ -141,7 +141,10 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
 
   public readonly secondary_signers: Array<AccountAuthenticator>;
 
-  public readonly fee_payer: { address: AccountAddress; authenticator: AccountAuthenticator };
+  public readonly fee_payer: {
+    address: AccountAddress;
+    authenticator: AccountAuthenticator;
+  };
 
   /**
    * Transaction authenticator for a fee payer transaction

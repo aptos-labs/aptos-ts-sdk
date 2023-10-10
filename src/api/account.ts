@@ -124,7 +124,10 @@ export class Account {
     accountAddress: HexInput;
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
-    const transactions = await getTransactions({ aptosConfig: this.config, ...args });
+    const transactions = await getTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
     return transactions;
   }
 
@@ -177,7 +180,10 @@ export class Account {
    * @returns An object { count : number }
    */
   async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<GetAccountTokensCountQueryResponse> {
-    const count = await getAccountTokensCount({ aptosConfig: this.config, ...args });
+    const count = await getAccountTokensCount({
+      aptosConfig: this.config,
+      ...args,
+    });
     return count;
   }
 
@@ -198,7 +204,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensQueryResponse> {
-    const tokens = await getAccountOwnedTokens({ aptosConfig: this.config, ...args });
+    const tokens = await getAccountOwnedTokens({
+      aptosConfig: this.config,
+      ...args,
+    });
     return tokens;
   }
 
@@ -221,7 +230,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-    const tokens = await getAccountOwnedTokensFromCollectionAddress({ aptosConfig: this.config, ...args });
+    const tokens = await getAccountOwnedTokensFromCollectionAddress({
+      aptosConfig: this.config,
+      ...args,
+    });
     return tokens;
   }
 
@@ -242,7 +254,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
     };
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
-    const collections = await getAccountCollectionsWithOwnedTokens({ aptosConfig: this.config, ...args });
+    const collections = await getAccountCollectionsWithOwnedTokens({
+      aptosConfig: this.config,
+      ...args,
+    });
     return collections;
   }
 
@@ -253,7 +268,10 @@ export class Account {
    * @returns An object { count : number }
    */
   async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<GetAccountTransactionsCountResponse> {
-    const count = getAccountTransactionsCount({ aptosConfig: this.config, ...args });
+    const count = getAccountTransactionsCount({
+      aptosConfig: this.config,
+      ...args,
+    });
     return count;
   }
 
@@ -270,7 +288,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
     };
   }): Promise<GetAccountCoinsDataResponse> {
-    const data = await getAccountCoinsData({ aptosConfig: this.config, ...args });
+    const data = await getAccountCoinsData({
+      aptosConfig: this.config,
+      ...args,
+    });
     return data;
   }
 
@@ -298,7 +319,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
     };
   }): Promise<GetAccountOwnedObjectsResponse> {
-    const objects = getAccountOwnedObjects({ aptosConfig: this.config, ...args });
+    const objects = getAccountOwnedObjects({
+      aptosConfig: this.config,
+      ...args,
+    });
     return objects;
   }
 }

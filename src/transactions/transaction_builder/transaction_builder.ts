@@ -136,15 +136,22 @@ export async function generateRawTransaction(args: {
   options?: GenerateTransactionOptions;
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options } = args;
-  const [{ sequence_number: sequenceNumber }, chainId, { gas_estimate: gasEstimate }] = await Promise.all([
-    options?.accountSequenceNumber
-      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
-      : await getInfo({ aptosConfig, accountAddress: sender }),
-    NetworkToChainId[aptosConfig.network] ?? (await getLedgerInfo({ aptosConfig })).chain_id,
-    options?.gasUnitPrice
-      ? Promise.resolve({ gas_estimate: options.gasUnitPrice })
-      : await getGasPriceEstimation({ aptosConfig }),
-  ]);
+
+  const getSequenceNumber = options?.accountSequenceNumber
+    ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
+    : getInfo({ aptosConfig, accountAddress: sender });
+
+  const getChainId = NetworkToChainId[aptosConfig.network]
+    ? Promise.resolve({ chain_id: NetworkToChainId[aptosConfig.network] })
+    : getLedgerInfo({ aptosConfig });
+
+  const getGasUnitPrice = options?.gasUnitPrice
+    ? Promise.resolve({ gas_estimate: options.gasUnitPrice })
+    : getGasPriceEstimation({ aptosConfig });
+
+  const [{ sequence_number: sequenceNumber }, { chain_id: chainId }, { gas_estimate: gasEstimate }] = await Promise.all(
+    [getSequenceNumber, getChainId, getGasUnitPrice],
+  );
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
     maxGasAmount: BigInt(DEFAULT_MAX_GAS_AMOUNT),
@@ -201,7 +208,12 @@ export async function generateTransaction(args: GenerateRawTransactionArgs): Pro
 export async function generateTransaction(args: GenerateRawTransactionArgs): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, payload, options, secondarySignerAddresses, feePayerAddress } = args;
   // generate raw transaction
-  const rawTxn = await generateRawTransaction({ aptosConfig, sender, payload, options });
+  const rawTxn = await generateRawTransaction({
+    aptosConfig,
+    sender,
+    payload,
+    options,
+  });
 
   if (feePayerAddress) {
     const signers: Array<AccountAddress> = secondarySignerAddresses
@@ -238,12 +250,12 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
 
   const deserializer = new Deserializer(transaction.rawTransaction);
-  const desirializedTransaction = RawTransaction.deserialize(deserializer);
+  const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
   // fee payer transaction
   if (transaction.feePayerAddress) {
     const transactionToSign = new FeePayerRawTransaction(
-      desirializedTransaction,
+      deserializedTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
@@ -266,7 +278,10 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       accountAuthenticator,
       transaction.secondarySignerAddresses ?? [],
       secondaryAccountAuthenticators ?? [],
-      { address: transaction.feePayerAddress, authenticator: feePayerAuthenticator },
+      {
+        address: transaction.feePayerAddress,
+        authenticator: feePayerAuthenticator,
+      },
     );
     return new SignedTransaction(transactionToSign.raw_txn, transactionAuthenticator).bcsToBytes();
   }
@@ -274,7 +289,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
   // multi agent transaction
   if (transaction.secondarySignerAddresses) {
     const transactionToSign = new MultiAgentRawTransaction(
-      desirializedTransaction,
+      deserializedTransaction,
       transaction.secondarySignerAddresses,
     );
 
@@ -311,7 +326,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
     accountAuthenticator.public_key,
     accountAuthenticator.signature,
   );
-  return new SignedTransaction(desirializedTransaction, transactionAuthenticator).bcsToBytes();
+  return new SignedTransaction(deserializedTransaction, transactionAuthenticator).bcsToBytes();
 }
 
 /**
@@ -325,7 +340,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
 export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
 
-  const transactionToSign = derieveTransactionType(transaction);
+  const transactionToSign = deriveTransactionType(transaction);
 
   // get the signing message
   const message = getSigningMessage(transactionToSign);
@@ -347,7 +362,7 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
       );
     // TODO support MultiEd25519
     default:
-      throw new Error(`can't sign transaction, signing scheme not supported ${signer.signingScheme}`);
+      throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
   }
 }
 
@@ -370,7 +385,7 @@ export function generateSignedTransaction(args: {
 }): Uint8Array {
   const { transaction, senderAuthenticator, secondarySignerAuthenticators } = args;
 
-  const transactionToSubmit = derieveTransactionType(transaction);
+  const transactionToSubmit = deriveTransactionType(transaction);
 
   if (secondarySignerAuthenticators) {
     return generateMultiSignersSignedTransaction(
@@ -405,7 +420,7 @@ export function generateSignedTransaction(args: {
   }
 
   throw new Error(
-    `can not generate signed transaction, ${accountAuthenticator} is not a supported account authentication`,
+    `Cannot generate a signed transaction, ${accountAuthenticator} is not a supported account authentication scheme`,
   );
 }
 
@@ -416,22 +431,22 @@ export function generateSignedTransaction(args: {
  *
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
-export function derieveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
+export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
   const deserializer = new Deserializer(transaction.rawTransaction);
-  const desirializedTransaction = RawTransaction.deserialize(deserializer);
+  const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
   if (transaction.feePayerAddress) {
     return new FeePayerRawTransaction(
-      desirializedTransaction,
+      deserializedTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
   }
   if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(desirializedTransaction, transaction.secondarySignerAddresses);
+    return new MultiAgentRawTransaction(deserializedTransaction, transaction.secondarySignerAddresses);
   }
 
-  return desirializedTransaction as RawTransaction;
+  return deserializedTransaction as RawTransaction;
 }
 
 /**
@@ -460,7 +475,10 @@ export function generateMultiSignersSignedTransaction(
       senderAuthenticator,
       transaction.secondary_signer_addresses,
       additionalSignersAuthenticators ?? [],
-      { address: transaction.fee_payer_address, authenticator: feePayerAuthenticator },
+      {
+        address: transaction.fee_payer_address,
+        authenticator: feePayerAuthenticator,
+      },
     );
     return new SignedTransaction(transaction.raw_txn, txAuthenticatorFeePayer).bcsToBytes();
   }
@@ -480,7 +498,7 @@ export function generateMultiSignersSignedTransaction(
   }
 
   throw new Error(
-    `cann not prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
+    `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
   );
 }
 

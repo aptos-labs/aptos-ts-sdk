@@ -89,7 +89,9 @@ describe("Ed25519 Account", () => {
 describe("Secp256k1 Account", () => {
   it("should create an instance of Account correctly without error", () => {
     // Account with Secp256k1 scheme
-    const secp256k1Account = Account.generate({ scheme: SigningScheme.Secp256k1Ecdsa });
+    const secp256k1Account = Account.generate({
+      scheme: SigningScheme.Secp256k1Ecdsa,
+    });
     expect(secp256k1Account).toBeInstanceOf(Account);
     expect(secp256k1Account.signingScheme).toEqual(SigningScheme.Secp256k1Ecdsa);
   });
@@ -152,7 +154,9 @@ describe("Secp256k1 Account", () => {
     const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
 
     // Sign the message
-    const secp256k1PrivateKey = new Secp256k1PrivateKey({ hexInput: privateKeyBytes });
+    const secp256k1PrivateKey = new Secp256k1PrivateKey({
+      hexInput: privateKeyBytes,
+    });
     const account = Account.fromPrivateKeyAndAddress({
       privateKey: secp256k1PrivateKey,
       address: AccountAddress.fromString({ input: address }),

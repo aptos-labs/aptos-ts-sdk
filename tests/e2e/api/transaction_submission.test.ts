@@ -146,7 +146,10 @@ describe("transaction submission", () => {
           arguments: [],
         },
       });
-      const accountAuthenticator = aptos.signTransaction({ signer: alice, transaction: rawTxn });
+      const accountAuthenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -171,7 +174,10 @@ describe("transaction submission", () => {
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
       });
-      const accountAuthenticator = aptos.signTransaction({ signer: alice, transaction: rawTxn });
+      const accountAuthenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -195,7 +201,10 @@ describe("transaction submission", () => {
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
       });
-      const accountAuthenticator = aptos.signTransaction({ signer: alice, transaction: rawTxn });
+      const accountAuthenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -232,12 +241,20 @@ describe("transaction submission", () => {
           ],
         },
       });
-      const authenticator = aptos.signTransaction({ signer: alice, transaction: rawTxn });
-      const bobauthenticator = aptos.signTransaction({ signer: bob, transaction: rawTxn });
+      const authenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
+      const bobauthenticator = aptos.signTransaction({
+        signer: bob,
+        transaction: rawTxn,
+      });
       const response = await aptos.submitTransaction({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
-        secondarySignerAuthenticators: { additionalSignersAuthenticators: [bobauthenticator] },
+        secondarySignerAuthenticators: {
+          additionalSignersAuthenticators: [bobauthenticator],
+        },
       });
       expect(response).toHaveProperty("hash");
     });
@@ -254,7 +271,8 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput:
+            "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -266,8 +284,14 @@ describe("transaction submission", () => {
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
       });
-      const authenticator = aptos.signTransaction({ signer: alice, transaction: rawTxn });
-      const response = await aptos.submitTransaction({ transaction: rawTxn, senderAuthenticator: authenticator });
+      const authenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
+      const response = await aptos.submitTransaction({
+        transaction: rawTxn,
+        senderAuthenticator: authenticator,
+      });
       expect(response).toHaveProperty("hash");
     });*/
   });

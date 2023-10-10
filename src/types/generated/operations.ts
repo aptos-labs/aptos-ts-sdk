@@ -51,7 +51,9 @@ export type GetAccountCoinsCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetAccountCoinsCountQuery = {
-  current_fungible_asset_balances_aggregate: { aggregate?: { count: number } | null };
+  current_fungible_asset_balances_aggregate: {
+    aggregate?: { count: number } | null;
+  };
 };
 
 export type GetAccountCoinsDataQueryVariables = Types.Exact<{
@@ -320,7 +322,9 @@ export type GetAccountTokensCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetAccountTokensCountQuery = {
-  current_token_ownerships_v2_aggregate: { aggregate?: { count: number } | null };
+  current_token_ownerships_v2_aggregate: {
+    aggregate?: { count: number } | null;
+  };
 };
 
 export type GetAccountTransactionsCountQueryVariables = Types.Exact<{
