@@ -25,7 +25,10 @@ export class Transaction {
    * @returns Array of on-chain transactions
    */
   async getTransactions(args: { options?: PaginationArgs }): Promise<TransactionResponse[]> {
-    const transactions = await getTransactions({ aptosConfig: this.config, ...args });
+    const transactions = await getTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
     return transactions;
   }
 
@@ -35,7 +38,10 @@ export class Transaction {
    * function cannot be used to query pending transactions.
    */
   async getTransactionByVersion(args: { txnVersion: AnyNumber }): Promise<TransactionResponse> {
-    const transaction = await getTransactionByVersion({ aptosConfig: this.config, ...args });
+    const transaction = await getTransactionByVersion({
+      aptosConfig: this.config,
+      ...args,
+    });
     return transaction;
   }
 
@@ -44,7 +50,10 @@ export class Transaction {
    * @returns Transaction from mempool (pending) or on-chain (committed) transaction
    */
   async getTransactionByHash(args: { txnHash: HexInput }): Promise<TransactionResponse> {
-    const transaction = await getTransactionByHash({ aptosConfig: this.config, ...args });
+    const transaction = await getTransactionByHash({
+      aptosConfig: this.config,
+      ...args,
+    });
     return transaction;
   }
 
@@ -61,13 +70,16 @@ export class Transaction {
    * @returns `true` if transaction is in pending state and `false` otherwise
    */
   async isPendingTransaction(args: { txnHash: HexInput }): Promise<boolean> {
-    const isPending = await isTransactionPending({ aptosConfig: this.config, ...args });
+    const isPending = await isTransactionPending({
+      aptosConfig: this.config,
+      ...args,
+    });
     return isPending;
   }
 
   /**
    * Waits for a transaction to move past the pending state.
-   * 
+   *
    * There are 4 cases.
    * 1. Transaction is successfully processed and committed to the chain.
    *    - The function will resolve with the transaction response from the API.
@@ -79,11 +91,11 @@ export class Transaction {
    *      If `checkSuccess` is false, the function will resolve with the transaction response where the `success` field is false.
    * 4. Transaction does not move past the pending state within `extraArgs.timeoutSecs` seconds.
    *    - The function will throw a WaitForTransactionError
-   * 
-   * 
+   *
+   *
    * @param txnHash The hash of a transaction previously submitted to the blockchain.
    * @param extraArgs.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
-   * @param extraArgs.checkSuccess A boolean which controls whether the function will error if the transaction failed. 
+   * @param extraArgs.checkSuccess A boolean which controls whether the function will error if the transaction failed.
    *   Defaults to true.  See case 3 above.
    * @returns The transaction on-chain.  See above for more details.
    */
@@ -91,7 +103,10 @@ export class Transaction {
     txnHash: HexInput;
     extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean };
   }): Promise<TransactionResponse> {
-    const transaction = await waitForTransaction({ aptosConfig: this.config, ...args });
+    const transaction = await waitForTransaction({
+      aptosConfig: this.config,
+      ...args,
+    });
     return transaction;
   }
 
@@ -111,7 +126,9 @@ export class Transaction {
    * ```
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
-    const gasEstimation = await getGasPriceEstimation({ aptosConfig: this.config });
+    const gasEstimation = await getGasPriceEstimation({
+      aptosConfig: this.config,
+    });
     return gasEstimation;
   }
 }

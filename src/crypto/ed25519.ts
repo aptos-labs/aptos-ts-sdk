@@ -64,7 +64,9 @@ export class Ed25519PublicKey extends PublicKey {
   verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
     const { message, signature } = args;
     const rawMessage = Hex.fromHexInput({ hexInput: message }).toUint8Array();
-    const rawSignature = Hex.fromHexInput({ hexInput: signature.toUint8Array() }).toUint8Array();
+    const rawSignature = Hex.fromHexInput({
+      hexInput: signature.toUint8Array(),
+    }).toUint8Array();
     return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
   }
 
@@ -157,7 +159,9 @@ export class Ed25519PrivateKey extends PrivateKey {
    */
   static generate(): Ed25519PrivateKey {
     const keyPair = nacl.sign.keyPair();
-    return new Ed25519PrivateKey({ hexInput: keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH) });
+    return new Ed25519PrivateKey({
+      hexInput: keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH),
+    });
   }
 
   /**

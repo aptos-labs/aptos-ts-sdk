@@ -14,7 +14,7 @@ import {
   TransactionPayloadScript,
 } from "../../src/transactions/instances";
 import {
-  derieveTransactionType,
+  deriveTransactionType,
   generateRawTransaction,
   generateSignedTransaction,
   generateSignedTransactionForSimulation,
@@ -180,7 +180,9 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const secondarySignerAddress = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const secondarySignerAddress = Account.generate({
+        scheme: SigningScheme.Ed25519,
+      });
       const transaction = await generateTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
@@ -236,7 +238,9 @@ describe("transaction builder", () => {
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
       const feePayer = Account.generate({ scheme: SigningScheme.Ed25519 });
-      const secondarySignerAddress = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const secondarySignerAddress = Account.generate({
+        scheme: SigningScheme.Ed25519,
+      });
       const transaction = await generateTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
@@ -315,7 +319,10 @@ describe("transaction builder", () => {
         sender: alice.accountAddress.toString(),
         payload,
       });
-      const accountAuthenticator = signTransaction({ signer: alice, transaction });
+      const accountAuthenticator = signTransaction({
+        signer: alice,
+        transaction,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -340,9 +347,14 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        feePayerAddress: Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress.toString(),
+        feePayerAddress: Account.generate({
+          scheme: SigningScheme.Ed25519,
+        }).accountAddress.toString(),
       });
-      const accountAuthenticator = signTransaction({ signer: alice, transaction });
+      const accountAuthenticator = signTransaction({
+        signer: alice,
+        transaction,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -375,7 +387,10 @@ describe("transaction builder", () => {
         payload,
         secondarySignerAddresses: [bob.accountAddress.toString()],
       });
-      const accountAuthenticator = signTransaction({ signer: alice, transaction: rawTxn });
+      const accountAuthenticator = signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
@@ -438,11 +453,16 @@ describe("transaction builder", () => {
         secondarySignerAddresses: [bob.accountAddress.toString()],
       });
       const authenticator = signTransaction({ signer: alice, transaction });
-      const secondaryAuthenticator = signTransaction({ signer: bob, transaction });
+      const secondaryAuthenticator = signTransaction({
+        signer: bob,
+        transaction,
+      });
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
-        secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondaryAuthenticator] },
+        secondarySignerAuthenticators: {
+          additionalSignersAuthenticators: [secondaryAuthenticator],
+        },
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);
@@ -470,11 +490,16 @@ describe("transaction builder", () => {
         feePayerAddress: bob.accountAddress.toString(),
       });
       const authenticator = signTransaction({ signer: alice, transaction });
-      const feePayerAuthenticator = signTransaction({ signer: bob, transaction });
+      const feePayerAuthenticator = signTransaction({
+        signer: bob,
+        transaction,
+      });
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
-        secondarySignerAuthenticators: { feePayerAuthenticator: feePayerAuthenticator },
+        secondarySignerAuthenticators: {
+          feePayerAuthenticator: feePayerAuthenticator,
+        },
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);
@@ -482,7 +507,7 @@ describe("transaction builder", () => {
       expect(signedTransaction instanceof SignedTransaction).toBeTruthy();
     });
   });
-  describe("derieveTransactionType", () => {
+  describe("deriveTransactionType", () => {
     test("it derieves the transaction type as a RawTransaction", async () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
@@ -501,7 +526,7 @@ describe("transaction builder", () => {
         sender: alice.accountAddress.toString(),
         payload,
       });
-      const transactionType = derieveTransactionType(transaction);
+      const transactionType = deriveTransactionType(transaction);
       expect(transactionType instanceof RawTransaction).toBeTruthy();
     });
 
@@ -522,10 +547,12 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        feePayerAddress: Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress.toString(),
+        feePayerAddress: Account.generate({
+          scheme: SigningScheme.Ed25519,
+        }).accountAddress.toString(),
       });
 
-      const transactionType = derieveTransactionType(transaction);
+      const transactionType = deriveTransactionType(transaction);
       expect(transactionType instanceof FeePayerRawTransaction).toBeTruthy();
     });
 
@@ -546,9 +573,13 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        secondarySignerAddresses: [Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress.toString()],
+        secondarySignerAddresses: [
+          Account.generate({
+            scheme: SigningScheme.Ed25519,
+          }).accountAddress.toString(),
+        ],
       });
-      const transactionType = derieveTransactionType(transaction);
+      const transactionType = deriveTransactionType(transaction);
       expect(transactionType instanceof MultiAgentRawTransaction).toBeTruthy();
     });
   });

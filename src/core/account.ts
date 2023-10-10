@@ -94,7 +94,11 @@ export class Account {
       throw new Error(`Can not generate new Private Key, unsupported signing scheme ${scheme}`);
     }
 
-    const address = new AccountAddress({ data: Account.authKey({ publicKey: privateKey.publicKey() }).toUint8Array() });
+    const address = new AccountAddress({
+      data: Account.authKey({
+        publicKey: privateKey.publicKey(),
+      }).toUint8Array(),
+    });
     return new Account({ privateKey, address });
   }
 

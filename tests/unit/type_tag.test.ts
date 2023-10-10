@@ -128,7 +128,9 @@ describe("TypeTagParser", () => {
     });
 
     test("TypeTagParser does not parse unofficial objects", () => {
-      const address = AccountAddress.fromHexInputRelaxed({ input: "0x12345" }).toString();
+      const address = AccountAddress.fromHexInputRelaxed({
+        input: "0x12345",
+      }).toString();
       const typeTag = `${address}::object::Object<T>`;
       const parser = new TypeTagParser(typeTag);
       expect(() => parser.parseTypeTag()).toThrowError("Invalid type tag.");
