@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos } from "../../../src";
-import { Network } from "../../../src/utils/apiEndpoints";
+import { AptosConfig, Aptos, Network } from "../../../src";
 
 describe("transaction api", () => {
   test("it queries for the network estimated gas price", async () => {

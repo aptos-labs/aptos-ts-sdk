@@ -18,7 +18,7 @@ import {
   TypeTagU8,
   TypeTagVector,
 } from "../../src/transactions/typeTag/typeTag";
-import { Deserializer, Serializer } from "../../src/bcs";
+import { Deserializer, Serializer } from "../../src";
 import { AccountAddress, AddressInvalidReason, ParsingError } from "../../src/core";
 
 const expectedTypeTag = {
