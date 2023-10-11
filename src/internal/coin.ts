@@ -7,7 +7,7 @@ import { HexInput, AnyNumber, MoveResourceType } from "../types";
 import { APTOS_COIN } from "../utils/const";
 import { generateTransaction } from "./transaction_submission";
 
-export async function transaferCoinTransaction(args: {
+export async function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   recipient: HexInput;

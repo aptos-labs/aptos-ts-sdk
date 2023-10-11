@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../core";
-import { transaferCoinTransaction } from "../internal/coin";
+import { transferCoinTransaction } from "../internal/coin";
 import { SingleSignerTransaction, GenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, HexInput, MoveResourceType } from "../types";
 import { AptosConfig } from "./aptos_config";
@@ -27,14 +27,14 @@ export class Coin {
    *
    * @returns SingleSignerTransaction
    */
-  async transaferCoinTransaction(args: {
+  async transferCoinTransaction(args: {
     sender: Account;
     recipient: HexInput;
     amount: AnyNumber;
     coinType?: MoveResourceType;
     options?: GenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    const response = await transaferCoinTransaction({ aptosConfig: this.config, ...args });
+    const response = await transferCoinTransaction({ aptosConfig: this.config, ...args });
     return response;
   }
 }

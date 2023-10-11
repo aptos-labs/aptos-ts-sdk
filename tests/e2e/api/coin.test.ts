@@ -12,7 +12,7 @@ describe("coin", () => {
     const recipient = Account.generate({ scheme: SigningScheme.Ed25519 });
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
 
-    const transaction = await aptos.transaferCoinTransaction({
+    const transaction = await aptos.transferCoinTransaction({
       sender,
       recipient: recipient.accountAddress.toString(),
       amount: 10,
@@ -33,7 +33,7 @@ describe("coin", () => {
     const recipient = Account.generate({ scheme: SigningScheme.Ed25519 });
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
 
-    const transaction = await aptos.transaferCoinTransaction({
+    const transaction = await aptos.transferCoinTransaction({
       sender,
       recipient: recipient.accountAddress.toString(),
       amount: 10,
@@ -57,7 +57,7 @@ describe("coin", () => {
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
     const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 
-    const transaction = await aptos.transaferCoinTransaction({
+    const transaction = await aptos.transferCoinTransaction({
       sender,
       recipient: recipient.accountAddress.toString(),
       amount: 10,
