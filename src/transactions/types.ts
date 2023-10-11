@@ -13,8 +13,33 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { EntryFunctionArgument, ScriptFunctionArgument } from "./instances/transactionArgument";
 import { TypeTag } from "./typeTag/typeTag";
+import { MoveObject, MoveOption, MoveVector } from "../bcs/serializable/move-structs";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
+
+export type EntryFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | AccountAddress
+  | MoveObject
+  | MoveVector<EntryFunctionArgumentTypes>
+  | MoveOption<EntryFunctionArgumentTypes>;
+export type ScriptFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | AccountAddress
+  | MoveObject
+  | MoveVector<U8>;
 
 /**
  * Type that holds all raw transaction instances Aptos SDK supports
@@ -53,7 +78,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
 export type EntryFunctionData = {
   function: MoveStructType;
   type_arguments: Array<TypeTag>;
-  arguments: Array<EntryFunctionArgument>;
+  arguments: Array<EntryFunctionArgumentTypes>;
 };
 
 /**
@@ -69,7 +94,7 @@ export type MultiSigData = {
 export type ScriptData = {
   bytecode: string;
   type_arguments: Array<TypeTag>;
-  arguments: Array<ScriptFunctionArgument>;
+  arguments: Array<ScriptFunctionArgumentTypes>;
 };
 
 /**
