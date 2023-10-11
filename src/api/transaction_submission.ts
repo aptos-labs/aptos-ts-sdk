@@ -4,7 +4,6 @@
 import { AptosConfig } from "./aptos_config";
 import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { MimeType, postAptosFullNode } from "../client";
 import {
   AnyRawTransaction,
   GenerateMultiAgentRawTransactionInput,
@@ -18,12 +17,11 @@ import {
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse } from "../types";
 import {
-  generateSignedTransaction,
-  generateSignedTransactionForSimulation,
   generateTransaction,
-  generateTransactionPayload,
   signTransaction,
-} from "../transactions/transaction_builder/transaction_builder";
+  simulateTransaction,
+  submitTransaction,
+} from "../internal/transaction_submission";
 
 export class TransactionSubmission {
   readonly config: AptosConfig;
@@ -84,17 +82,8 @@ export class TransactionSubmission {
    * ```
    */
   async generateTransaction(args: GenerateTransactionInput): Promise<AnyRawTransaction> {
-    const { sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
-    const payload = await generateTransactionPayload(data);
-    const rawTransaction = await generateTransaction({
-      aptosConfig: this.config,
-      sender,
-      payload,
-      options,
-      secondarySignerAddresses,
-      feePayerAddress,
-    });
-    return rawTransaction;
+    const transaction = await generateTransaction({ aptosConfig: this.config, ...args });
+    return transaction;
   }
 
   /**
@@ -128,21 +117,7 @@ export class TransactionSubmission {
    * @param options optional. A config to simulate the transaction with
    */
   async simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>> {
-    const signedTransaction = generateSignedTransactionForSimulation({
-      ...args,
-    });
-    const { data } = await postAptosFullNode<Uint8Array, Array<UserTransactionResponse>>({
-      aptosConfig: this.config,
-      body: signedTransaction,
-      path: "transactions/simulate",
-      params: {
-        estimate_gas_unit_price: args.options?.estimateGasUnitPrice ?? false,
-        estimate_max_gas_amount: args.options?.estimateMaxGasAmount ?? false,
-        estimate_prioritized_gas_unit_price: args.options?.estimatePrioritizedGasUnitPrice ?? false,
-      },
-      originMethod: "simulateTransaction",
-      contentType: MimeType.BCS_SIGNED_TRANSACTION,
-    });
+    const data = await simulateTransaction({ aptosConfig: this.config, ...args });
     return data;
   }
 
@@ -163,14 +138,7 @@ export class TransactionSubmission {
       additionalSignersAuthenticators?: Array<AccountAuthenticator>;
     };
   }): Promise<PendingTransactionResponse> {
-    const signedTransaction = generateSignedTransaction({ ...args });
-    const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
-      aptosConfig: this.config,
-      body: signedTransaction,
-      path: "transactions",
-      originMethod: "submitTransaction",
-      contentType: MimeType.BCS_SIGNED_TRANSACTION,
-    });
+    const data = await submitTransaction({ aptosConfig: this.config, ...args });
     return data;
   }
 }

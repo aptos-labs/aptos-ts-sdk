@@ -16,13 +16,13 @@ import {
   TransactionPayloadScript,
 } from "../../src/transactions/instances";
 import {
+  buildTransaction,
   deriveTransactionType,
   generateRawTransaction,
   generateSignedTransaction,
   generateSignedTransactionForSimulation,
-  generateTransaction,
   generateTransactionPayload,
-  signTransaction,
+  sign,
 } from "../../src/transactions/transaction_builder/transaction_builder";
 import { SigningScheme } from "../../src/types";
 import { SignedTransaction } from "../../src/transactions/instances/signedTransaction";
@@ -158,7 +158,7 @@ describe("transaction builder", () => {
           new ScriptTransactionArgumentU64(BigInt(50)),
         ],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -184,7 +184,7 @@ describe("transaction builder", () => {
       const secondarySignerAddress = Account.generate({
         scheme: SigningScheme.Ed25519,
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -213,7 +213,7 @@ describe("transaction builder", () => {
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
       const feePayer = Account.generate({ scheme: SigningScheme.Ed25519 });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -242,7 +242,7 @@ describe("transaction builder", () => {
       const secondarySignerAddress = Account.generate({
         scheme: SigningScheme.Ed25519,
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -279,7 +279,7 @@ describe("transaction builder", () => {
           new ScriptTransactionArgumentU64(BigInt(50)),
         ],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -315,12 +315,12 @@ describe("transaction builder", () => {
           new ScriptTransactionArgumentU64(BigInt(50)),
         ],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
       });
-      const accountAuthenticator = signTransaction({
+      const accountAuthenticator = sign({
         signer: alice,
         transaction,
       });
@@ -344,7 +344,7 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -352,7 +352,7 @@ describe("transaction builder", () => {
           scheme: SigningScheme.Ed25519,
         }).accountAddress.toString(),
       });
-      const accountAuthenticator = signTransaction({
+      const accountAuthenticator = sign({
         signer: alice,
         transaction,
       });
@@ -382,13 +382,13 @@ describe("transaction builder", () => {
           new ScriptTransactionArgumentU64(BigInt(50)),
         ],
       });
-      const rawTxn = await generateTransaction({
+      const rawTxn = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
         secondarySignerAddresses: [bob.accountAddress.toString()],
       });
-      const accountAuthenticator = signTransaction({
+      const accountAuthenticator = sign({
         signer: alice,
         transaction: rawTxn,
       });
@@ -418,12 +418,12 @@ describe("transaction builder", () => {
           new ScriptTransactionArgumentU64(BigInt(50)),
         ],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
       });
-      const authenticator = signTransaction({ signer: alice, transaction });
+      const authenticator = sign({ signer: alice, transaction });
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
@@ -447,14 +447,14 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
         secondarySignerAddresses: [bob.accountAddress.toString()],
       });
-      const authenticator = signTransaction({ signer: alice, transaction });
-      const secondaryAuthenticator = signTransaction({
+      const authenticator = sign({ signer: alice, transaction });
+      const secondaryAuthenticator = sign({
         signer: bob,
         transaction,
       });
@@ -484,14 +484,14 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
         feePayerAddress: bob.accountAddress.toString(),
       });
-      const authenticator = signTransaction({ signer: alice, transaction });
-      const feePayerAuthenticator = signTransaction({
+      const authenticator = sign({ signer: alice, transaction });
+      const feePayerAuthenticator = sign({
         signer: bob,
         transaction,
       });
@@ -522,7 +522,7 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -544,7 +544,7 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
@@ -570,7 +570,7 @@ describe("transaction builder", () => {
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const transaction = await generateTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
