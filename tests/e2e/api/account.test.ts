@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Aptos, AptosConfig } from "../../../src";
-import { Network } from "../../../src/utils/api-endpoints";
+import { Network } from "../../../src/utils/apiEndpoints";
 
 // TODO
 // add account getTransactions tests once sdk v2 supports faucet (which needs transaction operation support)

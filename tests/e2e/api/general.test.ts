@@ -3,7 +3,7 @@
 
 import { AptosConfig, Aptos } from "../../../src";
 import { GraphqlQuery, ViewRequest } from "../../../src/types";
-import { Network } from "../../../src/utils/api-endpoints";
+import { Network } from "../../../src/utils/apiEndpoints";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {

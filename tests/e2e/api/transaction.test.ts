@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig, Aptos } from "../../../src";
-import { Network } from "../../../src/utils/api-endpoints";
+import { Network } from "../../../src/utils/apiEndpoints";
 
 describe("transaction api", () => {
   test("it queries for the network estimated gas price", async () => {

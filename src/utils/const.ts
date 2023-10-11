@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Network } from "./api-endpoints";
+import { Network } from "./apiEndpoints";
 
 export const DEFAULT_NETWORK = Network.DEVNET;
 export const DEFAULT_TXN_TIMEOUT_SEC = 20;

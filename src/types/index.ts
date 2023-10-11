@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Network } from "../utils/api-endpoints";
+import { Network } from "../utils/apiEndpoints";
 
 export * from "./indexer";
 
