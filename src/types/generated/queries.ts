@@ -205,6 +205,31 @@ export const GetAccountTransactionsCount = `
   }
 }
     `;
+export const GetDelegatedStakingActivities = `
+    query getDelegatedStakingActivities($delegatorAddress: String, $poolAddress: String) {
+  delegated_staking_activities(
+    where: {delegator_address: {_eq: $delegatorAddress}, pool_address: {_eq: $poolAddress}}
+  ) {
+    amount
+    delegator_address
+    event_index
+    event_type
+    pool_address
+    transaction_version
+  }
+}
+    `;
+export const GetNumberOfDelegators = `
+    query getNumberOfDelegators($poolAddress: String) {
+  num_active_delegator_per_pool(
+    where: {pool_address: {_eq: $poolAddress}, num_active_delegator: {_gt: "0"}}
+    distinct_on: pool_address
+  ) {
+    num_active_delegator
+    pool_address
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
@@ -341,6 +366,34 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getAccountTransactionsCount",
+        "query",
+      );
+    },
+    getDelegatedStakingActivities(
+      variables?: Types.GetDelegatedStakingActivitiesQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetDelegatedStakingActivitiesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetDelegatedStakingActivitiesQuery>(GetDelegatedStakingActivities, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getDelegatedStakingActivities",
+        "query",
+      );
+    },
+    getNumberOfDelegators(
+      variables?: Types.GetNumberOfDelegatorsQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetNumberOfDelegatorsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetNumberOfDelegatorsQuery>(GetNumberOfDelegators, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getNumberOfDelegators",
         "query",
       );
     },

@@ -1,14 +1,8 @@
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -2461,6 +2455,8 @@ export type CurrentCollectionOwnershipV2ViewVarianceFields = {
 
 /** columns and relationships of "current_collections_v2" */
 export type CurrentCollectionsV2 = {
+  /** An object relationship */
+  cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
   collection_id: Scalars["String"];
   collection_name: Scalars["String"];
   creator_address: Scalars["String"];
@@ -2482,6 +2478,7 @@ export type CurrentCollectionsV2BoolExp = {
   _and?: InputMaybe<Array<CurrentCollectionsV2BoolExp>>;
   _not?: InputMaybe<CurrentCollectionsV2BoolExp>;
   _or?: InputMaybe<Array<CurrentCollectionsV2BoolExp>>;
+  cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
   collection_id?: InputMaybe<StringComparisonExp>;
   collection_name?: InputMaybe<StringComparisonExp>;
   creator_address?: InputMaybe<StringComparisonExp>;
@@ -2500,6 +2497,7 @@ export type CurrentCollectionsV2BoolExp = {
 
 /** Ordering options when selecting data from "current_collections_v2". */
 export type CurrentCollectionsV2OrderBy = {
+  cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisOrderBy>;
   collection_id?: InputMaybe<OrderBy>;
   collection_name?: InputMaybe<OrderBy>;
   creator_address?: InputMaybe<OrderBy>;
@@ -3392,6 +3390,8 @@ export type CurrentTokenDatasStreamCursorValueInput = {
 export type CurrentTokenDatasV2 = {
   /** An object relationship */
   aptos_name?: Maybe<CurrentAptosNames>;
+  /** An object relationship */
+  cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
   collection_id: Scalars["String"];
   /** An object relationship */
   current_collection?: Maybe<CurrentCollectionsV2>;
@@ -3422,6 +3422,7 @@ export type CurrentTokenDatasV2BoolExp = {
   _not?: InputMaybe<CurrentTokenDatasV2BoolExp>;
   _or?: InputMaybe<Array<CurrentTokenDatasV2BoolExp>>;
   aptos_name?: InputMaybe<CurrentAptosNamesBoolExp>;
+  cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
   collection_id?: InputMaybe<StringComparisonExp>;
   current_collection?: InputMaybe<CurrentCollectionsV2BoolExp>;
   current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
@@ -3442,6 +3443,7 @@ export type CurrentTokenDatasV2BoolExp = {
 /** Ordering options when selecting data from "current_token_datas_v2". */
 export type CurrentTokenDatasV2OrderBy = {
   aptos_name?: InputMaybe<CurrentAptosNamesOrderBy>;
+  cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisOrderBy>;
   collection_id?: InputMaybe<OrderBy>;
   current_collection?: InputMaybe<CurrentCollectionsV2OrderBy>;
   current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2OrderBy>;
@@ -6004,6 +6006,91 @@ export type NftMarketplaceV2NftMarketplaceActivitiesStreamCursorValueInput = {
   transaction_version?: InputMaybe<Scalars["bigint"]>;
 };
 
+/** columns and relationships of "nft_metadata_crawler.parsed_asset_uris" */
+export type NftMetadataCrawlerParsedAssetUris = {
+  animation_optimizer_retry_count: Scalars["Int"];
+  asset_uri: Scalars["String"];
+  cdn_animation_uri?: Maybe<Scalars["String"]>;
+  cdn_image_uri?: Maybe<Scalars["String"]>;
+  cdn_json_uri?: Maybe<Scalars["String"]>;
+  image_optimizer_retry_count: Scalars["Int"];
+  json_parser_retry_count: Scalars["Int"];
+  raw_animation_uri?: Maybe<Scalars["String"]>;
+  raw_image_uri?: Maybe<Scalars["String"]>;
+};
+
+/** Boolean expression to filter rows from the table "nft_metadata_crawler.parsed_asset_uris". All fields are combined with a logical 'AND'. */
+export type NftMetadataCrawlerParsedAssetUrisBoolExp = {
+  _and?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisBoolExp>>;
+  _not?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
+  _or?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisBoolExp>>;
+  animation_optimizer_retry_count?: InputMaybe<IntComparisonExp>;
+  asset_uri?: InputMaybe<StringComparisonExp>;
+  cdn_animation_uri?: InputMaybe<StringComparisonExp>;
+  cdn_image_uri?: InputMaybe<StringComparisonExp>;
+  cdn_json_uri?: InputMaybe<StringComparisonExp>;
+  image_optimizer_retry_count?: InputMaybe<IntComparisonExp>;
+  json_parser_retry_count?: InputMaybe<IntComparisonExp>;
+  raw_animation_uri?: InputMaybe<StringComparisonExp>;
+  raw_image_uri?: InputMaybe<StringComparisonExp>;
+};
+
+/** Ordering options when selecting data from "nft_metadata_crawler.parsed_asset_uris". */
+export type NftMetadataCrawlerParsedAssetUrisOrderBy = {
+  animation_optimizer_retry_count?: InputMaybe<OrderBy>;
+  asset_uri?: InputMaybe<OrderBy>;
+  cdn_animation_uri?: InputMaybe<OrderBy>;
+  cdn_image_uri?: InputMaybe<OrderBy>;
+  cdn_json_uri?: InputMaybe<OrderBy>;
+  image_optimizer_retry_count?: InputMaybe<OrderBy>;
+  json_parser_retry_count?: InputMaybe<OrderBy>;
+  raw_animation_uri?: InputMaybe<OrderBy>;
+  raw_image_uri?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "nft_metadata_crawler.parsed_asset_uris" */
+export enum NftMetadataCrawlerParsedAssetUrisSelectColumn {
+  /** column name */
+  AnimationOptimizerRetryCount = "animation_optimizer_retry_count",
+  /** column name */
+  AssetUri = "asset_uri",
+  /** column name */
+  CdnAnimationUri = "cdn_animation_uri",
+  /** column name */
+  CdnImageUri = "cdn_image_uri",
+  /** column name */
+  CdnJsonUri = "cdn_json_uri",
+  /** column name */
+  ImageOptimizerRetryCount = "image_optimizer_retry_count",
+  /** column name */
+  JsonParserRetryCount = "json_parser_retry_count",
+  /** column name */
+  RawAnimationUri = "raw_animation_uri",
+  /** column name */
+  RawImageUri = "raw_image_uri",
+}
+
+/** Streaming cursor of the table "nft_metadata_crawler_parsed_asset_uris" */
+export type NftMetadataCrawlerParsedAssetUrisStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: NftMetadataCrawlerParsedAssetUrisStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type NftMetadataCrawlerParsedAssetUrisStreamCursorValueInput = {
+  animation_optimizer_retry_count?: InputMaybe<Scalars["Int"]>;
+  asset_uri?: InputMaybe<Scalars["String"]>;
+  cdn_animation_uri?: InputMaybe<Scalars["String"]>;
+  cdn_image_uri?: InputMaybe<Scalars["String"]>;
+  cdn_json_uri?: InputMaybe<Scalars["String"]>;
+  image_optimizer_retry_count?: InputMaybe<Scalars["Int"]>;
+  json_parser_retry_count?: InputMaybe<Scalars["Int"]>;
+  raw_animation_uri?: InputMaybe<Scalars["String"]>;
+  raw_image_uri?: InputMaybe<Scalars["String"]>;
+};
+
 /** columns and relationships of "num_active_delegator_per_pool" */
 export type NumActiveDelegatorPerPool = {
   num_active_delegator?: Maybe<Scalars["bigint"]>;
@@ -6482,6 +6569,10 @@ export type QueryRoot = {
   nft_marketplace_v2_nft_marketplace_activities: Array<NftMarketplaceV2NftMarketplaceActivities>;
   /** fetch data from the table: "nft_marketplace_v2.nft_marketplace_activities" using primary key columns */
   nft_marketplace_v2_nft_marketplace_activities_by_pk?: Maybe<NftMarketplaceV2NftMarketplaceActivities>;
+  /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" */
+  nft_metadata_crawler_parsed_asset_uris: Array<NftMetadataCrawlerParsedAssetUris>;
+  /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" using primary key columns */
+  nft_metadata_crawler_parsed_asset_uris_by_pk?: Maybe<NftMetadataCrawlerParsedAssetUris>;
   /** fetch data from the table: "num_active_delegator_per_pool" */
   num_active_delegator_per_pool: Array<NumActiveDelegatorPerPool>;
   /** fetch data from the table: "processor_status" */
@@ -7141,6 +7232,18 @@ export type QueryRootNftMarketplaceV2NftMarketplaceActivitiesByPkArgs = {
   transaction_version: Scalars["bigint"];
 };
 
+export type QueryRootNftMetadataCrawlerParsedAssetUrisArgs = {
+  distinct_on?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisOrderBy>>;
+  where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
+};
+
+export type QueryRootNftMetadataCrawlerParsedAssetUrisByPkArgs = {
+  asset_uri: Scalars["String"];
+};
+
 export type QueryRootNumActiveDelegatorPerPoolArgs = {
   distinct_on?: InputMaybe<Array<NumActiveDelegatorPerPoolSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]>;
@@ -7573,6 +7676,12 @@ export type SubscriptionRoot = {
   nft_marketplace_v2_nft_marketplace_activities_by_pk?: Maybe<NftMarketplaceV2NftMarketplaceActivities>;
   /** fetch data from the table in a streaming manner : "nft_marketplace_v2.nft_marketplace_activities" */
   nft_marketplace_v2_nft_marketplace_activities_stream: Array<NftMarketplaceV2NftMarketplaceActivities>;
+  /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" */
+  nft_metadata_crawler_parsed_asset_uris: Array<NftMetadataCrawlerParsedAssetUris>;
+  /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" using primary key columns */
+  nft_metadata_crawler_parsed_asset_uris_by_pk?: Maybe<NftMetadataCrawlerParsedAssetUris>;
+  /** fetch data from the table in a streaming manner : "nft_metadata_crawler.parsed_asset_uris" */
+  nft_metadata_crawler_parsed_asset_uris_stream: Array<NftMetadataCrawlerParsedAssetUris>;
   /** fetch data from the table: "num_active_delegator_per_pool" */
   num_active_delegator_per_pool: Array<NumActiveDelegatorPerPool>;
   /** fetch data from the table in a streaming manner : "num_active_delegator_per_pool" */
@@ -8510,6 +8619,24 @@ export type SubscriptionRootNftMarketplaceV2NftMarketplaceActivitiesStreamArgs =
   batch_size: Scalars["Int"];
   cursor: Array<InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesBoolExp>;
+};
+
+export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisArgs = {
+  distinct_on?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisOrderBy>>;
+  where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
+};
+
+export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisByPkArgs = {
+  asset_uri: Scalars["String"];
+};
+
+export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisStreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<NftMetadataCrawlerParsedAssetUrisStreamCursorInput>>;
+  where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
 };
 
 export type SubscriptionRootNumActiveDelegatorPerPoolArgs = {

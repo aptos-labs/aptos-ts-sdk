@@ -51,9 +51,7 @@ export type GetAccountCoinsCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetAccountCoinsCountQuery = {
-  current_fungible_asset_balances_aggregate: {
-    aggregate?: { count: number } | null;
-  };
+  current_fungible_asset_balances_aggregate: { aggregate?: { count: number } | null };
 };
 
 export type GetAccountCoinsDataQueryVariables = Types.Exact<{
@@ -322,9 +320,7 @@ export type GetAccountTokensCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetAccountTokensCountQuery = {
-  current_token_ownerships_v2_aggregate: {
-    aggregate?: { count: number } | null;
-  };
+  current_token_ownerships_v2_aggregate: { aggregate?: { count: number } | null };
 };
 
 export type GetAccountTransactionsCountQueryVariables = Types.Exact<{
@@ -333,4 +329,28 @@ export type GetAccountTransactionsCountQueryVariables = Types.Exact<{
 
 export type GetAccountTransactionsCountQuery = {
   account_transactions_aggregate: { aggregate?: { count: number } | null };
+};
+
+export type GetDelegatedStakingActivitiesQueryVariables = Types.Exact<{
+  delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]>;
+  poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
+}>;
+
+export type GetDelegatedStakingActivitiesQuery = {
+  delegated_staking_activities: Array<{
+    amount: any;
+    delegator_address: string;
+    event_index: any;
+    event_type: string;
+    pool_address: string;
+    transaction_version: any;
+  }>;
+};
+
+export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
+  poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
+}>;
+
+export type GetNumberOfDelegatorsQuery = {
+  num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
 };

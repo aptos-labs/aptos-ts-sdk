@@ -4,6 +4,7 @@
 import { Account } from "./account";
 import { AptosConfig } from "./aptos_config";
 import { General } from "./general";
+import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transaction_submission";
 
@@ -13,6 +14,8 @@ export class Aptos {
   readonly account: Account;
 
   readonly general: General;
+
+  readonly staking: Staking;
 
   readonly transaction: Transaction;
 
@@ -39,6 +42,7 @@ export class Aptos {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
     this.general = new General(this.config);
+    this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
   }
@@ -69,5 +73,6 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 
 applyMixin(Aptos, Account, "account");
 applyMixin(Aptos, General, "general");
+applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
