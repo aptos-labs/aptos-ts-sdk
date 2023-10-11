@@ -9,9 +9,9 @@
  */
 
 import { AptosConfig } from "../api/aptos_config";
-import { getAptosFullNode, paginateWithCursor } from "../client";
+import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, Hex } from "../core";
-import { queryIndexer } from "./general";
+import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
   GetAccountCoinsCountResponse,
@@ -190,6 +190,47 @@ export async function getResource(args: {
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
+}
+
+export async function lookupOriginalAccountAddress(args: {
+  aptosConfig: AptosConfig;
+  authenticationKey: HexInput;
+  options?: LedgerVersion;
+}): Promise<AccountAddress> {
+  const { aptosConfig, authenticationKey, options } = args;
+  const resource = await getResource({
+    aptosConfig,
+    accountAddress: "0x1",
+    resourceType: "0x1::account::OriginatingAddress",
+    options,
+  });
+
+  const {
+    address_map: { handle },
+  } = resource.data as any;
+
+  // If the address is not found in the address map, which means its not rotated
+  // then return the address as is
+  try {
+    const originalAddress = await getTableItem({
+      aptosConfig,
+      handle,
+      data: {
+        key: Hex.fromHexInput({ hexInput: authenticationKey }).toString(),
+        key_type: "address",
+        value_type: "address",
+      },
+      options,
+    });
+
+    return AccountAddress.fromHexInput({ input: originalAddress });
+  } catch (err) {
+    if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
+      return AccountAddress.fromHexInput({ input: authenticationKey });
+    }
+
+    throw err;
+  }
 }
 
 export async function getAccountTokensCount(args: {
