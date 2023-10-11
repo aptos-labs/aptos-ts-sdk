@@ -39,9 +39,9 @@ describe("transaction submission", () => {
       });
       expect(rawTxn.rawTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(rawTxn.rawTransaction);
-      const desirializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(desirializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(desirializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
+      const deserializedTransaction = RawTransaction.deserialize(deserializer);
+      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
 
     test("it generates a multi sig transaction", async () => {
@@ -64,9 +64,9 @@ describe("transaction submission", () => {
       });
       expect(rawTxn.rawTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(rawTxn.rawTransaction);
-      const desirializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(desirializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(desirializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      const deserializedTransaction = RawTransaction.deserialize(deserializer);
+      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
     });
 
     test("it generates an entry function transaction", async () => {
