@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 
 /**
  * Representation of an Identifier that can serialized and deserialized.

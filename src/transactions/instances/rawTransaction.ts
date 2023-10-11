@@ -3,7 +3,8 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Deserializer, Serializer, Serializable } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { TransactionVariants } from "../../types";
 import { ChainId } from "./chainId";

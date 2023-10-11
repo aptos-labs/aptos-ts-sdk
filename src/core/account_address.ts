@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { HexInput } from "../types";
+import { HexInput, ScriptTransactionArgumentVariants } from "../types";
 import { ParsingError, ParsingResult } from "./common";
-import { Deserializer, Serializable, Serializer } from "../bcs";
+import { Serializable, Serializer } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
+import { TransactionArgument } from "../transactions/instances/transactionArgument";
 
 /**
  * This enum is used to explain why an address was invalid.
@@ -35,7 +37,7 @@ export enum AddressInvalidReason {
  * The comments in this class make frequent reference to the LONG and SHORT formats,
  * as well as "special" addresses. To learn what these refer to see AIP-40.
  */
-export class AccountAddress extends Serializable {
+export class AccountAddress extends Serializable implements TransactionArgument {
   /*
    * This is the internal representation of an account address.
    */
@@ -179,6 +181,16 @@ export class AccountAddress extends Serializable {
    */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.data);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    const bcsBytes = this.bcsToBytes();
+    serializer.serializeBytes(bcsBytes);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Address);
+    serializer.serialize(this);
   }
 
   /**

@@ -5,7 +5,8 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import { AccountAddress } from "../../core";
-import { Deserializer, Serializable, Serializer } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
 
@@ -235,12 +236,8 @@ export class StructTag extends Serializable {
   }
 }
 
-export const stringStructTag = new StructTag(
-  AccountAddress.ONE,
-  new Identifier("string"),
-  new Identifier("String"),
-  [],
-);
+export const stringStructTag = () =>
+  new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
 
 export function optionStructTag(typeArg: TypeTag): StructTag {
   return new StructTag(AccountAddress.ONE, new Identifier("option"), new Identifier("Option"), [typeArg]);
@@ -352,7 +349,7 @@ export class TypeTagParser {
       return new TypeTagVector(res);
     }
     if (tokenVal === "string") {
-      return new TypeTagStruct(stringStructTag);
+      return new TypeTagStruct(stringStructTag());
     }
     if (tokenTy === "IDENT" && (tokenVal.startsWith("0x") || tokenVal.startsWith("0X"))) {
       const address = AccountAddress.fromHexInput({ input: tokenVal });

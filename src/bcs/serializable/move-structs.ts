@@ -1,11 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
 import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
-import { AnyNumber, HexInput } from "../../types";
-import { AccountAddress } from "../../core";
+import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
+import { Hex } from "../../core/hex";
+import { AccountAddress } from "../../core/account_address";
+import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -37,9 +39,9 @@ import { AccountAddress } from "../../core";
  *    MoveOption.U8(2),
  * ]);
  *
- * // vector<String> [ std::string::utf8(b"hello"), std::string::utf8(b"world") ];
+ * // vector<MoveString> [ std::string::utf8(b"hello"), std::string::utf8(b"world") ];
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
- * const vecOfStrings2 = MoveVector.String(["hello", "world"]);
+ * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
  * // where MySerializableStruct is a class you've made that implements Serializable
  * const vecOfSerializableValues = new MoveVector<MySerializableStruct>([
@@ -50,12 +52,32 @@ import { AccountAddress } from "../../core";
  * values: an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
  */
-export class MoveVector<T extends Serializable> extends Serializable {
+export class MoveVector<T extends Serializable> extends Serializable implements TransactionArgument {
   public values: Array<T>;
 
   constructor(values: Array<T>) {
     super();
     this.values = values;
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    const bcsBytes = this.bcsToBytes();
+    serializer.serializeBytes(bcsBytes);
+  }
+
+  /**
+   * NOTE: This function will only work when the inner values in the `MoveVector` are `U8`s.
+   * @param serializer
+   */
+  serializeForScriptFunction(serializer: Serializer): void {
+    // runtime check to ensure that you can't serialize anything other than vector<u8>
+    // TODO: consider adding support for MoveString later?
+    const isU8 = this.values[0] instanceof U8;
+    if (!isU8) {
+      throw new Error("Script function arguments only accept u8 vectors");
+    }
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
+    serializer.serialize(this);
   }
 
   /**
@@ -66,8 +88,21 @@ export class MoveVector<T extends Serializable> extends Serializable {
    * @params values: an array of `numbers` to convert to U8s
    * @returns a `MoveVector<U8>`
    */
-  static U8(values: Array<number>): MoveVector<U8> {
-    return new MoveVector<U8>(values.map((v) => new U8(v)));
+  static U8(values: Array<number> | HexInput): MoveVector<U8> {
+    let numbers: Array<number>;
+
+    if (Array.isArray(values) && typeof values[0] === "number") {
+      numbers = values;
+    } else if (typeof values === "string") {
+      const hex = Hex.fromHexInput({ hexInput: values });
+      numbers = Array.from(hex.toUint8Array());
+    } else if (values instanceof Uint8Array) {
+      numbers = Array.from(values);
+    } else {
+      throw new Error("Invalid input type");
+    }
+
+    return new MoveVector<U8>(numbers.map((v) => new U8(v)));
   }
 
   /**
@@ -146,11 +181,11 @@ export class MoveVector<T extends Serializable> extends Serializable {
    * Factory method to generate a MoveVector of MoveStrings from an array of strings.
    *
    * @example
-   * const v = MoveVector.String(["hello", "world"]);
+   * const v = MoveVector.MoveString(["hello", "world"]);
    * @params values: an array of `numbers` to convert to MoveStrings
    * @returns a `MoveVector<MoveString>`
    */
-  static String(values: Array<string>): MoveVector<MoveString> {
+  static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
   }
 
@@ -184,7 +219,7 @@ export class MoveVector<T extends Serializable> extends Serializable {
   }
 }
 
-export class MoveString extends Serializable {
+export class MoveString extends Serializable implements TransactionArgument {
   public value: string;
 
   constructor(value: string) {
@@ -196,12 +231,23 @@ export class MoveString extends Serializable {
     serializer.serializeStr(this.value);
   }
 
+  serializeForEntryFunction(serializer: Serializer): void {
+    const bcsBytes = this.bcsToBytes();
+    serializer.serializeBytes(bcsBytes);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    // serialize the string, load it into a vector<u8> and serialize it as a script vector<u8> argument
+    const vectorU8 = MoveVector.U8(this.bcsToBytes());
+    vectorU8.serializeForScriptFunction(serializer);
+  }
+
   static deserialize(deserializer: Deserializer): MoveString {
     return new MoveString(deserializer.deserializeStr());
   }
 }
 
-export class MoveOption<T extends Serializable> extends Serializable {
+export class MoveOption<T extends Serializable> extends Serializable implements EntryFunctionArgument {
   private vec: MoveVector<T>;
 
   public readonly value?: T;
@@ -215,6 +261,11 @@ export class MoveOption<T extends Serializable> extends Serializable {
     }
 
     [this.value] = this.vec.values;
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    const bcsBytes = this.bcsToBytes();
+    serializer.serializeBytes(bcsBytes);
   }
 
   /**
@@ -361,15 +412,15 @@ export class MoveOption<T extends Serializable> extends Serializable {
    * Factory method to generate a MoveOption<MoveString> from a `string` or `undefined`.
    *
    * @example
-   * MoveOption.String("hello").isSome() === true;
-   * MoveOption.String("").isSome() === true;
-   * MoveOption.String().isSome() === false;
-   * MoveOption.String(undefined).isSome() === false;
+   * MoveOption.MoveString("hello").isSome() === true;
+   * MoveOption.MoveString("").isSome() === true;
+   * MoveOption.MoveString().isSome() === false;
+   * MoveOption.MoveString(undefined).isSome() === false;
    * @params value: the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<MoveString> with an inner value `value`
    */
-  static String(value?: string | null): MoveOption<MoveString> {
+  static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
   }
 
@@ -379,7 +430,7 @@ export class MoveOption<T extends Serializable> extends Serializable {
   }
 }
 
-export class MoveObject extends Serializable {
+export class MoveObject extends Serializable implements TransactionArgument {
   public value: AccountAddress;
 
   constructor(value: HexInput | AccountAddress) {
@@ -394,6 +445,14 @@ export class MoveObject extends Serializable {
 
   serialize(serializer: Serializer): void {
     serializer.serialize(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    this.value.serializeForEntryFunction(serializer);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    this.value.serializeForScriptFunction(serializer);
   }
 
   static deserialize(deserializer: Deserializer): MoveObject {
