@@ -11,12 +11,10 @@ import {
   RawTransaction,
   ScriptTransactionArgumentAddress,
   ScriptTransactionArgumentU64,
-} from "../../../src/transactions/instances";
-import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
-} from "../../../src/transactions/instances/transactionPayload";
+} from "../../../src/transactions/instances";
 import { SigningScheme } from "../../../src/types";
 
 describe("transaction submission", () => {

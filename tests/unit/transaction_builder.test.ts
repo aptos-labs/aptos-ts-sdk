@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../../src";
-import { Deserializer } from "../../src/bcs";
+import { AptosConfig, Deserializer, Network } from "../../src";
 import { Account } from "../../src/core/account";
 import { Ed25519PrivateKey } from "../../src/crypto/ed25519";
 import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../src/transactions/authenticator/account";
@@ -26,7 +25,6 @@ import {
   signTransaction,
 } from "../../src/transactions/transaction_builder/transaction_builder";
 import { SigningScheme } from "../../src/types";
-import { Network } from "../../src/utils/apiEndpoints";
 import { SignedTransaction } from "../../src/transactions/instances/signedTransaction";
 import { U64 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../src/bcs/serializable/move-structs";
