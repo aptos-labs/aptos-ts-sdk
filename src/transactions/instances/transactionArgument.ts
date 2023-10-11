@@ -12,7 +12,6 @@ export interface EntryFunctionArgument {
   /**
    * Serialize an argument as a type-agnostic, fixed byte sequence. The byte sequence contains
    * the number of the following bytes followed by the BCS-serialized bytes for a typed argument.
-   * @example asfasdf
    */
   serializeForEntryFunction(serializer: Serializer): void;
 }
@@ -60,6 +59,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
   // When we serialize these bytes as an entry function argument, we need to
   // serialize the length prefix. This essentially converts the underlying fixed byte vector to a type-agnostic
   // byte vector to an `any` type.
+  // NOTE: This, and the lack of a `serializeForScriptFunction`, is the only meaningful difference between this
+  // class and FixedBytes.
   serializeForEntryFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.value.value.length);
     serializer.serialize(this);

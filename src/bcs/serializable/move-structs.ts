@@ -5,9 +5,13 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
 import { AnyNumber, HexInput } from "../../types";
-import { AccountAddress, Hex } from "../../core";
+import { Hex } from "../../core/hex";
+import { AccountAddress } from "../../core/account_address";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { ScriptTransactionArgumentAddress, ScriptTransactionArgumentU8Vector } from "../../transactions/instances";
+import {
+  ScriptTransactionArgumentAddress,
+  ScriptTransactionArgumentU8Vector,
+} from "../../transactions/instances/scriptTransactionArguments";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,

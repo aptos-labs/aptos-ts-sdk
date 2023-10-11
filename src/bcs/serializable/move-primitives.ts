@@ -21,7 +21,7 @@ import {
   ScriptTransactionArgumentU32,
   ScriptTransactionArgumentU64,
   ScriptTransactionArgumentU8,
-} from "../../transactions/instances";
+} from "../../transactions/instances/scriptTransactionArguments";
 
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;
