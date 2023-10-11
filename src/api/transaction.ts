@@ -11,7 +11,6 @@ import {
 } from "../internal/transaction";
 import { AnyNumber, GasEstimation, HexInput, PaginationArgs, TransactionResponse } from "../types";
 import { AptosConfig } from "./aptos_config";
-import { memoizeAsync } from "../utils/memoize";
 
 export class Transaction {
   readonly config: AptosConfig;
@@ -130,14 +129,9 @@ export class Transaction {
    * ```
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
-    const gasEstimation = await memoizeAsync(
-      async () =>
-        getGasPriceEstimation({
-          aptosConfig: this.config,
-        }),
-      `gas-price-${this.config.network}`,
-      1000 * 60 * 5, // 5 minutes
-    )();
+    const gasEstimation = getGasPriceEstimation({
+      aptosConfig: this.config,
+    });
     return gasEstimation;
   }
 }
