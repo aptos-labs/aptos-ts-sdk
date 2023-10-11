@@ -53,18 +53,15 @@ export class AptosConfig {
     switch (apiType) {
       case AptosApiType.FULLNODE:
         if (this.fullnode !== undefined) return this.fullnode;
-        if (this.network === Network.CUSTOM && this.fullnode === undefined)
-          throw new Error("Please provide a custom full node url");
+        if (this.network === Network.CUSTOM) throw new Error("Please provide a custom full node url");
         return NetworkToNodeAPI[this.network];
       case AptosApiType.FAUCET:
         if (this.faucet !== undefined) return this.faucet;
-        if (this.network === Network.CUSTOM && this.faucet === undefined)
-          throw new Error("Please provide a custom faucet url");
+        if (this.network === Network.CUSTOM) throw new Error("Please provide a custom faucet url");
         return NetworkToFaucetAPI[this.network];
       case AptosApiType.INDEXER:
         if (this.indexer !== undefined) return this.indexer;
-        if (this.network === Network.CUSTOM && this.indexer === undefined)
-          throw new Error("Please provide a custom indexer url");
+        if (this.network === Network.CUSTOM) throw new Error("Please provide a custom indexer url");
         return NetworkToIndexerAPI[this.network];
       default:
         throw Error(`apiType ${apiType} is not supported`);
