@@ -1,12 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Hex } from "../../src/core/hex";
+import { Hex } from "../../src/core";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "../../src/crypto/secp256k1";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { secp256k1TestObject } from "./helper";
-import { Serializer } from "../../src/bcs/serializer";
-import { Deserializer } from "../../src/bcs/deserializer";
+import { Deserializer, Serializer } from "../../src";
 
 describe("Secp256k1PublicKey", () => {
   it("should create the instance correctly without error", () => {

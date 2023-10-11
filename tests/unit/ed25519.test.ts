@@ -1,9 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer } from "../../src/bcs/deserializer";
-import { Serializer } from "../../src/bcs/serializer";
-import { Hex } from "../../src/core/hex";
+import { Deserializer, Serializer } from "../../src";
+import { Hex } from "../../src/core";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../../src/crypto/ed25519";
 import { ed25519 } from "./helper";
 

@@ -1,11 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializable, Deserializer } from "../../src/bcs/deserializer";
 import { FixedBytes } from "../../src/bcs/serializable/fixed-bytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
-import { Serializable, Serializer } from "../../src/bcs/serializer";
+import { Deserializable, Deserializer, Serializable, Serializer } from "../../src";
 import { AccountAddress } from "../../src/core";
 
 describe("Tests for the Serializable class", () => {

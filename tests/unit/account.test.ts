@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "../../src/core/account";
-import { AccountAddress } from "../../src/core/account_address";
-import { Hex } from "../../src/core/hex";
+import { AccountAddress, Hex } from "../../src/core";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../../src/crypto/ed25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "../../src/crypto/secp256k1";
 import { SigningScheme } from "../../src/types";

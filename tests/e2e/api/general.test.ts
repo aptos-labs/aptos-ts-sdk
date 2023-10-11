@@ -1,9 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos } from "../../../src";
+import { AptosConfig, Aptos, Network } from "../../../src";
 import { GraphqlQuery, ViewRequest } from "../../../src/types";
-import { Network } from "../../../src/utils/apiEndpoints";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
