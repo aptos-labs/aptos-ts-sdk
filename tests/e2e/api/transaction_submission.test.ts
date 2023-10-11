@@ -260,16 +260,10 @@ describe("transaction submission", () => {
         },
       });
       expect(response).toHaveProperty("hash");
+      await aptos.waitForTransaction({txnHash: response.hash})
     });
 
-    // Currently this test fails because we don't wait for the previous transaction to be executed
-    // and we end up with transaction is already in mempool. This is because we are still missing
-    // waitForTransaction query and/or the fund query (so we can create an account and then fund it
-    // to create it on chain) - Anyhow, I tested each test individually and it works.
-    // The whole test flow should work once we have the option to wait for transaction and/or fund
-    // an account to create it on chain
-    // FIXME: Fix this test
-    /*test("it submits an entry function transaction", async () => {
+    test("it submits an entry function transaction", async () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
@@ -296,6 +290,7 @@ describe("transaction submission", () => {
         senderAuthenticator: authenticator,
       });
       expect(response).toHaveProperty("hash");
-    });*/
+      await aptos.waitForTransaction({txnHash: response.hash})
+    });
   });
 });
