@@ -30,6 +30,7 @@ import { Network } from "../../src/utils/apiEndpoints";
 import { SignedTransaction } from "../../src/transactions/instances/signedTransaction";
 import { U64 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../src/bcs/serializable/move-structs";
+import { ALICE_PRIVATE_KEY, TRANSFER_FUNCTION_ADDRESS } from "../utils/const";
 
 describe("transaction builder", () => {
   describe("generate transaction payload", () => {
@@ -51,7 +52,7 @@ describe("transaction builder", () => {
     test("it generates a multi sig transaction payload", async () => {
       const payload = generateTransactionPayload({
         multisigAddress: Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [],
       });
@@ -59,7 +60,7 @@ describe("transaction builder", () => {
     });
     test("it generates an entry function transaction payload", async () => {
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [],
       });
@@ -71,7 +72,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const payload = generateTransactionPayload({
@@ -99,13 +100,13 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -122,12 +123,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -145,7 +146,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const payload = generateTransactionPayload({
@@ -174,12 +175,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -205,12 +206,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -231,12 +232,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -266,7 +267,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const payload = generateTransactionPayload({
@@ -302,7 +303,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const payload = generateTransactionPayload({
@@ -336,13 +337,13 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -368,7 +369,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -405,7 +406,7 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const payload = generateTransactionPayload({
@@ -440,12 +441,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -477,12 +478,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -515,12 +516,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -537,12 +538,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
@@ -563,12 +564,12 @@ describe("transaction builder", () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
+        function: TRANSFER_FUNCTION_ADDRESS,
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });

@@ -18,6 +18,7 @@ import {
   TransactionPayloadScript,
 } from "../../../src/transactions/instances/transactionPayload";
 import { SigningScheme } from "../../../src/types";
+import { ALICE_PRIVATE_KEY, BOB_PRIVATE_KEY, TRANSFER_FUNCTION_ADDRESS } from "../../utils/const";
 
 describe("transaction submission", () => {
   describe("generateTransaction", () => {
@@ -26,7 +27,7 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const rawTxn = await aptos.generateTransaction({
@@ -49,7 +50,7 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -57,7 +58,7 @@ describe("transaction submission", () => {
         sender: alice.accountAddress.toString(),
         data: {
           multisigAddress: bob.accountAddress,
-          function: "0x1::aptos_account::transfer",
+          function: TRANSFER_FUNCTION_ADDRESS,
           type_arguments: [],
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
@@ -74,14 +75,14 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: TRANSFER_FUNCTION_ADDRESS,
           type_arguments: [],
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
@@ -99,12 +100,12 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0xc1e06f150f7fa79c1ca0ad0f8d0b26d83abaf1bed0fc31de24b500d81a2ff924",
+          hexInput: BOB_PRIVATE_KEY,
         }),
       });
       const rawTxn = await aptos.generateTransaction({
@@ -138,7 +139,7 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const rawTxn = await aptos.generateTransaction({
@@ -164,7 +165,7 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -172,7 +173,7 @@ describe("transaction submission", () => {
         sender: alice.accountAddress.toString(),
         data: {
           multisigAddress: bob.accountAddress,
-          function: "0x1::aptos_account::transfer",
+          function: TRANSFER_FUNCTION_ADDRESS,
           type_arguments: [],
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
@@ -192,14 +193,14 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: TRANSFER_FUNCTION_ADDRESS,
           type_arguments: [],
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },
@@ -220,12 +221,12 @@ describe("transaction submission", () => {
       const aptos = new Aptos(config);
       const alice = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+          hexInput: ALICE_PRIVATE_KEY,
         }),
       });
       const bob = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
-          hexInput: "0xc1e06f150f7fa79c1ca0ad0f8d0b26d83abaf1bed0fc31de24b500d81a2ff924",
+          hexInput: BOB_PRIVATE_KEY,
         }),
       });
       const rawTxn = await aptos.generateTransaction({
@@ -282,7 +283,7 @@ describe("transaction submission", () => {
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
-          function: "0x1::aptos_account::transfer",
+          function: TRANSFER_FUNCTION_ADDRESS,
           type_arguments: [],
           arguments: [new MoveObject(bob.accountAddress), new U64(1)],
         },

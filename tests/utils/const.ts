@@ -1,0 +1,3 @@
+export const ALICE_PRIVATE_KEY = "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c"
+export const BOB_PRIVATE_KEY = "0xc1e06f150f7fa79c1ca0ad0f8d0b26d83abaf1bed0fc31de24b500d81a2ff924"
+export const TRANSFER_FUNCTION_ADDRESS = "0x1::aptos_account::transfer"
