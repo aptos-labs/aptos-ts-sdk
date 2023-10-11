@@ -103,9 +103,7 @@ describe("Tests for the script transaction argument class", () => {
       serializer = new Serializer();
       input.serializeForScriptFunction(serializer);
       const deserializer = new Deserializer(serializer.toUint8Array());
-      const asdf = ScriptTransactionArgument.deserialize(deserializer);
-      console.log(asdf);
-      return asdf;
+      return ScriptTransactionArgument.deserialize(deserializer);
     };
 
     expect(deserializeToScriptArg(new U8(1)) instanceof ScriptTransactionArgumentU8).toBe(true);

@@ -52,15 +52,21 @@ export class EntryFunctionBytes
     this.value = new FixedBytes(value);
   }
 
-  // Note that both serialize and serializeForEntryFunction are the same.
-  // We need them to be equivalent so that when we re-serialize this class as an entry
-  // function payload's arguments, we don't re-serialize the length prefix.
+  // Note that to see the Move, BCS-serialized representation of the underlying fixed byte vector,
+  // we must not serialize the length prefix.
+  //
+  // In other words, this class is only used to represent a sequence of bytes that are already
+  // BCS-serialized as a type. To represent those bytes accurately, the BCS-serialized form is the same exact
+  // representation.
   serialize(serializer: Serializer): void {
     serializer.serialize(this.value);
   }
 
-  // This is necessary to implement the interface, so we can use this class as an EntryFunctionArgument.
+  // When we serialize these bytes as an entry function argument, we need to
+  // serialize the length prefix. This essentially converts the underlying fixed byte vector to a type-agnostic
+  // byte vector to an `any` type.
   serializeForEntryFunction(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.value.value.length);
     serializer.serialize(this);
   }
   /**

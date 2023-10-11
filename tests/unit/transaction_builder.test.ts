@@ -26,6 +26,7 @@ import { SigningScheme } from "../../src/types";
 import { SignedTransaction } from "../../src/transactions/instances/signedTransaction";
 import { U64 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../src/bcs/serializable/move-structs";
+import { Hex } from "../../src/core";
 
 describe("transaction builder", () => {
   describe("generate transaction payload", () => {
@@ -439,7 +440,11 @@ describe("transaction builder", () => {
           hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
         }),
       });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.fromPrivateKey({
+        privateKey: new Ed25519PrivateKey({
+          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
+        }),
+      });
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],

@@ -11,6 +11,7 @@ import {
   MAX_U256_BIG_INT,
 } from "./consts";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
+import { Hex } from "../core";
 
 // This class is intended to be used as a base class for all serializable types.
 // It can be used to facilitate composable serialization of a complex type and
@@ -27,6 +28,15 @@ export abstract class Serializable {
     const serializer = new Serializer();
     this.serialize(serializer);
     return serializer.toUint8Array();
+  }
+
+  /**
+   * Helper function to get a value's BCS-serialized bytes as a Hex instance.
+   * @returns a Hex instance with the BCS-serialized bytes loaded into its underlying Uint8Array
+   */
+  bcsToHex() { //: Hex {
+    // const bcsBytes = this.bcsToBytes();
+    // return Hex.fromHexInput({ hexInput: bcsBytes });
   }
 }
 
