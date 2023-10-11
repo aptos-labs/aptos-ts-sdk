@@ -1,5 +1,5 @@
-import type { Serializer } from "../../bcs/serializer";
-import type { Hex } from "../../core/hex";
+import { Serializer } from "../../bcs/serializer";
+import { Hex } from "../../core/hex";
 
 export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
 

@@ -8,17 +8,9 @@
  * general namespace and without having a dependency cycle error.
  */
 
-import type { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptos_config";
 import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
-import type {
-  Block,
-  GraphqlQuery,
-  LedgerInfo,
-  LedgerVersion,
-  MoveValue,
-  TableItemRequest,
-  ViewRequest,
-} from "../types";
+import { Block, GraphqlQuery, LedgerInfo, LedgerVersion, MoveValue, TableItemRequest, ViewRequest } from "../types";
 
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;

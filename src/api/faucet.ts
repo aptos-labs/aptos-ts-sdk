@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { fundAccount } from "../internal/faucet";
-import type { HexInput } from "../types";
+import { HexInput } from "../types";
 import { AptosConfig } from "./aptos_config";
 
 /**

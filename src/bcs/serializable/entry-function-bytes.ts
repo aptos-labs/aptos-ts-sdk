@@ -1,12 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Serializer } from "../serializer";
-import type { Deserializer } from "../deserializer";
+import { Serializer, Serializable } from "../serializer";
+import { Deserializer } from "../deserializer";
 import { FixedBytes } from "./fixed-bytes";
-import { Serializable } from "../serializer";
 import { EntryFunctionArgument } from "../../transactions/instances/transactionArgument";
-import type { HexInput } from "../../types";
+import { HexInput } from "../../types";
 
 /**
  * This class exists solely to represent a sequence of fixed bytes as a serialized entry function, because

@@ -12,8 +12,7 @@ import {
 import { Deserializer } from "../deserializer";
 import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import type { AnyNumber, Uint16, Uint32, Uint8 } from "../../types";
-import { ScriptTransactionArgumentVariants } from "../../types";
+import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types";
 
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;
