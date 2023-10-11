@@ -20,6 +20,7 @@ import {
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { sleep } from "../utils/helpers";
+import { memoizeAsync } from "../utils/memoize";
 
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -37,12 +38,20 @@ export async function getTransactions(args: {
 
 export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) {
   const { aptosConfig } = args;
-  const { data } = await getAptosFullNode<{}, GasEstimation>({
-    aptosConfig,
-    originMethod: "getGasPriceEstimation",
-    path: "estimate_gas_price",
-  });
-  return data;
+
+  const gasEstimation = await memoizeAsync(
+    async () => {
+      const { data } = await getAptosFullNode<{}, GasEstimation>({
+        aptosConfig,
+        originMethod: "getGasPriceEstimation",
+        path: "estimate_gas_price",
+      });
+      return data;
+    },
+    `gas-price-${aptosConfig.network}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
+  return gasEstimation;
 }
 
 export async function getTransactionByVersion(args: {
