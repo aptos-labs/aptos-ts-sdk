@@ -93,7 +93,7 @@ describe("transaction submission", () => {
       expect(desirializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
-  describe("simultaeTransaction", () => {
+  describe("simulateTransaction", () => {
     test("it simulates a multi agent script transaction", async () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const aptos = new Aptos(config);
