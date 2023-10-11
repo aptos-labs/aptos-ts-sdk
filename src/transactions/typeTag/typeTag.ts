@@ -235,12 +235,8 @@ export class StructTag extends Serializable {
   }
 }
 
-export const stringStructTag = () => new StructTag(
-  AccountAddress.ONE,
-  new Identifier("string"),
-  new Identifier("String"),
-  [],
-);
+export const stringStructTag = () =>
+  new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
 
 export function optionStructTag(typeArg: TypeTag): StructTag {
   return new StructTag(AccountAddress.ONE, new Identifier("option"), new Identifier("Option"), [typeArg]);

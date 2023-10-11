@@ -6,14 +6,8 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
 import { AnyNumber, HexInput } from "../../types";
 import { AccountAddress, Hex } from "../../core";
-import {
-  EntryFunctionArgument,
-  TransactionArgument,
-} from "../../transactions/instances/transactionArgument";
-import {
-  ScriptTransactionArgumentAddress,
-  ScriptTransactionArgumentU8Vector,
-} from "../../transactions/instances";
+import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import { ScriptTransactionArgumentAddress, ScriptTransactionArgumentU8Vector } from "../../transactions/instances";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -58,10 +52,7 @@ import {
  * values: an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
  */
-export class MoveVector<T extends Serializable>
-  extends Serializable
-  implements TransactionArgument
-{
+export class MoveVector<T extends Serializable> extends Serializable implements TransactionArgument {
   public values: Array<T>;
 
   constructor(values: Array<T>) {
@@ -219,10 +210,7 @@ export class MoveVector<T extends Serializable>
    * @returns a MoveVector of the corresponding class T
    * *
    */
-  static deserialize<T extends Serializable>(
-    deserializer: Deserializer,
-    cls: Deserializable<T>
-  ): MoveVector<T> {
+  static deserialize<T extends Serializable>(deserializer: Deserializer, cls: Deserializable<T>): MoveVector<T> {
     const length = deserializer.deserializeUleb128AsU32();
     const values = new Array<T>();
     for (let i = 0; i < length; i += 1) {
@@ -260,10 +248,7 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 }
 
-export class MoveOption<T extends Serializable>
-  extends Serializable
-  implements EntryFunctionArgument
-{
+export class MoveOption<T extends Serializable> extends Serializable implements EntryFunctionArgument {
   private vec: MoveVector<T>;
 
   public readonly value?: T;
@@ -331,9 +316,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U8> with an inner value `value`
    */
   static U8(value?: number | null): MoveOption<U8> {
-    return new MoveOption<U8>(
-      value !== null && value !== undefined ? new U8(value) : undefined
-    );
+    return new MoveOption<U8>(value !== null && value !== undefined ? new U8(value) : undefined);
   }
 
   /**
@@ -348,9 +331,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U16> with an inner value `value`
    */
   static U16(value?: number | null): MoveOption<U16> {
-    return new MoveOption<U16>(
-      value !== null && value !== undefined ? new U16(value) : undefined
-    );
+    return new MoveOption<U16>(value !== null && value !== undefined ? new U16(value) : undefined);
   }
 
   /**
@@ -365,9 +346,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U32> with an inner value `value`
    */
   static U32(value?: number | null): MoveOption<U32> {
-    return new MoveOption<U32>(
-      value !== null && value !== undefined ? new U32(value) : undefined
-    );
+    return new MoveOption<U32>(value !== null && value !== undefined ? new U32(value) : undefined);
   }
 
   /**
@@ -382,9 +361,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U64> with an inner value `value`
    */
   static U64(value?: AnyNumber | null): MoveOption<U64> {
-    return new MoveOption<U64>(
-      value !== null && value !== undefined ? new U64(value) : undefined
-    );
+    return new MoveOption<U64>(value !== null && value !== undefined ? new U64(value) : undefined);
   }
 
   /**
@@ -399,9 +376,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U128> with an inner value `value`
    */
   static U128(value?: AnyNumber | null): MoveOption<U128> {
-    return new MoveOption<U128>(
-      value !== null && value !== undefined ? new U128(value) : undefined
-    );
+    return new MoveOption<U128>(value !== null && value !== undefined ? new U128(value) : undefined);
   }
 
   /**
@@ -416,9 +391,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<U256> with an inner value `value`
    */
   static U256(value?: AnyNumber | null): MoveOption<U256> {
-    return new MoveOption<U256>(
-      value !== null && value !== undefined ? new U256(value) : undefined
-    );
+    return new MoveOption<U256>(value !== null && value !== undefined ? new U256(value) : undefined);
   }
 
   /**
@@ -433,9 +406,7 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<Bool> with an inner value `value`
    */
   static Bool(value?: boolean | null): MoveOption<Bool> {
-    return new MoveOption<Bool>(
-      value !== null && value !== undefined ? new Bool(value) : undefined
-    );
+    return new MoveOption<Bool>(value !== null && value !== undefined ? new Bool(value) : undefined);
   }
 
   /**
@@ -451,15 +422,10 @@ export class MoveOption<T extends Serializable>
    * @returns a MoveOption<MoveString> with an inner value `value`
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
-    return new MoveOption<MoveString>(
-      value !== null && value !== undefined ? new MoveString(value) : undefined
-    );
+    return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
   }
 
-  static deserialize<U extends Serializable>(
-    deserializer: Deserializer,
-    cls: Deserializable<U>
-  ): MoveOption<U> {
+  static deserialize<U extends Serializable>(deserializer: Deserializer, cls: Deserializable<U>): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
     return new MoveOption(vector.values[0]);
   }

@@ -34,7 +34,8 @@ export abstract class Serializable {
    * Helper function to get a value's BCS-serialized bytes as a Hex instance.
    * @returns a Hex instance with the BCS-serialized bytes loaded into its underlying Uint8Array
    */
-  bcsToHex() { //: Hex {
+  bcsToHex() {
+    //: Hex {
     // const bcsBytes = this.bcsToBytes();
     // return Hex.fromHexInput({ hexInput: bcsBytes });
   }

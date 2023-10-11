@@ -138,7 +138,12 @@ export class EntryFunction {
    * public entry fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    */
-  constructor(module_name: ModuleId, function_name: Identifier, type_args: Array<TypeTag>, args: Array<EntryFunctionArgument>) {
+  constructor(
+    module_name: ModuleId,
+    function_name: Identifier,
+    type_args: Array<TypeTag>,
+    args: Array<EntryFunctionArgument>,
+  ) {
     this.module_name = module_name;
     this.function_name = function_name;
     this.type_args = type_args;
@@ -192,7 +197,7 @@ export class EntryFunction {
    * NOTE: When you deserialize an EntryFunction payload with this method, the entry function
    * arguments are populated into the deserialized instance as type-agnostic, raw fixed bytes
    * in the form of the EntryFunctionBytes class.
-   * 
+   *
    * In order to correctly deserialize these arguments as their actual type representations, you
    * must know the types of the arguments beforehand and deserialize them yourself individually.
    *

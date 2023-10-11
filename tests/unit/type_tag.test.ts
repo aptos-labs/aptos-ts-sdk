@@ -73,7 +73,7 @@ describe("TypeTagParser", () => {
       const typeTagError = error as ParsingError<AddressInvalidReason>;
       expect(typeTagError.message).toEqual(
         `The given hex string ${typeTag} is a special address not in LONG form, 
-          it must be 0x0 to 0xf without padding zeroes.`
+          it must be 0x0 to 0xf without padding zeroes.`,
       );
     }
 

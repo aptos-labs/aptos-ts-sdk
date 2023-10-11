@@ -2,9 +2,7 @@ import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { HexInput } from "../../types";
 import { FixedBytes } from "../../bcs/serializable/fixed-bytes";
 
-export interface TransactionArgument
-  extends EntryFunctionArgument,
-    ScriptFunctionArgument {}
+export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
 
 export interface EntryFunctionArgument {
   /**
@@ -41,10 +39,7 @@ export interface ScriptFunctionArgument {
  * of the argument beforehand, and use the appropriate class to deserialize the bytes within
  * an instance of this class.
  */
-export class EntryFunctionBytes
-  extends Serializable
-  implements EntryFunctionArgument
-{
+export class EntryFunctionBytes extends Serializable implements EntryFunctionArgument {
   public readonly value: FixedBytes;
 
   private constructor(value: HexInput) {
@@ -77,10 +72,7 @@ export class EntryFunctionBytes
    * @param length the length of the bytes to deserialize
    * @returns an instance of this class, which will now only be usable as an EntryFunctionArgument
    */
-  static deserialize(
-    deserializer: Deserializer,
-    length: number
-  ): EntryFunctionBytes {
+  static deserialize(deserializer: Deserializer, length: number): EntryFunctionBytes {
     const fixedBytes = FixedBytes.deserialize(deserializer, length);
     return new EntryFunctionBytes(fixedBytes.value);
   }
