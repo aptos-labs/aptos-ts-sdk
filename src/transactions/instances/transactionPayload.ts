@@ -4,15 +4,46 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer, } from "../../bcs/serializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
-import { TransactionPayloadVariants } from "../../types";
+import { ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
 import { TypeTag } from "../typeTag/typeTag";
-import type { EntryFunctionArgument, ScriptFunctionArgument } from "./transactionArgument";
-import { ScriptTransactionArgument } from "./scriptTransactionArguments";
+import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
 import { EntryFunctionBytes } from "../../bcs/serializable/entry-function-bytes";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/move-primitives";
+import { MoveVector } from "../../bcs/serializable/move-structs";
+
+/**
+ * Deserialize a Script Transaction Argument
+ */
+export function deserializeFromScriptArgument(deserializer: Deserializer): TransactionArgument {
+  // index enum variant
+  const index = deserializer.deserializeUleb128AsU32();
+  switch (index) {
+    case ScriptTransactionArgumentVariants.U8:
+      return U8.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U64:
+      return U64.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U128:
+      return U128.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.Address:
+      return AccountAddress.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U8Vector:
+      return MoveVector.deserialize(deserializer, U8);
+    case ScriptTransactionArgumentVariants.Bool:
+      return Bool.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U16:
+      return U16.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U32:
+      return U32.deserialize(deserializer);
+    case ScriptTransactionArgumentVariants.U256:
+      return U256.deserialize(deserializer);
+    default:
+      throw new Error(`Unknown variant index for ScriptTransactionArgument: ${index}`);
+  }
+}
 
 /**
  * Representation of the supported Transaction Payload
@@ -284,7 +315,15 @@ export class Script {
   static deserialize(deserializer: Deserializer): Script {
     const bytecode = deserializer.deserializeBytes();
     const type_args = deserializer.deserializeVector(TypeTag);
-    const args = deserializer.deserializeVector(ScriptTransactionArgument);
+    const length = deserializer.deserializeUleb128AsU32();
+    const args = new Array<ScriptFunctionArgument>();
+    for (let i = 0; i < length; i += 1) {
+      // Note that we deserialize directly to the Move value, not its Script argument representation.
+      // We are abstracting away the Script argument representation because knowing about it is
+      // functionally useless.
+      const scriptArgument = deserializeFromScriptArgument(deserializer);
+      args.push(scriptArgument);
+    }
     return new Script(bytecode, type_args, args);
   }
 }

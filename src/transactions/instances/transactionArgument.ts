@@ -1,4 +1,5 @@
 import type { Serializer } from "../../bcs/serializer";
+import type { Hex } from "../../core/hex";
 
 export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
 
@@ -12,6 +13,9 @@ export interface EntryFunctionArgument {
    * the number of the following bytes followed by the BCS-serialized bytes for a typed argument.
    */
   serializeForEntryFunction(serializer: Serializer): void;
+
+  bcsToBytes(): Uint8Array;
+  bcsToHex(): Hex;
 }
 export interface ScriptFunctionArgument {
   /**
@@ -24,4 +28,7 @@ export interface ScriptFunctionArgument {
    * bytes for a typed argument.
    */
   serializeForScriptFunction(serializer: Serializer): void;
+
+  bcsToBytes(): Uint8Array;
+  bcsToHex(): Hex;
 }

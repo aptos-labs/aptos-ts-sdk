@@ -3,20 +3,9 @@
 
 import { Serializer, Deserializer } from "../../src/bcs";
 import { AccountAddress } from "../../src/core";
-import {
-  ScriptTransactionArgument,
-  ScriptTransactionArgumentAddress,
-  ScriptTransactionArgumentBool,
-  ScriptTransactionArgumentU128,
-  ScriptTransactionArgumentU16,
-  ScriptTransactionArgumentU256,
-  ScriptTransactionArgumentU32,
-  ScriptTransactionArgumentU64,
-  ScriptTransactionArgumentU8,
-  ScriptTransactionArgumentU8Vector,
-} from "../../src/transactions/instances";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
 import { MoveVector } from "../../src/bcs/serializable/move-structs";
+import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
 describe("Tests for the script transaction argument class", () => {
   let serializer: Serializer;
@@ -46,78 +35,63 @@ describe("Tests for the script transaction argument class", () => {
   });
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
-    const validateBytes = (input: ScriptTransactionArgument, expectedOutput: Uint8Array) => {
+    const validateBytes = (input: ScriptFunctionArgument, expectedOutput: Uint8Array) => {
       const serializer = new Serializer();
-      input.serialize(serializer);
+      input.serializeForScriptFunction(serializer);
       const serializedBytes = serializer.toUint8Array();
       expect(serializedBytes).toEqual(expectedOutput);
     };
-    validateBytes(new ScriptTransactionArgumentU8(1), scriptU8Bytes);
-    validateBytes(new ScriptTransactionArgumentU16(2), scriptU16Bytes);
-    validateBytes(new ScriptTransactionArgumentU32(3), scriptU32Bytes);
-    validateBytes(new ScriptTransactionArgumentU64(4), scriptU64Bytes);
-    validateBytes(new ScriptTransactionArgumentU128(5), scriptU128Bytes);
-    validateBytes(new ScriptTransactionArgumentU256(6), scriptU256Bytes);
-    validateBytes(new ScriptTransactionArgumentBool(false), scriptBoolBytes);
-    validateBytes(new ScriptTransactionArgumentAddress(AccountAddress.FOUR), scriptAddressBytes);
-    validateBytes(new ScriptTransactionArgumentU8Vector([1, 2, 3, 4, 5]), scriptVectorU8Bytes);
+    validateBytes(new U8(1), scriptU8Bytes);
+    validateBytes(new U16(2), scriptU16Bytes);
+    validateBytes(new U32(3), scriptU32Bytes);
+    validateBytes(new U64(4), scriptU64Bytes);
+    validateBytes(new U128(5), scriptU128Bytes);
+    validateBytes(new U256(6), scriptU256Bytes);
+    validateBytes(new Bool(false), scriptBoolBytes);
+    validateBytes(AccountAddress.FOUR, scriptAddressBytes);
+    validateBytes(MoveVector.U8([1, 2, 3, 4, 5]), scriptVectorU8Bytes);
   });
 
+  const deserializeAsScriptArg = (input: ScriptFunctionArgument) => {
+    serializer = new Serializer();
+    input.serializeForScriptFunction(serializer);
+    const deserializer = new Deserializer(serializer.toUint8Array());
+    return deserializeFromScriptArgument(deserializer);
+  };
+
   it("should deserialize all types of ScriptTransactionArguments correctly", () => {
-    const deserializeToScriptArg = (input: ScriptTransactionArgument) => {
-      const deserializer = new Deserializer(input.bcsToBytes());
-      return ScriptTransactionArgument.deserialize(deserializer);
-    };
+    const scriptArgU8 = deserializeAsScriptArg(new U8(1)) as U8;
+    const scriptArgU16 = deserializeAsScriptArg(new U16(2)) as U16;
+    const scriptArgU32 = deserializeAsScriptArg(new U32(3)) as U32;
+    const scriptArgU64 = deserializeAsScriptArg(new U64(4)) as U64;
+    const scriptArgU128 = deserializeAsScriptArg(new U128(5)) as U128;
+    const scriptArgU256 = deserializeAsScriptArg(new U256(6)) as U256;
+    const scriptArgBool = deserializeAsScriptArg(new Bool(false)) as Bool;
+    const scriptArgAddress = deserializeAsScriptArg(AccountAddress.FOUR) as AccountAddress;
+    const scriptArgU8Vector = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
 
-    const scriptArgU8 = deserializeToScriptArg(new ScriptTransactionArgumentU8(1)) as ScriptTransactionArgumentU8;
-    const scriptArgU16 = deserializeToScriptArg(new ScriptTransactionArgumentU16(2)) as ScriptTransactionArgumentU16;
-    const scriptArgU32 = deserializeToScriptArg(new ScriptTransactionArgumentU32(3)) as ScriptTransactionArgumentU32;
-    const scriptArgU64 = deserializeToScriptArg(new ScriptTransactionArgumentU64(4)) as ScriptTransactionArgumentU64;
-    const scriptArgU128 = deserializeToScriptArg(new ScriptTransactionArgumentU128(5)) as ScriptTransactionArgumentU128;
-    const scriptArgU256 = deserializeToScriptArg(new ScriptTransactionArgumentU256(6)) as ScriptTransactionArgumentU256;
-    const scriptArgBool = deserializeToScriptArg(
-      new ScriptTransactionArgumentBool(false),
-    ) as ScriptTransactionArgumentBool;
-    const scriptArgAddress = deserializeToScriptArg(
-      new ScriptTransactionArgumentAddress(AccountAddress.FOUR),
-    ) as ScriptTransactionArgumentAddress;
-    const scriptArgU8Vector = deserializeToScriptArg(
-      new ScriptTransactionArgumentU8Vector([1, 2, 3, 4, 5]),
-    ) as ScriptTransactionArgumentU8Vector;
-
-    expect(scriptArgU8.value.value).toEqual(1);
-    expect(scriptArgU16.value.value).toEqual(2);
-    expect(scriptArgU32.value.value).toEqual(3);
-    expect(scriptArgU64.value.value).toEqual(4n);
-    expect(scriptArgU128.value.value).toEqual(5n);
-    expect(scriptArgU256.value.value).toEqual(6n);
-    expect(scriptArgBool.value.value).toEqual(false);
-    expect(scriptArgAddress.value.data).toEqual(AccountAddress.FOUR.data);
-    expect(scriptArgU8Vector.value.values.map((v) => v.value)).toEqual([1, 2, 3, 4, 5]);
+    expect(scriptArgU8.value).toEqual(1);
+    expect(scriptArgU16.value).toEqual(2);
+    expect(scriptArgU32.value).toEqual(3);
+    expect(scriptArgU64.value).toEqual(4n);
+    expect(scriptArgU128.value).toEqual(5n);
+    expect(scriptArgU256.value).toEqual(6n);
+    expect(scriptArgBool.value).toEqual(false);
+    expect(scriptArgAddress.data).toEqual(AccountAddress.FOUR.data);
+    expect(scriptArgU8Vector.values.map((v) => v.value)).toEqual([1, 2, 3, 4, 5]);
   });
 
   it("should convert all Move primitives to script transaction arguments correctly", () => {
-    const deserializeToScriptArg = (
-      input: U8 | U16 | U32 | U64 | U128 | U256 | Bool | MoveVector<U8> | AccountAddress,
-    ) => {
-      serializer = new Serializer();
-      input.serializeForScriptFunction(serializer);
-      const deserializer = new Deserializer(serializer.toUint8Array());
-      return ScriptTransactionArgument.deserialize(deserializer);
-    };
-
-    expect(deserializeToScriptArg(new U8(1)) instanceof ScriptTransactionArgumentU8).toBe(true);
-    expect(deserializeToScriptArg(new U16(2)) instanceof ScriptTransactionArgumentU16).toBe(true);
-    expect(deserializeToScriptArg(new U32(3)) instanceof ScriptTransactionArgumentU32).toBe(true);
-    expect(deserializeToScriptArg(new U64(4)) instanceof ScriptTransactionArgumentU64).toBe(true);
-    expect(deserializeToScriptArg(new U128(5)) instanceof ScriptTransactionArgumentU128).toBe(true);
-    expect(deserializeToScriptArg(new U256(6)) instanceof ScriptTransactionArgumentU256).toBe(true);
-    expect(deserializeToScriptArg(new Bool(false)) instanceof ScriptTransactionArgumentBool).toBe(true);
-    expect(
-      deserializeToScriptArg(new AccountAddress(AccountAddress.FOUR)) instanceof ScriptTransactionArgumentAddress,
-    ).toBe(true);
-    expect(deserializeToScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof ScriptTransactionArgumentU8Vector).toBe(
-      true,
-    );
+    expect(deserializeAsScriptArg(new U8(1)) instanceof U8).toBe(true);
+    expect(deserializeAsScriptArg(new U16(2)) instanceof U16).toBe(true);
+    expect(deserializeAsScriptArg(new U32(3)) instanceof U32).toBe(true);
+    expect(deserializeAsScriptArg(new U64(4)) instanceof U64).toBe(true);
+    expect(deserializeAsScriptArg(new U128(5)) instanceof U128).toBe(true);
+    expect(deserializeAsScriptArg(new U256(6)) instanceof U256).toBe(true);
+    expect(deserializeAsScriptArg(new Bool(false)) instanceof Bool).toBe(true);
+    expect(deserializeAsScriptArg(new AccountAddress(AccountAddress.FOUR)) instanceof AccountAddress).toBe(true);
+    expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
+    const deserializedVectorU8 = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
+    expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);
   });
 });

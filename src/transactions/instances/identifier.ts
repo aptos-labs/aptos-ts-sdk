@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer, } from "../../bcs/serializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 
 /**
  * Representation of an Identifier that can serialized and deserialized.

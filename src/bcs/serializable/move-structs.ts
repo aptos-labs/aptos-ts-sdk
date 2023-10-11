@@ -4,14 +4,10 @@
 import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
 import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
-import { AnyNumber, HexInput } from "../../types";
+import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { AccountAddress } from "../../core/account_address";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
-import {
-  ScriptTransactionArgumentAddress,
-  ScriptTransactionArgumentU8Vector,
-} from "../../transactions/instances/scriptTransactionArguments";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -80,9 +76,8 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
     if (!isU8) {
       throw new Error("Script function arguments only accept u8 vectors");
     }
-    const bcsBytes = this.bcsToBytes();
-    const scriptTxArg = new ScriptTransactionArgumentU8Vector(bcsBytes);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
+    serializer.serialize(this);
   }
 
   /**
@@ -242,9 +237,9 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    const scriptTxArg = new ScriptTransactionArgumentU8Vector(bcsBytes);
-    serializer.serialize(scriptTxArg);
+    // serialize the string, load it into a vector<u8> and serialize it as a script vector<u8> argument
+    const vectorU8 = MoveVector.U8(this.bcsToBytes());
+    vectorU8.serializeForScriptFunction(serializer);
   }
 
   static deserialize(deserializer: Deserializer): MoveString {
@@ -453,13 +448,11 @@ export class MoveObject extends Serializable implements TransactionArgument {
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    const bcsBytes = this.bcsToBytes();
-    serializer.serializeBytes(bcsBytes);
+    this.value.serializeForEntryFunction(serializer);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentAddress(this.value);
-    serializer.serialize(scriptTxArg);
+    this.value.serializeForScriptFunction(serializer);
   }
 
   static deserialize(deserializer: Deserializer): MoveObject {

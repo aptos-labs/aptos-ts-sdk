@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { HexInput } from "../types";
+import { HexInput, ScriptTransactionArgumentVariants } from "../types";
 import { ParsingError, ParsingResult } from "./common";
 import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 import { TransactionArgument } from "../transactions/instances/transactionArgument";
-import { ScriptTransactionArgumentAddress } from "../transactions/instances";
 
 /**
  * This enum is used to explain why an address was invalid.
@@ -185,12 +184,13 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
-    serializer.serialize(this);
+    const bcsBytes = this.bcsToBytes();
+    serializer.serializeBytes(bcsBytes);
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentAddress(this);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Address);
+    serializer.serialize(this);
   }
 
   /**

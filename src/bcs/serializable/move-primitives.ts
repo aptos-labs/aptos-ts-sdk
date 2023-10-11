@@ -12,16 +12,8 @@ import {
 import { Deserializer } from "../deserializer";
 import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import {
-  ScriptTransactionArgumentBool,
-  ScriptTransactionArgumentU128,
-  ScriptTransactionArgumentU16,
-  ScriptTransactionArgumentU256,
-  ScriptTransactionArgumentU32,
-  ScriptTransactionArgumentU64,
-  ScriptTransactionArgumentU8,
-} from "../../transactions/instances/scriptTransactionArguments";
 import type { AnyNumber, Uint16, Uint32, Uint8 } from "../../types";
+import { ScriptTransactionArgumentVariants } from "../../types";
 
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;
@@ -42,8 +34,8 @@ export class Bool extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentBool(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Bool);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): Bool {
@@ -70,8 +62,8 @@ export class U8 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU8(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U8 {
@@ -98,8 +90,8 @@ export class U16 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU16(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U16);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U16 {
@@ -126,8 +118,8 @@ export class U32 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU32(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U32);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U32 {
@@ -154,8 +146,8 @@ export class U64 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU64(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U64);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U64 {
@@ -182,8 +174,8 @@ export class U128 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU128(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U128);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U128 {
@@ -210,8 +202,8 @@ export class U256 extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    const scriptTxArg = new ScriptTransactionArgumentU256(this.value);
-    serializer.serialize(scriptTxArg);
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U256);
+    serializer.serialize(this);
   }
 
   static deserialize(deserializer: Deserializer): U256 {
