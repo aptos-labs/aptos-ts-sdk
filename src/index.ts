@@ -3,5 +3,5 @@
 
 export * from "./api";
 export * from "./client";
-export * from "./utils/api-endpoints";
+export * from "./utils/apiEndpoints";
 export * from "./bcs";

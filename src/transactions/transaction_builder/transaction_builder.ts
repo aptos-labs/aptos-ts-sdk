@@ -18,7 +18,7 @@ import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { HexInput, SigningScheme } from "../../types";
-import { NetworkToChainId } from "../../utils/api-endpoints";
+import { NetworkToChainId } from "../../utils/apiEndpoints";
 import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import {
   AccountAuthenticator,

@@ -3,7 +3,7 @@
 
 import { AptosConfig } from "../../src";
 import { AptosSettings } from "../../src/types";
-import { Network, NetworkToFaucetAPI, NetworkToNodeAPI, NetworkToIndexerAPI } from "../../src/utils/api-endpoints";
+import { Network, NetworkToFaucetAPI, NetworkToNodeAPI, NetworkToIndexerAPI } from "../../src/utils/apiEndpoints";
 import { AptosApiType } from "../../src/utils/const";
 
 describe("aptos config", () => {
