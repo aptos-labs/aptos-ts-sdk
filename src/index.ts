@@ -6,3 +6,6 @@ export * from "./api";
 export * from "./client";
 export * from "./utils/apiEndpoints";
 export * from "./bcs";
+export * from "./types";
+export * from "./transactions/types";
+export * from "./transactions/typeTag/typeTag";
