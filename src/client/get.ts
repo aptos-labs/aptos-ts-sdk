@@ -1,9 +1,6 @@
-// Copyright © Aptos Foundation
-// SPDX-License-Identifier: Apache-2.0
-
-import { AptosResponse, MimeType } from "./types";
+import { AptosResponse } from "./types";
 import { aptosRequest } from "./core";
-import { AnyNumber, ClientConfig } from "../types";
+import { AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosConfig } from "../api/aptos_config";
 import { AptosApiType } from "../utils/const";
 
