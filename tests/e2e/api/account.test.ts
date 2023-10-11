@@ -1,10 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, AptosConfig, Network } from "../../../src";
-
-// TODO
-// add account getTransactions tests once sdk v2 supports faucet (which needs transaction operation support)
+import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { U64 } from "../../../src/bcs/serializable/move-primitives";
+import { SigningScheme } from "../../../src/types";
 
 describe("account api", () => {
   describe("throws when account address in invalid", () => {
@@ -78,6 +77,84 @@ describe("account api", () => {
       });
       expect(data).toHaveProperty("type");
       expect(data.type).toBe("0x1::account::Account");
+    });
+
+    test("it fetches account transactions", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: 1000000000 });
+      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const rawTxn = await aptos.generateTransaction({
+        sender: senderAccount.accountAddress.toString(),
+        data: {
+          function: "0x1::aptos_account::transfer",
+          type_arguments: [],
+          arguments: [bob.accountAddress, new U64(10)],
+        },
+      });
+      const authenticator = aptos.signTransaction({
+        signer: senderAccount,
+        transaction: rawTxn,
+      });
+      const response = await aptos.submitTransaction({
+        transaction: rawTxn,
+        senderAuthenticator: authenticator,
+      });
+      const txn = await aptos.waitForTransaction({ txnHash: response.hash });
+      const accountTransactions = await aptos.getAccountTransactions({
+        accountAddress: senderAccount.accountAddress.toString(),
+      });
+      expect(accountTransactions[0]).toStrictEqual(txn);
+    });
+
+    test("it fetches account transactions count", async () => {
+      const config = new AptosConfig({ network: Network.DEVNET });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const response = await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress.toString(),
+        amount: 1000000000,
+      });
+
+      await aptos.waitForTransaction({ txnHash: response });
+      const accountTransactionsCount = await aptos.getAccountTransactionsCount({
+        accountAddress: senderAccount.accountAddress.toString(),
+      });
+      expect(accountTransactionsCount?.count).toBe(1);
+    });
+
+    test("it fetches account coins data", async () => {
+      const config = new AptosConfig({ network: Network.DEVNET });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const response = await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress.toString(),
+        amount: 1000000000,
+      });
+
+      await aptos.waitForTransaction({ txnHash: response });
+      const accountCoinData = await aptos.getAccountCoinsData({
+        accountAddress: senderAccount.accountAddress.toString(),
+      });
+      expect(accountCoinData[0].amount).toBe(100000000);
+      expect(accountCoinData[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
+    });
+
+    test("it fetches account coins count", async () => {
+      const config = new AptosConfig({ network: Network.DEVNET });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const response = await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress.toString(),
+        amount: 1000000000,
+      });
+
+      await aptos.waitForTransaction({ txnHash: response });
+      const accountCoinsCount = await aptos.getAccountCoinsCount({
+        accountAddress: senderAccount.accountAddress.toString(),
+      });
+      expect(accountCoinsCount?.count).toBe(1);
     });
   });
 
