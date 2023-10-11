@@ -299,10 +299,10 @@ export class Account {
   }
 
   /**
-   * Queries the count of an account's coins
+   * Queries the count of an account's coins aggregated
    *
    * @param accountAddress The account address we want to get the total count for
-   * @returns An object { count : number }
+   * @returns An object { count : number } where `number` is the aggregated count of all account's coin
    */
   async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<GetAccountCoinsCountResponse> {
     const count = getAccountCoinsCount({ aptosConfig: this.config, ...args });
