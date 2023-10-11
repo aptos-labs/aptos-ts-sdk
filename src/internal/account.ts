@@ -53,6 +53,7 @@ import {
   GetAccountTokensCount,
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
+import { memoizeAsync } from "../utils/memoize";
 
 export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: HexInput }): Promise<AccountData> {
   const { aptosConfig, accountAddress } = args;
@@ -101,7 +102,29 @@ export async function getModule(args: {
   moduleName: string;
   options?: LedgerVersion;
 }): Promise<MoveModuleBytecode> {
+  // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
+  // by the developer directly
+  if (args.options?.ledgerVersion !== undefined) {
+    const module = await getModuleInner(args);
+    return module;
+  }
+
+  const module = await memoizeAsync(
+    async () => getModuleInner(args),
+    `module-${args.accountAddress}-${args.moduleName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
+  return module;
+}
+
+async function getModuleInner(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: HexInput;
+  moduleName: string;
+  options?: LedgerVersion;
+}): Promise<MoveModuleBytecode> {
   const { aptosConfig, accountAddress, moduleName, options } = args;
+
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
