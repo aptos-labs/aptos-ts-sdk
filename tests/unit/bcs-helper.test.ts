@@ -4,8 +4,7 @@
 import { FixedBytes } from "../../src/bcs/serializable/fixed-bytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
-import { Deserializable, Deserializer, Serializable, Serializer } from "../../src";
-import { AccountAddress } from "../../src/core";
+import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;

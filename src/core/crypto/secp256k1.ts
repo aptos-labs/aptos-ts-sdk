@@ -3,9 +3,9 @@
 
 import { sha256 } from "@noble/hashes/sha256";
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { Deserializer, Serializer } from "../bcs";
-import { Hex } from "../core";
-import { HexInput } from "../types";
+import { Deserializer, Serializer } from "../../bcs";
+import { Hex } from "../hex";
+import { HexInput } from "../../types";
 import { PrivateKey, PublicKey, Signature } from "./asymmetric_crypto";
 
 /**

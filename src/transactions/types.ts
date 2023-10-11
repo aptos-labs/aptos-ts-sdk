@@ -4,7 +4,7 @@
 import { AptosConfig } from "../api/aptos_config";
 import { Serializable } from "../bcs";
 import { AccountAddress } from "../core";
-import { PublicKey } from "../crypto/asymmetric_crypto";
+import { PublicKey } from "../core/crypto/asymmetric_crypto";
 import { HexInput, MoveStructType } from "../types";
 import {
   MultiAgentRawTransaction,
