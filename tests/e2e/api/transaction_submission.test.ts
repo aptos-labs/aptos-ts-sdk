@@ -90,7 +90,7 @@ describe("transaction submission", () => {
       const deserializer = new Deserializer(rawTxn.rawTransaction);
       const desirializedTransaction = RawTransaction.deserialize(deserializer);
       expect(desirializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(desirializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
   describe("simulateTransaction", () => {
