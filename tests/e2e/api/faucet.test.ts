@@ -1,11 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos } from "../../../src/api/aptos";
-import { AptosConfig } from "../../../src/api/aptos_config";
-import { Account } from "../../../src/core/account";
+import { Aptos, AptosConfig, Account, Network } from "../../../src";
 import { SigningScheme } from "../../../src/types";
-import { Network } from "../../../src/utils/apiEndpoints";
 
 describe("Faucet", () => {
   test("it should fund an account", async () => {

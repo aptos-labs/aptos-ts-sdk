@@ -9,8 +9,7 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
-import { Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src";
-import { AccountAddress } from "../../src/core";
+import { AccountAddress, Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src";
 
 describe("BCS Serializer", () => {
   let serializer: Serializer;

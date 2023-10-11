@@ -1,11 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Network, Aptos, Deserializer } from "../../../src";
+import { Account, AptosConfig, Ed25519PrivateKey, Network, Aptos, Deserializer } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
-import { Account } from "../../../src/core/account";
-import { Ed25519PrivateKey } from "../../../src/crypto/ed25519";
 import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import {
   RawTransaction,

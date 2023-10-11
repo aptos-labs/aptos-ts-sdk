@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { AccountAddress, Hex } from "../core";
+import { AccountAddress } from "./account_address";
+import { Hex } from "./hex";
 import { AuthenticationKeyScheme, HexInput, SigningScheme } from "../types";
-import { MultiEd25519PublicKey } from "./multi_ed25519";
-import { PublicKey } from "./asymmetric_crypto";
-import { Ed25519PublicKey } from "./ed25519";
-import { Secp256k1PublicKey } from "./secp256k1";
+import { MultiEd25519PublicKey } from "./crypto/multi_ed25519";
+import { PublicKey } from "./crypto/asymmetric_crypto";
+import { Ed25519PublicKey } from "./crypto/ed25519";
+import { Secp256k1PublicKey } from "./crypto/secp256k1";
 
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate

@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializable, Serializer } from "../bcs";
-import { HexInput } from "../types";
+import { Serializable, Serializer } from "../../bcs";
+import { HexInput } from "../../types";
 
 /**
  * An abstract representation of a public key.  All Asymmetric key pairs will use this to
