@@ -4,7 +4,8 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { HexInput } from "../types";
 import { ParsingError, ParsingResult } from "./common";
-import { Deserializer, Serializable, Serializer } from "../bcs";
+import { Serializable, Serializer } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
 import { TransactionArgument } from "../transactions/instances/transactionArgument";
 import { ScriptTransactionArgumentAddress } from "../transactions/instances";
 

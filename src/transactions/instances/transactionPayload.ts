@@ -3,14 +3,16 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer, } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
-import { ScriptTransactionArgument } from "./scriptTransactionArguments";
 import { ModuleId } from "./moduleId";
 import { TransactionPayloadVariants } from "../../types";
 import { TypeTag } from "../typeTag/typeTag";
-import { EntryFunctionArgument, EntryFunctionBytes, ScriptFunctionArgument } from "./transactionArgument";
+import type { EntryFunctionArgument, ScriptFunctionArgument } from "./transactionArgument";
+import { ScriptTransactionArgument } from "./scriptTransactionArguments";
+import { EntryFunctionBytes } from "../../bcs/serializable/entry-function-bytes";
 
 /**
  * Representation of the supported Transaction Payload

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializable, Serializer } from "../serializer";
+import { Serializer, Serializable } from "../serializer";
 import { Deserializer } from "../deserializer";
 import { HexInput } from "../../types";
 import { Hex } from "../../core/hex";

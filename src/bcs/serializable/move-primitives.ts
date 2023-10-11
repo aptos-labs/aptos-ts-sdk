@@ -9,7 +9,6 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "../consts";
-import { AnyNumber, Uint16, Uint32, Uint8 } from "../../types";
 import { Deserializer } from "../deserializer";
 import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
@@ -22,6 +21,7 @@ import {
   ScriptTransactionArgumentU64,
   ScriptTransactionArgumentU8,
 } from "../../transactions/instances/scriptTransactionArguments";
+import type { AnyNumber, Uint16, Uint32, Uint8 } from "../../types";
 
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;

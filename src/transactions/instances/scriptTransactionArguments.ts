@@ -1,12 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializer, Serializable } from "../../bcs/serializer";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/move-primitives";
 import { MoveVector } from "../../bcs/serializable/move-structs";
-import { AccountAddress } from "../../core";
+import { AccountAddress } from "../../core/account_address";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants, Uint16, Uint32, Uint8 } from "../../types";
-import { ScriptFunctionArgument } from "./transactionArgument";
+import type { ScriptFunctionArgument } from "./transactionArgument";
 
 /**
  * Representation of a Script Transaction Argument that can be serialized and deserialized

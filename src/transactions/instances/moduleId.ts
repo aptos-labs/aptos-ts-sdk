@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Deserializer } from "../../bcs";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 
@@ -9,7 +10,7 @@ import { Identifier } from "./identifier";
  * Representation of a ModuleId that can serialized and deserialized
  * ModuleId means the module address (e.g "0x1") and the module name (e.g "coin")
  */
-export class ModuleId {
+export class ModuleId extends Serializable {
   public readonly address: AccountAddress;
 
   public readonly name: Identifier;
@@ -20,6 +21,7 @@ export class ModuleId {
    * @param name The module name under the "address". e.g "coin"
    */
   constructor(address: AccountAddress, name: Identifier) {
+    super();
     this.address = address;
     this.name = name;
   }

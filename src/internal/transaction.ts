@@ -11,12 +11,12 @@
 import { AptosConfig } from "../api/aptos_config";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import {
-  AnyNumber,
-  GasEstimation,
-  HexInput,
-  PaginationArgs,
-  TransactionResponse,
   TransactionResponseType,
+  type AnyNumber,
+  type GasEstimation,
+  type HexInput,
+  type PaginationArgs,
+  type TransactionResponse,
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { sleep } from "../utils/helpers";

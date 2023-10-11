@@ -1,15 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Deserializer } from "../../bcs";
+import { Serializer, Serializable } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 
 /**
  * Representation of a ChainId that can serialized and deserialized
  */
-export class ChainId {
+export class ChainId extends Serializable {
   public readonly chainId: number;
 
   constructor(chainId: number) {
+    super();
     this.chainId = chainId;
   }
 

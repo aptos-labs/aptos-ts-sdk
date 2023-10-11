@@ -5,7 +5,8 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import { AccountAddress } from "../../core";
-import { Deserializer, Serializable, Serializer } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializable, Serializer, } from "../../bcs/serializer";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
 

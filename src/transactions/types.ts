@@ -13,8 +13,8 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { EntryFunctionArgument, ScriptFunctionArgument } from "./instances/transactionArgument";
-import { TypeTag } from "./typeTag/typeTag";
+import type { EntryFunctionArgument, ScriptFunctionArgument } from "./instances/transactionArgument";
+import type { TypeTag } from "./typeTag/typeTag";
 
 /**
  * Type that holds all raw transaction instances Aptos SDK supports

@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { hexToBytes } from "@noble/hashes/utils";
 import { AptosConfig } from "../../api/aptos_config";
-import { Deserializer } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress } from "../../core";
 import { Account } from "../../core/account";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";

@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptos_config";
-import {
+import type { AptosConfig } from "./aptos_config";
+import type {
   AccountData,
   LedgerVersion,
   MoveModuleBytecode,
