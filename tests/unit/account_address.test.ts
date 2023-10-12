@@ -369,7 +369,7 @@ describe("AccountAddress toUint8Array", () => {
     ).toEqual(ADDRESS_TEN.bytes);
   });
 
-  it("correctly returns bytes for  non-special address: 0xca84...a3d0", () => {
+  it("correctly returns bytes for non-special address: 0xca84...a3d0", () => {
     expect(
       AccountAddress.fromHexInput({
         input: ADDRESS_OTHER.longWith0x,
