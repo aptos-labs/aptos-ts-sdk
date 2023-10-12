@@ -29,6 +29,18 @@ describe("staking api", () => {
     expect(numDelegatorsData[0].num_active_delegator).toBeGreaterThanOrEqual(0);
   });
 
+  test("it queries for the number of delegators for all pools and sorts on the number of delegators", async () => {
+    const config = new AptosConfig({ network: Network.MAINNET });
+    const aptos = new Aptos(config);
+    const numDelegatorsData = await aptos.getNumberOfDelegatorsForAllPools({
+      options: { orderBy: [{ num_active_delegator: "desc" }] },
+    });
+    expect(numDelegatorsData.length).toBeGreaterThan(5); // Mainnet should have more than 5 delegator pools.
+    for (let i = 1; i <= 5; i++) {
+      expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThan(numDelegatorsData[i + 1].num_active_delegator);
+    }
+  });
+
   test("it queries for the activity of a delegator for a given pool", async () => {
     const config = new AptosConfig({ network: Network.MAINNET });
     const aptos = new Aptos(config);

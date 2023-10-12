@@ -347,7 +347,9 @@ export type GetDelegatedStakingActivitiesQuery = {
   }>;
 };
 
-export type GetNumberOfDelegatorsForAllPoolsQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type GetNumberOfDelegatorsForAllPoolsQueryVariables = Types.Exact<{
+  order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
+}>;
 
 export type GetNumberOfDelegatorsForAllPoolsQuery = {
   num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;

@@ -6,7 +6,12 @@ import {
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
 } from "../internal/staking";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsForAllPoolsResponse, HexInput } from "../types";
+import {
+  GetDelegatedStakingActivitiesResponse,
+  GetNumberOfDelegatorsForAllPoolsResponse,
+  HexInput,
+  OrderBy,
+} from "../types";
 import { AptosConfig } from "./aptos_config";
 
 /**
@@ -36,8 +41,12 @@ export class Staking {
    * @param poolAddress Pool address
    * @returns GetNumberOfDelegatorsForAllPoolsResponse response type
    */
-  async getNumberOfDelegatorsForAllPools(): Promise<GetNumberOfDelegatorsForAllPoolsResponse> {
-    const numDelegatorData = await getNumberOfDelegatorsForAllPools({ aptosConfig: this.config });
+  async getNumberOfDelegatorsForAllPools(args?: {
+    options?: {
+      orderBy?: OrderBy<GetNumberOfDelegatorsForAllPoolsResponse[0]>;
+    };
+  }): Promise<GetNumberOfDelegatorsForAllPoolsResponse> {
+    const numDelegatorData = await getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
     return numDelegatorData;
   }
 

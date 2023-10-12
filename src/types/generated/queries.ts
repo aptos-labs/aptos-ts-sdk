@@ -220,8 +220,8 @@ export const GetDelegatedStakingActivities = `
 }
     `;
 export const GetNumberOfDelegatorsForAllPools = `
-    query getNumberOfDelegatorsForAllPools {
-  num_active_delegator_per_pool {
+    query getNumberOfDelegatorsForAllPools($order_by: [num_active_delegator_per_pool_order_by!]) {
+  num_active_delegator_per_pool(order_by: $order_by) {
     num_active_delegator
     pool_address
   }

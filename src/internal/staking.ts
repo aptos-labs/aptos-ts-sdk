@@ -10,7 +10,12 @@
 
 import { AptosConfig } from "../api/aptos_config";
 import { Hex } from "../core";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsForAllPoolsResponse, HexInput } from "../types";
+import {
+  GetDelegatedStakingActivitiesResponse,
+  GetNumberOfDelegatorsForAllPoolsResponse,
+  HexInput,
+  OrderBy,
+} from "../types";
 import {
   GetDelegatedStakingActivitiesQuery,
   GetNumberOfDelegatorsForAllPoolsQuery,
@@ -42,11 +47,14 @@ export async function getNumberOfDelegators(args: {
 
 export async function getNumberOfDelegatorsForAllPools(args: {
   aptosConfig: AptosConfig;
+  options?: {
+    orderBy?: OrderBy<GetNumberOfDelegatorsForAllPoolsResponse[0]>;
+  };
 }): Promise<GetNumberOfDelegatorsForAllPoolsResponse> {
-  const { aptosConfig } = args;
+  const { aptosConfig, options } = args;
   const query = {
     query: GetNumberOfDelegatorsForAllPools,
-    variables: {},
+    variables: { order_by: options?.orderBy },
   };
   const data: GetNumberOfDelegatorsForAllPoolsQuery = await queryIndexer<GetNumberOfDelegatorsForAllPoolsQuery>({
     aptosConfig,
