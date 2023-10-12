@@ -156,6 +156,20 @@ describe("account api", () => {
       });
       expect(accountCoinsCount?.count).toBe(1);
     });
+
+    test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const account = Account.generate({ scheme: SigningScheme.Ed25519 });
+
+      // Fund and create account onchain
+      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 10_000_000 });
+
+      const lookupAccount = await aptos.lookupOriginalAccountAddress({
+        authenticationKey: account.accountAddress.toString(),
+      });
+      expect(lookupAccount.toString()).toBe(account.accountAddress.toString());
+    });
   });
 
   describe("fetch data with acount address as Uint8Array", () => {
