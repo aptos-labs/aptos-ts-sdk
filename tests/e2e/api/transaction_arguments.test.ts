@@ -20,9 +20,9 @@ describe("various transaction arguments", () => {
   let aptos: Aptos;
   let alice: Account;
   const moduleObjects: Array<MoveObject> = [];
-  let basicArguments: EntryFunctionArgumentTypes;
-  let vectorArguments: EntryFunctionArgumentTypes;
-  let optionArguments: EntryFunctionArgumentTypes;
+  let basicArguments: EntryFunctionArgumentTypes[];
+  let vectorArguments: EntryFunctionArgumentTypes[];
+  let optionArguments: EntryFunctionArgumentTypes[];
 
   beforeAll(async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
