@@ -6,6 +6,8 @@ import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { SigningScheme } from "../../../src/types";
 
 describe("account api", () => {
+  const FUND_AMOUNT = 100_000_000;
+
   describe("throws when account address in invalid", () => {
     test("it throws with a short account address", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
@@ -27,7 +29,7 @@ describe("account api", () => {
     });
   });
 
-  describe("fetch data with acount address as string", () => {
+  describe("fetch data with account address as string", () => {
     test("it fetches account data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
@@ -49,7 +51,7 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account module", async () => {
+    test("it fetches an account module", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountModule({
@@ -68,7 +70,7 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account resource", async () => {
+    test("it fetches an account resource", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountResource({
@@ -83,7 +85,7 @@ describe("account api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
@@ -114,7 +116,7 @@ describe("account api", () => {
       const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
-        amount: 1000000000,
+        amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ txnHash: response });
@@ -130,14 +132,14 @@ describe("account api", () => {
       const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
-        amount: 1000000000,
+        amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ txnHash: response });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress.toString(),
       });
-      expect(accountCoinData[0].amount).toBe(100000000);
+      expect(accountCoinData[0].amount).toBe(FUND_AMOUNT);
       expect(accountCoinData[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
     });
 
@@ -147,7 +149,7 @@ describe("account api", () => {
       const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
-        amount: 1000000000,
+        amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ txnHash: response });
@@ -163,7 +165,7 @@ describe("account api", () => {
       const account = Account.generate({ scheme: SigningScheme.Ed25519 });
 
       // Fund and create account onchain
-      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 10_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
 
       const lookupAccount = await aptos.lookupOriginalAccountAddress({
         authenticationKey: account.accountAddress.toString(),
@@ -172,7 +174,7 @@ describe("account api", () => {
     });
   });
 
-  describe("fetch data with acount address as Uint8Array", () => {
+  describe("fetch data with account address as Uint8Array", () => {
     test("it fetches account data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
@@ -198,7 +200,7 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account module", async () => {
+    test("it fetches an account module", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountModule({
@@ -221,7 +223,7 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches account resource", async () => {
+    test("it fetches an account resource", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountResource({
