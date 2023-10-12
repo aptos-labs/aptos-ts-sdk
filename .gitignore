@@ -1,17 +1,21 @@
-.env
+.aptos/
 .DS_Store
 */**/.DS_Store
-npm-debug.log
-.npm/
-/coverage
-/tmp
-node_modules
-.idea/
+.env/
 .history/
-.vscode/
-dist/
+.idea/
+.npm/
 .nyc_output/
+.vscode/
 build/
+coverage/
+dist/
+node_modules/
+npm-debug.log
+tmp/
+
+# Vim swap files
+*.swp
 
 # Doc generation output
 docs/
