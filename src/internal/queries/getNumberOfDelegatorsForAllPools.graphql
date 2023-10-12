@@ -1,0 +1,6 @@
+query getNumberOfDelegatorsForAllPools {
+  num_active_delegator_per_pool {
+    num_active_delegator
+    pool_address
+  }
+}

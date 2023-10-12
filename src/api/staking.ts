@@ -1,9 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getDelegatedStakingActivities, getNumberOfDelegators } from "../internal/staking";
-import { HexInput } from "../types";
-import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
+import {
+  getDelegatedStakingActivities,
+  getNumberOfDelegators,
+  getNumberOfDelegatorsForAllPools,
+} from "../internal/staking";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsForAllPoolsResponse, HexInput } from "../types";
 import { AptosConfig } from "./aptos_config";
 
 /**
@@ -17,13 +20,25 @@ export class Staking {
   }
 
   /**
-   * Queries current number of delegators in a pool
+   * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
-   * @returns GetNumberOfDelegatorsQuery response type
+   * @param poolAddress Pool address
+   * @returns The number of delegators for the given pool
    */
-  async getNumberOfDelegators(args: { poolAddress: HexInput }): Promise<GetNumberOfDelegatorsQuery> {
+  async getNumberOfDelegators(args: { poolAddress: HexInput }): Promise<number> {
     const numDelegators = await getNumberOfDelegators({ aptosConfig: this.config, ...args });
     return numDelegators;
+  }
+
+  /**
+   * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
+   *
+   * @param poolAddress Pool address
+   * @returns GetNumberOfDelegatorsForAllPoolsResponse response type
+   */
+  async getNumberOfDelegatorsForAllPools(): Promise<GetNumberOfDelegatorsForAllPoolsResponse> {
+    const numDelegatorData = await getNumberOfDelegatorsForAllPools({ aptosConfig: this.config });
+    return numDelegatorData;
   }
 
   /**
@@ -31,12 +46,12 @@ export class Staking {
    *
    * @param delegatorAddress Delegator address
    * @param poolAddress Pool address
-   * @returns GetDelegatedStakingActivitiesQuery response type
+   * @returns GetDelegatedStakingActivitiesResponse response type
    */
   async getDelegatedStakingActivities(args: {
     delegatorAddress: HexInput;
     poolAddress: HexInput;
-  }): Promise<GetDelegatedStakingActivitiesQuery> {
+  }): Promise<GetDelegatedStakingActivitiesResponse> {
     const delegatedStakingActivities = await getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
     return delegatedStakingActivities;
   }

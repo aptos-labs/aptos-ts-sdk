@@ -347,6 +347,12 @@ export type GetDelegatedStakingActivitiesQuery = {
   }>;
 };
 
+export type GetNumberOfDelegatorsForAllPoolsQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetNumberOfDelegatorsForAllPoolsQuery = {
+  num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
+};
+
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
   poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
