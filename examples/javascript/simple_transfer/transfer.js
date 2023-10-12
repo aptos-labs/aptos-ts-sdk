@@ -4,7 +4,8 @@
 
 const { Account, AccountAddress, Aptos, AptosConfig, Network, TypeTagStruct, StructTag, U64 } = require("aptos");
 
-const APTOS_COIN = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
+const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 0;
@@ -19,7 +20,7 @@ const TRANSFER_AMOUNT = 0;
  * TODO: Change to AccountAddress for address
  */
 const balance = async (aptos, name, address) => {
-  let balance = await aptos.getAccountResource({ accountAddress: address, resourceType: APTOS_COIN });
+  let balance = await aptos.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
 
   let amount = Number(balance.data.coin.value);
 
@@ -70,7 +71,7 @@ const example = async () => {
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
+      type_arguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
       arguments: [AccountAddress.fromHexInput({ input: bob.accountAddress.toString() }), new U64(TRANSFER_AMOUNT)],
     },
   });
