@@ -12,10 +12,7 @@
  */
 
 import {
-  GetAccountTokensCountQuery,
-  GetAccountTransactionsCountQuery,
   GetAccountCoinsDataQuery,
-  GetAccountCoinsCountQuery,
   GetAccountOwnedObjectsQuery,
   GetAccountOwnedTokensQuery,
   GetAccountOwnedTokensFromCollectionQuery,
@@ -34,12 +31,6 @@ import {
  * These types are used as the return type when calling an sdk api function
  * that calls the function that queries the server (usually under the /api/ folder)
  */
-export type GetAccountTokensCountQueryResponse =
-  GetAccountTokensCountQuery["current_token_ownerships_v2_aggregate"]["aggregate"];
-export type GetAccountTransactionsCountResponse =
-  GetAccountTransactionsCountQuery["account_transactions_aggregate"]["aggregate"];
-export type GetAccountCoinsCountResponse =
-  GetAccountCoinsCountQuery["current_fungible_asset_balances_aggregate"]["aggregate"];
 export type GetAccountOwnedObjectsResponse = GetAccountOwnedObjectsQuery["current_objects"];
 
 export type GetAccountOwnedTokensQueryResponse = GetAccountOwnedTokensQuery["current_token_ownerships_v2"];
