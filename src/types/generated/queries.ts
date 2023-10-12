@@ -205,6 +205,13 @@ export const GetAccountTransactionsCount = `
   }
 }
     `;
+export const GetChainTopUserTransactions = `
+    query getChainTopUserTransactions($limit: Int) {
+  user_transactions(limit: $limit, order_by: {version: desc}) {
+    version
+  }
+}
+    `;
 export const GetCollectionData = `
     query getCollectionData($where_condition: current_collections_v2_bool_exp!) {
   current_collections_v2(where: $where_condition) {
@@ -383,6 +390,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getAccountTransactionsCount",
+        "query",
+      );
+    },
+    getChainTopUserTransactions(
+      variables?: Types.GetChainTopUserTransactionsQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetChainTopUserTransactionsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetChainTopUserTransactionsQuery>(GetChainTopUserTransactions, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getChainTopUserTransactions",
         "query",
       );
     },

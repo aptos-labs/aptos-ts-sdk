@@ -4,12 +4,22 @@
 import {
   getBlockByHeight,
   getBlockByVersion,
+  getChainTopUserTransactions,
   getLedgerInfo,
   getTableItem,
   queryIndexer,
   view,
 } from "../internal/general";
-import { Block, GraphqlQuery, LedgerInfo, LedgerVersion, MoveValue, TableItemRequest, ViewRequest } from "../types";
+import {
+  Block,
+  GetChainTopUserTransactionsResponse,
+  GraphqlQuery,
+  LedgerInfo,
+  LedgerVersion,
+  MoveValue,
+  TableItemRequest,
+  ViewRequest,
+} from "../types";
 import { AptosConfig } from "./aptos_config";
 
 /**
@@ -123,6 +133,21 @@ export class General {
   async view(args: { payload: ViewRequest; options?: LedgerVersion }): Promise<MoveValue> {
     const data = await view({ aptosConfig: this.config, ...args });
     return data[0];
+  }
+
+  /**
+   * Queries top user transactions
+   *
+   * @param args.limit
+   * @returns GetChainTopUserTransactionsResponse
+   */
+  async getChainTopUserTransactions(args: { limit: number }): Promise<GetChainTopUserTransactionsResponse> {
+    const data = getChainTopUserTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
+
+    return data;
   }
 
   /**

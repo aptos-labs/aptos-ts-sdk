@@ -103,4 +103,12 @@ describe("general api", () => {
 
     expect(chainId.ledger_infos[0].chain_id).toBe(2);
   });
+
+  test("it should fetch chain top user transactions", async () => {
+    const config = new AptosConfig({ network: Network.TESTNET });
+    const aptos = new Aptos(config);
+
+    const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 3 });
+    expect(topUserTransactions.length).toEqual(3);
+  });
 });

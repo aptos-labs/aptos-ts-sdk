@@ -331,6 +331,12 @@ export type GetAccountTransactionsCountQuery = {
   account_transactions_aggregate: { aggregate?: { count: number } | null };
 };
 
+export type GetChainTopUserTransactionsQueryVariables = Types.Exact<{
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetChainTopUserTransactionsQuery = { user_transactions: Array<{ version: any }> };
+
 export type GetCollectionDataQueryVariables = Types.Exact<{
   where_condition: Types.CurrentCollectionsV2BoolExp;
 }>;
