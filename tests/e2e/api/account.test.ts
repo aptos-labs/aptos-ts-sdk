@@ -6,7 +6,7 @@ import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { SigningScheme } from "../../../src/types";
 
 describe("account api", () => {
-  const FUND_AMOUNT = 1000000000;
+  const FUND_AMOUNT = 1_000_000_000;
 
   describe("throws when account address in invalid", () => {
     test("it throws with a short account address", async () => {
@@ -165,7 +165,7 @@ describe("account api", () => {
       const account = Account.generate({ scheme: SigningScheme.Ed25519 });
 
       // Fund and create account onchain
-      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 10_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
 
       const lookupAccount = await aptos.lookupOriginalAccountAddress({
         authenticationKey: account.accountAddress.toString(),
