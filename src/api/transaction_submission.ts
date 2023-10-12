@@ -141,4 +141,33 @@ export class TransactionSubmission {
     const data = await submitTransaction({ aptosConfig: this.config, ...args });
     return data;
   }
+
+  /**
+   * Sign and submit a single signer transaction to chain
+   *
+   * @param args.signer The signer account to sign the transaction
+   * @param args.transaction A raw transaction type (note that it holds the raw transaction as a bcs serialized data)
+   * ```
+   * {
+   *  rawTransaction: Uint8Array,
+   *  secondarySignerAddresses? : Array<AccountAddress>,
+   *  feePayerAddress?: AccountAddress
+   * }
+   * ```
+   *
+   * @return PendingTransactionResponse
+   */
+  async signAndSubmitTransaction(args: {
+    signer: Account;
+    transaction: AnyRawTransaction;
+  }): Promise<PendingTransactionResponse> {
+    const { signer, transaction } = args;
+    const authenticator = signTransaction({ signer, transaction });
+    const response = await submitTransaction({
+      aptosConfig: this.config,
+      transaction,
+      senderAuthenticator: authenticator,
+    });
+    return response;
+  }
 }
