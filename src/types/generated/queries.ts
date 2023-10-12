@@ -1,7 +1,7 @@
-import * as Types from "./operations";
+import * as Types from './operations';
 
-import { GraphQLClient } from "graphql-request";
-import * as Dom from "graphql-request/dist/types.dom";
+import { GraphQLClient } from 'graphql-request';
+import * as Dom from 'graphql-request/dist/types.dom';
 export const CurrentTokenOwnershipFieldsFragmentDoc = `
     fragment CurrentTokenOwnershipFields on current_token_ownerships_v2 {
   token_standard
@@ -171,6 +171,18 @@ export const GetAccountOwnedTokensByTokenData = `
   }
 }
     ${CurrentTokenOwnershipFieldsFragmentDoc}`;
+export const GetOwnedTokensByTokenData = `
+    query getOwnedTokensByTokenData($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_token_ownerships_v2_order_by!]) {
+  current_token_ownerships_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    ...CurrentTokenOwnershipFields
+  }
+}
+    ${CurrentTokenOwnershipFieldsFragmentDoc}`;
 export const GetAccountOwnedTokensFromCollection = `
     query getAccountOwnedTokensFromCollection($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_token_ownerships_v2_order_by!]) {
   current_token_ownerships_v2(
@@ -206,144 +218,43 @@ export const GetAccountTransactionsCount = `
 }
     `;
 
-export type SdkFunctionWrapper = <T>(
-  action: (requestHeaders?: Record<string, string>) => Promise<T>,
-  operationName: string,
-  operationType?: string,
-) => Promise<T>;
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+
 
 const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    getAccountCoinsCount(
-      variables?: Types.GetAccountCoinsCountQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountCoinsCountQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountCoinsCountQuery>(GetAccountCoinsCount, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountCoinsCount",
-        "query",
-      );
+    getAccountCoinsCount(variables?: Types.GetAccountCoinsCountQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountCoinsCountQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountCoinsCountQuery>(GetAccountCoinsCount, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountCoinsCount', 'query');
     },
-    getAccountCoinsData(
-      variables: Types.GetAccountCoinsDataQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountCoinsDataQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountCoinsDataQuery>(GetAccountCoinsData, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountCoinsData",
-        "query",
-      );
+    getAccountCoinsData(variables: Types.GetAccountCoinsDataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountCoinsDataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountCoinsDataQuery>(GetAccountCoinsData, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountCoinsData', 'query');
     },
-    getAccountCollectionsWithOwnedTokens(
-      variables: Types.GetAccountCollectionsWithOwnedTokensQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountCollectionsWithOwnedTokensQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountCollectionsWithOwnedTokensQuery>(
-            GetAccountCollectionsWithOwnedTokens,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
-          ),
-        "getAccountCollectionsWithOwnedTokens",
-        "query",
-      );
+    getAccountCollectionsWithOwnedTokens(variables: Types.GetAccountCollectionsWithOwnedTokensQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountCollectionsWithOwnedTokensQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountCollectionsWithOwnedTokensQuery>(GetAccountCollectionsWithOwnedTokens, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountCollectionsWithOwnedTokens', 'query');
     },
-    getAccountOwnedObjects(
-      variables?: Types.GetAccountOwnedObjectsQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountOwnedObjectsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountOwnedObjectsQuery>(GetAccountOwnedObjects, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountOwnedObjects",
-        "query",
-      );
+    getAccountOwnedObjects(variables?: Types.GetAccountOwnedObjectsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountOwnedObjectsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountOwnedObjectsQuery>(GetAccountOwnedObjects, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountOwnedObjects', 'query');
     },
-    getAccountOwnedTokens(
-      variables: Types.GetAccountOwnedTokensQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountOwnedTokensQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountOwnedTokensQuery>(GetAccountOwnedTokens, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountOwnedTokens",
-        "query",
-      );
+    getAccountOwnedTokens(variables: Types.GetAccountOwnedTokensQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountOwnedTokensQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountOwnedTokensQuery>(GetAccountOwnedTokens, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountOwnedTokens', 'query');
     },
-    getAccountOwnedTokensByTokenData(
-      variables: Types.GetAccountOwnedTokensByTokenDataQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountOwnedTokensByTokenDataQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountOwnedTokensByTokenDataQuery>(GetAccountOwnedTokensByTokenData, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountOwnedTokensByTokenData",
-        "query",
-      );
+    getAccountOwnedTokensByTokenData(variables: Types.GetAccountOwnedTokensByTokenDataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountOwnedTokensByTokenDataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountOwnedTokensByTokenDataQuery>(GetAccountOwnedTokensByTokenData, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountOwnedTokensByTokenData', 'query');
     },
-    getAccountOwnedTokensFromCollection(
-      variables: Types.GetAccountOwnedTokensFromCollectionQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountOwnedTokensFromCollectionQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountOwnedTokensFromCollectionQuery>(
-            GetAccountOwnedTokensFromCollection,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
-          ),
-        "getAccountOwnedTokensFromCollection",
-        "query",
-      );
+    getOwnedTokensByTokenData(variables: Types.GetOwnedTokensByTokenDataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetOwnedTokensByTokenDataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetOwnedTokensByTokenDataQuery>(GetOwnedTokensByTokenData, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getOwnedTokensByTokenData', 'query');
     },
-    getAccountTokensCount(
-      variables?: Types.GetAccountTokensCountQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountTokensCountQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountTokensCountQuery>(GetAccountTokensCount, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountTokensCount",
-        "query",
-      );
+    getAccountOwnedTokensFromCollection(variables: Types.GetAccountOwnedTokensFromCollectionQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountOwnedTokensFromCollectionQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountOwnedTokensFromCollectionQuery>(GetAccountOwnedTokensFromCollection, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountOwnedTokensFromCollection', 'query');
     },
-    getAccountTransactionsCount(
-      variables?: Types.GetAccountTransactionsCountQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetAccountTransactionsCountQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountTransactionsCountQuery>(GetAccountTransactionsCount, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountTransactionsCount",
-        "query",
-      );
+    getAccountTokensCount(variables?: Types.GetAccountTokensCountQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountTokensCountQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountTokensCountQuery>(GetAccountTokensCount, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountTokensCount', 'query');
     },
+    getAccountTransactionsCount(variables?: Types.GetAccountTransactionsCountQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<Types.GetAccountTransactionsCountQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<Types.GetAccountTransactionsCountQuery>(GetAccountTransactionsCount, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getAccountTransactionsCount', 'query');
+    }
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;
