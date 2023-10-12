@@ -6,7 +6,7 @@ import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { SigningScheme } from "../../../src/types";
 
 describe("account api", () => {
-  const FUND_AMOUNT = 1_000_000_000;
+  const FUND_AMOUNT = 100_000_000;
 
   describe("throws when account address in invalid", () => {
     test("it throws with a short account address", async () => {
