@@ -10,7 +10,18 @@
 
 import { AptosConfig } from "../api/aptos_config";
 import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
-import { Block, GraphqlQuery, LedgerInfo, LedgerVersion, MoveValue, TableItemRequest, ViewRequest } from "../types";
+import {
+  Block,
+  GetChainTopUserTransactionsResponse,
+  GraphqlQuery,
+  LedgerInfo,
+  LedgerVersion,
+  MoveValue,
+  TableItemRequest,
+  ViewRequest,
+} from "../types";
+import { GetChainTopUserTransactionsQuery } from "../types/generated/operations";
+import { GetChainTopUserTransactions } from "../types/generated/queries";
 
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
@@ -83,6 +94,25 @@ export async function view(args: {
     body: payload,
   });
   return data;
+}
+
+export async function getChainTopUserTransactions(args: {
+  aptosConfig: AptosConfig;
+  limit: number;
+}): Promise<GetChainTopUserTransactionsResponse> {
+  const { aptosConfig, limit } = args;
+  const graphqlQuery = {
+    query: GetChainTopUserTransactions,
+    variables: { limit },
+  };
+
+  const data = await queryIndexer<GetChainTopUserTransactionsQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getChainTopUserTransactions",
+  });
+
+  return data.user_transactions;
 }
 
 export async function queryIndexer<T>(args: {
