@@ -2,9 +2,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FixedBytes } from "../../src/bcs/serializable/fixed-bytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
-import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
+import {
+  AccountAddress,
+  Deserializable,
+  Deserializer,
+  Serializable,
+  Serializer,
+  Bool,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+} from "../../src";
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;
@@ -148,6 +160,7 @@ describe("Tests for the Serializable class", () => {
 
     expect(serializer.toUint8Array()).toEqual(new Uint8Array([...buffer]));
 
+    const deserializer = new Deserializer(serializer.toUint8Array());
     const deserializationFunctions = [
       () => MoveOption.deserialize(deserializer, U8),
       () => MoveOption.deserialize(deserializer, U16),
@@ -158,8 +171,6 @@ describe("Tests for the Serializable class", () => {
       () => MoveOption.deserialize(deserializer, Bool),
       () => MoveOption.deserialize(deserializer, MoveString),
     ];
-
-    const deserializer = new Deserializer(serializer.toUint8Array());
 
     someOptionValues.forEach((_, i) => {
       const value = someOptionValues[i];
@@ -179,6 +190,7 @@ describe("Tests for the Serializable class", () => {
       MoveOption.Bool(undefined),
       MoveOption.MoveString(undefined),
     ];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const noneBytes = noneOptionValues.map((_) => new Uint8Array([0]));
 
     // checks each serialized value individually
@@ -198,6 +210,7 @@ describe("Tests for the Serializable class", () => {
 
     expect(serializer.toUint8Array()).toEqual(new Uint8Array([...buffer]));
 
+    const deserializer = new Deserializer(serializer.toUint8Array());
     const deserializationFunctions = [
       () => MoveOption.deserialize(deserializer, U8),
       () => MoveOption.deserialize(deserializer, U16),
@@ -208,8 +221,6 @@ describe("Tests for the Serializable class", () => {
       () => MoveOption.deserialize(deserializer, Bool),
       () => MoveOption.deserialize(deserializer, MoveString),
     ];
-
-    const deserializer = new Deserializer(serializer.toUint8Array());
 
     noneOptionValues.forEach((_, i) => {
       const value = noneOptionValues[i];
@@ -253,10 +264,11 @@ describe("Tests for the Serializable class", () => {
     const deserializer = new Deserializer(optionBoolVectorBytes);
 
     class VectorOptionBools {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       static deserialize(deserializer: Deserializer): MoveVector<MoveOption<Bool>> {
         const values = new Array<MoveOption<Bool>>();
         const length = deserializer.deserializeUleb128AsU32();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           values.push(MoveOption.deserialize(deserializer, Bool));
         }
         return new MoveVector<MoveOption<Bool>>(values);
@@ -284,20 +296,20 @@ describe("Tests for the Serializable class", () => {
     //    1 vector
     //      3 options [ Option<Bool> = true, Option<Bool> = false, Option<Bool> = undefined ]
     //                                  1 1                  1 0                      0
-    const optionVectorOptionBool_1_Bytes = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
+    const optionVectorOptionBoolBytes1 = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
     //    1 vector
     //      3 options [ Option<Bool> = true, Option<Bool> = false, Option<Bool> = undefined ]
     //                                  1 1                  1 0                      0
-    const optionVectorOptionBool_2_Bytes = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
+    const optionVectorOptionBoolBytes2 = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
     //    1 vector
     //      3 options [ Option<Bool> = true, Option<Bool> = false, Option<Bool> = undefined ]
     //                                  1 1                  1 0                      0
-    const optionVectorOptionBool_3_Bytes = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
+    const optionVectorOptionBoolBytes3 = new Uint8Array([1, 3, 1, 1, 1, 0, 0]);
     const vecOfVecsBytes = new Uint8Array([
       3,
-      ...optionVectorOptionBool_1_Bytes,
-      ...optionVectorOptionBool_2_Bytes,
-      ...optionVectorOptionBool_3_Bytes,
+      ...optionVectorOptionBoolBytes1,
+      ...optionVectorOptionBoolBytes2,
+      ...optionVectorOptionBoolBytes3,
     ]);
     expect(vecOfVecsBytes).toEqual(vecOfVecs.bcsToBytes());
 
@@ -305,26 +317,29 @@ describe("Tests for the Serializable class", () => {
     const deserializer2 = new Deserializer(vecOfVecsBytes);
 
     class VectorOptionBools {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       static deserialize(deserializer: Deserializer): MoveVector<MoveOption<Bool>> {
         const values = new Array<MoveOption<Bool>>();
         const length = deserializer.deserializeUleb128AsU32();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           values.push(MoveOption.deserialize(deserializer, Bool));
         }
         return new MoveVector<MoveOption<Bool>>(values);
       }
     }
     class VectorOptionVectorOptionBools {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       static deserialize(deserializer: Deserializer): MoveVector<MoveOption<MoveVector<MoveOption<Bool>>>> {
         const values = new Array<MoveOption<MoveVector<MoveOption<Bool>>>>();
         const length = deserializer.deserializeUleb128AsU32();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           values.push(MoveOption.deserialize(deserializer, VectorOptionBools));
         }
         return new MoveVector<MoveOption<MoveVector<MoveOption<Bool>>>>(values);
       }
     }
     class OptionVectorOptionBools {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       static deserialize(deserializer: Deserializer): MoveOption<MoveVector<MoveOption<Bool>>> {
         return MoveOption.deserialize(deserializer, VectorOptionBools);
       }
@@ -427,6 +442,7 @@ describe("Tests for the Serializable class", () => {
         super();
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       serialize(serializer: Serializer): void {
         serializer.serialize(this.myU8);
         serializer.serialize(this.myU16);

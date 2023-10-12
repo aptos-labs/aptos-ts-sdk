@@ -90,7 +90,7 @@ describe("BCS Deserializer", () => {
     expect(deserializer.deserializeU128()).toEqual(BigInt("1311768467750121216"));
   });
   it("deserializes a uint256", () => {
-    let deserializer = new Deserializer(
+    const deserializer = new Deserializer(
       new Uint8Array([
         0x31, 0x30, 0x29, 0x28, 0x27, 0x26, 0x25, 0x24, 0x23, 0x22, 0x21, 0x20, 0x19, 0x18, 0x17, 0x16, 0x15, 0x14,
         0x13, 0x12, 0x11, 0x10, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00,
@@ -172,7 +172,7 @@ describe("BCS Deserializer", () => {
         const enabled = deserializer.deserializeBool();
         const length = deserializer.deserializeUleb128AsU32();
         const vectorU8 = new Array<number>();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           vectorU8.push(deserializer.deserializeU8());
         }
         return new MoveStruct(name, description, enabled, vectorU8);
@@ -237,7 +237,7 @@ describe("BCS Deserializer", () => {
         const enabled = deserializer.deserializeBool();
         const length = deserializer.deserializeUleb128AsU32();
         const vectorU8 = new Array<number>();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           vectorU8.push(deserializer.deserializeU8());
         }
         return new MoveStructA(name, description, enabled, vectorU8);
@@ -270,7 +270,7 @@ describe("BCS Deserializer", () => {
         const description = deserializer.deserializeStr();
         const length = deserializer.deserializeUleb128AsU32();
         const vectorU8 = new Array<number>();
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < length; i += 1) {
           vectorU8.push(deserializer.deserializeU8());
         }
         return new MoveStructB(moveStructA, name, description, vectorU8);

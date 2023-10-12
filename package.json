@@ -23,7 +23,7 @@
     "_build:types": "tsup src/types/index.ts --dts --out-dir dist/types",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' '.eslintrc.js'",
     "fmt": "pnpm _fmt --write",
-    "lint": "eslint '**/*.ts'",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
     "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",

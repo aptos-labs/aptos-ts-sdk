@@ -9,7 +9,7 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
-import { AccountAddress, Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src";
+import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src";
 
 describe("BCS Serializer", () => {
   let serializer: Serializer;
@@ -220,7 +220,6 @@ describe("BCS Serializer", () => {
   });
 
   it("serializes multiple types of values", () => {
-    const serializer = new Serializer();
     serializer.serializeBytes(new Uint8Array([0x41, 0x70, 0x74, 0x6f, 0x73]));
     serializer.serializeBool(true);
     serializer.serializeBool(false);
@@ -246,19 +245,21 @@ describe("BCS Serializer", () => {
   });
 
   it("serializes values with specified allocated memory", () => {
-    const serializer = new Serializer(128);
-    serializer.serializeBool(true);
-    serializer.serializeU8(254);
-    const serializedBytes = serializer.toUint8Array();
+    const sizedSerializer = new Serializer(128);
+    sizedSerializer.serializeBool(true);
+    sizedSerializer.serializeU8(254);
+    const serializedBytes = sizedSerializer.toUint8Array();
     expect(serializedBytes).toEqual(new Uint8Array([0x01, 0xfe]));
   });
 
   it("throws when specifying 0 or less than 0 allocated bytes for memory", () => {
     expect(() => {
-      const serializer = new Serializer(0);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const unused = new Serializer(0);
     }).toThrow();
     expect(() => {
-      const serializer = new Serializer(-1);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const unused = new Serializer(-1);
     }).toThrow();
   });
 
@@ -268,7 +269,6 @@ describe("BCS Serializer", () => {
       AccountAddress.fromHexInputRelaxed({ input: "0xa" }),
       AccountAddress.fromHexInputRelaxed({ input: "0x0123456789abcdef" }),
     );
-    const serializer = new Serializer();
     serializer.serializeVector(addresses);
     const serializedBytes = serializer.toUint8Array();
     expect(serializedBytes).toEqual(
@@ -291,6 +291,7 @@ describe("BCS Serializer", () => {
         super();
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       serialize(serializer: Serializer): void {
         serializer.serializeStr(this.name);
         serializer.serializeStr(this.description);
@@ -309,6 +310,7 @@ describe("BCS Serializer", () => {
         super();
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       serialize(serializer: Serializer): void {
         serializer.serialize(this.moveStructA);
         serializer.serializeStr(this.name);
@@ -321,9 +323,9 @@ describe("BCS Serializer", () => {
     const moveStructA = new MoveStructA("abc", "123", false, [1, 2, 3, 4]);
     const moveStructB = new MoveStructB(moveStructA, "def", "456", [5, 6, 7, 8]);
 
-    const serializer = new Serializer();
-    serializer.serialize(moveStructB);
-    const serializedBytes = serializer.toUint8Array();
+    const newSerializer = new Serializer();
+    newSerializer.serialize(moveStructB);
+    const serializedBytes = newSerializer.toUint8Array();
 
     expect(serializedBytes).toEqual(
       new Uint8Array([

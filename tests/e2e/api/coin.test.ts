@@ -1,8 +1,6 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer } from "../../../src";
+import { AptosConfig, Network, Aptos, Account, Deserializer, TypeTagStruct, SigningScheme } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
-import { TypeTagStruct } from "../../../src/transactions/typeTag/typeTag";
-import { SigningScheme } from "../../../src/types";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {

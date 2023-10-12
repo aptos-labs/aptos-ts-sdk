@@ -4,15 +4,14 @@
 import {
   AuthenticationKey,
   Deserializer,
-  Ed25519PrivateKey,
   Ed25519PublicKey,
+  HexInput,
   MultiEd25519PublicKey,
   PublicKey,
   Serializer,
   Signature,
 } from "../../src";
 import { ed25519, multiEd25519PkTestObject } from "./helper";
-import { HexInput } from "../../src/types";
 
 describe("AuthenticationKey", () => {
   it("should create an instance with save the hexinput correctly", () => {
@@ -37,8 +36,8 @@ describe("AuthenticationKey", () => {
 
   it("should create AuthenticationKey from MultiPublicKey", () => {
     // create the MultiPublicKey
-    let edPksArray = [];
-    for (let i = 0; i < multiEd25519PkTestObject.public_keys.length; i++) {
+    const edPksArray = [];
+    for (let i = 0; i < multiEd25519PkTestObject.public_keys.length; i += 1) {
       edPksArray.push(
         new Ed25519PublicKey({
           hexInput: multiEd25519PkTestObject.public_keys[i],
@@ -65,10 +64,9 @@ describe("AuthenticationKey", () => {
   });
 
   it("should throw an error on an unsupported key", () => {
+    /* eslint-disable class-methods-use-this */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     class NewPublicKey extends PublicKey {
-      constructor() {
-        super();
-      }
       deserialize(deserializer: Deserializer): PublicKey {
         throw new Error("Not implemented");
       }
@@ -89,6 +87,8 @@ describe("AuthenticationKey", () => {
         throw new Error("Not implemented");
       }
     }
+    /* eslint-enable class-methods-use-this */
+    /* eslint-enable @typescript-eslint/no-unused-vars */
 
     expect(() => AuthenticationKey.fromPublicKey({ publicKey: new NewPublicKey() })).toThrowError(
       "No supported authentication scheme for public key",

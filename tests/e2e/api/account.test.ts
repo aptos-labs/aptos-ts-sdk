@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { U64 } from "../../../src/bcs/serializable/move-primitives";
-import { SigningScheme } from "../../../src/types";
+import { Account, Aptos, AptosConfig, Network, SigningScheme, U64 } from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -12,18 +10,20 @@ describe("account api", () => {
     test("it throws with a short account address", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      expect(
-        async () =>
-          await aptos.getAccountInfo({
-            accountAddress: "ca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0",
-          }),
-      ).rejects.toThrow("Hex string must start with a leading 0x.");
+      expect(async () => {
+        await aptos.getAccountInfo({
+          accountAddress: "ca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0",
+        });
+      }).rejects.toThrow("Hex string must start with a leading 0x.");
     });
 
     test("it throws when invalid account address", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      expect(async () => await aptos.getAccountInfo({ accountAddress: "0x123" })).rejects.toThrow(
+      expect(async () => {
+        await aptos.getAccountInfo({ accountAddress: "0x123" });
+      }).rejects.toThrow(
+        // eslint-disable-next-line max-len
         "The given hex string 0x0000000000000000000000000000000000000000000000000000000000000123 is not a special address, it must be represented as 0x + 64 chars.",
       );
     });

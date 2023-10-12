@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AccountAddress,
+  AddressInvalidReason,
+  Deserializer,
+  ParsingError,
+  Serializer,
   objectStructTag,
   StructTag,
   TypeTag,
@@ -17,8 +22,7 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from "../../src/transactions/typeTag/typeTag";
-import { AccountAddress, AddressInvalidReason, Deserializer, ParsingError, Serializer } from "../../src";
+} from "../../src";
 
 const expectedTypeTag = {
   string: "0x1::some_module::SomeResource",
@@ -46,6 +50,7 @@ describe("StructTag", () => {
     expect(structTag.type_args.length).toEqual(2);
 
     // make sure the nested type tag is correct
+    // eslint-disable-next-line no-restricted-syntax
     for (const typeArg of structTag.type_args) {
       const nestedTypeTag = typeArg as TypeTagStruct;
       expect(nestedTypeTag.value.address.toString()).toEqual(expectedTypeTag.address);
@@ -100,6 +105,7 @@ describe("TypeTagParser", () => {
     expect(result.value.type_args.length).toEqual(2);
 
     // make sure the nested type tag is correct
+    // eslint-disable-next-line no-restricted-syntax
     for (const typeArg of result.value.type_args) {
       const nestedTypeTag = typeArg as TypeTagStruct;
       expect(nestedTypeTag.value.address.toString()).toEqual(expectedTypeTag.address);
@@ -123,10 +129,20 @@ describe("TypeTagParser", () => {
       const result = parser.parseTypeTag();
       expect(result instanceof TypeTagAddress).toBeTruthy();
 
-      const typeTag2 = "0x1::object::Object<0x1::coin::Fun<A, B<C>>>";
+      const typeTag2 = "0x1::object::Object<0x1::aptos_coin::AptosCoin>";
       const parser2 = new TypeTagParser(typeTag2);
       const result2 = parser2.parseTypeTag();
       expect(result2 instanceof TypeTagAddress).toBeTruthy();
+
+      const typeTag3 = "0x1::object::Object<0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>>";
+      const parser3 = new TypeTagParser(typeTag3);
+      const result3 = parser3.parseTypeTag();
+      expect(result3 instanceof TypeTagAddress).toBeTruthy();
+
+      const typeTag4 = "0x1::object::Object<0x1::mod::Something<0x1::type::A, 0x1::type::B>>";
+      const parser4 = new TypeTagParser(typeTag4);
+      const result4 = parser4.parseTypeTag();
+      expect(result4 instanceof TypeTagAddress).toBeTruthy();
     });
 
     test("TypeTagParser does not parse unofficial objects", () => {

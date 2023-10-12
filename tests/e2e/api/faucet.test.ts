@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, AptosConfig, Account, Network } from "../../../src";
-import { SigningScheme } from "../../../src/types";
+import { Aptos, AptosConfig, Account, Network, SigningScheme } from "../../../src";
 
 describe("Faucet", () => {
   test("it should fund an account", async () => {
@@ -14,11 +13,11 @@ describe("Faucet", () => {
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: 10_000_000 });
 
     // Check the balance
-    let resource = await aptos.getAccountResource({
+    const resource = await aptos.getAccountResource({
       accountAddress: testAccount.accountAddress.toString(),
       resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
     });
-    let amount = Number((resource.data as { coin: { value: string } }).coin.value);
+    const amount = Number((resource.data as { coin: { value: string } }).coin.value);
     expect(amount).toBe(10_000_000);
   });
 });

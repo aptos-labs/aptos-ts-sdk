@@ -38,6 +38,7 @@ describe("Ed25519PublicKey", () => {
 
     // Verify with incorrect signed message
     const incorrectSignedMessage =
+      // eslint-disable-next-line max-len
       "0xc5de9e40ac00b371cd83b1c197fa5b665b7449b33cd3cdd305bb78222e06a671a49625ab9aea8a039d4bb70e275768084d62b094bc1b31964f2357b7c1af7e0a";
     const invalidSignature = new Ed25519Signature({
       hexInput: incorrectSignedMessage,

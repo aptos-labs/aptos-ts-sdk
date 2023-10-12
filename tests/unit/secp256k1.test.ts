@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable max-len */
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { secp256k1TestObject } from "./helper";
 import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
