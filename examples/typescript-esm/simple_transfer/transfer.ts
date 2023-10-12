@@ -14,7 +14,9 @@ import {
   U64,
 } from "aptos";
 
-const APTOS_COIN = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
+const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
+const COIN_STORE = `0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 0;
@@ -28,7 +30,7 @@ const TRANSFER_AMOUNT = 0;
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  let resource = await aptos.getAccountResource({ accountAddress: address.toUint8Array(), resourceType: APTOS_COIN });
+  let resource = await aptos.getAccountResource({ accountAddress: address.toUint8Array(), resourceType: COIN_STORE });
   let amount = Number((resource.data as { coin: { value: string } }).coin.value);
 
   console.log(`${name}'s balance is: ${amount}`);
@@ -78,7 +80,7 @@ const example = async () => {
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
+      type_arguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
       arguments: [AccountAddress.fromHexInput({ input: bob.accountAddress.toString() }), new U64(TRANSFER_AMOUNT)],
     },
   });
