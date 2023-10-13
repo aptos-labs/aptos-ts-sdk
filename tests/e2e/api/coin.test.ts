@@ -4,6 +4,7 @@ import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/tr
 import { TypeTagStruct } from "../../../src/transactions/typeTag/typeTag";
 import { SigningScheme } from "../../../src/types";
 import { sleep } from "../../../src/utils/helpers";
+import { FUND_AMOUNT, INDEXER_WAIT_TIME } from "../../unit/helper";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
@@ -11,7 +12,7 @@ describe("coin", () => {
     const aptos = new Aptos(config);
     const sender = Account.generate({ scheme: SigningScheme.Ed25519 });
     const recipient = Account.generate({ scheme: SigningScheme.Ed25519 });
-    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
+    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
       sender,
@@ -32,7 +33,7 @@ describe("coin", () => {
     const aptos = new Aptos(config);
     const sender = Account.generate({ scheme: SigningScheme.Ed25519 });
     const recipient = Account.generate({ scheme: SigningScheme.Ed25519 });
-    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
+    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
       sender,
@@ -55,7 +56,8 @@ describe("coin", () => {
     const sender = Account.generate({ scheme: SigningScheme.Ed25519 });
     const recipient = Account.generate({ scheme: SigningScheme.Ed25519 });
 
-    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100000000 });
+    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
+    await sleep(INDEXER_WAIT_TIME);
     const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -67,7 +69,7 @@ describe("coin", () => {
 
     await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
     // to help with indexer latency
-    await sleep(1000);
+    await sleep(INDEXER_WAIT_TIME);
     const recipientCoins = await aptos.getAccountCoinsData({ accountAddress: recipient.accountAddress.toString() });
     const senderCoinsAfter = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 

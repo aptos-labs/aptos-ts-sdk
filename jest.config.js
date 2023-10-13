@@ -6,7 +6,7 @@ module.exports = {
   },
   testEnvironment: "node",
   coveragePathIgnorePatterns: ["./src/internal/queries/", "./src/types/generated"],
-  testPathIgnorePatterns: ["dist/*"],
+  testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
   setupFiles: ["dotenv/config"],
   coverageThreshold: {

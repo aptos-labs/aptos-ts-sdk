@@ -4,6 +4,7 @@
 import { AptosConfig, Aptos, Network, Account } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { SigningScheme, TransactionResponse, UserTransactionResponse } from "../../../src/types";
+import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -21,7 +22,7 @@ describe("transaction api", () => {
 
   test("returns true when transaction is pending", async () => {
     const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
-    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: 1000000000 });
+    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
     const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
     const rawTxn = await aptos.generateTransaction({
       sender: senderAccount.accountAddress.toString(),
@@ -47,7 +48,7 @@ describe("transaction api", () => {
     let txn: TransactionResponse;
     beforeAll(async () => {
       const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
