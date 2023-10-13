@@ -25,7 +25,6 @@ export class Faucet {
    * @returns Hashes of submitted transactions
    */
   async fundAccount(args: { accountAddress: HexInput; amount: number; timeoutSecs?: number }): Promise<string> {
-    const txnStrings = await fundAccount({ aptosConfig: this.config, ...args });
-    return txnStrings;
+    return fundAccount({ aptosConfig: this.config, ...args });
   }
 }
