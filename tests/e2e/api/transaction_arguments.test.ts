@@ -159,6 +159,8 @@ describe("various transaction arguments", () => {
       secondarySignerAddresses: AccountAddress[],
       feePayerAddress?: AccountAddress,
     ): Promise<UserTransactionResponse> => {
+      // TODO: Combine these to one type later. This should be possible but isn't right now due to typescript
+      // compile time errors because it can't resolve the types
       const transaction = await (async () => {
         if (secondarySignerAddresses.length == 0) {
           const response = await aptos.generateTransaction({
@@ -196,7 +198,7 @@ describe("various transaction arguments", () => {
       })();
 
       const accounts = [sender, account2, account3, account4, account5];
-      // sign if it's in secondarySignerAddresses OR if it's the sender
+      // sign wtih an account its address is in secondarySignerAddresses OR if it's the sender
       // TODO: Fix the ugly
       const authenticators = accounts
         .filter(
@@ -220,10 +222,10 @@ describe("various transaction arguments", () => {
 
       const txnHash = await aptos.submitTransaction({
         transaction: transaction,
-        senderAuthenticator: authenticators[0],
+        senderAuthenticator: authenticators[0], // sender
         secondarySignerAuthenticators: {
-          additionalSignersAuthenticators: authenticators.slice(1),
-          feePayerAuthenticator,
+          additionalSignersAuthenticators: authenticators.slice(1), // possibly empty
+          feePayerAuthenticator, // possibly undefined
         },
       });
 
