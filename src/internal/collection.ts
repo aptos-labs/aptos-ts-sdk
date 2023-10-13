@@ -54,7 +54,7 @@ export async function getCollectionData(args: {
   const data = await queryIndexer<GetCollectionDataQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getAccountCollectionsWithOwnedTokens",
+    originMethod: "getCollectionData",
   });
 
   if (data.current_collections_v2.length === 0) {
