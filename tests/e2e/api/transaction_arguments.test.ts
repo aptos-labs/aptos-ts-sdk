@@ -169,6 +169,16 @@ describe("various transaction arguments", () => {
             feePayerAddress: feePayerAddress!.data,
           });
           return response;
+        } else if (feePayerAddress === undefined) {
+          return await aptos.generateTransaction({
+            sender: sender.accountAddress.toString(),
+            data: {
+              function: `0x${account1.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+              type_arguments: typeArgs,
+              arguments: args,
+            },
+            secondarySignerAddresses: secondarySignerAddresses.map((address) => address.data),
+          });
         } else {
           return await aptos.generateTransaction({
             sender: sender.accountAddress.toString(),
@@ -178,6 +188,7 @@ describe("various transaction arguments", () => {
               arguments: args,
             },
             secondarySignerAddresses: secondarySignerAddresses.map((address) => address.data),
+            feePayerAddress: feePayerAddress.data,
           });
         }
       })();
@@ -200,9 +211,9 @@ describe("various transaction arguments", () => {
 
       const feePayerAuthenticator = feePayerAddress
         ? aptos.signTransaction({
-            signer: accountFeePayer,
-            transaction: transaction,
-          })
+          signer: accountFeePayer,
+          transaction: transaction,
+        })
         : undefined;
 
       const txnHash = await aptos.submitTransaction({
@@ -332,12 +343,49 @@ describe("various transaction arguments", () => {
         "public_arguments_one_signer",
         [],
         [account1.accountAddress, ...transactionArguments],
-        [],
+        [], // secondary signers
         accountFeePayer.accountAddress,
       );
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
+      expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
+        accountFeePayer.accountAddress.toString(),
+      );
+    });
+
+    it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
+      const secondarySignerAddresses = [
+        account2.accountAddress,
+        account3.accountAddress,
+        account4.accountAddress,
+        account5.accountAddress,
+      ];
+      const response = await rawTxnMultiAgentHelper(
+        account1,
+        "public_arguments_multiple_signers",
+        [],
+        [
+          new MoveVector<AccountAddress>([
+            account1.accountAddress,
+            account2.accountAddress,
+            account3.accountAddress,
+            account4.accountAddress,
+            account5.accountAddress,
+          ]),
+          ...transactionArguments,
+        ],
+        secondarySignerAddresses,
+        accountFeePayer.accountAddress,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionFeePayerSignature;
+      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+        AccountAddress.fromStringRelaxed({ input: address }),
+      );
+      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        secondarySignerAddresses.map((address) => address.toString()),
+      );
       expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
         accountFeePayer.accountAddress.toString(),
       );
