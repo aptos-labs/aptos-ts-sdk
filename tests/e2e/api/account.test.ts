@@ -125,7 +125,7 @@ describe("account api", () => {
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
-      expect(accountTransactionsCount?.count).toBe(1);
+      expect(accountTransactionsCount).toBe(1);
     });
 
     test("it fetches account coins data", async () => {
@@ -161,7 +161,7 @@ describe("account api", () => {
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
-      expect(accountCoinsCount?.count).toBe(1);
+      expect(accountCoinsCount).toBe(1);
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {

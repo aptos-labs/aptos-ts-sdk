@@ -7,6 +7,7 @@ import { Coin } from "./coin";
 import { Collection } from "./collection";
 import { Faucet } from "./faucet";
 import { General } from "./general";
+import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transaction_submission";
 
@@ -22,6 +23,8 @@ export class Aptos {
   readonly faucet: Faucet;
 
   readonly general: General;
+
+  readonly staking: Staking;
 
   readonly transaction: Transaction;
 
@@ -51,12 +54,21 @@ export class Aptos {
     this.collection = new Collection(this.config);
     this.faucet = new Faucet(this.config);
     this.general = new General(this.config);
+    this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
   }
 }
 
-export interface Aptos extends Account, Coin, Collection, Faucet, General, Transaction, TransactionSubmission {}
+export interface Aptos
+  extends Account,
+    Coin,
+    Collection,
+    Faucet,
+    General,
+    Staking,
+    Transaction,
+    TransactionSubmission {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -84,5 +96,6 @@ applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, Collection, "collection");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, General, "general");
+applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");

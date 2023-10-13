@@ -12,14 +12,11 @@ import {
   TransactionResponse,
   HexInput,
   IndexerPaginationArgs,
-  GetAccountTokensCountQueryResponse,
   TokenStandard,
   OrderBy,
   GetAccountOwnedTokensQueryResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
-  GetAccountTransactionsCountResponse,
   GetAccountCoinsDataResponse,
-  GetAccountCoinsCountResponse,
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
 } from "../types";
@@ -198,7 +195,7 @@ export class Account {
    * @param accountAddress The account address
    * @returns An object { count : number }
    */
-  async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<GetAccountTokensCountQueryResponse> {
+  async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<number> {
     const count = await getAccountTokensCount({
       aptosConfig: this.config,
       ...args,
@@ -286,7 +283,7 @@ export class Account {
    * @param accountAddress The account address we want to get the total count for
    * @returns An object { count : number }
    */
-  async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<GetAccountTransactionsCountResponse> {
+  async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<number> {
     const count = getAccountTransactionsCount({
       aptosConfig: this.config,
       ...args,
@@ -320,7 +317,7 @@ export class Account {
    * @param accountAddress The account address we want to get the total count for
    * @returns An object { count : number } where `number` is the aggregated count of all account's coin
    */
-  async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<GetAccountCoinsCountResponse> {
+  async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
     const count = getAccountCoinsCount({ aptosConfig: this.config, ...args });
     return count;
   }

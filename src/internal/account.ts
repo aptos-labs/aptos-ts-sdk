@@ -14,14 +14,11 @@ import { AccountAddress, Hex } from "../core";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
-  GetAccountCoinsCountResponse,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  GetAccountTokensCountQueryResponse,
-  GetAccountTransactionsCountResponse,
   HexInput,
   IndexerPaginationArgs,
   LedgerVersion,
@@ -236,7 +233,7 @@ export async function lookupOriginalAccountAddress(args: {
 export async function getAccountTokensCount(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
-}): Promise<GetAccountTokensCountQueryResponse> {
+}): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
   const address = AccountAddress.fromHexInput({
@@ -258,8 +255,10 @@ export async function getAccountTokensCount(args: {
     query: graphqlQuery,
     originMethod: "getAccountTokensCount",
   });
-
-  return data.current_token_ownerships_v2_aggregate.aggregate;
+  if (!data.current_token_ownerships_v2_aggregate.aggregate) {
+    throw Error("Failed to get the count of account tokens");
+  }
+  return data.current_token_ownerships_v2_aggregate.aggregate.count;
 }
 
 export async function getAccountOwnedTokens(args: {
@@ -398,7 +397,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
 export async function getAccountTransactionsCount(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
-}): Promise<GetAccountTransactionsCountResponse> {
+}): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
   const address = AccountAddress.fromHexInput({
@@ -416,7 +415,11 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  return data.account_transactions_aggregate.aggregate;
+  if (!data.account_transactions_aggregate.aggregate) {
+    throw Error("Failed to get the count of account transactions");
+  }
+
+  return data.account_transactions_aggregate.aggregate.count;
 }
 
 export async function getAccountCoinsData(args: {
@@ -458,7 +461,7 @@ export async function getAccountCoinsData(args: {
 export async function getAccountCoinsCount(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
-}): Promise<GetAccountCoinsCountResponse> {
+}): Promise<number> {
   const { aptosConfig, accountAddress } = args;
   const address = AccountAddress.fromHexInput({
     input: accountAddress,
@@ -475,7 +478,11 @@ export async function getAccountCoinsCount(args: {
     originMethod: "getAccountCoinsCount",
   });
 
-  return data.current_fungible_asset_balances_aggregate.aggregate;
+  if (!data.current_fungible_asset_balances_aggregate.aggregate) {
+    throw Error("Failed to get the count of account coins");
+  }
+
+  return data.current_fungible_asset_balances_aggregate.aggregate.count;
 }
 
 export async function getAccountOwnedObjects(args: {

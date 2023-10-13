@@ -12,14 +12,13 @@
  */
 
 import {
-  GetAccountTokensCountQuery,
-  GetAccountTransactionsCountQuery,
   GetAccountCoinsDataQuery,
-  GetAccountCoinsCountQuery,
   GetAccountOwnedObjectsQuery,
   GetAccountOwnedTokensQuery,
   GetAccountOwnedTokensFromCollectionQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
+  GetDelegatedStakingActivitiesQuery,
+  GetNumberOfDelegatorsQuery,
   GetCollectionDataQuery,
 } from "./generated/operations";
 
@@ -33,12 +32,6 @@ import {
  * These types are used as the return type when calling an sdk api function
  * that calls the function that queries the server (usually under the /api/ folder)
  */
-export type GetAccountTokensCountQueryResponse =
-  GetAccountTokensCountQuery["current_token_ownerships_v2_aggregate"]["aggregate"];
-export type GetAccountTransactionsCountResponse =
-  GetAccountTransactionsCountQuery["account_transactions_aggregate"]["aggregate"];
-export type GetAccountCoinsCountResponse =
-  GetAccountCoinsCountQuery["current_fungible_asset_balances_aggregate"]["aggregate"];
 export type GetAccountOwnedObjectsResponse = GetAccountOwnedObjectsQuery["current_objects"];
 
 export type GetAccountOwnedTokensQueryResponse = GetAccountOwnedTokensQuery["current_token_ownerships_v2"];
@@ -49,6 +42,8 @@ export type GetAccountCollectionsWithOwnedTokenResponse =
   GetAccountCollectionsWithOwnedTokensQuery["current_collection_ownership_v2_view"];
 export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
 
+export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_active_delegator_per_pool"];
+export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];
 export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
 
 /**
