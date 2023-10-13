@@ -76,22 +76,21 @@ export class Account {
   /**
    * Derives an account with random private key and address
    *
-   * @param args.scheme SigningScheme - type of SigningScheme to use.
-   * Currently only Ed25519, MultiEd25519, and Secp256k1 are supported
+   * @param args.scheme optional SigningScheme - type of SigningScheme to use. Default to Ed25519
+   * Currently only Ed25519 and Secp256k1 are supported
    *
    * @returns Account
    */
-  static generate(args: { scheme: SigningScheme }): Account {
-    const { scheme } = args;
+  static generate(scheme?: SigningScheme): Account {
     let privateKey: PrivateKey;
 
-    if (scheme === SigningScheme.Ed25519) {
-      privateKey = Ed25519PrivateKey.generate();
-    } else if (scheme === SigningScheme.Secp256k1Ecdsa) {
-      privateKey = Secp256k1PrivateKey.generate();
-    } else {
+    switch (scheme) {
+      case SigningScheme.Secp256k1Ecdsa:
+        privateKey = Secp256k1PrivateKey.generate();
+        break;
       // TODO: Add support for MultiEd25519
-      throw new Error(`Can not generate new Private Key, unsupported signing scheme ${scheme}`);
+      default:
+        privateKey = Ed25519PrivateKey.generate();
     }
 
     const address = new AccountAddress({
