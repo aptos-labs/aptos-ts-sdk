@@ -49,7 +49,7 @@ describe("coin", () => {
     expect((typeArgs[0] as TypeTagStruct).value.name.identifier).toBe("type");
   });
 
-  test("it transfers APT coin aomunt from sender to recipient", async () => {
+  test("it transfers APT coin amount from sender to recipient", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
     const sender = Account.generate({ scheme: SigningScheme.Ed25519 });
