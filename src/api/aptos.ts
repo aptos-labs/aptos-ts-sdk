@@ -5,6 +5,7 @@ import { Account } from "./account";
 import { AptosConfig } from "./aptos_config";
 import { Coin } from "./coin";
 import { Collection } from "./collection";
+import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { General } from "./general";
 import { Staking } from "./staking";
@@ -19,6 +20,8 @@ export class Aptos {
   readonly coin: Coin;
 
   readonly collection: Collection;
+
+  readonly event: Event;
 
   readonly faucet: Faucet;
 
@@ -52,6 +55,7 @@ export class Aptos {
     this.account = new Account(this.config);
     this.coin = new Coin(this.config);
     this.collection = new Collection(this.config);
+    this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
@@ -64,6 +68,7 @@ export interface Aptos
   extends Account,
     Coin,
     Collection,
+    Event,
     Faucet,
     General,
     Staking,
@@ -94,6 +99,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 applyMixin(Aptos, Account, "account");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, Collection, "collection");
+applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");

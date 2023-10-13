@@ -1,0 +1,12 @@
+query getEvents($where_condition: events_bool_exp, $offset: Int, $limit: Int) {
+  events(where: $where_condition, offset: $offset, limit: $limit) {
+    sequence_number
+    type
+    transaction_version
+    transaction_block_height
+    event_index
+    data
+    creation_number
+    account_address
+  }
+}
