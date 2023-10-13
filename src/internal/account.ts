@@ -191,13 +191,9 @@ export async function getAccountTokensCount(args: {
     query: graphqlQuery,
     originMethod: "getAccountTokensCount",
   });
-  if (
-    !data.current_token_ownerships_v2_aggregate.aggregate ||
-    data.current_token_ownerships_v2_aggregate.aggregate.count === undefined
-  ) {
+  if (!data.current_token_ownerships_v2_aggregate.aggregate) {
     throw Error("Failed to get the count of account tokens");
   }
-
   return data.current_token_ownerships_v2_aggregate.aggregate.count;
 }
 
@@ -355,10 +351,7 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  if (
-    !data.account_transactions_aggregate.aggregate ||
-    data.account_transactions_aggregate.aggregate.count === undefined
-  ) {
+  if (!data.account_transactions_aggregate.aggregate) {
     throw Error("Failed to get the count of account transactions");
   }
 
@@ -421,10 +414,7 @@ export async function getAccountCoinsCount(args: {
     originMethod: "getAccountCoinsCount",
   });
 
-  if (
-    !data.current_fungible_asset_balances_aggregate.aggregate ||
-    data.current_fungible_asset_balances_aggregate.aggregate.count === undefined
-  ) {
+  if (!data.current_fungible_asset_balances_aggregate.aggregate) {
     throw Error("Failed to get the count of account coins");
   }
 
