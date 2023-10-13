@@ -34,7 +34,7 @@ export async function getCollectionData(args: {
   };
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
-  const address = Hex.fromHexInput({ hexInput: creatorAddress }).toString();
+  const address = Hex.fromHexInput(creatorAddress).toString();
 
   const whereCondition: any = {
     collection_name: { _eq: collectionName },

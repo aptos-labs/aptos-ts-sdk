@@ -100,7 +100,7 @@ describe("PrivateKey", () => {
     ]);
     const privateKey2 = new Ed25519PrivateKey({ hexInput: hexUint8Array });
     expect(privateKey2).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput({ hexInput: hexUint8Array }).toString());
+    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {

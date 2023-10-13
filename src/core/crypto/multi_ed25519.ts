@@ -86,7 +86,7 @@ export class MultiEd25519PublicKey extends PublicKey {
   }
 
   toString(): string {
-    return Hex.fromHexInput({ hexInput: this.toUint8Array() }).toString();
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
@@ -185,7 +185,7 @@ export class MultiEd25519Signature extends Signature {
   }
 
   toString(): string {
-    return Hex.fromHexInput({ hexInput: this.toUint8Array() }).toString();
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   /**

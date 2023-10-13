@@ -36,7 +36,7 @@ export abstract class Serializable {
    */
   bcsToHex(): Hex {
     const bcsBytes = this.bcsToBytes();
-    return Hex.fromHexInput({ hexInput: bcsBytes });
+    return Hex.fromHexInput(bcsBytes);
   }
 }
 

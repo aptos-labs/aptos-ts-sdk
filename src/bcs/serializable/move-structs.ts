@@ -94,7 +94,7 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
     if (Array.isArray(values) && typeof values[0] === "number") {
       numbers = values;
     } else if (typeof values === "string") {
-      const hex = Hex.fromHexInput({ hexInput: values });
+      const hex = Hex.fromHexInput(values);
       numbers = Array.from(hex.toUint8Array());
     } else if (values instanceof Uint8Array) {
       numbers = Array.from(values);

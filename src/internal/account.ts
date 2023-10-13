@@ -213,7 +213,7 @@ export async function lookupOriginalAccountAddress(args: {
       aptosConfig,
       handle,
       data: {
-        key: Hex.fromHexInput({ hexInput: authenticationKey }).toString(),
+        key: Hex.fromHexInput(authenticationKey).toString(),
         key_type: "address",
         value_type: "address",
       },

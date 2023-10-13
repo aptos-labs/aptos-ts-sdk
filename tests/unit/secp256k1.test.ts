@@ -37,7 +37,7 @@ describe("Secp256k1PublicKey", () => {
     });
 
     // Convert message to hex
-    const hexMsg = Hex.fromString({ str: secp256k1TestObject.messageEncoded });
+    const hexMsg = Hex.fromString(secp256k1TestObject.messageEncoded);
 
     // Verify with correct signed message
     expect(pubKey.verifySignature({ message: hexMsg.toUint8Array(), signature })).toBe(true);
@@ -99,7 +99,7 @@ describe("Secp256k1PrivateKey", () => {
     }).toUint8Array();
     const privateKey2 = new Secp256k1PrivateKey({ hexInput: hexUint8Array });
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput({ hexInput: hexUint8Array }).toString());
+    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {

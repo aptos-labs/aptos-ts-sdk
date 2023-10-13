@@ -193,7 +193,7 @@ export class Account {
    */
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput({ hexInput: message }).toUint8Array();
+    const rawMessage = Hex.fromHexInput(message).toUint8Array();
     return this.publicKey.verifySignature({ message: rawMessage, signature });
   }
 }
