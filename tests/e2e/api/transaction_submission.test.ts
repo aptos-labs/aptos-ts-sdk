@@ -4,6 +4,7 @@
 import { Account, AptosConfig, Ed25519PrivateKey, Network, Aptos, Deserializer } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
+import { waitForTransaction } from "../../../src/internal/transaction";
 import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import { RawTransaction } from "../../../src/transactions/instances";
 import {
@@ -16,13 +17,10 @@ import { SigningScheme } from "../../../src/types";
 describe("transaction submission", () => {
   describe("generateTransaction", () => {
     test("it generates a script transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
@@ -39,13 +37,10 @@ describe("transaction submission", () => {
     });
 
     test("it generates a multi sig transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -64,13 +59,10 @@ describe("transaction submission", () => {
     });
 
     test("it generates an entry function transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -89,18 +81,12 @@ describe("transaction submission", () => {
   });
   describe("simulateTransaction", () => {
     test("it simulates a multi agent script transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
-      const bob = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0xc1e06f150f7fa79c1ca0ad0f8d0b26d83abaf1bed0fc31de24b500d81a2ff924",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: 1000000000 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         secondarySignerAddresses: [bob.accountAddress.toString()],
@@ -128,13 +114,10 @@ describe("transaction submission", () => {
   });
   describe("signTransaction", () => {
     test("it signs a script transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
@@ -154,13 +137,10 @@ describe("transaction submission", () => {
     });
 
     test("it signs a multi sig transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -182,13 +162,10 @@ describe("transaction submission", () => {
     });
 
     test("it signs an entry function transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -210,18 +187,12 @@ describe("transaction submission", () => {
   });
   describe("submitTransaction", () => {
     test("it submits a script transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
-      const bob = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0xc1e06f150f7fa79c1ca0ad0f8d0b26d83abaf1bed0fc31de24b500d81a2ff924",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: 1000000000 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         secondarySignerAddresses: [bob.accountAddress.toString()],
@@ -253,25 +224,14 @@ describe("transaction submission", () => {
           additionalSignersAuthenticators: [bobauthenticator],
         },
       });
-      expect(response).toHaveProperty("hash");
+      await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
     });
 
-    // Currently this test fails because we don't wait for the previous transaction to be executed
-    // and we end up with transaction is already in mempool. This is because we are still missing
-    // waitForTransaction query and/or the fund query (so we can create an account and then fund it
-    // to create it on chain) - Anyhow, I tested each test individually and it works.
-    // The whole test flow should work once we have the option to wait for transaction and/or fund
-    // an account to create it on chain
-    // FIXME: Fix this test
-    /*test("it submits an entry function transaction", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+    test("it submits an entry function transaction", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput:
-            "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
-      });
+      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -289,7 +249,7 @@ describe("transaction submission", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      expect(response).toHaveProperty("hash");
-    });*/
+      await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+    });
   });
 });
