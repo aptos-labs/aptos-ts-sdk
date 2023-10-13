@@ -10,22 +10,9 @@
 
 import { AptosConfig } from "../api/aptos_config";
 import { Hex } from "../core";
-import {
-  GetDelegatedStakingActivitiesResponse,
-  GetNumberOfDelegatorsForAllPoolsResponse,
-  HexInput,
-  OrderBy,
-} from "../types";
-import {
-  GetDelegatedStakingActivitiesQuery,
-  GetNumberOfDelegatorsForAllPoolsQuery,
-  GetNumberOfDelegatorsQuery,
-} from "../types/generated/operations";
-import {
-  GetDelegatedStakingActivities,
-  GetNumberOfDelegators,
-  GetNumberOfDelegatorsForAllPools,
-} from "../types/generated/queries";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, HexInput, OrderBy } from "../types";
+import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
+import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";
 import { queryIndexer } from "./general";
 
 export async function getNumberOfDelegators(args: {
@@ -36,7 +23,7 @@ export async function getNumberOfDelegators(args: {
   const address = Hex.fromHexInput({ hexInput: poolAddress }).toString();
   const query = {
     query: GetNumberOfDelegators,
-    variables: { poolAddress: address },
+    variables: { where_condition: { pool_address: { _eq: address } } },
   };
   const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
   if (data.num_active_delegator_per_pool.length === 0) {
@@ -48,15 +35,15 @@ export async function getNumberOfDelegators(args: {
 export async function getNumberOfDelegatorsForAllPools(args: {
   aptosConfig: AptosConfig;
   options?: {
-    orderBy?: OrderBy<GetNumberOfDelegatorsForAllPoolsResponse[0]>;
+    orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
   };
-}): Promise<GetNumberOfDelegatorsForAllPoolsResponse> {
+}): Promise<GetNumberOfDelegatorsResponse> {
   const { aptosConfig, options } = args;
   const query = {
-    query: GetNumberOfDelegatorsForAllPools,
-    variables: { order_by: options?.orderBy },
+    query: GetNumberOfDelegators,
+    variables: { where_condition: {}, order_by: options?.orderBy },
   };
-  const data: GetNumberOfDelegatorsForAllPoolsQuery = await queryIndexer<GetNumberOfDelegatorsForAllPoolsQuery>({
+  const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({
     aptosConfig,
     query,
   });

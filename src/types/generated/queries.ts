@@ -219,17 +219,9 @@ export const GetDelegatedStakingActivities = `
   }
 }
     `;
-export const GetNumberOfDelegatorsForAllPools = `
-    query getNumberOfDelegatorsForAllPools($order_by: [num_active_delegator_per_pool_order_by!]) {
-  num_active_delegator_per_pool(order_by: $order_by) {
-    num_active_delegator
-    pool_address
-  }
-}
-    `;
 export const GetNumberOfDelegators = `
-    query getNumberOfDelegators($poolAddress: String) {
-  num_active_delegator_per_pool(where: {pool_address: {_eq: $poolAddress}}) {
+    query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
+  num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
     num_active_delegator
     pool_address
   }
@@ -388,22 +380,8 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-    getNumberOfDelegatorsForAllPools(
-      variables?: Types.GetNumberOfDelegatorsForAllPoolsQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetNumberOfDelegatorsForAllPoolsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetNumberOfDelegatorsForAllPoolsQuery>(GetNumberOfDelegatorsForAllPools, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getNumberOfDelegatorsForAllPools",
-        "query",
-      );
-    },
     getNumberOfDelegators(
-      variables?: Types.GetNumberOfDelegatorsQueryVariables,
+      variables: Types.GetNumberOfDelegatorsQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetNumberOfDelegatorsQuery> {
       return withWrapper(

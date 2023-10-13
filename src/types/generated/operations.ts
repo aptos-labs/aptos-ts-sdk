@@ -347,16 +347,9 @@ export type GetDelegatedStakingActivitiesQuery = {
   }>;
 };
 
-export type GetNumberOfDelegatorsForAllPoolsQueryVariables = Types.Exact<{
-  order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
-}>;
-
-export type GetNumberOfDelegatorsForAllPoolsQuery = {
-  num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
-};
-
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
-  poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
+  where_condition: Types.NumActiveDelegatorPerPoolBoolExp;
+  order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
 }>;
 
 export type GetNumberOfDelegatorsQuery = {

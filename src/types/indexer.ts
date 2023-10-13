@@ -17,8 +17,8 @@ import {
   GetAccountOwnedTokensQuery,
   GetAccountOwnedTokensFromCollectionQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
-  GetNumberOfDelegatorsForAllPoolsQuery,
   GetDelegatedStakingActivitiesQuery,
+  GetNumberOfDelegatorsQuery,
 } from "./generated/operations";
 
 /**
@@ -41,8 +41,7 @@ export type GetAccountCollectionsWithOwnedTokenResponse =
   GetAccountCollectionsWithOwnedTokensQuery["current_collection_ownership_v2_view"];
 export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
 
-export type GetNumberOfDelegatorsForAllPoolsResponse =
-  GetNumberOfDelegatorsForAllPoolsQuery["num_active_delegator_per_pool"];
+export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_active_delegator_per_pool"];
 export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];
 
 /**
