@@ -43,8 +43,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          new MoveObject(Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress),
-          new MoveObject(Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress),
+          new MoveObject(Account.generate().accountAddress),
+          new MoveObject(Account.generate().accountAddress),
           new U64(50),
         ],
       });
@@ -52,7 +52,7 @@ describe("transaction builder", () => {
     });
     test("it generates a multi sig transaction payload", async () => {
       const payload = generateTransactionPayload({
-        multisigAddress: Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+        multisigAddress: Account.generate().accountAddress,
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
         arguments: [],
@@ -72,7 +72,7 @@ describe("transaction builder", () => {
     test("it generates a raw transaction with script payload", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const payload = generateTransactionPayload({
         bytecode:
@@ -81,8 +81,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -98,9 +98,9 @@ describe("transaction builder", () => {
     test("it generates a raw transaction with a multi sig payload", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
         function: "0x1::aptos_account::transfer",
@@ -119,9 +119,9 @@ describe("transaction builder", () => {
     test("it generates a raw transaction with an entry function payload", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
@@ -140,7 +140,7 @@ describe("transaction builder", () => {
     test("it returns a serialized raw transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const payload = generateTransactionPayload({
         bytecode:
@@ -149,8 +149,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -167,17 +167,15 @@ describe("transaction builder", () => {
     test("it returns a serialized raw transaction and secondary signers addresses", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const secondarySignerAddress = Account.generate({
-        scheme: SigningScheme.Ed25519,
-      });
+      const secondarySignerAddress = Account.generate();
       const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
@@ -196,15 +194,15 @@ describe("transaction builder", () => {
     test("it returns a serialized raw transaction and a fee payer address", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const feePayer = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const feePayer = Account.generate();
       const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
@@ -220,18 +218,16 @@ describe("transaction builder", () => {
     test("it returns a serialized raw transaction, secondary signers addresses and a fee payer address", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
         arguments: [new MoveObject(bob.accountAddress), new U64(1)],
       });
-      const feePayer = Account.generate({ scheme: SigningScheme.Ed25519 });
-      const secondarySignerAddress = Account.generate({
-        scheme: SigningScheme.Ed25519,
-      });
+      const feePayer = Account.generate();
+      const secondarySignerAddress = Account.generate();
       const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
@@ -253,7 +249,7 @@ describe("transaction builder", () => {
     test("it generates a signed raw transaction for simulation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const payload = generateTransactionPayload({
         bytecode:
@@ -262,8 +258,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -287,7 +283,7 @@ describe("transaction builder", () => {
     test("it signs a raw transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const payload = generateTransactionPayload({
         bytecode:
@@ -296,8 +292,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -319,9 +315,9 @@ describe("transaction builder", () => {
     test("it signs a fee payer transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
         function: "0x1::aptos_account::transfer",
@@ -332,9 +328,7 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        feePayerAddress: Account.generate({
-          scheme: SigningScheme.Ed25519,
-        }).accountAddress.toString(),
+        feePayerAddress: Account.generate().accountAddress.toString(),
       });
       const accountAuthenticator = sign({
         signer: alice,
@@ -349,9 +343,9 @@ describe("transaction builder", () => {
     test("it signs a multi agent transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         bytecode:
           "a11ceb0b060000000701000402040a030e18042608052e4307713e08af01200000000101020401000100030800010403040100010505060100010607040100010708060100000201020202030207060c060c0303050503030b000108010b000108010b0001080101080102060c03010b0001090002070b000109000b000109000002070b000109000302050b000109000a6170746f735f636f696e04636f696e04436f696e094170746f73436f696e087769746864726177056d657267650765787472616374076465706f73697400000000000000000000000000000000000000000000000000000000000000010000011a0b000a0238000c070b010a0338000c080d070b0838010d070b020b03160b061738020c090b040b0738030b050b09380302",
@@ -359,8 +353,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -384,7 +378,7 @@ describe("transaction builder", () => {
     test("it generates a single signer signed transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const payload = generateTransactionPayload({
         bytecode:
@@ -393,8 +387,8 @@ describe("transaction builder", () => {
         arguments: [
           new U64(100),
           new U64(200),
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
-          Account.generate({ scheme: SigningScheme.Ed25519 }).accountAddress,
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
           new U64(50),
         ],
       });
@@ -417,7 +411,7 @@ describe("transaction builder", () => {
     test("it generates a multi agent signed transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.fromPrivateKey({
         privateKey: new Ed25519PrivateKey({
@@ -456,9 +450,9 @@ describe("transaction builder", () => {
     test("it generates a fee payer signed transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
@@ -492,9 +486,9 @@ describe("transaction builder", () => {
     test("it derives the transaction type as a RawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
@@ -512,9 +506,9 @@ describe("transaction builder", () => {
     test("it derives the transaction type as a FeePayerRawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
@@ -524,9 +518,7 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        feePayerAddress: Account.generate({
-          scheme: SigningScheme.Ed25519,
-        }).accountAddress.toString(),
+        feePayerAddress: Account.generate().accountAddress.toString(),
       });
 
       const transactionType = deriveTransactionType(transaction);
@@ -536,9 +528,9 @@ describe("transaction builder", () => {
     test("it derives the transaction type as a MultiAgentRawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
         type_arguments: [],
@@ -548,11 +540,7 @@ describe("transaction builder", () => {
         aptosConfig: config,
         sender: alice.accountAddress.toString(),
         payload,
-        secondarySignerAddresses: [
-          Account.generate({
-            scheme: SigningScheme.Ed25519,
-          }).accountAddress.toString(),
-        ],
+        secondarySignerAddresses: [Account.generate().accountAddress.toString()],
       });
       const transactionType = deriveTransactionType(transaction);
       expect(transactionType instanceof MultiAgentRawTransaction).toBeTruthy();

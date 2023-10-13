@@ -16,9 +16,16 @@ import { SigningScheme } from "../../src/types";
 import { ed25519, secp256k1TestObject, wallet } from "./helper";
 
 describe("Ed25519 Account", () => {
-  it("should create an instance of Account correctly without error", () => {
+  it("should create an instance of Account correctly without error when scheme is not specified", () => {
     // Account with Ed25519 scheme
-    const edAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+    const edAccount = Account.generate();
+    expect(edAccount).toBeInstanceOf(Account);
+    expect(edAccount.signingScheme).toEqual(SigningScheme.Ed25519);
+  });
+
+  it("should create an instance of Account correctly without error when scheme is specified", () => {
+    // Account with Ed25519 scheme
+    const edAccount = Account.generate(SigningScheme.Ed25519);
     expect(edAccount).toBeInstanceOf(Account);
     expect(edAccount.signingScheme).toEqual(SigningScheme.Ed25519);
   });
@@ -95,9 +102,7 @@ describe("Ed25519 Account", () => {
 describe("Secp256k1 Account", () => {
   it("should create an instance of Account correctly without error", () => {
     // Account with Secp256k1 scheme
-    const secp256k1Account = Account.generate({
-      scheme: SigningScheme.Secp256k1Ecdsa,
-    });
+    const secp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
     expect(secp256k1Account).toBeInstanceOf(Account);
     expect(secp256k1Account.signingScheme).toEqual(SigningScheme.Secp256k1Ecdsa);
   });

@@ -21,9 +21,9 @@ describe("transaction api", () => {
   });
 
   test("returns true when transaction is pending", async () => {
-    const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+    const senderAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-    const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+    const bob = Account.generate();
     const rawTxn = await aptos.generateTransaction({
       sender: senderAccount.accountAddress.toString(),
       data: {
@@ -47,9 +47,9 @@ describe("transaction api", () => {
   describe("fetch transaction queries", () => {
     let txn: TransactionResponse;
     beforeAll(async () => {
-      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const senderAccount = Account.generate();
       await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
