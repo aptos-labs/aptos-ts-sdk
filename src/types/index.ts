@@ -527,7 +527,7 @@ export type TransactionSignature =
   | TransactionEd25519Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
-  | TransactioneePayerSignature;
+  | TransactionFeePayerSignature;
 
 export type TransactionEd25519Signature = {
   type: string;
@@ -565,7 +565,7 @@ export type TransactionMultiAgentSignature = {
   secondary_signers: Array<AccountSignature>;
 };
 
-export type TransactioneePayerSignature = {
+export type TransactionFeePayerSignature = {
   type: string;
   sender: AccountSignature;
   /**

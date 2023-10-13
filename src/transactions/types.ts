@@ -16,6 +16,7 @@ import {
 import { TypeTag } from "./typeTag/typeTag";
 import { MoveObject, MoveOption, MoveVector } from "../bcs/serializable/move-structs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
+import { FixedBytes } from "../bcs/serializable/fixed-bytes";
 
 export type EntryFunctionArgumentTypes =
   | Bool
@@ -28,7 +29,9 @@ export type EntryFunctionArgumentTypes =
   | AccountAddress
   | MoveObject
   | MoveVector<EntryFunctionArgumentTypes>
-  | MoveOption<EntryFunctionArgumentTypes>;
+  | MoveOption<EntryFunctionArgumentTypes>
+  | AccountAddress
+  | FixedBytes;
 export type ScriptFunctionArgumentTypes =
   | Bool
   | U8
@@ -39,7 +42,9 @@ export type ScriptFunctionArgumentTypes =
   | U256
   | AccountAddress
   | MoveObject
-  | MoveVector<U8>;
+  | MoveVector<U8>
+  | AccountAddress
+  | FixedBytes;
 
 /**
  * Type that holds all raw transaction instances Aptos SDK supports
