@@ -1,8 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Deserializer, Ed25519PrivateKey, Network } from "../../src";
-import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../src/transactions/authenticator/account";
+import {
+  Account,
+  Aptos,
+  AptosConfig,
+  Deserializer,
+  Ed25519PrivateKey,
+  Network,
+  SigningScheme,
+  U64,
+} from "../../../src";
+import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import {
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
@@ -10,7 +19,7 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
-} from "../../src/transactions/instances";
+} from "../../../src/transactions/instances";
 import {
   buildTransaction,
   deriveTransactionType,
@@ -19,12 +28,10 @@ import {
   generateSignedTransactionForSimulation,
   generateTransactionPayload,
   sign,
-} from "../../src/transactions/transaction_builder/transaction_builder";
-import { SigningScheme } from "../../src/types";
-import { SignedTransaction } from "../../src/transactions/instances/signedTransaction";
-import { U64 } from "../../src/bcs/serializable/move-primitives";
-import { MoveObject } from "../../src/bcs/serializable/move-structs";
-import { FUND_AMOUNT } from "./helper";
+} from "../../../src/transactions/transaction_builder/transaction_builder";
+import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
+import { MoveObject } from "../../../src/bcs/serializable/move-structs";
+import { FUND_AMOUNT } from "../../unit/helper";
 
 describe("transaction builder", () => {
   describe("generate transaction payload", () => {
