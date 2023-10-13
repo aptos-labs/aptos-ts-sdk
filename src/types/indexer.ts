@@ -21,6 +21,7 @@ import {
   GetNumberOfDelegatorsQuery,
   GetCollectionDataQuery,
   GetChainTopUserTransactionsQuery,
+  GetEventsQuery,
 } from "./generated/operations";
 
 /**
@@ -43,6 +44,7 @@ export type GetAccountCollectionsWithOwnedTokenResponse =
   GetAccountCollectionsWithOwnedTokensQuery["current_collection_ownership_v2_view"];
 export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
 export type GetChainTopUserTransactionsResponse = GetChainTopUserTransactionsQuery["user_transactions"];
+export type GetEventsResponse = GetEventsQuery["events"];
 
 export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_active_delegator_per_pool"];
 export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];

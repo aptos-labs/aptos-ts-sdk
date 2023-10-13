@@ -246,6 +246,20 @@ export const GetDelegatedStakingActivities = `
   }
 }
     `;
+export const GetEvents = `
+    query getEvents($where_condition: events_bool_exp, $offset: Int, $limit: Int) {
+  events(where: $where_condition, offset: $offset, limit: $limit) {
+    sequence_number
+    type
+    transaction_version
+    transaction_block_height
+    event_index
+    data
+    creation_number
+    account_address
+  }
+}
+    `;
 export const GetNumberOfDelegators = `
     query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
   num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
@@ -432,6 +446,17 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getDelegatedStakingActivities",
+        "query",
+      );
+    },
+    getEvents(
+      variables?: Types.GetEventsQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetEventsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetEventsQuery>(GetEvents, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
+        "getEvents",
         "query",
       );
     },
