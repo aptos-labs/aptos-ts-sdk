@@ -1,6 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+export const INDEXER_WAIT_TIME = 1000;
+export const FUND_AMOUNT = 100_000_000;
+
 export const wallet = {
   address: "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30",
   mnemonic: "shoot island position soft burden budget tooth cruel issue economy destroy above",

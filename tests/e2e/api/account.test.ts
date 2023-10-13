@@ -5,6 +5,7 @@ import { Account, Aptos, AptosConfig, Network } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
 import { SigningScheme } from "../../../src/types";
 import { sleep } from "../../../src/utils/helpers";
+import { INDEXER_WAIT_TIME } from "../../unit/helper";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -121,6 +122,7 @@ describe("account api", () => {
       });
 
       await aptos.waitForTransaction({ txnHash: response });
+      await sleep(INDEXER_WAIT_TIME);
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -138,7 +140,7 @@ describe("account api", () => {
 
       await aptos.waitForTransaction({ txnHash: response });
       // to help with indexer latency
-      await sleep(1000);
+      await sleep(INDEXER_WAIT_TIME);
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -156,6 +158,7 @@ describe("account api", () => {
       });
 
       await aptos.waitForTransaction({ txnHash: response });
+      await sleep(INDEXER_WAIT_TIME);
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });

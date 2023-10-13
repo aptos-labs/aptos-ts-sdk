@@ -13,6 +13,7 @@ import {
   TransactionPayloadScript,
 } from "../../../src/transactions/instances";
 import { SigningScheme } from "../../../src/types";
+import { FUND_AMOUNT } from "../../unit/helper";
 
 describe("transaction submission", () => {
   describe("generateTransaction", () => {
@@ -20,7 +21,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
@@ -40,7 +41,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -62,7 +63,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -84,9 +85,9 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: FUND_AMOUNT });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         secondarySignerAddresses: [bob.accountAddress.toString()],
@@ -117,7 +118,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         data: {
@@ -140,7 +141,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -165,7 +166,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -190,9 +191,9 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: bob.accountAddress.toString(), amount: FUND_AMOUNT });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
         secondarySignerAddresses: [bob.accountAddress.toString()],
@@ -231,7 +232,7 @@ describe("transaction submission", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 1000000000 });
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
