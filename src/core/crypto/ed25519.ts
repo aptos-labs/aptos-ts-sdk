@@ -28,10 +28,10 @@ export class Ed25519PublicKey extends PublicKey {
    *
    * @param args.hexInput A HexInput (string or Uint8Array)
    */
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
 
-    const hex = Hex.fromHexInput(args);
+    const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Ed25519PublicKey.LENGTH) {
       throw new Error(`PublicKey length should be ${Ed25519PublicKey.LENGTH}`);
     }
@@ -63,10 +63,8 @@ export class Ed25519PublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
     const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput({ hexInput: message }).toUint8Array();
-    const rawSignature = Hex.fromHexInput({
-      hexInput: signature.toUint8Array(),
-    }).toUint8Array();
+    const rawMessage = Hex.fromHexInput(message).toUint8Array();
+    const rawSignature = Hex.fromHexInput(signature.toUint8Array()).toUint8Array();
     return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
   }
 
@@ -76,7 +74,7 @@ export class Ed25519PublicKey extends PublicKey {
 
   static deserialize(deserializer: Deserializer): Ed25519PublicKey {
     const bytes = deserializer.deserializeBytes();
-    return new Ed25519PublicKey({ hexInput: bytes });
+    return new Ed25519PublicKey(bytes);
   }
 }
 
@@ -100,10 +98,10 @@ export class Ed25519PrivateKey extends PrivateKey {
    *
    * @param args.hexInput HexInput (string or Uint8Array)
    */
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(args);
+    const privateKeyHex = Hex.fromHexInput(hexInput);
     if (privateKeyHex.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`);
     }
@@ -128,7 +126,7 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @returns string representation of the private key
    */
   toString(): string {
-    return Hex.fromHexInput({ hexInput: this.toUint8Array() }).toString();
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   /**
@@ -137,10 +135,10 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @param args.message in HexInput format
    * @returns Signature
    */
-  sign(args: { message: HexInput }): Ed25519Signature {
-    const hex = Hex.fromHexInput({ hexInput: args.message });
+  sign(message: HexInput): Ed25519Signature {
+    const hex = Hex.fromHexInput(message);
     const signature = nacl.sign.detached(hex.toUint8Array(), this.signingKeyPair.secretKey);
-    return new Ed25519Signature({ hexInput: signature });
+    return new Ed25519Signature(signature);
   }
 
   serialize(serializer: Serializer): void {
@@ -149,7 +147,7 @@ export class Ed25519PrivateKey extends PrivateKey {
 
   static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Ed25519PrivateKey({ hexInput: bytes });
+    return new Ed25519PrivateKey(bytes);
   }
 
   /**
@@ -159,9 +157,7 @@ export class Ed25519PrivateKey extends PrivateKey {
    */
   static generate(): Ed25519PrivateKey {
     const keyPair = nacl.sign.keyPair();
-    return new Ed25519PrivateKey({
-      hexInput: keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH),
-    });
+    return new Ed25519PrivateKey(keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH));
   }
 
   /**
@@ -171,7 +167,7 @@ export class Ed25519PrivateKey extends PrivateKey {
    */
   publicKey(): Ed25519PublicKey {
     const bytes = this.signingKeyPair.publicKey;
-    return new Ed25519PublicKey({ hexInput: bytes });
+    return new Ed25519PublicKey(bytes);
   }
 }
 
@@ -190,9 +186,9 @@ export class Ed25519Signature extends Signature {
    */
   private readonly data: Hex;
 
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
-    const hex = Hex.fromHexInput(args);
+    const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Ed25519Signature.LENGTH) {
       throw new Error(`Signature length should be ${Ed25519Signature.LENGTH}`);
     }
@@ -224,6 +220,6 @@ export class Ed25519Signature extends Signature {
 
   static deserialize(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
-    return new Ed25519Signature({ hexInput: bytes });
+    return new Ed25519Signature(bytes);
   }
 }

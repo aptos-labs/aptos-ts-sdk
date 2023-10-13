@@ -86,7 +86,7 @@ export class MultiEd25519PublicKey extends PublicKey {
   }
 
   toString(): string {
-    return Hex.fromHexInput({ hexInput: this.toUint8Array() }).toString();
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
@@ -106,11 +106,7 @@ export class MultiEd25519PublicKey extends PublicKey {
 
     for (let i = 0; i < bytes.length - 1; i += Ed25519PublicKey.LENGTH) {
       const begin = i;
-      keys.push(
-        new Ed25519PublicKey({
-          hexInput: bytes.subarray(begin, begin + Ed25519PublicKey.LENGTH),
-        }),
-      );
+      keys.push(new Ed25519PublicKey(bytes.subarray(begin, begin + Ed25519PublicKey.LENGTH)));
     }
     return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
   }
@@ -185,7 +181,7 @@ export class MultiEd25519Signature extends Signature {
   }
 
   toString(): string {
-    return Hex.fromHexInput({ hexInput: this.toUint8Array() }).toString();
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   /**
@@ -248,11 +244,7 @@ export class MultiEd25519Signature extends Signature {
 
     for (let i = 0; i < bytes.length - bitmap.length; i += Ed25519Signature.LENGTH) {
       const begin = i;
-      signatures.push(
-        new Ed25519Signature({
-          hexInput: bytes.subarray(begin, begin + Ed25519Signature.LENGTH),
-        }),
-      );
+      signatures.push(new Ed25519Signature(bytes.subarray(begin, begin + Ed25519Signature.LENGTH)));
     }
     return new MultiEd25519Signature({ signatures, bitmap });
   }

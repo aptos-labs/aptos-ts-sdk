@@ -32,7 +32,7 @@ export class AuthenticationKey {
 
   constructor(args: { data: HexInput }) {
     const { data } = args;
-    const hex = Hex.fromHexInput({ hexInput: data });
+    const hex = Hex.fromHexInput(data);
     if (hex.toUint8Array().length !== AuthenticationKey.LENGTH) {
       throw new Error(`Authentication Key length should be ${AuthenticationKey.LENGTH}`);
     }
@@ -55,7 +55,7 @@ export class AuthenticationKey {
    */
   private static fromBytesAndScheme(args: { bytes: HexInput; scheme: AuthenticationKeyScheme }) {
     const { bytes, scheme } = args;
-    const inputBytes = Hex.fromHexInput({ hexInput: bytes }).toUint8Array();
+    const inputBytes = Hex.fromHexInput(bytes).toUint8Array();
     const authKeyBytes = new Uint8Array(inputBytes.length + 1);
     authKeyBytes.set(inputBytes);
     authKeyBytes.set([scheme], inputBytes.length);

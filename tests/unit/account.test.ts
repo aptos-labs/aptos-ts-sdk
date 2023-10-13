@@ -32,28 +32,24 @@ describe("Ed25519 Account", () => {
 
   it("should create a new account from a provided private key", () => {
     const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
-    const privateKey = new Ed25519PrivateKey({ hexInput: privateKeyBytes });
+    const privateKey = new Ed25519PrivateKey(privateKeyBytes);
     const newAccount = Account.fromPrivateKey({ privateKey });
     expect(newAccount).toBeInstanceOf(Account);
     expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
-    expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(
-      new Ed25519PublicKey({ hexInput: publicKey }).toString(),
-    );
+    expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
 
   it("should create a new account from a provided private key and address", () => {
     const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
-    const privateKey = new Ed25519PrivateKey({ hexInput: privateKeyBytes });
+    const privateKey = new Ed25519PrivateKey(privateKeyBytes);
     const newAccount = Account.fromPrivateKeyAndAddress({
       privateKey,
       address: AccountAddress.fromString({ input: address }),
     });
     expect(newAccount).toBeInstanceOf(Account);
     expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
-    expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(
-      new Ed25519PublicKey({ hexInput: publicKey }).toString(),
-    );
+    expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
 
@@ -78,7 +74,7 @@ describe("Ed25519 Account", () => {
 
   it("should return the authentication key for a public key", () => {
     const { publicKey: publicKeyBytes, address } = ed25519;
-    const publicKey = new Ed25519PublicKey({ hexInput: publicKeyBytes });
+    const publicKey = new Ed25519PublicKey(publicKeyBytes);
     const authKey = Account.authKey({ publicKey });
     expect(authKey).toBeInstanceOf(Hex);
     expect(authKey.toString()).toEqual(address);
@@ -86,15 +82,15 @@ describe("Ed25519 Account", () => {
 
   it("should sign data, return a Hex signature, and verify", () => {
     const { privateKey: privateKeyBytes, address, message, signedMessage } = ed25519;
-    const privateKey = new Ed25519PrivateKey({ hexInput: privateKeyBytes });
+    const privateKey = new Ed25519PrivateKey(privateKeyBytes);
     const account = Account.fromPrivateKeyAndAddress({
       privateKey,
       address: AccountAddress.fromString({ input: address }),
     });
-    expect(account.sign({ data: message }).toString()).toEqual(signedMessage);
+    expect(account.sign(message).toString()).toEqual(signedMessage);
 
     // Verify the signature
-    const signature = new Ed25519Signature({ hexInput: signedMessage });
+    const signature = new Ed25519Signature(signedMessage);
     expect(account.verifySignature({ message, signature })).toBe(true);
   });
 });
@@ -109,19 +105,19 @@ describe("Secp256k1 Account", () => {
 
   it("should create a new account from a provided private key", () => {
     const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
-    const privateKey = new Secp256k1PrivateKey({ hexInput: privateKeyBytes });
+    const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
     const newAccount = Account.fromPrivateKey({ privateKey });
     expect(newAccount).toBeInstanceOf(Account);
     expect((newAccount.privateKey as Secp256k1PrivateKey).toString()).toEqual(privateKey.toString());
     expect((newAccount.publicKey as Secp256k1PublicKey).toString()).toEqual(
-      new Secp256k1PublicKey({ hexInput: publicKey }).toString(),
+      new Secp256k1PublicKey(publicKey).toString(),
     );
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
 
   it("should create a new account from a provided private key and address", () => {
     const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
-    const privateKey = new Secp256k1PrivateKey({ hexInput: privateKeyBytes });
+    const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
     const newAccount = Account.fromPrivateKeyAndAddress({
       privateKey,
       address: AccountAddress.fromString({ input: address }),
@@ -129,7 +125,7 @@ describe("Secp256k1 Account", () => {
     expect(newAccount).toBeInstanceOf(Account);
     expect((newAccount.privateKey as Secp256k1PrivateKey).toString()).toEqual(privateKey.toString());
     expect((newAccount.publicKey as Secp256k1PublicKey).toString()).toEqual(
-      new Secp256k1PublicKey({ hexInput: publicKey }).toString(),
+      new Secp256k1PublicKey(publicKey).toString(),
     );
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
@@ -155,7 +151,7 @@ describe("Secp256k1 Account", () => {
 
   it("should return the authentication key for a public key", () => {
     const { publicKey: publicKeyBytes, address } = secp256k1TestObject;
-    const publicKey = new Secp256k1PublicKey({ hexInput: publicKeyBytes });
+    const publicKey = new Secp256k1PublicKey(publicKeyBytes);
     const authKey = Account.authKey({ publicKey });
     expect(authKey).toBeInstanceOf(Hex);
     expect(authKey.toString()).toEqual(address);
@@ -165,18 +161,16 @@ describe("Secp256k1 Account", () => {
     const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
 
     // Sign the message
-    const secp256k1PrivateKey = new Secp256k1PrivateKey({
-      hexInput: privateKeyBytes,
-    });
+    const secp256k1PrivateKey = new Secp256k1PrivateKey(privateKeyBytes);
     const account = Account.fromPrivateKeyAndAddress({
       privateKey: secp256k1PrivateKey,
       address: AccountAddress.fromString({ input: address }),
     });
-    const signedMessage = account.sign({ data: messageEncoded });
+    const signedMessage = account.sign(messageEncoded);
     expect(signedMessage.toString()).toEqual(signatureHex);
 
     // Verify the signature
-    const signature = new Secp256k1Signature({ hexInput: signatureHex });
+    const signature = new Secp256k1Signature(signatureHex);
     expect(account.verifySignature({ message: messageEncoded, signature })).toBe(true);
   });
 });

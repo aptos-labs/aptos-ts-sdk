@@ -272,19 +272,19 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       transaction.feePayerAddress,
     );
     const accountAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey({ hexInput: signerPublicKey.toUint8Array() }),
-      new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+      new Ed25519PublicKey(signerPublicKey.toUint8Array()),
+      new Ed25519Signature(new Uint8Array(64)),
     );
     const secondaryAccountAuthenticators = secondarySignersPublicKeys!.map(
       (publicKey) =>
         new AccountAuthenticatorEd25519(
-          new Ed25519PublicKey({ hexInput: publicKey.toUint8Array() }),
-          new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+          new Ed25519PublicKey(publicKey.toUint8Array()),
+          new Ed25519Signature(new Uint8Array(64)),
         ),
     );
     const feePayerAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey({ hexInput: feePayerPublicKey!.toUint8Array() }),
-      new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+      new Ed25519PublicKey(feePayerPublicKey!.toUint8Array()),
+      new Ed25519Signature(new Uint8Array(64)),
     );
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
@@ -306,15 +306,15 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
     );
 
     const accountAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey({ hexInput: signerPublicKey.toUint8Array() }),
-      new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+      new Ed25519PublicKey(signerPublicKey.toUint8Array()),
+      new Ed25519Signature(new Uint8Array(64)),
     );
 
     const secondaryAccountAuthenticators = secondarySignersPublicKeys!.map(
       (publicKey) =>
         new AccountAuthenticatorEd25519(
-          new Ed25519PublicKey({ hexInput: publicKey.toUint8Array() }),
-          new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+          new Ed25519PublicKey(publicKey.toUint8Array()),
+          new Ed25519Signature(new Uint8Array(64)),
         ),
     );
 
@@ -330,8 +330,8 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
   // raw transaction
 
   const accountAuthenticator = new AccountAuthenticatorEd25519(
-    new Ed25519PublicKey({ hexInput: signerPublicKey.toUint8Array() }),
-    new Ed25519Signature({ hexInput: new Uint8Array(64) }),
+    new Ed25519PublicKey(signerPublicKey.toUint8Array()),
+    new Ed25519Signature(new Uint8Array(64)),
   );
 
   const transactionAuthenticator = new TransactionAuthenticatorEd25519(
@@ -358,19 +358,19 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
   const message = getSigningMessage(transactionToSign);
 
   // account.signMessage
-  const signerSignature = signer.sign({ data: message });
+  const signerSignature = signer.sign(message);
 
   // return account authentication
   switch (signer.signingScheme) {
     case SigningScheme.Ed25519:
       return new AccountAuthenticatorEd25519(
-        new Ed25519PublicKey({ hexInput: signer.publicKey.toUint8Array() }),
-        new Ed25519Signature({ hexInput: signerSignature.toUint8Array() }),
+        new Ed25519PublicKey(signer.publicKey.toUint8Array()),
+        new Ed25519Signature(signerSignature.toUint8Array()),
       );
     case SigningScheme.Secp256k1Ecdsa:
       return new AccountAuthenticatorSecp256k1(
-        new Secp256k1PublicKey({ hexInput: signer.publicKey.toUint8Array() }),
-        new Secp256k1Signature({ hexInput: signerSignature.toUint8Array() }),
+        new Secp256k1PublicKey(signer.publicKey.toUint8Array()),
+        new Secp256k1Signature(signerSignature.toUint8Array()),
       );
     // TODO support MultiEd25519
     default:

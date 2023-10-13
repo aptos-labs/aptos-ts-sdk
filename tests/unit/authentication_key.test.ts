@@ -29,7 +29,7 @@ describe("AuthenticationKey", () => {
   });
 
   it("should create AuthenticationKey from Ed25519PublicKey", () => {
-    const publicKey = new Ed25519PublicKey({ hexInput: ed25519.publicKey });
+    const publicKey = new Ed25519PublicKey(ed25519.publicKey);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey });
     expect(authKey).toBeInstanceOf(AuthenticationKey);
     expect(authKey.data.toString()).toEqual(ed25519.authKey);
@@ -39,11 +39,7 @@ describe("AuthenticationKey", () => {
     // create the MultiPublicKey
     let edPksArray = [];
     for (let i = 0; i < multiEd25519PkTestObject.public_keys.length; i++) {
-      edPksArray.push(
-        new Ed25519PublicKey({
-          hexInput: multiEd25519PkTestObject.public_keys[i],
-        }),
-      );
+      edPksArray.push(new Ed25519PublicKey(multiEd25519PkTestObject.public_keys[i]));
     }
 
     const pubKeyMultiSig = new MultiEd25519PublicKey({

@@ -37,7 +37,7 @@ export abstract class PrivateKey extends Serializable {
    * Sign a message with the key
    * @param args
    */
-  abstract sign(args: { message: HexInput }): Signature;
+  abstract sign(message: HexInput): Signature;
 
   /**
    * Get the raw private key bytes

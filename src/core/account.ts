@@ -148,7 +148,7 @@ export class Account {
       .join(" ");
 
     const { key } = derivePath(path, bytesToHex(bip39.mnemonicToSeedSync(normalizeMnemonics)));
-    const privateKey = new Ed25519PrivateKey({ hexInput: key });
+    const privateKey = new Ed25519PrivateKey(key);
     return Account.fromPrivateKey({ privateKey });
   }
 
@@ -176,11 +176,11 @@ export class Account {
    *
    * TODO: Add sign transaction or specific types
    *
-   * @param args.data in HexInput format
+   * @param data in HexInput format
    * @returns Signature
    */
-  sign(args: { data: HexInput }): Signature {
-    const signature = this.privateKey.sign({ message: args.data });
+  sign(data: HexInput): Signature {
+    const signature = this.privateKey.sign(data);
     return signature;
   }
 
@@ -193,7 +193,7 @@ export class Account {
    */
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput({ hexInput: message }).toUint8Array();
+    const rawMessage = Hex.fromHexInput(message).toUint8Array();
     return this.publicKey.verifySignature({ message: rawMessage, signature });
   }
 }

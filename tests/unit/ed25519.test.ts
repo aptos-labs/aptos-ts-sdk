@@ -8,7 +8,7 @@ describe("Ed25519PublicKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string
     const hexStr = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-    const publicKey = new Ed25519PublicKey({ hexInput: hexStr });
+    const publicKey = new Ed25519PublicKey(hexStr);
     expect(publicKey).toBeInstanceOf(Ed25519PublicKey);
     expect(publicKey.toString()).toEqual(hexStr);
 
@@ -17,21 +17,21 @@ describe("Ed25519PublicKey", () => {
       1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35,
       69, 103, 137, 171, 205, 239,
     ]);
-    const publicKey2 = new Ed25519PublicKey({ hexInput: hexUint8Array });
+    const publicKey2 = new Ed25519PublicKey(hexUint8Array);
     expect(publicKey2).toBeInstanceOf(Ed25519PublicKey);
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
   });
 
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
-    expect(() => new Ed25519PublicKey({ hexInput: invalidHexInput })).toThrowError(
+    expect(() => new Ed25519PublicKey(invalidHexInput)).toThrowError(
       `PublicKey length should be ${Ed25519PublicKey.LENGTH}`,
     );
   });
 
   it("should verify the signature correctly", () => {
-    const pubKey = new Ed25519PublicKey({ hexInput: ed25519.publicKey });
-    const signature = new Ed25519Signature({ hexInput: ed25519.signedMessage });
+    const pubKey = new Ed25519PublicKey(ed25519.publicKey);
+    const signature = new Ed25519Signature(ed25519.signedMessage);
 
     // Verify with correct signed message
     expect(pubKey.verifySignature({ message: ed25519.message, signature })).toBe(true);
@@ -39,9 +39,7 @@ describe("Ed25519PublicKey", () => {
     // Verify with incorrect signed message
     const incorrectSignedMessage =
       "0xc5de9e40ac00b371cd83b1c197fa5b665b7449b33cd3cdd305bb78222e06a671a49625ab9aea8a039d4bb70e275768084d62b094bc1b31964f2357b7c1af7e0a";
-    const invalidSignature = new Ed25519Signature({
-      hexInput: incorrectSignedMessage,
-    });
+    const invalidSignature = new Ed25519Signature(incorrectSignedMessage);
     expect(
       pubKey.verifySignature({
         message: ed25519.message,
@@ -51,7 +49,7 @@ describe("Ed25519PublicKey", () => {
   });
 
   it("should serialize correctly", () => {
-    const publicKey = new Ed25519PublicKey({ hexInput: ed25519.publicKey });
+    const publicKey = new Ed25519PublicKey(ed25519.publicKey);
     const serializer = new Serializer();
     publicKey.serialize(serializer);
 
@@ -75,7 +73,7 @@ describe("Ed25519PublicKey", () => {
 
   it("should serialize and deserialize correctly", () => {
     const hexInput = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-    const publicKey = new Ed25519PublicKey({ hexInput });
+    const publicKey = new Ed25519PublicKey(hexInput);
     const serializer = new Serializer();
     publicKey.serialize(serializer);
 
@@ -89,7 +87,7 @@ describe("Ed25519PublicKey", () => {
 describe("PrivateKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string
-    const privateKey = new Ed25519PrivateKey({ hexInput: ed25519.privateKey });
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
     expect(privateKey).toBeInstanceOf(Ed25519PrivateKey);
     expect(privateKey.toString()).toEqual(ed25519.privateKey);
 
@@ -98,26 +96,26 @@ describe("PrivateKey", () => {
       197, 51, 140, 210, 81, 194, 45, 170, 140, 156, 156, 201, 79, 73, 140, 200, 165, 199, 225, 210, 231, 82, 135, 165,
       221, 169, 16, 150, 254, 100, 239, 165,
     ]);
-    const privateKey2 = new Ed25519PrivateKey({ hexInput: hexUint8Array });
+    const privateKey2 = new Ed25519PrivateKey(hexUint8Array);
     expect(privateKey2).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput({ hexInput: hexUint8Array }).toString());
+    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
-    expect(() => new Ed25519PrivateKey({ hexInput: invalidHexInput })).toThrowError(
+    expect(() => new Ed25519PrivateKey(invalidHexInput)).toThrowError(
       `PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`,
     );
   });
 
   it("should sign the message correctly", () => {
-    const privateKey = new Ed25519PrivateKey({ hexInput: ed25519.privateKey });
-    const signedMessage = privateKey.sign({ message: ed25519.message });
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
+    const signedMessage = privateKey.sign(ed25519.message);
     expect(signedMessage.toString()).toEqual(ed25519.signedMessage);
   });
 
   it("should serialize correctly", () => {
-    const privateKey = new Ed25519PrivateKey({ hexInput: ed25519.privateKey });
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
     const serializer = new Serializer();
     privateKey.serialize(serializer);
 
@@ -140,7 +138,7 @@ describe("PrivateKey", () => {
   });
 
   it("should serialize and deserialize correctly", () => {
-    const privateKey = new Ed25519PrivateKey({ hexInput: ed25519.privateKey });
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
     const serializer = new Serializer();
     privateKey.serialize(serializer);
 
@@ -162,7 +160,7 @@ describe("PrivateKey", () => {
   });
 
   it("should derive the public key correctly", () => {
-    const privateKey = new Ed25519PrivateKey({ hexInput: ed25519.privateKey });
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
     const publicKey = privateKey.publicKey();
     expect(publicKey).toBeInstanceOf(Ed25519PublicKey);
     expect(publicKey.toString()).toEqual(ed25519.publicKey);
@@ -172,28 +170,26 @@ describe("PrivateKey", () => {
 describe("Signature", () => {
   it("should create an instance correctly without error", () => {
     // Create from string
-    const signatureStr = new Ed25519Signature({
-      hexInput: ed25519.signedMessage,
-    });
+    const signatureStr = new Ed25519Signature(ed25519.signedMessage);
     expect(signatureStr).toBeInstanceOf(Ed25519Signature);
     expect(signatureStr.toString()).toEqual(ed25519.signedMessage);
 
     // Create from Uint8Array
     const signatureValue = new Uint8Array(Ed25519Signature.LENGTH);
-    const signature = new Ed25519Signature({ hexInput: signatureValue });
+    const signature = new Ed25519Signature(signatureValue);
     expect(signature).toBeInstanceOf(Ed25519Signature);
     expect(signature.toUint8Array()).toEqual(signatureValue);
   });
 
   it("should throw an error with invalid value length", () => {
     const invalidSignatureValue = new Uint8Array(Ed25519Signature.LENGTH - 1); // Invalid length
-    expect(() => new Ed25519Signature({ hexInput: invalidSignatureValue })).toThrowError(
+    expect(() => new Ed25519Signature(invalidSignatureValue)).toThrowError(
       `Signature length should be ${Ed25519Signature.LENGTH}`,
     );
   });
 
   it("should serialize correctly", () => {
-    const signature = new Ed25519Signature({ hexInput: ed25519.signedMessage });
+    const signature = new Ed25519Signature(ed25519.signedMessage);
     const serializer = new Serializer();
     signature.serialize(serializer);
 
@@ -219,7 +215,7 @@ describe("Signature", () => {
 
   it("should serialize and deserialize correctly", () => {
     const signatureValue = new Uint8Array(Ed25519Signature.LENGTH);
-    const signature = new Ed25519Signature({ hexInput: signatureValue });
+    const signature = new Ed25519Signature(signatureValue);
     const serializer = new Serializer();
     signature.serialize(serializer);
 

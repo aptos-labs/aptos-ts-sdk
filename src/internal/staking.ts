@@ -20,7 +20,7 @@ export async function getNumberOfDelegators(args: {
   poolAddress: HexInput;
 }): Promise<number> {
   const { aptosConfig, poolAddress } = args;
-  const address = Hex.fromHexInput({ hexInput: poolAddress }).toString();
+  const address = Hex.fromHexInput(poolAddress).toString();
   const query = {
     query: GetNumberOfDelegators,
     variables: { where_condition: { pool_address: { _eq: address } } },
@@ -59,8 +59,8 @@ export async function getDelegatedStakingActivities(args: {
   const query = {
     query: GetDelegatedStakingActivities,
     variables: {
-      delegatorAddress: Hex.fromHexInput({ hexInput: delegatorAddress }).toString(),
-      poolAddress: Hex.fromHexInput({ hexInput: poolAddress }).toString(),
+      delegatorAddress: Hex.fromHexInput(delegatorAddress).toString(),
+      poolAddress: Hex.fromHexInput(poolAddress).toString(),
     },
   };
   const data = await queryIndexer<GetDelegatedStakingActivitiesQuery>({ aptosConfig, query });

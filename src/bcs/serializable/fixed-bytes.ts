@@ -44,7 +44,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
 
   constructor(value: HexInput) {
     super();
-    this.value = Hex.fromHexInput({ hexInput: value }).toUint8Array();
+    this.value = Hex.fromHexInput(value).toUint8Array();
   }
 
   serialize(serializer: Serializer): void {

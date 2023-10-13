@@ -21,12 +21,12 @@ export class Secp256k1PublicKey extends PublicKey {
   /**
    * Create a new PublicKey instance from a Uint8Array or String.
    *
-   * @param args.hexInput A HexInput (string or Uint8Array)
+   * @param hexInput A HexInput (string or Uint8Array)
    */
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
 
-    const hex = Hex.fromHexInput(args);
+    const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Secp256k1PublicKey.LENGTH) {
       throw new Error(`PublicKey length should be ${Secp256k1PublicKey.LENGTH}`);
     }
@@ -60,7 +60,7 @@ export class Secp256k1PublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
     const { message, signature } = args;
-    const msgHex = Hex.fromHexInput({ hexInput: message }).toUint8Array();
+    const msgHex = Hex.fromHexInput(message).toUint8Array();
     const sha256Message = sha256(msgHex);
     const rawSignature = signature.toUint8Array();
     return secp256k1.verify(rawSignature, sha256Message, this.toUint8Array());
@@ -72,7 +72,7 @@ export class Secp256k1PublicKey extends PublicKey {
 
   static deserialize(deserializer: Deserializer): Secp256k1PublicKey {
     const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PublicKey({ hexInput: bytes });
+    return new Secp256k1PublicKey(bytes);
   }
 }
 
@@ -94,12 +94,12 @@ export class Secp256k1PrivateKey extends PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
-   * @param args.hexInput A HexInput (string or Uint8Array)
+   * @param hexInput A HexInput (string or Uint8Array)
    */
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(args);
+    const privateKeyHex = Hex.fromHexInput(hexInput);
     if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
@@ -128,14 +128,14 @@ export class Secp256k1PrivateKey extends PrivateKey {
   /**
    * Sign the given message with the private key.
    *
-   * @param args.message in HexInput format
+   * @param message in HexInput format
    * @returns Signature
    */
-  sign(args: { message: HexInput }): Secp256k1Signature {
-    const msgHex = Hex.fromHexInput({ hexInput: args.message });
+  sign(message: HexInput): Secp256k1Signature {
+    const msgHex = Hex.fromHexInput(message);
     const sha256Message = sha256(msgHex.toUint8Array());
     const signature = secp256k1.sign(sha256Message, this.key.toUint8Array());
-    return new Secp256k1Signature({ hexInput: signature.toCompactRawBytes() });
+    return new Secp256k1Signature(signature.toCompactRawBytes());
   }
 
   serialize(serializer: Serializer): void {
@@ -144,7 +144,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
 
   static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PrivateKey({ hexInput: bytes });
+    return new Secp256k1PrivateKey(bytes);
   }
 
   /**
@@ -154,7 +154,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
    */
   static generate(): Secp256k1PrivateKey {
     const hexInput = secp256k1.utils.randomPrivateKey();
-    return new Secp256k1PrivateKey({ hexInput });
+    return new Secp256k1PrivateKey(hexInput);
   }
 
   /**
@@ -164,7 +164,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
    */
   publicKey(): Secp256k1PublicKey {
     const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
-    return new Secp256k1PublicKey({ hexInput: bytes });
+    return new Secp256k1PublicKey(bytes);
   }
 }
 
@@ -188,10 +188,10 @@ export class Secp256k1Signature extends Signature {
    *
    * @param args.hexInput A HexInput (string or Uint8Array)
    */
-  constructor(args: { hexInput: HexInput }) {
+  constructor(hexInput: HexInput) {
     super();
 
-    const hex = Hex.fromHexInput(args);
+    const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Secp256k1Signature.LENGTH) {
       throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}`);
     }
@@ -222,6 +222,6 @@ export class Secp256k1Signature extends Signature {
 
   static deserialize(deserializer: Deserializer): Secp256k1Signature {
     const hex = deserializer.deserializeBytes();
-    return new Secp256k1Signature({ hexInput: hex });
+    return new Secp256k1Signature(hex);
   }
 }

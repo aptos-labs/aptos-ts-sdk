@@ -28,7 +28,7 @@ export enum HexInvalidReason {
  *
  * ```ts
  * getTransactionByHash(txnHash: HexInput): Promise<Transaction> {
- *   const txnHashString = Hex.fromHexInput({ hexInput: txnHash }).toString();
+ *   const txnHashString = Hex.fromHexInput(txnHash).toString();
  *   return await getTransactionByHashInner(txnHashString);
  * }
  * ```
@@ -38,7 +38,7 @@ export enum HexInvalidReason {
  *
  * These are some other ways to chain the functions together:
  * - `Hex.fromString({ hexInput: "0x1f" }).toUint8Array()`
- * - `new Hex({ data: [1, 3] }).toStringWithoutPrefix()`
+ * - `new Hex([1, 3]).toStringWithoutPrefix()`
  */
 export class Hex {
   private data: Uint8Array;
@@ -48,8 +48,8 @@ export class Hex {
    *
    * @param hex Uint8Array
    */
-  constructor(args: { data: Uint8Array }) {
-    this.data = args.data;
+  constructor(data: Uint8Array) {
+    this.data = data;
   }
 
   // ===
@@ -95,8 +95,8 @@ export class Hex {
    *
    * @returns Hex
    */
-  static fromString(args: { str: string }): Hex {
-    let input = args.str;
+  static fromString(str: string): Hex {
+    let input = str;
 
     if (input.startsWith("0x")) {
       input = input.slice(2);
@@ -114,7 +114,7 @@ export class Hex {
     }
 
     try {
-      return new Hex({ data: hexToBytes(input) });
+      return new Hex(hexToBytes(input));
     } catch (e) {
       const error = e as Error;
       throw new ParsingError(
@@ -131,9 +131,9 @@ export class Hex {
    *
    * @returns Hex
    */
-  static fromHexInput(args: { hexInput: HexInput }): Hex {
-    if (args.hexInput instanceof Uint8Array) return new Hex({ data: args.hexInput });
-    return Hex.fromString({ str: args.hexInput });
+  static fromHexInput(hexInput: HexInput): Hex {
+    if (hexInput instanceof Uint8Array) return new Hex(hexInput);
+    return Hex.fromString(hexInput);
   }
 
   // ===
@@ -149,9 +149,9 @@ export class Hex {
    * valid, invalidReason and invalidReasonMessage will be set explaining why it is
    * invalid.
    */
-  static isValid(args: { str: string }): ParsingResult<HexInvalidReason> {
+  static isValid(str: string): ParsingResult<HexInvalidReason> {
     try {
-      Hex.fromString(args);
+      Hex.fromString(str);
       return { valid: true };
     } catch (e) {
       const error = e as ParsingError<HexInvalidReason>;
