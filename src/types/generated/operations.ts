@@ -88,10 +88,6 @@ export type GetCollectionDataQueryVariables = Types.Exact<{
   where_condition: Types.CurrentCollectionsV2BoolExp;
 }>;
 
-export type GetAccountTransactionsCountQuery = {
-  account_transactions_aggregate: { aggregate?: { count: number } | null };
-};
-
 export type GetDelegatedStakingActivitiesQueryVariables = Types.Exact<{
   delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]>;
   poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
