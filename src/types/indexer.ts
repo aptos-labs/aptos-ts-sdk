@@ -20,6 +20,7 @@ import {
   GetAccountOwnedTokensQuery,
   GetAccountOwnedTokensFromCollectionQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
+  GetCollectionDataQuery,
 } from "./generated/operations";
 
 /**
@@ -47,6 +48,8 @@ export type GetAccountOwnedTokensFromCollectionResponse =
 export type GetAccountCollectionsWithOwnedTokenResponse =
   GetAccountCollectionsWithOwnedTokensQuery["current_collection_ownership_v2_view"];
 export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
+
+export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
 
 /**
  * A generic type that being passed by each function and holds an

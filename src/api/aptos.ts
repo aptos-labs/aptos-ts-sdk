@@ -4,6 +4,7 @@
 import { Account } from "./account";
 import { AptosConfig } from "./aptos_config";
 import { Coin } from "./coin";
+import { Collection } from "./collection";
 import { Faucet } from "./faucet";
 import { General } from "./general";
 import { Transaction } from "./transaction";
@@ -15,6 +16,8 @@ export class Aptos {
   readonly account: Account;
 
   readonly coin: Coin;
+
+  readonly collection: Collection;
 
   readonly faucet: Faucet;
 
@@ -45,6 +48,7 @@ export class Aptos {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
     this.coin = new Coin(this.config);
+    this.collection = new Collection(this.config);
     this.faucet = new Faucet(this.config);
     this.general = new General(this.config);
     this.transaction = new Transaction(this.config);
@@ -52,7 +56,7 @@ export class Aptos {
   }
 }
 
-export interface Aptos extends Account, Coin, Faucet, General, Transaction, TransactionSubmission {}
+export interface Aptos extends Account, Coin, Collection, Faucet, General, Transaction, TransactionSubmission {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -77,6 +81,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 
 applyMixin(Aptos, Account, "account");
 applyMixin(Aptos, Coin, "coin");
+applyMixin(Aptos, Collection, "collection");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Transaction, "transaction");
