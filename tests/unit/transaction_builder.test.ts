@@ -481,7 +481,7 @@ describe("transaction builder", () => {
     });
   });
   describe("deriveTransactionType", () => {
-    test("it derieves the transaction type as a RawTransaction", async () => {
+    test("it derives the transaction type as a RawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -501,7 +501,7 @@ describe("transaction builder", () => {
       expect(transactionType instanceof RawTransaction).toBeTruthy();
     });
 
-    test("it derieves the transaction type as a FeePayerRawTransaction", async () => {
+    test("it derives the transaction type as a FeePayerRawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
@@ -525,7 +525,7 @@ describe("transaction builder", () => {
       expect(transactionType instanceof FeePayerRawTransaction).toBeTruthy();
     });
 
-    test("it derieves the transaction type as a MultiAgentRawTransaction", async () => {
+    test("it derives the transaction type as a MultiAgentRawTransaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate({ scheme: SigningScheme.Ed25519 });
