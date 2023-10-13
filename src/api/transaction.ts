@@ -28,11 +28,10 @@ export class Transaction {
    * @returns Array of on-chain transactions
    */
   async getTransactions(args?: { options?: PaginationArgs }): Promise<TransactionResponse[]> {
-    const transactions = await getTransactions({
+    return getTransactions({
       aptosConfig: this.config,
       ...args,
     });
-    return transactions;
   }
 
   /**
@@ -41,11 +40,10 @@ export class Transaction {
    * function cannot be used to query pending transactions.
    */
   async getTransactionByVersion(args: { txnVersion: AnyNumber }): Promise<TransactionResponse> {
-    const transaction = await getTransactionByVersion({
+    return getTransactionByVersion({
       aptosConfig: this.config,
       ...args,
     });
-    return transaction;
   }
 
   /**
@@ -53,11 +51,10 @@ export class Transaction {
    * @returns Transaction from mempool (pending) or on-chain (committed) transaction
    */
   async getTransactionByHash(args: { txnHash: HexInput }): Promise<TransactionResponse> {
-    const transaction = await getTransactionByHash({
+    return getTransactionByHash({
       aptosConfig: this.config,
       ...args,
     });
-    return transaction;
   }
 
   /**
@@ -73,11 +70,10 @@ export class Transaction {
    * @returns `true` if transaction is in pending state and `false` otherwise
    */
   async isPendingTransaction(args: { txnHash: HexInput }): Promise<boolean> {
-    const isPending = await isTransactionPending({
+    return isTransactionPending({
       aptosConfig: this.config,
       ...args,
     });
-    return isPending;
   }
 
   /**
@@ -106,11 +102,10 @@ export class Transaction {
     txnHash: HexInput;
     extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean };
   }): Promise<TransactionResponse> {
-    const transaction = await waitForTransaction({
+    return waitForTransaction({
       aptosConfig: this.config,
       ...args,
     });
-    return transaction;
   }
 
   /**
@@ -129,9 +124,8 @@ export class Transaction {
    * ```
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
-    const gasEstimation = getGasPriceEstimation({
+    return getGasPriceEstimation({
       aptosConfig: this.config,
     });
-    return gasEstimation;
   }
 }

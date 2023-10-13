@@ -26,8 +26,7 @@ export class Staking {
    * @returns The number of delegators for the given pool
    */
   async getNumberOfDelegators(args: { poolAddress: HexInput }): Promise<number> {
-    const numDelegators = await getNumberOfDelegators({ aptosConfig: this.config, ...args });
-    return numDelegators;
+    return getNumberOfDelegators({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -41,8 +40,7 @@ export class Staking {
       orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
     };
   }): Promise<GetNumberOfDelegatorsResponse> {
-    const numDelegatorData = await getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
-    return numDelegatorData;
+    return getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -56,7 +54,6 @@ export class Staking {
     delegatorAddress: HexInput;
     poolAddress: HexInput;
   }): Promise<GetDelegatedStakingActivitiesResponse> {
-    const delegatedStakingActivities = await getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
-    return delegatedStakingActivities;
+    return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
   }
 }

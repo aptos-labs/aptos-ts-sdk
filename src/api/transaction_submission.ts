@@ -82,8 +82,7 @@ export class TransactionSubmission {
    * ```
    */
   async generateTransaction(args: GenerateTransactionInput): Promise<AnyRawTransaction> {
-    const transaction = await generateTransaction({ aptosConfig: this.config, ...args });
-    return transaction;
+    return generateTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -103,8 +102,7 @@ export class TransactionSubmission {
    */
   /* eslint-disable class-methods-use-this */
   signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-    const accountAuthenticator = signTransaction({ ...args });
-    return accountAuthenticator;
+    return signTransaction({ ...args });
   }
 
   /**
@@ -117,8 +115,7 @@ export class TransactionSubmission {
    * @param options optional. A config to simulate the transaction with
    */
   async simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>> {
-    const data = await simulateTransaction({ aptosConfig: this.config, ...args });
-    return data;
+    return simulateTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -138,8 +135,7 @@ export class TransactionSubmission {
       additionalSignersAuthenticators?: Array<AccountAuthenticator>;
     };
   }): Promise<PendingTransactionResponse> {
-    const data = await submitTransaction({ aptosConfig: this.config, ...args });
-    return data;
+    return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -163,11 +159,10 @@ export class TransactionSubmission {
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
     const authenticator = signTransaction({ signer, transaction });
-    const response = await submitTransaction({
+    return submitTransaction({
       aptosConfig: this.config,
       transaction,
       senderAuthenticator: authenticator,
     });
-    return response;
   }
 }

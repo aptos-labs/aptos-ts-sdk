@@ -53,8 +53,7 @@ export class General {
    * ```
    */
   async getLedgerInfo(): Promise<LedgerInfo> {
-    const data = await getLedgerInfo({ aptosConfig: this.config });
-    return data;
+    return getLedgerInfo({ aptosConfig: this.config });
   }
 
   /**
@@ -76,11 +75,10 @@ export class General {
    * @returns Block
    */
   async getBlockByVersion(args: { blockVersion: number; options?: { withTransactions?: boolean } }): Promise<Block> {
-    const block = await getBlockByVersion({
+    return getBlockByVersion({
       aptosConfig: this.config,
       ...args,
     });
-    return block;
   }
 
   /**
@@ -92,8 +90,7 @@ export class General {
    * @returns Block
    */
   async getBlockByHeight(args: { blockHeight: number; options?: { withTransactions?: boolean } }): Promise<Block> {
-    const block = await getBlockByHeight({ aptosConfig: this.config, ...args });
-    return block;
+    return getBlockByHeight({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -112,8 +109,7 @@ export class General {
    * @returns Table item value rendered in JSON
    */
   async getTableItem(args: { handle: string; data: TableItemRequest; options?: LedgerVersion }): Promise<any> {
-    const item = await getTableItem({ aptosConfig: this.config, ...args });
-    return item;
+    return getTableItem({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -170,10 +166,9 @@ export class General {
    * @return The provided T type
    */
   async queryIndexer<T>(args: { query: GraphqlQuery }): Promise<T> {
-    const response = await queryIndexer<T>({
+    return queryIndexer<T>({
       aptosConfig: this.config,
       ...args,
     });
-    return response;
   }
 }

@@ -23,7 +23,6 @@ export class Event {
    * @returns Promise<GetEventsByCreationNumberResponse>
    */
   async getEventsByCreationNumber(args: { address: string; creationNumber: AnyNumber }): Promise<GetEventsResponse> {
-    const data = await getEventsByCreationNumber({ aptosConfig: this.config, ...args });
-    return data;
+    return getEventsByCreationNumber({ aptosConfig: this.config, ...args });
   }
 }

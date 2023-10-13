@@ -34,7 +34,6 @@ export class Coin {
     coinType?: MoveResourceType;
     options?: GenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    const response = await transferCoinTransaction({ aptosConfig: this.config, ...args });
-    return response;
+    return transferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 }

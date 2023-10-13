@@ -4,21 +4,21 @@
 import { AptosConfig } from "./aptos_config";
 import {
   AccountData,
+  GetAccountCoinsDataResponse,
+  GetAccountCollectionsWithOwnedTokenResponse,
+  GetAccountOwnedObjectsResponse,
+  GetAccountOwnedTokensFromCollectionResponse,
+  GetAccountOwnedTokensQueryResponse,
+  HexInput,
+  IndexerPaginationArgs,
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
   MoveResourceType,
-  PaginationArgs,
-  TransactionResponse,
-  HexInput,
-  IndexerPaginationArgs,
-  TokenStandard,
   OrderBy,
-  GetAccountOwnedTokensQueryResponse,
-  GetAccountCollectionsWithOwnedTokenResponse,
-  GetAccountCoinsDataResponse,
-  GetAccountOwnedObjectsResponse,
-  GetAccountOwnedTokensFromCollectionResponse,
+  PaginationArgs,
+  TokenStandard,
+  TransactionResponse,
 } from "../types";
 import {
   getAccountCoinsCount,
@@ -65,8 +65,7 @@ export class Account {
    * ```
    */
   async getAccountInfo(args: { accountAddress: HexInput }): Promise<AccountData> {
-    const data = await getInfo({ aptosConfig: this.config, ...args });
-    return data;
+    return getInfo({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -83,8 +82,7 @@ export class Account {
     accountAddress: HexInput;
     options?: PaginationArgs & LedgerVersion;
   }): Promise<MoveModuleBytecode[]> {
-    const modules = await getModules({ aptosConfig: this.config, ...args });
-    return modules;
+    return getModules({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -108,8 +106,7 @@ export class Account {
     moduleName: string;
     options?: LedgerVersion;
   }): Promise<MoveModuleBytecode> {
-    const module = await getModule({ aptosConfig: this.config, ...args });
-    return module;
+    return getModule({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -126,11 +123,10 @@ export class Account {
     accountAddress: HexInput;
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
-    const transactions = await getTransactions({
+    return getTransactions({
       aptosConfig: this.config,
       ...args,
     });
-    return transactions;
   }
 
   /**
@@ -146,8 +142,7 @@ export class Account {
     accountAddress: HexInput;
     options?: PaginationArgs & LedgerVersion;
   }): Promise<MoveResource[]> {
-    const resources = await getResources({ aptosConfig: this.config, ...args });
-    return resources;
+    return getResources({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -171,8 +166,7 @@ export class Account {
     resourceType: MoveResourceType;
     options?: LedgerVersion;
   }): Promise<MoveResource> {
-    const resource = await getResource({ aptosConfig: this.config, ...args });
-    return resource;
+    return getResource({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -185,8 +179,7 @@ export class Account {
     authenticationKey: HexInput;
     options?: LedgerVersion;
   }): Promise<AccountAddress> {
-    const address = await lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
-    return address;
+    return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -196,11 +189,10 @@ export class Account {
    * @returns An object { count : number }
    */
   async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<number> {
-    const count = await getAccountTokensCount({
+    return getAccountTokensCount({
       aptosConfig: this.config,
       ...args,
     });
-    return count;
   }
 
   /**
@@ -220,11 +212,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensQueryResponse> {
-    const tokens = await getAccountOwnedTokens({
+    return getAccountOwnedTokens({
       aptosConfig: this.config,
       ...args,
     });
-    return tokens;
   }
 
   /**
@@ -246,11 +237,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-    const tokens = await getAccountOwnedTokensFromCollectionAddress({
+    return getAccountOwnedTokensFromCollectionAddress({
       aptosConfig: this.config,
       ...args,
     });
-    return tokens;
   }
 
   /**
@@ -270,11 +260,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
     };
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
-    const collections = await getAccountCollectionsWithOwnedTokens({
+    return getAccountCollectionsWithOwnedTokens({
       aptosConfig: this.config,
       ...args,
     });
-    return collections;
   }
 
   /**
@@ -284,11 +273,10 @@ export class Account {
    * @returns An object { count : number }
    */
   async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<number> {
-    const count = getAccountTransactionsCount({
+    return getAccountTransactionsCount({
       aptosConfig: this.config,
       ...args,
     });
-    return count;
   }
 
   /**
@@ -304,11 +292,10 @@ export class Account {
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
     };
   }): Promise<GetAccountCoinsDataResponse> {
-    const data = await getAccountCoinsData({
+    return getAccountCoinsData({
       aptosConfig: this.config,
       ...args,
     });
-    return data;
   }
 
   /**
@@ -318,8 +305,7 @@ export class Account {
    * @returns An object { count : number } where `number` is the aggregated count of all account's coin
    */
   async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
-    const count = getAccountCoinsCount({ aptosConfig: this.config, ...args });
-    return count;
+    return getAccountCoinsCount({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -335,10 +321,9 @@ export class Account {
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
     };
   }): Promise<GetAccountOwnedObjectsResponse> {
-    const objects = getAccountOwnedObjects({
+    return getAccountOwnedObjects({
       aptosConfig: this.config,
       ...args,
     });
-    return objects;
   }
 }
