@@ -63,7 +63,7 @@ export async function getCollectionData(args: {
 
   if (data.current_collections_v2.length > 1) {
     throw Error(
-      "More than one collection wirh the same name found.  Use args.options.tokenStandard to specify v1 or v2",
+      "More than one collection with the same name found.  Use args.options.tokenStandard to specify v1 or v2",
     );
   }
 
