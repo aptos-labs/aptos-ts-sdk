@@ -3,7 +3,6 @@
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
 import { U64 } from "../../../src/bcs/serializable/move-primitives";
-import { SigningScheme } from "../../../src/types";
 import { sleep } from "../../../src/utils/helpers";
 import { INDEXER_WAIT_TIME } from "../../unit/helper";
 
@@ -86,9 +85,9 @@ describe("account api", () => {
     test("it fetches account transactions", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const senderAccount = Account.generate();
       await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
@@ -115,7 +114,7 @@ describe("account api", () => {
     test("it fetches account transactions count", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
         amount: FUND_AMOUNT,
@@ -132,7 +131,7 @@ describe("account api", () => {
     test("it fetches account coins data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
         amount: FUND_AMOUNT,
@@ -151,7 +150,7 @@ describe("account api", () => {
     test("it fetches account coins count", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress.toString(),
         amount: FUND_AMOUNT,
@@ -168,7 +167,7 @@ describe("account api", () => {
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const account = Account.generate({ scheme: SigningScheme.Ed25519 });
+      const account = Account.generate();
 
       // Fund and create account onchain
       await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
