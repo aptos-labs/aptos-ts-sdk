@@ -27,10 +27,12 @@ jest.setTimeout(30000);
 //  the `transactionArguments` array contains every possible argument type
 //  the `rawTxnHelper` and `rawTxnMultiAgentHelper` functions are helpers to generate the transactions,
 //    respectively for single signer transactions and for (multi signer & fee payer) transactions
-// the `describe` blocks are just to group the tests by the type of transaction
 // In any transaction with a `&signer` the move function asserts that the first argument is the sender's address: `sender_address: address`
 //   or all of the `&signer` addresses: `signer_addresses: vector<address>`
-// At the end of
+// At the end of the tests with fee payers and secondary signers, we assert that the normalized
+//   `fee_payer_address` and `secondary_signer_addresses` are correct
+//
+// TODO: assert that the SignerScheme is correct in the response type
 
 describe("various transaction arguments", () => {
   let aptos: Aptos;
