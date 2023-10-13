@@ -414,9 +414,7 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.fromPrivateKey({
-        privateKey: new Ed25519PrivateKey({
-          hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-        }),
+        privateKey: new Ed25519PrivateKey("0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c"),
       });
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",

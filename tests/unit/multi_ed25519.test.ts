@@ -20,9 +20,9 @@ describe("MultiPublicKey", () => {
 
     const multiPubKey = new MultiEd25519PublicKey({
       publicKeys: [
-        new Ed25519PublicKey({ hexInput: publicKey1 }),
-        new Ed25519PublicKey({ hexInput: publicKey2 }),
-        new Ed25519PublicKey({ hexInput: publicKey3 }),
+        new Ed25519PublicKey(publicKey1),
+        new Ed25519PublicKey(publicKey2),
+        new Ed25519PublicKey(publicKey3),
       ],
       threshold: 2,
     });
@@ -39,11 +39,7 @@ describe("MultiPublicKey", () => {
   it("should serializes to bytes correctly", async () => {
     let edPksArray = [];
     for (let i = 0; i < multiEd25519PkTestObject.public_keys.length; i++) {
-      edPksArray.push(
-        new Ed25519PublicKey({
-          hexInput: multiEd25519PkTestObject.public_keys[i],
-        }),
-      );
+      edPksArray.push(new Ed25519PublicKey(multiEd25519PkTestObject.public_keys[i]));
     }
 
     const pubKeyMultiSig = new MultiEd25519PublicKey({
@@ -59,11 +55,7 @@ describe("MultiPublicKey", () => {
   it("should deserializes from bytes correctly", async () => {
     let edPksArray = [];
     for (let i = 0; i < multiEd25519PkTestObject.public_keys.length; i++) {
-      edPksArray.push(
-        new Ed25519PublicKey({
-          hexInput: multiEd25519PkTestObject.public_keys[i],
-        }),
-      );
+      edPksArray.push(new Ed25519PublicKey(multiEd25519PkTestObject.public_keys[i]));
     }
 
     const pubKeyMultiSig = new MultiEd25519PublicKey({
@@ -82,11 +74,7 @@ describe("MultiSignature", () => {
   it("should serializes to bytes correctly", async () => {
     let edSigsArray = [];
     for (let i = 0; i < multiEd25519SigTestObject.signatures.length; i++) {
-      edSigsArray.push(
-        new Ed25519Signature({
-          hexInput: Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array(),
-        }),
-      );
+      edSigsArray.push(new Ed25519Signature(Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
     }
 
     const multisig = new MultiEd25519Signature({
@@ -102,11 +90,7 @@ describe("MultiSignature", () => {
   it("should deserializes from bytes correctly", async () => {
     let edSigsArray = [];
     for (let i = 0; i < multiEd25519SigTestObject.signatures.length; i++) {
-      edSigsArray.push(
-        new Ed25519Signature({
-          hexInput: Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array(),
-        }),
-      );
+      edSigsArray.push(new Ed25519Signature(Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
     }
 
     const multisig = new MultiEd25519Signature({

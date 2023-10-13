@@ -317,9 +317,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   const accountAddress = AccountAddress.fromHexInput({
     input: ownerAddress,
   }).toString();
-  const collAddress = Hex.fromHexInput({
-    hexInput: collectionAddress,
-  }).toString();
+  const collAddress = Hex.fromHexInput(collectionAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: accountAddress },
