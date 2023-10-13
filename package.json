@@ -27,7 +27,8 @@
     "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",
-    "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml"
+    "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml",
+    "doc": "scripts/generateDocs.sh"
   },
   "dependencies": {
     "@aptos-labs/aptos-client": "^0.0.2",
@@ -47,6 +48,7 @@
     "@types/node": "18.6.2",
     "@typescript-eslint/eslint-plugin": "5.36.2",
     "@typescript-eslint/parser": "5.36.2",
+    "cross-var": "^1.1.0",
     "dotenv": "16.0.2",
     "eslint": "8.23.0",
     "eslint-config-airbnb-base": "15.0.0",
