@@ -15,8 +15,8 @@ describe("staking api", () => {
     for (let i = 1; i <= 5; i++) {
       expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThan(numDelegatorsData[i + 1].num_active_delegator);
     }
-    const numDelegators = await aptos.getNumberOfDelegators({poolAddress: numDelegatorsData[0].pool_address!});
-    expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator)
+    const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: numDelegatorsData[0].pool_address! });
+    expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator);
   });
 
   test("it throws if the poolAddress does not exist", async () => {

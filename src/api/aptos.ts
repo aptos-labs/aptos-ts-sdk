@@ -60,7 +60,15 @@ export class Aptos {
   }
 }
 
-export interface Aptos extends Account, Coin, Collection, Faucet, General, Staking, Transaction, TransactionSubmission {}
+export interface Aptos
+  extends Account,
+    Coin,
+    Collection,
+    Faucet,
+    General,
+    Staking,
+    Transaction,
+    TransactionSubmission {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
