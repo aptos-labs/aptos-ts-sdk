@@ -2,20 +2,49 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptos_config";
-import { Serializable } from "../bcs";
 import { AccountAddress } from "../core";
-import { PublicKey } from "../crypto/asymmetric_crypto";
+import { PublicKey } from "../core/crypto/asymmetric_crypto";
 import { HexInput, MoveStructType } from "../types";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
   RawTransaction,
-  ScriptTransactionArgument,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
 import { TypeTag } from "./typeTag/typeTag";
+import { MoveObject, MoveOption, MoveVector } from "../bcs/serializable/move-structs";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
+import { FixedBytes } from "../bcs/serializable/fixed-bytes";
+
+export type EntryFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | AccountAddress
+  | MoveObject
+  | MoveVector<EntryFunctionArgumentTypes>
+  | MoveOption<EntryFunctionArgumentTypes>
+  | AccountAddress
+  | FixedBytes;
+export type ScriptFunctionArgumentTypes =
+  | Bool
+  | U8
+  | U16
+  | U32
+  | U64
+  | U128
+  | U256
+  | AccountAddress
+  | MoveObject
+  | MoveVector<U8>
+  | AccountAddress
+  | FixedBytes;
 
 /**
  * Type that holds all raw transaction instances Aptos SDK supports
@@ -54,7 +83,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
 export type EntryFunctionData = {
   function: MoveStructType;
   type_arguments: Array<TypeTag>;
-  arguments: Array<Serializable>;
+  arguments: Array<EntryFunctionArgumentTypes>;
 };
 
 /**
@@ -70,7 +99,7 @@ export type MultiSigData = {
 export type ScriptData = {
   bytecode: string;
   type_arguments: Array<TypeTag>;
-  arguments: Array<ScriptTransactionArgument>;
+  arguments: Array<ScriptFunctionArgumentTypes>;
 };
 
 /**

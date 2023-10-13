@@ -24,7 +24,7 @@ export class Faucet {
    * @param timeoutSecs Timeout in seconds. Defaults to 20 seconds.
    * @returns Hashes of submitted transactions
    */
-  async fundAccount(args: { accountAddress: HexInput; amount: number; timeoutSecs?: number }): Promise<Array<string>> {
+  async fundAccount(args: { accountAddress: HexInput; amount: number; timeoutSecs?: number }): Promise<string> {
     const txnStrings = await fundAccount({ aptosConfig: this.config, ...args });
     return txnStrings;
   }

@@ -1,12 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AuthenticationKey } from "../../src/crypto/authentication_key";
-import { Ed25519PublicKey } from "../../src/crypto/ed25519";
-import { MultiEd25519PublicKey } from "../../src/crypto/multi_ed25519";
+import {
+  AuthenticationKey,
+  Deserializer,
+  Ed25519PrivateKey,
+  Ed25519PublicKey,
+  MultiEd25519PublicKey,
+  PublicKey,
+  Serializer,
+  Signature,
+} from "../../src";
 import { ed25519, multiEd25519PkTestObject } from "./helper";
-import { PublicKey, Signature } from "../../src/crypto/asymmetric_crypto";
-import { Serializer, Deserializer } from "../../src/bcs";
 import { HexInput } from "../../src/types";
 
 describe("AuthenticationKey", () => {

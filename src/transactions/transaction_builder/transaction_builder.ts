@@ -9,17 +9,22 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { hexToBytes } from "@noble/hashes/utils";
 import { AptosConfig } from "../../api/aptos_config";
-import { Deserializer } from "../../bcs";
+import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress } from "../../core";
 import { Account } from "../../core/account";
-import { Ed25519PublicKey, Ed25519Signature } from "../../crypto/ed25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../crypto/secp256k1";
+import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
+import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { HexInput, SigningScheme } from "../../types";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
+import {
+  DEFAULT_MAX_GAS_AMOUNT,
+  DEFAULT_TXN_EXP_SEC_FROM_NOW,
+  RAW_TRANSACTION_SALT,
+  RAW_TRANSACTION_WITH_DATA_SALT,
+} from "../../utils/const";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -180,12 +185,10 @@ export async function generateRawTransaction(args: {
  * When we call our `generateTransaction` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
  */
-export async function generateTransaction(
-  args: GenerateSingleSignerRawTransactionArgs,
-): Promise<SingleSignerTransaction>;
-export async function generateTransaction(args: GenerateFeePayerRawTransactionArgs): Promise<FeePayerTransaction>;
-export async function generateTransaction(args: GenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
-export async function generateTransaction(args: GenerateRawTransactionArgs): Promise<AnyRawTransaction>;
+export async function buildTransaction(args: GenerateSingleSignerRawTransactionArgs): Promise<SingleSignerTransaction>;
+export async function buildTransaction(args: GenerateFeePayerRawTransactionArgs): Promise<FeePayerTransaction>;
+export async function buildTransaction(args: GenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
+export async function buildTransaction(args: GenerateRawTransactionArgs): Promise<AnyRawTransaction>;
 /**
  * Generates a transaction based on the provided arguments
  *
@@ -208,7 +211,7 @@ export async function generateTransaction(args: GenerateRawTransactionArgs): Pro
  * }
  * ```
  */
-export async function generateTransaction(args: GenerateRawTransactionArgs): Promise<AnyRawTransaction> {
+export async function buildTransaction(args: GenerateRawTransactionArgs): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, payload, options, secondarySignerAddresses, feePayerAddress } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
@@ -246,8 +249,14 @@ export async function generateTransaction(args: GenerateRawTransactionArgs): Pro
 
 /**
  * Simluate a transaction before signing and submit to chain
- * @param args
- * @returns
+ *
+ * @param args.transaction A aptos transaction type to sign
+ * @param args.signerPublicKey The signer public key
+ * @param args.secondarySignersPublicKeys optional. The secondart signers public keys if multi signers transaction
+ * @param args.feePayerPublicKey optional. The fee payer public key is a fee payer (aka sponsored) transaction
+ * @param args.options optional. SimulateTransactionOptions
+ *
+ * @returns A signed serialized transaction that can be simulated
  */
 export function generateSignedTransactionForSimulation(args: SimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
@@ -340,7 +349,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
  *
  * @return The signer AccountAuthenticator
  */
-export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
 
   const transactionToSign = deriveTransactionType(transaction);
@@ -504,9 +513,6 @@ export function generateMultiSignersSignedTransaction(
     `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
   );
 }
-
-const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
-const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
 
 export function getSigningMessage(rawTxn: AnyRawTransactionInstance): Uint8Array {
   const hash = sha3Hash.create();

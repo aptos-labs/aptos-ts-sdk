@@ -18,8 +18,7 @@ import {
   TypeTagU8,
   TypeTagVector,
 } from "../../src/transactions/typeTag/typeTag";
-import { Deserializer, Serializer } from "../../src/bcs";
-import { AccountAddress, AddressInvalidReason, ParsingError } from "../../src/core";
+import { AccountAddress, AddressInvalidReason, Deserializer, ParsingError, Serializer } from "../../src";
 
 const expectedTypeTag = {
   string: "0x1::some_module::SomeResource",
@@ -125,7 +124,7 @@ describe("TypeTagParser", () => {
       expect(result instanceof TypeTagAddress).toBeTruthy();
 
       const typeTag2 = "0x1::object::Object<0x1::coin::Fun<A, B<C>>>";
-      const parser2 = new TypeTagParser(typeTag);
+      const parser2 = new TypeTagParser(typeTag2);
       const result2 = parser2.parseTypeTag();
       expect(result2 instanceof TypeTagAddress).toBeTruthy();
     });

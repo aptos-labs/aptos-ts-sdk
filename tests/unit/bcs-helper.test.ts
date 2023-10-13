@@ -1,12 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializable, Deserializer } from "../../src/bcs/deserializer";
 import { FixedBytes } from "../../src/bcs/serializable/fixed-bytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
-import { Serializable, Serializer } from "../../src/bcs/serializer";
-import { AccountAddress } from "../../src/core";
+import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
 
 describe("Tests for the Serializable class", () => {
   let serializer: Serializer;
@@ -179,7 +177,7 @@ describe("Tests for the Serializable class", () => {
       MoveOption.U128(undefined),
       MoveOption.U256(undefined),
       MoveOption.Bool(undefined),
-      MoveOption.String(undefined),
+      MoveOption.MoveString(undefined),
     ];
     const noneBytes = noneOptionValues.map((_) => new Uint8Array([0]));
 
@@ -240,7 +238,7 @@ describe("Tests for the Serializable class", () => {
     testSerdeAndUnwrap(MoveOption.U128, U128);
     testSerdeAndUnwrap(MoveOption.U256, U256);
     testSerdeAndUnwrap(MoveOption.Bool, Bool);
-    testSerdeAndUnwrap(MoveOption.String, MoveString);
+    testSerdeAndUnwrap(MoveOption.MoveString, MoveString);
   });
 
   it("serializes and deserializes a Vector of MoveOption types correctly", () => {
@@ -347,7 +345,7 @@ describe("Tests for the Serializable class", () => {
     const u64VectorFrom = MoveVector.U64([1, 2, 3]);
     const u128VectorFrom = MoveVector.U128([1, 2, 3]);
     const u256VectorFrom = MoveVector.U256([1, 2, 3]);
-    const stringVectorFrom = MoveVector.String(["abc", "def", "ghi"]);
+    const stringVectorFrom = MoveVector.MoveString(["abc", "def", "ghi"]);
 
     const boolVectorBytes = new Uint8Array([3, 1, 0, 1]);
     const u8VectorBytes = new Uint8Array([3, 1, 2, 3]);
@@ -391,7 +389,7 @@ describe("Tests for the Serializable class", () => {
     const u256Vector = new MoveVector([new U256(1), new U256(2), new U256(3)]);
     const u256VectorFrom = MoveVector.U256([1, 2, 3]);
     const stringVector = new MoveVector([new MoveString("abc"), new MoveString("def"), new MoveString("ghi")]);
-    const stringVectorFrom = MoveVector.String(["abc", "def", "ghi"]);
+    const stringVectorFrom = MoveVector.MoveString(["abc", "def", "ghi"]);
 
     expect(boolVector.bcsToBytes()).toEqual(boolVectorFrom.bcsToBytes());
     expect(u8Vector.bcsToBytes()).toEqual(u8VectorFrom.bcsToBytes());
@@ -492,7 +490,7 @@ describe("Tests for the Serializable class", () => {
       MoveVector.U64([1, 2, 3]),
       MoveVector.U128([1, 2, 3]),
       MoveVector.U256([1, 2, 3]),
-      MoveVector.String(["abc", "def", "ghi"]),
+      MoveVector.MoveString(["abc", "def", "ghi"]),
       new MoveOption(new Bool(true)),
       new MoveOption(),
       new MoveOption(new MoveString("abc")),
@@ -549,5 +547,44 @@ describe("Tests for the Serializable class", () => {
     const deserializer = new Deserializer(fixedBytes.bcsToBytes());
     const deserializedFixedBytes = FixedBytes.deserialize(deserializer, AccountAddress.LENGTH);
     expect(deserializedFixedBytes.value).toEqual(address.data);
+  });
+
+  describe("MoveVector.U8 factory method tests", () => {
+    it("creates a MoveVector.U8 correctly", () => {
+      const vec = MoveVector.U8([1, 2, 3]);
+      const vecFromString = MoveVector.U8("0x010203");
+      const vecFromUint8Array = MoveVector.U8(new Uint8Array([1, 2, 3]));
+      expect(vec.bcsToBytes()).toEqual(vecFromString.bcsToBytes());
+      expect(vec.bcsToBytes()).toEqual(vecFromUint8Array.bcsToBytes());
+    });
+
+    it("serializes and deserializes a MoveVector.U8 from various input types correctly", () => {
+      const vec = MoveVector.U8([1, 2, 3]);
+      const vecFromString = MoveVector.U8("0x010203");
+      const vecFromUint8Array = MoveVector.U8(new Uint8Array([1, 2, 3]));
+      const deserializedVec = MoveVector.deserialize(new Deserializer(vec.bcsToBytes()), U8);
+      const deserializedVecFromString = MoveVector.deserialize(new Deserializer(vecFromString.bcsToBytes()), U8);
+      const deserializedVecFromUint8Array = MoveVector.deserialize(
+        new Deserializer(vecFromUint8Array.bcsToBytes()),
+        U8,
+      );
+      expect(deserializedVec.values.map((v) => v.value)).toEqual(vec.values.map((v) => v.value));
+      expect(deserializedVecFromString.values.map((v) => v.value)).toEqual(vec.values.map((v) => v.value));
+      expect(deserializedVecFromUint8Array.values.map((v) => v.value)).toEqual(vec.values.map((v) => v.value));
+    });
+
+    it("throws an error when trying to create a MoveVector.U8 from an invalid hex string", () => {
+      expect(() => MoveVector.U8("0x0102030")).toThrow();
+      expect(() => MoveVector.U8("0xgg")).toThrow();
+      // TODO: Add input validation to HexInput for truncating non-hex values like below
+      // expect(() => MoveVector.U8("asdf")).toThrow();
+      expect(() => MoveVector.U8("gg")).toThrow();
+    });
+
+    it("throws an error when trying to create a MoveVector.U8 from an invalid input type", () => {
+      expect(() => MoveVector.U8({} as any)).toThrow();
+      expect(() => MoveVector.U8(["01", "02", "03"] as any)).toThrow();
+      expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
+    });
   });
 });

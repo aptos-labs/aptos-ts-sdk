@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptos_config";
 import { postAptosFaucet } from "../client";
 import { AccountAddress } from "../core";
-import { HexInput, TransactionResponse } from "../types";
+import { HexInput } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";
 
@@ -20,26 +20,22 @@ export async function fundAccount(args: {
   accountAddress: HexInput;
   amount: number;
   timeoutSecs?: number;
-}): Promise<Array<string>> {
+}): Promise<string> {
   const { aptosConfig, accountAddress, amount } = args;
   const timeoutSecs = args.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
-  const { data } = await postAptosFaucet<any, Array<string>>({
+  const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
     aptosConfig,
-    path: "mint",
-    params: {
-      accountAddress: AccountAddress.fromHexInput({
-        input: accountAddress,
-      }).toString(),
+    path: "fund",
+    body: {
+      address: AccountAddress.fromHexInput({ input: accountAddress }).toString(),
       amount,
     },
     originMethod: "fundAccount",
   });
 
-  const promises: Promise<TransactionResponse>[] = [];
-  for (let i = 0; i < data.length; i += 1) {
-    const txnHash = data[i];
-    promises.push(waitForTransaction({ aptosConfig, txnHash, extraArgs: { timeoutSecs } }));
-  }
-  await Promise.all(promises);
-  return data;
+  const txnHash = data.txn_hashes[0];
+
+  await waitForTransaction({ aptosConfig, txnHash, extraArgs: { timeoutSecs } });
+
+  return txnHash;
 }

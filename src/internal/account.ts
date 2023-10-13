@@ -9,9 +9,9 @@
  */
 
 import { AptosConfig } from "../api/aptos_config";
-import { getAptosFullNode, paginateWithCursor } from "../client";
+import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, Hex } from "../core";
-import { queryIndexer } from "./general";
+import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -50,6 +50,7 @@ import {
   GetAccountTokensCount,
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
+import { memoizeAsync } from "../utils/memoize";
 
 export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: HexInput }): Promise<AccountData> {
   const { aptosConfig, accountAddress } = args;
@@ -98,7 +99,29 @@ export async function getModule(args: {
   moduleName: string;
   options?: LedgerVersion;
 }): Promise<MoveModuleBytecode> {
+  // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
+  // by the developer directly
+  if (args.options?.ledgerVersion !== undefined) {
+    const module = await getModuleInner(args);
+    return module;
+  }
+
+  const module = await memoizeAsync(
+    async () => getModuleInner(args),
+    `module-${args.accountAddress}-${args.moduleName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
+  return module;
+}
+
+async function getModuleInner(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: HexInput;
+  moduleName: string;
+  options?: LedgerVersion;
+}): Promise<MoveModuleBytecode> {
   const { aptosConfig, accountAddress, moduleName, options } = args;
+
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
@@ -164,6 +187,47 @@ export async function getResource(args: {
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
+}
+
+export async function lookupOriginalAccountAddress(args: {
+  aptosConfig: AptosConfig;
+  authenticationKey: HexInput;
+  options?: LedgerVersion;
+}): Promise<AccountAddress> {
+  const { aptosConfig, authenticationKey, options } = args;
+  const resource = await getResource({
+    aptosConfig,
+    accountAddress: "0x1",
+    resourceType: "0x1::account::OriginatingAddress",
+    options,
+  });
+
+  const {
+    address_map: { handle },
+  } = resource.data as any;
+
+  // If the address is not found in the address map, which means its not rotated
+  // then return the address as is
+  try {
+    const originalAddress = await getTableItem({
+      aptosConfig,
+      handle,
+      data: {
+        key: Hex.fromHexInput({ hexInput: authenticationKey }).toString(),
+        key_type: "address",
+        value_type: "address",
+      },
+      options,
+    });
+
+    return AccountAddress.fromHexInput({ input: originalAddress });
+  } catch (err) {
+    if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
+      return AccountAddress.fromHexInput({ input: authenticationKey });
+    }
+
+    throw err;
+  }
 }
 
 export async function getAccountTokensCount(args: {

@@ -1,9 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../../src";
+import { AptosConfig, Network, NetworkToFaucetAPI, NetworkToNodeAPI, NetworkToIndexerAPI } from "../../src";
 import { AptosSettings } from "../../src/types";
-import { Network, NetworkToFaucetAPI, NetworkToNodeAPI, NetworkToIndexerAPI } from "../../src/utils/apiEndpoints";
 import { AptosApiType } from "../../src/utils/const";
 
 describe("aptos config", () => {
@@ -15,7 +14,7 @@ describe("aptos config", () => {
     expect(aptosConfig.network).toEqual("local");
     expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.LOCAL]);
     expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.LOCAL]);
-    expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBeUndefined();
+    expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.LOCAL]);
   });
 
   test("it should set urls based on a given network", async () => {

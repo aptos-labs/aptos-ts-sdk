@@ -5,6 +5,21 @@ import { Network } from "../utils/apiEndpoints";
 
 export * from "./indexer";
 
+export enum MimeType {
+  /**
+   * JSON representation, used for transaction submission and accept type JSON output
+   */
+  JSON = "application/json",
+  /**
+   * BCS representation, used for accept type BCS output
+   */
+  BCS = "application/x-bcs",
+  /**
+   * BCS representation, used for transaction submission in BCS input
+   */
+  BCS_SIGNED_TRANSACTION = "application/x.aptos.signed_transaction+bcs",
+}
+
 /**
  * Hex data as input to a function
  */
@@ -512,7 +527,7 @@ export type TransactionSignature =
   | TransactionEd25519Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
-  | TransactioneePayerSignature;
+  | TransactionFeePayerSignature;
 
 export type TransactionEd25519Signature = {
   type: string;
@@ -550,7 +565,7 @@ export type TransactionMultiAgentSignature = {
   secondary_signers: Array<AccountSignature>;
 };
 
-export type TransactioneePayerSignature = {
+export type TransactionFeePayerSignature = {
   type: string;
   sender: AccountSignature;
   /**

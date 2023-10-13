@@ -35,7 +35,9 @@ import {
   getResource,
   getResources,
   getTransactions,
+  lookupOriginalAccountAddress,
 } from "../internal/account";
+import { AccountAddress } from "../core";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -174,6 +176,20 @@ export class Account {
   }
 
   /**
+   * Lookup the original address by the current derived address or authentication key
+   *
+   * @param args.addressOrAuthKey The derived address or authentication key
+   * @returns Promise<AccountAddress> The original address
+   */
+  async lookupOriginalAccountAddress(args: {
+    authenticationKey: HexInput;
+    options?: LedgerVersion;
+  }): Promise<AccountAddress> {
+    const address = await lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
+    return address;
+  }
+
+  /**
    * Queries the count of tokens owned by an account
    *
    * @param accountAddress The account address
@@ -296,10 +312,10 @@ export class Account {
   }
 
   /**
-   * Queries the count of an account's coins
+   * Queries the count of an account's coins aggregated
    *
    * @param accountAddress The account address we want to get the total count for
-   * @returns An object { count : number }
+   * @returns An object { count : number } where `number` is the aggregated count of all account's coin
    */
   async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
     const count = getAccountCoinsCount({ aptosConfig: this.config, ...args });

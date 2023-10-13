@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { error } from "console";
 import {
   MAX_U128_BIG_INT,
   MAX_U16_NUMBER,
@@ -10,8 +9,7 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
-import { Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src/bcs/serializer";
-import { AccountAddress } from "../../src/core";
+import { AccountAddress, Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src";
 
 describe("BCS Serializer", () => {
   let serializer: Serializer;
