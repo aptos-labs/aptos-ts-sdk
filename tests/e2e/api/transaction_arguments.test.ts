@@ -213,9 +213,9 @@ describe("various transaction arguments", () => {
 
       const feePayerAuthenticator = feePayerAddress
         ? aptos.signTransaction({
-          signer: accountFeePayer,
-          transaction: transaction,
-        })
+            signer: accountFeePayer,
+            transaction: transaction,
+          })
         : undefined;
 
       const txnHash = await aptos.submitTransaction({
