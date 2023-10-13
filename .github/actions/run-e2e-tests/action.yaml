@@ -26,22 +26,6 @@ runs:
     - run: pnpm install -g @aptos-labs/aptos-cli
       shell: bash
 
-    # Kill anything running on ports we need. This is what GH recommends, see more:
-    # https://github.com/actions/runner-images/issues/2820#issuecomment-790367908
-    # Eventually we'll make it possible for the CLI to do this itself.
-    - run: |
-        declare -a PORTS=("8080" "8081" "8070" "8090" "43234" "43235" "43236" "43237" "43238" "43239" "43240" "43241" "43242" "43243" "43244" "43245" "43246" "43247" "43248" "43249" "50051" "50052")
-        for PORT in "${PORTS[@]}"; do
-          PID=$(sudo lsof -t -i:$PORT) || true
-          if [ -z "$PID" ]; then
-            echo "Nothing running on port $PORT that we have to kill"
-            continue
-          fi
-          sudo kill -9 $PID || true
-          echo "Killed process $PID running on port $PORT"
-        done
-      shell: bash
-
     # Run a local testnet in the background.
     - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
       shell: bash
