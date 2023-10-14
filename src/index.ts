@@ -9,3 +9,4 @@ export * from "./bcs";
 export * from "./types";
 export * from "./transactions/types";
 export * from "./transactions/typeTag/typeTag";
+export * from "./utils/hdKey";
