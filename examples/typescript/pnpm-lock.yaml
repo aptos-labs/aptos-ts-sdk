@@ -1,13 +1,13 @@
 lockfileVersion: '6.0'
 
 settings:
-  autoInstallPeers: false
+  autoInstallPeers: true
   excludeLinksFromLockfile: false
 
 dependencies:
   aptos:
-    specifier: link:../../..
-    version: link:../../..
+    specifier: link:../..
+    version: link:../..
 
 devDependencies:
   '@types/node':

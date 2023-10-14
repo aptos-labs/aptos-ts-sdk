@@ -45,8 +45,8 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Create two accounts
-  let alice = Account.generate({ scheme: SigningScheme.Ed25519 });
-  let bob = Account.generate({ scheme: SigningScheme.Ed25519 });
+  let alice = Account.generate();
+  let bob = Account.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
