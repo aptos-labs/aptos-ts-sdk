@@ -16,19 +16,13 @@ export class Token {
   }
 
   /**
-   * This creates an account if it does not exist and mints the specified amount of
-   * coins into that account
+   * This gets token data given the address of a token.
    *
-   * @param address Hex-encoded 16 bytes Aptos account address wich mints tokens
-   * @param amount Amount of tokens to mint
-   * @param timeoutSecs Timeout in seconds. Defaults to 20 seconds.
-   * @returns Hashes of submitted transactions
+   * @param args.tokenAddress The address of the token
+   * @returns GetTokenDataResponse containing relevant data to the token.
    */
   async getTokenData(args: {
     tokenAddress: HexInput;
-    options?: {
-      tokenStandard?: TokenStandard;
-    };
   }): Promise<GetTokenDataResponse> {
     const data = await getTokenData({ aptosConfig: this.config, ...args });
     return data;

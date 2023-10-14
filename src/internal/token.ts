@@ -14,13 +14,6 @@ import { GetTokenDataQuery } from "../types/generated/operations";
 import { GetTokenData } from "../types/generated/queries";
 import { queryIndexer } from "./general";
 
-/**
- * Queries token data by token address (v2) or token data id (v1)
- *
- * @param token token address (v2) or token data id (v1)
- * @returns GetTokenDataQuery response type
- */
-// :!:>getTokenData
 export async function getTokenData(args: {
   aptosConfig: AptosConfig;
   tokenAddress: HexInput;
