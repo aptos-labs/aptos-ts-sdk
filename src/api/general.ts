@@ -124,11 +124,11 @@ export class General {
    * };
    * `
    *
-   * @returns a Move value
+   * @returns an array of Move values
    */
-  async view(args: { payload: ViewRequest; options?: LedgerVersion }): Promise<MoveValue> {
+  async view(args: { payload: ViewRequest; options?: LedgerVersion }): Promise<Array<MoveValue>> {
     const data = await view({ aptosConfig: this.config, ...args });
-    return data[0];
+    return data;
   }
 
   /**
