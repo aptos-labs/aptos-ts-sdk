@@ -27,7 +27,12 @@ import {
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/move-structs";
-import { fundAccounts, rawTransactionHelper, rawTransactionMultiAgentHelper, publishModule } from "./helper";
+import {
+  fundAccounts,
+  rawTransactionHelper,
+  rawTransactionMultiAgentHelper,
+  publishArgumentTestModule,
+} from "./helper";
 
 jest.setTimeout(10000);
 
@@ -53,7 +58,7 @@ describe("various transaction arguments", () => {
 
   beforeAll(async () => {
     await fundAccounts(aptos, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
-    await publishModule(aptos, senderAccount);
+    await publishArgumentTestModule(aptos, senderAccount);
 
     // when deploying, `init_module` creates 3 objects and stores them into the `SetupData` resource
     // within that resource is 3 fields: `empty_object_1`, `empty_object_2`, `empty_object_3`
