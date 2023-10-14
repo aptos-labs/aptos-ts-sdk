@@ -177,9 +177,43 @@ export class TypeTagStruct extends TypeTag {
    */
   isStringTypeTag(): boolean {
     return (
+      this.value.address.toString() === AccountAddress.ONE.toString() &&
       this.value.module_name.identifier === "string" &&
-      this.value.name.identifier === "String" &&
-      this.value.address.toString() === AccountAddress.ONE.toString()
+      this.value.name.identifier === "String"
+    );
+  }
+
+  /**
+   * This function checks if the TypeTagStruct is a Move Object TypeTag.
+   * - address: 0x1
+   * - module_name: "object"
+   * - name: "Object"
+   *
+   * @returns true if the StructTag is an Object type tag, ignoring its TypeArgs
+   */
+  isObjectTypeTag(): boolean {
+    return (
+      this.value.address.toString() === AccountAddress.ONE.toString() &&
+      this.value.module_name.identifier === "object" &&
+      this.value.name.identifier === "Object"
+    );
+  }
+
+  /**
+   * This function checks if the TypeTagStruct is a Move String TypeTag.
+   * In Move, a string is represented as the String struct from string.move, deployed at `0x1`,
+   * meaning it has the following properties:
+   * - address: 0x1
+   * - module_name: "string"
+   * - name: "String"
+   *
+   * @returns true if the StructTag is a String type tag, false otherwise
+   */
+  isOptionTypeTag(): boolean {
+    return (
+      this.value.address.toString() === AccountAddress.ONE.toString() &&
+      this.value.module_name.identifier === "option" &&
+      this.value.name.identifier === "Option"
     );
   }
 }
