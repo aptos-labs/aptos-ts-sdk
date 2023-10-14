@@ -65,13 +65,6 @@ describe("Ed25519 Account", () => {
     expect(() => Account.fromDerivationPath({ path, mnemonic })).toThrow("Invalid derivation path");
   });
 
-  it("should check if a derivation path is valid", () => {
-    const validPath = wallet.path; // Valid path
-    const invalidPath = "invalid/path"; // Invalid path
-    expect(Account.isValidPath({ path: validPath })).toBe(true);
-    expect(Account.isValidPath({ path: invalidPath })).toBe(false);
-  });
-
   it("should return the authentication key for a public key", () => {
     const { publicKey: publicKeyBytes, address } = ed25519;
     const publicKey = new Ed25519PublicKey(publicKeyBytes);
@@ -140,13 +133,6 @@ describe("Secp256k1 Account", () => {
     const { mnemonic } = wallet;
     const path = "1234";
     expect(() => Account.fromDerivationPath({ path, mnemonic })).toThrow("Invalid derivation path");
-  });
-
-  it("should check if a derivation path is valid", () => {
-    const validPath = wallet.path; // Valid path
-    const invalidPath = "invalid/path"; // Invalid path
-    expect(Account.isValidPath({ path: validPath })).toBe(true);
-    expect(Account.isValidPath({ path: invalidPath })).toBe(false);
   });
 
   it("should return the authentication key for a public key", () => {

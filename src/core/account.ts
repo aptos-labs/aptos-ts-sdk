@@ -1,13 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import * as bip39 from "@scure/bip39";
-import { bytesToHex } from "@noble/hashes/utils";
 import { AccountAddress } from "./account_address";
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
 import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetric_crypto";
-import { derivePath } from "../utils/hdKey";
+import { derivePrivateKeyFromMnemonic, ED25519_KEY } from "../utils/hdKey";
 import { AuthenticationKey } from "./authentication_key";
 import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
@@ -137,26 +135,10 @@ export class Account {
    */
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
     const { path, mnemonic } = args;
-    if (!Account.isValidPath({ path })) {
-      throw new Error("Invalid derivation path");
-    }
 
-    const normalizeMnemonics = mnemonic
-      .trim()
-      .split(/\s+/)
-      .map((part) => part.toLowerCase())
-      .join(" ");
-
-    const { key } = derivePath(path, bytesToHex(bip39.mnemonicToSeedSync(normalizeMnemonics)));
+    const { key } = derivePrivateKeyFromMnemonic(ED25519_KEY, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
     return Account.fromPrivateKey({ privateKey });
-  }
-
-  /**
-   * Check's if the derive path is valid
-   */
-  static isValidPath(args: { path: string }): boolean {
-    return /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'+$/.test(args.path);
   }
 
   /**
