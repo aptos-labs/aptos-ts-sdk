@@ -11,13 +11,11 @@
     "noImplicitAny": true,
     "outDir": "./dist",
     "sourceMap": true,
-    "target": "es2020",
+    "target": "ESNext",
     "pretty": true
   },
-  "include": [
-    "*.ts"
-  ],
+  "include": ["*.ts"],
   "paths": {
-    "@aptos/*": "../..",
+    "@aptos/*": "../.."
   }
 }
