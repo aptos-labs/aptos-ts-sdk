@@ -31,6 +31,7 @@ export type EntryFunctionArgumentTypes =
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
   | AccountAddress
+  | MoveString
   | FixedBytes;
 export type ScriptFunctionArgumentTypes =
   | Bool
@@ -44,6 +45,7 @@ export type ScriptFunctionArgumentTypes =
   | MoveObject
   | MoveVector<U8>
   | AccountAddress
+  | MoveString
   | FixedBytes;
 
 /**

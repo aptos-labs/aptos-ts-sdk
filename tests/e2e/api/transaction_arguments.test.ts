@@ -50,29 +50,12 @@ describe("various transaction arguments", () => {
   beforeAll(async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     aptos = new Aptos(config);
-    // const account1 = Account.fromPrivateKey({
-    //   privateKey: new Ed25519PrivateKey({
-    //     hexInput: "0x5aba8dab1c523be32bd4dafe2cc612f7f8050ce42a3322b60216ef67dc97768c",
-    //   }),
-    // });
-    account1 = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
-    account2 = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
-    account3 = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
-    account4 = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
-    account5 = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
-    accountFeePayer = Account.generate({
-      scheme: SigningScheme.Ed25519,
-    });
+    account1 = Account.generate();
+    account2 = Account.generate();
+    account3 = Account.generate();
+    account4 = Account.generate();
+    account5 = Account.generate();
+    accountFeePayer = Account.generate();
     const accounts = [account1, account2, account3, account4, account5, accountFeePayer];
     for (const account of accounts) {
       await aptos.fundAccount({
