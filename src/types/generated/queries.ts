@@ -268,6 +268,46 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
+export const GetTokenData = `
+    query getTokenData($where_condition: current_token_datas_v2_bool_exp, $offset: Int, $limit: Int, $order_by: [current_token_datas_v2_order_by!]) {
+  current_token_datas_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    collection_id
+    description
+    is_fungible_v2
+    largest_property_version_v1
+    last_transaction_timestamp
+    last_transaction_version
+    maximum
+    supply
+    token_data_id
+    token_name
+    token_properties
+    token_standard
+    token_uri
+    current_collection {
+      collection_id
+      collection_name
+      creator_address
+      current_supply
+      description
+      last_transaction_timestamp
+      last_transaction_version
+      max_supply
+      mutable_description
+      mutable_uri
+      table_handle_v1
+      token_standard
+      total_minted_v2
+      uri
+    }
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
@@ -471,6 +511,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getNumberOfDelegators",
+        "query",
+      );
+    },
+    getTokenData(
+      variables?: Types.GetTokenDataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetTokenDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenDataQuery>(GetTokenData, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTokenData",
         "query",
       );
     },

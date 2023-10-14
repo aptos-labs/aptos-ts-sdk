@@ -22,6 +22,7 @@ import {
   GetCollectionDataQuery,
   GetChainTopUserTransactionsQuery,
   GetEventsQuery,
+  GetTokenDataQuery,
 } from "./generated/operations";
 
 /**
@@ -49,6 +50,7 @@ export type GetEventsResponse = GetEventsQuery["events"];
 export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_active_delegator_per_pool"];
 export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];
 export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
+export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0];
 
 /**
  * A generic type that being passed by each function and holds an
