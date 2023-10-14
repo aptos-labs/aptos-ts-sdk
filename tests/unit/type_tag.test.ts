@@ -17,8 +17,12 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from "../../src/transactions/typeTag/typeTag";
-import { AccountAddress, AddressInvalidReason, Deserializer, ParsingError, Serializer } from "../../src";
+  AccountAddress,
+  AddressInvalidReason,
+  Deserializer,
+  ParsingError,
+  Serializer,
+} from "../../src";
 
 const expectedTypeTag = {
   string: "0x1::some_module::SomeResource",

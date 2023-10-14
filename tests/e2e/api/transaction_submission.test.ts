@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AptosConfig, Network, Aptos, Deserializer } from "../../../src";
-import { U64 } from "../../../src/bcs/serializable/move-primitives";
+import { Account, AptosConfig, Network, Aptos, Deserializer, U64 } from "../../../src";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";

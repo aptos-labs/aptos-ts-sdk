@@ -5,13 +5,13 @@ import {
   AuthenticationKey,
   Deserializer,
   Ed25519PublicKey,
+  HexInput,
   MultiEd25519PublicKey,
   PublicKey,
   Serializer,
   Signature,
 } from "../../src";
 import { ed25519, multiEd25519PkTestObject } from "./helper";
-import { HexInput } from "../../src/types";
 
 describe("AuthenticationKey", () => {
   it("should create an instance with save the hexinput correctly", () => {

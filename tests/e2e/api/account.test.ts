@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { U64 } from "../../../src/bcs/serializable/move-primitives";
+import { Account, Aptos, AptosConfig, Network, U64 } from "../../../src";
 import { sleep } from "../../../src/utils/helpers";
 import { INDEXER_WAIT_TIME } from "../../unit/helper";
 

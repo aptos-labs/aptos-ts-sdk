@@ -11,8 +11,8 @@ import {
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
   Secp256k1Signature,
+  SigningScheme,
 } from "../../src";
-import { SigningScheme } from "../../src/types";
 import { ed25519, secp256k1TestObject, wallet } from "./helper";
 
 describe("Ed25519 Account", () => {

@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account } from "../../../src";
-import { U64 } from "../../../src/bcs/serializable/move-primitives";
-import { TransactionResponse, UserTransactionResponse } from "../../../src/types";
+import { AptosConfig, Aptos, Network, Account, TransactionResponse, UserTransactionResponse, U64 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
