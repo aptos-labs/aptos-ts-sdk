@@ -273,6 +273,15 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
+export const GetProcessorStatus = `
+    query getProcessorStatus {
+  processor_status {
+    last_success_version
+    processor
+    last_updated
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
@@ -476,6 +485,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getNumberOfDelegators",
+        "query",
+      );
+    },
+    getProcessorStatus(
+      variables?: Types.GetProcessorStatusQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetProcessorStatusQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetProcessorStatusQuery>(GetProcessorStatus, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getProcessorStatus",
         "query",
       );
     },

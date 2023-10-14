@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-export const INDEXER_WAIT_TIME = 1000;
 export const FUND_AMOUNT = 100_000_000;
 
 export const wallet = {
