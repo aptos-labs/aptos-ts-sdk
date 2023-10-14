@@ -5,7 +5,7 @@
   "main": "transfer.ts",
   "scripts": {
     "simple_transfer": "ts-node simple_transfer.ts",
-    "simple_sponsered_transaction": "ts-node simple_sponsored_transaction.ts"
+    "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts"
   },
   "keywords": [],
   "author": "",
