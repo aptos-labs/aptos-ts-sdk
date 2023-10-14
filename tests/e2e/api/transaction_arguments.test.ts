@@ -119,15 +119,23 @@ describe("various transaction arguments", () => {
     ];
   });
 
-  describe("single signer txns with all entry fn arguments except `&signer`, both public and private entry functions", () => {
-    it("successfully submits a public entry fn, single signer txn with all argument types except `&signer`", async () => {
-      const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
-      expect(response.success).toBe(true);
-    });
+  describe("single signer entry fns, all arguments except `&signer`, both public and private entry functions", () => {
+    describe("sender is ed25519", () => {
+      it("successfully submits a public entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
+        expect(response.success).toBe(true);
+      });
 
-    it("successfully submits a private entry fn, single signer txn with all argument types except `&signer`", async () => {
-      const response = await rawTransactionHelper(aptos, senderAccount, "private_arguments", [], transactionArguments);
-      expect(response.success).toBe(true);
+      it("successfully submits a private entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(
+          aptos,
+          senderAccount,
+          "private_arguments",
+          [],
+          transactionArguments,
+        );
+        expect(response.success).toBe(true);
+      });
     });
   });
 
