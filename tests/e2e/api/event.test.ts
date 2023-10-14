@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { FUND_AMOUNT, INDEXER_WAIT_TIME, longTestTimeout } from "../../unit/helper";
-import { sleep } from "../../../src/utils/helpers";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 describe("Event", () => {
   test("it should get fund event by creation number and address", async () => {
@@ -13,7 +12,6 @@ describe("Event", () => {
     const testAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
 
-    await sleep(INDEXER_WAIT_TIME);
     const events = await aptos.getAccountEventsByCreationNumber({
       address: testAccount.accountAddress.toString(),
       creationNumber: 0,
@@ -32,7 +30,6 @@ describe("Event", () => {
       amount: FUND_AMOUNT,
     });
 
-    await sleep(INDEXER_WAIT_TIME);
     const events = await aptos.getAccountEventsByEventType({
       address: testAccount.accountAddress.toString(),
       eventType: "0x1::account::CoinRegisterEvent",
@@ -51,7 +48,6 @@ describe("Event", () => {
       amount: FUND_AMOUNT,
     });
 
-    await sleep(INDEXER_WAIT_TIME);
     const events = await aptos.getEvents();
 
     expect(events.length).toBeGreaterThan(0);
@@ -74,7 +70,6 @@ describe("Event", () => {
         amount: FUND_AMOUNT,
       });
 
-      await sleep(INDEXER_WAIT_TIME);
       const events = await aptos.getEvents({
         options: { where: { account_address: { _eq: testAccount1.accountAddress.toString() } } },
       });

@@ -13,6 +13,7 @@ import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client
 import {
   Block,
   GetChainTopUserTransactionsResponse,
+  GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
   LedgerVersion,
@@ -20,8 +21,8 @@ import {
   TableItemRequest,
   ViewRequest,
 } from "../types";
-import { GetChainTopUserTransactionsQuery } from "../types/generated/operations";
-import { GetChainTopUserTransactions } from "../types/generated/queries";
+import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
+import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
 
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
@@ -129,4 +130,25 @@ export async function queryIndexer<T>(args: {
     overrides: { WITH_CREDENTIALS: false },
   });
   return data;
+}
+
+export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
+  const { aptosConfig } = args;
+
+  const graphqlQuery = {
+    query: GetProcessorStatus,
+  };
+
+  const data = await queryIndexer<GetProcessorStatusQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getProcessorStatuses",
+  });
+
+  return data.processor_status;
+}
+
+export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<number> {
+  const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
+  return response[0].last_success_version;
 }

@@ -404,3 +404,9 @@ export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
 export type GetNumberOfDelegatorsQuery = {
   num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
 };
+
+export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetProcessorStatusQuery = {
+  processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
+};
