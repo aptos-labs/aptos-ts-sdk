@@ -54,3 +54,5 @@ export const secp256k1TestObject = {
   signatureHex:
     "0x3eda29841168c902b154ac12dfb0f8775ece1b95315b227ede64cbd715abac665aa8c8df5b108b0d4918bb88ea58c892972af375a71761a7e590655ff5de3859",
 };
+
+export const longTestTimeout = 120 * 1000;

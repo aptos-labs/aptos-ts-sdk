@@ -380,18 +380,19 @@ export type GetEventsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.EventsBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  order_by?: Types.InputMaybe<Array<Types.EventsOrderBy> | Types.EventsOrderBy>;
 }>;
 
 export type GetEventsQuery = {
   events: Array<{
-    sequence_number: any;
-    type: string;
-    transaction_version: any;
-    transaction_block_height: any;
-    event_index: any;
-    data: any;
-    creation_number: any;
     account_address: string;
+    creation_number: any;
+    data: any;
+    event_index: any;
+    sequence_number: any;
+    transaction_block_height: any;
+    transaction_version: any;
+    type: string;
   }>;
 };
 

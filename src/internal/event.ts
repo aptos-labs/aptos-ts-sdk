@@ -10,20 +10,13 @@
 
 import { AptosConfig } from "../api/aptos_config";
 import { AccountAddress } from "../core";
-import { AnyNumber, GetEventsResponse, HexInput } from "../types";
+import { AnyNumber, GetEventsResponse, HexInput, IndexerPaginationArgs, MoveResourceType, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
+import { EventsBoolExp } from "../types/generated/types";
 import { queryIndexer } from "./general";
 
-/**
- * Get events by creation number and the address
- *
- * @param args.aptosConfig - The aptos config
- * @param args.address - The account address
- * @param args.creationNumber - The event creation number
- * @returns Promise<GetEventsByCreationNumberResponse>
- */
-export async function getEventsByCreationNumber(args: {
+export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
   address: HexInput;
   creationNumber: AnyNumber;
@@ -31,20 +24,62 @@ export async function getEventsByCreationNumber(args: {
   const { aptosConfig, creationNumber } = args;
   const address = AccountAddress.fromHexInput({ input: args.address }).toString();
 
-  const whereCondition: any = {
+  const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
     creation_number: { _eq: creationNumber },
   };
 
+  return getEvents({ aptosConfig, options: { where: whereCondition } });
+}
+
+export async function getAccountEventsByEventType(args: {
+  aptosConfig: AptosConfig;
+  address: HexInput;
+  eventType: MoveResourceType;
+  options?: {
+    pagination?: IndexerPaginationArgs;
+    orderBy?: OrderBy<GetEventsResponse[0]>;
+  };
+}): Promise<GetEventsResponse> {
+  const { aptosConfig, eventType, options } = args;
+  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+
+  const whereCondition: EventsBoolExp = {
+    account_address: { _eq: address },
+    type: { _eq: eventType },
+  };
+
+  const customOptions = {
+    where: whereCondition,
+    pagination: options?.pagination,
+    orderBy: options?.orderBy,
+  };
+
+  return getEvents({ aptosConfig, options: customOptions });
+}
+
+export async function getEvents(args: {
+  aptosConfig: AptosConfig;
+  options?: {
+    where?: EventsBoolExp;
+    pagination?: IndexerPaginationArgs;
+    orderBy?: OrderBy<GetEventsResponse[0]>;
+  };
+}): Promise<GetEventsResponse> {
+  const { aptosConfig, options } = args;
+
   const graphqlQuery = {
     query: GetEvents,
-    variables: { where_condition: whereCondition },
+    variables: { where_condition: options?.where },
+    offset: options?.pagination?.offset,
+    limit: options?.pagination?.limit,
+    order_by: options?.orderBy,
   };
 
   const data = await queryIndexer<GetEventsQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getEventsByCreationNumber",
+    originMethod: "getEvents",
   });
 
   return data.events;
