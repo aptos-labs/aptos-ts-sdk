@@ -27,7 +27,9 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 };
 
 const example = async () => {
-  console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them using transferCoinTransaction.");
+  console.log(
+    "This example will create two accounts (Alice and Bob), fund them, and transfer between them using transferCoinTransaction.",
+  );
 
   // Setup the client
   const config = new AptosConfig({ network: Network.DEVNET });
