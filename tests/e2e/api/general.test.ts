@@ -47,7 +47,7 @@ describe("general api", () => {
 
     const chainId = await aptos.view({ payload });
 
-    expect(chainId).toBe(4);
+    expect(chainId[0]).toBe(4);
   });
 
   test("it fetches table item data", async () => {
