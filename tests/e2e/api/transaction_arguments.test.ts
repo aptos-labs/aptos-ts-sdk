@@ -13,15 +13,16 @@ import {
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../../src/bcs/serializable/move-primitives";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/move-structs";
 import { TypeTag } from "../../../src/transactions/typeTag/typeTag";
-import { EntryFunctionArgumentTypes } from "../../../src/transactions/types";
+import { EntryFunctionArgumentTypes, GenerateFeePayerRawTransactionInput, GenerateMultiAgentRawTransactionInput } from "../../../src/transactions/types";
 import {
   SigningScheme,
   TransactionFeePayerSignature,
   TransactionMultiAgentSignature,
   UserTransactionResponse,
 } from "../../../src/types";
+import { FUND_AMOUNT } from "../../unit/helper";
 
-jest.setTimeout(30000);
+jest.setTimeout(10000);
 
 // This test looks enormous, but the breakdown is quite simple:
 //  the `transactionArguments` array contains every possible argument type
@@ -36,12 +37,9 @@ jest.setTimeout(30000);
 
 describe("various transaction arguments", () => {
   let aptos: Aptos;
-  let account1: Account;
-  let account2: Account;
-  let account3: Account;
-  let account4: Account;
-  let account5: Account;
-  let accountFeePayer: Account;
+  let sender: Account;
+  const accounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate(), Account.generate()];
+  const feePayerAccount = Account.generate();
   const moduleObjects: Array<MoveObject> = [];
   let transactionArguments: EntryFunctionArgumentTypes[];
   let rawTxnHelper: (...args: any[]) => Promise<UserTransactionResponse>;
@@ -50,25 +48,19 @@ describe("various transaction arguments", () => {
   beforeAll(async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     aptos = new Aptos(config);
-    account1 = Account.generate();
-    account2 = Account.generate();
-    account3 = Account.generate();
-    account4 = Account.generate();
-    account5 = Account.generate();
-    accountFeePayer = Account.generate();
-    const accounts = [account1, account2, account3, account4, account5, accountFeePayer];
-    for (const account of accounts) {
+    for (const account of [...accounts, feePayerAccount]) {
       await aptos.fundAccount({
         accountAddress: account.accountAddress.data,
-        amount: 100_000_000,
+        amount: FUND_AMOUNT,
       });
     }
+    const sender = accounts[0];
     const metadata = MoveVector.U8(contractMetadata);
-    const code = new MoveVector([MoveVector.U8(contractBytecode(account1.accountAddress))]);
+    const code = new MoveVector([MoveVector.U8(contractBytecode(sender.accountAddress))]);
 
     // create the publish package txn
     const rawTxn = await aptos.generateTransaction({
-      sender: account1.accountAddress.toString(),
+      sender: sender.accountAddress.toString(),
       data: {
         function: "0x1::code::publish_package_txn",
         type_arguments: [],
@@ -76,22 +68,20 @@ describe("various transaction arguments", () => {
       },
     });
     const signedTxn = await aptos.signTransaction({
-      signer: account1,
+      signer: sender,
       transaction: rawTxn,
     });
     const txnHash = await aptos.submitTransaction({
       transaction: rawTxn,
       senderAuthenticator: signedTxn,
     });
-    const _ = await aptos.waitForTransaction({
-      txnHash: txnHash.hash,
-    });
+    await aptos.waitForTransaction({ txnHash: txnHash.hash });
 
     // when deploying, `init_module` creates 3 objects and stores them into the `SetupData` resource
     // within that resource is 3 fields: `empty_object_1`, `empty_object_2`, `empty_object_3`
     // we need to extract those objects and use them as arguments for the entry functions
     const accountResources = await aptos.getAccountResources({
-      accountAddress: account1.accountAddress.toString(),
+      accountAddress: sender.accountAddress.toString(),
     });
 
     accountResources.forEach((resource) => {
@@ -106,7 +96,6 @@ describe("various transaction arguments", () => {
     // Transaction builder helpers
     // single signer
     rawTxnHelper = async (
-      sender: Account,
       functionName: string,
       typeArgs: TypeTag[],
       args: Array<EntryFunctionArgumentTypes>,
@@ -114,7 +103,7 @@ describe("various transaction arguments", () => {
       const rawTxn = await aptos.generateTransaction({
         sender: sender.accountAddress.toString(),
         data: {
-          function: `0x${account1.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+          function: `0x${sender.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
           type_arguments: typeArgs,
           arguments: args,
         },
@@ -135,7 +124,6 @@ describe("various transaction arguments", () => {
 
     // multi agent/fee payer
     rawTxnMultiAgentHelper = async (
-      sender: Account,
       functionName: string,
       typeArgs: TypeTag[],
       args: Array<EntryFunctionArgumentTypes>,
@@ -144,44 +132,35 @@ describe("various transaction arguments", () => {
     ): Promise<UserTransactionResponse> => {
       // TODO: Combine these to one type later. This should be possible but isn't right now due to typescript
       // compile time errors because it can't resolve the types
+      const transactionData = {
+        sender: sender.accountAddress.toString(),
+        data: {
+          function: `${sender.accountAddress.toString()}::tx_args_module::${functionName}`,
+          type_arguments: typeArgs,
+          arguments: args,
+        },
+      };
       const transaction = await (async () => {
         if (secondarySignerAddresses.length == 0) {
-          const response = await aptos.generateTransaction({
-            sender: sender.accountAddress.toString(),
-            data: {
-              function: `0x${account1.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-              type_arguments: typeArgs,
-              arguments: args,
-            },
+          return await aptos.generateTransaction({
+            ...transactionData,
             feePayerAddress: feePayerAddress!.data,
-          });
-          return response;
+          } as GenerateFeePayerRawTransactionInput);
         } else if (feePayerAddress === undefined) {
           return await aptos.generateTransaction({
-            sender: sender.accountAddress.toString(),
-            data: {
-              function: `0x${account1.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-              type_arguments: typeArgs,
-              arguments: args,
-            },
+            ...transactionData,
             secondarySignerAddresses: secondarySignerAddresses.map((address) => address.data),
-          });
+          } as GenerateMultiAgentRawTransactionInput);
         } else {
           return await aptos.generateTransaction({
-            sender: sender.accountAddress.toString(),
-            data: {
-              function: `0x${account1.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-              type_arguments: typeArgs,
-              arguments: args,
-            },
+            ...transactionData,
             secondarySignerAddresses: secondarySignerAddresses.map((address) => address.data),
-            feePayerAddress: feePayerAddress.data,
-          });
+            feePayerAddress: feePayerAddress!.data,
+          } as GenerateFeePayerRawTransactionInput);
         }
       })();
 
-      const accounts = [sender, account2, account3, account4, account5];
-      // sign wtih an account its address is in secondarySignerAddresses OR if it's the sender
+      // sign with an account its address is in secondarySignerAddresses OR if it's the sender
       // TODO: Fix the ugly
       const authenticators = accounts
         .filter(
@@ -196,25 +175,24 @@ describe("various transaction arguments", () => {
           });
         });
 
-      const feePayerAuthenticator = feePayerAddress
-        ? aptos.signTransaction({
-            signer: accountFeePayer,
-            transaction: transaction,
-          })
-        : undefined;
+      let feePayerAuthenticator;
+      if (feePayerAddress !== undefined) {
+        feePayerAuthenticator = aptos.signTransaction({
+          signer: feePayerAccount,
+          transaction: transaction,
+        });
+      }
 
       const txnHash = await aptos.submitTransaction({
         transaction: transaction,
         senderAuthenticator: authenticators[0], // sender
         secondarySignerAuthenticators: {
           additionalSignersAuthenticators: authenticators.slice(1), // possibly empty
-          feePayerAuthenticator, // possibly undefined
+          feePayerAuthenticator,
         },
       });
 
-      const response = await aptos.waitForTransaction({
-        txnHash: txnHash.hash,
-      });
+      const response = await aptos.waitForTransaction({ txnHash: txnHash.hash });
       return response as UserTransactionResponse;
     };
 
@@ -226,7 +204,7 @@ describe("various transaction arguments", () => {
       new U64(4),
       new U128(5),
       new U256(6),
-      account1.accountAddress,
+      sender.accountAddress,
       new MoveString("expected_string"),
       moduleObjects[0],
       new MoveVector([]),
@@ -255,7 +233,7 @@ describe("various transaction arguments", () => {
       new MoveOption(new U64(4)),
       new MoveOption(new U128(5)),
       new MoveOption(new U256(6)),
-      new MoveOption(account1.accountAddress),
+      new MoveOption(sender.accountAddress),
       new MoveOption(new MoveString("expected_string")),
       new MoveOption(moduleObjects[0]),
     ];
@@ -263,12 +241,12 @@ describe("various transaction arguments", () => {
 
   describe("single signer transactions with all entry function arguments except `&signer`, both public and private entry functions", () => {
     it("successfully submits a public entry function, single signer transaction with all argument types but no `&signer` argument", async () => {
-      const response = await rawTxnHelper(account1, "public_arguments", [], transactionArguments);
+      const response = await rawTxnHelper(sender, "public_arguments", [], transactionArguments);
       expect(response.success).toBe(true);
     });
 
     it("successfully submits a private entry function, single signer transaction with all argument types for private entry but no `&signer` argument", async () => {
-      const response = await rawTxnHelper(account1, "private_arguments", [], transactionArguments);
+      const response = await rawTxnHelper(sender, "private_arguments", [], transactionArguments);
       expect(response.success).toBe(true);
     });
   });
@@ -277,10 +255,10 @@ describe("various transaction arguments", () => {
   describe("single signer transactions with all entry function arguments", () => {
     it("successfully submits a single signer transaction with all argument types", async () => {
       const response = await rawTxnHelper(
-        account1,
+        sender,
         "public_arguments_one_signer",
         [],
-        [account1.accountAddress, ...transactionArguments],
+        [sender.accountAddress, ...transactionArguments],
       );
       expect(response.success).toBe(true);
     });
@@ -289,23 +267,15 @@ describe("various transaction arguments", () => {
   // only public entry functions- shouldn't need to test private again
   describe("multi signer transaction with all entry function arguments", () => {
     it("successfully submits a multi signer transaction with all argument types", async () => {
-      const secondarySignerAddresses = [
-        account2.accountAddress,
-        account3.accountAddress,
-        account4.accountAddress,
-        account5.accountAddress,
-      ];
+      const secondarySignerAddresses = accounts.splice(1).map((account) => account.accountAddress);
       const response = await rawTxnMultiAgentHelper(
-        account1,
+        sender,
         "public_arguments_multiple_signers",
         [],
         [
           new MoveVector<AccountAddress>([
-            account1.accountAddress,
-            account2.accountAddress,
-            account3.accountAddress,
-            account4.accountAddress,
-            account5.accountAddress,
+            sender.accountAddress,
+            ...secondarySignerAddresses,
           ]),
           ...transactionArguments,
         ],
@@ -326,44 +296,36 @@ describe("various transaction arguments", () => {
   describe("fee payer transactions with various numbers of signers", () => {
     it("successfully submits a sponsored transaction with all argument types", async () => {
       const response = await rawTxnMultiAgentHelper(
-        account1,
+        sender,
         "public_arguments_one_signer",
         [],
-        [account1.accountAddress, ...transactionArguments],
+        [sender.accountAddress, ...transactionArguments],
         [], // secondary signers
-        accountFeePayer.accountAddress,
+        feePayerAccount.accountAddress,
       );
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
       expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
-        accountFeePayer.accountAddress.toString(),
+        feePayerAccount.accountAddress.toString(),
       );
     });
 
     it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
-      const secondarySignerAddresses = [
-        account2.accountAddress,
-        account3.accountAddress,
-        account4.accountAddress,
-        account5.accountAddress,
-      ];
+      const secondarySignerAddresses = accounts.splice(1).map((account) => account.accountAddress);
       const response = await rawTxnMultiAgentHelper(
-        account1,
+        sender,
         "public_arguments_multiple_signers",
         [],
         [
           new MoveVector<AccountAddress>([
-            account1.accountAddress,
-            account2.accountAddress,
-            account3.accountAddress,
-            account4.accountAddress,
-            account5.accountAddress,
+            sender.accountAddress,
+            ...secondarySignerAddresses,
           ]),
           ...transactionArguments,
         ],
         secondarySignerAddresses,
-        accountFeePayer.accountAddress,
+        feePayerAccount.accountAddress,
       );
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
@@ -374,7 +336,7 @@ describe("various transaction arguments", () => {
         secondarySignerAddresses.map((address) => address.toString()),
       );
       expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
-        accountFeePayer.accountAddress.toString(),
+        feePayerAccount.accountAddress.toString(),
       );
     });
   });

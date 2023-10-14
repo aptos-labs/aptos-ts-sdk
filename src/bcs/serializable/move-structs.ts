@@ -439,6 +439,7 @@ export class MoveObject extends Serializable implements TransactionArgument {
     if (value instanceof AccountAddress) {
       this.value = value;
     } else {
+      // TODO: Discuss if this should be `fromHexInput` or `fromHexInputRelaxed`
       this.value = AccountAddress.fromHexInputRelaxed({ input: value });
     }
   }
