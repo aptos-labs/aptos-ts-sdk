@@ -5,6 +5,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { secp256k1TestObject } from "./helper";
 import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
 
+/* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from string

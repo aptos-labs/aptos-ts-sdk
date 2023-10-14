@@ -46,6 +46,7 @@ describe("StructTag", () => {
     expect(structTag.type_args.length).toEqual(2);
 
     // make sure the nested type tag is correct
+    // eslint-disable-next-line no-restricted-syntax
     for (const typeArg of structTag.type_args) {
       const nestedTypeTag = typeArg as TypeTagStruct;
       expect(nestedTypeTag.value.address.toString()).toEqual(expectedTypeTag.address);
@@ -100,6 +101,7 @@ describe("TypeTagParser", () => {
     expect(result.value.type_args.length).toEqual(2);
 
     // make sure the nested type tag is correct
+    // eslint-disable-next-line no-restricted-syntax
     for (const typeArg of result.value.type_args) {
       const nestedTypeTag = typeArg as TypeTagStruct;
       expect(nestedTypeTag.value.address.toString()).toEqual(expectedTypeTag.address);

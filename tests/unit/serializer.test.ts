@@ -9,8 +9,8 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "../../src/bcs/consts";
-import { AccountAddress, Serializable, Serializer, ensureBoolean, outOfRangeErrorMessage } from "../../src";
-
+import { AccountAddress, Serializable, Serializer, outOfRangeErrorMessage } from "../../src";
+/* eslint-disable @typescript-eslint/no-shadow */
 describe("BCS Serializer", () => {
   let serializer: Serializer;
 
@@ -255,10 +255,12 @@ describe("BCS Serializer", () => {
 
   it("throws when specifying 0 or less than 0 allocated bytes for memory", () => {
     expect(() => {
-      const serializer = new Serializer(0);
+      // eslint-disable-next-line no-new
+      new Serializer(0);
     }).toThrow();
     expect(() => {
-      const serializer = new Serializer(-1);
+      // eslint-disable-next-line no-new
+      new Serializer(-1);
     }).toThrow();
   });
 

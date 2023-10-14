@@ -75,10 +75,10 @@ describe("general api", () => {
       data: {
         key_type: "address",
         value_type: "u128",
-        key: key,
+        key,
       },
     });
-    expect(parseInt(supply)).toBeGreaterThan(0);
+    expect(parseInt(supply, 10)).toBeGreaterThan(0);
   });
 
   test("it fetches data with a custom graphql query", async () => {

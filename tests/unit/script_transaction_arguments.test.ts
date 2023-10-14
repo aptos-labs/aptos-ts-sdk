@@ -36,9 +36,9 @@ describe("Tests for the script transaction argument class", () => {
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
     const validateBytes = (input: ScriptFunctionArgument, expectedOutput: Uint8Array) => {
-      const serializer = new Serializer();
-      input.serializeForScriptFunction(serializer);
-      const serializedBytes = serializer.toUint8Array();
+      const scriptSerializer = new Serializer();
+      input.serializeForScriptFunction(scriptSerializer);
+      const serializedBytes = scriptSerializer.toUint8Array();
       expect(serializedBytes).toEqual(expectedOutput);
     };
     validateBytes(new U8(1), scriptU8Bytes);
