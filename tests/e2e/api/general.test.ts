@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network } from "../../../src";
-import { GraphqlQuery, ViewRequest } from "../../../src/types";
+import { AptosConfig, Aptos, Network, GraphqlQuery, ViewRequest } from "../../../src";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
@@ -47,7 +46,7 @@ describe("general api", () => {
 
     const chainId = await aptos.view({ payload });
 
-    expect(chainId).toBe(4);
+    expect(chainId[0]).toBe(4);
   });
 
   test("it fetches table item data", async () => {
@@ -75,10 +74,10 @@ describe("general api", () => {
       data: {
         key_type: "address",
         value_type: "u128",
-        key: key,
+        key,
       },
     });
-    expect(parseInt(supply)).toBeGreaterThan(0);
+    expect(parseInt(supply, 10)).toBeGreaterThan(0);
   });
 
   test("it fetches data with a custom graphql query", async () => {

@@ -1,8 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getEventsByCreationNumber } from "../internal/event";
-import { AnyNumber, GetEventsResponse } from "../types";
+import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
+import { AnyNumber, GetEventsResponse, IndexerPaginationArgs, MoveResourceType, OrderBy } from "../types";
+import { EventsBoolExp } from "../types/generated/types";
 import { AptosConfig } from "./aptos_config";
 
 /**
@@ -16,14 +17,66 @@ export class Event {
   }
 
   /**
-   * Get events by creation number and the address
+   * Get events by creation number and an account address
    *
    * @param args.address - The account address
    * @param args.creationNumber - The event creation number
-   * @returns Promise<GetEventsByCreationNumberResponse>
+   *
+   * @returns Promise<GetEventsResponse>
    */
-  async getEventsByCreationNumber(args: { address: string; creationNumber: AnyNumber }): Promise<GetEventsResponse> {
-    const data = await getEventsByCreationNumber({ aptosConfig: this.config, ...args });
-    return data;
+  async getAccountEventsByCreationNumber(args: {
+    address: string;
+    creationNumber: AnyNumber;
+    options?: {
+      pagination?: IndexerPaginationArgs;
+      orderBy?: OrderBy<GetEventsResponse[0]>;
+    };
+  }): Promise<GetEventsResponse> {
+    return getAccountEventsByCreationNumber({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Get events by event type and an account address
+   *
+   * @param args.address - The account address
+   * @param args.eventType - The event type
+   *
+   * @returns Promise<GetEventsResponse>
+   */
+  async getAccountEventsByEventType(args: {
+    address: string;
+    eventType: MoveResourceType;
+    options?: {
+      pagination?: IndexerPaginationArgs;
+      orderBy?: OrderBy<GetEventsResponse[0]>;
+    };
+  }): Promise<GetEventsResponse> {
+    return getAccountEventsByEventType({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Get all events
+   *
+   * An optional `where` can be passed in to filter out the response.
+   *
+   * @example
+   * ```
+   * { where:
+   *  {
+   *   transaction_version: { _eq: 123456 },
+   *  }
+   * }
+   * ```
+   *
+   * @returns GetEventsQuery response type
+   */
+  async getEvents(args?: {
+    options?: {
+      where?: EventsBoolExp;
+      pagination?: IndexerPaginationArgs;
+      orderBy?: OrderBy<GetEventsResponse[0]>;
+    };
+  }): Promise<GetEventsResponse> {
+    return getEvents({ aptosConfig: this.config, ...args });
   }
 }

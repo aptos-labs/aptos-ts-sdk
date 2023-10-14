@@ -1,16 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  Aptos,
-  AptosConfig,
-  Deserializer,
-  Ed25519PrivateKey,
-  Network,
-  SigningScheme,
-  U64,
-} from "../../../src";
+import { Account, Aptos, AptosConfig, Deserializer, Ed25519PrivateKey, Network, U64 } from "../../../src";
 import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import {
   FeePayerRawTransaction,
@@ -33,6 +24,7 @@ import { SignedTransaction } from "../../../src/transactions/instances/signedTra
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
 import { FUND_AMOUNT } from "../../unit/helper";
 
+/* eslint-disable max-len */
 describe("transaction builder", () => {
   describe("generate transaction payload", () => {
     test("it generates a script transaction payload", async () => {
@@ -471,7 +463,7 @@ describe("transaction builder", () => {
         transaction,
         senderAuthenticator: authenticator,
         secondarySignerAuthenticators: {
-          feePayerAuthenticator: feePayerAuthenticator,
+          feePayerAuthenticator,
         },
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();

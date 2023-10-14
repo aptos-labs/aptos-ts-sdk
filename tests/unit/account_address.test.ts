@@ -369,7 +369,7 @@ describe("AccountAddress toUint8Array", () => {
     ).toEqual(ADDRESS_TEN.bytes);
   });
 
-  it("correctly returns bytes for  non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
+  it("correctly returns bytes for  non-special address: 0xca84...a3d0", () => {
     expect(
       AccountAddress.fromHexInput({
         input: ADDRESS_OTHER.longWith0x,
@@ -481,7 +481,7 @@ describe("AccountAddress serialization and deserialization", () => {
   });
 
   it("deserializes a byte buffer into an address correctly", () => {
-    const bytes = ADDRESS_TEN.bytes;
+    const { bytes } = ADDRESS_TEN;
     const deserializer = new Deserializer(bytes);
     const deserializedAddress = AccountAddress.deserialize(deserializer);
     expect(deserializedAddress.toUint8Array()).toEqual(bytes);

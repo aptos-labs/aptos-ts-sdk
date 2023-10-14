@@ -8,6 +8,8 @@ export const wallet = {
   address: "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30",
   mnemonic: "shoot island position soft burden budget tooth cruel issue economy destroy above",
   path: "m/44'/637'/0'/0'/0'",
+  privateKey: "0x5d996aa76b3212142792d9130796cd2e11e3c445a93118c08414df4f66bc60ec",
+  publicKey: "0xea526ba1710343d953461ff68641f1b7df5f23b9042ffa2d2a798d3adb3f3d6c",
 };
 
 /* eslint-disable max-len */
@@ -52,3 +54,5 @@ export const secp256k1TestObject = {
   signatureHex:
     "0x3eda29841168c902b154ac12dfb0f8775ece1b95315b227ede64cbd715abac665aa8c8df5b108b0d4918bb88ea58c892972af375a71761a7e590655ff5de3859",
 };
+
+export const longTestTimeout = 120 * 1000;

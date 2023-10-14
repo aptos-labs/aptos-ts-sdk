@@ -8,7 +8,9 @@ describe("memoize", () => {
     // Define an asynchronous function to mock
     const asyncFunction = jest.fn(async (arg) => {
       // Simulate some asynchronous operation to be resolved after 100 ms
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      });
       return arg;
     });
 
@@ -107,9 +109,7 @@ describe("memoize", () => {
 
   describe("memoize", () => {
     // Define a function to mock
-    const func = jest.fn((arg) => {
-      return arg;
-    });
+    const func = jest.fn((arg) => arg);
 
     beforeEach(() => {
       // needed because of a weird bug with jest https://github.com/jestjs/jest/pull/12572

@@ -1,79 +1,104 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import nacl from "tweetnacl";
 import { hmac } from "@noble/hashes/hmac";
 import { sha512 } from "@noble/hashes/sha512";
-import { hexToBytes } from "@noble/hashes/utils";
+import * as bip39 from "@scure/bip39";
 
-export type Keys = {
+export type DerivedKeys = {
   key: Uint8Array;
   chainCode: Uint8Array;
 };
 
-const pathRegex = /^m(\/[0-9]+')+$/;
+/**
+ * Aptos derive path is 637
+ *
+ * See https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+ */
+export const APTOS_PATH_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
 
-const replaceDerive = (val: string): string => val.replace("'", "");
-
-const HMAC_KEY = "ed25519 seed";
+export const ED25519_KEY = "ed25519 seed";
 const HARDENED_OFFSET = 0x80000000;
 
-export const getMasterKeyFromSeed = (seed: string): Keys => {
-  const h = hmac.create(sha512, HMAC_KEY);
-  const I = h.update(hexToBytes(seed)).digest();
-  const IL = I.slice(0, 32);
-  const IR = I.slice(32);
+const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
+  const digest = hmac.create(sha512, hashSeed).update(data).digest();
   return {
-    key: IL,
-    chainCode: IR,
+    key: digest.slice(0, 32),
+    chainCode: digest.slice(32),
   };
 };
 
-export const CKDPriv = ({ key, chainCode }: Keys, index: number): Keys => {
+/**
+ * Derive a child key from the private key
+ * @param key
+ * @param chainCode
+ * @param index
+ * @constructor
+ */
+const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
   const buffer = new ArrayBuffer(4);
   new DataView(buffer).setUint32(0, index);
   const indexBytes = new Uint8Array(buffer);
   const zero = new Uint8Array([0]);
   const data = new Uint8Array([...zero, ...key, ...indexBytes]);
 
-  const I = hmac.create(sha512, chainCode).update(data).digest();
-  const IL = I.slice(0, 32);
-  const IR = I.slice(32);
-  return {
-    key: IL,
-    chainCode: IR,
-  };
+  return deriveKey(chainCode, data);
 };
 
-export const getPublicKey = (privateKey: Uint8Array, withZeroByte = true): Uint8Array => {
-  const keyPair = nacl.sign.keyPair.fromSeed(privateKey);
-  const signPk = keyPair.secretKey.subarray(32);
-  const zero = new Uint8Array([0]);
-  return withZeroByte ? new Uint8Array([...zero, ...signPk]) : signPk;
-};
+const removeApostrophes = (val: string): string => val.replace("'", "");
 
+/**
+ * Splits derive path into segments
+ * @param path
+ */
+const splitPath = (path: string): Array<string> => path.split("/").slice(1).map(removeApostrophes);
+
+/**
+ * Checks if the BIP44 path is valid for Aptos
+ * @param path
+ */
 export const isValidPath = (path: string): boolean => {
-  if (!pathRegex.test(path)) {
+  if (!APTOS_PATH_REGEX.test(path)) {
     return false;
   }
-  return !path
-    .split("/")
-    .slice(1)
-    .map(replaceDerive)
-    .some(Number.isNaN as any);
+  return !splitPath(path).some(Number.isNaN as any);
 };
 
-export const derivePath = (path: string, seed: string, offset = HARDENED_OFFSET): Keys => {
+/**
+ * Normalizes the mnemonic by removing extra whitespace and making it lowercase
+ * @param mnemonic
+ */
+const mnemonicToSeed = (mnemonic: string): Uint8Array => {
+  const normalizedMnemonic = mnemonic
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.toLowerCase())
+    .join(" ");
+  return bip39.mnemonicToSeedSync(normalizedMnemonic);
+};
+
+/**
+ * Derives a private key from a mnemonic seed phrase.
+ *
+ * To derive multiple keys from the same phrase, change the path
+ * @param path
+ * @param seedPhrase
+ * @param offset
+ */
+export const derivePrivateKeyFromMnemonic = (
+  keyType: string,
+  path: string,
+  seedPhrase: string,
+  offset = HARDENED_OFFSET,
+): DerivedKeys => {
   if (!isValidPath(path)) {
     throw new Error("Invalid derivation path");
   }
 
-  const { key, chainCode } = getMasterKeyFromSeed(seed);
-  const segments = path
-    .split("/")
-    .slice(1)
-    .map(replaceDerive)
-    .map((el) => parseInt(el, 10));
+  // Derive the master key from the mnemonic
+  const { key, chainCode } = deriveKey(keyType, mnemonicToSeed(seedPhrase));
+  const segments = splitPath(path).map((el) => parseInt(el, 10));
 
+  // Derive the child key based on the path
   return segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), { key, chainCode });
 };

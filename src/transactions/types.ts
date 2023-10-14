@@ -14,7 +14,7 @@ import {
   TransactionPayloadScript,
 } from "./instances";
 import { TypeTag } from "./typeTag/typeTag";
-import { MoveObject, MoveOption, MoveVector } from "../bcs/serializable/move-structs";
+import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/move-structs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
 import { FixedBytes } from "../bcs/serializable/fixed-bytes";
 
@@ -31,6 +31,7 @@ export type EntryFunctionArgumentTypes =
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
   | AccountAddress
+  | MoveString
   | FixedBytes;
 export type ScriptFunctionArgumentTypes =
   | Bool
@@ -44,6 +45,7 @@ export type ScriptFunctionArgumentTypes =
   | MoveObject
   | MoveVector<U8>
   | AccountAddress
+  | MoveString
   | FixedBytes;
 
 /**

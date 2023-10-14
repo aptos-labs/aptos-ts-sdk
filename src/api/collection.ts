@@ -32,8 +32,7 @@ export class Collection {
       tokenStandard?: TokenStandard;
     };
   }): Promise<GetCollectionDataResponse> {
-    const data = await getCollectionData({ aptosConfig: this.config, ...args });
-    return data;
+    return getCollectionData({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -50,7 +49,6 @@ export class Collection {
       tokenStandard?: TokenStandard;
     };
   }): Promise<string> {
-    const data = await getCollectionAddress({ aptosConfig: this.config, ...args });
-    return data;
+    return getCollectionAddress({ aptosConfig: this.config, ...args });
   }
 }
