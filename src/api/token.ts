@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getTokenData } from "../internal/token";
-import { GetTokenDataResponse, HexInput, TokenStandard } from "../types";
+import { GetTokenDataResponse, HexInput } from "../types";
 import { AptosConfig } from "./aptos_config";
 
 /**
@@ -24,7 +24,6 @@ export class Token {
   async getTokenData(args: {
     tokenAddress: HexInput;
   }): Promise<GetTokenDataResponse> {
-    const data = await getTokenData({ aptosConfig: this.config, ...args });
-    return data;
+    return getTokenData({ aptosConfig: this.config, ...args });
   }
 }
