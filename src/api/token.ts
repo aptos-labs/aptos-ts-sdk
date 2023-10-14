@@ -21,9 +21,7 @@ export class Token {
    * @param args.tokenAddress The address of the token
    * @returns GetTokenDataResponse containing relevant data to the token.
    */
-  async getTokenData(args: {
-    tokenAddress: HexInput;
-  }): Promise<GetTokenDataResponse> {
+  async getTokenData(args: { tokenAddress: HexInput }): Promise<GetTokenDataResponse> {
     return getTokenData({ aptosConfig: this.config, ...args });
   }
 }
