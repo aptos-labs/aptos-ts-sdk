@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Serializer, Deserializer } from "../../src/bcs";
-import { AccountAddress } from "../../src/core";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
+import { AccountAddress, Serializer, Deserializer, Bool, U128, U16, U256, U32, U64, U8 } from "../../src";
 import { MoveVector } from "../../src/bcs/serializable/move-structs";
 import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
@@ -36,9 +34,9 @@ describe("Tests for the script transaction argument class", () => {
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
     const validateBytes = (input: ScriptFunctionArgument, expectedOutput: Uint8Array) => {
-      const serializer = new Serializer();
-      input.serializeForScriptFunction(serializer);
-      const serializedBytes = serializer.toUint8Array();
+      const scriptSerializer = new Serializer();
+      input.serializeForScriptFunction(scriptSerializer);
+      const serializedBytes = scriptSerializer.toUint8Array();
       expect(serializedBytes).toEqual(expectedOutput);
     };
     validateBytes(new U8(1), scriptU8Bytes);

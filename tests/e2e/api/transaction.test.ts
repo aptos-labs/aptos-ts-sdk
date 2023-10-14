@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account } from "../../../src";
-import { U64 } from "../../../src/bcs/serializable/move-primitives";
-import { SigningScheme, TransactionResponse, UserTransactionResponse } from "../../../src/types";
+import { AptosConfig, Aptos, Network, Account, TransactionResponse, UserTransactionResponse, U64 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -12,8 +10,6 @@ const aptos = new Aptos(config);
 
 describe("transaction api", () => {
   test("it queries for the network estimated gas price", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
     const data = await aptos.getGasPriceEstimation();
     expect(data).toHaveProperty("gas_estimate");
     expect(data).toHaveProperty("deprioritized_gas_estimate");

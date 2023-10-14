@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, AptosConfig, Network } from "../../../src";
+// import { Aptos, AptosConfig, Network } from "../../../src";
 
 // Disable these tests for now until we can test against LOCAL
 describe("Collection", () => {

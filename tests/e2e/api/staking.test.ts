@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos } from "../../../src";
-import { Network } from "../../../src/utils/apiEndpoints";
+import { AptosConfig, Aptos, Network } from "../../../src";
 
 describe("staking api", () => {
   test("it queries for the number of delegators", async () => {
@@ -12,7 +11,7 @@ describe("staking api", () => {
       options: { orderBy: [{ num_active_delegator: "desc" }] },
     });
     expect(numDelegatorsData.length).toBeGreaterThan(5);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 5; i += 1) {
       expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThan(numDelegatorsData[i + 1].num_active_delegator);
     }
     const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: numDelegatorsData[0].pool_address! });
