@@ -51,7 +51,7 @@ export const secp256k1TestObject = {
   authKey: "0x44b9b90a0bd6a691a20cb06148f10ec9c21da63bb5df345ae38507e0c3c2f897",
   messageEncoded: "68656c6c6f20776f726c64", // "hello world"
   signatureHex:
-    "0x3eda29841168c902b154ac12dfb0f8775ece1b95315b227ede64cbd715abac665aa8c8df5b108b0d4918bb88ea58c892972af375a71761a7e590655ff5de3859",
+    "0xd0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca",
 };
 
 export const longTestTimeout = 120 * 1000;

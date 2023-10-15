@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AptosConfig, Network, Aptos, Deserializer, U64 } from "../../../src";
+import { Account, AptosConfig, Network, Aptos, Deserializer, U64, SigningScheme } from "../../../src";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import {
@@ -124,10 +124,34 @@ describe("transaction submission", () => {
       longTestTimeout,
     );
 
-    test("it submits an entry function transaction", async () => {
+    test("it submits an entry function transaction with Secp256k1Ecdsa", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
+      const bob = Account.generate();
+      const rawTxn = await aptos.generateTransaction({
+        sender: alice.accountAddress.toString(),
+        data: {
+          function: "0x1::aptos_account::transfer",
+          type_arguments: [],
+          arguments: [bob.accountAddress, new U64(1)],
+        },
+      });
+      const authenticator = aptos.signTransaction({
+        signer: alice,
+        transaction: rawTxn,
+      });
+      const response = await aptos.submitTransaction({
+        transaction: rawTxn,
+        senderAuthenticator: authenticator,
+      });
+      await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+    });
+    test("it submits an entry function transaction", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const alice = Account.generate(SigningScheme.Secp256k1Ecdsa);
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
