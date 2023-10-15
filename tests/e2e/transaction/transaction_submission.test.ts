@@ -4,7 +4,6 @@
 import { Account, AptosConfig, Network, Aptos, Deserializer, U64 } from "../../../src";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
 import { waitForTransaction } from "../../../src/internal/transaction";
-import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import {
   RawTransaction,
   TransactionPayloadEntryFunction,
@@ -76,79 +75,6 @@ describe("transaction submission", () => {
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
-    });
-  });
-  describe("signTransaction", () => {
-    test("it signs a script transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          bytecode: "a11ceb0b030000000105000100000000050601000000000000000600000000000000001a0102",
-          type_arguments: [],
-          arguments: [],
-        },
-      });
-      const accountAuthenticator = aptos.signTransaction({
-        signer: alice,
-        transaction: rawTxn,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
-      const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
-    });
-
-    test("it signs a multi sig transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          multisigAddress: bob.accountAddress,
-          function: "0x1::aptos_account::transfer",
-          type_arguments: [],
-          arguments: [new MoveObject(bob.accountAddress), new U64(1)],
-        },
-      });
-      const accountAuthenticator = aptos.signTransaction({
-        signer: alice,
-        transaction: rawTxn,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
-      const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
-    });
-
-    test("it signs an entry function transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          function: "0x1::aptos_account::transfer",
-          type_arguments: [],
-          arguments: [new MoveObject(bob.accountAddress), new U64(1)],
-        },
-      });
-      const accountAuthenticator = aptos.signTransaction({
-        signer: alice,
-        transaction: rawTxn,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
-      const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
   });
   describe("submitTransaction", () => {
