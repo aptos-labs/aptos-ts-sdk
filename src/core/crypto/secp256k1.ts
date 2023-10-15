@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sha256 } from "@noble/hashes/sha256";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
@@ -61,9 +61,9 @@ export class Secp256k1PublicKey extends PublicKey {
   verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
     const { message, signature } = args;
     const msgHex = Hex.fromHexInput(message).toUint8Array();
-    const sha256Message = sha256(msgHex);
+    const sha3Message = sha3_256(msgHex);
     const rawSignature = signature.toUint8Array();
-    return secp256k1.verify(rawSignature, sha256Message, this.toUint8Array());
+    return secp256k1.verify(rawSignature, sha3Message, this.toUint8Array());
   }
 
   serialize(serializer: Serializer): void {
@@ -133,8 +133,8 @@ export class Secp256k1PrivateKey extends PrivateKey {
    */
   sign(message: HexInput): Secp256k1Signature {
     const msgHex = Hex.fromHexInput(message);
-    const sha256Message = sha256(msgHex.toUint8Array());
-    const signature = secp256k1.sign(sha256Message, this.key.toUint8Array());
+    const sha3Message = sha3_256(msgHex.toUint8Array());
+    const signature = secp256k1.sign(sha3Message, this.key.toUint8Array());
     return new Secp256k1Signature(signature.toCompactRawBytes());
   }
 
