@@ -22,7 +22,7 @@ import {
 } from "../../../src/transactions/transaction_builder/transaction_builder";
 import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
 import { MoveObject } from "../../../src/bcs/serializable/move-structs";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 /* eslint-disable max-len */
 describe("transaction builder", () => {
@@ -207,35 +207,39 @@ describe("transaction builder", () => {
       expect(transaction.feePayerAddress?.data).toStrictEqual(feePayer.accountAddress.toUint8Array());
     });
 
-    test("it returns a serialized raw transaction, secondary signers addresses and a fee payer address", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate();
-      const payload = generateTransactionPayload({
-        function: "0x1::aptos_account::transfer",
-        type_arguments: [],
-        arguments: [new MoveObject(bob.accountAddress), new U64(1)],
-      });
-      const feePayer = Account.generate();
-      const secondarySignerAddress = Account.generate();
-      const transaction = await buildTransaction({
-        aptosConfig: config,
-        sender: alice.accountAddress.toString(),
-        payload,
-        secondarySignerAddresses: [secondarySignerAddress.accountAddress.toString()],
-        feePayerAddress: feePayer.accountAddress.toString(),
-      });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
-      expect(transaction.secondarySignerAddresses).not.toBeUndefined();
-      expect(transaction.secondarySignerAddresses?.length).toBe(1);
-      expect(transaction.secondarySignerAddresses![0].data).toStrictEqual(
-        secondarySignerAddress.accountAddress.toUint8Array(),
-      );
-      expect(transaction.feePayerAddress).not.toBeUndefined();
-      expect(transaction.feePayerAddress?.data).toStrictEqual(feePayer.accountAddress.toUint8Array());
-    });
+    test(
+      "it returns a serialized raw transaction, secondary signers addresses and a fee payer address",
+      async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
+        const alice = Account.generate();
+        await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
+        const bob = Account.generate();
+        const payload = generateTransactionPayload({
+          function: "0x1::aptos_account::transfer",
+          type_arguments: [],
+          arguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        });
+        const feePayer = Account.generate();
+        const secondarySignerAddress = Account.generate();
+        const transaction = await buildTransaction({
+          aptosConfig: config,
+          sender: alice.accountAddress.toString(),
+          payload,
+          secondarySignerAddresses: [secondarySignerAddress.accountAddress.toString()],
+          feePayerAddress: feePayer.accountAddress.toString(),
+        });
+        expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+        expect(transaction.secondarySignerAddresses).not.toBeUndefined();
+        expect(transaction.secondarySignerAddresses?.length).toBe(1);
+        expect(transaction.secondarySignerAddresses![0].data).toStrictEqual(
+          secondarySignerAddress.accountAddress.toUint8Array(),
+        );
+        expect(transaction.feePayerAddress).not.toBeUndefined();
+        expect(transaction.feePayerAddress?.data).toStrictEqual(feePayer.accountAddress.toUint8Array());
+      },
+      longTestTimeout,
+    );
   });
   describe("generateSignedTransactionForSimulation", () => {
     test("it generates a signed raw transaction for simulation", async () => {

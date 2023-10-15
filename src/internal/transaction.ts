@@ -32,7 +32,7 @@ export async function getTransactions(args: {
     aptosConfig,
     originMethod: "getTransactions",
     path: "transactions",
-    params: { start: options?.start, limit: options?.limit },
+    params: { start: options?.offset, limit: options?.limit },
   });
   return data;
 }

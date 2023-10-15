@@ -20,7 +20,6 @@ import {
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
   HexInput,
-  IndexerPaginationArgs,
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
@@ -78,7 +77,7 @@ export async function getModules(args: {
     }).toString()}/modules`,
     params: {
       ledger_version: options?.ledgerVersion,
-      start: options?.start,
+      start: options?.offset,
       limit: options?.limit ?? 1000,
     },
   });
@@ -145,7 +144,7 @@ export async function getTransactions(args: {
     path: `accounts/${AccountAddress.fromHexInput({
       input: accountAddress,
     }).toString()}/transactions`,
-    params: { start: options?.start, limit: options?.limit },
+    params: { start: options?.offset, limit: options?.limit },
   });
   return data;
 }
@@ -164,7 +163,7 @@ export async function getResources(args: {
     }).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
-      start: options?.start,
+      start: options?.offset,
       limit: options?.limit ?? 999,
     },
   });
@@ -266,7 +265,7 @@ export async function getAccountOwnedTokens(args: {
   accountAddress: HexInput;
   options?: {
     tokenStandard?: TokenStandard;
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
   };
 }): Promise<GetAccountOwnedTokensQueryResponse> {
@@ -309,7 +308,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   collectionAddress: HexInput;
   options?: {
     tokenStandard?: TokenStandard;
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
@@ -353,7 +352,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   accountAddress: HexInput;
   options?: {
     tokenStandard?: TokenStandard;
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
   };
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
@@ -424,7 +423,7 @@ export async function getAccountCoinsData(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
   options?: {
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
   };
 }): Promise<GetAccountCoinsDataResponse> {
@@ -487,7 +486,7 @@ export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
   ownerAddress: HexInput;
   options?: {
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
   };
 }): Promise<GetAccountOwnedObjectsResponse> {

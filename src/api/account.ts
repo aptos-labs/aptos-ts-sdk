@@ -10,7 +10,6 @@ import {
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
   HexInput,
-  IndexerPaginationArgs,
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
@@ -208,7 +207,7 @@ export class Account {
     accountAddress: HexInput;
     options?: {
       tokenStandard?: TokenStandard;
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensQueryResponse> {
@@ -233,7 +232,7 @@ export class Account {
     collectionAddress: HexInput;
     options?: {
       tokenStandard?: TokenStandard;
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
@@ -256,7 +255,7 @@ export class Account {
     accountAddress: HexInput;
     options?: {
       tokenStandard?: TokenStandard;
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
     };
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
@@ -288,7 +287,7 @@ export class Account {
   async getAccountCoinsData(args: {
     accountAddress: HexInput;
     options?: {
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
     };
   }): Promise<GetAccountCoinsDataResponse> {
@@ -317,7 +316,7 @@ export class Account {
   async getAccountOwnedObjects(args: {
     ownerAddress: HexInput;
     options?: {
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
     };
   }): Promise<GetAccountOwnedObjectsResponse> {
