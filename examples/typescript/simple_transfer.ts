@@ -76,11 +76,8 @@ const example = async () => {
   });
 
   console.log("\n=== Transfer transaction ===\n");
-  let signature = aptos.transactionSubmission.signTransaction({ signer: alice, transaction: txn });
-  const committedTxn = await aptos.transactionSubmission.submitTransaction({
-    transaction: txn,
-    senderAuthenticator: signature,
-  });
+  let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
+
   await aptos.waitForTransaction({ txnHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
