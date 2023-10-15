@@ -10,7 +10,7 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { hexToBytes } from "@noble/hashes/utils";
 import { AptosConfig } from "../../api/aptos_config";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress } from "../../core";
+import { AccountAddress, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
@@ -264,6 +264,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
   const deserializer = new Deserializer(transaction.rawTransaction);
   const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
+  const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
   // fee payer transaction
   if (transaction.feePayerAddress) {
     const transactionToSign = new FeePayerRawTransaction(
@@ -271,25 +272,20 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
-    const accountAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey(signerPublicKey.toUint8Array()),
-      new Ed25519Signature(new Uint8Array(64)),
-    );
-    const secondaryAccountAuthenticators = secondarySignersPublicKeys!.map(
-      (publicKey) =>
-        new AccountAuthenticatorEd25519(
-          new Ed25519PublicKey(publicKey.toUint8Array()),
-          new Ed25519Signature(new Uint8Array(64)),
-        ),
-    );
-    const feePayerAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey(feePayerPublicKey!.toUint8Array()),
-      new Ed25519Signature(new Uint8Array(64)),
-    );
+
+    let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
+    if (secondarySignersPublicKeys) {
+      secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
+        getAuthenticatorForSimulation(publicKey),
+      );
+    }
+
+    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey!);
+
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
       transaction.secondarySignerAddresses ?? [],
-      secondaryAccountAuthenticators ?? [],
+      secondaryAccountAuthenticators,
       {
         address: transaction.feePayerAddress,
         authenticator: feePayerAuthenticator,
@@ -305,17 +301,10 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       transaction.secondarySignerAddresses,
     );
 
-    const accountAuthenticator = new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey(signerPublicKey.toUint8Array()),
-      new Ed25519Signature(new Uint8Array(64)),
-    );
+    let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 
-    const secondaryAccountAuthenticators = secondarySignersPublicKeys!.map(
-      (publicKey) =>
-        new AccountAuthenticatorEd25519(
-          new Ed25519PublicKey(publicKey.toUint8Array()),
-          new Ed25519Signature(new Uint8Array(64)),
-        ),
+    secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
+      getAuthenticatorForSimulation(publicKey),
     );
 
     const transactionAuthenticator = new TransactionAuthenticatorMultiAgent(
@@ -328,17 +317,34 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
   }
 
   // raw transaction
-
-  const accountAuthenticator = new AccountAuthenticatorEd25519(
-    new Ed25519PublicKey(signerPublicKey.toUint8Array()),
-    new Ed25519Signature(new Uint8Array(64)),
-  );
-
-  const transactionAuthenticator = new TransactionAuthenticatorEd25519(
-    accountAuthenticator.public_key,
-    accountAuthenticator.signature,
-  );
+  let transactionAuthenticator;
+  if (accountAuthenticator instanceof AccountAuthenticatorEd25519) {
+    transactionAuthenticator = new TransactionAuthenticatorEd25519(
+      accountAuthenticator.public_key,
+      accountAuthenticator.signature,
+    );
+  } else if (accountAuthenticator instanceof AccountAuthenticatorSecp256k1) {
+    transactionAuthenticator = new TransactionAuthenticatorSecp256k1(
+      accountAuthenticator.public_key,
+      accountAuthenticator.signature,
+    );
+  } else {
+    throw new Error("Invalud public key");
+  }
   return new SignedTransaction(deserializedTransaction, transactionAuthenticator).bcsToBytes();
+}
+
+export function getAuthenticatorForSimulation(publicKey: PublicKey) {
+  if (publicKey instanceof Ed25519PublicKey) {
+    return new AccountAuthenticatorEd25519(
+      new Ed25519PublicKey(publicKey.toUint8Array()),
+      new Ed25519Signature(new Uint8Array(64)),
+    );
+  }
+  return new AccountAuthenticatorSecp256k1(
+    new Secp256k1PublicKey(publicKey.toUint8Array()),
+    new Secp256k1Signature(new Uint8Array(64)),
+  );
 }
 
 /**

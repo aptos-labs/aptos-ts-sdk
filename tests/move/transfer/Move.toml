@@ -1,0 +1,12 @@
+[package]
+name = "transaction_test"
+version = "0.0.0"
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'main'
+subdir = 'aptos-move/framework/aptos-framework'
+
+[addresses]
+aptos_framework = "0x1"
+transaction_test = "_"
