@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
-import { AnyNumber, GetEventsResponse, IndexerPaginationArgs, MoveResourceType, OrderBy } from "../types";
+import { AnyNumber, GetEventsResponse, MoveResourceType, OrderBy, PaginationArgs } from "../types";
 import { EventsBoolExp } from "../types/generated/types";
 import { AptosConfig } from "./aptos_config";
 
@@ -28,7 +28,7 @@ export class Event {
     address: string;
     creationNumber: AnyNumber;
     options?: {
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetEventsResponse[0]>;
     };
   }): Promise<GetEventsResponse> {
@@ -47,7 +47,7 @@ export class Event {
     address: string;
     eventType: MoveResourceType;
     options?: {
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetEventsResponse[0]>;
     };
   }): Promise<GetEventsResponse> {
@@ -73,7 +73,7 @@ export class Event {
   async getEvents(args?: {
     options?: {
       where?: EventsBoolExp;
-      pagination?: IndexerPaginationArgs;
+      pagination?: PaginationArgs;
       orderBy?: OrderBy<GetEventsResponse[0]>;
     };
   }): Promise<GetEventsResponse> {
