@@ -329,7 +329,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       accountAuthenticator.signature,
     );
   } else {
-    throw new Error("Invalud public key");
+    throw new Error("Invalid public key");
   }
   return new SignedTransaction(deserializedTransaction, transactionAuthenticator).bcsToBytes();
 }
