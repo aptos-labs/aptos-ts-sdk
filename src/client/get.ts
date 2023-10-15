@@ -81,7 +81,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
 ): Promise<Res> {
   const out = [];
   let cursor: string | undefined;
-  const requestParams = options.params as Req & { start?: string };
+  const requestParams = options.params as Req & { start?: string; limit?: number };
   // eslint-disable-next-line no-constant-condition
   while (true) {
     requestParams.start = cursor;
