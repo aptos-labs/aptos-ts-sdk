@@ -79,11 +79,7 @@ const example = async () => {
   });
 
   console.log("\n=== Transfer transaction ===\n");
-  let signature = sdk.signTransaction({ signer: alice, transaction: txn });
-  const committedTxn = await sdk.submitTransaction({
-    transaction: txn,
-    senderAuthenticator: signature,
-  });
+  let committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
   console.log(`Committed transaction: ${committedTxn.hash}`);
   await sdk.waitForTransaction({ txnHash: committedTxn.hash });
 
