@@ -1,6 +1,6 @@
 import { AptosConfig, Network, Aptos, Account, U64, SigningScheme } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, signleSignerScriptBytecode } from "./helper";
+import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
 describe("transaction simulation", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
@@ -26,7 +26,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderAccount.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
@@ -130,7 +130,7 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
@@ -214,7 +214,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
@@ -318,7 +318,7 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },

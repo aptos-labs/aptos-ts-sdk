@@ -5,7 +5,7 @@ import {
   AccountAuthenticatorSecp256k1,
 } from "../../../src/transactions/authenticator/account";
 import { longTestTimeout } from "../../unit/helper";
-import { fundAccounts, publishTransferPackage, signleSignerScriptBytecode } from "./helper";
+import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
 describe("sign transaction", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
@@ -32,7 +32,7 @@ describe("sign transaction", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderAccount.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
@@ -90,7 +90,7 @@ describe("sign transaction", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
-            bytecode: signleSignerScriptBytecode,
+            bytecode: singleSignerScriptBytecode,
             type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
