@@ -855,7 +855,7 @@ export type Block = {
 };
 
 /**
- * The data needed to generate an View Request payload
+ * The data needed to generate a View Request payload
  */
 export type ViewRequestData = {
   function: MoveStructType;
