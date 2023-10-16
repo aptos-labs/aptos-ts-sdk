@@ -7,6 +7,7 @@ import { Coin } from "./coin";
 import { Collection } from "./collection";
 import { Event } from "./event";
 import { Faucet } from "./faucet";
+import { FungibleAsset } from "./fungible_asset";
 import { General } from "./general";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
@@ -24,6 +25,8 @@ export class Aptos {
   readonly event: Event;
 
   readonly faucet: Faucet;
+
+  readonly fungibleAsset: FungibleAsset;
 
   readonly general: General;
 
@@ -57,6 +60,7 @@ export class Aptos {
     this.collection = new Collection(this.config);
     this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
+    this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
@@ -70,6 +74,7 @@ export interface Aptos
     Collection,
     Event,
     Faucet,
+    FungibleAsset,
     General,
     Staking,
     Transaction,
@@ -101,6 +106,7 @@ applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, Collection, "collection");
 applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
+applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
