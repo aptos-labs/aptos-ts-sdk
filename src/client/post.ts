@@ -37,7 +37,7 @@ export type PostRequestOptions = {
    */
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   /**
-   * The body of the request, should match teh content type of the request
+   * The body of the request, should match the content type of the request
    */
   body?: any;
   /**

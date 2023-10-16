@@ -7,6 +7,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Changed all instances of `arguments` to `functionArguments` to avoid the reserved keyword in `strict` mode.
 - Support publish move module API function
 - Fix client config not being added to the request
+- Support to config a custom client instance
 
 ## 0.0.0 (2023-10-18)
 
