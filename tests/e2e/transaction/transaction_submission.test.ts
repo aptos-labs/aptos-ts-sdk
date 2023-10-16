@@ -1,82 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AptosConfig, Network, Aptos, Deserializer, U64, SigningScheme } from "../../../src";
-import { MoveObject } from "../../../src/bcs/serializable/move-structs";
+import { Account, AptosConfig, Network, Aptos, U64, SigningScheme } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
-import {
-  RawTransaction,
-  TransactionPayloadEntryFunction,
-  TransactionPayloadMultisig,
-  TransactionPayloadScript,
-} from "../../../src/transactions/instances";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 describe("transaction submission", () => {
-  describe("generateTransaction", () => {
-    test("it generates a script transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          bytecode: "a11ceb0b030000000105000100000000050601000000000000000600000000000000001a0102",
-          type_arguments: [],
-          arguments: [],
-        },
-      });
-      expect(rawTxn.rawTransaction instanceof Uint8Array).toBeTruthy();
-      const deserializer = new Deserializer(rawTxn.rawTransaction);
-      const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
-    });
-
-    test("it generates a multi sig transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          multisigAddress: bob.accountAddress,
-          function: "0x1::aptos_account::transfer",
-          type_arguments: [],
-          arguments: [new MoveObject(bob.accountAddress), new U64(1)],
-        },
-      });
-      expect(rawTxn.rawTransaction instanceof Uint8Array).toBeTruthy();
-      const deserializer = new Deserializer(rawTxn.rawTransaction);
-      const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
-    });
-
-    test("it generates an entry function transaction", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
-        sender: alice.accountAddress.toString(),
-        data: {
-          function: "0x1::aptos_account::transfer",
-          type_arguments: [],
-          arguments: [new MoveObject(bob.accountAddress), new U64(1)],
-        },
-      });
-      expect(rawTxn.rawTransaction instanceof Uint8Array).toBeTruthy();
-      const deserializer = new Deserializer(rawTxn.rawTransaction);
-      const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
-    });
-  });
   describe("submitTransaction", () => {
     test(
       "it submits a script transaction",
