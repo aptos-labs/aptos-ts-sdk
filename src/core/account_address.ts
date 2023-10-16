@@ -53,13 +53,13 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    */
   static readonly LONG_STRING_LENGTH: number = 64;
 
-  static ONE: AccountAddress = AccountAddress.fromString({ input: "0x1" });
+  static ONE: AccountAddress = AccountAddress.fromString("0x1");
 
-  static TWO: AccountAddress = AccountAddress.fromString({ input: "0x2" });
+  static TWO: AccountAddress = AccountAddress.fromString("0x2");
 
-  static THREE: AccountAddress = AccountAddress.fromString({ input: "0x3" });
+  static THREE: AccountAddress = AccountAddress.fromString("0x3");
 
-  static FOUR: AccountAddress = AccountAddress.fromString({ input: "0x4" });
+  static FOUR: AccountAddress = AccountAddress.fromString("0x4");
 
   /**
    * Creates an instance of AccountAddress from a Uint8Array.
@@ -174,7 +174,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @returns void
    * @example
    * const serializer = new Serializer();
-   * const address = AccountAddress.fromString({ input: "0x1" });
+   * const address = AccountAddress.fromString("0x1");
    * address.serialize(serializer);
    * const bytes = serializer.toUint8Array();
    * // `bytes` is now the BCS-serialized address.
@@ -235,31 +235,31 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Learn more about the different address formats by reading AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
    *
-   * @param args.input A hex string representing an account address.
+   * @param input A hex string representing an account address.
    *
    * @returns An instance of AccountAddress.
    */
-  static fromString(args: { input: string }): AccountAddress {
+  static fromString(input: string): AccountAddress {
     // Assert the string starts with 0x.
-    if (!args.input.startsWith("0x")) {
+    if (!input.startsWith("0x")) {
       throw new ParsingError("Hex string must start with a leading 0x.", AddressInvalidReason.LEADING_ZERO_X_REQUIRED);
     }
 
-    const address = AccountAddress.fromStringRelaxed(args);
+    const address = AccountAddress.fromStringRelaxed(input);
 
     // Check if the address is in LONG form. If it is not, this is only allowed for
     // special addresses, in which case we check it is in proper SHORT form.
-    if (args.input.length !== AccountAddress.LONG_STRING_LENGTH + 2) {
+    if (input.length !== AccountAddress.LONG_STRING_LENGTH + 2) {
       if (!address.isSpecial()) {
         throw new ParsingError(
           `The given hex string ${address} is not a special address, it must be represented as 0x + 64 chars.`,
           AddressInvalidReason.LONG_FORM_REQUIRED_UNLESS_SPECIAL,
         );
-      } else if (args.input.length !== 3) {
+      } else if (input.length !== 3) {
         // 0x + one hex char is the only valid SHORT form for special addresses.
         throw new ParsingError(
           // eslint-disable-next-line max-len
-          `The given hex string ${args.input} is a special address not in LONG form, it must be 0x0 to 0xf without padding zeroes.`,
+          `The given hex string ${input} is a special address not in LONG form, it must be 0x0 to 0xf without padding zeroes.`,
           AddressInvalidReason.INVALID_PADDING_ZEROES,
         );
       }
@@ -293,16 +293,15 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns An instance of AccountAddress.
    */
-  static fromStringRelaxed(args: { input: string }): AccountAddress {
-    let { input } = args;
-
+  static fromStringRelaxed(input: string): AccountAddress {
+    let parsedInput = input;
     // Remove leading 0x for parsing.
     if (input.startsWith("0x")) {
-      input = input.slice(2);
+      parsedInput = input.slice(2);
     }
 
     // Ensure the address string is at least 1 character long.
-    if (input.length === 0) {
+    if (parsedInput.length === 0) {
       throw new ParsingError(
         "Hex string is too short, must be 1 to 64 chars long, excluding the leading 0x.",
         AddressInvalidReason.TOO_SHORT,
@@ -310,7 +309,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     }
 
     // Ensure the address string is not longer than 64 characters.
-    if (input.length > 64) {
+    if (parsedInput.length > 64) {
       throw new ParsingError(
         "Hex string is too long, must be 1 to 64 chars long, excluding the leading 0x.",
         AddressInvalidReason.TOO_LONG,
@@ -322,7 +321,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       // Pad the address with leading zeroes so it is 64 chars long and then convert
       // the hex string to bytes. Every two characters in a hex string constitutes a
       // single byte. So a 64 length hex string becomes a 32 byte array.
-      addressBytes = hexToBytes(input.padStart(64, "0"));
+      addressBytes = hexToBytes(parsedInput.padStart(64, "0"));
     } catch (e) {
       const error = e as Error;
       // At this point the only way this can fail is if the hex string contains
@@ -341,26 +340,26 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns An instance of AccountAddress.
    */
-  static fromHexInput(args: { input: HexInput }): AccountAddress {
-    if (args.input instanceof Uint8Array) {
-      return new AccountAddress({ data: args.input });
+  static fromHexInput(input: HexInput): AccountAddress {
+    if (input instanceof Uint8Array) {
+      return new AccountAddress({ data: input });
     }
-    return AccountAddress.fromString({ input: args.input });
+    return AccountAddress.fromString(input);
   }
 
   /**
    * Convenience method for creating an AccountAddress from HexInput. For more
    * more information on how this works, see the constructor and fromStringRelaxed.
    *
-   * @param args.input A hex string or Uint8Array representing an account address.
+   * @param input A hex string or Uint8Array representing an account address.
    *
    * @returns An instance of AccountAddress.
    */
-  static fromHexInputRelaxed(args: { input: HexInput }): AccountAddress {
-    if (args.input instanceof Uint8Array) {
-      return new AccountAddress({ data: args.input });
+  static fromHexInputRelaxed(input: HexInput): AccountAddress {
+    if (input instanceof Uint8Array) {
+      return new AccountAddress({ data: input });
     }
-    return AccountAddress.fromStringRelaxed({ input: args.input });
+    return AccountAddress.fromStringRelaxed(input);
   }
 
   // ===
@@ -379,9 +378,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   static isValid(args: { input: string; relaxed?: boolean }): ParsingResult<AddressInvalidReason> {
     try {
       if (args.relaxed) {
-        AccountAddress.fromStringRelaxed({ input: args.input });
+        AccountAddress.fromStringRelaxed(args.input);
       } else {
-        AccountAddress.fromString({ input: args.input });
+        AccountAddress.fromString(args.input);
       }
       return { valid: true };
     } catch (e) {

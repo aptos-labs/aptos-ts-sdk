@@ -353,7 +353,7 @@ export class TypeTagParser {
       return new TypeTagStruct(stringStructTag());
     }
     if (tokenTy === "IDENT" && (tokenVal.startsWith("0x") || tokenVal.startsWith("0X"))) {
-      const address = AccountAddress.fromHexInput({ input: tokenVal });
+      const address = AccountAddress.fromHexInput(tokenVal);
       this.consume("::");
       const [moduleTokenTy, module] = this.tokens.shift()!;
       if (moduleTokenTy !== "IDENT") {

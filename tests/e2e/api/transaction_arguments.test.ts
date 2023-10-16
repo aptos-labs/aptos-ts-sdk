@@ -96,12 +96,12 @@ describe("various transaction arguments", () => {
       MoveVector.U128([0, 1, 2, MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT]),
       MoveVector.U256([0, 1, 2, MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT]),
       new MoveVector([
-        AccountAddress.fromStringRelaxed({ input: "0x0" }),
-        AccountAddress.fromStringRelaxed({ input: "0xabc" }),
-        AccountAddress.fromStringRelaxed({ input: "0xdef" }),
-        AccountAddress.fromStringRelaxed({ input: "0x123" }),
-        AccountAddress.fromStringRelaxed({ input: "0x456" }),
-        AccountAddress.fromStringRelaxed({ input: "0x789" }),
+        AccountAddress.fromStringRelaxed("0x0"),
+        AccountAddress.fromStringRelaxed("0xabc"),
+        AccountAddress.fromStringRelaxed("0xdef"),
+        AccountAddress.fromStringRelaxed("0x123"),
+        AccountAddress.fromStringRelaxed("0x456"),
+        AccountAddress.fromStringRelaxed("0x789"),
       ]),
       MoveVector.MoveString(["expected_string", "abc", "def", "123", "456", "789"]),
       new MoveVector(moduleObjects),
@@ -171,7 +171,7 @@ describe("various transaction arguments", () => {
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionMultiAgentSignature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed({ input: address }),
+        AccountAddress.fromStringRelaxed(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
@@ -194,7 +194,7 @@ describe("various transaction arguments", () => {
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-      expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
+      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -216,12 +216,12 @@ describe("various transaction arguments", () => {
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed({ input: address }),
+        AccountAddress.fromStringRelaxed(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect(AccountAddress.fromStringRelaxed({ input: responseSignature.fee_payer_address }).toString()).toEqual(
+      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
