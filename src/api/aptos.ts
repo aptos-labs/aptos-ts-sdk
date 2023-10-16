@@ -9,6 +9,7 @@ import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { General } from "./general";
 import { Staking } from "./staking";
+import { Token } from "./token";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transaction_submission";
 
@@ -28,6 +29,8 @@ export class Aptos {
   readonly general: General;
 
   readonly staking: Staking;
+
+  readonly token: Token;
 
   readonly transaction: Transaction;
 
@@ -59,6 +62,7 @@ export class Aptos {
     this.faucet = new Faucet(this.config);
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
+    this.token = new Token(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
   }
@@ -72,6 +76,7 @@ export interface Aptos
     Faucet,
     General,
     Staking,
+    Token,
     Transaction,
     TransactionSubmission {}
 
@@ -103,5 +108,6 @@ applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
+applyMixin(Aptos, Token, "token");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");

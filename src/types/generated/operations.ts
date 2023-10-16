@@ -410,3 +410,44 @@ export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: neve
 export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };
+
+export type GetTokenDataQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.CurrentTokenDatasV2BoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentTokenDatasV2OrderBy> | Types.CurrentTokenDatasV2OrderBy>;
+}>;
+
+export type GetTokenDataQuery = {
+  current_token_datas_v2: Array<{
+    collection_id: string;
+    description: string;
+    is_fungible_v2?: boolean | null;
+    largest_property_version_v1?: any | null;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    maximum?: any | null;
+    supply: any;
+    token_data_id: string;
+    token_name: string;
+    token_properties: any;
+    token_standard: string;
+    token_uri: string;
+    current_collection?: {
+      collection_id: string;
+      collection_name: string;
+      creator_address: string;
+      current_supply: any;
+      description: string;
+      last_transaction_timestamp: any;
+      last_transaction_version: any;
+      max_supply?: any | null;
+      mutable_description?: boolean | null;
+      mutable_uri?: boolean | null;
+      table_handle_v1?: string | null;
+      token_standard: string;
+      total_minted_v2?: any | null;
+      uri: string;
+    } | null;
+  }>;
+};
