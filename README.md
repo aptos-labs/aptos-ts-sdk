@@ -4,7 +4,9 @@
 [![NPM Package Version][npm-image-version]][npm-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
-The Aptos TypeScript SDK provides a convenient way to interact with the Aptos blockchain using TypeScript. It offers a 
+> **This library is experimental**. Therefore the API is unstable and may change without warning.
+
+The Aptos TypeScript SDK provides a convenient way to interact with the Aptos blockchain using TypeScript. It offers a
 set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
 
 This repository supports version >= 0.0.0 of the [Aptos SDK npm package](https://www.npmjs.com/package/@aptos-labs/ts-sdk).
@@ -14,27 +16,110 @@ This repository supports version >= 0.0.0 of the [Aptos SDK npm package](https:/
 ##### For use in Node.js or a web application
 
 Install with your favorite package manager such as npm, yarn, or pnpm:
+
 ```bash
-npm install @aptos-labs/ts-sdk
+pnpm install @aptos-labs/ts-sdk@experimental
 ```
 
 ##### For use in a browser
 
 You can add the SDK to your web application using a script tag:
+
 ```html
-<script src="https://unpkg.com/@aptos-labs/ts-sdk@latest/dist/index.global.js" />
+<script src="https://unpkg.com/@aptos-labs-ts-sdk@experimental/dist/index.global.js" />
 ```
 
 Then, the SDK can be accessed through `window.aptosSDK`.
 
+## Usage
+
+Initialize `Aptos` to access the SDK API.
+
+```ts
+// initiate the main entry point into Aptos SDK
+const aptos = new Aptos();
+```
+
+If you want to pass in a costum config
+
+```ts
+// an optional config information for the SDK client instance.
+const config = new AptosConfig({ network: Netowk.LOCAL });
+const aptos = new Aptos(config);
+```
+
+### Read data from chain
+
+---
+
+```ts
+const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
+```
+
+### Submit transaction
+
+---
+
+#### Single Signer transaction
+
+Using transaction submission api
+
+```ts
+const transaction = await aptos.generateTransaction({
+  sender: "0xalice",
+  data: {
+    function: "0x1::coin::transfer",
+    type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
+    arguments: [AccountAddress.fromHexInput("0xbob"), new U64(100)],
+  },
+});
+
+let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+```
+
+Using built in `transferCoinTransaction`
+
+```ts
+const transaction = await aptos.transferCoinTransaction({
+  sender: "0xalice",
+  recipient: "0xbob",
+  amount: 100,
+});
+
+const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+```
+
+### Keys management (default to Ed25519)
+
+---
+
+#### Generate new keys
+
+```ts
+const account = Account.generate();
+```
+
+#### Derive from private key
+
+```ts
+const account = Account.fromPrivateKey("0x123");
+```
+
+#### Derive from path
+
+```ts
+const account = Account.fromDerivationPath({ path: "mypath", mnemonic: "mymnemonic" });
+```
+
 ## Documentation and examples
 
-- [The Aptos documentation site](https://aptos.dev/sdks/ts-sdk/index) provides step-by-step instructions, code snippets, and best practices to use this library.
-- For in-depth examples, check out the [examples](https://github.com/aptos-labs/aptos-ts-sdk/examples) folder with ready-made `package.json` files to get you going quickly!
+- For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
 
 To run the SDK tests, simply run from the root of this repository:
+
+> Note: make sure aptos local node is up and running
 
 ```bash
 pnpm test
