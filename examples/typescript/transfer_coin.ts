@@ -32,7 +32,7 @@ const example = async () => {
   );
 
   // Setup the client
-  const config = new AptosConfig({ network: Network.DEVNET });
+  const config = new AptosConfig();
   const aptos = new Aptos(config);
 
   // Create two accounts
