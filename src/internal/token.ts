@@ -21,7 +21,7 @@ export async function getTokenData(args: {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: any = {
-    token_data_id: { _eq: tokenAddress },
+    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString(); },
   };
 
   const graphqlQuery = {
