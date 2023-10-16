@@ -298,10 +298,10 @@ export class Serializer {
    * @param values The array of BCS Serializable values
    * @example
    * const addresses = new Array<AccountAddress>(
-   *   AccountAddress.fromHexInputRelaxed("0x1" ),
-   *   AccountAddress.fromHexInputRelaxed("0x2" ),
-   *   AccountAddress.fromHexInputRelaxed("0xa" ),
-   *   AccountAddress.fromHexInputRelaxed("0xb" ),
+   *   AccountAddress.fromHexInputRelaxed("0x1"),
+   *   AccountAddress.fromHexInputRelaxed("0x2"),
+   *   AccountAddress.fromHexInputRelaxed("0xa"),
+   *   AccountAddress.fromHexInputRelaxed("0xb"),
    * );
    * const serializer = new Serializer();
    * serializer.serializeVector(addresses);
