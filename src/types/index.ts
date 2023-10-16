@@ -131,11 +131,11 @@ export type AptosSettings = {
 /**
  *
  * Controls the number of results that are returned and the starting position of those results.
- * @param start parameter specifies the starting position of the query result within the set of data. Default is 0.
+ * @param offset parameter specifies the starting position of the query result within the set of data. Default is 0.
  * @param limit specifies the maximum number of items or records to return in a query result. Default is 25.
  */
 export interface PaginationArgs {
-  start?: AnyNumber;
+  offset?: AnyNumber;
   limit?: number;
 }
 

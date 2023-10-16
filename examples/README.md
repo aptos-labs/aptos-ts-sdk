@@ -1,22 +1,22 @@
 ## Examples
 
-These examples show how to build common tasks in Javascript, Typescript (CommonJS) and Typescript ESM.
+These examples show how to build common tasks in Javascript and Typescript.
 
 ### Running an example
 
 These examples use a linked version of the `aptos` package from the main repository. To run a test, first build the
-package in the top level directory.
+package in the top level directory of this repo.
 
 ```bash
   pnpm build
 ```
 
-At this point, you can run any of the examples in this directory. For example, to run the `create-account` example:
+At this point, you can run any of the examples in this directory. For example, to run the `simple_transfer` example:
 
 ```bash
   cd examples/javascript/simple_transfer
   pnpm install
-  pnpm test
+  pnpm run simple_transfer
 ```
 
 This will then print out the results of the test accordingly.
