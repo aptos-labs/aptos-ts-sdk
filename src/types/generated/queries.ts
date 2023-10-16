@@ -273,7 +273,15 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
-
+export const GetProcessorStatus = `
+    query getProcessorStatus {
+  processor_status {
+    last_success_version
+    processor
+    last_updated
+  }
+}
+    `;
 export const GetTokenData = `
     query getTokenData($where_condition: current_token_datas_v2_bool_exp, $offset: Int, $limit: Int, $order_by: [current_token_datas_v2_order_by!]) {
   current_token_datas_v2(
@@ -311,13 +319,6 @@ export const GetTokenData = `
       total_minted_v2
       uri
     }
-
-export const GetProcessorStatus = `
-    query getProcessorStatus {
-  processor_status {
-    last_success_version
-    processor
-    last_updated
   }
 }
     `;
@@ -527,20 +528,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-
-getTokenData(
-      variables?: Types.GetTokenDataQueryVariables,
-      requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetTokenDataQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetTokenDataQuery>(GetTokenData, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getTokenData",
-
-getProcessorStatus(
+    getProcessorStatus(
       variables?: Types.GetProcessorStatusQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetProcessorStatusQuery> {
@@ -551,6 +539,20 @@ getProcessorStatus(
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
+        "query",
+      );
+    },
+    getTokenData(
+      variables?: Types.GetTokenDataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetTokenDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenDataQuery>(GetTokenData, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTokenData",
         "query",
       );
     },

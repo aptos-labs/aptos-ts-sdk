@@ -405,6 +405,12 @@ export type GetNumberOfDelegatorsQuery = {
   num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
 };
 
+export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetProcessorStatusQuery = {
+  processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
+};
+
 export type GetTokenDataQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentTokenDatasV2BoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]>;
@@ -444,9 +450,4 @@ export type GetTokenDataQuery = {
       uri: string;
     } | null;
   }>;
-
-export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: never }>;
-
-export type GetProcessorStatusQuery = {
-  processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };

@@ -9,6 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptos_config";
+import { Hex } from "../core";
 import { GetTokenDataResponse, HexInput } from "../types";
 import { GetTokenDataQuery } from "../types/generated/operations";
 import { GetTokenData } from "../types/generated/queries";
@@ -21,7 +22,7 @@ export async function getTokenData(args: {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: any = {
-    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString(); },
+    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
