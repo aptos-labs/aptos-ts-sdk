@@ -17,4 +17,6 @@ module.exports = {
       statements: 50, // 95,
     },
   },
+  // To help avoid exhausting all the available fds.
+  maxWorkers: 4,
 };

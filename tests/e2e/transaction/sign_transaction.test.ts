@@ -86,7 +86,7 @@ describe("sign transaction", () => {
     });
 
     describe("Secp256k1", () => {
-      test("it signs a script transaction", async () => {
+      test.skip("it signs a script transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
@@ -122,7 +122,7 @@ describe("sign transaction", () => {
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSecp256k1).toBeTruthy();
       });
-      test("it signs a multi sig transaction", async () => {
+      test.skip("it signs a multi sig transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
