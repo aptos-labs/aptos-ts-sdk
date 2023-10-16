@@ -854,6 +854,15 @@ export type Block = {
   transactions?: Array<TransactionResponse>;
 };
 
+/**
+ * The data needed to generate an View Request payload
+ */
+export type ViewRequestData = {
+  function: MoveStructType;
+  typeArguments?: Array<MoveResourceType>;
+  arguments?: Array<MoveValue>;
+};
+
 // REQUEST TYPES
 
 /**

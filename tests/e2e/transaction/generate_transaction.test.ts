@@ -25,7 +25,6 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           bytecode: singleSignerScriptBytecode,
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -43,7 +42,6 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -61,7 +59,6 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -82,7 +79,6 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           bytecode: singleSignerScriptBytecode,
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -101,7 +97,6 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -122,7 +117,6 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           bytecode: singleSignerScriptBytecode,
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -142,7 +136,6 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -161,7 +154,6 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
@@ -181,7 +173,6 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          type_arguments: [],
           arguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });

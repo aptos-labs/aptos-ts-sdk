@@ -33,7 +33,6 @@ describe("sign transaction", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -51,7 +50,6 @@ describe("sign transaction", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -70,7 +68,6 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -91,7 +88,6 @@ describe("sign transaction", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -109,7 +105,6 @@ describe("sign transaction", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -128,7 +123,6 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });

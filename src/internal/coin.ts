@@ -22,7 +22,7 @@ export async function transferCoinTransaction(args: {
     sender: sender.accountAddress.toString(),
     data: {
       function: "0x1::aptos_account::transfer_coins",
-      type_arguments: [new TypeTagStruct(StructTag.fromString(coinStructType))],
+      typeArguments: [new TypeTagStruct(StructTag.fromString(coinStructType))],
       arguments: [AccountAddress.fromHexInput(recipient), new U64(amount)],
     },
     options,

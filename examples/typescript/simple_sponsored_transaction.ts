@@ -56,7 +56,6 @@ const example = async () => {
     feePayerAddress: sponsorAddress,
     data: {
       function: "0x1::aptos_account::transfer",
-      type_arguments: [],
       arguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
     },
   });

@@ -84,7 +84,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
  */
 export type EntryFunctionData = {
   function: MoveStructType;
-  type_arguments: Array<TypeTag>;
+  typeArguments?: Array<TypeTag>;
   arguments: Array<EntryFunctionArgumentTypes>;
 };
 
@@ -100,7 +100,7 @@ export type MultiSigData = {
  */
 export type ScriptData = {
   bytecode: string;
-  type_arguments: Array<TypeTag>;
+  typeArguments?: Array<TypeTag>;
   arguments: Array<ScriptFunctionArgumentTypes>;
 };
 

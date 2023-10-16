@@ -25,7 +25,6 @@ export async function publishModule(
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: "0x1::code::publish_package_txn",
-      type_arguments: [],
       arguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(codeBytes)])],
     },
   });
@@ -61,7 +60,7 @@ export async function rawTransactionHelper(
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-      type_arguments: typeArgs,
+      typeArguments: typeArgs,
       arguments: args,
     },
   });
