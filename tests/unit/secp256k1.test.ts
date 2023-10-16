@@ -157,13 +157,13 @@ describe("Secp256k1Signature", () => {
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
     const expected =
-      "0x403eda29841168c902b154ac12dfb0f8775ece1b95315b227ede64cbd715abac665aa8c8df5b108b0d4918bb88ea58c892972af375a71761a7e590655ff5de3859";
+      "0x40d0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca";
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
     const serializedSignature =
-      "0x403eda29841168c902b154ac12dfb0f8775ece1b95315b227ede64cbd715abac665aa8c8df5b108b0d4918bb88ea58c892972af375a71761a7e590655ff5de3859";
+      "0x40d0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca";
     const serializedSignatureUint8Array = Hex.fromString(serializedSignature).toUint8Array();
     const deserializer = new Deserializer(serializedSignatureUint8Array);
     const signature = Secp256k1Signature.deserialize(deserializer);

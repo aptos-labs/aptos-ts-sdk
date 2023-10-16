@@ -9,6 +9,7 @@ import {
   getTableItem,
   queryIndexer,
   view,
+  getIndexerLastSuccessVersion,
 } from "../internal/general";
 import {
   Block,
@@ -170,5 +171,9 @@ export class General {
       aptosConfig: this.config,
       ...args,
     });
+  }
+
+  async getIndexerLastSuccessVersion(): Promise<number> {
+    return getIndexerLastSuccessVersion({ aptosConfig: this.config });
   }
 }

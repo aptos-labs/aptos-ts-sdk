@@ -2,13 +2,14 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-const { Account, AccountAddress, Aptos, AptosConfig, Network, TypeTagStruct, StructTag, U64 } = require("aptos");
+import { Account, AccountAddress, Aptos, AptosConfig, Network, StructTag, TypeTagStruct, U64 } from "aptos";
 
+// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
+const COIN_STORE = `0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
-const TRANSFER_AMOUNT = 0;
+const TRANSFER_AMOUNT = 100;
 
 /**
  * Prints the balance of an account
@@ -17,12 +18,10 @@ const TRANSFER_AMOUNT = 0;
  * @param address
  * @returns {Promise<*>}
  *
- * TODO: Change to AccountAddress for address
  */
-const balance = async (aptos, name, address) => {
-  let balance = await aptos.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
-
-  let amount = Number(balance.data.coin.value);
+const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+  let resource = await aptos.getAccountResource({ accountAddress: address.toUint8Array(), resourceType: COIN_STORE });
+  let amount = Number((resource.data as { coin: { value: string } }).coin.value);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
@@ -36,8 +35,8 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Create two accounts
-  let alice = Account.generate({ scheme: 0 });
-  let bob = Account.generate({ scheme: 0 });
+  let alice = Account.generate();
+  let bob = Account.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
@@ -60,8 +59,8 @@ const example = async () => {
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  let aliceBalance = await balance(aptos, "Alice", alice.accountAddress.toUint8Array());
-  let bobBalance = await balance(aptos, "Bob", bob.accountAddress.toUint8Array());
+  let aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
+  let bobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -72,28 +71,26 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       type_arguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
-      arguments: [AccountAddress.fromHexInput({ input: bob.accountAddress.toString() }), new U64(TRANSFER_AMOUNT)],
+      arguments: [AccountAddress.fromHexInput(bob.accountAddress.toString()), new U64(TRANSFER_AMOUNT)],
     },
   });
 
   console.log("\n=== Transfer transaction ===\n");
-  let signature = aptos.transactionSubmission.signTransaction({ signer: alice, transaction: txn });
-  const committedTxn = await aptos.transactionSubmission.submitTransaction({
-    transaction: txn,
-    senderAuthenticator: signature,
-  });
+  let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
+
+  await aptos.waitForTransaction({ txnHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
-  let newAliceBalance = await balance(aptos, "Alice", alice.accountAddress.toUint8Array());
-  let newBobBalance = await balance(aptos, "Bob", bob.accountAddress.toUint8Array());
+  let newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
+  let newBobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (newBobBalance !== TRANSFER_AMOUNT + BOB_INITIAL_BALANCE)
     throw new Error("Bob's balance after transfer is incorrect");
 
   // Alice should have the remainder minus gas
-  if (newAliceBalance < ALICE_INITIAL_BALANCE - TRANSFER_AMOUNT)
+  if (newAliceBalance >= ALICE_INITIAL_BALANCE - TRANSFER_AMOUNT)
     throw new Error("Alice's balance after transfer is incorrect");
 };
 

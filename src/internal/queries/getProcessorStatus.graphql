@@ -1,0 +1,7 @@
+query getProcessorStatus {
+  processor_status {
+    last_success_version
+    processor
+    last_updated
+  }
+}

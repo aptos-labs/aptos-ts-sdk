@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptos_config";
 import { AccountAddress } from "../core";
-import { AnyNumber, GetEventsResponse, HexInput, IndexerPaginationArgs, MoveResourceType, OrderBy } from "../types";
+import { AnyNumber, GetEventsResponse, HexInput, PaginationArgs, MoveResourceType, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
 import { EventsBoolExp } from "../types/generated/types";
@@ -22,7 +22,7 @@ export async function getAccountEventsByCreationNumber(args: {
   creationNumber: AnyNumber;
 }): Promise<GetEventsResponse> {
   const { aptosConfig, creationNumber } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const address = AccountAddress.fromHexInput(args.address).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
@@ -37,12 +37,12 @@ export async function getAccountEventsByEventType(args: {
   address: HexInput;
   eventType: MoveResourceType;
   options?: {
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetEventsResponse[0]>;
   };
 }): Promise<GetEventsResponse> {
   const { aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const address = AccountAddress.fromHexInput(args.address).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
@@ -62,7 +62,7 @@ export async function getEvents(args: {
   aptosConfig: AptosConfig;
   options?: {
     where?: EventsBoolExp;
-    pagination?: IndexerPaginationArgs;
+    pagination?: PaginationArgs;
     orderBy?: OrderBy<GetEventsResponse[0]>;
   };
 }): Promise<GetEventsResponse> {
@@ -70,10 +70,12 @@ export async function getEvents(args: {
 
   const graphqlQuery = {
     query: GetEvents,
-    variables: { where_condition: options?.where },
-    offset: options?.pagination?.offset,
-    limit: options?.pagination?.limit,
-    order_by: options?.orderBy,
+    variables: {
+      where_condition: options?.where,
+      offset: options?.pagination?.offset,
+      limit: options?.pagination?.limit,
+      order_by: options?.orderBy,
+    },
   };
 
   const data = await queryIndexer<GetEventsQuery>({

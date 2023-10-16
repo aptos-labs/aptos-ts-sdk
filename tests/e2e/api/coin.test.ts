@@ -1,8 +1,7 @@
 import { AptosConfig, Network, Aptos, Account, Deserializer, TypeTagStruct } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
-import { sleep } from "../../../src/utils/helpers";
-import { FUND_AMOUNT, INDEXER_WAIT_TIME } from "../../unit/helper";
+import { FUND_AMOUNT } from "../../unit/helper";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
@@ -55,7 +54,6 @@ describe("coin", () => {
     const recipient = Account.generate();
 
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
-    await sleep(INDEXER_WAIT_TIME);
     const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -66,8 +64,6 @@ describe("coin", () => {
     const response = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
 
     await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
-    // to help with indexer latency
-    await sleep(INDEXER_WAIT_TIME);
     const recipientCoins = await aptos.getAccountCoinsData({ accountAddress: recipient.accountAddress.toString() });
     const senderCoinsAfter = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 

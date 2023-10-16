@@ -273,6 +273,7 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
+
 export const GetTokenData = `
     query getTokenData($where_condition: current_token_datas_v2_bool_exp, $offset: Int, $limit: Int, $order_by: [current_token_datas_v2_order_by!]) {
   current_token_datas_v2(
@@ -310,6 +311,13 @@ export const GetTokenData = `
       total_minted_v2
       uri
     }
+
+export const GetProcessorStatus = `
+    query getProcessorStatus {
+  processor_status {
+    last_success_version
+    processor
+    last_updated
   }
 }
     `;
@@ -519,7 +527,8 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-    getTokenData(
+
+getTokenData(
       variables?: Types.GetTokenDataQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetTokenDataQuery> {
@@ -530,6 +539,18 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getTokenData",
+
+getProcessorStatus(
+      variables?: Types.GetProcessorStatusQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetProcessorStatusQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetProcessorStatusQuery>(GetProcessorStatus, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getProcessorStatus",
         "query",
       );
     },

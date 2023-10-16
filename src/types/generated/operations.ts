@@ -444,4 +444,9 @@ export type GetTokenDataQuery = {
       uri: string;
     } | null;
   }>;
+
+export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetProcessorStatusQuery = {
+  processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };

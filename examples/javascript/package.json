@@ -4,12 +4,13 @@
   "description": "",
   "main": "transfer.js",
   "scripts": {
-    "test": "node transfer.js"
+    "simple_transfer": "node simple_transfer.js",
+    "simple_sponsored_transaction": "node simple_sponsored_transaction.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aptos": "link:../../.."
+    "aptos": "link:../.."
   }
 }

@@ -23,6 +23,7 @@ import {
   GetChainTopUserTransactionsQuery,
   GetEventsQuery,
   GetTokenDataQuery,
+  GetProcessorStatusQuery,
 } from "./generated/operations";
 
 /**
@@ -51,6 +52,7 @@ export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_acti
 export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];
 export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
 export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0];
+export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_status"];
 
 /**
  * A generic type that being passed by each function and holds an
@@ -69,17 +71,6 @@ export type OrderByValue =
  * Refers to the token standard we want to query for
  */
 export type TokenStandard = "v1" | "v2";
-
-/**
- *
- * Controls the number of results that are returned and the starting position of those results.
- * @param offset parameter specifies the starting position of the query result within the set of data. Default is 0.
- * @param limit specifies the maximum number of items or records to return in a query result. Default is 10.
- */
-export interface IndexerPaginationArgs {
-  offset?: number | bigint;
-  limit?: number;
-}
 
 /**
  * The graphql query type to pass into the `queryIndexer` function

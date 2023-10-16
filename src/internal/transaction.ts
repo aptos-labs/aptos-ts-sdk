@@ -21,6 +21,7 @@ import {
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { sleep } from "../utils/helpers";
 import { memoizeAsync } from "../utils/memoize";
+import { getIndexerLastSuccessVersion } from "./general";
 
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -31,7 +32,7 @@ export async function getTransactions(args: {
     aptosConfig,
     originMethod: "getTransactions",
     path: "transactions",
-    params: { start: options?.start, limit: options?.limit },
+    params: { start: options?.offset, limit: options?.limit },
   });
   return data;
 }
@@ -96,11 +97,12 @@ export async function isTransactionPending(args: { aptosConfig: AptosConfig; txn
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   txnHash: HexInput;
-  extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean };
+  extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean; indexerVersionCheck?: boolean };
 }): Promise<TransactionResponse> {
   const { aptosConfig, txnHash, extraArgs } = args;
   const timeoutSecs = extraArgs?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
   const checkSuccess = extraArgs?.checkSuccess ?? true;
+  const indexerVersionCheck = extraArgs?.indexerVersionCheck ?? true;
 
   let isPending = true;
   let timeElapsed = 0;
@@ -167,7 +169,51 @@ export async function waitForTransaction(args: {
       lastTxn,
     );
   }
+
+  // Make sure indexer is synced with the latest ledger version
+  if (indexerVersionCheck) {
+    try {
+      await waitForLastSuccessIndexerVersionSync({ aptosConfig, ledgerVersion: Number(lastTxn.version) });
+    } catch (_e) {
+      throw new WaitForTransactionError(
+        `Transaction ${txnHash} commited, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
+          "You can disable this check by setting `indexerVersionCheck` to false in the `extraArgs` parameter.",
+        lastTxn,
+      );
+    }
+  }
+
   return lastTxn;
+}
+
+/**
+ * Waits for the indexer to sync up to the ledgerVersion. Timeout is 3 seconds.
+ */
+async function waitForLastSuccessIndexerVersionSync(args: {
+  aptosConfig: AptosConfig;
+  ledgerVersion: number;
+}): Promise<void> {
+  const { aptosConfig, ledgerVersion } = args;
+  const timeoutMiliseconds = 3000; // 3 seconds
+  const startTime = new Date().getTime();
+  let indexerVersion = -1;
+
+  while (indexerVersion < ledgerVersion) {
+    // check for timeout
+    if (new Date().getTime() - startTime > timeoutMiliseconds) {
+      throw new Error("waitForLastSuccessIndexerVersionSync timeout");
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
+    if (indexerVersion >= ledgerVersion) {
+      // break out immediately if we are synced
+      break;
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(200);
+  }
 }
 
 /**

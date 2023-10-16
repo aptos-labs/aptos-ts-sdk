@@ -102,11 +102,10 @@ export class Account {
   /**
    * Derives an account with provided private key
    *
-   * @param args.privateKey Hex - private key of the account
+   * @param privateKey Hex - private key of the account
    * @returns Account
    */
-  static fromPrivateKey(args: { privateKey: PrivateKey }): Account {
-    const { privateKey } = args;
+  static fromPrivateKey(privateKey: PrivateKey): Account {
     const publicKey = privateKey.publicKey();
     const authKey = Account.authKey({ publicKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
@@ -138,7 +137,7 @@ export class Account {
 
     const { key } = derivePrivateKeyFromMnemonic(ED25519_KEY, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
-    return Account.fromPrivateKey({ privateKey });
+    return Account.fromPrivateKey(privateKey);
   }
 
   /**

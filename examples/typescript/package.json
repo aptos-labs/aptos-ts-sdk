@@ -2,18 +2,17 @@
   "name": "ts-test",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/transfer.js",
-  "type": "module",
+  "main": "transfer.ts",
   "scripts": {
-    "build": "rm -rf dist/* && tsc -p .",
-    "test": "pnpm build && node ./dist/transfer.js",
-    "transfer": "ts-node --esm transfer.ts"
+    "simple_transfer": "ts-node simple_transfer.ts",
+    "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
+    "transfer_coin": "ts-node transfer_coin.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aptos": "link:../../.."
+    "aptos": "link:../.."
   },
   "devDependencies": {
     "@types/node": "18.6.2",
