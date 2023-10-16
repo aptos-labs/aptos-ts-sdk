@@ -135,9 +135,7 @@ export async function getTransactions(args: {
   const data = await paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.fromHexInput(
-     accountAddress,
-    ).toString()}/transactions`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
   return data;
