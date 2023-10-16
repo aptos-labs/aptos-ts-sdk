@@ -5,7 +5,8 @@
   "main": "transfer.ts",
   "scripts": {
     "simple_transfer": "ts-node simple_transfer.ts",
-    "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts"
+    "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
+    "transfer_coin": "ts-node transfer_coin.ts"
   },
   "keywords": [],
   "author": "",
