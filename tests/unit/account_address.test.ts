@@ -80,121 +80,45 @@ const ADDRESS_OTHER: Addresses = {
 // These tests show that fromStringRelaxed works happily parses all formats.
 describe("AccountAddress fromStringRelaxed", () => {
   it("parses special address: 0x0", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ZERO.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ZERO.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ZERO.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ZERO.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ZERO.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ZERO.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ZERO.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ZERO.longWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ZERO.longWithout0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ZERO.shortWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ZERO.shortWithout0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
   });
 
   it("parses special address: 0x1", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ONE.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ONE.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ONE.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_ONE.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ONE.longWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_ONE.shortWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
   });
 
   it("parses special address: 0xf", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F.longWith0x).toString()).toBe(ADDRESS_F.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F.longWithout0x).toString()).toBe(ADDRESS_F.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F.shortWith0x).toString()).toBe(ADDRESS_F.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F.shortWithout0x).toString()).toBe(ADDRESS_F.shortWith0x);
   });
 
   it("parses special address with padded short form: 0x0f", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F_PADDED_SHORT_FORM.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_F_PADDED_SHORT_FORM.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_F.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F_PADDED_SHORT_FORM.shortWith0x).toString()).toBe(
+      ADDRESS_F.shortWith0x,
+    );
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_F_PADDED_SHORT_FORM.shortWithout0x).toString()).toBe(
+      ADDRESS_F.shortWith0x,
+    );
   });
 
   it("parses non-special address: 0x10", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_TEN.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_TEN.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_TEN.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_TEN.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
   });
 
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_OTHER.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
-    expect(
-      AccountAddress.fromStringRelaxed({
-        input: ADDRESS_OTHER.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
   });
 });
 
@@ -202,214 +126,137 @@ describe("AccountAddress fromStringRelaxed", () => {
 // SHORT if it is a special address.
 describe("AccountAddress fromString", () => {
   it("parses special address: 0x0", () => {
-    expect(AccountAddress.fromString({ input: ADDRESS_ZERO.longWith0x }).toString()).toBe(ADDRESS_ZERO.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_ZERO.longWithout0x })).toThrow();
-    expect(AccountAddress.fromString({ input: ADDRESS_ZERO.shortWith0x }).toString()).toBe(ADDRESS_ZERO.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_ZERO.shortWithout0x })).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_ZERO.longWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_ZERO.longWithout0x)).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_ZERO.shortWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_ZERO.shortWithout0x)).toThrow();
   });
 
   it("parses special address: 0x1", () => {
-    expect(AccountAddress.fromString({ input: ADDRESS_ONE.longWith0x }).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_ONE.longWithout0x })).toThrow();
-    expect(AccountAddress.fromString({ input: ADDRESS_ONE.shortWith0x }).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_ONE.shortWithout0x })).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_ONE.longWithout0x)).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_ONE.shortWithout0x)).toThrow();
   });
 
   it("parses special address: 0xf", () => {
-    expect(AccountAddress.fromString({ input: ADDRESS_F.longWith0x }).toString()).toBe(ADDRESS_F.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_F.longWithout0x })).toThrow();
-    expect(AccountAddress.fromString({ input: ADDRESS_F.shortWith0x }).toString()).toBe(ADDRESS_F.shortWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_F.shortWithout0x })).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_F.longWith0x).toString()).toBe(ADDRESS_F.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_F.longWithout0x)).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_F.shortWith0x).toString()).toBe(ADDRESS_F.shortWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_F.shortWithout0x)).toThrow();
   });
 
   it("throws when parsing special address with padded short form: 0x0f", () => {
-    expect(() =>
-      AccountAddress.fromString({
-        input: ADDRESS_F_PADDED_SHORT_FORM.shortWith0x,
-      }),
-    ).toThrow();
-    expect(() =>
-      AccountAddress.fromString({
-        input: ADDRESS_F_PADDED_SHORT_FORM.shortWithout0x,
-      }),
-    ).toThrow();
+    expect(() => AccountAddress.fromString(ADDRESS_F_PADDED_SHORT_FORM.shortWith0x)).toThrow();
+    expect(() => AccountAddress.fromString(ADDRESS_F_PADDED_SHORT_FORM.shortWithout0x)).toThrow();
   });
 
   it("parses non-special address: 0x10", () => {
-    expect(AccountAddress.fromString({ input: ADDRESS_TEN.longWith0x }).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_TEN.longWithout0x })).toThrow();
-    expect(() => AccountAddress.fromString({ input: ADDRESS_TEN.shortWith0x })).toThrow();
-    expect(() => AccountAddress.fromString({ input: ADDRESS_TEN.shortWithout0x })).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_TEN.longWithout0x)).toThrow();
+    expect(() => AccountAddress.fromString(ADDRESS_TEN.shortWith0x)).toThrow();
+    expect(() => AccountAddress.fromString(ADDRESS_TEN.shortWithout0x)).toThrow();
   });
 
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
-    expect(AccountAddress.fromString({ input: ADDRESS_OTHER.longWith0x }).toString()).toBe(ADDRESS_OTHER.longWith0x);
-    expect(() => AccountAddress.fromString({ input: ADDRESS_OTHER.longWithout0x })).toThrow();
+    expect(AccountAddress.fromString(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_OTHER.longWithout0x)).toThrow();
   });
 });
 
 describe("AccountAddress fromHexInput", () => {
   it("parses special address: 0x1", () => {
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_ONE.longWith0x }).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_ONE.longWithout0x })).toThrow();
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_ONE.shortWith0x }).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_ONE.shortWithout0x })).toThrow();
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_ONE.bytes }).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInput(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(() => AccountAddress.fromHexInput(ADDRESS_ONE.longWithout0x)).toThrow();
+    expect(AccountAddress.fromHexInput(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(() => AccountAddress.fromHexInput(ADDRESS_ONE.shortWithout0x)).toThrow();
+    expect(AccountAddress.fromHexInput(ADDRESS_ONE.bytes).toString()).toBe(ADDRESS_ONE.shortWith0x);
   });
 
   it("parses non-special address: 0x10", () => {
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_TEN.longWith0x }).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_TEN.longWithout0x })).toThrow();
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_TEN.shortWith0x })).toThrow();
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_TEN.shortWithout0x })).toThrow();
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_TEN.bytes }).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInput(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(() => AccountAddress.fromHexInput(ADDRESS_TEN.longWithout0x)).toThrow();
+    expect(() => AccountAddress.fromHexInput(ADDRESS_TEN.shortWith0x)).toThrow();
+    expect(() => AccountAddress.fromHexInput(ADDRESS_TEN.shortWithout0x)).toThrow();
+    expect(AccountAddress.fromHexInput(ADDRESS_TEN.bytes).toString()).toBe(ADDRESS_TEN.longWith0x);
   });
-
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
-    expect(
-      AccountAddress.fromHexInput({
-        input: ADDRESS_OTHER.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
-    expect(() => AccountAddress.fromHexInput({ input: ADDRESS_OTHER.longWithout0x })).toThrow();
-    expect(AccountAddress.fromHexInput({ input: ADDRESS_OTHER.bytes }).toString()).toBe(ADDRESS_OTHER.shortWith0x);
+    expect(AccountAddress.fromHexInput(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(() => AccountAddress.fromHexInput(ADDRESS_OTHER.longWithout0x)).toThrow();
+    expect(AccountAddress.fromHexInput(ADDRESS_OTHER.bytes).toString()).toBe(ADDRESS_OTHER.shortWith0x);
   });
 });
 
 describe("AccountAddress fromHexInputRelaxed", () => {
   it("parses special address: 0x1", () => {
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_ONE.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_ONE.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_ONE.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_ONE.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_ONE.bytes,
-      }).toString(),
-    ).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_ONE.longWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_ONE.shortWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_ONE.bytes).toString()).toBe(ADDRESS_ONE.shortWith0x);
   });
 
   it("parses non-special address: 0x10", () => {
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_TEN.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_TEN.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_TEN.shortWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_TEN.shortWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_TEN.bytes,
-      }).toString(),
-    ).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_TEN.bytes).toString()).toBe(ADDRESS_TEN.longWith0x);
   });
 
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_OTHER.longWith0x,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_OTHER.longWithout0x,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
-    expect(
-      AccountAddress.fromHexInputRelaxed({
-        input: ADDRESS_OTHER.bytes,
-      }).toString(),
-    ).toBe(ADDRESS_OTHER.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(AccountAddress.fromHexInputRelaxed(ADDRESS_OTHER.bytes).toString()).toBe(ADDRESS_OTHER.longWith0x);
   });
 });
 
 describe("AccountAddress toUint8Array", () => {
   it("correctly returns bytes for special address: 0x1", () => {
-    expect(
-      AccountAddress.fromHexInput({
-        input: ADDRESS_ONE.longWith0x,
-      }).toUint8Array(),
-    ).toEqual(ADDRESS_ONE.bytes);
+    expect(AccountAddress.fromHexInput(ADDRESS_ONE.longWith0x).toUint8Array()).toEqual(ADDRESS_ONE.bytes);
   });
 
   it("correctly returns bytes for  non-special address: 0x10", () => {
-    expect(
-      AccountAddress.fromHexInput({
-        input: ADDRESS_TEN.longWith0x,
-      }).toUint8Array(),
-    ).toEqual(ADDRESS_TEN.bytes);
+    expect(AccountAddress.fromHexInput(ADDRESS_TEN.longWith0x).toUint8Array()).toEqual(ADDRESS_TEN.bytes);
   });
 
   it("correctly returns bytes for  non-special address: 0xca84...a3d0", () => {
-    expect(
-      AccountAddress.fromHexInput({
-        input: ADDRESS_OTHER.longWith0x,
-      }).toUint8Array(),
-    ).toEqual(ADDRESS_OTHER.bytes);
+    expect(AccountAddress.fromHexInput(ADDRESS_OTHER.longWith0x).toUint8Array()).toEqual(ADDRESS_OTHER.bytes);
   });
 });
 
 describe("AccountAddress toStringWithoutPrefix", () => {
   it("formats special address correctly: 0x0", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_ZERO.shortWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_ZERO.shortWith0x);
     expect(addr.toStringWithoutPrefix()).toBe(ADDRESS_ZERO.shortWithout0x);
   });
 
   it("formats non-special address correctly: 0x10", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_TEN.longWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_TEN.longWith0x);
     expect(addr.toStringWithoutPrefix()).toBe(ADDRESS_TEN.longWithout0x);
   });
 });
 
 describe("AccountAddress toStringLong", () => {
   it("formats special address correctly: 0x0", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_ZERO.shortWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_ZERO.shortWith0x);
     expect(addr.toStringLong()).toBe(ADDRESS_ZERO.longWith0x);
   });
 
   it("formats non-special address correctly: 0x10", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_TEN.longWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_TEN.longWith0x);
     expect(addr.toStringLong()).toBe(ADDRESS_TEN.longWith0x);
   });
 });
 
 describe("AccountAddress toStringLongWithoutPrefix", () => {
   it("formats special address correctly: 0x0", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_ZERO.shortWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_ZERO.shortWith0x);
     expect(addr.toStringLongWithoutPrefix()).toBe(ADDRESS_ZERO.longWithout0x);
   });
 
   it("formats non-special address correctly: 0x10", () => {
-    const addr = AccountAddress.fromString({ input: ADDRESS_TEN.longWith0x });
+    const addr = AccountAddress.fromString(ADDRESS_TEN.longWith0x);
     expect(addr.toStringLongWithoutPrefix()).toBe(ADDRESS_TEN.longWithout0x);
   });
 });
@@ -417,21 +264,21 @@ describe("AccountAddress toStringLongWithoutPrefix", () => {
 describe("AccountAddress other parsing", () => {
   it("throws exception when initiating from too long hex string", () => {
     expect(() => {
-      AccountAddress.fromString({ input: `${ADDRESS_ONE.longWith0x}1` });
+      AccountAddress.fromString(`${ADDRESS_ONE.longWith0x}1`);
     }).toThrow("Hex string is too long, must be 1 to 64 chars long, excluding the leading 0x.");
   });
 
   test("throws when parsing invalid hex char", () => {
-    expect(() => AccountAddress.fromString({ input: "0xxyz" })).toThrow();
+    expect(() => AccountAddress.fromString("0xxyz")).toThrow();
   });
 
   test("throws when parsing account address of length zero", () => {
-    expect(() => AccountAddress.fromString({ input: "0x" })).toThrow();
-    expect(() => AccountAddress.fromString({ input: "" })).toThrow();
+    expect(() => AccountAddress.fromString("0x")).toThrow();
+    expect(() => AccountAddress.fromString("")).toThrow();
   });
 
   test("throws when parsing invalid prefix", () => {
-    expect(() => AccountAddress.fromString({ input: "0za" })).toThrow();
+    expect(() => AccountAddress.fromString("0za")).toThrow();
   });
 
   it("isValid is false if too long with 0xf", () => {
@@ -451,8 +298,8 @@ describe("AccountAddress other parsing", () => {
   });
 
   it("compares equality with equals as expected", () => {
-    const addressOne = AccountAddress.fromStringRelaxed({ input: "0x123" });
-    const addressTwo = AccountAddress.fromStringRelaxed({ input: "0x123" });
+    const addressOne = AccountAddress.fromStringRelaxed("0x123");
+    const addressTwo = AccountAddress.fromStringRelaxed("0x123");
     expect(addressOne.equals(addressTwo)).toBeTruthy();
   });
 });
@@ -466,15 +313,9 @@ describe("AccountAddress serialization and deserialization", () => {
   };
 
   it("serializes an unpadded, full, and reserved address correctly", () => {
-    const address1 = AccountAddress.fromStringRelaxed({
-      input: "0x0102030a0b0c",
-    });
-    const address2 = AccountAddress.fromStringRelaxed({
-      input: ADDRESS_OTHER.longWith0x,
-    });
-    const address3 = AccountAddress.fromStringRelaxed({
-      input: ADDRESS_ZERO.shortWithout0x,
-    });
+    const address1 = AccountAddress.fromStringRelaxed("0x0102030a0b0c");
+    const address2 = AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWith0x);
+    const address3 = AccountAddress.fromStringRelaxed(ADDRESS_ZERO.shortWithout0x);
     serializeAndCheckEquality(address1);
     serializeAndCheckEquality(address2);
     serializeAndCheckEquality(address3);
@@ -489,13 +330,9 @@ describe("AccountAddress serialization and deserialization", () => {
 
   it("deserializes an unpadded, full, and reserved address correctly", () => {
     const serializer = new Serializer();
-    const address1 = AccountAddress.fromStringRelaxed({ input: "0x123abc" });
-    const address2 = AccountAddress.fromStringRelaxed({
-      input: ADDRESS_OTHER.longWith0x,
-    });
-    const address3 = AccountAddress.fromStringRelaxed({
-      input: ADDRESS_ZERO.shortWithout0x,
-    });
+    const address1 = AccountAddress.fromStringRelaxed("0x123abc");
+    const address2 = AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWith0x);
+    const address3 = AccountAddress.fromStringRelaxed(ADDRESS_ZERO.shortWithout0x);
     serializer.serialize(address1);
     serializer.serialize(address2);
     serializer.serialize(address3);
@@ -509,9 +346,7 @@ describe("AccountAddress serialization and deserialization", () => {
   });
 
   it("serializes and deserializes an address correctly", () => {
-    const address = AccountAddress.fromStringRelaxed({
-      input: "0x0102030a0b0c",
-    });
+    const address = AccountAddress.fromStringRelaxed("0x0102030a0b0c");
     const serializer = new Serializer();
     serializer.serialize(address);
     const deserializer = new Deserializer(serializer.toUint8Array());

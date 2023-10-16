@@ -56,9 +56,7 @@ export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: 
   const { data } = await getAptosFullNode<{}, AccountData>({
     aptosConfig,
     originMethod: "getInfo",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}`,
   });
   return data;
 }
@@ -72,9 +70,7 @@ export async function getModules(args: {
   const data = await paginateWithCursor<{}, MoveModuleBytecode[]>({
     aptosConfig,
     originMethod: "getModules",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/modules`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/modules`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -124,9 +120,7 @@ async function getModuleInner(args: {
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/module/${moduleName}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/module/${moduleName}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -141,9 +135,7 @@ export async function getTransactions(args: {
   const data = await paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/transactions`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
   return data;
@@ -158,9 +150,7 @@ export async function getResources(args: {
   const data = await paginateWithCursor<{}, MoveResource[]>({
     aptosConfig,
     originMethod: "getResources",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/resources`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -180,9 +170,7 @@ export async function getResource(args: {
   const { data } = await getAptosFullNode<{}, MoveResource>({
     aptosConfig,
     originMethod: "getResource",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/resource/${resourceType}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -219,10 +207,10 @@ export async function lookupOriginalAccountAddress(args: {
       options,
     });
 
-    return AccountAddress.fromHexInput({ input: originalAddress });
+    return AccountAddress.fromHexInput(originalAddress);
   } catch (err) {
     if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
-      return AccountAddress.fromHexInput({ input: authenticationKey });
+      return AccountAddress.fromHexInput(authenticationKey);
     }
 
     throw err;
@@ -235,9 +223,7 @@ export async function getAccountTokensCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -270,9 +256,7 @@ export async function getAccountOwnedTokens(args: {
   };
 }): Promise<GetAccountOwnedTokensQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -313,9 +297,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
   const { aptosConfig, ownerAddress, collectionAddress, options } = args;
-  const accountAddress = AccountAddress.fromHexInput({
-    input: ownerAddress,
-  }).toString();
+  const accountAddress = AccountAddress.fromHexInput(ownerAddress).toString();
   const collAddress = Hex.fromHexInput(collectionAddress).toString();
 
   const whereCondition: any = {
@@ -357,9 +339,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   };
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -397,9 +377,7 @@ export async function getAccountTransactionsCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountTransactionsCount,
@@ -428,9 +406,7 @@ export async function getAccountCoinsData(args: {
   };
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -460,9 +436,7 @@ export async function getAccountCoinsCount(args: {
   accountAddress: HexInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountCoinsCount,
@@ -491,9 +465,7 @@ export async function getAccountOwnedObjects(args: {
   };
 }): Promise<GetAccountOwnedObjectsResponse> {
   const { aptosConfig, ownerAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: ownerAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(ownerAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },

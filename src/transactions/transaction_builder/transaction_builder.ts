@@ -169,7 +169,7 @@ export async function generateRawTransaction(args: {
   };
 
   return new RawTransaction(
-    AccountAddress.fromHexInput({ input: sender }),
+    AccountAddress.fromHexInput(sender),
     BigInt(sequenceNumber),
     payload,
     BigInt(maxGasAmount),
@@ -223,19 +223,19 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
 
   if (feePayerAddress) {
     const signers: Array<AccountAddress> = secondarySignerAddresses
-      ? secondarySignerAddresses.map((signer) => AccountAddress.fromHexInput({ input: signer }))
+      ? secondarySignerAddresses.map((signer) => AccountAddress.fromHexInput(signer))
       : [];
 
     return {
       rawTransaction: rawTxn.bcsToBytes(),
       secondarySignerAddresses: signers,
-      feePayerAddress: AccountAddress.fromHexInput({ input: feePayerAddress }),
+      feePayerAddress: AccountAddress.fromHexInput(feePayerAddress),
     };
   }
 
   if (secondarySignerAddresses) {
     const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) =>
-      AccountAddress.fromHexInput({ input: signer }),
+      AccountAddress.fromHexInput(signer),
     );
 
     return {

@@ -22,7 +22,7 @@ export async function getAccountEventsByCreationNumber(args: {
   creationNumber: AnyNumber;
 }): Promise<GetEventsResponse> {
   const { aptosConfig, creationNumber } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const address = AccountAddress.fromHexInput(args.address).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
@@ -42,7 +42,7 @@ export async function getAccountEventsByEventType(args: {
   };
 }): Promise<GetEventsResponse> {
   const { aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const address = AccountAddress.fromHexInput(args.address).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
