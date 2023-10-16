@@ -91,7 +91,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
   // generate script payload
   if ("bytecode" in args) {
     const scriptPayload = new TransactionPayloadScript(
-      new Script(hexToBytes(args.bytecode), args.type_arguments, args.arguments),
+      new Script(hexToBytes(args.bytecode), args.typeArguments ?? [], args.arguments),
     );
     return scriptPayload;
   }
@@ -106,7 +106,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
           EntryFunction.build(
             `${funcNameParts[0]}::${funcNameParts[1]}`,
             funcNameParts[2],
-            args.type_arguments,
+            args.typeArguments ?? [],
             args.arguments,
           ),
         ),
@@ -121,7 +121,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
     EntryFunction.build(
       `${funcNameParts[0]}::${funcNameParts[1]}`,
       funcNameParts[2],
-      args.type_arguments,
+      args.typeArguments ?? [],
       args.arguments,
     ),
   );

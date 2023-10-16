@@ -26,7 +26,6 @@ import { TransactionArgument } from "../../transactions/instances/transactionArg
  *  const fixedBytes = new FixedBytes(yourCustomSerializedBytes);
  *  const payload = generateTransactionPayload({
  *    function: "0xbeefcafe::your_module::your_function_that_requires_custom_serialization",
- *    type_arguments: [],
  *    arguments: [yourCustomBytes],
  *  });
  *

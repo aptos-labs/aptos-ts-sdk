@@ -27,7 +27,6 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -42,7 +41,6 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -58,7 +56,6 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -76,7 +73,6 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             bytecode: multiSignerScriptBytecode,
-            type_arguments: [],
             arguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
@@ -103,7 +99,6 @@ describe("transaction simulation", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-              type_arguments: [],
               arguments: [
                 new U64(100),
                 new U64(200),
@@ -131,7 +126,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -149,7 +143,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -167,7 +160,6 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -186,7 +178,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-            type_arguments: [],
             arguments: [
               new U64(100),
               new U64(200),
@@ -215,7 +206,6 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -230,7 +220,6 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -246,7 +235,6 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -264,7 +252,6 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             bytecode: multiSignerScriptBytecode,
-            type_arguments: [],
             arguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
@@ -291,7 +278,6 @@ describe("transaction simulation", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-              type_arguments: [],
               arguments: [
                 new U64(100),
                 new U64(200),
@@ -319,7 +305,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -337,7 +322,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -355,7 +339,6 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            type_arguments: [],
             arguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -374,7 +357,6 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-            type_arguments: [],
             arguments: [
               new U64(100),
               new U64(200),

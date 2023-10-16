@@ -24,7 +24,6 @@ describe("transaction api", () => {
       sender: senderAccount.accountAddress.toString(),
       data: {
         function: "0x1::aptos_account::transfer",
-        type_arguments: [],
         arguments: [bob.accountAddress, new U64(10)],
       },
     });
@@ -50,7 +49,6 @@ describe("transaction api", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
-          type_arguments: [],
           arguments: [bob.accountAddress, new U64(10)],
         },
       });

@@ -20,6 +20,7 @@ import {
   MoveValue,
   TableItemRequest,
   ViewRequest,
+  ViewRequestData,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -83,7 +84,7 @@ export async function getTableItem(args: {
 
 export async function view(args: {
   aptosConfig: AptosConfig;
-  payload: ViewRequest;
+  payload: ViewRequestData;
   options?: LedgerVersion;
 }): Promise<MoveValue[]> {
   const { aptosConfig, payload, options } = args;
@@ -92,7 +93,11 @@ export async function view(args: {
     originMethod: "view",
     path: "view",
     params: { ledger_version: options?.ledgerVersion },
-    body: payload,
+    body: {
+      function: payload.function,
+      type_arguments: payload.typeArguments ?? [],
+      arguments: payload.arguments ?? [],
+    },
   });
   return data;
 }
