@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptos_config";
-import { getCollectionAddress, getCollectionData } from "../internal/collection";
+import { getCollectionId, getCollectionData } from "../internal/collection";
 import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 
 /**
@@ -37,20 +37,23 @@ export class Collection {
   }
 
   /**
-   * Queries a collection's address.
+   * Queries a collection's Id.
+   *
+   * This is the same as the collection's object address in V2, but V1 does
+   * not use objects, and does not have an address
    *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
    * @param args.options.tokenStandard the token standard to query
-   * @returns the collection address
+   * @returns the collection id
    */
-  async getCollectionAddress(args: {
+  async getCollectionId(args: {
     creatorAddress: HexInput;
     collectionName: string;
     options?: {
       tokenStandard?: TokenStandard;
     };
   }): Promise<string> {
-    return getCollectionAddress({ aptosConfig: this.config, ...args });
+    return getCollectionId({ aptosConfig: this.config, ...args });
   }
 }
