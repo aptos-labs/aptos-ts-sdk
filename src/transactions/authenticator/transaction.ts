@@ -3,13 +3,13 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import { AccountAuthenticator } from "./account";
 import { Deserializer, Serializer } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multi_ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { TransactionAuthenticatorVariant } from "../../types";
-import { AccountAuthenticator } from "./account";
 
 export abstract class TransactionAuthenticator {
   abstract serialize(serializer: Serializer): void;
@@ -33,19 +33,19 @@ export abstract class TransactionAuthenticator {
   }
 }
 
+/**
+ * Transaction authenticator Ed25519 for a single signer transaction
+ *
+ * @param public_key Client's public key.
+ * @param signature Ed25519 signature of a raw transaction.
+ * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
+ * for details about generating a signature.
+ */
 export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
   public readonly public_key: Ed25519PublicKey;
 
   public readonly signature: Ed25519Signature;
 
-  /**
-   * Transaction authenticator Ed25519 for a single signer transaction
-   *
-   * @param public_key Client's public key.
-   * @param signature Ed25519 signature of a raw transaction.
-   * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
-   * for details about generating a signature.
-   */
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
     super();
     this.public_key = public_key;
@@ -65,18 +65,18 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
   }
 }
 
+/**
+ * Transaction authenticator Ed25519 for a multi signers transaction
+ *
+ * @param public_key Client's public key.
+ * @param signature Multi Ed25519 signature of a raw transaction.
+ *
+ */
 export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticator {
   public readonly public_key: MultiEd25519PublicKey;
 
   public readonly signature: MultiEd25519Signature;
 
-  /**
-   * Transaction authenticator Ed25519 for a multi signers transaction
-   *
-   * @param public_key Client's public key.
-   * @param signature Multi Ed25519 signature of a raw transaction.
-   *
-   */
   constructor(public_key: MultiEd25519PublicKey, signature: MultiEd25519Signature) {
     super();
     this.public_key = public_key;
@@ -96,6 +96,14 @@ export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticat
   }
 }
 
+/**
+ * Transaction authenticator for a multi agent transaction
+ *
+ * @param sender Sender account authenticator
+ * @param secondary_signer_addresses Secondary signers address
+ * @param secondary_signers Secondary signers account authenticators
+ *
+ */
 export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
 
@@ -103,14 +111,6 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
 
   public readonly secondary_signers: Array<AccountAuthenticator>;
 
-  /**
-   * Transaction authenticator for a multi agent transaction
-   *
-   * @param sender Sender account authenticator
-   * @param secondary_signer_addresses Secondary signers address
-   * @param secondary_signers Secondary signers account authenticators
-   *
-   */
   constructor(
     sender: AccountAuthenticator,
     secondary_signer_addresses: Array<AccountAddress>,
@@ -137,6 +137,15 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
   }
 }
 
+/**
+ * Transaction authenticator for a fee payer transaction
+ *
+ * @param sender Sender account authenticator
+ * @param secondary_signer_addresses Secondary signers address
+ * @param secondary_signers Secondary signers account authenticators
+ * @param fee_payer Object of the fee payer account address and the fee payer authentication
+ *
+ */
 export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
 
@@ -149,15 +158,6 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
     authenticator: AccountAuthenticator;
   };
 
-  /**
-   * Transaction authenticator for a fee payer transaction
-   *
-   * @param sender Sender account authenticator
-   * @param secondary_signer_addresses Secondary signers address
-   * @param secondary_signers Secondary signers account authenticators
-   * @param fee_payer Object of the fee payer account address and the fee payer authentication
-   *
-   */
   constructor(
     sender: AccountAuthenticator,
     secondary_signer_addresses: Array<AccountAddress>,
@@ -191,17 +191,17 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
   }
 }
 
+/**
+ * Transaction authenticator Secp256k1 for a single signer transaction
+ *
+ * @param public_key Client's public key
+ * @param signature Secp256k1 signature of a `RawTransaction`
+ */
 export class TransactionAuthenticatorSecp256k1 extends TransactionAuthenticator {
   public readonly public_key: Secp256k1PublicKey;
 
   public readonly signature: Secp256k1Signature;
 
-  /**
-   * Transaction authenticator Secp256k1 for a single signer transaction
-   *
-   * @param public_key Client's public key
-   * @param signature Secp256k1 signature of a `RawTransaction`
-   */
   constructor(public_key: Secp256k1PublicKey, signature: Secp256k1Signature) {
     super();
     this.public_key = public_key;
