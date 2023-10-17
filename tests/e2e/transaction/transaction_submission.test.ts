@@ -52,7 +52,7 @@ describe("transaction submission", () => {
       longTestTimeout,
     );
 
-    test.skip("it submits an entry function transaction with Secp256k1Ecdsa", async () => {
+    test("it submits an entry function transaction with Secp256k1Ecdsa", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate();
@@ -75,7 +75,7 @@ describe("transaction submission", () => {
       });
       await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
     });
-    test.skip("it submits an entry function transaction", async () => {
+    test("it submits an entry function transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate(SigningScheme.Secp256k1Ecdsa);
