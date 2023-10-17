@@ -23,7 +23,7 @@ format. This enables the greatest flexibility for the developer.</p>
 <p>Hex is a helper class for working with hex data. Hex data, when represented as a
 string, generally looks like this, for example: 0xaabbcc, 45cd32, etc.</p>
 <p>You might use this class like this:</p>
-<pre><code class="language-ts"><span class="hl-0">getTransactionByHash</span><span class="hl-1">(</span><span class="hl-12">txnHash</span><span class="hl-1">: </span><span class="hl-12">HexInput</span><span class="hl-1">): </span><span class="hl-16">Promise</span><span class="hl-1">&lt;</span><span class="hl-12">Transaction</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">  const </span><span class="hl-12">txnHashString</span><span class="hl-1"> = </span><span class="hl-12">Hex</span><span class="hl-1">.</span><span class="hl-0">fromHexInput</span><span class="hl-1">(</span><span class="hl-12">txnHash</span><span class="hl-1">).</span><span class="hl-0">toString</span><span class="hl-1">();</span><br/><span class="hl-1">  return await </span><span class="hl-0">getTransactionByHashInner</span><span class="hl-1">(</span><span class="hl-12">txnHashString</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
+<pre><code class="language-ts"><span class="hl-0">getTransactionByHash</span><span class="hl-1">(</span><span class="hl-10">txnHash</span><span class="hl-1">: </span><span class="hl-10">HexInput</span><span class="hl-1">): </span><span class="hl-15">Promise</span><span class="hl-1">&lt;</span><span class="hl-10">Transaction</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">  const </span><span class="hl-10">txnHashString</span><span class="hl-1"> = </span><span class="hl-10">Hex</span><span class="hl-1">.</span><span class="hl-0">fromHexInput</span><span class="hl-1">(</span><span class="hl-10">txnHash</span><span class="hl-1">).</span><span class="hl-0">toString</span><span class="hl-1">();</span><br/><span class="hl-1">  return await </span><span class="hl-0">getTransactionByHashInner</span><span class="hl-1">(</span><span class="hl-10">txnHashString</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
 </code></pre>
 <p>This call to <code>Hex.fromHexInput().toString()</code> converts the HexInput to a hex string
 with a leading 0x prefix, regardless of what the input format was.</p>
@@ -38,7 +38,7 @@ with a leading 0x prefix, regardless of what the input format was.</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">Hex</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L43">src/core/hex.ts:43</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L43">src/core/hex.ts:43</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -75,17 +75,19 @@ with a leading 0x prefix, regardless of what the input format was.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>data: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
+<h5>data: <span class="tsd-signature-type">Uint8Array</span></h5>
+<div class="tsd-comment tsd-typography"><p>Uint8Array</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Hex.html" class="tsd-signature-type" data-tsd-kind="Class">Hex</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L51">src/core/hex.ts:51</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L51">src/core/hex.ts:51</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="data" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>data</span><a href="#data" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>data</span><a href="#data" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L44">src/core/hex.ts:44</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L44">src/core/hex.ts:44</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="equals" class="tsd-anchor"></a>
@@ -107,7 +109,7 @@ their underlying byte data is identical.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L173">src/core/hex.ts:173</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L173">src/core/hex.ts:173</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toString" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>String</span><a href="#toString" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -119,7 +121,7 @@ their underlying byte data is identical.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L83">src/core/hex.ts:83</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L83">src/core/hex.ts:83</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toStringWithoutPrefix" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>String<wbr/>Without<wbr/>Prefix</span><a href="#toStringWithoutPrefix" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -131,7 +133,7 @@ their underlying byte data is identical.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L74">src/core/hex.ts:74</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L74">src/core/hex.ts:74</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toUint8Array" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>Uint8<wbr/>Array</span><a href="#toUint8Array" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -144,7 +146,7 @@ is taking place here, it just returns the inner data.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L65">src/core/hex.ts:65</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L65">src/core/hex.ts:65</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromHexInput" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>Hex<wbr/>Input</span><a href="#fromHexInput" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -158,10 +160,12 @@ is taking place here, it just returns the inner data.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>hexInput: <a href="../types/HexInput.html" class="tsd-signature-type" data-tsd-kind="Type alias">HexInput</a></h5></li></ul></div>
+<h5>hexInput: <a href="../types/HexInput.html" class="tsd-signature-type" data-tsd-kind="Type alias">HexInput</a></h5>
+<div class="tsd-comment tsd-typography"><p>A HexInput (string or Uint8Array)</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Hex.html" class="tsd-signature-type" data-tsd-kind="Class">Hex</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L134">src/core/hex.ts:134</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L134">src/core/hex.ts:134</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromString" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>String</span><a href="#fromString" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -180,7 +184,7 @@ is taking place here, it just returns the inner data.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Hex.html" class="tsd-signature-type" data-tsd-kind="Class">Hex</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L98">src/core/hex.ts:98</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L98">src/core/hex.ts:98</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="isValid" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>is<wbr/>Valid</span><a href="#isValid" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -201,7 +205,7 @@ invalid.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/ParsingResult.html" class="tsd-signature-type" data-tsd-kind="Type alias">ParsingResult</a><span class="tsd-signature-symbol">&lt;</span><a href="../enums/HexInvalidReason.html" class="tsd-signature-type" data-tsd-kind="Enumeration">HexInvalidReason</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/hex.ts#L152">src/core/hex.ts:152</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/hex.ts#L152">src/core/hex.ts:152</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
