@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptos_config";
+import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/move-structs";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
+import { FixedBytes } from "../bcs/serializable/fixed-bytes";
 import { AccountAddress } from "../core";
 import { PublicKey } from "../core/crypto/asymmetric_crypto";
-import { HexInput, MoveStructType } from "../types";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -13,10 +15,8 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
+import { HexInput, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/move-structs";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
-import { FixedBytes } from "../bcs/serializable/fixed-bytes";
 
 export type EntryFunctionArgumentTypes =
   | Bool
@@ -30,7 +30,6 @@ export type EntryFunctionArgumentTypes =
   | MoveObject
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
-  | AccountAddress
   | MoveString
   | FixedBytes;
 export type ScriptFunctionArgumentTypes =
@@ -44,7 +43,6 @@ export type ScriptFunctionArgumentTypes =
   | AccountAddress
   | MoveObject
   | MoveVector<U8>
-  | AccountAddress
   | MoveString
   | FixedBytes;
 

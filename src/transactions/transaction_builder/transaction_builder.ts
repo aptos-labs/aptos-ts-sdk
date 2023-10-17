@@ -90,16 +90,15 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
 export function generateTransactionPayload(args: GenerateTransactionPayloadData): TransactionPayload {
   // generate script payload
   if ("bytecode" in args) {
-    const scriptPayload = new TransactionPayloadScript(
+    return new TransactionPayloadScript(
       new Script(hexToBytes(args.bytecode), args.typeArguments ?? [], args.arguments),
     );
-    return scriptPayload;
   }
 
   // generate multi sig payload
   if ("multisigAddress" in args) {
     const funcNameParts = args.function.split("::");
-    const multiSigPayload = new TransactionPayloadMultisig(
+    return new TransactionPayloadMultisig(
       new MultiSig(
         args.multisigAddress,
         new MultiSigTransactionPayload(
@@ -112,12 +111,11 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
         ),
       ),
     );
-    return multiSigPayload;
   }
 
   // generate entry function payload
   const funcNameParts = args.function.split("::");
-  const entryFunctionPayload = new TransactionPayloadEntryFunction(
+  return new TransactionPayloadEntryFunction(
     EntryFunction.build(
       `${funcNameParts[0]}::${funcNameParts[1]}`,
       funcNameParts[2],
@@ -125,7 +123,6 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
       args.arguments,
     ),
   );
-  return entryFunctionPayload;
 }
 
 /**

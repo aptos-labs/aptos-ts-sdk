@@ -4,9 +4,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
-import { AccountAddress } from "../../core";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
+import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
 
@@ -424,25 +424,16 @@ function bail(message: string) {
 }
 
 function isWhiteSpace(c: string): boolean {
-  if (c.match(/\s/)) {
-    return true;
-  }
-  return false;
+  return !!c.match(/\s/);
 }
 
 function isValidAlphabetic(c: string): boolean {
-  if (c.match(/[_A-Za-z0-9]/g)) {
-    return true;
-  }
-  return false;
+  return !!c.match(/[_A-Za-z0-9]/g);
 }
 
 // Generic format is T<digits> - for example T1, T2, T10
 function isGeneric(c: string): boolean {
-  if (c.match(/T\d+/g)) {
-    return true;
-  }
-  return false;
+  return !!c.match(/T\d+/g);
 }
 
 /**
