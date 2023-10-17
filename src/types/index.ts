@@ -524,9 +524,7 @@ export type MoveScriptBytecode = {
 };
 
 /**
- * These are the JSON representations of transaction signatures.
- * @see TransactionSignature enum in api/types/transaction.rs
- * https://github.com/aptos-labs/aptos-core/blob/3e1f8dd9c508d5f241aba48a03fe76cf2e934d61/api/types/src/transaction.rs
+ * These are the JSON representations of transaction signatures returned from the node API.
  */
 export type TransactionSignature =
   | TransactionEd25519Signature
