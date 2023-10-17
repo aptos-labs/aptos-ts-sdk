@@ -265,6 +265,24 @@ export const GetEvents = `
   }
 }
     `;
+export const GetFungibleAssetMetadata = `
+    query getFungibleAssetMetadata($where_condition: fungible_asset_metadata_bool_exp, $offset: Int, $limit: Int) {
+  fungible_asset_metadata(where: $where_condition, offset: $offset, limit: $limit) {
+    icon_uri
+    project_uri
+    supply_aggregator_table_handle_v1
+    supply_aggregator_table_key_v1
+    creator_address
+    asset_type
+    decimals
+    last_transaction_timestamp
+    last_transaction_version
+    name
+    symbol
+    token_standard
+  }
+}
+    `;
 export const GetNumberOfDelegators = `
     query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
   num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
@@ -511,6 +529,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         (wrappedRequestHeaders) =>
           client.request<Types.GetEventsQuery>(GetEvents, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
         "getEvents",
+        "query",
+      );
+    },
+    getFungibleAssetMetadata(
+      variables?: Types.GetFungibleAssetMetadataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetFungibleAssetMetadataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetFungibleAssetMetadataQuery>(GetFungibleAssetMetadata, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getFungibleAssetMetadata",
         "query",
       );
     },
