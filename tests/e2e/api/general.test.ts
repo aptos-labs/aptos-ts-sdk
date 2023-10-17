@@ -30,7 +30,7 @@ describe("general api", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
     const blockVersion = 1;
-    const blockData = await aptos.getBlockByVersion({ blockVersion });
+    const blockData = await aptos.getBlockByVersion({ ledgerVersion: blockVersion });
     expect(blockData.block_height).toBe(blockVersion.toString());
   });
 

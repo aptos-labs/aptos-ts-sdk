@@ -25,7 +25,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">MultiEd25519PublicKey</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L14">src/core/crypto/multi_ed25519.ts:14</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L14">src/core/crypto/multi_ed25519.ts:14</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -73,13 +73,17 @@ and passed the check conducted by the chain.</p>
 <h5>args: <span class="tsd-signature-symbol">{ </span><br/><span>    </span>publicKeys<span class="tsd-signature-symbol">: </span><a href="Ed25519PublicKey.html" class="tsd-signature-type" data-tsd-kind="Class">Ed25519PublicKey</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>threshold<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h5>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5>public<wbr/>Keys<span class="tsd-signature-symbol">: </span><a href="Ed25519PublicKey.html" class="tsd-signature-type" data-tsd-kind="Class">Ed25519PublicKey</a><span class="tsd-signature-symbol">[]</span></h5></li>
+<h5>public<wbr/>Keys<span class="tsd-signature-symbol">: </span><a href="Ed25519PublicKey.html" class="tsd-signature-type" data-tsd-kind="Class">Ed25519PublicKey</a><span class="tsd-signature-symbol">[]</span></h5>
+<div class="tsd-comment tsd-typography"><p>A list of public keys</p>
+</div></li>
 <li class="tsd-parameter">
-<h5>threshold<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5></li></ul></li></ul></div>
+<h5>threshold<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+<div class="tsd-comment tsd-typography"><p>At least &quot;threshold&quot; signatures must be valid</p>
+</div></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="MultiEd25519PublicKey.html" class="tsd-signature-type" data-tsd-kind="Class">MultiEd25519PublicKey</a></h4><aside class="tsd-sources">
 <p>Overrides <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L51">src/core/crypto/multi_ed25519.ts:51</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L51">src/core/crypto/multi_ed25519.ts:51</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="publicKeys" class="tsd-anchor"></a>
@@ -88,35 +92,35 @@ and passed the check conducted by the chain.</p>
 <div class="tsd-comment tsd-typography"><p>List of Ed25519 public keys for this MultiEd25519PublicKey</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L33">src/core/crypto/multi_ed25519.ts:33</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L33">src/core/crypto/multi_ed25519.ts:33</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="threshold" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>threshold</span><a href="#threshold" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">threshold<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The minimum number of valid signatures required, for the number of public keys specified</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L38">src/core/crypto/multi_ed25519.ts:38</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L38">src/core/crypto/multi_ed25519.ts:38</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="MAX_KEYS" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>MAX_<wbr/>KEYS</span><a href="#MAX_KEYS" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">MAX_<wbr/>KEYS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">32</span><span class="tsd-signature-symbol"> = 32</span></div>
 <div class="tsd-comment tsd-typography"><p>Maximum number of public keys supported</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L18">src/core/crypto/multi_ed25519.ts:18</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L18">src/core/crypto/multi_ed25519.ts:18</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="MIN_KEYS" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>MIN_<wbr/>KEYS</span><a href="#MIN_KEYS" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">MIN_<wbr/>KEYS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol"> = 2</span></div>
 <div class="tsd-comment tsd-typography"><p>Minimum number of public keys needed</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L23">src/core/crypto/multi_ed25519.ts:23</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L23">src/core/crypto/multi_ed25519.ts:23</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="MIN_THRESHOLD" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>MIN_<wbr/>THRESHOLD</span><a href="#MIN_THRESHOLD" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">MIN_<wbr/>THRESHOLD<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol"> = 1</span></div>
 <div class="tsd-comment tsd-typography"><p>Minimum threshold for the number of valid signatures required</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L28">src/core/crypto/multi_ed25519.ts:28</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L28">src/core/crypto/multi_ed25519.ts:28</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="bcsToBytes" class="tsd-anchor"></a>
@@ -132,7 +136,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#bcsToBytes">bcsToBytes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/bcs/serializer.ts#L27">src/bcs/serializer.ts:27</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/bcs/serializer.ts#L27">src/bcs/serializer.ts:27</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="bcsToHex" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>bcs<wbr/>To<wbr/>Hex</span><a href="#bcsToHex" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
@@ -145,7 +149,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <a href="Hex.html" class="tsd-signature-type" data-tsd-kind="Class">Hex</a></h4><aside class="tsd-sources">
 <p>Inherited from <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#bcsToHex">bcsToHex</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/bcs/serializer.ts#L37">src/bcs/serializer.ts:37</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/bcs/serializer.ts#L37">src/bcs/serializer.ts:37</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="serialize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>serialize</span><a href="#serialize" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -159,7 +163,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#serialize">serialize</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L97">src/core/crypto/multi_ed25519.ts:97</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L97">src/core/crypto/multi_ed25519.ts:97</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toString" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>String</span><a href="#toString" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -170,7 +174,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#toString">toString</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L88">src/core/crypto/multi_ed25519.ts:88</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L88">src/core/crypto/multi_ed25519.ts:88</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toUint8Array" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>Uint8<wbr/>Array</span><a href="#toUint8Array" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -181,7 +185,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#toUint8Array">toUint8Array</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L77">src/core/crypto/multi_ed25519.ts:77</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L77">src/core/crypto/multi_ed25519.ts:77</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="verifySignature" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>verify<wbr/>Signature</span><a href="#verifySignature" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -202,7 +206,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="PublicKey.html">PublicKey</a>.<a href="PublicKey.html#verifySignature">verifySignature</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L93">src/core/crypto/multi_ed25519.ts:93</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L93">src/core/crypto/multi_ed25519.ts:93</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="deserialize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>deserialize</span><a href="#deserialize" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -215,7 +219,7 @@ This function is the Typescript SDK equivalent of <code>bcs::to_bytes</code> in 
 <h5>deserializer: <a href="Deserializer.html" class="tsd-signature-type" data-tsd-kind="Class">Deserializer</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="MultiEd25519PublicKey.html" class="tsd-signature-type" data-tsd-kind="Class">MultiEd25519PublicKey</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/5c79a93/src/core/crypto/multi_ed25519.ts#L101">src/core/crypto/multi_ed25519.ts:101</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/aptos-labs/aptos-ts-sdk/blob/6081872/src/core/crypto/multi_ed25519.ts#L101">src/core/crypto/multi_ed25519.ts:101</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">

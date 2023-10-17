@@ -36,7 +36,7 @@ export async function publishModule(
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
-  return (await aptos.waitForTransaction({ txnHash: txnHash.hash })) as UserTransactionResponse;
+  return (await aptos.waitForTransaction({ transactionHash: txnHash.hash })) as UserTransactionResponse;
 }
 
 export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
@@ -73,7 +73,7 @@ export async function rawTransactionHelper(
     senderAuthenticator,
   });
   const response = await aptos.waitForTransaction({
-    txnHash: transactionResponse.hash,
+    transactionHash: transactionResponse.hash,
   });
   return response as UserTransactionResponse;
 }
@@ -149,7 +149,7 @@ export const rawTransactionMultiAgentHelper = async (
     },
   });
 
-  const response = await aptos.waitForTransaction({ txnHash: transactionResponse.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: transactionResponse.hash });
   return response as UserTransactionResponse;
 };
 

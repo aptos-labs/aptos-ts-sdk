@@ -35,7 +35,7 @@ describe("transaction api", () => {
       transaction: rawTxn,
       senderAuthenticator: authenticator,
     });
-    const isPending = await aptos.isPendingTransaction({ txnHash: response.hash });
+    const isPending = await aptos.isPendingTransaction({ transactionHash: response.hash });
     expect(isPending).toBeTruthy();
   });
 
@@ -60,7 +60,7 @@ describe("transaction api", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      txn = await aptos.waitForTransaction({ txnHash: response.hash });
+      txn = await aptos.waitForTransaction({ transactionHash: response.hash });
     });
 
     test("it queries for transactions on the chain", async () => {
@@ -70,14 +70,14 @@ describe("transaction api", () => {
 
     test("it queries for transactions by version", async () => {
       const transaction = await aptos.getTransactionByVersion({
-        txnVersion: Number((txn as UserTransactionResponse).version),
+        ledgerVersion: Number((txn as UserTransactionResponse).version),
       });
       expect(transaction).toStrictEqual(txn);
     });
 
     test("it queries for transactions by hash", async () => {
       const transaction = await aptos.getTransactionByHash({
-        txnHash: (txn as UserTransactionResponse).hash,
+        transactionHash: (txn as UserTransactionResponse).hash,
       });
       expect(transaction).toStrictEqual(txn);
     });

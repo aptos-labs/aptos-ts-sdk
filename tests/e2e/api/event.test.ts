@@ -13,7 +13,7 @@ describe("Event", () => {
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const events = await aptos.getAccountEventsByCreationNumber({
-      address: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress.toString(),
       creationNumber: 0,
     });
 
@@ -31,7 +31,7 @@ describe("Event", () => {
     });
 
     const events = await aptos.getAccountEventsByEventType({
-      address: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress.toString(),
       eventType: "0x1::account::CoinRegisterEvent",
     });
 

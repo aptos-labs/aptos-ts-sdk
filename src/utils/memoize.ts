@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * The global cache Map
+ * The global cache Map shared across all functions.  Must keep care to ensure that the
+ * cache keys are unique across all functions.
  */
 const cache = new Map<string, { value: any; timestamp: number }>();
 
@@ -12,7 +13,7 @@ const cache = new Map<string, { value: any; timestamp: number }>();
  * @param func An async function to cache the result of
  * @param key The provided cache key
  * @param ttlMs time-to-live in milliseconds for cached data
- * @returns
+ * @returns the cached or latest result
  */
 export function memoizeAsync<T>(
   func: (...args: any[]) => Promise<T>,
@@ -44,7 +45,7 @@ export function memoizeAsync<T>(
  * @param func A function to cache the result of
  * @param key The provided cache key
  * @param ttlMs time-to-live in milliseconds for cached data
- * @returns
+ * @returns the cached or latest result
  */
 export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: number): (...args: any[]) => T {
   return (...args: any[]) => {

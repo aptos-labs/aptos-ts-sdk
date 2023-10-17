@@ -6,12 +6,12 @@ import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   AnyRawTransaction,
-  GenerateMultiAgentRawTransactionInput,
-  MultiAgentTransaction,
-  GenerateTransactionInput,
   FeePayerTransaction,
+  GenerateMultiAgentRawTransactionInput,
+  GenerateTransactionInput,
   GenerateFeePayerRawTransactionInput,
   GenerateSingleSignerRawTransactionInput,
+  MultiAgentTransaction,
   SingleSignerTransaction,
   SimulateTransactionData,
 } from "../transactions/types";
@@ -108,11 +108,11 @@ export class TransactionSubmission {
   /**
    * Simulates a transaction before singing it.
    *
-   * @param signerPublicKey The signer pubic key
-   * @param transaction The raw transaction to simulate
-   * @param secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
-   * @param feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
-   * @param options optional. A config to simulate the transaction with
+   * @param args.signerPublicKey The signer pubic key
+   * @param args.transaction The raw transaction to simulate
+   * @param args.secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
+   * @param args.feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
+   * @param args.options optional. A config to simulate the transaction with
    */
   async simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>> {
     return simulateTransaction({ aptosConfig: this.config, ...args });

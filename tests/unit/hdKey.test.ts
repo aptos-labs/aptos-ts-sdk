@@ -1,6 +1,5 @@
 import { wallet } from "./helper";
-import { derivePrivateKeyFromMnemonic, ED25519_KEY, isValidPath } from "../../src/utils/hdKey";
-import { Hex } from "../../src";
+import { derivePrivateKeyFromMnemonic, isValidPath, KeyType, Hex } from "../../src";
 
 describe("Hierarchical Deterministic Key (hdkey)", () => {
   it("Parsing a valid path should work", () => {
@@ -13,6 +12,7 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
     expect(isValidPath("m/44'/637'/0'/2'/2")).toBe(true);
     expect(isValidPath("m/44'/637'/22'/22'/22")).toBe(true);
   });
+
   it("Parsing a invalid path should not work", () => {
     // All beginning fields have to be hardened
     expect(isValidPath("m/44/637/0/0/1")).toBe(false);
@@ -34,8 +34,8 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
   });
 
   it("Deriving a key is valid and different with different paths", () => {
-    const keys0 = derivePrivateKeyFromMnemonic(ED25519_KEY, wallet.path, wallet.mnemonic);
-    const keys1 = derivePrivateKeyFromMnemonic(ED25519_KEY, wallet.path.replace("0", "1"), wallet.mnemonic);
+    const keys0 = derivePrivateKeyFromMnemonic(KeyType.ED25519, wallet.path, wallet.mnemonic);
+    const keys1 = derivePrivateKeyFromMnemonic(KeyType.ED25519, wallet.path.replace("0", "1"), wallet.mnemonic);
     expect(keys0.key).toEqual(Hex.fromHexInput(wallet.privateKey).toUint8Array());
     expect(keys0.key).not.toEqual(keys1.key);
     expect(keys0.chainCode).not.toEqual(keys1.chainCode);

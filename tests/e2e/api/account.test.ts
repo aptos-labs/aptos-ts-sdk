@@ -100,7 +100,7 @@ describe("account api", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      const txn = await aptos.waitForTransaction({ txnHash: response.hash });
+      const txn = await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactions = await aptos.getAccountTransactions({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -116,7 +116,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -132,7 +132,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -149,7 +149,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });

@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { PublicKey, Signature } from "./asymmetric_crypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { PublicKey, Signature } from "./asymmetric_crypto";
-import { HexInput } from "../../types";
 import { Hex } from "../hex";
+import { HexInput } from "../../types";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multisig transaction.
@@ -45,8 +45,8 @@ export class MultiEd25519PublicKey extends PublicKey {
    * @see {@link
    * https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
    *
-   * @param publicKeys A list of public keys
-   * @param threshold At least "threshold" signatures must be valid
+   * @param args.publicKeys A list of public keys
+   * @param args.threshold At least "threshold" signatures must be valid
    */
   constructor(args: { publicKeys: Ed25519PublicKey[]; threshold: number }) {
     super();
@@ -186,7 +186,7 @@ export class MultiEd25519Signature extends Signature {
 
   /**
    * Helper method to create a bitmap out of the specified bit positions
-   * @param bits The bitmap positions that should be set. A position starts at index 0.
+   * @param args.bits The bitmap positions that should be set. A position starts at index 0.
    * Valid position should range between 0 and 31.
    * @example
    * Here's an example of valid `bits`

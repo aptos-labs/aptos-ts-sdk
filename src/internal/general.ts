@@ -11,6 +11,7 @@
 import { AptosConfig } from "../api/aptos_config";
 import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
 import {
+  AnyNumber,
   Block,
   GetChainTopUserTransactionsResponse,
   GetProcessorStatusResponse,
@@ -37,14 +38,14 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
 
 export async function getBlockByVersion(args: {
   aptosConfig: AptosConfig;
-  blockVersion: number;
+  ledgerVersion: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
-  const { aptosConfig, blockVersion, options } = args;
+  const { aptosConfig, ledgerVersion, options } = args;
   const { data } = await getAptosFullNode<{}, Block>({
     aptosConfig,
     originMethod: "getBlockByVersion",
-    path: `blocks/by_version/${blockVersion}`,
+    path: `blocks/by_version/${ledgerVersion}`,
     params: { with_transactions: options?.withTransactions },
   });
   return data;
@@ -52,7 +53,7 @@ export async function getBlockByVersion(args: {
 
 export async function getBlockByHeight(args: {
   aptosConfig: AptosConfig;
-  blockHeight: number;
+  blockHeight: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
   const { aptosConfig, blockHeight, options } = args;

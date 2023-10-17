@@ -78,7 +78,7 @@ const example = async () => {
   console.log("\n=== Transfer transaction ===\n");
   let committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
   console.log(`Committed transaction: ${committedTxn.hash}`);
-  await sdk.waitForTransaction({ txnHash: committedTxn.hash });
+  await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
   let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress.toUint8Array());

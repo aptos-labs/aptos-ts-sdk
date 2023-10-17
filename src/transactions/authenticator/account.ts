@@ -27,6 +27,13 @@ export abstract class AccountAuthenticator extends Serializable {
   }
 }
 
+/**
+ * Transaction authenticator Ed25519 for a multi signer transaction
+ *
+ * @param public_key Account's Ed25519 public key.
+ * @param signature Account's Ed25519 signature
+ *
+ */
 export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   public readonly public_key: Ed25519PublicKey;
 
@@ -38,13 +45,6 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
     this.signature = signature;
   }
 
-  /**
-   * Transaction authenticator Ed25519 for a multi signers transaction
-   *
-   * @param public_key Account's Ed25519 public key.
-   * @param signature Account's Ed25519 signature
-   *
-   */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
     this.public_key.serialize(serializer);
@@ -58,18 +58,18 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   }
 }
 
+/**
+ * Transaction authenticator Multi Ed25519 for a multi signers transaction
+ *
+ * @param public_key Account's MultiEd25519 public key.
+ * @param signature Account's MultiEd25519 signature
+ *
+ */
 export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
   public readonly public_key: MultiEd25519PublicKey;
 
   public readonly signature: MultiEd25519Signature;
 
-  /**
-   * Transaction authenticator Multi Ed25519 for a multi signers transaction
-   *
-   * @param public_key Account's MultiEd25519 public key.
-   * @param signature Account's MultiEd25519 signature
-   *
-   */
   constructor(public_key: MultiEd25519PublicKey, signature: MultiEd25519Signature) {
     super();
     this.public_key = public_key;
@@ -89,6 +89,13 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
   }
 }
 
+/**
+ * A Secp256k1 AccountAuthenticator for a single signer
+ *
+ * @param public_key A Secp256k1 public key
+ * @param signature A Secp256k1 signature
+ *
+ */
 export class AccountAuthenticatorSecp256k1 extends AccountAuthenticator {
   public readonly public_key: Secp256k1PublicKey;
 
@@ -100,13 +107,6 @@ export class AccountAuthenticatorSecp256k1 extends AccountAuthenticator {
     this.signature = signature;
   }
 
-  /**
-   * A Secp256k1 AccountAuthenticator for a single signer
-   *
-   * @param public_key A Secp256k1 public key
-   * @param signature A Secp256k1 signature
-   *
-   */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Secp256k1);
     this.public_key.serialize(serializer);

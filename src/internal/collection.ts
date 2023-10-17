@@ -77,7 +77,7 @@ export async function getCollectionData(args: {
  * @param collectionName the collection name
  * @returns the collection address
  */
-export async function getCollectionAddress(args: {
+export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: HexInput;
   collectionName: string;

@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getCollectionAddress, getCollectionData } from "../internal/collection";
-import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 import { AptosConfig } from "./aptos_config";
+import { getCollectionId, getCollectionData } from "../internal/collection";
+import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 
 /**
  * A class to query all `Collection` related queries on Aptos.
@@ -21,8 +21,9 @@ export class Collection {
    * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
    * can pass an optional `tokenStandard` parameter to query a specific standard
    *
-   * @param creatorAddress the address of the collection's creator
-   * @param collectionName the name of the collection
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.options.tokenStandard the token standard to query
    * @returns GetCollectionDataResponse response type
    */
   async getCollectionData(args: {
@@ -36,19 +37,23 @@ export class Collection {
   }
 
   /**
-   * Queries a collection's address.
+   * Queries a collection's Id.
    *
-   * @param creatorAddress the address of the collection's creator
-   * @param collectionName the name of the collection
-   * @returns the collection address
+   * This is the same as the collection's object address in V2, but V1 does
+   * not use objects, and does not have an address
+   *
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.options.tokenStandard the token standard to query
+   * @returns the collection id
    */
-  async getCollectionAddress(args: {
+  async getCollectionId(args: {
     creatorAddress: HexInput;
     collectionName: string;
     options?: {
       tokenStandard?: TokenStandard;
     };
   }): Promise<string> {
-    return getCollectionAddress({ aptosConfig: this.config, ...args });
+    return getCollectionId({ aptosConfig: this.config, ...args });
   }
 }
