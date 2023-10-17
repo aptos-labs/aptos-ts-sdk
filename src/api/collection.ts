@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "./aptos_config";
 import { getCollectionAddress, getCollectionData } from "../internal/collection";
 import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
-import { AptosConfig } from "./aptos_config";
 
 /**
  * A class to query all `Collection` related queries on Aptos.
@@ -21,8 +21,9 @@ export class Collection {
    * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
    * can pass an optional `tokenStandard` parameter to query a specific standard
    *
-   * @param creatorAddress the address of the collection's creator
-   * @param collectionName the name of the collection
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.options.tokenStandard the token standard to query
    * @returns GetCollectionDataResponse response type
    */
   async getCollectionData(args: {
@@ -38,8 +39,9 @@ export class Collection {
   /**
    * Queries a collection's address.
    *
-   * @param creatorAddress the address of the collection's creator
-   * @param collectionName the name of the collection
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.options.tokenStandard the token standard to query
    * @returns the collection address
    */
   async getCollectionAddress(args: {
