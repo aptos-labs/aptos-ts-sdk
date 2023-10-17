@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptos_config";
+import { AccountAddress } from "../core";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -36,7 +37,6 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { AccountAddress } from "../core";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -49,9 +49,9 @@ export class Account {
   }
 
   /**
-   * Queries for an Aptos account given an account address
+   * Queries the current state for an Aptos account given its account address
    *
-   * @param accountAddress Aptos account address
+   * @param args.accountAddress Aptos account address
    *
    * @returns The account data
    *
@@ -68,12 +68,16 @@ export class Account {
   }
 
   /**
-   * Queries for an acount modules given an account address
+   * Queries for all modules in an account given an account address
    *
    * Note: In order to get all account modules, this function may call the API
    * multiple times as it auto paginates.
    *
-   * @param accountAddress Aptos account address
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number module to start returning results from
+   * @param args.options.limit The number of results to return
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   *
    * @returns Account modules
    */
 
@@ -85,10 +89,11 @@ export class Account {
   }
 
   /**
-   * Queries for an account module given account address and module name
+   * Queries for a specific account module given account address and module name
    *
-   * @param accountAddress Aptos account address
-   * @param moduleName The name of the module
+   * @param args.accountAddress Aptos account address
+   * @param args.moduleName The name of the module
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    *
    * @returns Account module
    *
@@ -114,7 +119,9 @@ export class Account {
    * Note: In order to get all account transactions, this function may call the API
    * multiple times as it auto paginates.
    *
-   * @param accountAddress Aptos account address
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number transaction to start returning results from
+   * @param args.options.limit The number of results to return
    *
    * @returns The account transactions
    */
@@ -129,12 +136,15 @@ export class Account {
   }
 
   /**
-   * Queries account resources given an account address
+   * Queries all account resources given an account address
    *
    * Note: In order to get all account resources, this function may call the API
    * multiple times as it auto paginates.
    *
-   * @param accountAddress Aptos account address
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number resource to start returning results from
+   * @param args.options.limit The number of results to return
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    * @returns Account resources
    */
   async getAccountResources(args: {
@@ -145,10 +155,11 @@ export class Account {
   }
 
   /**
-   * Queries account resource given account address and resource type
+   * Queries a specific account resource given account address and resource type
    *
-   * @param accountAddress Aptos account address
-   * @param resourceType String representation of an on-chain Move struct type, i.e "0x1::aptos_coin::AptosCoin"
+   * @param args.accountAddress Aptos account address
+   * @param args.resourceType String representation of an on-chain Move struct type, i.e "0x1::aptos_coin::AptosCoin"
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    *
    * @returns Account resource
    *
@@ -169,10 +180,13 @@ export class Account {
   }
 
   /**
-   * Lookup the original address by the current derived address or authentication key
+   * Looks up the account address for a given authentication key
    *
-   * @param args.addressOrAuthKey The derived address or authentication key
-   * @returns Promise<AccountAddress> The original address
+   * This handles both if the account's authentication key has been rotated or not.
+   *
+   * @param args.authenticationKey The authentication key
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   * @returns Promise<AccountAddress> The accountAddress associated with the authentication key
    */
   async lookupOriginalAccountAddress(args: {
     authenticationKey: HexInput;
@@ -182,9 +196,9 @@ export class Account {
   }
 
   /**
-   * Queries the count of tokens owned by an account
+   * Queries the current count of tokens owned by an account
    *
-   * @param accountAddress The account address
+   * @param args.accountAddress The account address
    * @returns An object { count : number }
    */
   async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<number> {
@@ -200,7 +214,11 @@ export class Account {
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
    *
-   * @param accountAddress The account address we want to get the tokens for
+   * @param args.accountAddress The account address we want to get the tokens for
+   * @param args.options.tokenStandard The NFT standard to query for
+   * @param args.options.pagination.offset The number token to start returning results from
+   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.orderBy The order to sort the tokens by
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokens(args: {
@@ -218,13 +236,17 @@ export class Account {
   }
 
   /**
-   * Queries all tokens of a specific collection that an account owns by the collection address
+   * Queries all current tokens of a specific collection that an account owns by the collection address
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
    *
-   * @param ownerAddress The account address we want to get the tokens for
-   * @param collectionAddress The address of the collection being queried
+   * @param args.ownerAddress The account address we want to get the tokens for
+   * @param args.collectionAddress The address of the collection being queried
+   * @param args.options.tokenStandard The NFT standard to query for
+   * @param args.options.pagination.offset The number token to start returning results from
+   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.orderBy The order to sort the tokens by
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokensFromCollectionAddress(args: {
@@ -243,12 +265,16 @@ export class Account {
   }
 
   /**
-   * Queries for all collections that an account has tokens for.
+   * Queries for all collections that an account currently has tokens for.
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
    *
-   * @param accountAddress The account address we want to get the collections for
+   * @param args.accountAddress The account address we want to get the collections for
+   * @param args.options.tokenStandard The NFT standard to query for
+   * @param args.options.pagination.offset The number collection to start returning results from
+   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.orderBy The order to sort the tokens by
    * @returns Collections array with the collections data
    */
   async getAccountCollectionsWithOwnedTokens(args: {
@@ -266,9 +292,9 @@ export class Account {
   }
 
   /**
-   * Queries the count of transactions submitted by an account
+   * Queries the current count of transactions submitted by an account
    *
-   * @param accountAddress The account address we want to get the total count for
+   * @param args.accountAddress The account address we want to get the total count for
    * @returns An object { count : number }
    */
   async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<number> {
@@ -281,7 +307,10 @@ export class Account {
   /**
    * Queries an account's coins data
    *
-   * @param accountAddress The account address we want to get the coins data for
+   * @param args.accountAddress The account address we want to get the coins data for
+   * @param args.options.pagination.offset The number coin to start returning results from
+   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.orderBy The order to sort the coins by
    * @returns Array with the coins data
    */
   async getAccountCoinsData(args: {
@@ -298,9 +327,9 @@ export class Account {
   }
 
   /**
-   * Queries the count of an account's coins aggregated
+   * Queries the current count of an account's coins aggregated
    *
-   * @param accountAddress The account address we want to get the total count for
+   * @param args.accountAddress The account address we want to get the total count for
    * @returns An object { count : number } where `number` is the aggregated count of all account's coin
    */
   async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
@@ -310,7 +339,10 @@ export class Account {
   /**
    * Queries an account's owned objects
    *
-   * @param ownerAddress The account address we want to get the objects for
+   * @param args.ownerAddress The account address we want to get the objects for
+   * @param args.options.pagination.offset The number coin to start returning results from
+   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.orderBy The order to sort the coins by
    * @returns Objects array with the object data
    */
   async getAccountOwnedObjects(args: {
