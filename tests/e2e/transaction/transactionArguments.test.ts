@@ -196,7 +196,7 @@ describe("various transaction arguments", () => {
       );
       expect((responseSignature as any).fee_payer_address).toBeUndefined();
       expect(responseSignature.type).toEqual("multi_agent_signature");
-    };
+    }
 
     describe("sender is ed25519", () => {
       it("successfully submits a public entry multi signer transaction with all argument types", async () => {
@@ -221,10 +221,11 @@ describe("various transaction arguments", () => {
       senderAccount: Account,
       feePayerAccount: Account,
       secondarySigners: Array<Account>,
-      functionName: string
+      functionName: string,
     ) {
       let txArgs;
-      // If there are secondary signers, we need to add them to the transaction arguments, because it verifies them in the Move function
+      // If there are secondary signers, we need to add them to the transaction arguments,
+      // because it verifies them in the Move function
       const secondarySignerAddresses = secondarySigners.map((account) => account.accountAddress);
       if (secondarySigners.length > 0) {
         const allSignerAddresses = [senderAccount.accountAddress, ...secondarySignerAddresses];
@@ -263,7 +264,12 @@ describe("various transaction arguments", () => {
       });
 
       it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
-        await buildAndTestFeePayerTx(senderAccountEd25519, feePayerAccountEd25519, secondarySignerAccounts, "public_arguments_multiple_signers");
+        await buildAndTestFeePayerTx(
+          senderAccountEd25519,
+          feePayerAccountEd25519,
+          secondarySignerAccounts,
+          "public_arguments_multiple_signers",
+        );
       });
     });
     describe("sender and fee payer are secp2565k1", () => {
@@ -272,7 +278,12 @@ describe("various transaction arguments", () => {
       });
 
       it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
-        await buildAndTestFeePayerTx(senderAccountSecp256k1, feePayerAccountSecp256k1, secondarySignerAccounts, "public_arguments_multiple_signers");
+        await buildAndTestFeePayerTx(
+          senderAccountSecp256k1,
+          feePayerAccountSecp256k1,
+          secondarySignerAccounts,
+          "public_arguments_multiple_signers",
+        );
       });
     });
   });
