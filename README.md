@@ -4,7 +4,7 @@
 [![NPM Package Version][npm-image-version]][npm-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
-> **This library is experimental**. Therefore the API is unstable and may change without warning.
+> **This library is experimental**. Therefore, the API is unstable and may change without warning.
 
 The Aptos TypeScript SDK provides a convenient way to interact with the Aptos blockchain using TypeScript. It offers a
 set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
@@ -44,7 +44,7 @@ If you want to pass in a costum config
 
 ```ts
 // an optional config information for the SDK client instance.
-const config = new AptosConfig({ network: Netowk.LOCAL });
+const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
 ```
 
@@ -65,28 +65,32 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 Using transaction submission api
 
 ```ts
+const alice: Account = Account.generate();
+const bobAddress = "0xb0b";
 const transaction = await aptos.generateTransaction({
-  sender: "0xalice",
+  sender: alice.accountAddress.toString(),
   data: {
     function: "0x1::coin::transfer",
     type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
-    arguments: [AccountAddress.fromHexInput("0xbob"), new U64(100)],
+    arguments: [AccountAddress.fromHexInput(bobAddress), new U64(100)],
   },
 });
 
-let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+let committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
 
 Using built in `transferCoinTransaction`
 
 ```ts
+const alice: Account;
+const bobAddress = "0xb0b";
 const transaction = await aptos.transferCoinTransaction({
-  sender: "0xalice",
-  recipient: "0xbob",
+  sender: alice.accountAddress.toString(),
+  recipient: bob,
   amount: 100,
 });
 
-const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
 
 ### Keys management (default to Ed25519)
@@ -108,7 +112,9 @@ const account = Account.fromPrivateKey("0x123");
 #### Derive from path
 
 ```ts
-const account = Account.fromDerivationPath({ path: "mypath", mnemonic: "mymnemonic" });
+const path = "m/44'/637'/0'/0'/1";
+const mnemonic = "various float stumble...";
+const account = Account.fromDerivationPath({ path, mnemonic });
 ```
 
 ## Documentation and examples
@@ -119,7 +125,7 @@ const account = Account.fromDerivationPath({ path: "mypath", mnemonic: "mymnemon
 
 To run the SDK tests, simply run from the root of this repository:
 
-> Note: make sure aptos local node is up and running
+> Note: make sure aptos local node is up and running.  Take a look at the [local development network guide](https://aptos.dev/guides/local-development-network/) for more details.
 
 ```bash
 pnpm test
