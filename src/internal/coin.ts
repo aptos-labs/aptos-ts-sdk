@@ -1,4 +1,4 @@
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { U64 } from "../bcs/serializable/move-primitives";
 import { Account, AccountAddress } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";

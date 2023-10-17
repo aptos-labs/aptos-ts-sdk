@@ -7,7 +7,7 @@ import {
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
 } from "../types";
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import {
   getCurrentFungibleAssetBalances,
   getFungibleAssetActivities,

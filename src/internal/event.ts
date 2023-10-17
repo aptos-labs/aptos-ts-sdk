@@ -8,7 +8,7 @@
  * event namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress } from "../core";
 import { AnyNumber, GetEventsResponse, HexInput, PaginationArgs, MoveResourceType, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";

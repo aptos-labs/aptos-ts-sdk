@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "./account";
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
 import { Collection } from "./collection";
 import { Event } from "./event";

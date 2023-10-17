@@ -8,7 +8,7 @@
  * collection namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { Hex } from "../core";
 import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 import { GetCollectionDataQuery } from "../types/generated/operations";

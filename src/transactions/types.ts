@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/move-structs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
 import { FixedBytes } from "../bcs/serializable/fixed-bytes";

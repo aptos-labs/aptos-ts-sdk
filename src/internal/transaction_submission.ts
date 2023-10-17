@@ -5,7 +5,7 @@
  * transaction_submission namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFullNode } from "../client";
 import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
