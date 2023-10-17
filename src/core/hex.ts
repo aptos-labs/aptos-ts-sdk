@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { HexInput } from "../types";
 import { ParsingError, ParsingResult } from "./common";
+import { HexInput } from "../types";
 
 /**
  * This enum is used to explain why parsing might have failed.
@@ -41,12 +41,12 @@ export enum HexInvalidReason {
  * - `new Hex([1, 3]).toStringWithoutPrefix()`
  */
 export class Hex {
-  private data: Uint8Array;
+  private readonly data: Uint8Array;
 
   /**
    * Create a new Hex instance from a Uint8Array.
    *
-   * @param hex Uint8Array
+   * @param data Uint8Array
    */
   constructor(data: Uint8Array) {
     this.data = data;
@@ -127,7 +127,7 @@ export class Hex {
   /**
    * Static method to convert an instance of HexInput to Hex
    *
-   * @param str A HexInput (string or Uint8Array)
+   * @param hexInput A HexInput (string or Uint8Array)
    *
    * @returns Hex
    */

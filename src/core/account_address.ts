@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { HexInput, ScriptTransactionArgumentVariants } from "../types";
-import { ParsingError, ParsingResult } from "./common";
 import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
+import { ParsingError, ParsingResult } from "./common";
 import { TransactionArgument } from "../transactions/instances/transactionArgument";
+import { HexInput, ScriptTransactionArgumentVariants } from "../types";
 
 /**
  * This enum is used to explain why an address was invalid.
@@ -38,17 +38,17 @@ export enum AddressInvalidReason {
  * as well as "special" addresses. To learn what these refer to see AIP-40.
  */
 export class AccountAddress extends Serializable implements TransactionArgument {
-  /*
+  /**
    * This is the internal representation of an account address.
    */
   readonly data: Uint8Array;
 
-  /*
+  /**
    * The number of bytes that make up an account address.
    */
   static readonly LENGTH: number = 32;
 
-  /*
+  /**
    * The length of an address string in LONG form without a leading 0x.
    */
   static readonly LONG_STRING_LENGTH: number = 64;
@@ -143,7 +143,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     return `0x${this.toStringLongWithoutPrefix()}`;
   }
 
-  /*
+  /**
    * NOTE: Prefer to use `toString` where possible.
    *
    * Whereas toString will format special addresses (as defined by isSpecial) using the
@@ -289,7 +289,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Learn more about the different address formats by reading AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
    *
-   * @param args.input A hex string representing an account address.
+   * @param input A hex string representing an account address.
    *
    * @returns An instance of AccountAddress.
    */
@@ -336,7 +336,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Convenience method for creating an AccountAddress from HexInput. For more
    * more information on how this works, see the constructor and fromString.
    *
-   * @param args.input A hex string or Uint8Array representing an account address.
+   * @param input A hex string or Uint8Array representing an account address.
    *
    * @returns An instance of AccountAddress.
    */
@@ -351,15 +351,15 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Convenience method for creating an AccountAddress from HexInput. For more
    * more information on how this works, see the constructor and fromStringRelaxed.
    *
-   * @param input A hex string or Uint8Array representing an account address.
+   * @param hexInput A hex string or Uint8Array representing an account address.
    *
    * @returns An instance of AccountAddress.
    */
-  static fromHexInputRelaxed(input: HexInput): AccountAddress {
-    if (input instanceof Uint8Array) {
-      return new AccountAddress({ data: input });
+  static fromHexInputRelaxed(hexInput: HexInput): AccountAddress {
+    if (hexInput instanceof Uint8Array) {
+      return new AccountAddress({ data: hexInput });
     }
-    return AccountAddress.fromStringRelaxed(input);
+    return AccountAddress.fromStringRelaxed(hexInput);
   }
 
   // ===
@@ -369,8 +369,8 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Check if the string is a valid AccountAddress.
    *
-   * @param str A hex string representing an account address.
-   * @param relaxed If true, use relaxed parsing behavior. If false, use strict parsing behavior.
+   * @param args.input A hex string representing an account address.
+   * @param args.relaxed If true, use relaxed parsing behavior. If false, use strict parsing behavior.
    *
    * @returns valid = true if the string is valid, valid = false if not. If the string
    * is not valid, invalidReason will be set explaining why it is invalid.
