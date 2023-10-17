@@ -5,15 +5,15 @@
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
-import { AccountAddress } from "../../core";
-import { Identifier } from "./identifier";
-import { ModuleId } from "./moduleId";
-import { ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
-import { TypeTag } from "../typeTag/typeTag";
-import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
 import { EntryFunctionBytes } from "../../bcs/serializable/entry-function-bytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/move-primitives";
 import { MoveVector } from "../../bcs/serializable/move-structs";
+import { AccountAddress } from "../../core";
+import { Identifier } from "./identifier";
+import { ModuleId } from "./moduleId";
+import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
+import { ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
+import { TypeTag } from "../typeTag/typeTag";
 
 /**
  * Deserialize a Script Transaction Argument
@@ -281,7 +281,7 @@ export class Script {
   /**
    * Scripts contain the Move bytecodes payload that can be submitted to Aptos chain for execution.
    *
-   * @param code The move module bytecode
+   * @param bytecode The move module bytecode
    * @param type_args The type arguments that the bytecode function requires.
    *
    * @example

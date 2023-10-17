@@ -5,10 +5,10 @@
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
-import { AccountAddress } from "../../core";
-import { TransactionVariants } from "../../types";
 import { ChainId } from "./chainId";
+import { AccountAddress } from "../../core";
 import { TransactionPayload } from "./transactionPayload";
+import { TransactionVariants } from "../../types";
 
 /**
  * Representation of a Raw Transaction that can serialized and deserialized
