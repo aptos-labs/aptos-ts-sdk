@@ -1,4 +1,4 @@
-t// Copyright © Aptos Foundation
+// Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
 /**
