@@ -162,6 +162,7 @@ module transaction_arguments::tx_args_module {
         // deeply_nested_2: vector<Option<vector<vector<vector<Option<u256>>>>>>, // TODO
         // deeply_nested_3: vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>>, // TODO
     ) acquires SetupData {
+        let expected_obj = get_setup_data().empty_object_1;
         assert!(arg_bool == EXPECTED_BOOL, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 0);
         assert!(arg_u8 == EXPECTED_U8, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 1);
         assert!(arg_u16 == EXPECTED_U16, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 2);
@@ -171,7 +172,7 @@ module transaction_arguments::tx_args_module {
         assert!(arg_u256 == EXPECTED_U256, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 6);
         assert!(arg_address == EXPECTED_ADDRESS, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 7);
         assert!(arg_string == string::utf8(EXPECTED_STRING), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 8);
-        assert!(arg_object == get_setup_data().empty_object_1, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 9);
+        assert!(arg_object == expected_obj, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 9);
         assert_vectors_equal(vector_empty, vector<u8>[], BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 10);
         assert_vectors_equal(vector_bool, EXPECTED_VECTOR_BOOL, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 11);
         assert_vectors_equal(vector_u8, EXPECTED_VECTOR_U8, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 12);
@@ -193,8 +194,7 @@ module transaction_arguments::tx_args_module {
         assert_options_equal(option_u256, option::some(EXPECTED_U256), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 28);
         assert_options_equal(option_address, option::some(EXPECTED_ADDRESS), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 29);
         assert_options_equal(option_string, option::some(string::utf8(EXPECTED_STRING)), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 30);
-        let obj = get_setup_data().empty_object_1;
-        assert_options_equal(option_object, option::some(obj), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 31);
+        assert_options_equal(option_object, option::some(expected_obj), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 31);
     }
 
     // Can't be called from a script payload
@@ -343,14 +343,14 @@ module transaction_arguments::tx_args_module {
         );
     }
 
-    inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
+    public inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
         assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
         vector::zip<T, T>(vec_1, vec_2, |a, b| {
             assert!(a == b, error::invalid_state(arg_index));
         });
     }
 
-    inline fun assert_options_equal<T>(option_1: Option<T>, option_2: Option<T>, arg_index: u64) {
+    public inline fun assert_options_equal<T>(option_1: Option<T>, option_2: Option<T>, arg_index: u64) {
         if (option::is_none<T>(&option_1)) {
             assert!(option::is_none<T>(&option_2), error::invalid_state(OPTION_EQUALITY_ERROR_0 + arg_index));
         } else {
@@ -358,6 +358,34 @@ module transaction_arguments::tx_args_module {
             let element = option::borrow<T>(&option_1);
             assert!(option::contains(&option_2, element), error::invalid_state(OPTION_EQUALITY_ERROR_2 + arg_index));
         }
+    }
+
+    // Only test these script args right now. Most other forms of arguments aren't supported.
+    public fun assert_values_for_script(
+        arg_bool: bool,
+        arg_u8: u8,
+        arg_u16: u16,
+        arg_u32: u32,
+        arg_u64: u64,
+        arg_u128: u128,
+        arg_u256: u256,
+        arg_address: address,
+        arg_string: String,
+        arg_object: Object<EmptyResource>,
+        vector_u8: vector<u8>,
+    ) acquires SetupData {
+        let expected_obj = get_setup_data().empty_object_1;
+        assert!(arg_bool == EXPECTED_BOOL, 0);
+        assert!(arg_u8 == EXPECTED_U8, 1);
+        assert!(arg_u16 == EXPECTED_U16, 2);
+        assert!(arg_u32 == EXPECTED_U32, 3);
+        assert!(arg_u64 == EXPECTED_U64, 4);
+        assert!(arg_u128 == EXPECTED_U128, 5);
+        assert!(arg_u256 == EXPECTED_U256, 6);
+        assert!(arg_address == EXPECTED_ADDRESS, 7);
+        assert!(arg_string == string::utf8(EXPECTED_STRING), 8);
+        assert!(arg_object == expected_obj, 9);
+        assert_vectors_equal(vector_u8, EXPECTED_VECTOR_U8, 10);
     }
 
     #[view]

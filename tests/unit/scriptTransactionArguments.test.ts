@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountAddress, Serializer, Deserializer, Bool, U128, U16, U256, U32, U64, U8 } from "../../src";
-import { MoveVector } from "../../src/bcs/serializable/moveStructs";
+import { MoveObject, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
 import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
 describe("Tests for the script transaction argument class", () => {
@@ -16,6 +16,8 @@ describe("Tests for the script transaction argument class", () => {
   let scriptBoolBytes: Uint8Array;
   let scriptAddressBytes: Uint8Array;
   let scriptVectorU8Bytes: Uint8Array;
+  let scriptObjectBytes: Uint8Array;
+  let scriptStringBytes: Uint8Array;
 
   beforeEach(() => {
     serializer = new Serializer();
@@ -30,6 +32,8 @@ describe("Tests for the script transaction argument class", () => {
     scriptBoolBytes = new Uint8Array([5, 0]);
     scriptAddressBytes = new Uint8Array([3, ...AccountAddress.FOUR.data]);
     scriptVectorU8Bytes = new Uint8Array([4, 5, 1, 2, 3, 4, 5]);
+    scriptObjectBytes = new Uint8Array([3, ...AccountAddress.THREE.data]);
+    scriptStringBytes = new Uint8Array([4, 11, 115, 111, 109, 101, 32, 115, 116, 114, 105, 110, 103]);
   });
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
@@ -48,6 +52,8 @@ describe("Tests for the script transaction argument class", () => {
     validateBytes(new Bool(false), scriptBoolBytes);
     validateBytes(AccountAddress.FOUR, scriptAddressBytes);
     validateBytes(MoveVector.U8([1, 2, 3, 4, 5]), scriptVectorU8Bytes);
+    validateBytes(new MoveObject(AccountAddress.THREE), scriptObjectBytes);
+    validateBytes(new MoveString("some string"), scriptStringBytes);
   });
 
   const deserializeAsScriptArg = (input: ScriptFunctionArgument) => {
@@ -67,6 +73,8 @@ describe("Tests for the script transaction argument class", () => {
     const scriptArgBool = deserializeAsScriptArg(new Bool(false)) as Bool;
     const scriptArgAddress = deserializeAsScriptArg(AccountAddress.FOUR) as AccountAddress;
     const scriptArgU8Vector = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
+    const scriptArgObject = deserializeAsScriptArg(new MoveObject(AccountAddress.THREE)) as AccountAddress;
+    const scriptArgString = deserializeAsScriptArg(new MoveString("some string")) as MoveVector<U8>;
 
     expect(scriptArgU8.value).toEqual(1);
     expect(scriptArgU16.value).toEqual(2);
@@ -77,6 +85,13 @@ describe("Tests for the script transaction argument class", () => {
     expect(scriptArgBool.value).toEqual(false);
     expect(scriptArgAddress.data).toEqual(AccountAddress.FOUR.data);
     expect(scriptArgU8Vector.values.map((v) => v.value)).toEqual([1, 2, 3, 4, 5]);
+    expect(scriptArgObject.data).toEqual(AccountAddress.THREE.data);
+
+    // load the vector<u8> bytes into the deserializer, deserialize into a string
+    // this is the equivalent of bcs::from_bytes<String>(b"some string");
+    const deserializer = new Deserializer(scriptArgString.bcsToBytes());
+    const deserializedString = MoveString.deserialize(deserializer);
+    expect("some string").toEqual(deserializedString.value);
   });
 
   it("should convert all Move primitives to script transaction arguments correctly", () => {
@@ -91,5 +106,10 @@ describe("Tests for the script transaction argument class", () => {
     expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
     const deserializedVectorU8 = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
     expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);
+
+    // TODO: Should we be able to deserialize a MoveObject if it deserializes into a MoveAddress?
+    // and MoveString to MoveVector<U8>?
+    expect(deserializeAsScriptArg(new MoveObject(AccountAddress.THREE)) instanceof AccountAddress).toBe(true);
+    expect(deserializeAsScriptArg(new MoveString("some string")) instanceof MoveVector).toBe(true);
   });
 });

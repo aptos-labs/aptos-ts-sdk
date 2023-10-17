@@ -15,10 +15,14 @@ import {
   U64,
   U8,
   TransactionFeePayerSignature,
-  TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
   SigningScheme,
   TransactionSignature,
+  TypeTag,
+  ScriptFunctionArgumentTypes,
+  MoveResource,
+  GenerateTransactionPayloadData,
+  UserTransactionResponse,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -31,16 +35,22 @@ import {
 import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import {
   fundAccounts,
-  rawTransactionHelper,
-  rawTransactionMultiAgentHelper,
+  signAndSubmitSingleSignerHelper,
   publishArgumentTestModule,
+  interpolateAddressIntoScriptBytecode,
+  singleSignerScriptArgumentTest,
+  generateMultiAgentHelper,
+  signAndSubmitMultiAgentHelper,
+  buildAndTestAnyMultiAgentFunction,
+  multiSignerScriptArgumentTest,
 } from "./helper";
 
 jest.setTimeout(10000);
 
 // This test looks enormous, but the breakdown is quite simple:
-//  the `transactionArguments` array contains every possible argument type
-//  the `rawTransactionHelper` and `rawTransactionMultiAgentHelper` functions are helpers to generate the transactions,
+//  the `entryFunctionArguments` array contains every possible argument type
+//  the `scriptFunctionArguments` array is a subset of arg types because some types are not supported in script functions
+//  the `signAndSubmitSingleSignerHelper` and `multiAgentRawTransactionHelper` functions are helpers to generate the transactions,
 //    respectively for single signer transactions and for (multi signer & fee payer) transactions
 // In any transaction with a `&signer` the move function asserts that the first argument is the senderAccountEd25519's address:
 // `senderAccountEd25519_address: address` or all of the `&signer` addresses: `signer_addresses: vector<address>`
@@ -64,7 +74,10 @@ describe("various transaction arguments", () => {
   const feePayerAccountEd25519 = Account.generate(SigningScheme.Ed25519);
   const feePayerAccountSecp256k1 = Account.generate(SigningScheme.Secp256k1Ecdsa);
   const moduleObjects: Array<MoveObject> = [];
-  let transactionArguments: EntryFunctionArgumentTypes[];
+  let entryFunctionArguments: EntryFunctionArgumentTypes[];
+  let scriptFunctionArguments: ScriptFunctionArgumentTypes[];
+  let accountResources: Array<MoveResource>;
+  const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
 
   beforeAll(async () => {
     await fundAccounts(aptos, [
@@ -80,7 +93,7 @@ describe("various transaction arguments", () => {
     // when deploying, `init_module` creates 3 objects and stores them into the `SetupData` resource
     // within that resource is 3 fields: `empty_object_1`, `empty_object_2`, `empty_object_3`
     // we need to extract those objects and use them as arguments for the entry functions
-    const accountResources = await aptos.getAccountResources({
+    accountResources = await aptos.getAccountResources({
       accountAddress: publisherAccount.accountAddress.toString(),
     });
 
@@ -93,7 +106,10 @@ describe("various transaction arguments", () => {
       }
     });
 
-    transactionArguments = [
+    const EMPTY_VECTOR = new MoveVector<U8>([]);
+    const U8_VECTOR = MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]);
+
+    entryFunctionArguments = [
       new Bool(true),
       new U8(1),
       new U16(2),
@@ -104,9 +120,9 @@ describe("various transaction arguments", () => {
       publisherAccount.accountAddress,
       new MoveString("expected_string"),
       moduleObjects[0],
-      new MoveVector([]),
+      EMPTY_VECTOR,
       MoveVector.Bool([true, false, true]),
-      MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]),
+      U8_VECTOR, // named because it's used in the script function tests out of order
       MoveVector.U16([0, 1, 2, MAX_U16_NUMBER - 2, MAX_U16_NUMBER - 1, MAX_U16_NUMBER]),
       MoveVector.U32([0, 1, 2, MAX_U32_NUMBER - 2, MAX_U32_NUMBER - 1, MAX_U32_NUMBER]),
       MoveVector.U64([0, 1, 2, MAX_U64_BIG_INT - BigInt(2), MAX_U64_BIG_INT - BigInt(1), MAX_U64_BIG_INT]),
@@ -134,84 +150,176 @@ describe("various transaction arguments", () => {
       new MoveOption(new MoveString("expected_string")),
       new MoveOption(moduleObjects[0]),
     ];
+
+    scriptFunctionArguments = [
+      new Bool(true),
+      new U8(1),
+      new U16(2),
+      new U32(3),
+      new U64(4),
+      new U128(5),
+      new U256(6),
+      publisherAccount.accountAddress,
+      new MoveString("expected_string"),
+      moduleObjects[0],
+      U8_VECTOR,
+    ];
+  });
+  it("should successfully fund accounts and publish the module", async () => {
+    expect(accountResources.length).toBeGreaterThan(0);
   });
 
-  describe("single signer entry functions", () => {
-    async function buildAndTestSingleSignerTx(senderAccount: Account, functionName: string, signatureType: string) {
-      const response = await rawTransactionHelper(
-        aptos,
-        publisherAccount,
-        senderAccount,
-        functionName,
-        [],
-        [...transactionArguments],
-      );
-      expect(response.success).toBe(true);
-      expect((response.signature! as TransactionSignature).type).toEqual(signatureType);
-    }
-    describe("sender is ed25519", () => {
-      it("successfully submits a public entry fn with all argument types", async () => {
-        await buildAndTestSingleSignerTx(senderAccountEd25519, "public_arguments", "ed25519_signature");
+  describe("single signer", () => {
+    describe("entry functions", () => {
+      async function buildAndTestSingleSignerEntryFunction(
+        senderAccount: Account,
+        functionName: string,
+        args: Array<EntryFunctionArgumentTypes>,
+        signatureType: string,
+        typeArgs?: Array<TypeTag>,
+      ) {
+        const rawTransaction = await aptos.generateTransaction({
+          sender: senderAccount.accountAddress.toString(),
+          data: {
+            function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+            typeArguments: typeArgs ?? [],
+            arguments: args,
+          },
+        });
+        const response = await signAndSubmitSingleSignerHelper(aptos, rawTransaction, senderAccount);
+        expect(response.success).toBe(true);
+        expect((response.signature! as TransactionSignature).type).toEqual(signatureType);
+      }
+      describe("sender is ed25519", () => {
+        it("successfully submits a public entry fn with all argument types", async () => {
+          await buildAndTestSingleSignerEntryFunction(
+            senderAccountEd25519,
+            "public_arguments",
+            [...entryFunctionArguments],
+            "ed25519_signature",
+          );
+        });
+
+        it("successfully submits a private entry fn with all argument types", async () => {
+          await buildAndTestSingleSignerEntryFunction(
+            senderAccountEd25519,
+            "private_arguments",
+            [...entryFunctionArguments],
+            "ed25519_signature",
+          );
+        });
       });
 
-      it("successfully submits a private entry fn with all argument types", async () => {
-        await buildAndTestSingleSignerTx(senderAccountEd25519, "private_arguments", "ed25519_signature");
+      describe("sender is secp256k1", () => {
+        it("successfully submits a public entry fn with all argument types", async () => {
+          await buildAndTestSingleSignerEntryFunction(
+            senderAccountSecp256k1,
+            "public_arguments",
+            [...entryFunctionArguments],
+            "secp256k1_ecdsa_signature",
+          );
+        });
+
+        it("successfully submits a private entry fn with all argument types", async () => {
+          await buildAndTestSingleSignerEntryFunction(
+            senderAccountSecp256k1,
+            "private_arguments",
+            [...entryFunctionArguments],
+            "secp256k1_ecdsa_signature",
+          );
+        });
       });
     });
-
-    describe("sender is secp256k1", () => {
-      it("successfully submits a public entry fn with all argument types", async () => {
-        await buildAndTestSingleSignerTx(senderAccountSecp256k1, "public_arguments", "secp256k1_ecdsa_signature");
+    describe("script functions", () => {
+      async function buildAndTestSingleSignerScriptFunction(
+        senderAccount: Account,
+        signatureType: string,
+        typeArgs?: Array<TypeTag>,
+      ) {
+        const rawTransaction = await aptos.generateTransaction({
+          sender: senderAccount.accountAddress.toString(),
+          data: {
+            bytecode: interpolateAddressIntoScriptBytecode(
+              singleSignerScriptArgumentTest,
+              publisherAccount.accountAddress,
+            ),
+            arguments: [senderAccount.accountAddress, ...scriptFunctionArguments],
+            typeArguments: typeArgs ?? [],
+          },
+        });
+        const response = await signAndSubmitSingleSignerHelper(aptos, rawTransaction, senderAccount);
+        expect(response.success).toBe(true);
+        expect((response.signature! as TransactionSignature).type).toEqual(signatureType);
+      }
+      it("successfully submits an ed25519 script fn with all supported argument types", async () => {
+        await buildAndTestSingleSignerScriptFunction(senderAccountEd25519, "ed25519_signature");
       });
 
-      it("successfully submits a private entry fn with all argument types", async () => {
-        await buildAndTestSingleSignerTx(senderAccountSecp256k1, "private_arguments", "secp256k1_ecdsa_signature");
+      it("successfully submits an ed25519 script fn with all supported argument types", async () => {
+        await buildAndTestSingleSignerScriptFunction(senderAccountSecp256k1, "secp256k1_ecdsa_signature");
       });
     });
   });
 
   // secondary signers are always half ed25519 and secp256k1
-  describe("multi signer transaction with all entry function arguments", () => {
-    async function buildAndTestMultiSignerTx(senderAccount: Account, functionName: string) {
-      const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
-      const response = await rawTransactionMultiAgentHelper(
+  describe("multi agent", () => {
+    async function entryMultiAgent(senderAccount: Account, functionName: string): Promise<UserTransactionResponse> {
+      const allSignerAddresses = [senderAccount.accountAddress, ...secondarySignerAddresses];
+      const response = await buildAndTestAnyMultiAgentFunction(
         aptos,
-        publisherAccount,
         senderAccount,
-        functionName,
-        [],
-        [
-          new MoveVector<AccountAddress>([senderAccount.accountAddress, ...secondarySignerAddresses]),
-          ...transactionArguments,
-        ],
-        secondarySignerAccounts,
+        {
+          function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+          arguments: [new MoveVector<AccountAddress>(allSignerAddresses), ...entryFunctionArguments],
+          typeArguments: [],
+        },
+        "multi_agent_signature",
+        [...secondarySignerAccounts],
       );
-      expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionMultiAgentSignature;
-      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
-      );
-      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-        secondarySignerAddresses.map((address) => address.toString()),
-      );
-      expect((responseSignature as any).fee_payer_address).toBeUndefined();
-      expect(responseSignature.type).toEqual("multi_agent_signature");
+      return response;
     }
-
-    describe("sender is ed25519", () => {
-      it("successfully submits a public entry multi signer transaction with all argument types", async () => {
-        await buildAndTestMultiSignerTx(senderAccountEd25519, "public_arguments_multiple_signers");
+    describe("entry functions", () => {
+      describe("sender is ed25519", () => {
+        it("successfully submits a public entry multi signer transaction with all argument types", async () => {
+          await entryMultiAgent(senderAccountEd25519, "public_arguments_multiple_signers");
+        });
+        it("successfully submits a private entry multi signer transaction with all argument types", async () => {
+          await entryMultiAgent(senderAccountEd25519, "private_arguments_multiple_signers");
+        });
       });
-      it("successfully submits a private entry multi signer transaction with all argument types", async () => {
-        await buildAndTestMultiSignerTx(senderAccountEd25519, "private_arguments_multiple_signers");
+      describe("sender is secp256k1", () => {
+        it("successfully submits a public entry multi signer transaction with all argument types", async () => {
+          await entryMultiAgent(senderAccountSecp256k1, "public_arguments_multiple_signers");
+        });
+        it("successfully submits a private entry multi signer transaction with all argument types", async () => {
+          await entryMultiAgent(senderAccountSecp256k1, "private_arguments_multiple_signers");
+        });
       });
     });
-    describe("sender is secp256k1", () => {
-      it("successfully submits a public entry multi signer transaction with all argument types", async () => {
-        await buildAndTestMultiSignerTx(senderAccountSecp256k1, "public_arguments_multiple_signers");
+    describe("script functions", () => {
+      async function scriptMultiAgent(senderAccount: Account): Promise<UserTransactionResponse> {
+        const response = await buildAndTestAnyMultiAgentFunction(
+          aptos,
+          senderAccount,
+          {
+            bytecode: interpolateAddressIntoScriptBytecode(
+              multiSignerScriptArgumentTest,
+              publisherAccount.accountAddress,
+            ),
+            arguments: [senderAccount.accountAddress, ...secondarySignerAddresses, ...scriptFunctionArguments],
+            typeArguments: [],
+          },
+          "multi_agent_signature",
+          [...secondarySignerAccounts],
+        );
+        return response;
+      }
+      it("successfully submits a ed25519 sender multi agent script fn with all supported argument types", async () => {
+        await scriptMultiAgent(senderAccountEd25519);
       });
-      it("successfully submits a private entry multi signer transaction with all argument types", async () => {
-        await buildAndTestMultiSignerTx(senderAccountSecp256k1, "private_arguments_multiple_signers");
+
+      it("successfully submits a secp256k1 sender multi agent script fn with all supported argument types", async () => {
+        await scriptMultiAgent(senderAccountSecp256k1);
       });
     });
   });
@@ -226,31 +334,40 @@ describe("various transaction arguments", () => {
       let txArgs;
       // If there are secondary signers, we need to add them to the transaction arguments,
       // because it verifies them in the Move function
-      const secondarySignerAddresses = secondarySigners.map((account) => account.accountAddress);
+      const localSecondarySignerAddresses = secondarySigners.map((account) => account.accountAddress);
       if (secondarySigners.length > 0) {
-        const allSignerAddresses = [senderAccount.accountAddress, ...secondarySignerAddresses];
-        txArgs = [new MoveVector<AccountAddress>(allSignerAddresses), ...transactionArguments];
+        const allSignerAddresses = [senderAccount.accountAddress, ...localSecondarySignerAddresses];
+        txArgs = [new MoveVector<AccountAddress>(allSignerAddresses), ...entryFunctionArguments];
       } else {
-        txArgs = [...transactionArguments];
+        txArgs = [...entryFunctionArguments];
       }
-      const response = await rawTransactionMultiAgentHelper(
+      const payload: GenerateTransactionPayloadData = {
+        function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+        arguments: [...txArgs],
+        typeArguments: [],
+      };
+      const generatedTransaction = await generateMultiAgentHelper(
         aptos,
-        publisherAccount,
+        payload,
         senderAccount,
-        functionName,
-        [],
-        [...txArgs],
-        [...secondarySigners], // secondary signers, empty in some test cases.
+        [...secondarySigners],
+        feePayerAccount,
+      );
+      const response = await signAndSubmitMultiAgentHelper(
+        aptos,
+        generatedTransaction,
+        senderAccount,
+        [...secondarySigners],
         feePayerAccount,
       );
       expect(response.success).toBe(true);
       const responseSignature = response.signature as TransactionFeePayerSignature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(secondarySigners.length);
-      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+      const localSecondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
         AccountAddress.fromStringRelaxed(address),
       );
-      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-        secondarySignerAddresses.map((address) => address.toString()),
+      expect(localSecondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        localSecondarySignerAddresses.map((address) => address.toString()),
       );
       expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
