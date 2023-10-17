@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { AccountAddress } from "./account_address";
+import { AccountAddress } from "./accountAddress";
 import { PublicKey } from "./crypto/asymmetricCrypto";
 import { Ed25519PublicKey } from "./crypto/ed25519";
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";

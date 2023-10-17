@@ -6,7 +6,7 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
-import { AccountAddress } from "../../core/account_address";
+import { AccountAddress } from "../../core/accountAddress";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
