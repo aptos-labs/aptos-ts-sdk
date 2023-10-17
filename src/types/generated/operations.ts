@@ -360,6 +360,26 @@ export type GetCollectionDataQuery = {
   }>;
 };
 
+export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.CurrentFungibleAssetBalancesBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetCurrentFungibleAssetBalancesQuery = {
+  current_fungible_asset_balances: Array<{
+    amount: any;
+    asset_type: string;
+    is_frozen: boolean;
+    is_primary: boolean;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    owner_address: string;
+    storage_id: string;
+    token_standard: string;
+  }>;
+};
+
 export type GetDelegatedStakingActivitiesQueryVariables = Types.Exact<{
   delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]>;
   poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;

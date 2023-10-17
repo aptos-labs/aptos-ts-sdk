@@ -9,11 +9,28 @@
  */
 
 import { AptosConfig } from "../api/aptos_config";
-import { GetFungibleAssetActivitiesResponse, GetFungibleAssetMetadataResponse, PaginationArgs } from "../types";
+import {
+  GetCurrentFungibleAssetBalancesResponse,
+  GetFungibleAssetActivitiesResponse,
+  GetFungibleAssetMetadataResponse,
+  PaginationArgs,
+} from "../types";
 import { queryIndexer } from "./general";
-import { GetFungibleAssetActivities, GetFungibleAssetMetadata } from "../types/generated/queries";
-import { GetFungibleAssetActivitiesQuery, GetFungibleAssetMetadataQuery } from "../types/generated/operations";
-import { FungibleAssetActivitiesBoolExp, FungibleAssetMetadataBoolExp } from "../types/generated/types";
+import {
+  GetCurrentFungibleAssetBalances,
+  GetFungibleAssetActivities,
+  GetFungibleAssetMetadata,
+} from "../types/generated/queries";
+import {
+  GetCurrentFungibleAssetBalancesQuery,
+  GetFungibleAssetActivitiesQuery,
+  GetFungibleAssetMetadataQuery,
+} from "../types/generated/operations";
+import {
+  CurrentFungibleAssetBalancesBoolExp,
+  FungibleAssetActivitiesBoolExp,
+  FungibleAssetMetadataBoolExp,
+} from "../types/generated/types";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
@@ -67,4 +84,31 @@ export async function getFungibleAssetActivities(args: {
   });
 
   return data.fungible_asset_activities;
+}
+
+export async function getCurrentFungibleAssetBalances(args: {
+  aptosConfig: AptosConfig;
+  options?: {
+    pagination?: PaginationArgs;
+    where?: CurrentFungibleAssetBalancesBoolExp;
+  };
+}): Promise<GetCurrentFungibleAssetBalancesResponse> {
+  const { aptosConfig, options } = args;
+
+  const graphqlQuery = {
+    query: GetCurrentFungibleAssetBalances,
+    variables: {
+      where_condition: options?.where,
+      limit: options?.pagination?.limit,
+      offset: options?.pagination?.offset,
+    },
+  };
+
+  const data = await queryIndexer<GetCurrentFungibleAssetBalancesQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getCurrentFungibleAssetBalances",
+  });
+
+  return data.current_fungible_asset_balances;
 }
