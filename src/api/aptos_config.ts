@@ -7,8 +7,6 @@ import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
 /**
  * This class holds the config information for the SDK client instance.
- *
- * @public
  */
 export class AptosConfig {
   /** The Network that this SDK is associated with. */
@@ -68,6 +66,11 @@ export class AptosConfig {
     }
   }
 
+  /**
+   * Checks if the URL is a known indexer endpoint
+   *
+   * @internal
+   * */
   isIndexerRequest(url: string): boolean {
     return NetworkToIndexerAPI[this.network] === url;
   }
