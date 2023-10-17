@@ -1,25 +1,34 @@
 {
   "name": "@aptos-labs/ts-sdk",
-  "description": "Aptos SDK",
+  "description": "Aptos TypeScript SDK",
   "packageManager": "pnpm@8.9.0",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=11.0.0"
   },
-  "main": "dist/node/index.js",
-  "module": "dist/node/index.mjs",
+  "bugs": {
+    "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
+  },
+  "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.mjs",
   "exports": {
     ".": {
-      "import": "./dist/node/index.mjs",
-      "require": "./dist/node/index.js",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "pnpm build:clean && pnpm run _build:types && pnpm _build:node && pnpm _build:browser",
+    "build": "pnpm build:clean && pnpm run _build:types && pnpm _build:esm && pnpm _build:cjs && pnpm _build:browser",
     "_build:browser": "tsup src/index.ts --platform browser --format iife --global-name aptosSDK --minify --out-dir dist/browser",
-    "_build:node": "tsup src/index.ts --platform node --format esm,cjs --dts --out-dir dist/node",
+    "_build:esm": "tsup src/index.ts --platform node --format esm --dts --out-dir dist/esm",
+    "_build:cjs": "tsup src/index.ts --platform node --format cjs --dts --out-dir dist/cjs",
     "_build:types": "tsup src/types/index.ts --dts --out-dir dist/types",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' '.eslintrc.js'",
     "fmt": "pnpm _fmt --write",
