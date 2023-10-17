@@ -30,7 +30,7 @@ Then, the SDK can be accessed through `window.aptosSDK`.
 ## Documentation and examples
 
 - [The Aptos documentation site](https://aptos.dev/sdks/ts-sdk/index) provides step-by-step instructions, code snippets, and best practices to use this library.
-- For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
+- For in-depth examples, check out the [examples](https://github.com/aptos-labs/aptos-ts-sdk/examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
 
@@ -43,8 +43,8 @@ pnpm test
 ## Contributing
 
 If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose). 
-If, based on the discussion on an issue you would like to offer a code change, please make a [pull request](./CONTRIBUTING.md). 
-If neither of these describes what you would like to contribute, checkout out the [contributing guide](./CONTRIBUTING.md).
+If, based on the discussion on an issue you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/CONTRIBUTING.md). 
+If neither of these describes what you would like to contribute, checkout out the [contributing guide](https://github.com/aptos-labs/aptos-ts-sdk/CONTRIBUTING.md).
 
 [npm-image-version]: https://img.shields.io/npm/v/aptos.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/aptos.svg
