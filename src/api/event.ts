@@ -27,10 +27,6 @@ export class Event {
   async getAccountEventsByCreationNumber(args: {
     address: string;
     creationNumber: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetEventsResponse[0]>;
-    };
   }): Promise<GetEventsResponse> {
     return getAccountEventsByCreationNumber({ aptosConfig: this.config, ...args });
   }
