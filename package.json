@@ -35,7 +35,8 @@
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'",
     "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
-    "e2e-test": "pnpm jest tests/e2e",
+    "e2e-test": "jest tests/e2e",
+    "_e2e-test:publish-contracts": "ts-node -r dotenv/config ./scripts/publishANSContracts.mts",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh"
   },

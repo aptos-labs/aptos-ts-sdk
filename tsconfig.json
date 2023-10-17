@@ -16,5 +16,8 @@
     "strict": true,
     "target": "es2020"
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  "ts-node": {
+    "esm": true
+  }
 }
