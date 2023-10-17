@@ -18,6 +18,7 @@ import {
   TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
   SigningScheme,
+  TransactionSignature,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -51,17 +52,17 @@ jest.setTimeout(10000);
 describe("various transaction arguments", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const publisherAccount = Account.generate();
+  const publisherAccount = Account.generate(SigningScheme.Ed25519);
   const senderAccountEd25519 = Account.generate(SigningScheme.Ed25519);
   const senderAccountSecp256k1 = Account.generate(SigningScheme.Secp256k1Ecdsa);
   const secondarySignerAccounts = [
-    Account.generate(),
-    Account.generate(),
+    Account.generate(SigningScheme.Ed25519),
+    Account.generate(SigningScheme.Ed25519),
     Account.generate(SigningScheme.Secp256k1Ecdsa),
     Account.generate(SigningScheme.Secp256k1Ecdsa),
   ];
-  const feePayerAccount = Account.generate();
-  const feePayerAccountSecp256k1 = Account.generate();
+  const feePayerAccountEd25519 = Account.generate(SigningScheme.Ed25519);
+  const feePayerAccountSecp256k1 = Account.generate(SigningScheme.Secp256k1Ecdsa);
   const moduleObjects: Array<MoveObject> = [];
   let transactionArguments: EntryFunctionArgumentTypes[];
 
@@ -71,7 +72,7 @@ describe("various transaction arguments", () => {
       senderAccountEd25519,
       senderAccountSecp256k1,
       ...secondarySignerAccounts,
-      feePayerAccount,
+      feePayerAccountEd25519,
       feePayerAccountSecp256k1,
     ]);
     await publishArgumentTestModule(aptos, publisherAccount);
@@ -136,210 +137,142 @@ describe("various transaction arguments", () => {
   });
 
   describe("single signer entry functions", () => {
+    async function buildAndTestSingleSignerTx(senderAccount: Account, functionName: string, signatureType: string) {
+      const response = await rawTransactionHelper(
+        aptos,
+        publisherAccount,
+        senderAccount,
+        functionName,
+        [],
+        [...transactionArguments],
+      );
+      expect(response.success).toBe(true);
+      expect((response.signature! as TransactionSignature).type).toEqual(signatureType);
+    }
     describe("sender is ed25519", () => {
       it("successfully submits a public entry fn with all argument types", async () => {
-        const response = await rawTransactionHelper(
-          aptos,
-          publisherAccount,
-          senderAccountEd25519,
-          "public_arguments",
-          [],
-          [...transactionArguments],
-        );
-        expect(response.success).toBe(true);
+        await buildAndTestSingleSignerTx(senderAccountEd25519, "public_arguments", "ed25519_signature");
       });
 
       it("successfully submits a private entry fn with all argument types", async () => {
-        const response = await rawTransactionHelper(
-          aptos,
-          publisherAccount,
-          senderAccountEd25519,
-          "private_arguments",
-          [],
-          [...transactionArguments],
-        );
-        expect(response.success).toBe(true);
+        await buildAndTestSingleSignerTx(senderAccountEd25519, "private_arguments", "ed25519_signature");
       });
     });
 
     describe("sender is secp256k1", () => {
       it("successfully submits a public entry fn with all argument types", async () => {
-        const response = await rawTransactionHelper(
-          aptos,
-          publisherAccount,
-          senderAccountSecp256k1,
-          "public_arguments",
-          [],
-          [...transactionArguments],
-        );
-        expect(response.success).toBe(true);
+        await buildAndTestSingleSignerTx(senderAccountSecp256k1, "public_arguments", "secp256k1_ecdsa_signature");
       });
 
       it("successfully submits a private entry fn with all argument types", async () => {
-        const response = await rawTransactionHelper(
-          aptos,
-          publisherAccount,
-          senderAccountSecp256k1,
-          "private_arguments",
-          [],
-          [...transactionArguments],
-        );
-        expect(response.success).toBe(true);
+        await buildAndTestSingleSignerTx(senderAccountSecp256k1, "private_arguments", "secp256k1_ecdsa_signature");
       });
     });
   });
 
   // secondary signers are always half ed25519 and secp256k1
   describe("multi signer transaction with all entry function arguments", () => {
+    async function buildAndTestMultiSignerTx(senderAccount: Account, functionName: string) {
+      const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        publisherAccount,
+        senderAccount,
+        functionName,
+        [],
+        [
+          new MoveVector<AccountAddress>([senderAccount.accountAddress, ...secondarySignerAddresses]),
+          ...transactionArguments,
+        ],
+        secondarySignerAccounts,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionMultiAgentSignature;
+      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+        AccountAddress.fromStringRelaxed(address),
+      );
+      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        secondarySignerAddresses.map((address) => address.toString()),
+      );
+      expect((responseSignature as any).fee_payer_address).toBeUndefined();
+      expect(responseSignature.type).toEqual("multi_agent_signature");
+    };
+
     describe("sender is ed25519", () => {
-      it("successfully submits a multi signer transaction with all argument types", async () => {
-        const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountEd25519,
-          "public_arguments_multiple_signers",
-          [],
-          [
-            new MoveVector<AccountAddress>([senderAccountEd25519.accountAddress, ...secondarySignerAddresses]),
-            ...transactionArguments,
-          ],
-          secondarySignerAccounts,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionMultiAgentSignature;
-        const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-          AccountAddress.fromStringRelaxed(address),
-        );
-        expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-          secondarySignerAddresses.map((address) => address.toString()),
-        );
-        expect((responseSignature as any).fee_payer_address).toBeUndefined();
+      it("successfully submits a public entry multi signer transaction with all argument types", async () => {
+        await buildAndTestMultiSignerTx(senderAccountEd25519, "public_arguments_multiple_signers");
+      });
+      it("successfully submits a private entry multi signer transaction with all argument types", async () => {
+        await buildAndTestMultiSignerTx(senderAccountEd25519, "private_arguments_multiple_signers");
       });
     });
     describe("sender is secp256k1", () => {
-      it("successfully submits a multi signer transaction with all argument types", async () => {
-        const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountSecp256k1,
-          "public_arguments_multiple_signers",
-          [],
-          [
-            new MoveVector<AccountAddress>([senderAccountSecp256k1.accountAddress, ...secondarySignerAddresses]),
-            ...transactionArguments,
-          ],
-          secondarySignerAccounts,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionMultiAgentSignature;
-        const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-          AccountAddress.fromStringRelaxed(address),
-        );
-        expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-          secondarySignerAddresses.map((address) => address.toString()),
-        );
-        expect((responseSignature as any).fee_payer_address).toBeUndefined();
+      it("successfully submits a public entry multi signer transaction with all argument types", async () => {
+        await buildAndTestMultiSignerTx(senderAccountSecp256k1, "public_arguments_multiple_signers");
+      });
+      it("successfully submits a private entry multi signer transaction with all argument types", async () => {
+        await buildAndTestMultiSignerTx(senderAccountSecp256k1, "private_arguments_multiple_signers");
       });
     });
   });
 
   describe("fee payer transactions with various numbers of signers", () => {
+    async function buildAndTestFeePayerTx(
+      senderAccount: Account,
+      feePayerAccount: Account,
+      secondarySigners: Array<Account>,
+      functionName: string
+    ) {
+      let txArgs;
+      // If there are secondary signers, we need to add them to the transaction arguments, because it verifies them in the Move function
+      const secondarySignerAddresses = secondarySigners.map((account) => account.accountAddress);
+      if (secondarySigners.length > 0) {
+        const allSignerAddresses = [senderAccount.accountAddress, ...secondarySignerAddresses];
+        txArgs = [new MoveVector<AccountAddress>(allSignerAddresses), ...transactionArguments];
+      } else {
+        txArgs = [...transactionArguments];
+      }
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        publisherAccount,
+        senderAccount,
+        functionName,
+        [],
+        [...txArgs],
+        [...secondarySigners], // secondary signers, empty in some test cases.
+        feePayerAccount,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionFeePayerSignature;
+      expect(responseSignature.secondary_signer_addresses.length).toEqual(secondarySigners.length);
+      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+        AccountAddress.fromStringRelaxed(address),
+      );
+      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        secondarySignerAddresses.map((address) => address.toString()),
+      );
+      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+        feePayerAccount.accountAddress.toString(),
+      );
+      expect(responseSignature.type).toEqual("fee_payer_signature");
+    }
+
     describe("sender and fee payer are ed25519", () => {
       it("successfully submits a sponsored transaction with all argument types", async () => {
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountEd25519,
-          "public_arguments",
-          [],
-          [...transactionArguments],
-          [], // secondary signers
-          feePayerAccount,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionFeePayerSignature;
-        expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-        expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
-          feePayerAccount.accountAddress.toString(),
-        );
+        await buildAndTestFeePayerTx(senderAccountEd25519, feePayerAccountEd25519, [], "public_arguments");
       });
 
       it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
-        const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountEd25519,
-          "public_arguments_multiple_signers",
-          [],
-          [
-            new MoveVector<AccountAddress>([senderAccountEd25519.accountAddress, ...secondarySignerAddresses]),
-            ...transactionArguments,
-          ],
-          secondarySignerAccounts,
-          feePayerAccount,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionFeePayerSignature;
-        const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-          AccountAddress.fromStringRelaxed(address),
-        );
-        expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-          secondarySignerAddresses.map((address) => address.toString()),
-        );
-        expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
-          feePayerAccount.accountAddress.toString(),
-        );
+        await buildAndTestFeePayerTx(senderAccountEd25519, feePayerAccountEd25519, secondarySignerAccounts, "public_arguments_multiple_signers");
       });
     });
     describe("sender and fee payer are secp2565k1", () => {
       it("successfully submits a sponsored transaction with all argument types", async () => {
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountSecp256k1,
-          "public_arguments",
-          [],
-          [...transactionArguments],
-          [], // secondary signers
-          feePayerAccountSecp256k1,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionFeePayerSignature;
-        expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-        expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
-          feePayerAccountSecp256k1.accountAddress.toString(),
-        );
+        await buildAndTestFeePayerTx(senderAccountSecp256k1, feePayerAccountSecp256k1, [], "public_arguments");
       });
 
       it("successfully submits a sponsored multi signer transaction with all argument types", async () => {
-        const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
-        const response = await rawTransactionMultiAgentHelper(
-          aptos,
-          publisherAccount,
-          senderAccountSecp256k1,
-          "public_arguments_multiple_signers",
-          [],
-          [
-            new MoveVector<AccountAddress>([senderAccountSecp256k1.accountAddress, ...secondarySignerAddresses]),
-            ...transactionArguments,
-          ],
-          secondarySignerAccounts,
-          feePayerAccountSecp256k1,
-        );
-        expect(response.success).toBe(true);
-        const responseSignature = response.signature as TransactionFeePayerSignature;
-        const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-          AccountAddress.fromStringRelaxed(address),
-        );
-        expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
-          secondarySignerAddresses.map((address) => address.toString()),
-        );
-        expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
-          feePayerAccountSecp256k1.accountAddress.toString(),
-        );
+        await buildAndTestFeePayerTx(senderAccountSecp256k1, feePayerAccountSecp256k1, secondarySignerAccounts, "public_arguments_multiple_signers");
       });
     });
   });

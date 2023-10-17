@@ -296,6 +296,53 @@ module transaction_arguments::tx_args_module {
         );
     }
 
+    entry fun private_arguments_multiple_signers(
+        account_1: &signer,
+        account_2: &signer,
+        account_3: &signer,
+        account_4: &signer,
+        account_5: &signer,
+        signer_addresses: vector<address>,
+        arg_bool: bool,
+        arg_u8: u8,
+        arg_u16: u16,
+        arg_u32: u32,
+        arg_u64: u64,
+        arg_u128: u128,
+        arg_u256: u256,
+        arg_address: address,
+        arg_string: String,
+        arg_object: Object<EmptyResource>,
+        vector_empty: vector<u8>,
+        vector_bool: vector<bool>,
+        vector_u8: vector<u8>,
+        vector_u16: vector<u16>,
+        vector_u32: vector<u32>,
+        vector_u64: vector<u64>,
+        vector_u128: vector<u128>,
+        vector_u256: vector<u256>,
+        vector_address: vector<address>,
+        vector_string: vector<String>,
+        vector_object: vector<Object<EmptyResource>>,
+        option_empty: Option<u8>,
+        option_bool: Option<bool>,
+        option_u8: Option<u8>,
+        option_u16: Option<u16>,
+        option_u32: Option<u32>,
+        option_u64: Option<u64>,
+        option_u128: Option<u128>,
+        option_u256: Option<u256>,
+        option_address: Option<address>,
+        option_string: Option<String>,
+        option_object: Option<Object<EmptyResource>>,
+    ) acquires SetupData {
+        public_arguments_multiple_signers(
+            account_1, account_2, account_3, account_4, account_5, signer_addresses, arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
+            vector_empty, vector_bool, vector_u8, vector_u16, vector_u32, vector_u64, vector_u128, vector_u256, vector_address, vector_string, vector_object,
+            option_empty, option_bool, option_u8, option_u16, option_u32, option_u64, option_u128, option_u256, option_address, option_string, option_object,
+        );
+    }
+
     inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
         assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
         vector::zip<T, T>(vec_1, vec_2, |a, b| {
@@ -547,6 +594,47 @@ module transaction_arguments::tx_args_module {
         );
         
         public_arguments_multiple_signers(
+            deployer,
+            signer_2,
+            signer_3,
+            signer_4,
+            signer_5,
+            vector<address> [ deployer_address, signer_2_address, signer_3_address, signer_4_address, signer_5_address, ],
+            EXPECTED_BOOL,
+            EXPECTED_U8,
+            EXPECTED_U16,
+            EXPECTED_U32,
+            EXPECTED_U64,
+            EXPECTED_U128,
+            EXPECTED_U256,
+            EXPECTED_ADDRESS,
+            string::utf8(EXPECTED_STRING),
+            get_setup_data().empty_object_1,
+            vector<u8>[],
+            EXPECTED_VECTOR_BOOL,
+            EXPECTED_VECTOR_U8,
+            EXPECTED_VECTOR_U16,
+            EXPECTED_VECTOR_U32,
+            EXPECTED_VECTOR_U64,
+            EXPECTED_VECTOR_U128,
+            EXPECTED_VECTOR_U256,
+            EXPECTED_VECTOR_ADDRESS,
+            get_expected_vector_string(),
+            get_test_objects_vector(),
+            option::none<u8>(),
+            option::some(EXPECTED_BOOL),
+            option::some(EXPECTED_U8),
+            option::some(EXPECTED_U16),
+            option::some(EXPECTED_U32),
+            option::some(EXPECTED_U64),
+            option::some(EXPECTED_U128),
+            option::some(EXPECTED_U256),
+            option::some(EXPECTED_ADDRESS),
+            option::some(string::utf8(EXPECTED_STRING)),
+            option::some(get_setup_data().empty_object_1),
+        );
+
+        private_arguments_multiple_signers(
             deployer,
             signer_2,
             signer_3,
