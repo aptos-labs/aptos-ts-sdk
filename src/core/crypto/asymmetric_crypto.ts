@@ -11,7 +11,8 @@ import { HexInput } from "../../types";
 export abstract class PublicKey extends Serializable {
   /**
    * Verifies that the private key associated with this public key signed the message with the given signature.
-   * @param args
+   * @param args.message The message that was signed
+   * @param args.signature The signature to verify
    */
   abstract verifySignature(args: { message: HexInput; signature: Signature }): boolean;
 
@@ -35,7 +36,7 @@ export abstract class PublicKey extends Serializable {
 export abstract class PrivateKey extends Serializable {
   /**
    * Sign a message with the key
-   * @param args
+   * @param message The message to sign
    */
   abstract sign(message: HexInput): Signature;
 
