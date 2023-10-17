@@ -199,7 +199,7 @@ export class Account {
    * Queries the current count of tokens owned by an account
    *
    * @param args.accountAddress The account address
-   * @returns An object { count : number }
+   * @returns Current count of tokens owned by the account
    */
   async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<number> {
     return getAccountTokensCount({
@@ -295,7 +295,7 @@ export class Account {
    * Queries the current count of transactions submitted by an account
    *
    * @param args.accountAddress The account address we want to get the total count for
-   * @returns An object { count : number }
+   * @returns Current count of transactions made by an account
    */
   async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<number> {
     return getAccountTransactionsCount({
@@ -330,7 +330,7 @@ export class Account {
    * Queries the current count of an account's coins aggregated
    *
    * @param args.accountAddress The account address we want to get the total count for
-   * @returns An object { count : number } where `number` is the aggregated count of all account's coin
+   * @returns Current count of the aggregated count of all account's coins
    */
   async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
     return getAccountCoinsCount({ aptosConfig: this.config, ...args });
