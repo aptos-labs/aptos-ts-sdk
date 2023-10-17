@@ -1,5 +1,5 @@
 {
-  "name": "aptos",
+  "name": "@aptos-labs/ts-sdk",
   "description": "Aptos SDK",
   "packageManager": "pnpm@8.9.0",
   "license": "Apache-2.0",
@@ -66,5 +66,5 @@
     "typedoc": "^0.23.20",
     "typescript": "4.8.2"
   },
-  "version": "2.0.0"
+  "version": "0.0.0"
 }
