@@ -10,8 +10,8 @@ import {
   MAX_U8_NUMBER,
   MAX_U256_BIG_INT,
 } from "./consts";
-import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
 import { Hex } from "../core/hex";
+import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
 
 // This class is intended to be used as a base class for all serializable types.
 // It can be used to facilitate composable serialization of a complex type and

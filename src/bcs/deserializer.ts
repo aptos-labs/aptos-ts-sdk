@@ -3,7 +3,7 @@
 
 /* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
-import { Uint128, Uint16, Uint256, Uint32, Uint64, Uint8 } from "../types";
+import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../types";
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
