@@ -7,7 +7,7 @@ import { Coin } from "./coin";
 import { Collection } from "./collection";
 import { Event } from "./event";
 import { Faucet } from "./faucet";
-import { FungibleAsset } from "./fungible_asset";
+import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
 import { Staking } from "./staking";
 import { Token } from "./token";
