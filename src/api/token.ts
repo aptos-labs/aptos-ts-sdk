@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "./aptos_config";
 import { getTokenData } from "../internal/token";
 import { GetTokenDataResponse, HexInput } from "../types";
-import { AptosConfig } from "./aptos_config";
 
 /**
  * A class to query all `Token` related queries on Aptos.
