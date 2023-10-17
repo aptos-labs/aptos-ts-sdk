@@ -17,6 +17,7 @@ import {
 } from "./instances";
 import { AnyNumber, HexInput, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
+import { AnyPublicKey } from "../core/crypto/anyPublicKey";
 
 export type EntryFunctionArgumentTypes =
   | Bool

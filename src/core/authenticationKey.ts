@@ -6,9 +6,9 @@ import { AccountAddress } from "./accountAddress";
 import { PublicKey } from "./crypto/asymmetricCrypto";
 import { Ed25519PublicKey } from "./crypto/ed25519";
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
-import { Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
 import { AuthenticationKeyScheme, HexInput, SigningScheme } from "../types";
+import { AnyPublicKey } from "./crypto/anyPublicKey";
 
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate
@@ -53,8 +53,20 @@ export class AuthenticationKey {
    * This allows for the creation of AuthenticationKeys that are not derived from Public Keys directly
    * @param args
    */
-  private static fromBytesAndScheme(args: { bytes: HexInput; scheme: AuthenticationKeyScheme }) {
-    const { bytes, scheme } = args;
+  private static fromBytesAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
+    const { publicKey, scheme } = args;
+    const bytes = publicKey.toUint8Array();
+
+    // TODO - check for single key or multi key
+    if (scheme === SigningScheme.SingleKey) {
+      let newBytes = publicKey.bcsToBytes();
+      const authKeyBytes = new Uint8Array([...newBytes, scheme]);
+      console.log("authKeyBytes", authKeyBytes);
+      const hash = sha3Hash.create();
+      hash.update(authKeyBytes);
+      const hashDigest = hash.digest();
+      return new AuthenticationKey({ data: hashDigest });
+    }
     const inputBytes = Hex.fromHexInput(bytes).toUint8Array();
     const authKeyBytes = new Uint8Array(inputBytes.length + 1);
     authKeyBytes.set(inputBytes);
@@ -62,8 +74,9 @@ export class AuthenticationKey {
 
     const hash = sha3Hash.create();
     hash.update(authKeyBytes);
+    const hashDigest = hash.digest();
 
-    return new AuthenticationKey({ data: hash.digest() });
+    return new AuthenticationKey({ data: hashDigest });
   }
 
   /**
@@ -77,17 +90,18 @@ export class AuthenticationKey {
 
     let scheme: number;
     if (publicKey instanceof Ed25519PublicKey) {
+      // for legacy support
       scheme = SigningScheme.Ed25519.valueOf();
     } else if (publicKey instanceof MultiEd25519PublicKey) {
+      // for legacy support
       scheme = SigningScheme.MultiEd25519.valueOf();
-    } else if (publicKey instanceof Secp256k1PublicKey) {
-      scheme = SigningScheme.Secp256k1Ecdsa.valueOf();
+    } else if (publicKey instanceof AnyPublicKey) {
+      scheme = SigningScheme.SingleKey.valueOf();
     } else {
       throw new Error("No supported authentication scheme for public key");
     }
 
-    const pubKeyBytes = publicKey.toUint8Array();
-    return AuthenticationKey.fromBytesAndScheme({ bytes: pubKeyBytes, scheme });
+    return AuthenticationKey.fromBytesAndScheme({ publicKey: publicKey, scheme });
   }
 
   /**

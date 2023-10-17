@@ -95,6 +95,7 @@ export async function aptosRequest<Req, Res>(
   }
 
   const errorMessage = errors[result.status];
+  console.log(result);
   throw new AptosApiError(
     options,
     result,

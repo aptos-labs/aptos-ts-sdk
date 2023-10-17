@@ -4,14 +4,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { AccountAuthenticator } from "./account";
-import { Deserializer, Serializer } from "../../bcs";
+import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { TransactionAuthenticatorVariant } from "../../types";
 
-export abstract class TransactionAuthenticator {
+export abstract class TransactionAuthenticator extends Serializable {
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): TransactionAuthenticator {
@@ -25,8 +24,8 @@ export abstract class TransactionAuthenticator {
         return TransactionAuthenticatorMultiAgent.load(deserializer);
       case TransactionAuthenticatorVariant.FeePayer:
         return TransactionAuthenticatorFeePayer.load(deserializer);
-      case TransactionAuthenticatorVariant.Secp256k1Ecdsa:
-        return TransactionAuthenticatorSecp256k1.load(deserializer);
+      case TransactionAuthenticatorVariant.SingleSender:
+        return SingleSender.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionAuthenticator: ${index}`);
     }
@@ -192,31 +191,25 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
 }
 
 /**
- * Transaction authenticator Secp256k1 for a single signer transaction
+ * Single Sender authenticator for a single signer transaction
  *
- * @param public_key Client's public key
- * @param signature Secp256k1 signature of a `RawTransaction`
+ * @param sender AccountAuthenticator
  */
-export class TransactionAuthenticatorSecp256k1 extends TransactionAuthenticator {
-  public readonly public_key: Secp256k1PublicKey;
+export class SingleSender extends TransactionAuthenticator {
+  public readonly sender: AccountAuthenticator;
 
-  public readonly signature: Secp256k1Signature;
-
-  constructor(public_key: Secp256k1PublicKey, signature: Secp256k1Signature) {
+  constructor(sender: AccountAuthenticator) {
     super();
-    this.public_key = public_key;
-    this.signature = signature;
+    this.sender = sender;
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(TransactionAuthenticatorVariant.Secp256k1Ecdsa);
-    this.public_key.serialize(serializer);
-    this.signature.serialize(serializer);
+    serializer.serializeU32AsUleb128(TransactionAuthenticatorVariant.SingleSender);
+    this.sender.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): TransactionAuthenticatorSecp256k1 {
-    const public_key = Secp256k1PublicKey.deserialize(deserializer);
-    const signature = Secp256k1Signature.deserialize(deserializer);
-    return new TransactionAuthenticatorSecp256k1(public_key, signature);
+  static load(deserializer: Deserializer): SingleSender {
+    const sender = AccountAuthenticator.deserialize(deserializer);
+    return new SingleSender(sender);
   }
 }

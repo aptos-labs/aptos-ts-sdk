@@ -11,6 +11,8 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
+import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
+import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
@@ -24,16 +26,12 @@ import {
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
 } from "../../utils/const";
-import {
-  AccountAuthenticator,
-  AccountAuthenticatorEd25519,
-  AccountAuthenticatorSecp256k1,
-} from "../authenticator/account";
+import { AccountAuthenticator, AccountAuthenticatorEd25519, SingleKeyAuthenticator } from "../authenticator/account";
 import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
-  TransactionAuthenticatorSecp256k1,
+  SingleSender,
 } from "../authenticator/transaction";
 import {
   ChainId,
@@ -319,11 +317,8 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       accountAuthenticator.public_key,
       accountAuthenticator.signature,
     );
-  } else if (accountAuthenticator instanceof AccountAuthenticatorSecp256k1) {
-    transactionAuthenticator = new TransactionAuthenticatorSecp256k1(
-      accountAuthenticator.public_key,
-      accountAuthenticator.signature,
-    );
+  } else if (accountAuthenticator instanceof SingleKeyAuthenticator) {
+    transactionAuthenticator = new SingleSender(accountAuthenticator);
   } else {
     throw new Error("Invalid public key");
   }
@@ -331,15 +326,21 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
 }
 
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
-  if (publicKey instanceof Ed25519PublicKey) {
-    return new AccountAuthenticatorEd25519(
-      new Ed25519PublicKey(publicKey.toUint8Array()),
-      new Ed25519Signature(new Uint8Array(64)),
-    );
+  // TODO add support for AnyMultiKey
+  if (publicKey instanceof AnyPublicKey) {
+    if (publicKey.publicKey instanceof Ed25519PublicKey) {
+      return new SingleKeyAuthenticator(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
+    }
+    if (publicKey.publicKey instanceof Secp256k1PublicKey) {
+      return new SingleKeyAuthenticator(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
+    }
   }
-  return new AccountAuthenticatorSecp256k1(
-    new Secp256k1PublicKey(publicKey.toUint8Array()),
-    new Secp256k1Signature(new Uint8Array(64)),
+
+  // legacy code
+  // TODO add support to legacy multied25519
+  return new AccountAuthenticatorEd25519(
+    new Ed25519PublicKey(publicKey.toUint8Array()),
+    new Ed25519Signature(new Uint8Array(64)),
   );
 }
 
@@ -369,11 +370,8 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
         new Ed25519PublicKey(signer.publicKey.toUint8Array()),
         new Ed25519Signature(signerSignature.toUint8Array()),
       );
-    case SigningScheme.Secp256k1Ecdsa:
-      return new AccountAuthenticatorSecp256k1(
-        new Secp256k1PublicKey(signer.publicKey.toUint8Array()),
-        new Secp256k1Signature(signerSignature.toUint8Array()),
-      );
+    case SigningScheme.SingleKey:
+      return new SingleKeyAuthenticator(new AnyPublicKey(signer.publicKey), new AnySignature(signerSignature));
     // TODO support MultiEd25519
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
@@ -424,11 +422,8 @@ export function generateSignedTransaction(args: {
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }
 
-  if (accountAuthenticator instanceof AccountAuthenticatorSecp256k1) {
-    const transactionAuthenticator = new TransactionAuthenticatorSecp256k1(
-      accountAuthenticator.public_key,
-      accountAuthenticator.signature,
-    );
+  if (accountAuthenticator instanceof SingleKeyAuthenticator) {
+    const transactionAuthenticator = new SingleSender(accountAuthenticator);
     // return signed transaction
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }

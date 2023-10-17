@@ -87,7 +87,7 @@ export enum TransactionAuthenticatorVariant {
   MultiEd25519 = 1,
   MultiAgent = 2,
   FeePayer = 3,
-  Secp256k1Ecdsa = 4,
+  SingleSender = 4,
 }
 
 /**
@@ -97,7 +97,18 @@ export enum TransactionAuthenticatorVariant {
 export enum AccountAuthenticatorVariant {
   Ed25519 = 0,
   MultiEd25519 = 1,
-  Secp256k1 = 2,
+  SingleKey = 2,
+  MultiKey = 3,
+}
+
+export enum AnyPublicKeyVariant {
+  Ed25519 = 0,
+  Secp256k1 = 1,
+}
+
+export enum AnySignatureVariant {
+  Ed25519 = 0,
+  Secp256k1 = 1,
 }
 
 /**
@@ -923,11 +934,6 @@ export type TableItemRequest = {
  */
 export type AuthenticationKeyScheme = SigningScheme | DeriveScheme;
 
-/**
- * A list of signing schemes that are supported by Aptos.
- *
- * https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs#L375-L378
- */
 export enum SigningScheme {
   /**
    * For Ed25519PublicKey
@@ -938,7 +944,22 @@ export enum SigningScheme {
    */
   MultiEd25519 = 1,
   /**
-   * For Secp256k1 ecdsa
+   * For SingleKey ecdsa
+   */
+  SingleKey = 2,
+}
+
+export enum SigningSchemeInput {
+  /**
+   * For Ed25519PublicKey
+   */
+  Ed25519 = 0,
+  /**
+   * For MultiEd25519PublicKey
+   */
+  MultiEd25519 = 1,
+  /**
+   * For Secp256k1Ecdsa
    */
   Secp256k1Ecdsa = 2,
 }

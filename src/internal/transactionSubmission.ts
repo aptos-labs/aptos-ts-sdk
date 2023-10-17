@@ -8,6 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
+import { Hex } from "../core";
 import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
