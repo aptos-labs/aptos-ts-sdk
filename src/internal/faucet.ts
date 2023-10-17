@@ -35,7 +35,7 @@ export async function fundAccount(args: {
 
   const txnHash = data.txn_hashes[0];
 
-  await waitForTransaction({ aptosConfig, txnHash, extraArgs: { timeoutSecs } });
+  await waitForTransaction({ aptosConfig, transactionHash: txnHash, options: { timeoutSecs } });
 
   return txnHash;
 }

@@ -72,7 +72,7 @@ const TRANSFER_AMOUNT = 10;
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  await sdk.waitForTransaction({ txnHash: committedTxn.hash });
+  await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
   const aliceBalanceAfter = await sdk.getAccountCoinsData({ accountAddress: aliceAddres });

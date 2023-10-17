@@ -47,7 +47,7 @@ describe("transaction submission", () => {
             additionalSignersAuthenticators: [bobauthenticator],
           },
         });
-        await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+        await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
       },
       longTestTimeout,
     );
@@ -73,7 +73,7 @@ describe("transaction submission", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+      await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     });
     test("it submits an entry function transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
@@ -96,7 +96,7 @@ describe("transaction submission", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+      await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     });
   });
 });
