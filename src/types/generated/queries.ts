@@ -265,6 +265,32 @@ export const GetEvents = `
   }
 }
     `;
+export const GetFungibleAssetActivities = `
+    query getFungibleAssetActivities($where_condition: fungible_asset_activities_bool_exp, $offset: Int, $limit: Int) {
+  fungible_asset_activities(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    amount
+    asset_type
+    block_height
+    entry_function_id_str
+    event_index
+    gas_fee_payer_address
+    is_frozen
+    is_gas_fee
+    is_transaction_success
+    owner_address
+    storage_id
+    storage_refund_amount
+    token_standard
+    transaction_timestamp
+    transaction_version
+    type
+  }
+}
+    `;
 export const GetFungibleAssetMetadata = `
     query getFungibleAssetMetadata($where_condition: fungible_asset_metadata_bool_exp, $offset: Int, $limit: Int) {
   fungible_asset_metadata(where: $where_condition, offset: $offset, limit: $limit) {
@@ -529,6 +555,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         (wrappedRequestHeaders) =>
           client.request<Types.GetEventsQuery>(GetEvents, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
         "getEvents",
+        "query",
+      );
+    },
+    getFungibleAssetActivities(
+      variables?: Types.GetFungibleAssetActivitiesQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetFungibleAssetActivitiesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetFungibleAssetActivitiesQuery>(GetFungibleAssetActivities, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getFungibleAssetActivities",
         "query",
       );
     },

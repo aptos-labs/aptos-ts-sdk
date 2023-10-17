@@ -396,6 +396,33 @@ export type GetEventsQuery = {
   }>;
 };
 
+export type GetFungibleAssetActivitiesQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.FungibleAssetActivitiesBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetFungibleAssetActivitiesQuery = {
+  fungible_asset_activities: Array<{
+    amount?: any | null;
+    asset_type: string;
+    block_height: any;
+    entry_function_id_str?: string | null;
+    event_index: any;
+    gas_fee_payer_address?: string | null;
+    is_frozen?: boolean | null;
+    is_gas_fee: boolean;
+    is_transaction_success: boolean;
+    owner_address: string;
+    storage_id: string;
+    storage_refund_amount: any;
+    token_standard: string;
+    transaction_timestamp: any;
+    transaction_version: any;
+    type: string;
+  }>;
+};
+
 export type GetFungibleAssetMetadataQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.FungibleAssetMetadataBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]>;
