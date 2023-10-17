@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey, Signature } from "./asymmetric_crypto";
+import { PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";

@@ -3,7 +3,7 @@
 
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { PrivateKey, PublicKey, Signature } from "./asymmetric_crypto";
+import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
