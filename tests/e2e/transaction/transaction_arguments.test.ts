@@ -26,7 +26,7 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/move-structs";
+import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import {
   fundAccounts,
   rawTransactionHelper,

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Bool, U128, U16, U256, U32, U64, U8 } from "./move-primitives";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "./movePrimitives";
 import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";

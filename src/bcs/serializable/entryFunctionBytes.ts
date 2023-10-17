@@ -3,7 +3,7 @@
 
 import { Serializer, Serializable } from "../serializer";
 import { Deserializer } from "../deserializer";
-import { FixedBytes } from "./fixed-bytes";
+import { FixedBytes } from "./fixedBytes";
 import { EntryFunctionArgument } from "../../transactions/instances/transactionArgument";
 import { HexInput } from "../../types";
 

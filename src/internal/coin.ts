@@ -1,5 +1,5 @@
 import { AptosConfig } from "../api/aptosConfig";
-import { U64 } from "../bcs/serializable/move-primitives";
+import { U64 } from "../bcs/serializable/movePrimitives";
 import { Account, AccountAddress } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { StructTag, TypeTagStruct } from "../transactions/typeTag/typeTag";

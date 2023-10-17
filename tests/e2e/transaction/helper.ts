@@ -12,7 +12,7 @@ import {
   GenerateMultiAgentRawTransactionInput,
   HexInput,
 } from "../../../src";
-import { MoveVector } from "../../../src/bcs/serializable/move-structs";
+import { MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 export async function publishModule(

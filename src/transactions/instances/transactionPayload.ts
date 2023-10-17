@@ -5,9 +5,9 @@
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
-import { EntryFunctionBytes } from "../../bcs/serializable/entry-function-bytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/move-primitives";
-import { MoveVector } from "../../bcs/serializable/move-structs";
+import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/movePrimitives";
+import { MoveVector } from "../../bcs/serializable/moveStructs";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
