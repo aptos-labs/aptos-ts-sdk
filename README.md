@@ -7,7 +7,7 @@
 The Aptos TypeScript SDK provides a convenient way to interact with the Aptos blockchain using TypeScript. It offers a 
 set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
 
-This repository supports version >= 2.0.0 of the [Aptos SDK npm package](https://www.npmjs.com/package/aptos).
+This repository supports version >= 0.0.0 of the [Aptos SDK npm package](https://www.npmjs.com/package/@aptos-labs/ts-sdk).
 
 ## Installation
 
@@ -15,14 +15,14 @@ This repository supports version >= 2.0.0 of the [Aptos SDK npm package](https:/
 
 Install with your favorite package manager such as npm, yarn, or pnpm:
 ```bash
-npm install aptos
+npm install @aptos-labs/ts-sdk
 ```
 
 ##### For use in a browser
 
 You can add the SDK to your web application using a script tag:
 ```html
-<script src="https://unpkg.com/aptos@latest/dist/index.global.js" />
+<script src="https://unpkg.com/@aptos-labs/ts-sdk@latest/dist/index.global.js" />
 ```
 
 Then, the SDK can be accessed through `window.aptosSDK`.
@@ -48,6 +48,6 @@ If neither of these describes what you would like to contribute, checkout out th
 
 [npm-image-version]: https://img.shields.io/npm/v/aptos.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/aptos.svg
-[npm-url]: https://npmjs.org/package/aptos
+[npm-url]: https://npmjs.org/package/@aptos-labs/ts-sdk
 [discord-image]: https://img.shields.io/discord/945856774056083548?label=Discord&logo=discord&style=flat~~~~
 [discord-url]: https://discord.gg/aptosnetwork
