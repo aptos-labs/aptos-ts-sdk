@@ -232,6 +232,25 @@ export const GetCollectionData = `
   }
 }
     `;
+export const GetCurrentFungibleAssetBalances = `
+    query getCurrentFungibleAssetBalances($where_condition: current_fungible_asset_balances_bool_exp, $offset: Int, $limit: Int) {
+  current_fungible_asset_balances(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    amount
+    asset_type
+    is_frozen
+    is_primary
+    last_transaction_timestamp
+    last_transaction_version
+    owner_address
+    storage_id
+    token_standard
+  }
+}
+    `;
 export const GetDelegatedStakingActivities = `
     query getDelegatedStakingActivities($delegatorAddress: String, $poolAddress: String) {
   delegated_staking_activities(
@@ -530,6 +549,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getCollectionData",
+        "query",
+      );
+    },
+    getCurrentFungibleAssetBalances(
+      variables?: Types.GetCurrentFungibleAssetBalancesQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetCurrentFungibleAssetBalancesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCurrentFungibleAssetBalancesQuery>(GetCurrentFungibleAssetBalances, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getCurrentFungibleAssetBalances",
         "query",
       );
     },

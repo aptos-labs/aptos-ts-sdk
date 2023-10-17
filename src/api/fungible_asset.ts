@@ -1,10 +1,23 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { GetFungibleAssetActivitiesResponse, GetFungibleAssetMetadataResponse, PaginationArgs } from "../types";
+import {
+  GetCurrentFungibleAssetBalancesResponse,
+  GetFungibleAssetActivitiesResponse,
+  GetFungibleAssetMetadataResponse,
+  PaginationArgs,
+} from "../types";
 import { AptosConfig } from "./aptos_config";
-import { getFungibleAssetActivities, getFungibleAssetMetadata } from "../internal/fungible_asset";
-import { FungibleAssetActivitiesBoolExp, FungibleAssetMetadataBoolExp } from "../types/generated/types";
+import {
+  getCurrentFungibleAssetBalances,
+  getFungibleAssetActivities,
+  getFungibleAssetMetadata,
+} from "../internal/fungible_asset";
+import {
+  CurrentFungibleAssetBalancesBoolExp,
+  FungibleAssetActivitiesBoolExp,
+  FungibleAssetMetadataBoolExp,
+} from "../types/generated/types";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.
@@ -48,5 +61,22 @@ export class FungibleAsset {
     };
   }): Promise<GetFungibleAssetActivitiesResponse> {
     return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries the fungible asset balance
+   *
+   * This query returns the fungible asset balance.
+   * It can be filtered by owner address, and asset type
+   *
+   * @returns GetCurrentFungibleAssetBalancesResponse A list of fungible asset metadata
+   */
+  async getCurrentFungibleAssetBalances(args?: {
+    options?: {
+      pagination?: PaginationArgs;
+      where?: CurrentFungibleAssetBalancesBoolExp;
+    };
+  }): Promise<GetCurrentFungibleAssetBalancesResponse> {
+    return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
   }
 }
