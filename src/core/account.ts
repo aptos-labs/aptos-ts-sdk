@@ -8,8 +8,9 @@ import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
-import { HexInput, SigningScheme } from "../types";
+import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
+import { AnyPublicKey } from "./crypto/anyPublicKey";
 
 /**
  * Class for creating and managing account on Aptos network
@@ -61,7 +62,7 @@ export class Account {
     } else if (this.publicKey instanceof MultiEd25519PublicKey) {
       this.signingScheme = SigningScheme.MultiEd25519;
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
-      this.signingScheme = SigningScheme.Secp256k1Ecdsa;
+      this.signingScheme = SigningScheme.SingleKey;
     } else {
       throw new Error("Can not create new Account, unsupported public key type");
     }
@@ -78,11 +79,11 @@ export class Account {
    *
    * @returns Account with the given signing scheme
    */
-  static generate(scheme?: SigningScheme): Account {
+  static generate(scheme?: SigningSchemeInput): Account {
     let privateKey: PrivateKey;
 
     switch (scheme) {
-      case SigningScheme.Secp256k1Ecdsa:
+      case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
       // TODO: Add support for MultiEd25519
@@ -104,8 +105,11 @@ export class Account {
    * @param privateKey Hex - private key of the account
    * @returns Account
    */
-  static fromPrivateKey(privateKey: PrivateKey): Account {
-    const publicKey = privateKey.publicKey();
+  static fromPrivateKey(privateKey: PrivateKey, legacy: boolean = true): Account {
+    let publicKey = privateKey.publicKey();
+    if (!legacy) {
+      publicKey = new AnyPublicKey(publicKey);
+    }
     const authKey = Account.authKey({ publicKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
     return Account.fromPrivateKeyAndAddress({ privateKey, address });
