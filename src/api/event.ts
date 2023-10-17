@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
-import { AnyNumber, GetEventsResponse, MoveResourceType, OrderBy, PaginationArgs } from "../types";
-import { EventsBoolExp } from "../types/generated/types";
 import { AptosConfig } from "./aptos_config";
+import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
+import { AnyNumber, GetEventsResponse, HexInput, MoveResourceType, OrderBy, PaginationArgs } from "../types";
+import { EventsBoolExp } from "../types/generated/types";
 
 /**
  * A class to query all `Event` Aptos related queries
@@ -19,13 +19,13 @@ export class Event {
   /**
    * Get events by creation number and an account address
    *
-   * @param args.address - The account address
+   * @param args.accountAddress - The account address
    * @param args.creationNumber - The event creation number
    *
    * @returns Promise<GetEventsResponse>
    */
   async getAccountEventsByCreationNumber(args: {
-    address: string;
+    accountAddress: HexInput;
     creationNumber: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
@@ -38,13 +38,13 @@ export class Event {
   /**
    * Get events by event type and an account address
    *
-   * @param args.address - The account address
+   * @param args.accountAddress - The account address
    * @param args.eventType - The event type
    *
    * @returns Promise<GetEventsResponse>
    */
   async getAccountEventsByEventType(args: {
-    address: string;
+    accountAddress: HexInput;
     eventType: MoveResourceType;
     options?: {
       pagination?: PaginationArgs;
