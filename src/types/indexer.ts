@@ -25,6 +25,7 @@ import {
   GetTokenDataQuery,
   GetProcessorStatusQuery,
   GetFungibleAssetMetadataQuery,
+  GetFungibleAssetActivitiesQuery,
 } from "./generated/operations";
 
 /**
@@ -55,6 +56,7 @@ export type GetCollectionDataResponse = GetCollectionDataQuery["current_collecti
 export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0];
 export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_status"];
 export type GetFungibleAssetMetadataResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"];
+export type GetFungibleAssetActivitiesResponse = GetFungibleAssetActivitiesQuery["fungible_asset_activities"];
 
 /**
  * A generic type that being passed by each function and holds an

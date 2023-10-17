@@ -9,11 +9,11 @@
  */
 
 import { AptosConfig } from "../api/aptos_config";
-import { GetFungibleAssetMetadataResponse, PaginationArgs } from "../types";
+import { GetFungibleAssetActivitiesResponse, GetFungibleAssetMetadataResponse, PaginationArgs } from "../types";
 import { queryIndexer } from "./general";
-import { GetFungibleAssetMetadata } from "../types/generated/queries";
-import { GetFungibleAssetMetadataQuery } from "../types/generated/operations";
-import { FungibleAssetMetadataBoolExp } from "../types/generated/types";
+import { GetFungibleAssetActivities, GetFungibleAssetMetadata } from "../types/generated/queries";
+import { GetFungibleAssetActivitiesQuery, GetFungibleAssetMetadataQuery } from "../types/generated/operations";
+import { FungibleAssetActivitiesBoolExp, FungibleAssetMetadataBoolExp } from "../types/generated/types";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
@@ -40,4 +40,31 @@ export async function getFungibleAssetMetadata(args: {
   });
 
   return data.fungible_asset_metadata;
+}
+
+export async function getFungibleAssetActivities(args: {
+  aptosConfig: AptosConfig;
+  options?: {
+    pagination?: PaginationArgs;
+    where?: FungibleAssetActivitiesBoolExp;
+  };
+}): Promise<GetFungibleAssetActivitiesResponse> {
+  const { aptosConfig, options } = args;
+
+  const graphqlQuery = {
+    query: GetFungibleAssetActivities,
+    variables: {
+      where_condition: options?.where,
+      limit: options?.pagination?.limit,
+      offset: options?.pagination?.offset,
+    },
+  };
+
+  const data = await queryIndexer<GetFungibleAssetActivitiesQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getFungibleAssetActivities",
+  });
+
+  return data.fungible_asset_activities;
 }
