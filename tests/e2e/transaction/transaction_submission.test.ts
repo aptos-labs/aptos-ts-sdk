@@ -10,7 +10,7 @@ describe("transaction submission", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
   const senderAccount = Account.generate();
-  const recieverAccounts = [Account.generate(), Account.generate()];
+  const receiverAccounts = [Account.generate(), Account.generate()];
   const senderSecp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
@@ -18,7 +18,7 @@ describe("transaction submission", () => {
     await fundAccounts(aptos, [
       senderAccount,
       senderSecp256k1Account,
-      ...recieverAccounts,
+      ...receiverAccounts,
       secondarySignerAccount,
       feePayerAccount,
     ]);
@@ -31,7 +31,7 @@ describe("transaction submission", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -45,7 +45,7 @@ describe("transaction submission", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -65,8 +65,8 @@ describe("transaction submission", () => {
             arguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
-              recieverAccounts[0].accountAddress,
-              recieverAccounts[1].accountAddress,
+              receiverAccounts[0].accountAddress,
+              receiverAccounts[1].accountAddress,
               new U64(BigInt(50)),
             ],
           },
@@ -95,8 +95,8 @@ describe("transaction submission", () => {
               arguments: [
                 new U64(100),
                 new U64(200),
-                recieverAccounts[0].accountAddress,
-                recieverAccounts[1].accountAddress,
+                receiverAccounts[0].accountAddress,
+                receiverAccounts[1].accountAddress,
                 new U64(50),
               ],
             },
@@ -123,7 +123,7 @@ describe("transaction submission", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
 
@@ -144,7 +144,7 @@ describe("transaction submission", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const senderAuthenticator = aptos.signTransaction({ signer: senderAccount, transaction });
@@ -168,8 +168,8 @@ describe("transaction submission", () => {
             arguments: [
               new U64(100),
               new U64(200),
-              recieverAccounts[0].accountAddress,
-              recieverAccounts[1].accountAddress,
+              receiverAccounts[0].accountAddress,
+              receiverAccounts[1].accountAddress,
               new U64(50),
             ],
           },
@@ -200,7 +200,7 @@ describe("transaction submission", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -214,7 +214,7 @@ describe("transaction submission", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -234,8 +234,8 @@ describe("transaction submission", () => {
             arguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
-              recieverAccounts[0].accountAddress,
-              recieverAccounts[1].accountAddress,
+              receiverAccounts[0].accountAddress,
+              receiverAccounts[1].accountAddress,
               new U64(BigInt(50)),
             ],
           },
@@ -264,8 +264,8 @@ describe("transaction submission", () => {
               arguments: [
                 new U64(100),
                 new U64(200),
-                recieverAccounts[0].accountAddress,
-                recieverAccounts[1].accountAddress,
+                receiverAccounts[0].accountAddress,
+                receiverAccounts[1].accountAddress,
                 new U64(50),
               ],
             },
@@ -292,7 +292,7 @@ describe("transaction submission", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
 
@@ -313,7 +313,7 @@ describe("transaction submission", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            arguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
         const senderAuthenticator = aptos.signTransaction({ signer: senderSecp256k1Account, transaction });
@@ -337,8 +337,8 @@ describe("transaction submission", () => {
             arguments: [
               new U64(100),
               new U64(200),
-              recieverAccounts[0].accountAddress,
-              recieverAccounts[1].accountAddress,
+              receiverAccounts[0].accountAddress,
+              receiverAccounts[1].accountAddress,
               new U64(50),
             ],
           },
