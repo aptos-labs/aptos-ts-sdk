@@ -201,7 +201,7 @@ describe("transaction simulation", () => {
 
   describe("Secp256k1", () => {
     describe("single signer", () => {
-      test.skip("with script payload", async () => {
+      test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
@@ -215,7 +215,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test.skip("with entry function payload", async () => {
+      test("with entry function payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
@@ -229,7 +229,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test.skip("with multisig payload", async () => {
+      test("with multisig payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
@@ -246,7 +246,7 @@ describe("transaction simulation", () => {
       });
     });
     describe("multi agent", () => {
-      test.skip("with script payload", async () => {
+      test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
@@ -270,7 +270,7 @@ describe("transaction simulation", () => {
         expect(response.success).toBeTruthy();
       });
 
-      test.skip(
+      test(
         "with entry function payload",
         async () => {
           const rawTxn = await aptos.generateTransaction({
@@ -299,7 +299,7 @@ describe("transaction simulation", () => {
       );
     });
     describe("fee payer", () => {
-      test.skip("with script payload", async () => {
+      test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
@@ -332,7 +332,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test.skip("with multisig payload", async () => {
+      test("with multisig payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
@@ -350,7 +350,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test.skip("with multi agent transaction", async () => {
+      test("with multi agent transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
