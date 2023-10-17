@@ -16,6 +16,3 @@ tmp/
 
 # Vim swap files
 *.swp
-
-# Doc generation output
-docs/
