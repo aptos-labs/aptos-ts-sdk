@@ -396,6 +396,29 @@ export type GetEventsQuery = {
   }>;
 };
 
+export type GetFungibleAssetMetadataQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.FungibleAssetMetadataBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetFungibleAssetMetadataQuery = {
+  fungible_asset_metadata: Array<{
+    icon_uri?: string | null;
+    project_uri?: string | null;
+    supply_aggregator_table_handle_v1?: string | null;
+    supply_aggregator_table_key_v1?: string | null;
+    creator_address: string;
+    asset_type: string;
+    decimals: number;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    name: string;
+    symbol: string;
+    token_standard: string;
+  }>;
+};
+
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
   where_condition: Types.NumActiveDelegatorPerPoolBoolExp;
   order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
