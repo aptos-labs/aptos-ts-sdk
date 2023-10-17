@@ -17,7 +17,13 @@ export type DerivedKeys = {
  */
 export const APTOS_PATH_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
 
-export const ED25519_KEY = "ed25519 seed";
+/**
+ * A list of supported key types and associated seeds
+ */
+export enum KeyType {
+  ED25519 = "ed25519 seed",
+}
+
 const HARDENED_OFFSET = 0x80000000;
 
 const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
@@ -55,7 +61,9 @@ const splitPath = (path: string): Array<string> => path.split("/").slice(1).map(
 
 /**
  * Checks if the BIP44 path is valid for Aptos
- * @param path
+ * @param path the BIP44 path
+ *
+ * @returns true if the path is a valid Aptos path
  */
 export const isValidPath = (path: string): boolean => {
   if (!APTOS_PATH_REGEX.test(path)) {
@@ -66,7 +74,7 @@ export const isValidPath = (path: string): boolean => {
 
 /**
  * Normalizes the mnemonic by removing extra whitespace and making it lowercase
- * @param mnemonic
+ * @param mnemonic the mnemonic seed phrase
  */
 const mnemonicToSeed = (mnemonic: string): Uint8Array => {
   const normalizedMnemonic = mnemonic
@@ -81,12 +89,13 @@ const mnemonicToSeed = (mnemonic: string): Uint8Array => {
  * Derives a private key from a mnemonic seed phrase.
  *
  * To derive multiple keys from the same phrase, change the path
- * @param path
- * @param seedPhrase
- * @param offset
+ * @param keyType the key type seed used to derive keys
+ * @param path the BIP44 path
+ * @param seedPhrase the mnemonic seed phrase
+ * @param offset the offset used for key derivation, defaults to [HARDENED_OFFSET]
  */
 export const derivePrivateKeyFromMnemonic = (
-  keyType: string,
+  keyType: KeyType,
   path: string,
   seedPhrase: string,
   offset = HARDENED_OFFSET,

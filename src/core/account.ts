@@ -5,7 +5,7 @@ import { AccountAddress } from "./account_address";
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
 import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetric_crypto";
-import { derivePrivateKeyFromMnemonic, ED25519_KEY } from "../utils/hdKey";
+import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 import { AuthenticationKey } from "./authentication_key";
 import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
@@ -135,7 +135,7 @@ export class Account {
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
     const { path, mnemonic } = args;
 
-    const { key } = derivePrivateKeyFromMnemonic(ED25519_KEY, path, mnemonic);
+    const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
     return Account.fromPrivateKey(privateKey);
   }
