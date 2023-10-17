@@ -288,7 +288,7 @@ export async function getAccountOwnedTokens(args: {
 
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
-  ownerAddress: HexInput;
+  accountAddress: HexInput;
   collectionAddress: HexInput;
   options?: {
     tokenStandard?: TokenStandard;
@@ -296,12 +296,12 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
     orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-  const { aptosConfig, ownerAddress, collectionAddress, options } = args;
-  const accountAddress = AccountAddress.fromHexInput(ownerAddress).toString();
+  const { aptosConfig, accountAddress, collectionAddress, options } = args;
+  const ownerAddress = AccountAddress.fromHexInput(accountAddress).toString();
   const collAddress = Hex.fromHexInput(collectionAddress).toString();
 
   const whereCondition: any = {
-    owner_address: { _eq: accountAddress },
+    owner_address: { _eq: ownerAddress },
     current_token_data: { collection_id: { _eq: collAddress } },
     amount: { _gt: 0 },
   };
@@ -458,14 +458,14 @@ export async function getAccountCoinsCount(args: {
 
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
-  ownerAddress: HexInput;
+  accountAddress: HexInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
   };
 }): Promise<GetAccountOwnedObjectsResponse> {
-  const { aptosConfig, ownerAddress, options } = args;
-  const address = AccountAddress.fromHexInput(ownerAddress).toString();
+  const { aptosConfig, accountAddress, options } = args;
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },

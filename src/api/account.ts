@@ -241,7 +241,7 @@ export class Account {
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
    *
-   * @param args.ownerAddress The account address we want to get the tokens for
+   * @param args.accountAddress The account address we want to get the tokens for
    * @param args.collectionAddress The address of the collection being queried
    * @param args.options.tokenStandard The NFT standard to query for
    * @param args.options.pagination.offset The number token to start returning results from
@@ -250,7 +250,7 @@ export class Account {
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokensFromCollectionAddress(args: {
-    ownerAddress: HexInput;
+    accountAddress: HexInput;
     collectionAddress: HexInput;
     options?: {
       tokenStandard?: TokenStandard;
@@ -339,14 +339,14 @@ export class Account {
   /**
    * Queries an account's owned objects
    *
-   * @param args.ownerAddress The account address we want to get the objects for
+   * @param args.accountAddress The account address we want to get the objects for
    * @param args.options.pagination.offset The number coin to start returning results from
    * @param args.options.pagination.limit The number of results to return
    * @param args.options.orderBy The order to sort the coins by
    * @returns Objects array with the object data
    */
   async getAccountOwnedObjects(args: {
-    ownerAddress: HexInput;
+    accountAddress: HexInput;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
