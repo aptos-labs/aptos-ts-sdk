@@ -5,7 +5,7 @@ import { GenerateTransactionOptions, SingleSignerTransaction } from "../transact
 import { StructTag, TypeTagStruct } from "../transactions/typeTag/typeTag";
 import { HexInput, AnyNumber, MoveResourceType } from "../types";
 import { APTOS_COIN } from "../utils/const";
-import { generateTransaction } from "./transaction_submission";
+import { generateTransaction } from "./transactionSubmission";
 
 export async function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;

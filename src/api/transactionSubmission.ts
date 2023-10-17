@@ -21,7 +21,7 @@ import {
   signTransaction,
   simulateTransaction,
   submitTransaction,
-} from "../internal/transaction_submission";
+} from "../internal/transactionSubmission";
 
 export class TransactionSubmission {
   readonly config: AptosConfig;

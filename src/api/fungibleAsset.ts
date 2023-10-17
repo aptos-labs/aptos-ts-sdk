@@ -12,7 +12,7 @@ import {
   getCurrentFungibleAssetBalances,
   getFungibleAssetActivities,
   getFungibleAssetMetadata,
-} from "../internal/fungible_asset";
+} from "../internal/fungibleAsset";
 import {
   CurrentFungibleAssetBalancesBoolExp,
   FungibleAssetActivitiesBoolExp,
