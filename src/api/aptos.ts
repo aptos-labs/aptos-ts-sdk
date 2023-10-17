@@ -13,6 +13,13 @@ import { Token } from "./token";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transaction_submission";
 
+/**
+ * This class is the main entry point into Aptos's
+ * APIs and separates functionality into different namespaces.
+ *
+ * To use the SDK, create a new Aptos instance to get access
+ * to all the sdk functionality.
+ */
 export class Aptos {
   readonly config: AptosConfig;
 
@@ -36,23 +43,6 @@ export class Aptos {
 
   readonly transactionSubmission: TransactionSubmission;
 
-  /**
-   * This class is the main entry point into Aptos's
-   * APIs and separates functionality into different namespaces.
-   *
-   * To use the SDK, create a new Aptos instance to get access
-   * to all the sdk functionality.
-   *
-   * @example
-   * ```
-   * {
-   * const aptos = new Aptos();
-   * await aptos.account.getInfo("0x1")
-   * }
-   * ```
-   *
-   * @public
-   */
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
