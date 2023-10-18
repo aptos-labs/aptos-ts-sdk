@@ -28,7 +28,7 @@ describe("Collection", () => {
     });
     const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
 
-    await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+    await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
 
     const data = await aptos.getCollectionData({ collectionName, creatorAddress });
 
@@ -48,7 +48,7 @@ describe("Collection", () => {
     expect(data).toHaveProperty("table_handle_v1");
     expect(data).toHaveProperty("total_minted_v2");
 
-    const address = await aptos.getCollectionAddress({ collectionName, creatorAddress });
+    const address = await aptos.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
   });
 });
