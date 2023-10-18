@@ -205,7 +205,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveVector of MoveObjectes
+   * Factory method to generate a MoveVector of MoveObjects
    *
    * @example
    * const v = MoveVector.MoveObject(["hello", "world"]);
