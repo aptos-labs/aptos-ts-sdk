@@ -278,7 +278,7 @@ export async function getCollectionData(args: {
   };
 
   if (options?.tokenStandard) {
-    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2"};
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
   }
 
   const graphqlQuery = {
