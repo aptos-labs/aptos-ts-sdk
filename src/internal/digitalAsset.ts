@@ -251,16 +251,6 @@ export async function createCollectionTransaction(
   return transaction as SingleSignerTransaction;
 }
 
-/**
- * Queries data of a specific collection by the collection creator address and the collection name.
- *
- * if, for some reason, a creator account has 2 collections with the same name in v1 and v2,
- * can pass an optional `tokenStandard` parameter to query a specific standard
- *
- * @param creatorAddress the address of the collection's creator
- * @param collectionName the name of the collection
- * @returns GetCollectionDataResponse response type
- */
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
   creatorAddress: HexInput;
@@ -300,13 +290,6 @@ export async function getCollectionData(args: {
   return data.current_collections_v2[0];
 }
 
-/**
- * Queries a collection's address.
- *
- * @param creatorAddress the collection creator address
- * @param collectionName the collection name
- * @returns the collection address
- */
 export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: HexInput;
