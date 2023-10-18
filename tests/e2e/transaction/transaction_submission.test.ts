@@ -97,10 +97,10 @@ describe("transaction submission", () => {
       await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     });
     test.only("it submits an entry function transaction Secp256k1", async () => {
-      const config = new AptosConfig({ network: Network.DEVNET });
+      const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey(new Secp256k1PrivateKey(secp256k1TestObject.privateKey), false);
-      //await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
         sender: alice.accountAddress.toString(),
@@ -119,6 +119,7 @@ describe("transaction submission", () => {
         senderAuthenticator: authenticator,
       });
       console.log(response.hash);
+      // console.log(response.hash);
       // await waitForTransaction({
       //   aptosConfig: config,
       //   transactionHash: response.hash,

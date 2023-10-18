@@ -58,13 +58,7 @@ export class AuthenticationKey {
 
     // TODO - check for single key or multi key
     if (scheme === SigningScheme.SingleKey) {
-      let newBytes: Uint8Array = new Uint8Array();
-      if (publicKey instanceof AnyPublicKey) {
-        newBytes = publicKey.bcsToBytes();
-      } else {
-        newBytes = new AnyPublicKey(publicKey).bcsToBytes();
-      }
-
+      let newBytes = publicKey.bcsToBytes();
       const authKeyBytes = new Uint8Array([...newBytes, scheme]);
       console.log("authKeyBytes", authKeyBytes);
       const hash = sha3Hash.create();
