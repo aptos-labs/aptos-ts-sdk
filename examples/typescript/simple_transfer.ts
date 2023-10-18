@@ -70,7 +70,7 @@ const example = async () => {
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      type_arguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
+      typeArguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
       arguments: [AccountAddress.fromHexInput(bob.accountAddress.toString()), new U64(TRANSFER_AMOUNT)],
     },
   });
@@ -78,7 +78,7 @@ const example = async () => {
   console.log("\n=== Transfer transaction ===\n");
   let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
 
-  await aptos.waitForTransaction({ txnHash: committedTxn.hash });
+  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
