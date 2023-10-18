@@ -51,17 +51,14 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   // Fund again because these txns can be expensive
   await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
-  const amountToSend = Math.floor(FUND_AMOUNT * 2 / accounts.length);
+  const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send APT to the rest
   const transaction = await aptos.generateTransaction({
     sender: firstAccount.accountAddress.toString(),
     data: {
       function: `0x${1}::aptos_account::batch_transfer`,
-      arguments : [
-        new MoveVector(addressesRemaining),
-        MoveVector.U64(addressesRemaining.map(() => amountToSend)),
-      ],
-    }
+      arguments: [new MoveVector(addressesRemaining), MoveVector.U64(addressesRemaining.map(() => amountToSend))],
+    },
   });
   const signedTxn = await aptos.signTransaction({
     signer: firstAccount,
