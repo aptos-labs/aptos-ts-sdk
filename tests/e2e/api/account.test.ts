@@ -161,7 +161,7 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const account = Account.generate();
 
-      // Fund and create account onchain
+      // Fund and create account on-chain
       await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
 
       const lookupAccount = await aptos.lookupOriginalAccountAddress({

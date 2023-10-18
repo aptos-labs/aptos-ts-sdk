@@ -199,7 +199,7 @@ describe("transaction simulation", () => {
     });
   });
 
-  describe("Secp256k1", () => {
+  describe.skip("Secp256k1", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({

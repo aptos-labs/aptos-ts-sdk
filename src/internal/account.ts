@@ -67,7 +67,7 @@ export async function getModules(args: {
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveModuleBytecode[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, MoveModuleBytecode[]>({
+  return paginateWithCursor<{}, MoveModuleBytecode[]>({
     aptosConfig,
     originMethod: "getModules",
     path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/modules`,
@@ -77,15 +77,14 @@ export async function getModules(args: {
       limit: options?.limit ?? 1000,
     },
   });
-  return data;
 }
 
 /**
  * Queries for a move module given account address and module name
  *
- * @param accountAddress Hex-encoded 32 byte Aptos account address
- * @param moduleName The name of the module
- * @param query.ledgerVersion Specifies ledger version of transactions. By default latest version will be used
+ * @param args.accountAddress Hex-encoded 32 byte Aptos account address
+ * @param args.moduleName The name of the module
+ * @param args.query.ledgerVersion Specifies ledger version of transactions. By default, latest version will be used
  * @returns The move module.
  */
 export async function getModule(args: {
@@ -97,16 +96,14 @@ export async function getModule(args: {
   // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
   // by the developer directly
   if (args.options?.ledgerVersion !== undefined) {
-    const module = await getModuleInner(args);
-    return module;
+    return getModuleInner(args);
   }
 
-  const module = await memoizeAsync(
+  return memoizeAsync(
     async () => getModuleInner(args),
     `module-${args.accountAddress}-${args.moduleName}`,
     1000 * 60 * 5, // 5 minutes
   )();
-  return module;
 }
 
 async function getModuleInner(args: {
@@ -132,13 +129,12 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
     path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
-  return data;
 }
 
 export async function getResources(args: {
@@ -147,7 +143,7 @@ export async function getResources(args: {
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveResource[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, MoveResource[]>({
+  return paginateWithCursor<{}, MoveResource[]>({
     aptosConfig,
     originMethod: "getResources",
     path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resources`,
@@ -157,7 +153,6 @@ export async function getResources(args: {
       limit: options?.limit ?? 999,
     },
   });
-  return data;
 }
 
 export async function getResource(args: {

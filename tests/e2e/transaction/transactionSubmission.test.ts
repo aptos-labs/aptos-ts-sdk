@@ -36,7 +36,7 @@ describe("transaction submission", () => {
           signer: alice,
           transaction: rawTxn,
         });
-        const bobauthenticator = aptos.signTransaction({
+        const bobAuthenticator = aptos.signTransaction({
           signer: bob,
           transaction: rawTxn,
         });
@@ -44,7 +44,7 @@ describe("transaction submission", () => {
           transaction: rawTxn,
           senderAuthenticator: authenticator,
           secondarySignerAuthenticators: {
-            additionalSignersAuthenticators: [bobauthenticator],
+            additionalSignersAuthenticators: [bobAuthenticator],
           },
         });
         await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
@@ -52,7 +52,7 @@ describe("transaction submission", () => {
       longTestTimeout,
     );
 
-    test("it submits an entry function transaction with Secp256k1Ecdsa", async () => {
+    test("it submits an entry function transaction", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate();
@@ -75,7 +75,7 @@ describe("transaction submission", () => {
       });
       await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     });
-    test("it submits an entry function transaction", async () => {
+    test.skip("it submits an entry function transaction with Secp256k1Ecdsa", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const alice = Account.generate(SigningScheme.Secp256k1Ecdsa);

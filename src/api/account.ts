@@ -212,7 +212,7 @@ export class Account {
    * Queries the account's current owned tokens.
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
+   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.options.tokenStandard The NFT standard to query for
@@ -239,7 +239,7 @@ export class Account {
    * Queries all current tokens of a specific collection that an account owns by the collection address
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
+   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.collectionAddress The address of the collection being queried
@@ -268,7 +268,7 @@ export class Account {
    * Queries for all collections that an account currently has tokens for.
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standrd, you can pass an optional tokenStandard param
+   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
    * @param args.accountAddress The account address we want to get the collections for
    * @param args.options.tokenStandard The NFT standard to query for

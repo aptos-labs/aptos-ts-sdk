@@ -15,7 +15,7 @@ import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
  * Class for creating and managing account on Aptos network
  *
  * Use this class to create accounts, sign transactions, and more.
- * Note: Creating an account instance does not create the account onchain.
+ * Note: Creating an account instance does not create the account on-chain.
  */
 export class Account {
   /**
@@ -128,7 +128,7 @@ export class Account {
    *
    * @param args.path the BIP44 derive path (e.g. m/44'/637'/0'/0'/0')
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param args.mnemonic the menmonic seed phrase of the account
+   * @param args.mnemonic the mnemonic seed phrase of the account
    * @returns AptosAccount
    */
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {

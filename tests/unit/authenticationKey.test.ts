@@ -14,7 +14,7 @@ import {
 import { ed25519, multiEd25519PkTestObject } from "./helper";
 
 describe("AuthenticationKey", () => {
-  it("should create an instance with save the hexinput correctly", () => {
+  it("should create an instance with save the HexInput correctly", () => {
     const authKey = new AuthenticationKey({ data: ed25519.authKey });
     expect(authKey).toBeInstanceOf(AuthenticationKey);
     expect(authKey.data.toString()).toEqual(ed25519.authKey);

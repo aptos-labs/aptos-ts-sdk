@@ -113,7 +113,7 @@ export class Serializer {
   }
 
   /**
-   * Serializes an array of bytes with known length. Therefore length doesn't need to be
+   * Serializes an array of bytes with known length. Therefore, length doesn't need to be
    * serialized to help deserialization.
    *
    * When deserializing, the number of bytes to deserialize needs to be passed in.
@@ -188,8 +188,8 @@ export class Serializer {
    */
   @checkNumberRange(BigInt(0), MAX_U64_BIG_INT)
   serializeU64(value: AnyNumber) {
-    const low = BigInt(value.toString()) & BigInt(MAX_U32_NUMBER);
-    const high = BigInt(value.toString()) >> BigInt(32);
+    const low = BigInt(value) & BigInt(MAX_U32_NUMBER);
+    const high = BigInt(value) >> BigInt(32);
 
     // write little endian number
     this.serializeU32(Number(low));
@@ -203,8 +203,8 @@ export class Serializer {
    */
   @checkNumberRange(BigInt(0), MAX_U128_BIG_INT)
   serializeU128(value: AnyNumber) {
-    const low = BigInt(value.toString()) & MAX_U64_BIG_INT;
-    const high = BigInt(value.toString()) >> BigInt(64);
+    const low = BigInt(value) & MAX_U64_BIG_INT;
+    const high = BigInt(value) >> BigInt(64);
 
     // write little endian number
     this.serializeU64(low);
@@ -218,8 +218,8 @@ export class Serializer {
    */
   @checkNumberRange(BigInt(0), MAX_U256_BIG_INT)
   serializeU256(value: AnyNumber) {
-    const low = BigInt(value.toString()) & MAX_U128_BIG_INT;
-    const high = BigInt(value.toString()) >> BigInt(128);
+    const low = BigInt(value) & MAX_U128_BIG_INT;
+    const high = BigInt(value) >> BigInt(128);
 
     // write little endian number
     this.serializeU128(low);
@@ -293,7 +293,7 @@ export class Serializer {
 
   /**
    * Serializes an array of BCS Serializable values to a serializer instance.
-   * Note that this does not return anything- the bytes are added to the serializer instance's byte buffer.
+   * Note that this does not return anything. The bytes are added to the serializer instance's byte buffer.
    *
    * @param values The array of BCS Serializable values
    * @example
@@ -328,8 +328,8 @@ export const outOfRangeErrorMessage = (value: AnyNumber, min: AnyNumber, max: An
   `${value} is out of range: [${min}, ${max}]`;
 
 export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T, maxValue: T) {
-  const valueBigInt = BigInt(value.toString());
-  if (valueBigInt > BigInt(maxValue.toString()) || valueBigInt < BigInt(minValue.toString())) {
+  const valueBigInt = BigInt(value);
+  if (valueBigInt > BigInt(maxValue) || valueBigInt < BigInt(minValue)) {
     throw new Error(outOfRangeErrorMessage(value, minValue, maxValue));
   }
 }

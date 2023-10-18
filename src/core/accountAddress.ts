@@ -318,7 +318,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
     let addressBytes: Uint8Array;
     try {
-      // Pad the address with leading zeroes so it is 64 chars long and then convert
+      // Pad the address with leading zeroes, so it is 64 chars long and then convert
       // the hex string to bytes. Every two characters in a hex string constitutes a
       // single byte. So a 64 length hex string becomes a 32 byte array.
       addressBytes = hexToBytes(parsedInput.padStart(64, "0"));
@@ -333,7 +333,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Convenience method for creating an AccountAddress from HexInput. For more
+   * Convenience method for creating an AccountAddress from HexInput. For
    * more information on how this works, see the constructor and fromString.
    *
    * @param input A hex string or Uint8Array representing an account address.
@@ -348,7 +348,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Convenience method for creating an AccountAddress from HexInput. For more
+   * Convenience method for creating an AccountAddress from HexInput. For
    * more information on how this works, see the constructor and fromStringRelaxed.
    *
    * @param hexInput A hex string or Uint8Array representing an account address.

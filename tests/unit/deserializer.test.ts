@@ -289,7 +289,7 @@ describe("BCS Deserializer", () => {
     const moveStructAInsideB = new MoveStructA("def", "456", true, [5, 6, 7, 8]);
     const moveStructB = new MoveStructB(moveStructAInsideB, "ghi", "789", [9, 10, 11, 12]);
 
-    // say for some reason we serialize two MoveStructs into a single byte array
+    // say for some reason we serialize two MoveStructs into a single byte array,
     // and we want to deserialize them back into two MoveStruct instances later
     const serializer = new Serializer();
     serializer.serialize(moveStructA);

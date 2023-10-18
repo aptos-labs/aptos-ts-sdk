@@ -76,7 +76,7 @@ Mixins helps us to get around that by creating a partial classes
 that we can combine to form a single class that contains all the methods and properties from the partial classes.
 {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
 
-Here, we combine any sub-class and the Aptos class.
+Here, we combine any subclass and the Aptos class.
 */
 function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   // Mixin instance methods

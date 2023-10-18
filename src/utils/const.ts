@@ -37,7 +37,7 @@ export const DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
 /**
  * The default number of seconds to wait for a transaction to be processed.
  *
- * This time is the amount of time that the SDK will wait for a transaction to be processed when waiting for the
+ * This time is the amount of time that the SDK will wait for a transaction to be processed when waiting for
  * the results of the transaction.  It may take longer based on network connection and network load.
  */
 export const DEFAULT_TXN_TIMEOUT_SEC = 20;

@@ -16,7 +16,7 @@ describe("Collection", () => {
     const creatorAddress = creator.accountAddress.toString();
     const collectionName = "Aptos Test NFT Collection";
     const collectionDescription = "My new collection!";
-    const collectionUri = "http://aptos.dev";
+    const collectionUri = "https://aptos.dev";
 
     await aptos.fundAccount({ accountAddress: creatorAddress, amount: FUND_AMOUNT });
 
