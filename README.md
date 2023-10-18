@@ -26,7 +26,7 @@ pnpm install @aptos-labs/ts-sdk@experimental
 You can add the SDK to your web application using a script tag:
 
 ```html
-<script src="https://unpkg.com/@aptos-labs-ts-sdk@experimental/dist/index.global.js" />
+<script src="https://unpkg.com/@aptos-labs/ts-sdk@experimental/dist/browser/index.global.js" />
 ```
 
 Then, the SDK can be accessed through `window.aptosSDK`.
@@ -125,7 +125,7 @@ const account = Account.fromDerivationPath({ path, mnemonic });
 
 To run the SDK tests, simply run from the root of this repository:
 
-> Note: make sure aptos local node is up and running.  Take a look at the [local development network guide](https://aptos.dev/guides/local-development-network/) for more details.
+> Note: make sure aptos local node is up and running. Take a look at the [local development network guide](https://aptos.dev/guides/local-development-network/) for more details.
 
 ```bash
 pnpm test
@@ -133,8 +133,8 @@ pnpm test
 
 ## Contributing
 
-If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose). 
-If, based on the discussion on an issue you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/CONTRIBUTING.md). 
+If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose).
+If, based on the discussion on an issue you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/CONTRIBUTING.md).
 If neither of these describes what you would like to contribute, checkout out the [contributing guide](https://github.com/aptos-labs/aptos-ts-sdk/CONTRIBUTING.md).
 
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
