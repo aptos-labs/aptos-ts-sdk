@@ -27,6 +27,7 @@ import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../ty
 import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 
+// TODO: Support properties when minting.
 export interface MintTokenOptions {
   propertyKeys?: Array<string>;
   propertyTypes?: Array<string>;
