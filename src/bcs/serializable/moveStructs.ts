@@ -14,7 +14,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * or a BCS-serializable struct itself.
  *
  * It is a BCS-serializable, array-like type that contains an array of values of type `T`,
- * where `T` is a class that implements `Serializable`.
+ * where `T` is a class that implements `EntryFunctionArgument`.
  *
  * The purpose of this class is to facilitate easy construction of BCS-serializable
  * Move `vector<T>` types.
@@ -42,13 +42,8 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
- * // where MySerializableStruct is a class you've made that implements Serializable
- * const vecOfSerializableValues = new MoveVector<MySerializableStruct>([
- *   new MySerializableStruct("hello", "world"),
- *   new MySerializableStruct("foo", "bar"),
- * ]);
  * @params
- * values: an Array<T> of values where T is a class that implements Serializable
+ * values: an Array<T> of values where T is a class that implements EntryFunctionArgument
  * @returns a `MoveVector<T>` with the values `values`
  */
 export class MoveVector<T extends Serializable & EntryFunctionArgument>
@@ -172,7 +167,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const v = MoveVector.Bool([true, false, true, false]);
-   * @params values: an array of `numbers` to convert to Bools
+   * @params values: an array of `bools` to convert to Bools
    * @returns a `MoveVector<Bool>`
    */
   static Bool(values: Array<boolean>): MoveVector<Bool> {
@@ -184,11 +179,47 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const v = MoveVector.MoveString(["hello", "world"]);
-   * @params values: an array of `numbers` to convert to MoveStrings
+   * @params values: an array of `strings` to convert to MoveStrings
    * @returns a `MoveVector<MoveString>`
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector of AccountAddresses
+   *
+   * @example
+   * const v = MoveVector.AccountAddress(["hello", "world"]);
+   * @params values: an array of `HexInput | AccountAddress`
+   * @returns a `MoveVector<AccountAddress>`
+   */
+  static AccountAddress(values: Array<HexInput | AccountAddress>): MoveVector<AccountAddress> {
+    const accountAddresses = values.map((v) => {
+      if (v instanceof AccountAddress) {
+        return v;
+      }
+      return AccountAddress.fromHexInputRelaxed(v);
+    });
+    return new MoveVector<AccountAddress>(accountAddresses);
+  }
+
+  /**
+   * Factory method to generate a MoveVector of MoveObjectes
+   *
+   * @example
+   * const v = MoveVector.MoveObject(["hello", "world"]);
+   * @params values: an array of `HexInput | MoveObject`
+   * @returns a `MoveVector<MoveObject>`
+   */
+  static MoveObject(values: Array<HexInput | AccountAddress | MoveObject>): MoveVector<MoveObject> {
+    const accountAddresses = values.map((v) => {
+      if (v instanceof MoveObject) {
+        return v;
+      }
+      return new MoveObject(v);
+    });
+    return new MoveVector<MoveObject>(accountAddresses);
   }
 
   serialize(serializer: Serializer): void {
@@ -196,18 +227,20 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable type.
+   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable
+   * EntryFunctionArgument type.
+   *
+   * If you want to use non EntryFunctionArgument types, please use the deserializeVector function
+   * in the Deserializer class.
    *
    * NOTE: This only works with a depth of one. Generics will not work.
    *
    * NOTE: This will not work with types that aren't of the Serializable class.
    *
-   * If you want to use types that merely implement Deserializable,
-   * please use the deserializeVector function in the Deserializer class.
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
    * @params deserializer: the Deserializer instance to use, with bytes loaded into it already.
-   * cls: the class to typecast the input values to, must be a Serializable and Deserializable type.
+   * cls: the class to typecast the input values to, must be a Serializable and Deserializable EntryFunctionArgument type.
    * @returns a MoveVector of the corresponding class T
    * *
    */
