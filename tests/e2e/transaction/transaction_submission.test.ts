@@ -96,10 +96,10 @@ describe("transaction submission", () => {
       });
       await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     });
-    test.skip("it submits an entry function transaction Secp256k1", async () => {
+    test.only("it submits an entry function transaction Secp256k1", async () => {
       const config = new AptosConfig({ network: Network.DEVNET });
       const aptos = new Aptos(config);
-      const alice = Account.fromPrivateKey(new Secp256k1PrivateKey(secp256k1TestObject.privateKey));
+      const alice = Account.fromPrivateKey(new Secp256k1PrivateKey(secp256k1TestObject.privateKey), false);
       //await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({

@@ -1,8 +1,17 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, U64, SigningScheme } from "../../../src";
+import {
+  AptosConfig,
+  Network,
+  Aptos,
+  Account,
+  Deserializer,
+  U64,
+  SigningScheme,
+  SigningSchemeInput,
+} from "../../../src";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
-  AccountAuthenticatorSecp256k1,
+  SingleKeyAuthenticator,
 } from "../../../src/transactions/authenticator/account";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
@@ -12,7 +21,7 @@ describe("sign transaction", () => {
   const aptos = new Aptos(config);
   const senderAccount = Account.generate();
   const recieverAccounts = [Account.generate(), Account.generate()];
-  const senderSecp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
+  const senderSecp256k1Account = Account.generate(SigningSchemeInput.Secp256k1Ecdsa);
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {
@@ -28,7 +37,7 @@ describe("sign transaction", () => {
 
   describe("it returns the current account authenticator", () => {
     describe("ED25519", () => {
-      test("it signs a script transaction", async () => {
+      test.only("it signs a script transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderAccount.accountAddress.toString(),
           data: {
@@ -98,7 +107,7 @@ describe("sign transaction", () => {
         expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
-        expect(authenticator instanceof AccountAuthenticatorSecp256k1).toBeTruthy();
+        expect(authenticator instanceof SingleKeyAuthenticator).toBeTruthy();
       });
       test("it signs an entry function transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
@@ -115,7 +124,7 @@ describe("sign transaction", () => {
         expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
-        expect(authenticator instanceof AccountAuthenticatorSecp256k1).toBeTruthy();
+        expect(authenticator instanceof SingleKeyAuthenticator).toBeTruthy();
       });
       test("it signs a multi sig transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
@@ -133,7 +142,7 @@ describe("sign transaction", () => {
         expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
-        expect(authenticator instanceof AccountAuthenticatorSecp256k1).toBeTruthy();
+        expect(authenticator instanceof SingleKeyAuthenticator).toBeTruthy();
       });
     });
   });

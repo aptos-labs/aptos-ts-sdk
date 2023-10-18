@@ -1,4 +1,4 @@
-import { AptosConfig, Network, Aptos, Account, U64, SigningScheme } from "../../../src";
+import { AptosConfig, Network, Aptos, Account, U64, SigningScheme, SigningSchemeInput } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
@@ -7,7 +7,7 @@ describe("transaction simulation", () => {
   const aptos = new Aptos(config);
   const senderAccount = Account.generate();
   const recieverAccounts = [Account.generate(), Account.generate()];
-  const senderSecp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
+  const senderSecp256k1Account = Account.generate(SigningSchemeInput.Secp256k1Ecdsa);
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {
