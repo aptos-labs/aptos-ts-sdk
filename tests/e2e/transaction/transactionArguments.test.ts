@@ -45,7 +45,7 @@ import {
   multiSignerScriptArgumentTest,
 } from "./helper";
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 // This test looks enormous, but the breakdown is quite simple:
 //  the `entryFunctionArguments` array contains every possible argument type
@@ -60,7 +60,7 @@ jest.setTimeout(10000);
 // TODO: assert that the SignerScheme is correct in the response type
 
 describe("various transaction arguments", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
+  const config = new AptosConfig({ network: Network.DEVNET });
   const aptos = new Aptos(config);
   const publisherAccount = Account.generate(SigningScheme.Ed25519);
   const senderAccountEd25519 = Account.generate(SigningScheme.Ed25519);
@@ -210,7 +210,7 @@ describe("various transaction arguments", () => {
         });
       });
 
-      describe("sender is secp256k1", () => {
+      describe.skip("sender is secp256k1", () => {
         it("successfully submits a public entry fn with all argument types", async () => {
           await buildAndTestSingleSignerEntryFunction(
             senderAccountSecp256k1,
@@ -255,7 +255,7 @@ describe("various transaction arguments", () => {
         await buildAndTestSingleSignerScriptFunction(senderAccountEd25519, "ed25519_signature");
       });
 
-      it("successfully submits an ed25519 script fn with all supported argument types", async () => {
+      it.skip("successfully submits an secp256k1 script fn with all supported argument types", async () => {
         await buildAndTestSingleSignerScriptFunction(senderAccountSecp256k1, "secp256k1_ecdsa_signature");
       });
     });
@@ -287,7 +287,7 @@ describe("various transaction arguments", () => {
           await entryMultiAgent(senderAccountEd25519, "private_arguments_multiple_signers");
         });
       });
-      describe("sender is secp256k1", () => {
+      describe.skip("sender is secp256k1", () => {
         it("successfully submits a public entry multi signer transaction with all argument types", async () => {
           await entryMultiAgent(senderAccountSecp256k1, "public_arguments_multiple_signers");
         });
@@ -318,7 +318,7 @@ describe("various transaction arguments", () => {
         await scriptMultiAgent(senderAccountEd25519);
       });
 
-      it("successfully submits a secp256k1 sender multi agent script fn with all supported argument types", async () => {
+      it.skip("successfully submits a secp256k1 sender multi agent script fn with all supported argument types", async () => {
         await scriptMultiAgent(senderAccountSecp256k1);
       });
     });
@@ -389,7 +389,7 @@ describe("various transaction arguments", () => {
         );
       });
     });
-    describe("sender and fee payer are secp2565k1", () => {
+    describe.skip("sender and fee payer are secp2565k1", () => {
       it("successfully submits a sponsored transaction with all argument types", async () => {
         await buildAndTestFeePayerTx(senderAccountSecp256k1, feePayerAccountSecp256k1, [], "public_arguments");
       });

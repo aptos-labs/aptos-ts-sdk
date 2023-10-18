@@ -43,12 +43,38 @@ export async function publishModule(
   return (await aptos.waitForTransaction({ transactionHash: response.hash })) as UserTransactionResponse;
 }
 
+// Instead of funding ~10+ accounts, we fund the first one twice and batch transfer it out to the rest.
 export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
-  // eslint-disable-next-line no-restricted-syntax
-  for (const account of accounts) {
-    // eslint-disable-next-line no-await-in-loop
-    await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
-  }
+  // Fund first account
+  const firstAccount = accounts[0];
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+  // Fund again because these txns can be expensive
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+  const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
+  const amountToSend = Math.floor(FUND_AMOUNT * 2 / accounts.length);
+  // Send APT to the rest
+  const transaction = await aptos.generateTransaction({
+    sender: firstAccount.accountAddress.toString(),
+    data: {
+      function: `0x${1}::aptos_account::batch_transfer`,
+      arguments : [
+        new MoveVector(addressesRemaining),
+        MoveVector.U64(addressesRemaining.map(() => amountToSend)),
+      ],
+    }
+  });
+  const signedTxn = await aptos.signTransaction({
+    signer: firstAccount,
+    transaction,
+  });
+  const transactionResponse = await aptos.submitTransaction({
+    transaction,
+    senderAuthenticator: signedTxn,
+  });
+  const response = await aptos.waitForTransaction({
+    transactionHash: transactionResponse.hash,
+  });
+  return response as UserTransactionResponse;
 }
 
 // Transaction builder helpers
