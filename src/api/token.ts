@@ -40,7 +40,7 @@ export class Token {
    * @param args.name the name of the token
    * @param args.uri the URI to additional info about the token
    *
-   * @returns GetTokenDataResponse containing relevant data to the token.
+   * @returns A SingleSignerTransaction that when submitted will mint the token.
    */
   async mintTokenTransaction(args: {
     creator: Account;
