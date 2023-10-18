@@ -1,11 +1,11 @@
-import { AptosConfig } from "../api/aptos_config";
-import { U64 } from "../bcs/serializable/move-primitives";
+import { AptosConfig } from "../api/aptosConfig";
+import { U64 } from "../bcs/serializable/movePrimitives";
 import { Account, AccountAddress } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { StructTag, TypeTagStruct } from "../transactions/typeTag/typeTag";
 import { HexInput, AnyNumber, MoveResourceType } from "../types";
 import { APTOS_COIN } from "../utils/const";
-import { generateTransaction } from "./transaction_submission";
+import { generateTransaction } from "./transactionSubmission";
 
 export async function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { fundAccount } from "../internal/faucet";
 import { HexInput } from "../types";
 

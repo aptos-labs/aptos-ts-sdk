@@ -1,4 +1,4 @@
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { aptosRequest } from "./core";
 import { AptosResponse } from "./types";
 import { AnyNumber, ClientConfig, MimeType } from "../types";

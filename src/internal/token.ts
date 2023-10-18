@@ -8,7 +8,7 @@
  * token namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { Hex } from "../core";
 import { GetTokenDataResponse, HexInput } from "../types";
 import { GetTokenDataQuery } from "../types/generated/operations";

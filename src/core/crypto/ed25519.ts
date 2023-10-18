@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
-import { PublicKey, PrivateKey, Signature } from "./asymmetric_crypto";
+import { PublicKey, PrivateKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";

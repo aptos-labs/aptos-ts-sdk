@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "./account";
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
 import { Collection } from "./collection";
 import { Event } from "./event";
 import { Faucet } from "./faucet";
-import { FungibleAsset } from "./fungible_asset";
+import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
 import { Staking } from "./staking";
 import { Token } from "./token";
 import { Transaction } from "./transaction";
-import { TransactionSubmission } from "./transaction_submission";
+import { TransactionSubmission } from "./transactionSubmission";
 
 /**
  * This class is the main entry point into Aptos's

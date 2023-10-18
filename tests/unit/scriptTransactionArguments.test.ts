@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountAddress, Serializer, Deserializer, Bool, U128, U16, U256, U32, U64, U8 } from "../../src";
-import { MoveVector } from "../../src/bcs/serializable/move-structs";
+import { MoveVector } from "../../src/bcs/serializable/moveStructs";
 import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
 describe("Tests for the script transaction argument class", () => {

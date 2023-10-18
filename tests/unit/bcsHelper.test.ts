@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { FixedBytes } from "../../src/bcs/serializable/fixed-bytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/move-primitives";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/move-structs";
+import { FixedBytes } from "../../src/bcs/serializable/fixedBytes";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/movePrimitives";
+import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/moveStructs";
 import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
 /* eslint-disable @typescript-eslint/no-shadow */
 

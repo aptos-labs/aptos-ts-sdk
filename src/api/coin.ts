@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { SingleSignerTransaction, GenerateTransactionOptions } from "../transactions/types";

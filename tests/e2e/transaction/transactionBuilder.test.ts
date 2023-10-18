@@ -21,7 +21,7 @@ import {
   sign,
 } from "../../../src/transactions/transaction_builder/transaction_builder";
 import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
-import { MoveObject } from "../../../src/bcs/serializable/move-structs";
+import { MoveObject } from "../../../src/bcs/serializable/moveStructs";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 /* eslint-disable max-len */

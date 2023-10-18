@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
 import { ClientConfig, AptosRequest, MimeType } from "../types";
 import { VERSION } from "../version";

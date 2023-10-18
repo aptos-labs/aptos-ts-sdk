@@ -8,7 +8,7 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { hexToBytes } from "@noble/hashes/utils";
-import { AptosConfig } from "../../api/aptos_config";
+import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress, PublicKey } from "../../core";
 import { Account } from "../../core/account";

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
@@ -21,7 +21,7 @@ import {
   signTransaction,
   simulateTransaction,
   submitTransaction,
-} from "../internal/transaction_submission";
+} from "../internal/transactionSubmission";
 
 export class TransactionSubmission {
   readonly config: AptosConfig;

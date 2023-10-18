@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptos_config";
+import { AptosConfig } from "./aptosConfig";
 import { getCollectionId, getCollectionData } from "../internal/collection";
 import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 

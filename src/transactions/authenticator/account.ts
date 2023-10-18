@@ -5,7 +5,7 @@
 
 import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multi_ed25519";
+import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { AccountAuthenticatorVariant } from "../../types";
 

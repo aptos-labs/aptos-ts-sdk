@@ -8,7 +8,7 @@
  * faucet namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { Hex } from "../core";
 import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, HexInput, OrderBy } from "../types";
 import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
