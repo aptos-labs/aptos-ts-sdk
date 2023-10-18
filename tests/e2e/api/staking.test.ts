@@ -12,7 +12,7 @@ describe("staking api", () => {
     });
     expect(numDelegatorsData.length).toBeGreaterThan(5);
     for (let i = 1; i <= 5; i += 1) {
-      expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThan(numDelegatorsData[i + 1].num_active_delegator);
+      expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThanOrEqual(numDelegatorsData[i + 1].num_active_delegator);
     }
     const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: numDelegatorsData[0].pool_address! });
     expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator);
