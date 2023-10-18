@@ -1,8 +1,8 @@
 import { Serializer, Deserializer } from "../../bcs";
 import { AnySignatureVariant } from "../../types";
 import { Signature } from "./asymmetric_crypto";
-import { Ed25519PublicKey } from "./ed25519";
-import { Secp256k1PublicKey } from "./secp256k1";
+import { Ed25519Signature } from "./ed25519";
+import { Secp256k1Signature } from "./secp256k1";
 
 export class AnySignature extends Signature {
   public readonly signature: Signature;
@@ -31,10 +31,10 @@ export class AnySignature extends Signature {
   }
 
   serialize(serializer: Serializer): void {
-    if (this.signature instanceof Ed25519PublicKey) {
+    if (this.signature instanceof Ed25519Signature) {
       serializer.serializeU32AsUleb128(AnySignatureVariant.Ed25519);
       this.signature.serialize(serializer);
-    } else if (this.signature instanceof Secp256k1PublicKey) {
+    } else if (this.signature instanceof Secp256k1Signature) {
       serializer.serializeU32AsUleb128(AnySignatureVariant.Secp256k1);
       this.signature.serialize(serializer);
     } else {
@@ -46,9 +46,9 @@ export class AnySignature extends Signature {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
       case AnySignatureVariant.Ed25519:
-        return new AnySignature(Ed25519PublicKey.load(deserializer));
+        return new AnySignature(Ed25519Signature.load(deserializer));
       case AnySignatureVariant.Secp256k1:
-        return new AnySignature(Secp256k1PublicKey.load(deserializer));
+        return new AnySignature(Secp256k1Signature.load(deserializer));
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
     }

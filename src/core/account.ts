@@ -86,14 +86,14 @@ export class Account {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
-      // TODO: Add support for MultiEd25519
+      // TODO: Add support for MultiEd25519 as AnyMultiKey
       default:
         privateKey = Ed25519PrivateKey.generate();
     }
 
     const address = new AccountAddress({
       data: Account.authKey({
-        publicKey: privateKey.publicKey(),
+        publicKey: new AnyPublicKey(privateKey.publicKey()), // TODO support AnyMultiKey
       }).toUint8Array(),
     });
     return new Account({ privateKey, address });

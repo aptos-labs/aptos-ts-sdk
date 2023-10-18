@@ -55,11 +55,16 @@ export class AuthenticationKey {
    */
   private static fromBytesAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey, scheme } = args;
-    const bytes = publicKey.toUint8Array();
 
     // TODO - check for single key or multi key
     if (scheme === SigningScheme.SingleKey) {
-      let newBytes = publicKey.bcsToBytes();
+      let newBytes: Uint8Array = new Uint8Array();
+      if (publicKey instanceof AnyPublicKey) {
+        newBytes = publicKey.bcsToBytes();
+      } else {
+        newBytes = new AnyPublicKey(publicKey).bcsToBytes();
+      }
+
       const authKeyBytes = new Uint8Array([...newBytes, scheme]);
       console.log("authKeyBytes", authKeyBytes);
       const hash = sha3Hash.create();
@@ -67,6 +72,7 @@ export class AuthenticationKey {
       const hashDigest = hash.digest();
       return new AuthenticationKey({ data: hashDigest });
     }
+    const bytes = publicKey.toUint8Array();
     const inputBytes = Hex.fromHexInput(bytes).toUint8Array();
     const authKeyBytes = new Uint8Array(inputBytes.length + 1);
     authKeyBytes.set(inputBytes);
