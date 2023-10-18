@@ -606,6 +606,14 @@ describe("Tests for the Serializable class", () => {
   });
 
   describe("factory methods", () => {
+    it("serializes a move object from an address with the factory method correctly", () => {
+      const moveObjectWithConstructor = new MoveObject(AccountAddress.fromHexInputRelaxed("0x1"));
+      const moveObject = MoveObject.fromAddress(AccountAddress.ONE);
+      const moveObject2 = MoveObject.fromAddress("0x1");
+      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());      
+      expect(moveObject.bcsToBytes()).toEqual(moveObject2.bcsToBytes());
+    });
+
     it("serializes a vector of addresses and strings and objects correctly", () => {
       const vectorStringWithConstructor = new MoveVector([
         new MoveString("abc0x1abc"),
