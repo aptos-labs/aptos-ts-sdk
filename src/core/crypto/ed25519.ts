@@ -107,8 +107,7 @@ export class Ed25519PrivateKey extends PrivateKey {
     }
 
     // Create keyPair from Private key in Uint8Array format
-    const keyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
-    this.signingKeyPair = keyPair;
+    this.signingKeyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
   }
 
   /**

@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { HexInput } from "../../types";
 
 /**
- * Represents the public key of a K-of-N Ed25519 multisig transaction.
+ * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
  */
 export class MultiEd25519PublicKey extends PublicKey {
   /**
@@ -38,7 +38,7 @@ export class MultiEd25519PublicKey extends PublicKey {
   public readonly threshold: number;
 
   /**
-   * Public key for a K-of-N multisig transaction. A K-of-N multisig transaction means that for such a
+   * Public key for a K-of-N multi-sig transaction. A K-of-N multi-sig transaction means that for such a
    * transaction to be executed, at least K out of the N authorized signers have signed the transaction
    * and passed the check conducted by the chain.
    *
@@ -113,7 +113,7 @@ export class MultiEd25519PublicKey extends PublicKey {
 }
 
 /**
- * Represents the signature of a K-of-N Ed25519 multisig transaction.
+ * Represents the signature of a K-of-N Ed25519 multi-sig transaction.
  */
 export class MultiEd25519Signature extends Signature {
   /**
@@ -139,7 +139,7 @@ export class MultiEd25519Signature extends Signature {
   public readonly bitmap: Uint8Array;
 
   /**
-   * Signature for a K-of-N multisig transaction.
+   * Signature for a K-of-N multi-sig transaction.
    *
    * @see {@link
    * https://aptos.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}

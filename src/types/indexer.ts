@@ -36,7 +36,7 @@ import {
  * query types to be the response type the end developer/user will
  * work with.
  *
- * These types are used as the return type when calling an sdk api function
+ * These types are used as the return type when calling a sdk api function
  * that calls the function that queries the server (usually under the /api/ folder)
  */
 export type GetAccountOwnedObjectsResponse = GetAccountOwnedObjectsQuery["current_objects"];

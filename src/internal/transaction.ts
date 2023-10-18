@@ -28,19 +28,18 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, options } = args;
-  const data = await paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
     path: "transactions",
     params: { start: options?.offset, limit: options?.limit },
   });
-  return data;
 }
 
 export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) {
   const { aptosConfig } = args;
 
-  const gasEstimation = await memoizeAsync(
+  return memoizeAsync(
     async () => {
       const { data } = await getAptosFullNode<{}, GasEstimation>({
         aptosConfig,
@@ -52,7 +51,6 @@ export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) 
     `gas-price-${aptosConfig.network}`,
     1000 * 60 * 5, // 5 minutes
   )();
-  return gasEstimation;
 }
 
 export async function getTransactionByVersion(args: {
@@ -180,7 +178,7 @@ export async function waitForTransaction(args: {
     } catch (_e) {
       throw new WaitForTransactionError(
         // eslint-disable-next-line max-len
-        `Transaction ${transactionHash} commited, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
+        `Transaction ${transactionHash} committed, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
           "You can disable this check by setting `indexerVersionCheck` to false in the `extraArgs` parameter.",
         lastTxn,
       );
@@ -198,13 +196,13 @@ async function waitForLastSuccessIndexerVersionSync(args: {
   ledgerVersion: number;
 }): Promise<void> {
   const { aptosConfig, ledgerVersion } = args;
-  const timeoutMiliseconds = 3000; // 3 seconds
+  const timeoutMilliseconds = 3000; // 3 seconds
   const startTime = new Date().getTime();
   let indexerVersion = -1;
 
   while (indexerVersion < ledgerVersion) {
     // check for timeout
-    if (new Date().getTime() - startTime > timeoutMiliseconds) {
+    if (new Date().getTime() - startTime > timeoutMilliseconds) {
       throw new Error("waitForLastSuccessIndexerVersionSync timeout");
     }
 

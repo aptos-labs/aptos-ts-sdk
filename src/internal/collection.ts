@@ -81,8 +81,8 @@ export async function createCollectionTransaction(
  * if, for some reason, a creator account has 2 collections with the same name in v1 and v2,
  * can pass an optional `tokenStandard` parameter to query a specific standard
  *
- * @param creatorAddress the address of the collection's creator
- * @param collectionName the name of the collection
+ * @param args.creatorAddress the address of the collection's creator
+ * @param args.collectionName the name of the collection
  * @returns GetCollectionDataResponse response type
  */
 export async function getCollectionData(args: {
@@ -133,8 +133,8 @@ export async function getCollectionData(args: {
 /**
  * Queries a collection's address.
  *
- * @param creatorAddress the collection creator address
- * @param collectionName the collection name
+ * @param args.creatorAddress the collection creator address
+ * @param args.collectionName the collection name
  * @returns the collection address
  */
 export async function getCollectionId(args: {

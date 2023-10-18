@@ -38,7 +38,7 @@ export class Transaction {
   /**
    * Queries on-chain transaction by version. This function will not return pending transactions.
    *
-   * @param args.ledgerVersion - Transaction version is a uint64 number.
+   * @param args.ledgerVersion - Transaction version is an unsigned 64-bit number.
    * @returns On-chain transaction. Only on-chain transactions have versions, so this
    * function cannot be used to query pending transactions.
    */

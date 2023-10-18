@@ -203,7 +203,7 @@ export class StructTag extends Serializable {
 
   /**
    * Converts a string literal to a StructTag
-   * @param structTag String literal in format "AcountAddress::module_name::ResourceName",
+   * @param structTag String literal in format "AccountAddress::module_name::ResourceName",
    *   e.g. "0x1::aptos_coin::AptosCoin"
    * @returns
    */
@@ -286,7 +286,7 @@ export class TypeTagParser {
     this.consume(">");
   }
 
-  private parseCommaList(endToken: string, allowTraillingComma: boolean): TypeTag[] {
+  private parseCommaList(endToken: string, allowTrailingComma: boolean): TypeTag[] {
     const res: TypeTag[] = [];
     if (this.tokens.length <= 0) {
       bail("Invalid type tag.");
@@ -300,7 +300,7 @@ export class TypeTagParser {
       }
 
       this.consume(",");
-      if (this.tokens.length > 0 && this.tokens[0][1] === endToken && allowTraillingComma) {
+      if (this.tokens.length > 0 && this.tokens[0][1] === endToken && allowTrailingComma) {
         break;
       }
 
@@ -366,7 +366,7 @@ export class TypeTagParser {
       }
 
       // Objects can contain either concrete types e.g. 0x1::object::ObjectCore or generics e.g. T
-      // Neither matter as we can't do type checks, so just the address applies and we consume the entire generic.
+      // Neither matter as we can't do type checks, so just the address applies, and we consume the entire generic.
       // TODO: Support parsing structs that don't come from core code address
       if (AccountAddress.ONE.toString() === address.toString() && module === "object" && name === "Object") {
         this.consumeWholeGeneric();
@@ -389,7 +389,7 @@ export class TypeTagParser {
         bail("Can't convert generic type since no typeTags were specified.");
       }
       // a generic tokenVal has the format of `T<digit>`, for example `T1`.
-      // The digit (i.e 1) indicates the the index of this type in the typeTags array.
+      // The digit (i.e 1) indicates the index of this type in the typeTags array.
       // For a tokenVal == T1, should be parsed as the type in typeTags[1]
       const idx = parseInt(tokenVal.substring(1), 10);
       return new TypeTagParser(this.typeTags[idx]).parseTypeTag();

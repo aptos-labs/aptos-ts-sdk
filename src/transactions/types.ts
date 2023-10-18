@@ -129,7 +129,7 @@ export interface GenerateFeePayerRawTransactionArgs {
 }
 
 /**
- * Interface of the arguments to generate a multi agent transaction.
+ * Interface of the arguments to generate a multi-agent transaction.
  * Used to provide to `generateTransaction()` method in the transaction builder flow
  */
 export interface GenerateMultiAgentRawTransactionArgs {
@@ -164,7 +164,7 @@ export interface SingleSignerTransaction {
  * Interface that holds the return data when generating a fee payer transaction
  *
  * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses optional. secondary signer addresses for multi agent transaction
+ * @param secondarySignerAddresses optional. secondary signer addresses for multi-agent transaction
  * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
  */
 export interface FeePayerTransaction {
@@ -174,10 +174,10 @@ export interface FeePayerTransaction {
 }
 
 /**
- * Interface that holds the return data when generating a multi agent transaction.
+ * Interface that holds the return data when generating a multi-agent transaction.
  *
  * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses secondary signer addresses for multi agent transaction
+ * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
  */
 export interface MultiAgentTransaction {
   rawTransaction: Uint8Array;
@@ -202,7 +202,7 @@ export type SimulateTransactionData = {
    */
   signerPublicKey: PublicKey;
   /**
-   * For a fee payer or multi agent transaction that requires additional signers in
+   * For a fee payer or multi-agent transaction that requires additional signers in
    */
   secondarySignersPublicKeys?: Array<PublicKey>;
   /**
@@ -243,7 +243,7 @@ export interface GenerateFeePayerRawTransactionInput {
 }
 
 /**
- * Interface that holds the user data input when generating a multi agent transaction
+ * Interface that holds the user data input when generating a multi-agent transaction
  */
 export interface GenerateMultiAgentRawTransactionInput {
   sender: HexInput;

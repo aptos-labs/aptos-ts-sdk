@@ -36,7 +36,7 @@ describe("transaction submission", () => {
           signer: alice,
           transaction: rawTxn,
         });
-        const bobauthenticator = aptos.signTransaction({
+        const bobAuthenticator = aptos.signTransaction({
           signer: bob,
           transaction: rawTxn,
         });
@@ -44,7 +44,7 @@ describe("transaction submission", () => {
           transaction: rawTxn,
           senderAuthenticator: authenticator,
           secondarySignerAuthenticators: {
-            additionalSignersAuthenticators: [bobauthenticator],
+            additionalSignersAuthenticators: [bobAuthenticator],
           },
         });
         await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
