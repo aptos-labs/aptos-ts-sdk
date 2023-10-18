@@ -15,7 +15,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * or a BCS-serializable struct itself.
  *
  * It is a BCS-serializable, array-like type that contains an array of values of type `T`,
- * where `T` is a class that implements `Serializable`.
+ * where `T` is a class that implements `EntryFunctionArgument`.
  *
  * The purpose of this class is to facilitate easy construction of BCS-serializable
  * Move `vector<T>` types.
@@ -43,16 +43,11 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
- * // where MySerializableStruct is a class you've made that implements Serializable
- * const vecOfSerializableValues = new MoveVector<MySerializableStruct>([
- *   new MySerializableStruct("hello", "world"),
- *   new MySerializableStruct("foo", "bar"),
- * ]);
  * @params
- * values: an Array<T> of values where T is a class that implements Serializable
+ * values: an Array<T> of values where T is a class that implements EntryFunctionArgument
  * @returns a `MoveVector<T>` with the values `values`
  */
-export class MoveVector<T extends Serializable> extends Serializable implements TransactionArgument {
+export class MoveVector<T extends EntryFunctionArgument> extends Serializable implements TransactionArgument {
   public values: Array<T>;
 
   constructor(values: Array<T>) {
@@ -170,7 +165,7 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
    *
    * @example
    * const v = MoveVector.Bool([true, false, true, false]);
-   * @params values: an array of `numbers` to convert to Bools
+   * @params values: an array of `bools` to convert to Bools
    * @returns a `MoveVector<Bool>`
    */
   static Bool(values: Array<boolean>): MoveVector<Bool> {
@@ -182,11 +177,47 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
    *
    * @example
    * const v = MoveVector.MoveString(["hello", "world"]);
-   * @params values: an array of `numbers` to convert to MoveStrings
+   * @params values: an array of `strings` to convert to MoveStrings
    * @returns a `MoveVector<MoveString>`
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
+  }
+
+  /**
+   * Factory method to generate a MoveVector of AccountAddresses
+   *
+   * @example
+   * const v = MoveVector.AccountAddress(["hello", "world"]);
+   * @params values: an array of `HexInput | AccountAddress`
+   * @returns a `MoveVector<AccountAddress>`
+   */
+  static AccountAddress(values: Array<HexInput | AccountAddress>): MoveVector<AccountAddress> {
+    const accountAddresses = values.map((v) => {
+      if (v instanceof AccountAddress) {
+        return v;
+      }
+      return AccountAddress.fromHexInputRelaxed(v);
+    });
+    return new MoveVector<AccountAddress>(accountAddresses);
+  }
+
+  /**
+   * Factory method to generate a MoveVector of MoveObjectes
+   *
+   * @example
+   * const v = MoveVector.MoveObject(["hello", "world"]);
+   * @params values: an array of `HexInput | MoveObject`
+   * @returns a `MoveVector<MoveObject>`
+   */
+  static MoveObject(values: Array<HexInput | AccountAddress | MoveObject>): MoveVector<MoveObject> {
+    const accountAddresses = values.map((v) => {
+      if (v instanceof MoveObject) {
+        return v;
+      }
+      return new MoveObject(v);
+    });
+    return new MoveVector<MoveObject>(accountAddresses);
   }
 
   serialize(serializer: Serializer): void {
@@ -194,22 +225,27 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
   }
 
   /**
-   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable type.
+   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable
+   * EntryFunctionArgument type.
+   *
+   * If you want to use non EntryFunctionArgument types, please use the deserializeVector function
+   * in the Deserializer class.
    *
    * NOTE: This only works with a depth of one. Generics will not work.
    *
    * NOTE: This will not work with types that aren't of the Serializable class.
    *
-   * If you want to use types that merely implement Deserializable,
-   * please use the deserializeVector function in the Deserializer class.
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
    * @params deserializer: the Deserializer instance to use, with bytes loaded into it already.
-   * cls: the class to typecast the input values to, must be a Serializable and Deserializable type.
+   * cls: the class to typecast the input values to, must be a Serializable and Deserializable EntryFunctionArgument type.
    * @returns a MoveVector of the corresponding class T
    * *
    */
-  static deserialize<T extends Serializable>(deserializer: Deserializer, cls: Deserializable<T>): MoveVector<T> {
+  static deserialize<T extends EntryFunctionArgument>(
+    deserializer: Deserializer,
+    cls: Deserializable<T>,
+  ): MoveVector<T> {
     const length = deserializer.deserializeUleb128AsU32();
     const values = new Array<T>();
     for (let i = 0; i < length; i += 1) {
@@ -247,7 +283,7 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 }
 
-export class MoveOption<T extends Serializable> extends Serializable implements EntryFunctionArgument {
+export class MoveOption<T extends EntryFunctionArgument> extends Serializable implements EntryFunctionArgument {
   private vec: MoveVector<T>;
 
   public readonly value?: T;
@@ -424,7 +460,64 @@ export class MoveOption<T extends Serializable> extends Serializable implements 
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
   }
 
-  static deserialize<U extends Serializable>(deserializer: Deserializer, cls: Deserializable<U>): MoveOption<U> {
+  /**
+   * Factory method to generate a MoveOption<AccountAddress> from `HexInput`, `AccountAddress` or `undefined`
+   *
+   * @example
+   * MoveOption.AccountAddress("0x1").isSome() === true;
+   * MoveOption.AccountAddress("0xbeefcafe").isSome() === true;
+   * MoveOption.AccountAddress().isSome() === false;
+   * MoveOption.AccountAddress(undefined).isSome() === false;
+   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<AccountAddress> with an inner value `value`
+   */
+  static AccountAddress(value?: HexInput | AccountAddress | null): MoveOption<AccountAddress> {
+    let accountAddress: AccountAddress | undefined;
+    if (value !== null && value !== undefined) {
+      if (value instanceof AccountAddress) {
+        accountAddress = value;
+      } else {
+        accountAddress = AccountAddress.fromHexInputRelaxed(value);
+      }
+    } else {
+      accountAddress = undefined;
+    }
+    return new MoveOption<AccountAddress>(accountAddress);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<MoveObject> from `HexInput`, `AccountAddress` or `undefined`
+   *
+   * @example
+   * MoveOption.MoveObject("0x1").isSome() === true;
+   * MoveOption.MoveObject("0xbeefcafe").isSome() === true;
+   * MoveOption.MoveObject().isSome() === false;
+   * MoveOption.MoveObject(undefined).isSome() === false;
+   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<MoveObject> with an inner value `value`
+   */
+  static MoveObject(value?: HexInput | AccountAddress | null): MoveOption<MoveObject> {
+    let moveObject: MoveObject | undefined;
+    if (value !== null && value !== undefined) {
+      let accountAddress: AccountAddress;
+      if (value instanceof AccountAddress) {
+        accountAddress = value;
+      } else {
+        accountAddress = AccountAddress.fromHexInputRelaxed(value);
+      }
+      moveObject = new MoveObject(accountAddress);
+    } else {
+      moveObject = undefined;
+    }
+    return new MoveOption<MoveObject>(moveObject);
+  }
+
+  static deserialize<U extends EntryFunctionArgument>(
+    deserializer: Deserializer,
+    cls: Deserializable<U>,
+  ): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
     return new MoveOption(vector.values[0]);
   }
@@ -457,6 +550,10 @@ export class MoveObject extends Serializable implements TransactionArgument {
 
   static deserialize(deserializer: Deserializer): MoveObject {
     const address = deserializer.deserialize(AccountAddress);
+    return new MoveObject(address);
+  }
+
+  static fromAddress(address: HexInput | AccountAddress): MoveObject {
     return new MoveObject(address);
   }
 }

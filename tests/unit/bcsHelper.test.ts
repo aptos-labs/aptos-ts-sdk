@@ -1,10 +1,27 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { FixedBytes } from "../../src/bcs/serializable/fixedBytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/movePrimitives";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/moveStructs";
-import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
+import {
+  Deserializable,
+  Deserializer,
+  FixedBytes,
+  Bool,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  MoveObject,
+  MoveOption,
+  MoveString,
+  MoveVector,
+  Serializable,
+  Serializer,
+  AccountAddress,
+  EntryFunctionArgumentTypes,
+} from "../../src";
+
 /* eslint-disable @typescript-eslint/no-shadow */
 
 describe("Tests for the Serializable class", () => {
@@ -219,7 +236,7 @@ describe("Tests for the Serializable class", () => {
   });
 
   it("throws an error when trying to unwrap an option with no value, before and after serialization", () => {
-    function testSerdeAndUnwrap<T extends Serializable>(
+    function testSerdeAndUnwrap<T extends EntryFunctionArgumentTypes>(
       optionConstructor: () => MoveOption<T>,
       deserializationClass: Deserializable<T>,
     ) {
@@ -585,6 +602,52 @@ describe("Tests for the Serializable class", () => {
       expect(() => MoveVector.U8({} as any)).toThrow();
       expect(() => MoveVector.U8(["01", "02", "03"] as any)).toThrow();
       expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
+    });
+  });
+
+  describe("factory methods", () => {
+    it("serializes a vector of addresses and strings and objects correctly", () => {
+      const vectorStringWithConstructor = new MoveVector([
+        new MoveString("abc0x1abc"),
+        new MoveString("def0x2def"),
+        new MoveString("ghi0x3ghi"),
+      ]);
+      const vectorString = MoveVector.MoveString(["abc0x1abc", "def0x2def", "ghi0x3ghi"]);
+      expect(vectorString.bcsToBytes()).toEqual(vectorStringWithConstructor.bcsToBytes());
+
+      const vectorAddressWithConstructor = new MoveVector([
+        AccountAddress.ONE,
+        AccountAddress.TWO,
+        AccountAddress.THREE,
+      ]);
+      const vectorAddress = MoveVector.AccountAddress([AccountAddress.ONE, AccountAddress.TWO, AccountAddress.THREE]);
+      const vectorAddress2 = MoveVector.AccountAddress(["0x1", "0x2", "0x3"]);
+      expect(vectorAddress.bcsToBytes()).toEqual(vectorAddressWithConstructor.bcsToBytes());
+      expect(vectorAddress.bcsToBytes()).toEqual(vectorAddress2.bcsToBytes());
+
+      const vectorObjectWithConstructor = new MoveVector([
+        new MoveObject(AccountAddress.ONE),
+        new MoveObject(AccountAddress.TWO),
+        new MoveObject(AccountAddress.THREE),
+      ]);
+      const vectorObject = MoveVector.MoveObject([AccountAddress.ONE, AccountAddress.TWO, AccountAddress.THREE]);
+      const vectorObject2 = MoveVector.MoveObject(["0x1", "0x2", "0x3"]);
+      expect(vectorObject.bcsToBytes()).toEqual(vectorObjectWithConstructor.bcsToBytes());
+      expect(vectorObject.bcsToBytes()).toEqual(vectorObject2.bcsToBytes());
+    });
+
+    it("serializes options created with factory methods correctly", () => {
+      const optionObjectWithConstructor = new MoveOption(new MoveObject(AccountAddress.ONE));
+      const optionObject = MoveOption.MoveObject(AccountAddress.ONE);
+      const optionObject2 = MoveOption.MoveObject("0x1");
+      expect(optionObject.bcsToBytes()).toEqual(optionObject2.bcsToBytes());
+      expect(optionObject.bcsToBytes()).toEqual(optionObjectWithConstructor.bcsToBytes());
+
+      const optionAddressWithConstructor = new MoveOption(AccountAddress.ONE);
+      const optionAddress = MoveOption.AccountAddress(AccountAddress.ONE);
+      const optionAddress2 = MoveOption.AccountAddress("0x1");
+      expect(optionAddress.bcsToBytes()).toEqual(optionAddress2.bcsToBytes());
+      expect(optionAddress.bcsToBytes()).toEqual(optionAddressWithConstructor.bcsToBytes());
     });
   });
 });
