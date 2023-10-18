@@ -49,6 +49,25 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
   }
 }
     `;
+export const TokenActivitiesFieldsFragmentDoc = `
+    fragment TokenActivitiesFields on token_activities_v2 {
+  after_value
+  before_value
+  entry_function_id_str
+  event_account_address
+  event_index
+  from_address
+  is_fungible_v2
+  property_version_v1
+  to_address
+  token_amount
+  token_data_id
+  token_standard
+  transaction_timestamp
+  transaction_version
+  type
+}
+    `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
@@ -345,6 +364,30 @@ export const GetProcessorStatus = `
   }
 }
     `;
+export const GetTokenActivity = `
+    query getTokenActivity($where_condition: token_activities_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [token_activities_v2_order_by!]) {
+  token_activities_v2(
+    where: $where_condition
+    order_by: $order_by
+    offset: $offset
+    limit: $limit
+  ) {
+    ...TokenActivitiesFields
+  }
+}
+    ${TokenActivitiesFieldsFragmentDoc}`;
+export const GetCurrentTokenOwnership = `
+    query getCurrentTokenOwnership($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_token_ownerships_v2_order_by!]) {
+  current_token_ownerships_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    ...CurrentTokenOwnershipFields
+  }
+}
+    ${CurrentTokenOwnershipFieldsFragmentDoc}`;
 export const GetTokenData = `
     query getTokenData($where_condition: current_token_datas_v2_bool_exp, $offset: Int, $limit: Int, $order_by: [current_token_datas_v2_order_by!]) {
   current_token_datas_v2(
@@ -644,6 +687,34 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
+        "query",
+      );
+    },
+    getTokenActivity(
+      variables: Types.GetTokenActivityQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetTokenActivityQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenActivityQuery>(GetTokenActivity, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTokenActivity",
+        "query",
+      );
+    },
+    getCurrentTokenOwnership(
+      variables: Types.GetCurrentTokenOwnershipQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetCurrentTokenOwnershipQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCurrentTokenOwnershipQuery>(GetCurrentTokenOwnership, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getCurrentTokenOwnership",
         "query",
       );
     },
