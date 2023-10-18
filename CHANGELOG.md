@@ -1,42 +1,47 @@
-# Aptos TS SDK Changelog
+# Aptos TypeScript SDK Changelog
 
-All notable changes to the Aptos Node SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 0.0.0 (2023-10-18)
 
 - Fetch data from chain
 - Fund account with APT coins
-- Proper formatting and parsing of account addresses as defined by AIP-40
+- Proper formatting and parsing of account addresses as defined by [AIP-40](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md)
 - Submit transactions
-  - single signer
-  - fee payer
-  - multi agent
-  - with payloads
-    - entry function
-    - script
-    - multisig
+  - Single signer
+  - Fee payer
+  - Multi agent
+  - With payloads
+    - Entry function
+    - Script
+    - Multisig
 - Simulate a transaction
-  - single signer
-  - fee payer
-  - multi agent
-- Built in transfer coins transaction generation
-- Keys management (ed25519 & secp256k1 schemes)
-  - ed25519 & secp256k1
-  - generate new keys
-  - derive from existing private key
-  - derive from mnemonics path
-  - derive from private key and address (for account that has it's key rotated)
-  - sign
-  - verify signature
+  - Single signer
+  - Fee payer
+  - Multi agent
+- Built in transaction generation
+  - Transfer coins
+  - Mint collection
+  - Mint nft
+- Keys management
+  - ED25519
+  - Secp256k1 - to go in next devnet release
+  - Generate new keys
+  - Derive from existing private key
+  - Derive from mnemonics path
+  - Derive from private key and address (for account that has it's key rotated)
+  - Sign
+  - Verify signature
 - BCS support
   - Move sub-classes to easily serialize and deserialize Move types
   - Unified Argument class for entry function and script payload argument types
   - Full nested serialization/deserialization support
 - Examples (both typescript and javascript)
-  - simple transfer transaction example
-  - transfer transaction example using built in transferCoinTransaction
-  - fee payer (aka sponsored) transaction example
-  - multi agent transaction example
+  - Simple transfer transaction example
+  - Transfer transaction example using built in transferCoinTransaction
+  - Fee payer (aka sponsored) transaction example
+  - Multi agent transaction example
+  - Mint collection and nft
 - Local custom types (instead of generating types)
 - In depths type checking on compile time
   - Typescript can infer the return type based on the argument being passed into `generateTransaction` function (singlesigner,multiagent,feepayer)
