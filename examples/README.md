@@ -14,7 +14,7 @@ package in the top level directory of this repo.
 At this point, you can run any of the examples in this directory. For example, to run the `simple_transfer` example:
 
 ```bash
-  cd examples/javascript/simple_transfer
+  cd examples/javascript
   pnpm install
   pnpm run simple_transfer
 ```
