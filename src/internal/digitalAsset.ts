@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Bool, U64, U8 } from "../bcs/serializable/movePrimitives";
+import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
 import { Account, Hex } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
@@ -38,7 +38,6 @@ import {
 } from "../types/generated/queries";
 import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
-import { MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { MAX_U64_BIG_INT } from "../bcs/consts";
 import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
 
@@ -279,7 +278,7 @@ export async function getCollectionData(args: {
   };
 
   if (options?.tokenStandard) {
-    whereCondition.token_standard = { _eq: options?.tokenStandard };
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2"};
   }
 
   const graphqlQuery = {
@@ -296,12 +295,6 @@ export async function getCollectionData(args: {
 
   if (data.current_collections_v2.length === 0) {
     throw Error("Collection not found");
-  }
-
-  if (data.current_collections_v2.length > 1) {
-    throw Error(
-      "More than one collection with the same name found.  Use args.options.tokenStandard to specify v1 or v2",
-    );
   }
 
   return data.current_collections_v2[0];

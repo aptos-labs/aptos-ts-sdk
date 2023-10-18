@@ -52,7 +52,6 @@ async function setupToken(): Promise<string> {
 
 describe("DigitalAsset", () => {
   let tokenAddress: string;
-  //   let collectionAddress
 
   beforeAll(async () => {
     await setupCollection();
