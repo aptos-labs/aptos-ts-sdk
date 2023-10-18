@@ -81,7 +81,7 @@ export class Collection {
   }
 
   /**
-   * Queries a collection's Id.
+   * Queries a collection's ID.
    *
    * This is the same as the collection's object address in V2, but V1 does
    * not use objects, and does not have an address

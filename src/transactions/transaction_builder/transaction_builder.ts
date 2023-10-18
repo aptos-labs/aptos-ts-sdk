@@ -3,7 +3,7 @@
 
 /**
  * This file handles the transaction creation lifecycle.
- * It holds different operations to generate a transaction payload, a raw transaciotn,
+ * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
@@ -128,7 +128,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
  * Generates a raw transaction
  *
  * @param args.aptosConfig AptosConfig
- * @param args.sendet The transaction's sender account address as a hex input
+ * @param args.sender The transaction's sender account address as a hex input
  * @param args.payload The transaction payload - can create by using generateTransactionPayload()
  *
  * @returns RawTransaction
@@ -192,7 +192,7 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
  * and if to complex to use, we could have function for each type
  *
  * @param args.aptosConfig AptosConfig
- * @param args.sendet The transaction's sender account address as a hex input
+ * @param args.sender The transaction's sender account address as a hex input
  * @param args.payload The transaction payload - can create by using generateTransactionPayload()
  * @param args.options optional. Transaction options object
  * @param args.secondarySignerAddresses optional. For when want to create a multi signers transaction
@@ -244,11 +244,11 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
 }
 
 /**
- * Simluate a transaction before signing and submit to chain
+ * Simulate a transaction before signing and submit to chain
  *
  * @param args.transaction A aptos transaction type to sign
  * @param args.signerPublicKey The signer public key
- * @param args.secondarySignersPublicKeys optional. The secondart signers public keys if multi signers transaction
+ * @param args.secondarySignersPublicKeys optional. The secondary signers public keys if multi signers transaction
  * @param args.feePayerPublicKey optional. The fee payer public key is a fee payer (aka sponsored) transaction
  * @param args.options optional. SimulateTransactionOptions
  *

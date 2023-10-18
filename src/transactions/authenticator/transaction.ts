@@ -97,7 +97,7 @@ export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticat
 }
 
 /**
- * Transaction authenticator for a multi agent transaction
+ * Transaction authenticator for a multi-agent transaction
  *
  * @param sender Sender account authenticator
  * @param secondary_signer_addresses Secondary signers address

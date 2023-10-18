@@ -36,7 +36,7 @@ export class RawTransaction extends Serializable {
    * @param sequence_number Sequence number of this transaction. This must match the sequence number stored in
    *   the sender's account at the time the transaction executes.
    * @param payload Instructions for the Aptos Blockchain, including publishing a module,
-   *   execute a entry function or execute a script payload.
+   *   execute an entry function or execute a script payload.
    * @param max_gas_amount Maximum total gas to spend for this transaction. The account must have more
    *   than this gas or the transaction will be discarded during validation.
    * @param gas_unit_price Price to be paid per gas unit.
@@ -105,7 +105,7 @@ export abstract class RawTransactionWithData extends Serializable {
    * Deserialize a Raw Transaction With Data
    */
   static deserialize(deserializer: Deserializer): RawTransactionWithData {
-    // undex enum variant
+    // index enum variant
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
       case TransactionVariants.MultiAgentTransaction:

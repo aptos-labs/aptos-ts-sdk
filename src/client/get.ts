@@ -92,9 +92,9 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
       overrides: options.overrides,
     });
     /**
-     * the cursor is a "state key" from the API prespective. Client
+     * the cursor is a "state key" from the API perspective. Client
      * should not need to "care" what it represents but just use it
-     * to query the next chunck of data.
+     * to query the next chunk of data.
      */
     cursor = response.headers["x-aptos-cursor"];
     // Now that we have the cursor (if any), we remove the headers before

@@ -24,8 +24,8 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType } from ".
  *
  * @param args.sender The transaction sender's account address as a HexInput
  * @param args.data EntryFunctionData | ScriptData | MultiSigData
- * @param feePayerAddress optional. For a fee payer (aka sponsored) transaction
- * @param secondarySignerAddresses optional. For a multi agent or fee payer (aka sponsored) transactions
+ * @param args.feePayerAddress optional. For a fee payer (aka sponsored) transaction
+ * @param args.secondarySignerAddresses optional. For a multi-agent or fee payer (aka sponsored) transactions
  * @param args.options optional. GenerateTransactionOptions type
  *
  * @example
@@ -35,7 +35,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType } from ".
  * data: {
  *  function:"0x1::aptos_account::transfer",
  *  type_arguments:[]
- *  arguments:[recieverAddress,10]
+ *  arguments:[receiverAddress,10]
  * }
  * `
  *
@@ -46,7 +46,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType } from ".
  * data: {
  *  bytecode:"0x001234567",
  *  type_arguments:[],
- *  arguments:[recieverAddress,10]
+ *  arguments:[receiverAddress,10]
  * }
  * ```
  *
@@ -64,7 +64,7 @@ export async function generateTransaction(
 ): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
   const payload = await generateTransactionPayload(data);
-  const rawTransaction = await buildTransaction({
+  return buildTransaction({
     aptosConfig,
     sender,
     payload,
@@ -72,7 +72,6 @@ export async function generateTransaction(
     secondarySignerAddresses,
     feePayerAddress,
   });
-  return rawTransaction;
 }
 
 /**
@@ -98,11 +97,11 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
 /**
  * Simulates a transaction before singing it.
  *
- * @param signerPublicKey The signer pubic key
- * @param transaction The raw transaction to simulate
- * @param secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
- * @param feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
- * @param options optional. A config to simulate the transaction with
+ * @param args.signerPublicKey The signer public key
+ * @param args.transaction The raw transaction to simulate
+ * @param args.secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
+ * @param args.feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
+ * @param args.options optional. A config to simulate the transaction with
  */
 export async function simulateTransaction(
   args: { aptosConfig: AptosConfig } & SimulateTransactionData,

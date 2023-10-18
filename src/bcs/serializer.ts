@@ -113,7 +113,7 @@ export class Serializer {
   }
 
   /**
-   * Serializes an array of bytes with known length. Therefore length doesn't need to be
+   * Serializes an array of bytes with known length. Therefore, length doesn't need to be
    * serialized to help deserialization.
    *
    * When deserializing, the number of bytes to deserialize needs to be passed in.
@@ -293,7 +293,7 @@ export class Serializer {
 
   /**
    * Serializes an array of BCS Serializable values to a serializer instance.
-   * Note that this does not return anything- the bytes are added to the serializer instance's byte buffer.
+   * Note that this does not return anything. The bytes are added to the serializer instance's byte buffer.
    *
    * @param values The array of BCS Serializable values
    * @example
