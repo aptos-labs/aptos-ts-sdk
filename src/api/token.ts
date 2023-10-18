@@ -40,7 +40,7 @@ export class Token {
    * @param args.name the name of the token
    * @param args.uri the URI to additional info about the token
    *
-   * @returns A SingleSignerTransaction that when submitted will mint the token.
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
    */
   async mintTokenTransaction(args: {
     creator: Account;
