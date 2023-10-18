@@ -97,7 +97,7 @@ export type MultiSigData = {
  * The data needed to generate a Script payload
  */
 export type ScriptData = {
-  bytecode: string;
+  bytecode: HexInput;
   typeArguments?: Array<TypeTag>;
   arguments: Array<ScriptFunctionArgumentTypes>;
 };
