@@ -6,6 +6,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
+import { MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account } from "../core/account";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -16,8 +17,14 @@ import {
   generateSignedTransaction,
   sign,
 } from "../transactions/transaction_builder/transaction_builder";
-import { GenerateTransactionInput, AnyRawTransaction, SimulateTransactionData } from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType } from "../types";
+import {
+  GenerateTransactionInput,
+  AnyRawTransaction,
+  SimulateTransactionData,
+  GenerateTransactionOptions,
+  SingleSignerTransaction,
+} from "../transactions/types";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
 
 /**
  * Generates any transaction by passing in the required arguments
@@ -159,4 +166,38 @@ export async function submitTransaction(args: {
     contentType: MimeType.BCS_SIGNED_TRANSACTION,
   });
   return data;
+}
+
+export async function signAndSubmitTransaction(args: {
+  aptosConfig: AptosConfig;
+  signer: Account;
+  transaction: AnyRawTransaction;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, signer, transaction } = args;
+  const authenticator = signTransaction({ signer, transaction });
+  return submitTransaction({
+    aptosConfig,
+    transaction,
+    senderAuthenticator: authenticator,
+  });
+}
+
+export async function publishModuleTransaction(args: {
+  aptosConfig: AptosConfig;
+  account: HexInput;
+  metadataBytes: HexInput;
+  byteCode: HexInput;
+  options?: GenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, account, metadataBytes, byteCode, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: account,
+    data: {
+      function: "0x1::code::publish_package_txn",
+      arguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(byteCode)])],
+    },
+    options,
+  });
+  return transaction as SingleSignerTransaction;
 }
