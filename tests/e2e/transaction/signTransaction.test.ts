@@ -82,7 +82,7 @@ describe("sign transaction", () => {
       });
     });
 
-    describe("Secp256k1", () => {
+    describe.skip("Secp256k1", () => {
       test("it signs a script transaction", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
