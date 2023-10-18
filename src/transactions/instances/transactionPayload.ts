@@ -12,7 +12,7 @@ import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
-import { ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
+import { MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
 import { TypeTag } from "../typeTag/typeTag";
 
 /**
@@ -186,7 +186,7 @@ export class EntryFunction {
   /**
    * A helper function to build a EntryFunction payload from raw primitive values
    *
-   * @param module_name Fully qualified module name in format "AccountAddress::module_name" e.g. "0x1::coin"
+   * @param module_id Fully qualified module name in format "AccountAddress::module_id" e.g. "0x1::coin"
    * @param function_name Function name
    * @param type_args Type arguments that move function requires.
    *
@@ -205,12 +205,12 @@ export class EntryFunction {
    * @returns EntryFunction
    */
   static build(
-    module_name: `${string}::${string}`,
+    module_id: MoveModuleId,
     function_name: string,
     type_args: Array<TypeTag>,
     args: Array<EntryFunctionArgument>,
   ): EntryFunction {
-    return new EntryFunction(ModuleId.fromStr(module_name), new Identifier(function_name), type_args, args);
+    return new EntryFunction(ModuleId.fromStr(module_id), new Identifier(function_name), type_args, args);
   }
 
   serialize(serializer: Serializer): void {
