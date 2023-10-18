@@ -4,13 +4,12 @@
 import { Account } from "./account";
 import { AptosConfig } from "./aptosConfig";
 import { Coin } from "./coin";
-import { Collection } from "./collection";
+import { DigitalAsset } from "./digitalAsset";
 import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
 import { Staking } from "./staking";
-import { Token } from "./token";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
 
@@ -28,7 +27,7 @@ export class Aptos {
 
   readonly coin: Coin;
 
-  readonly collection: Collection;
+  readonly digitalAsset: DigitalAsset;
 
   readonly event: Event;
 
@@ -40,8 +39,6 @@ export class Aptos {
 
   readonly staking: Staking;
 
-  readonly token: Token;
-
   readonly transaction: Transaction;
 
   readonly transactionSubmission: TransactionSubmission;
@@ -50,13 +47,12 @@ export class Aptos {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
     this.coin = new Coin(this.config);
-    this.collection = new Collection(this.config);
+    this.digitalAsset = new DigitalAsset(this.config);
     this.event = new Event(this.config);
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
-    this.token = new Token(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
   }
@@ -65,13 +61,12 @@ export class Aptos {
 export interface Aptos
   extends Account,
     Coin,
-    Collection,
+    DigitalAsset,
     Event,
     Faucet,
     FungibleAsset,
     General,
     Staking,
-    Token,
     Transaction,
     TransactionSubmission {}
 
@@ -98,12 +93,11 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 
 applyMixin(Aptos, Account, "account");
 applyMixin(Aptos, Coin, "coin");
-applyMixin(Aptos, Collection, "collection");
+applyMixin(Aptos, DigitalAsset, "digitalAsset");
 applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
-applyMixin(Aptos, Token, "token");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
