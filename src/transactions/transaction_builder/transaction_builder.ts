@@ -7,10 +7,9 @@
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { hexToBytes } from "@noble/hashes/utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress, PublicKey } from "../../core";
+import { AccountAddress, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
@@ -91,7 +90,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
   // generate script payload
   if ("bytecode" in args) {
     return new TransactionPayloadScript(
-      new Script(hexToBytes(args.bytecode), args.typeArguments ?? [], args.arguments),
+      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.arguments),
     );
   }
 

@@ -15,7 +15,7 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { HexInput, MoveStructType } from "../types";
+import { AnyNumber, HexInput, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
 
 export type EntryFunctionArgumentTypes =
@@ -57,10 +57,10 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * Optional options to set when generating a transaction
  */
 export type GenerateTransactionOptions = {
-  maxGasAmount?: string;
-  gasUnitPrice?: string;
-  expireTimestamp?: string;
-  accountSequenceNumber?: string | bigint;
+  maxGasAmount?: AnyNumber;
+  gasUnitPrice?: AnyNumber;
+  expireTimestamp?: AnyNumber;
+  accountSequenceNumber?: AnyNumber;
 };
 
 /**
@@ -97,7 +97,7 @@ export type MultiSigData = {
  * The data needed to generate a Script payload
  */
 export type ScriptData = {
-  bytecode: string;
+  bytecode: HexInput;
   typeArguments?: Array<TypeTag>;
   arguments: Array<ScriptFunctionArgumentTypes>;
 };
