@@ -6,6 +6,7 @@
   "scripts": {
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_transfer": "ts-node simple_transfer.ts",
+    "mint_nft": "ts-node mint_nft.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts"
   },

@@ -70,7 +70,7 @@ describe("token api", () => {
 
   test("it gets an owner's tokens", async () => {
     const tokenData = (await aptos.getOwnedTokens({ ownerAddress: creatorAddress }))[0];
-    
+
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(creatorAddress);
     expect(tokenData.current_token_data?.description).toEqual(tokenDescription);
@@ -80,7 +80,7 @@ describe("token api", () => {
 
   test("it gets ownership data given a token's address", async () => {
     const tokenOwnershipData = await aptos.getCurrentTokenOwnership({ tokenAddress });
-    
+
     expect(tokenOwnershipData.token_data_id).toEqual(tokenAddress);
     expect(tokenOwnershipData.owner_address).toEqual(creatorAddress);
     expect(tokenOwnershipData.current_token_data?.description).toEqual(tokenDescription);

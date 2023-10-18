@@ -23,7 +23,7 @@ import {
 } from "../types";
 import { GetCurrentTokenOwnershipQuery, GetTokenActivityQuery, GetTokenDataQuery } from "../types/generated/operations";
 import { GetCurrentTokenOwnership, GetTokenActivity, GetTokenData } from "../types/generated/queries";
-import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesBoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
+import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
 import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 
