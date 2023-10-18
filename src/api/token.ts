@@ -54,7 +54,7 @@ export class Token {
   }
 
   /**
-   * This gets token data given the address of a token.
+   * Gets token data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
    * @returns GetTokenDataResponse containing relevant data to the token.
@@ -64,7 +64,7 @@ export class Token {
   }
 
   /**
-   * This gets token ownership data given the address of a token.
+   * Gets token ownership data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
    * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the token.
@@ -74,7 +74,7 @@ export class Token {
   }
 
   /**
-   * This gets the tokens that the given address owns.
+   * Gets the tokens that the given address owns.
    *
    * @param args.ownerAddress The address of the owner
    * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddresss.
@@ -90,7 +90,7 @@ export class Token {
   }
 
   /**
-   * This gets the activity data given the address of a token.
+   * Gets the activity data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
    * @returns GetTokenActivityResponse containing relevant activity data to the token.
