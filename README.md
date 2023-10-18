@@ -119,7 +119,8 @@ const account = Account.fromDerivationPath({ path, mnemonic });
 
 ## Documentation and examples
 
-- For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
+- For documentation, see the [TypeScript Reference Documentation](https://aptos-labs.github.io/aptos-ts-sdk/)
+- For in-depth examples, check out the [examples](https://github.com/aptos-labs/aptos-ts-sdk/tree/main/examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
 
