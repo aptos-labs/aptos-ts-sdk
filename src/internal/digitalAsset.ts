@@ -3,16 +3,18 @@
 
 /**
  * This file contains the underlying implementations for exposed API surface in
- * the {@link api/token}. By moving the methods out into a separate file,
+ * the {@link api/digitalAsset}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
- * token namespace and without having a dependency cycle error.
+ * digitalAsset namespace and without having a dependency cycle error.
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveString, MoveVector, U8 } from "../bcs";
+import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
 import { Account, Hex } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
+  AnyNumber,
+  GetCollectionDataResponse,
   GetCurrentTokenOwnershipResponse,
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
@@ -20,12 +22,24 @@ import {
   HexInput,
   OrderBy,
   PaginationArgs,
+  TokenStandard,
 } from "../types";
-import { GetCurrentTokenOwnershipQuery, GetTokenActivityQuery, GetTokenDataQuery } from "../types/generated/operations";
-import { GetCurrentTokenOwnership, GetTokenActivity, GetTokenData } from "../types/generated/queries";
-import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
+import {
+  GetCollectionDataQuery,
+  GetCurrentTokenOwnershipQuery,
+  GetTokenActivityQuery,
+  GetTokenDataQuery,
+} from "../types/generated/operations";
+import {
+  GetCollectionData,
+  GetCurrentTokenOwnership,
+  GetTokenActivity,
+  GetTokenData,
+} from "../types/generated/queries";
 import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
+import { MAX_U64_BIG_INT } from "../bcs/consts";
+import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
 
 // TODO: Support properties when minting.
 export interface MintTokenOptions {
@@ -180,4 +194,109 @@ export async function getTokenActivity(args: {
   });
 
   return data.token_activities_v2;
+}
+
+export interface CreateCollectionOptions {
+  maxSupply?: AnyNumber;
+  mutableDescription?: boolean;
+  mutableRoyalty?: boolean;
+  mutableURI?: boolean;
+  mutableTokenDescription?: boolean;
+  mutableTokenName?: boolean;
+  mutableTokenProperties?: boolean;
+  mutableTokenURI?: boolean;
+  tokensBurnableByCreator?: boolean;
+  tokensFreezableByCreator?: boolean;
+  royaltyNumerator?: number;
+  royaltyDenominator?: number;
+}
+
+export async function createCollectionTransaction(
+  args: {
+    aptosConfig: AptosConfig;
+    creator: Account;
+    description: string;
+    name: string;
+    uri: string;
+    options?: GenerateTransactionOptions;
+  } & CreateCollectionOptions,
+): Promise<SingleSignerTransaction> {
+  const { aptosConfig, options, creator } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress.toString(),
+    data: {
+      function: "0x4::aptos_token::create_collection",
+      arguments: [
+        // Do not change the order
+        new MoveString(args.description),
+        new U64(args.maxSupply ?? MAX_U64_BIG_INT),
+        new MoveString(args.name),
+        new MoveString(args.uri),
+        new Bool(args.mutableDescription ?? true),
+        new Bool(args.mutableRoyalty ?? true),
+        new Bool(args.mutableURI ?? true),
+        new Bool(args.mutableTokenDescription ?? true),
+        new Bool(args.mutableTokenName ?? true),
+        new Bool(args.mutableTokenProperties ?? true),
+        new Bool(args.mutableTokenURI ?? true),
+        new Bool(args.tokensBurnableByCreator ?? true),
+        new Bool(args.tokensFreezableByCreator ?? true),
+        new U64(args.royaltyNumerator ?? 0),
+        new U64(args.royaltyDenominator ?? 1),
+      ],
+    },
+    options,
+  });
+  return transaction as SingleSignerTransaction;
+}
+
+export async function getCollectionData(args: {
+  aptosConfig: AptosConfig;
+  creatorAddress: HexInput;
+  collectionName: string;
+  options?: {
+    tokenStandard?: TokenStandard;
+  };
+}): Promise<GetCollectionDataResponse> {
+  const { aptosConfig, creatorAddress, collectionName, options } = args;
+  const address = Hex.fromHexInput(creatorAddress).toString();
+
+  const whereCondition: any = {
+    collection_name: { _eq: collectionName },
+    creator_address: { _eq: address },
+  };
+
+  if (options?.tokenStandard) {
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+  }
+
+  const graphqlQuery = {
+    query: GetCollectionData,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+  const data = await queryIndexer<GetCollectionDataQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getCollectionData",
+  });
+
+  if (data.current_collections_v2.length === 0) {
+    throw Error("Collection not found");
+  }
+
+  return data.current_collections_v2[0];
+}
+
+export async function getCollectionId(args: {
+  aptosConfig: AptosConfig;
+  creatorAddress: HexInput;
+  collectionName: string;
+  options?: {
+    tokenStandard?: TokenStandard;
+  };
+}): Promise<string> {
+  return (await getCollectionData(args)).collection_id;
 }
