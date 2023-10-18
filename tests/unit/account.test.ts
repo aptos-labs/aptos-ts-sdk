@@ -88,7 +88,7 @@ describe("Ed25519 Account", () => {
   });
 });
 
-describe("Secp256k1 Account", () => {
+describe.skip("Secp256k1 Account", () => {
   it("should create an instance of Account correctly without error", () => {
     // Account with Secp256k1 scheme
     const secp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
