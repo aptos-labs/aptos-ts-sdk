@@ -36,11 +36,11 @@ export async function publishModule(
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const txnHash = await aptos.submitTransaction({
+  const response = await aptos.submitTransaction({
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
-  return (await aptos.waitForTransaction({ transactionHash: txnHash.hash })) as UserTransactionResponse;
+  return (await aptos.waitForTransaction({ transactionHash: response.hash })) as UserTransactionResponse;
 }
 
 export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
@@ -154,10 +154,51 @@ export const signAndSubmitMultiAgentHelper = async (
       feePayerAuthenticator,
     },
   });
-
   const response = await aptos.waitForTransaction({ transactionHash: transactionResponse.hash });
   return response as UserTransactionResponse;
 };
+
+export async function buildAndTestAnyMultiAgentFunction(
+  aptos: Aptos,
+  senderAccount: Account,
+  payload: GenerateTransactionPayloadData,
+  expectedSignatureType: string,
+  secondarySignerAccounts: Array<Account>,
+  feePayerAccount?: Account,
+): Promise<UserTransactionResponse> {
+  const secondarySignerAddresses = secondarySignerAccounts.map((a) => a.accountAddress);
+  const generated = await generateMultiAgentHelper(
+    aptos,
+    payload,
+    senderAccount,
+    secondarySignerAccounts,
+    feePayerAccount,
+  );
+  const response = await signAndSubmitMultiAgentHelper(
+    aptos,
+    generated,
+    senderAccount,
+    secondarySignerAccounts,
+    feePayerAccount,
+  );
+  expect(response.success).toBe(true);
+  const responseSignature = response.signature as TransactionFeePayerSignature | TransactionMultiAgentSignature;
+  expect(responseSignature.type).toEqual(expectedSignatureType);
+  const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+    AccountAddress.fromStringRelaxed(address),
+  );
+  expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+    secondarySignerAddresses.map((address) => address.toString()),
+  );
+  if (feePayerAccount) {
+    expect(
+      AccountAddress.fromStringRelaxed(
+        (responseSignature as TransactionFeePayerSignature).fee_payer_address,
+      ).toString(),
+    ).toEqual(feePayerAccount.accountAddress.toString());
+  }
+  return response;
+}
 
 const ACCOUNT_PUBLISH_PAYLOAD_GENERATED_WITH = "0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451";
 
