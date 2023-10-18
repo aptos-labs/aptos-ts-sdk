@@ -64,6 +64,7 @@ export type GetCurrentFungibleAssetBalancesResponse =
   GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances"];
 export type GetTokenActivityResponse = GetTokenActivityQuery["token_activities_v2"];
 export type GetCurrentTokenOwnershipResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"][0];
+export type GetOwnedTokensResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"];
 
 /**
  * A generic type that being passed by each function and holds an

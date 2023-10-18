@@ -12,6 +12,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { Hex } from "../core";
 import {
   GetCurrentTokenOwnershipResponse,
+  GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
   HexInput,
@@ -73,6 +74,32 @@ export async function getCurrentTokenOwnership(args: {
   });
 
   return data.current_token_ownerships_v2[0];
+}
+
+export async function getOwnedTokens(args: {
+  aptosConfig: AptosConfig;
+  ownerAddress: HexInput;
+}): Promise<GetOwnedTokensResponse> {
+  const { aptosConfig, ownerAddress } = args;
+
+  const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
+    owner_address: { _eq: Hex.fromHexInput(ownerAddress).toString() },
+  };
+
+  const graphqlQuery = {
+    query: GetCurrentTokenOwnership,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+
+  const data = await queryIndexer<GetCurrentTokenOwnershipQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getOwnedTokens",
+  });
+
+  return data.current_token_ownerships_v2;
 }
 
 export async function getTokenActivity(args: {
