@@ -30,11 +30,11 @@ All notable changes to the Aptos Node SDK will be captured in this file. This ch
   - verify signature
 - BCS support
   - Move sub-classes to easily serialize and deserialize Move types
-  - Unified Argument class for entry and script payloads argument types
-  - Nested serialization/deserialization support
+  - Unified Argument class for entry function and script payload argument types
+  - Full nested serialization/deserialization support
 - Examples (both typescript and javascript)
   - simple transfer transaction example
-  - transfer example using built in transferCoinTransaction
+  - transfer transaction example using built in transferCoinTransaction
   - fee payer (aka sponsored) transaction example
   - multi agent transaction example
 - Local custom types (instead of generating types)
