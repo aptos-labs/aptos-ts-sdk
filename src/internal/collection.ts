@@ -9,11 +9,71 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Hex } from "../core";
-import { GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
+import { Bool, U64 } from "../bcs/serializable/movePrimitives";
+import { Account, Hex } from "../core";
+import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { AnyNumber, GetCollectionDataResponse, HexInput, TokenStandard } from "../types";
 import { GetCollectionDataQuery } from "../types/generated/operations";
 import { GetCollectionData } from "../types/generated/queries";
 import { queryIndexer } from "./general";
+import { generateTransaction } from "./transactionSubmission";
+import { MoveString } from "../bcs/serializable/moveStructs";
+import { MAX_U64_BIG_INT } from "../bcs/consts";
+
+export interface CreateCollectionOptions {
+  maxSupply?: AnyNumber;
+  mutableDescription?: boolean;
+  mutableRoyalty?: boolean;
+  mutableURI?: boolean;
+  mutableTokenDescription?: boolean;
+  mutableTokenName?: boolean;
+  mutableTokenProperties?: boolean;
+  mutableTokenURI?: boolean;
+  tokensBurnableByCreator?: boolean;
+  tokensFreezableByCreator?: boolean;
+  royaltyNumerator?: number;
+  royaltyDenominator?: number;
+}
+
+export async function createCollectionTransaction(
+  args: {
+    aptosConfig: AptosConfig;
+    creator: Account;
+    description: string;
+    name: string;
+    uri: string;
+    options?: GenerateTransactionOptions;
+  } & CreateCollectionOptions,
+): Promise<SingleSignerTransaction> {
+  const { aptosConfig, options, creator } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress.toString(),
+    data: {
+      function: "0x4::aptos_token::create_collection",
+      arguments: [
+        // Do not change the order
+        new MoveString(args.description),
+        new U64(args.maxSupply ?? MAX_U64_BIG_INT),
+        new MoveString(args.name),
+        new MoveString(args.uri),
+        new Bool(args.mutableDescription ?? true),
+        new Bool(args.mutableRoyalty ?? true),
+        new Bool(args.mutableURI ?? true),
+        new Bool(args.mutableTokenDescription ?? true),
+        new Bool(args.mutableTokenName ?? true),
+        new Bool(args.mutableTokenProperties ?? true),
+        new Bool(args.mutableTokenURI ?? true),
+        new Bool(args.tokensBurnableByCreator ?? true),
+        new Bool(args.tokensFreezableByCreator ?? true),
+        new U64(args.royaltyNumerator ?? 0),
+        new U64(args.royaltyDenominator ?? 1),
+      ],
+    },
+    options,
+  });
+  return transaction as SingleSignerTransaction;
+}
 
 /**
  * Queries data of a specific collection by the collection creator address and the collection name.
