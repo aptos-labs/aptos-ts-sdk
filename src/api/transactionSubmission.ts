@@ -14,10 +14,13 @@ import {
   MultiAgentTransaction,
   SingleSignerTransaction,
   SimulateTransactionData,
+  GenerateTransactionOptions,
 } from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse } from "../types";
+import { UserTransactionResponse, PendingTransactionResponse, HexInput } from "../types";
 import {
   generateTransaction,
+  publishModuleTransaction,
+  signAndSubmitTransaction,
   signTransaction,
   simulateTransaction,
   submitTransaction,
@@ -158,11 +161,32 @@ export class TransactionSubmission {
     transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
-    const authenticator = signTransaction({ signer, transaction });
-    return submitTransaction({
+    return signAndSubmitTransaction({
       aptosConfig: this.config,
+      signer,
       transaction,
-      senderAuthenticator: authenticator,
     });
+  }
+
+  /**
+   * Generates a transaction to publish a move package to chain.
+   *
+   * To get the `metadataBytes` and `byteCode`, can compile using Aptos CLI with command
+   * `aptos move compile --save-metadata ...`,
+   * For more info {@link https://aptos.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
+   *
+   * @param account The publisher account
+   * @param metadataBytes The package metadata bytes
+   * @param byteCode The bytecodes of modules
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async publishModuleTransaction(args: {
+    account: HexInput;
+    metadataBytes: HexInput;
+    byteCode: HexInput;
+    options?: GenerateTransactionOptions;
+  }): Promise<SingleSignerTransaction> {
+    return publishModuleTransaction({ aptosConfig: this.config, ...args });
   }
 }
