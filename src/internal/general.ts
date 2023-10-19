@@ -8,9 +8,10 @@
  * general namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
 import {
+  AnyNumber,
   Block,
   GetChainTopUserTransactionsResponse,
   GetProcessorStatusResponse,
@@ -20,6 +21,7 @@ import {
   MoveValue,
   TableItemRequest,
   ViewRequest,
+  ViewRequestData,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -36,14 +38,14 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
 
 export async function getBlockByVersion(args: {
   aptosConfig: AptosConfig;
-  blockVersion: number;
+  ledgerVersion: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
-  const { aptosConfig, blockVersion, options } = args;
+  const { aptosConfig, ledgerVersion, options } = args;
   const { data } = await getAptosFullNode<{}, Block>({
     aptosConfig,
     originMethod: "getBlockByVersion",
-    path: `blocks/by_version/${blockVersion}`,
+    path: `blocks/by_version/${ledgerVersion}`,
     params: { with_transactions: options?.withTransactions },
   });
   return data;
@@ -51,7 +53,7 @@ export async function getBlockByVersion(args: {
 
 export async function getBlockByHeight(args: {
   aptosConfig: AptosConfig;
-  blockHeight: number;
+  blockHeight: AnyNumber;
   options?: { withTransactions?: boolean };
 }): Promise<Block> {
   const { aptosConfig, blockHeight, options } = args;
@@ -83,7 +85,7 @@ export async function getTableItem(args: {
 
 export async function view(args: {
   aptosConfig: AptosConfig;
-  payload: ViewRequest;
+  payload: ViewRequestData;
   options?: LedgerVersion;
 }): Promise<MoveValue[]> {
   const { aptosConfig, payload, options } = args;
@@ -92,7 +94,11 @@ export async function view(args: {
     originMethod: "view",
     path: "view",
     params: { ledger_version: options?.ledgerVersion },
-    body: payload,
+    body: {
+      function: payload.function,
+      type_arguments: payload.typeArguments ?? [],
+      arguments: payload.arguments ?? [],
+    },
   });
   return data;
 }

@@ -523,8 +523,12 @@ export type MoveScriptBytecode = {
   abi?: MoveFunction;
 };
 
+/**
+ * These are the JSON representations of transaction signatures returned from the node API.
+ */
 export type TransactionSignature =
   | TransactionEd25519Signature
+  | TransactionSecp256k1Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
   | TransactionFeePayerSignature;
@@ -532,11 +536,17 @@ export type TransactionSignature =
 export type TransactionEd25519Signature = {
   type: string;
   public_key: string;
-  signature: string;
+  signature: "ed25519_signature";
+};
+
+export type TransactionSecp256k1Signature = {
+  type: string;
+  public_key: string;
+  signature: "secp256k1_ecdsa_signature";
 };
 
 export type TransactionMultiEd25519Signature = {
-  type: string;
+  type: "multi_ed25519_signature";
   /**
    * The public keys for the Ed25519 signature
    */
@@ -553,7 +563,7 @@ export type TransactionMultiEd25519Signature = {
 };
 
 export type TransactionMultiAgentSignature = {
-  type: string;
+  type: "multi_agent_signature";
   sender: AccountSignature;
   /**
    * The other involved parties' addresses
@@ -566,7 +576,7 @@ export type TransactionMultiAgentSignature = {
 };
 
 export type TransactionFeePayerSignature = {
-  type: string;
+  type: "fee_payer_signature";
   sender: AccountSignature;
   /**
    * The other involved parties' addresses
@@ -580,30 +590,16 @@ export type TransactionFeePayerSignature = {
   fee_payer_signer: AccountSignature;
 };
 
-export type AccountSignature = AccountEd25519Signature | AccountMultiEd25519Signature;
+/**
+ * The union of all single account signatures.
+ */
+export type AccountSignature = AccountEd25519Signature | AccountSecp256k1Signature | AccountMultiEd25519Signature;
 
-export type AccountEd25519Signature = {
-  type: string;
-  public_key: string;
-  signature: string;
-};
+export type AccountEd25519Signature = TransactionEd25519Signature;
 
-export type AccountMultiEd25519Signature = {
-  type: string;
-  /**
-   * The public keys for the Ed25519 signature
-   */
-  public_keys: Array<string>;
-  /**
-   * Signature associated with the public keys in the same order
-   */
-  signatures: Array<string>;
-  /**
-   * The number of signatures required for a successful transaction
-   */
-  threshold: number;
-  bitmap: string;
-};
+export type AccountSecp256k1Signature = TransactionSecp256k1Signature;
+
+export type AccountMultiEd25519Signature = TransactionMultiEd25519Signature;
 
 export type WriteSet = ScriptWriteSet | DirectWriteSet;
 
@@ -852,6 +848,15 @@ export type Block = {
    * The transactions in the block in sequential order
    */
   transactions?: Array<TransactionResponse>;
+};
+
+/**
+ * The data needed to generate a View Request payload
+ */
+export type ViewRequestData = {
+  function: MoveStructType;
+  typeArguments?: Array<MoveResourceType>;
+  arguments?: Array<MoveValue>;
 };
 
 // REQUEST TYPES

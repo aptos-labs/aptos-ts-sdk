@@ -28,12 +28,12 @@ export type ParsingResult<T> = {
    */
   valid: boolean;
 
-  /*
+  /**
    * If valid is false, this will be a code explaining why parsing failed.
    */
   invalidReason?: T;
 
-  /*
+  /**
    * If valid is false, this will be a string explaining why parsing failed.
    */
   invalidReasonMessage?: string;

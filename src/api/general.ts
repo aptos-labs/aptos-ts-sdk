@@ -1,17 +1,19 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "./aptosConfig";
 import {
   getBlockByHeight,
   getBlockByVersion,
   getChainTopUserTransactions,
+  getIndexerLastSuccessVersion,
   getLedgerInfo,
   getTableItem,
   queryIndexer,
   view,
-  getIndexerLastSuccessVersion,
 } from "../internal/general";
 import {
+  AnyNumber,
   Block,
   GetChainTopUserTransactionsResponse,
   GraphqlQuery,
@@ -19,9 +21,8 @@ import {
   LedgerVersion,
   MoveValue,
   TableItemRequest,
-  ViewRequest,
+  ViewRequestData,
 } from "../types";
-import { AptosConfig } from "./aptos_config";
 
 /**
  * A class to query all `General` Aptos related queries
@@ -70,12 +71,15 @@ export class General {
   /**
    * Queries for block by transaction version
    *
-   * @param version Ledger version to lookup block information for
-   * @param options.withTransactions If set to true, include all transactions in the block
+   * @param args.ledgerVersion Ledger version to lookup block information for
+   * @param args.options.withTransactions If set to true, include all transactions in the block
    *
-   * @returns Block
+   * @returns Block information with optional transactions
    */
-  async getBlockByVersion(args: { blockVersion: number; options?: { withTransactions?: boolean } }): Promise<Block> {
+  async getBlockByVersion(args: {
+    ledgerVersion: AnyNumber;
+    options?: { withTransactions?: boolean };
+  }): Promise<Block> {
     return getBlockByVersion({
       aptosConfig: this.config,
       ...args,
@@ -85,20 +89,21 @@ export class General {
   /**
    * Get block by block height
    *
-   * @param blockHeight Block height to lookup.  Starts at 0
-   * @param options.withTransactions If set to true, include all transactions in the block
+   * @param args.blockHeight Block height to lookup.  Starts at 0
+   * @param args.options.withTransactions If set to true, include all transactions in the block
    *
-   * @returns Block
+   * @returns Block with optional transactions
    */
-  async getBlockByHeight(args: { blockHeight: number; options?: { withTransactions?: boolean } }): Promise<Block> {
+  async getBlockByHeight(args: { blockHeight: AnyNumber; options?: { withTransactions?: boolean } }): Promise<Block> {
     return getBlockByHeight({ aptosConfig: this.config, ...args });
   }
 
   /**
    * Queries for a table item for a table identified by the handle and the key for the item.
    * Key and value types need to be passed in to help with key serialization and value deserialization.
-   * @param handle A pointer to where that table is stored
-   * @param data Object that describes table item
+   * @param args.handle A pointer to where that table is stored
+   * @param args.data Object that describes table item
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    *
    * @example https://fullnode.devnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::coin::CoinInfo%3C0x1::aptos_coin::AptosCoin%3E
    * {
@@ -115,7 +120,8 @@ export class General {
 
   /**
    * Queries for a Move view function
-   * @param payload ViewRequest payload
+   * @param args.payload Payload for the view function
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    * @example
    * `
    * const payload: ViewRequest = {
@@ -127,24 +133,21 @@ export class General {
    *
    * @returns an array of Move values
    */
-  async view(args: { payload: ViewRequest; options?: LedgerVersion }): Promise<Array<MoveValue>> {
-    const data = await view({ aptosConfig: this.config, ...args });
-    return data;
+  async view(args: { payload: ViewRequestData; options?: LedgerVersion }): Promise<Array<MoveValue>> {
+    return view({ aptosConfig: this.config, ...args });
   }
 
   /**
    * Queries top user transactions
    *
-   * @param args.limit
+   * @param args.limit The number of transactions to return
    * @returns GetChainTopUserTransactionsResponse
    */
   async getChainTopUserTransactions(args: { limit: number }): Promise<GetChainTopUserTransactionsResponse> {
-    const data = getChainTopUserTransactions({
+    return getChainTopUserTransactions({
       aptosConfig: this.config,
       ...args,
     });
-
-    return data;
   }
 
   /**
@@ -152,7 +155,8 @@ export class General {
    * For more detailed queries specification see
    * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://indexer.mainnet.aptoslabs.com/v1/graphql}
    *
-   * @param query A GraphQL query
+   * @param args.query.query A GraphQL query
+   * @param args.query.variables The variables for the query
    * @example
    * ```
    * {
@@ -173,6 +177,11 @@ export class General {
     });
   }
 
+  /**
+   * Queries for the last successful indexer version
+   *
+   * This is useful to tell what ledger version the indexer is updated to, as it can be behind the full nodes.
+   */
   async getIndexerLastSuccessVersion(): Promise<number> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
   }

@@ -46,6 +46,24 @@ export type CurrentTokenOwnershipFieldsFragment = {
   } | null;
 };
 
+export type TokenActivitiesFieldsFragment = {
+  after_value?: string | null;
+  before_value?: string | null;
+  entry_function_id_str?: string | null;
+  event_account_address: string;
+  event_index: any;
+  from_address?: string | null;
+  is_fungible_v2?: boolean | null;
+  property_version_v1: any;
+  to_address?: string | null;
+  token_amount: any;
+  token_data_id: string;
+  token_standard: string;
+  transaction_timestamp: any;
+  transaction_version: any;
+  type: string;
+};
+
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
   address?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
@@ -360,6 +378,26 @@ export type GetCollectionDataQuery = {
   }>;
 };
 
+export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.CurrentFungibleAssetBalancesBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetCurrentFungibleAssetBalancesQuery = {
+  current_fungible_asset_balances: Array<{
+    amount: any;
+    asset_type: string;
+    is_frozen: boolean;
+    is_primary: boolean;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    owner_address: string;
+    storage_id: string;
+    token_standard: string;
+  }>;
+};
+
 export type GetDelegatedStakingActivitiesQueryVariables = Types.Exact<{
   delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]>;
   poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
@@ -396,6 +434,56 @@ export type GetEventsQuery = {
   }>;
 };
 
+export type GetFungibleAssetActivitiesQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.FungibleAssetActivitiesBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetFungibleAssetActivitiesQuery = {
+  fungible_asset_activities: Array<{
+    amount?: any | null;
+    asset_type: string;
+    block_height: any;
+    entry_function_id_str?: string | null;
+    event_index: any;
+    gas_fee_payer_address?: string | null;
+    is_frozen?: boolean | null;
+    is_gas_fee: boolean;
+    is_transaction_success: boolean;
+    owner_address: string;
+    storage_id: string;
+    storage_refund_amount: any;
+    token_standard: string;
+    transaction_timestamp: any;
+    transaction_version: any;
+    type: string;
+  }>;
+};
+
+export type GetFungibleAssetMetadataQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.FungibleAssetMetadataBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+}>;
+
+export type GetFungibleAssetMetadataQuery = {
+  fungible_asset_metadata: Array<{
+    icon_uri?: string | null;
+    project_uri?: string | null;
+    supply_aggregator_table_handle_v1?: string | null;
+    supply_aggregator_table_key_v1?: string | null;
+    creator_address: string;
+    asset_type: string;
+    decimals: number;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    name: string;
+    symbol: string;
+    token_standard: string;
+  }>;
+};
+
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
   where_condition: Types.NumActiveDelegatorPerPoolBoolExp;
   order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
@@ -409,4 +497,127 @@ export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: neve
 
 export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
+};
+
+export type GetTokenActivityQueryVariables = Types.Exact<{
+  where_condition: Types.TokenActivitiesV2BoolExp;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  order_by?: Types.InputMaybe<Array<Types.TokenActivitiesV2OrderBy> | Types.TokenActivitiesV2OrderBy>;
+}>;
+
+export type GetTokenActivityQuery = {
+  token_activities_v2: Array<{
+    after_value?: string | null;
+    before_value?: string | null;
+    entry_function_id_str?: string | null;
+    event_account_address: string;
+    event_index: any;
+    from_address?: string | null;
+    is_fungible_v2?: boolean | null;
+    property_version_v1: any;
+    to_address?: string | null;
+    token_amount: any;
+    token_data_id: string;
+    token_standard: string;
+    transaction_timestamp: any;
+    transaction_version: any;
+    type: string;
+  }>;
+};
+
+export type GetCurrentTokenOwnershipQueryVariables = Types.Exact<{
+  where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentTokenOwnershipsV2OrderBy> | Types.CurrentTokenOwnershipsV2OrderBy>;
+}>;
+
+export type GetCurrentTokenOwnershipQuery = {
+  current_token_ownerships_v2: Array<{
+    token_standard: string;
+    token_properties_mutated_v1?: any | null;
+    token_data_id: string;
+    table_type_v1?: string | null;
+    storage_id: string;
+    property_version_v1: any;
+    owner_address: string;
+    last_transaction_version: any;
+    last_transaction_timestamp: any;
+    is_soulbound_v2?: boolean | null;
+    is_fungible_v2?: boolean | null;
+    amount: any;
+    current_token_data?: {
+      collection_id: string;
+      description: string;
+      is_fungible_v2?: boolean | null;
+      largest_property_version_v1?: any | null;
+      last_transaction_timestamp: any;
+      last_transaction_version: any;
+      maximum?: any | null;
+      supply: any;
+      token_data_id: string;
+      token_name: string;
+      token_properties: any;
+      token_standard: string;
+      token_uri: string;
+      current_collection?: {
+        collection_id: string;
+        collection_name: string;
+        creator_address: string;
+        current_supply: any;
+        description: string;
+        last_transaction_timestamp: any;
+        last_transaction_version: any;
+        max_supply?: any | null;
+        mutable_description?: boolean | null;
+        mutable_uri?: boolean | null;
+        table_handle_v1?: string | null;
+        token_standard: string;
+        total_minted_v2?: any | null;
+        uri: string;
+      } | null;
+    } | null;
+  }>;
+};
+
+export type GetTokenDataQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.CurrentTokenDatasV2BoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentTokenDatasV2OrderBy> | Types.CurrentTokenDatasV2OrderBy>;
+}>;
+
+export type GetTokenDataQuery = {
+  current_token_datas_v2: Array<{
+    collection_id: string;
+    description: string;
+    is_fungible_v2?: boolean | null;
+    largest_property_version_v1?: any | null;
+    last_transaction_timestamp: any;
+    last_transaction_version: any;
+    maximum?: any | null;
+    supply: any;
+    token_data_id: string;
+    token_name: string;
+    token_properties: any;
+    token_standard: string;
+    token_uri: string;
+    current_collection?: {
+      collection_id: string;
+      collection_name: string;
+      creator_address: string;
+      current_supply: any;
+      description: string;
+      last_transaction_timestamp: any;
+      last_transaction_version: any;
+      max_supply?: any | null;
+      mutable_description?: boolean | null;
+      mutable_uri?: boolean | null;
+      table_handle_v1?: string | null;
+      token_standard: string;
+      total_minted_v2?: any | null;
+      uri: string;
+    } | null;
+  }>;
 };

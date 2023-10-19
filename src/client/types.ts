@@ -6,7 +6,7 @@ import { AptosRequest } from "../types";
 /**
  * The API response type
  *
- * @param status - the response status. i.e 200
+ * @param status - the response status. i.e. 200
  * @param statusText - the response message
  * @param data the response data
  * @param url the url the request was made to
@@ -29,7 +29,7 @@ export interface AptosResponse<Req, Res> {
  *
  * @param name - the error name "AptosApiError"
  * @param url the url the request was made to
- * @param status - the response status. i.e 400
+ * @param status - the response status. i.e. 400
  * @param statusText - the response message
  * @param data the response data
  * @param request - the AptosRequest

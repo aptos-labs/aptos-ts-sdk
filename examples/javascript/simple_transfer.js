@@ -32,7 +32,8 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Setup the client
-  const sdk = new aptos.Aptos();
+  const config = new aptos.AptosConfig({ network: aptos.Network.DEVNET });
+  const sdk = new aptos.Aptos(config);
 
   // Create two accounts
   let alice = aptos.Account.generate({ scheme: 0 });
@@ -70,18 +71,15 @@ const example = async () => {
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      type_arguments: [new aptos.TypeTagStruct(aptos.StructTag.fromString(APTOS_COIN))],
-      arguments: [
-        aptos.AccountAddress.fromHexInput({ input: bob.accountAddress.toString() }),
-        new aptos.U64(TRANSFER_AMOUNT),
-      ],
+      typeArguments: [new aptos.TypeTagStruct(aptos.StructTag.fromString(APTOS_COIN))],
+      arguments: [aptos.AccountAddress.fromHexInput(bob.accountAddress.toString()), new aptos.U64(TRANSFER_AMOUNT)],
     },
   });
 
   console.log("\n=== Transfer transaction ===\n");
   let committedTxn = await sdk.signAndSubmitTransaction({ signer: alice, transaction: txn });
   console.log(`Committed transaction: ${committedTxn.hash}`);
-  await sdk.waitForTransaction({ txnHash: committedTxn.hash });
+  await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
   let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress.toUint8Array());

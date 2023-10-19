@@ -5,6 +5,7 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
+import { MoveModuleId } from "../../types";
 
 /**
  * Representation of a ModuleId that can serialized and deserialized
@@ -31,12 +32,12 @@ export class ModuleId extends Serializable {
    * @param moduleId String literal in format "account_address::module_name", e.g. "0x1::coin"
    * @returns ModuleId
    */
-  static fromStr(moduleId: `${string}::${string}`): ModuleId {
+  static fromStr(moduleId: MoveModuleId): ModuleId {
     const parts = moduleId.split("::");
     if (parts.length !== 2) {
       throw new Error("Invalid module id.");
     }
-    return new ModuleId(AccountAddress.fromString({ input: parts[0] }), new Identifier(parts[1]));
+    return new ModuleId(AccountAddress.fromString(parts[0]), new Identifier(parts[1]));
   }
 
   serialize(serializer: Serializer): void {

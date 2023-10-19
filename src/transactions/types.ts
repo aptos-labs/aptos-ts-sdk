@@ -1,10 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
+import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
+import { FixedBytes } from "../bcs/serializable/fixedBytes";
 import { AccountAddress } from "../core";
-import { PublicKey } from "../core/crypto/asymmetric_crypto";
-import { HexInput, MoveStructType } from "../types";
+import { PublicKey } from "../core/crypto/asymmetricCrypto";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -13,10 +15,8 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
+import { AnyNumber, HexInput, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/move-structs";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/move-primitives";
-import { FixedBytes } from "../bcs/serializable/fixed-bytes";
 
 export type EntryFunctionArgumentTypes =
   | Bool
@@ -30,7 +30,6 @@ export type EntryFunctionArgumentTypes =
   | MoveObject
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
-  | AccountAddress
   | MoveString
   | FixedBytes;
 export type ScriptFunctionArgumentTypes =
@@ -44,7 +43,6 @@ export type ScriptFunctionArgumentTypes =
   | AccountAddress
   | MoveObject
   | MoveVector<U8>
-  | AccountAddress
   | MoveString
   | FixedBytes;
 
@@ -59,10 +57,10 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * Optional options to set when generating a transaction
  */
 export type GenerateTransactionOptions = {
-  maxGasAmount?: string;
-  gasUnitPrice?: string;
-  expireTimestamp?: string;
-  accountSequenceNumber?: string | bigint;
+  maxGasAmount?: AnyNumber;
+  gasUnitPrice?: AnyNumber;
+  expireTimestamp?: AnyNumber;
+  accountSequenceNumber?: AnyNumber;
 };
 
 /**
@@ -84,7 +82,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
  */
 export type EntryFunctionData = {
   function: MoveStructType;
-  type_arguments: Array<TypeTag>;
+  typeArguments?: Array<TypeTag>;
   arguments: Array<EntryFunctionArgumentTypes>;
 };
 
@@ -99,8 +97,8 @@ export type MultiSigData = {
  * The data needed to generate a Script payload
  */
 export type ScriptData = {
-  bytecode: string;
-  type_arguments: Array<TypeTag>;
+  bytecode: HexInput;
+  typeArguments?: Array<TypeTag>;
   arguments: Array<ScriptFunctionArgumentTypes>;
 };
 
@@ -131,7 +129,7 @@ export interface GenerateFeePayerRawTransactionArgs {
 }
 
 /**
- * Interface of the arguments to generate a multi agent transaction.
+ * Interface of the arguments to generate a multi-agent transaction.
  * Used to provide to `generateTransaction()` method in the transaction builder flow
  */
 export interface GenerateMultiAgentRawTransactionArgs {
@@ -166,7 +164,7 @@ export interface SingleSignerTransaction {
  * Interface that holds the return data when generating a fee payer transaction
  *
  * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses optional. secondary signer addresses for multi agent transaction
+ * @param secondarySignerAddresses optional. secondary signer addresses for multi-agent transaction
  * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
  */
 export interface FeePayerTransaction {
@@ -176,10 +174,10 @@ export interface FeePayerTransaction {
 }
 
 /**
- * Interface that holds the return data when generating a multi agent transaction.
+ * Interface that holds the return data when generating a multi-agent transaction.
  *
  * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses secondary signer addresses for multi agent transaction
+ * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
  */
 export interface MultiAgentTransaction {
   rawTransaction: Uint8Array;
@@ -204,7 +202,7 @@ export type SimulateTransactionData = {
    */
   signerPublicKey: PublicKey;
   /**
-   * For a fee payer or multi agent transaction that requires additional signers in
+   * For a fee payer or multi-agent transaction that requires additional signers in
    */
   secondarySignersPublicKeys?: Array<PublicKey>;
   /**
@@ -245,7 +243,7 @@ export interface GenerateFeePayerRawTransactionInput {
 }
 
 /**
- * Interface that holds the user data input when generating a multi agent transaction
+ * Interface that holds the user data input when generating a multi-agent transaction
  */
 export interface GenerateMultiAgentRawTransactionInput {
   sender: HexInput;

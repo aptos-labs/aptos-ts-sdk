@@ -5,15 +5,15 @@
 
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
+import { EntryFunctionBytes } from "../../bcs/serializable/entryFunctionBytes";
+import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/movePrimitives";
+import { MoveVector } from "../../bcs/serializable/moveStructs";
 import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
-import { ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
-import { TypeTag } from "../typeTag/typeTag";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
-import { EntryFunctionBytes } from "../../bcs/serializable/entry-function-bytes";
-import { Bool, U128, U16, U256, U32, U64, U8 } from "../../bcs/serializable/move-primitives";
-import { MoveVector } from "../../bcs/serializable/move-structs";
+import { MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
+import { TypeTag } from "../typeTag/typeTag";
 
 /**
  * Deserialize a Script Transaction Argument
@@ -119,7 +119,7 @@ export class TransactionPayloadEntryFunction extends TransactionPayload {
 }
 
 /**
- * Representation of a Transaction Payload Multisig that can serialized and deserialized
+ * Representation of a Transaction Payload Multi-sig that can serialized and deserialized
  */
 export class TransactionPayloadMultisig extends TransactionPayload {
   public readonly multiSig: MultiSig;
@@ -186,7 +186,7 @@ export class EntryFunction {
   /**
    * A helper function to build a EntryFunction payload from raw primitive values
    *
-   * @param module_name Fully qualified module name in format "AccountAddress::module_name" e.g. "0x1::coin"
+   * @param module_id Fully qualified module name in format "AccountAddress::module_id" e.g. "0x1::coin"
    * @param function_name Function name
    * @param type_args Type arguments that move function requires.
    *
@@ -195,22 +195,22 @@ export class EntryFunction {
    * ```
    * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
    * ```
-   * @param args Arugments to the move function.
+   * @param args Arguments to the move function.
    *
    * @example
-   * A coin transfer function has three arugments "from", "to" and "amount".
+   * A coin transfer function has three arguments "from", "to" and "amount".
    * ```
    * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
    * ```
    * @returns EntryFunction
    */
   static build(
-    module_name: `${string}::${string}`,
+    module_id: MoveModuleId,
     function_name: string,
     type_args: Array<TypeTag>,
     args: Array<EntryFunctionArgument>,
   ): EntryFunction {
-    return new EntryFunction(ModuleId.fromStr(module_name), new Identifier(function_name), type_args, args);
+    return new EntryFunction(ModuleId.fromStr(module_id), new Identifier(function_name), type_args, args);
   }
 
   serialize(serializer: Serializer): void {
@@ -281,7 +281,7 @@ export class Script {
   /**
    * Scripts contain the Move bytecodes payload that can be submitted to Aptos chain for execution.
    *
-   * @param code The move module bytecode
+   * @param bytecode The move module bytecode
    * @param type_args The type arguments that the bytecode function requires.
    *
    * @example
@@ -337,11 +337,11 @@ export class MultiSig {
   public readonly transaction_payload?: MultiSigTransactionPayload;
 
   /**
-   * Contains the payload to run a multisig account transaction.
+   * Contains the payload to run a multi-sig account transaction.
    *
-   * @param multisig_address The multisig account address the transaction will be executed as.
+   * @param multisig_address The multi-sig account address the transaction will be executed as.
    *
-   * @param transaction_payload The payload of the multisig transaction. This is optional when executing a multisig
+   * @param transaction_payload The payload of the multi-sig transaction. This is optional when executing a multi-sig
    *  transaction whose payload is already stored on chain.
    */
   constructor(multisig_address: AccountAddress, transaction_payload?: MultiSigTransactionPayload) {
@@ -379,9 +379,9 @@ export class MultiSigTransactionPayload {
   public readonly transaction_payload: EntryFunction;
 
   /**
-   * Contains the payload to run a multisig account transaction.
+   * Contains the payload to run a multi-sig account transaction.
    *
-   * @param transaction_payload The payload of the multisig transaction.
+   * @param transaction_payload The payload of the multi-sig transaction.
    * This can only be EntryFunction for now but,
    * Script might be supported in the future.
    */
@@ -392,7 +392,7 @@ export class MultiSigTransactionPayload {
   serialize(serializer: Serializer): void {
     /**
      * We can support multiple types of inner transaction payload in the future.
-     * For now it's only EntryFunction but if we support more types,
+     * For now, it's only EntryFunction but if we support more types,
      * we need to serialize with the right enum values here
      */
     serializer.serializeU32AsUleb128(0);
@@ -400,7 +400,7 @@ export class MultiSigTransactionPayload {
   }
 
   static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
-    // This is the enum value indicating which type of payload the multisig tx contains.
+    // This is the enum value indicating which type of payload the multi-sig transaction contains.
     deserializer.deserializeUleb128AsU32();
     return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
   }

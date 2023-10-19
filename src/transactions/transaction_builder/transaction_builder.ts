@@ -3,14 +3,13 @@
 
 /**
  * This file handles the transaction creation lifecycle.
- * It holds different operations to generate a transaction payload, a raw transaciotn,
+ * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { hexToBytes } from "@noble/hashes/utils";
-import { AptosConfig } from "../../api/aptos_config";
+import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress, PublicKey } from "../../core";
+import { AccountAddress, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
@@ -90,49 +89,46 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
 export function generateTransactionPayload(args: GenerateTransactionPayloadData): TransactionPayload {
   // generate script payload
   if ("bytecode" in args) {
-    const scriptPayload = new TransactionPayloadScript(
-      new Script(hexToBytes(args.bytecode), args.type_arguments, args.arguments),
+    return new TransactionPayloadScript(
+      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.arguments),
     );
-    return scriptPayload;
   }
 
   // generate multi sig payload
   if ("multisigAddress" in args) {
     const funcNameParts = args.function.split("::");
-    const multiSigPayload = new TransactionPayloadMultisig(
+    return new TransactionPayloadMultisig(
       new MultiSig(
         args.multisigAddress,
         new MultiSigTransactionPayload(
           EntryFunction.build(
             `${funcNameParts[0]}::${funcNameParts[1]}`,
             funcNameParts[2],
-            args.type_arguments,
+            args.typeArguments ?? [],
             args.arguments,
           ),
         ),
       ),
     );
-    return multiSigPayload;
   }
 
   // generate entry function payload
   const funcNameParts = args.function.split("::");
-  const entryFunctionPayload = new TransactionPayloadEntryFunction(
+  return new TransactionPayloadEntryFunction(
     EntryFunction.build(
       `${funcNameParts[0]}::${funcNameParts[1]}`,
       funcNameParts[2],
-      args.type_arguments,
+      args.typeArguments ?? [],
       args.arguments,
     ),
   );
-  return entryFunctionPayload;
 }
 
 /**
  * Generates a raw transaction
  *
  * @param args.aptosConfig AptosConfig
- * @param args.sendet The transaction's sender account address as a hex input
+ * @param args.sender The transaction's sender account address as a hex input
  * @param args.payload The transaction payload - can create by using generateTransactionPayload()
  *
  * @returns RawTransaction
@@ -169,7 +165,7 @@ export async function generateRawTransaction(args: {
   };
 
   return new RawTransaction(
-    AccountAddress.fromHexInput({ input: sender }),
+    AccountAddress.fromHexInput(sender),
     BigInt(sequenceNumber),
     payload,
     BigInt(maxGasAmount),
@@ -196,7 +192,7 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
  * and if to complex to use, we could have function for each type
  *
  * @param args.aptosConfig AptosConfig
- * @param args.sendet The transaction's sender account address as a hex input
+ * @param args.sender The transaction's sender account address as a hex input
  * @param args.payload The transaction payload - can create by using generateTransactionPayload()
  * @param args.options optional. Transaction options object
  * @param args.secondarySignerAddresses optional. For when want to create a multi signers transaction
@@ -223,19 +219,19 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
 
   if (feePayerAddress) {
     const signers: Array<AccountAddress> = secondarySignerAddresses
-      ? secondarySignerAddresses.map((signer) => AccountAddress.fromHexInput({ input: signer }))
+      ? secondarySignerAddresses.map((signer) => AccountAddress.fromHexInput(signer))
       : [];
 
     return {
       rawTransaction: rawTxn.bcsToBytes(),
       secondarySignerAddresses: signers,
-      feePayerAddress: AccountAddress.fromHexInput({ input: feePayerAddress }),
+      feePayerAddress: AccountAddress.fromHexInput(feePayerAddress),
     };
   }
 
   if (secondarySignerAddresses) {
     const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) =>
-      AccountAddress.fromHexInput({ input: signer }),
+      AccountAddress.fromHexInput(signer),
     );
 
     return {
@@ -248,11 +244,11 @@ export async function buildTransaction(args: GenerateRawTransactionArgs): Promis
 }
 
 /**
- * Simluate a transaction before signing and submit to chain
+ * Simulate a transaction before signing and submit to chain
  *
  * @param args.transaction A aptos transaction type to sign
  * @param args.signerPublicKey The signer public key
- * @param args.secondarySignersPublicKeys optional. The secondart signers public keys if multi signers transaction
+ * @param args.secondarySignersPublicKeys optional. The secondary signers public keys if multi signers transaction
  * @param args.feePayerPublicKey optional. The fee payer public key is a fee payer (aka sponsored) transaction
  * @param args.options optional. SimulateTransactionOptions
  *

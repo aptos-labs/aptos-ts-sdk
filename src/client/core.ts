@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
+import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
-import { VERSION } from "../version";
 import { ClientConfig, AptosRequest, MimeType } from "../types";
-import { AptosConfig } from "../api/aptos_config";
+import { VERSION } from "../version";
 
 /**
  * Meaningful errors map
@@ -36,18 +36,18 @@ async function request<Req, Res>(
   const headers: Record<string, string | string[] | undefined> = {
     ...overrides?.HEADERS,
     "x-aptos-client": `aptos-ts-sdk/${VERSION}`,
-    "content-type": contentType ?? MimeType.JSON.valueOf(),
+    "content-type": contentType ?? MimeType.JSON,
   };
 
   if (overrides?.TOKEN) {
     headers.Authorization = `Bearer ${overrides?.TOKEN}`;
   }
 
-  /**
+  /*
    * make a call using the @aptos-labs/aptos-client package
    * {@link https://www.npmjs.com/package/@aptos-labs/aptos-client}
    */
-  const response = await aptosClient<Res>({
+  return aptosClient<Res>({
     url,
     method,
     body,
@@ -55,7 +55,6 @@ async function request<Req, Res>(
     headers,
     overrides,
   });
-  return response;
 }
 
 /**

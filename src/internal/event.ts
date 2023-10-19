@@ -8,7 +8,7 @@
  * event namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress } from "../core";
 import { AnyNumber, GetEventsResponse, HexInput, PaginationArgs, MoveResourceType, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
@@ -18,11 +18,11 @@ import { queryIndexer } from "./general";
 
 export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
-  address: HexInput;
+  accountAddress: HexInput;
   creationNumber: AnyNumber;
 }): Promise<GetEventsResponse> {
-  const { aptosConfig, creationNumber } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const { accountAddress, aptosConfig, creationNumber } = args;
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
@@ -34,15 +34,15 @@ export async function getAccountEventsByCreationNumber(args: {
 
 export async function getAccountEventsByEventType(args: {
   aptosConfig: AptosConfig;
-  address: HexInput;
+  accountAddress: HexInput;
   eventType: MoveResourceType;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetEventsResponse[0]>;
   };
 }): Promise<GetEventsResponse> {
-  const { aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromHexInput({ input: args.address }).toString();
+  const { accountAddress, aptosConfig, eventType, options } = args;
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },

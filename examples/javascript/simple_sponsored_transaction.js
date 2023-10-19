@@ -56,7 +56,6 @@ const TRANSFER_AMOUNT = 10;
     feePayerAddress: sponsorAddress,
     data: {
       function: "0x1::aptos_account::transfer",
-      type_arguments: [],
       arguments: [bob.accountAddress, new aptos.U64(TRANSFER_AMOUNT)],
     },
   });
@@ -73,7 +72,7 @@ const TRANSFER_AMOUNT = 10;
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  await sdk.waitForTransaction({ txnHash: committedTxn.hash });
+  await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
   const aliceBalanceAfter = await sdk.getAccountCoinsData({ accountAddress: aliceAddres });

@@ -66,19 +66,19 @@ const example = async () => {
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
-  const txn = await aptos.transactionSubmission.generateTransaction({
+  const txn = await aptos.generateTransaction({
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      type_arguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
-      arguments: [AccountAddress.fromHexInput({ input: bob.accountAddress.toString() }), new U64(TRANSFER_AMOUNT)],
+      typeArguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
+      arguments: [AccountAddress.fromHexInput(bob.accountAddress.toString()), new U64(TRANSFER_AMOUNT)],
     },
   });
 
   console.log("\n=== Transfer transaction ===\n");
   let committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
 
-  await aptos.waitForTransaction({ txnHash: committedTxn.hash });
+  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");

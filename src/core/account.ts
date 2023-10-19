@@ -1,21 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress } from "./account_address";
+import { AccountAddress } from "./accountAddress";
+import { AuthenticationKey } from "./authenticationKey";
+import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetricCrypto";
+import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
+import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
+import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
-import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetric_crypto";
-import { derivePrivateKeyFromMnemonic, ED25519_KEY } from "../utils/hdKey";
-import { AuthenticationKey } from "./authentication_key";
-import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
-import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
-import { MultiEd25519PublicKey } from "./crypto/multi_ed25519";
+import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 
 /**
  * Class for creating and managing account on Aptos network
  *
  * Use this class to create accounts, sign transactions, and more.
- * Note: Creating an account instance does not create the account onchain.
+ * Note: Creating an account instance does not create the account on-chain.
  */
 export class Account {
   /**
@@ -61,7 +61,6 @@ export class Account {
     } else if (this.publicKey instanceof MultiEd25519PublicKey) {
       this.signingScheme = SigningScheme.MultiEd25519;
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
-      // Secp256k1
       this.signingScheme = SigningScheme.Secp256k1Ecdsa;
     } else {
       throw new Error("Can not create new Account, unsupported public key type");
@@ -74,10 +73,10 @@ export class Account {
   /**
    * Derives an account with random private key and address
    *
-   * @param args.scheme optional SigningScheme - type of SigningScheme to use. Default to Ed25519
+   * @param scheme optional SigningScheme - type of SigningScheme to use. Default to Ed25519
    * Currently only Ed25519 and Secp256k1 are supported
    *
-   * @returns Account
+   * @returns Account with the given signing scheme
    */
   static generate(scheme?: SigningScheme): Account {
     let privateKey: PrivateKey;
@@ -102,11 +101,10 @@ export class Account {
   /**
    * Derives an account with provided private key
    *
-   * @param args.privateKey Hex - private key of the account
+   * @param privateKey Hex - private key of the account
    * @returns Account
    */
-  static fromPrivateKey(args: { privateKey: PrivateKey }): Account {
-    const { privateKey } = args;
+  static fromPrivateKey(privateKey: PrivateKey): Account {
     const publicKey = privateKey.publicKey();
     const authKey = Account.authKey({ publicKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
@@ -128,23 +126,25 @@ export class Account {
   /**
    * Derives an account with bip44 path and mnemonics,
    *
-   * @param path. (e.g. m/44'/637'/0'/0'/0')
+   * @param args.path the BIP44 derive path (e.g. m/44'/637'/0'/0'/0')
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param mnemonics.
+   * @param args.mnemonic the mnemonic seed phrase of the account
    * @returns AptosAccount
    */
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
     const { path, mnemonic } = args;
 
-    const { key } = derivePrivateKeyFromMnemonic(ED25519_KEY, path, mnemonic);
+    const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
-    return Account.fromPrivateKey({ privateKey });
+    return Account.fromPrivateKey(privateKey);
   }
 
   /**
    * This key enables account owners to rotate their private key(s)
    * associated with the account without changing the address that hosts their account.
    * See here for more info: {@link https://aptos.dev/concepts/accounts#single-signer-authentication}
+   *
+   * @param args.publicKey PublicKey - public key of the account
    * @returns Authentication key for the associated account
    */
   static authKey(args: { publicKey: PublicKey }): Hex {
@@ -162,8 +162,7 @@ export class Account {
    * @returns Signature
    */
   sign(data: HexInput): Signature {
-    const signature = this.privateKey.sign(data);
-    return signature;
+    return this.privateKey.sign(data);
   }
 
   /**

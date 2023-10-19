@@ -49,6 +49,25 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
   }
 }
     `;
+export const TokenActivitiesFieldsFragmentDoc = `
+    fragment TokenActivitiesFields on token_activities_v2 {
+  after_value
+  before_value
+  entry_function_id_str
+  event_account_address
+  event_index
+  from_address
+  is_fungible_v2
+  property_version_v1
+  to_address
+  token_amount
+  token_data_id
+  token_standard
+  transaction_timestamp
+  transaction_version
+  type
+}
+    `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
@@ -232,6 +251,25 @@ export const GetCollectionData = `
   }
 }
     `;
+export const GetCurrentFungibleAssetBalances = `
+    query getCurrentFungibleAssetBalances($where_condition: current_fungible_asset_balances_bool_exp, $offset: Int, $limit: Int) {
+  current_fungible_asset_balances(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    amount
+    asset_type
+    is_frozen
+    is_primary
+    last_transaction_timestamp
+    last_transaction_version
+    owner_address
+    storage_id
+    token_standard
+  }
+}
+    `;
 export const GetDelegatedStakingActivities = `
     query getDelegatedStakingActivities($delegatorAddress: String, $poolAddress: String) {
   delegated_staking_activities(
@@ -265,6 +303,50 @@ export const GetEvents = `
   }
 }
     `;
+export const GetFungibleAssetActivities = `
+    query getFungibleAssetActivities($where_condition: fungible_asset_activities_bool_exp, $offset: Int, $limit: Int) {
+  fungible_asset_activities(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+  ) {
+    amount
+    asset_type
+    block_height
+    entry_function_id_str
+    event_index
+    gas_fee_payer_address
+    is_frozen
+    is_gas_fee
+    is_transaction_success
+    owner_address
+    storage_id
+    storage_refund_amount
+    token_standard
+    transaction_timestamp
+    transaction_version
+    type
+  }
+}
+    `;
+export const GetFungibleAssetMetadata = `
+    query getFungibleAssetMetadata($where_condition: fungible_asset_metadata_bool_exp, $offset: Int, $limit: Int) {
+  fungible_asset_metadata(where: $where_condition, offset: $offset, limit: $limit) {
+    icon_uri
+    project_uri
+    supply_aggregator_table_handle_v1
+    supply_aggregator_table_key_v1
+    creator_address
+    asset_type
+    decimals
+    last_transaction_timestamp
+    last_transaction_version
+    name
+    symbol
+    token_standard
+  }
+}
+    `;
 export const GetNumberOfDelegators = `
     query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
   num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
@@ -279,6 +361,70 @@ export const GetProcessorStatus = `
     last_success_version
     processor
     last_updated
+  }
+}
+    `;
+export const GetTokenActivity = `
+    query getTokenActivity($where_condition: token_activities_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [token_activities_v2_order_by!]) {
+  token_activities_v2(
+    where: $where_condition
+    order_by: $order_by
+    offset: $offset
+    limit: $limit
+  ) {
+    ...TokenActivitiesFields
+  }
+}
+    ${TokenActivitiesFieldsFragmentDoc}`;
+export const GetCurrentTokenOwnership = `
+    query getCurrentTokenOwnership($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_token_ownerships_v2_order_by!]) {
+  current_token_ownerships_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    ...CurrentTokenOwnershipFields
+  }
+}
+    ${CurrentTokenOwnershipFieldsFragmentDoc}`;
+export const GetTokenData = `
+    query getTokenData($where_condition: current_token_datas_v2_bool_exp, $offset: Int, $limit: Int, $order_by: [current_token_datas_v2_order_by!]) {
+  current_token_datas_v2(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    collection_id
+    description
+    is_fungible_v2
+    largest_property_version_v1
+    last_transaction_timestamp
+    last_transaction_version
+    maximum
+    supply
+    token_data_id
+    token_name
+    token_properties
+    token_standard
+    token_uri
+    current_collection {
+      collection_id
+      collection_name
+      creator_address
+      current_supply
+      description
+      last_transaction_timestamp
+      last_transaction_version
+      max_supply
+      mutable_description
+      mutable_uri
+      table_handle_v1
+      token_standard
+      total_minted_v2
+      uri
+    }
   }
 }
     `;
@@ -449,6 +595,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
+    getCurrentFungibleAssetBalances(
+      variables?: Types.GetCurrentFungibleAssetBalancesQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetCurrentFungibleAssetBalancesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCurrentFungibleAssetBalancesQuery>(GetCurrentFungibleAssetBalances, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getCurrentFungibleAssetBalances",
+        "query",
+      );
+    },
     getDelegatedStakingActivities(
       variables?: Types.GetDelegatedStakingActivitiesQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"],
@@ -471,6 +631,34 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         (wrappedRequestHeaders) =>
           client.request<Types.GetEventsQuery>(GetEvents, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
         "getEvents",
+        "query",
+      );
+    },
+    getFungibleAssetActivities(
+      variables?: Types.GetFungibleAssetActivitiesQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetFungibleAssetActivitiesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetFungibleAssetActivitiesQuery>(GetFungibleAssetActivities, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getFungibleAssetActivities",
+        "query",
+      );
+    },
+    getFungibleAssetMetadata(
+      variables?: Types.GetFungibleAssetMetadataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetFungibleAssetMetadataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetFungibleAssetMetadataQuery>(GetFungibleAssetMetadata, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getFungibleAssetMetadata",
         "query",
       );
     },
@@ -499,6 +687,48 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
+        "query",
+      );
+    },
+    getTokenActivity(
+      variables: Types.GetTokenActivityQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetTokenActivityQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenActivityQuery>(GetTokenActivity, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTokenActivity",
+        "query",
+      );
+    },
+    getCurrentTokenOwnership(
+      variables: Types.GetCurrentTokenOwnershipQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetCurrentTokenOwnershipQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetCurrentTokenOwnershipQuery>(GetCurrentTokenOwnership, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getCurrentTokenOwnership",
+        "query",
+      );
+    },
+    getTokenData(
+      variables?: Types.GetTokenDataQueryVariables,
+      requestHeaders?: Dom.RequestInit["headers"],
+    ): Promise<Types.GetTokenDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTokenDataQuery>(GetTokenData, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTokenData",
         "query",
       );
     },

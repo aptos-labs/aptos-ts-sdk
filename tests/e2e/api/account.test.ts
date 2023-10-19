@@ -89,7 +89,6 @@ describe("account api", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
-          type_arguments: [],
           arguments: [bob.accountAddress, new U64(10)],
         },
       });
@@ -101,7 +100,7 @@ describe("account api", () => {
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
-      const txn = await aptos.waitForTransaction({ txnHash: response.hash });
+      const txn = await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactions = await aptos.getAccountTransactions({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -117,7 +116,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -133,7 +132,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -150,7 +149,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ txnHash: response });
+      await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress.toString(),
       });
@@ -162,7 +161,7 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const account = Account.generate();
 
-      // Fund and create account onchain
+      // Fund and create account on-chain
       await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
 
       const lookupAccount = await aptos.lookupOriginalAccountAddress({
