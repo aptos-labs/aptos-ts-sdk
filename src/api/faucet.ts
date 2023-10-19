@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "./aptosConfig";
 import { fundAccount } from "../internal/faucet";
 import { HexInput } from "../types";
-import { AptosConfig } from "./aptos_config";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
@@ -19,10 +19,10 @@ export class Faucet {
    * This creates an account if it does not exist and mints the specified amount of
    * coins into that account
    *
-   * @param address Hex-encoded 16 bytes Aptos account address wich mints tokens
-   * @param amount Amount of tokens to mint
-   * @param timeoutSecs Timeout in seconds. Defaults to 20 seconds.
-   * @returns Hashes of submitted transactions
+   * @param args.accountAddress Address of the account to fund
+   * @param args.amount Amount of tokens to fund the account with
+   * @param args.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
+   * @returns Transaction hash of the transaction that funded the account
    */
   async fundAccount(args: { accountAddress: HexInput; amount: number; timeoutSecs?: number }): Promise<string> {
     return fundAccount({ aptosConfig: this.config, ...args });

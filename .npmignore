@@ -1,7 +1,0 @@
-.aptos/
-.env/
-dist/
-coverage/
-examples/
-node_modules/
-src/types/generated/types.ts

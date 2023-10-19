@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
+import { PublicKey, PrivateKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
-import { PublicKey, PrivateKey, Signature } from "./asymmetric_crypto";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -26,7 +26,7 @@ export class Ed25519PublicKey extends PublicKey {
   /**
    * Create a new PublicKey instance from a Uint8Array or String.
    *
-   * @param args.hexInput A HexInput (string or Uint8Array)
+   * @param hexInput A HexInput (string or Uint8Array)
    */
   constructor(hexInput: HexInput) {
     super();
@@ -96,7 +96,7 @@ export class Ed25519PrivateKey extends PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
-   * @param args.hexInput HexInput (string or Uint8Array)
+   * @param hexInput HexInput (string or Uint8Array)
    */
   constructor(hexInput: HexInput) {
     super();
@@ -107,8 +107,7 @@ export class Ed25519PrivateKey extends PrivateKey {
     }
 
     // Create keyPair from Private key in Uint8Array format
-    const keyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
-    this.signingKeyPair = keyPair;
+    this.signingKeyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
   }
 
   /**
@@ -132,7 +131,7 @@ export class Ed25519PrivateKey extends PrivateKey {
   /**
    * Sign the given message with the private key.
    *
-   * @param args.message in HexInput format
+   * @param message in HexInput format
    * @returns Signature
    */
   sign(message: HexInput): Ed25519Signature {

@@ -63,7 +63,7 @@ describe("coin", () => {
     });
     const response = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
 
-    await waitForTransaction({ aptosConfig: config, txnHash: response.hash });
+    await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
     const recipientCoins = await aptos.getAccountCoinsData({ accountAddress: recipient.accountAddress.toString() });
     const senderCoinsAfter = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
 

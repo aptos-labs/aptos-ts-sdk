@@ -3,10 +3,10 @@
 
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
+import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
-import { PrivateKey, PublicKey, Signature } from "./asymmetric_crypto";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -186,7 +186,7 @@ export class Secp256k1Signature extends Signature {
   /**
    * Create a new Signature instance from a Uint8Array or String.
    *
-   * @param args.hexInput A HexInput (string or Uint8Array)
+   * @param hexInput A HexInput (string or Uint8Array)
    */
   constructor(hexInput: HexInput) {
     super();

@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "../api/aptos_config";
-import { AnyNumber, ClientConfig, MimeType } from "../types";
+import { AptosConfig } from "../api/aptosConfig";
 import { aptosRequest } from "./core";
 import { AptosResponse } from "./types";
+import { AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosApiType } from "../utils/const";
 
 export type PostRequestOptions = {
@@ -58,7 +58,7 @@ export async function post<Req, Res>(options: PostRequestOptions): Promise<Aptos
   const { type, originMethod, path, body, acceptType, contentType, params, aptosConfig, overrides } = options;
   const url = aptosConfig.getRequestUrl(type);
 
-  const response: AptosResponse<Req, Res> = await aptosRequest<Req, Res>(
+  return aptosRequest<Req, Res>(
     {
       url,
       method: "POST",
@@ -75,7 +75,6 @@ export async function post<Req, Res>(options: PostRequestOptions): Promise<Aptos
     },
     aptosConfig,
   );
-  return response;
 }
 
 export async function postAptosFullNode<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {

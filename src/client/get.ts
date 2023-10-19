@@ -1,7 +1,7 @@
-import { AptosResponse } from "./types";
+import { AptosConfig } from "../api/aptosConfig";
 import { aptosRequest } from "./core";
+import { AptosResponse } from "./types";
 import { AnyNumber, ClientConfig, MimeType } from "../types";
-import { AptosConfig } from "../api/aptos_config";
 import { AptosApiType } from "../utils/const";
 
 export type GetRequestOptions = {
@@ -45,14 +45,13 @@ export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
  * Main function to do a Get request
  *
  * @param options GetRequestOptions
- * @param aptosConfig The config information for the SDK client instance
  * @returns
  */
 export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig, overrides, params, contentType, acceptType, path, originMethod, type } = options;
   const url = aptosConfig.getRequestUrl(type);
 
-  const response: AptosResponse<Req, Res> = await aptosRequest<Req, Res>(
+  return aptosRequest<Req, Res>(
     {
       url,
       method: "GET",
@@ -68,7 +67,6 @@ export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosRe
     },
     aptosConfig,
   );
-  return response;
 }
 
 export async function getAptosFullNode<Req, Res>(options: GetAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
@@ -94,9 +92,9 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
       overrides: options.overrides,
     });
     /**
-     * the cursor is a "state key" from the API prespective. Client
+     * the cursor is a "state key" from the API perspective. Client
      * should not need to "care" what it represents but just use it
-     * to query the next chunck of data.
+     * to query the next chunk of data.
      */
     cursor = response.headers["x-aptos-cursor"];
     // Now that we have the cursor (if any), we remove the headers before

@@ -8,7 +8,7 @@
  * account namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, Hex } from "../core";
 import { getTableItem, queryIndexer } from "./general";
@@ -56,9 +56,7 @@ export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: 
   const { data } = await getAptosFullNode<{}, AccountData>({
     aptosConfig,
     originMethod: "getInfo",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}`,
   });
   return data;
 }
@@ -69,27 +67,24 @@ export async function getModules(args: {
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveModuleBytecode[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, MoveModuleBytecode[]>({
+  return paginateWithCursor<{}, MoveModuleBytecode[]>({
     aptosConfig,
     originMethod: "getModules",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/modules`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/modules`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
       limit: options?.limit ?? 1000,
     },
   });
-  return data;
 }
 
 /**
  * Queries for a move module given account address and module name
  *
- * @param accountAddress Hex-encoded 32 byte Aptos account address
- * @param moduleName The name of the module
- * @param query.ledgerVersion Specifies ledger version of transactions. By default latest version will be used
+ * @param args.accountAddress Hex-encoded 32 byte Aptos account address
+ * @param args.moduleName The name of the module
+ * @param args.query.ledgerVersion Specifies ledger version of transactions. By default, latest version will be used
  * @returns The move module.
  */
 export async function getModule(args: {
@@ -101,16 +96,14 @@ export async function getModule(args: {
   // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
   // by the developer directly
   if (args.options?.ledgerVersion !== undefined) {
-    const module = await getModuleInner(args);
-    return module;
+    return getModuleInner(args);
   }
 
-  const module = await memoizeAsync(
+  return memoizeAsync(
     async () => getModuleInner(args),
     `module-${args.accountAddress}-${args.moduleName}`,
     1000 * 60 * 5, // 5 minutes
   )();
-  return module;
 }
 
 async function getModuleInner(args: {
@@ -124,9 +117,7 @@ async function getModuleInner(args: {
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/module/${moduleName}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/module/${moduleName}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -138,15 +129,12 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/transactions`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
-  return data;
 }
 
 export async function getResources(args: {
@@ -155,19 +143,16 @@ export async function getResources(args: {
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveResource[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const data = await paginateWithCursor<{}, MoveResource[]>({
+  return paginateWithCursor<{}, MoveResource[]>({
     aptosConfig,
     originMethod: "getResources",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/resources`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
       limit: options?.limit ?? 999,
     },
   });
-  return data;
 }
 
 export async function getResource(args: {
@@ -180,9 +165,7 @@ export async function getResource(args: {
   const { data } = await getAptosFullNode<{}, MoveResource>({
     aptosConfig,
     originMethod: "getResource",
-    path: `accounts/${AccountAddress.fromHexInput({
-      input: accountAddress,
-    }).toString()}/resource/${resourceType}`,
+    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -219,10 +202,10 @@ export async function lookupOriginalAccountAddress(args: {
       options,
     });
 
-    return AccountAddress.fromHexInput({ input: originalAddress });
+    return AccountAddress.fromHexInput(originalAddress);
   } catch (err) {
     if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
-      return AccountAddress.fromHexInput({ input: authenticationKey });
+      return AccountAddress.fromHexInput(authenticationKey);
     }
 
     throw err;
@@ -235,9 +218,7 @@ export async function getAccountTokensCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -270,9 +251,7 @@ export async function getAccountOwnedTokens(args: {
   };
 }): Promise<GetAccountOwnedTokensQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -304,7 +283,7 @@ export async function getAccountOwnedTokens(args: {
 
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
-  ownerAddress: HexInput;
+  accountAddress: HexInput;
   collectionAddress: HexInput;
   options?: {
     tokenStandard?: TokenStandard;
@@ -312,14 +291,12 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
     orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-  const { aptosConfig, ownerAddress, collectionAddress, options } = args;
-  const accountAddress = AccountAddress.fromHexInput({
-    input: ownerAddress,
-  }).toString();
+  const { aptosConfig, accountAddress, collectionAddress, options } = args;
+  const ownerAddress = AccountAddress.fromHexInput(accountAddress).toString();
   const collAddress = Hex.fromHexInput(collectionAddress).toString();
 
   const whereCondition: any = {
-    owner_address: { _eq: accountAddress },
+    owner_address: { _eq: ownerAddress },
     current_token_data: { collection_id: { _eq: collAddress } },
     amount: { _gt: 0 },
   };
@@ -357,9 +334,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   };
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -397,9 +372,7 @@ export async function getAccountTransactionsCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountTransactionsCount,
@@ -428,9 +401,7 @@ export async function getAccountCoinsData(args: {
   };
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -460,9 +431,7 @@ export async function getAccountCoinsCount(args: {
   accountAddress: HexInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
-  const address = AccountAddress.fromHexInput({
-    input: accountAddress,
-  }).toString();
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountCoinsCount,
@@ -484,16 +453,14 @@ export async function getAccountCoinsCount(args: {
 
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
-  ownerAddress: HexInput;
+  accountAddress: HexInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
   };
 }): Promise<GetAccountOwnedObjectsResponse> {
-  const { aptosConfig, ownerAddress, options } = args;
-  const address = AccountAddress.fromHexInput({
-    input: ownerAddress,
-  }).toString();
+  const { aptosConfig, accountAddress, options } = args;
+  const address = AccountAddress.fromHexInput(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },

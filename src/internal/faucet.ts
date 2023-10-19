@@ -8,7 +8,7 @@
  * faucet namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFaucet } from "../client";
 import { AccountAddress } from "../core";
 import { HexInput } from "../types";
@@ -27,7 +27,7 @@ export async function fundAccount(args: {
     aptosConfig,
     path: "fund",
     body: {
-      address: AccountAddress.fromHexInput({ input: accountAddress }).toString(),
+      address: AccountAddress.fromHexInput(accountAddress).toString(),
       amount,
     },
     originMethod: "fundAccount",
@@ -35,7 +35,7 @@ export async function fundAccount(args: {
 
   const txnHash = data.txn_hashes[0];
 
-  await waitForTransaction({ aptosConfig, txnHash, extraArgs: { timeoutSecs } });
+  await waitForTransaction({ aptosConfig, transactionHash: txnHash, options: { timeoutSecs } });
 
   return txnHash;
 }

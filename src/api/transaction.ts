@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "./aptosConfig";
 import {
   getGasPriceEstimation,
   getTransactionByHash,
@@ -10,7 +11,6 @@ import {
   waitForTransaction,
 } from "../internal/transaction";
 import { AnyNumber, GasEstimation, HexInput, PaginationArgs, TransactionResponse } from "../types";
-import { AptosConfig } from "./aptos_config";
 
 export class Transaction {
   readonly config: AptosConfig;
@@ -23,7 +23,8 @@ export class Transaction {
    * Queries on-chain transactions. This function will not return pending
    * transactions. For that, use `getTransactionsByHash`.
    *
-   * @param options Optional pagination object
+   * @param args.options.offset The number transaction to start with
+   * @param args.options.limit Number of results to return
    *
    * @returns Array of on-chain transactions
    */
@@ -35,11 +36,13 @@ export class Transaction {
   }
 
   /**
-   * @param txnVersion - Transaction version is a uint64 number.
+   * Queries on-chain transaction by version. This function will not return pending transactions.
+   *
+   * @param args.ledgerVersion - Transaction version is an unsigned 64-bit number.
    * @returns On-chain transaction. Only on-chain transactions have versions, so this
    * function cannot be used to query pending transactions.
    */
-  async getTransactionByVersion(args: { txnVersion: AnyNumber }): Promise<TransactionResponse> {
+  async getTransactionByVersion(args: { ledgerVersion: AnyNumber }): Promise<TransactionResponse> {
     return getTransactionByVersion({
       aptosConfig: this.config,
       ...args,
@@ -47,10 +50,11 @@ export class Transaction {
   }
 
   /**
-   * @param txnHash - Transaction hash should be hex-encoded bytes string with 0x prefix.
+   * Queries on-chain transaction by transaction hash. This function will return pending transactions.
+   * @param args.transactionHash - Transaction hash should be hex-encoded bytes string with 0x prefix.
    * @returns Transaction from mempool (pending) or on-chain (committed) transaction
    */
-  async getTransactionByHash(args: { txnHash: HexInput }): Promise<TransactionResponse> {
+  async getTransactionByHash(args: { transactionHash: HexInput }): Promise<TransactionResponse> {
     return getTransactionByHash({
       aptosConfig: this.config,
       ...args,
@@ -66,10 +70,10 @@ export class Transaction {
    * 2. Apply hash algorithm SHA3-256 to the hash message bytes.
    * 3. Hex-encode the hash bytes with 0x prefix.
    *
-   * @param txnHash A hash of transaction
+   * @param args.transactionHash A hash of transaction
    * @returns `true` if transaction is in pending state and `false` otherwise
    */
-  async isPendingTransaction(args: { txnHash: HexInput }): Promise<boolean> {
+  async isPendingTransaction(args: { transactionHash: HexInput }): Promise<boolean> {
     return isTransactionPending({
       aptosConfig: this.config,
       ...args,
@@ -88,19 +92,19 @@ export class Transaction {
    *    written to the blockchain state.
    *    - If `checkSuccess` is true, the function will throw a FailedTransactionError
    *      If `checkSuccess` is false, the function will resolve with the transaction response where the `success` field is false.
-   * 4. Transaction does not move past the pending state within `extraArgs.timeoutSecs` seconds.
+   * 4. Transaction does not move past the pending state within `args.options.timeoutSecs` seconds.
    *    - The function will throw a WaitForTransactionError
    *
    *
-   * @param txnHash The hash of a transaction previously submitted to the blockchain.
-   * @param extraArgs.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
-   * @param extraArgs.checkSuccess A boolean which controls whether the function will error if the transaction failed.
+   * @param args.transactionHash The hash of a transaction previously submitted to the blockchain.
+   * @param args.options.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
+   * @param args.options.checkSuccess A boolean which controls whether the function will error if the transaction failed.
    *   Defaults to true.  See case 3 above.
    * @returns The transaction on-chain.  See above for more details.
    */
   async waitForTransaction(args: {
-    txnHash: HexInput;
-    extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean };
+    transactionHash: HexInput;
+    options?: { timeoutSecs?: number; checkSuccess?: boolean };
   }): Promise<TransactionResponse> {
     return waitForTransaction({
       aptosConfig: this.config,

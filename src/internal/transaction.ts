@@ -8,7 +8,7 @@
  * transaction namespace and without having a dependency cycle error.
  */
 
-import { AptosConfig } from "../api/aptos_config";
+import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import {
   TransactionResponseType,
@@ -28,19 +28,18 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, options } = args;
-  const data = await paginateWithCursor<{}, TransactionResponse[]>({
+  return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
     path: "transactions",
     params: { start: options?.offset, limit: options?.limit },
   });
-  return data;
 }
 
 export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) {
   const { aptosConfig } = args;
 
-  const gasEstimation = await memoizeAsync(
+  return memoizeAsync(
     async () => {
       const { data } = await getAptosFullNode<{}, GasEstimation>({
         aptosConfig,
@@ -52,39 +51,41 @@ export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) 
     `gas-price-${aptosConfig.network}`,
     1000 * 60 * 5, // 5 minutes
   )();
-  return gasEstimation;
 }
 
 export async function getTransactionByVersion(args: {
   aptosConfig: AptosConfig;
-  txnVersion: AnyNumber;
+  ledgerVersion: AnyNumber;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, txnVersion } = args;
+  const { aptosConfig, ledgerVersion } = args;
   const { data } = await getAptosFullNode<{}, TransactionResponse>({
     aptosConfig,
     originMethod: "getTransactionByVersion",
-    path: `transactions/by_version/${txnVersion}`,
+    path: `transactions/by_version/${ledgerVersion}`,
   });
   return data;
 }
 
 export async function getTransactionByHash(args: {
   aptosConfig: AptosConfig;
-  txnHash: HexInput;
+  transactionHash: HexInput;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, txnHash } = args;
+  const { aptosConfig, transactionHash } = args;
   const { data } = await getAptosFullNode<{}, TransactionResponse>({
     aptosConfig,
-    path: `transactions/by_hash/${txnHash}`,
+    path: `transactions/by_hash/${transactionHash}`,
     originMethod: "getTransactionByHash",
   });
   return data;
 }
 
-export async function isTransactionPending(args: { aptosConfig: AptosConfig; txnHash: HexInput }): Promise<boolean> {
-  const { aptosConfig, txnHash } = args;
+export async function isTransactionPending(args: {
+  aptosConfig: AptosConfig;
+  transactionHash: HexInput;
+}): Promise<boolean> {
+  const { aptosConfig, transactionHash } = args;
   try {
-    const transaction = await getTransactionByHash({ aptosConfig, txnHash });
+    const transaction = await getTransactionByHash({ aptosConfig, transactionHash });
     return transaction.type === TransactionResponseType.Pending;
   } catch (e: any) {
     if (e?.status === 404) {
@@ -96,13 +97,13 @@ export async function isTransactionPending(args: { aptosConfig: AptosConfig; txn
 
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
-  txnHash: HexInput;
-  extraArgs?: { timeoutSecs?: number; checkSuccess?: boolean; indexerVersionCheck?: boolean };
+  transactionHash: HexInput;
+  options?: { timeoutSecs?: number; checkSuccess?: boolean; indexerVersionCheck?: boolean };
 }): Promise<TransactionResponse> {
-  const { aptosConfig, txnHash, extraArgs } = args;
-  const timeoutSecs = extraArgs?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
-  const checkSuccess = extraArgs?.checkSuccess ?? true;
-  const indexerVersionCheck = extraArgs?.indexerVersionCheck ?? true;
+  const { aptosConfig, transactionHash, options } = args;
+  const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
+  const checkSuccess = options?.checkSuccess ?? true;
+  const indexerVersionCheck = options?.indexerVersionCheck ?? true;
 
   let isPending = true;
   let timeElapsed = 0;
@@ -117,7 +118,7 @@ export async function waitForTransaction(args: {
     }
     try {
       // eslint-disable-next-line no-await-in-loop
-      lastTxn = await getTransactionByHash({ aptosConfig, txnHash });
+      lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
 
@@ -148,7 +149,7 @@ export async function waitForTransaction(args: {
       throw lastError;
     } else {
       throw new WaitForTransactionError(
-        `Fetching transaction ${txnHash} failed and timed out after ${timeoutSecs} seconds`,
+        `Fetching transaction ${transactionHash} failed and timed out after ${timeoutSecs} seconds`,
         lastTxn,
       );
     }
@@ -156,7 +157,7 @@ export async function waitForTransaction(args: {
 
   if (lastTxn.type === TransactionResponseType.Pending) {
     throw new WaitForTransactionError(
-      `Transaction ${txnHash} timed out in pending state after ${timeoutSecs} seconds`,
+      `Transaction ${transactionHash} timed out in pending state after ${timeoutSecs} seconds`,
       lastTxn,
     );
   }
@@ -165,7 +166,7 @@ export async function waitForTransaction(args: {
   }
   if (!lastTxn.success) {
     throw new FailedTransactionError(
-      `Transaction ${txnHash} failed with an error: ${(lastTxn as any).vm_status}`,
+      `Transaction ${transactionHash} failed with an error: ${(lastTxn as any).vm_status}`,
       lastTxn,
     );
   }
@@ -176,7 +177,8 @@ export async function waitForTransaction(args: {
       await waitForLastSuccessIndexerVersionSync({ aptosConfig, ledgerVersion: Number(lastTxn.version) });
     } catch (_e) {
       throw new WaitForTransactionError(
-        `Transaction ${txnHash} commited, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
+        // eslint-disable-next-line max-len
+        `Transaction ${transactionHash} committed, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
           "You can disable this check by setting `indexerVersionCheck` to false in the `extraArgs` parameter.",
         lastTxn,
       );
@@ -194,13 +196,13 @@ async function waitForLastSuccessIndexerVersionSync(args: {
   ledgerVersion: number;
 }): Promise<void> {
   const { aptosConfig, ledgerVersion } = args;
-  const timeoutMiliseconds = 3000; // 3 seconds
+  const timeoutMilliseconds = 3000; // 3 seconds
   const startTime = new Date().getTime();
   let indexerVersion = -1;
 
   while (indexerVersion < ledgerVersion) {
     // check for timeout
-    if (new Date().getTime() - startTime > timeoutMiliseconds) {
+    if (new Date().getTime() - startTime > timeoutMilliseconds) {
       throw new Error("waitForLastSuccessIndexerVersionSync timeout");
     }
 

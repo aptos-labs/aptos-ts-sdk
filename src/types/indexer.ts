@@ -22,7 +22,13 @@ import {
   GetCollectionDataQuery,
   GetChainTopUserTransactionsQuery,
   GetEventsQuery,
+  GetTokenDataQuery,
   GetProcessorStatusQuery,
+  GetFungibleAssetMetadataQuery,
+  GetFungibleAssetActivitiesQuery,
+  GetCurrentFungibleAssetBalancesQuery,
+  GetTokenActivityQuery,
+  GetCurrentTokenOwnershipQuery,
 } from "./generated/operations";
 
 /**
@@ -32,7 +38,7 @@ import {
  * query types to be the response type the end developer/user will
  * work with.
  *
- * These types are used as the return type when calling an sdk api function
+ * These types are used as the return type when calling a sdk api function
  * that calls the function that queries the server (usually under the /api/ folder)
  */
 export type GetAccountOwnedObjectsResponse = GetAccountOwnedObjectsQuery["current_objects"];
@@ -50,7 +56,15 @@ export type GetEventsResponse = GetEventsQuery["events"];
 export type GetNumberOfDelegatorsResponse = GetNumberOfDelegatorsQuery["num_active_delegator_per_pool"];
 export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitiesQuery["delegated_staking_activities"];
 export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
+export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0];
 export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_status"];
+export type GetFungibleAssetMetadataResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"];
+export type GetFungibleAssetActivitiesResponse = GetFungibleAssetActivitiesQuery["fungible_asset_activities"];
+export type GetCurrentFungibleAssetBalancesResponse =
+  GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances"];
+export type GetTokenActivityResponse = GetTokenActivityQuery["token_activities_v2"];
+export type GetCurrentTokenOwnershipResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"][0];
+export type GetOwnedTokensResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"];
 
 /**
  * A generic type that being passed by each function and holds an
