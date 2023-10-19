@@ -72,7 +72,7 @@ const example = async () => {
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  const txn = await aptos.waitForTransaction({ txnHash: committedTxn.hash });
+  const txn = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   const gasUsed = (txn as UserTransactionResponse).gas_used;
   await sleep(500);
   console.log("\n=== Balances after transfer ===\n");

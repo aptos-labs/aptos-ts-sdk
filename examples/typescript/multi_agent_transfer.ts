@@ -98,12 +98,12 @@ const example = async () => {
   });
 
   // Alice signs
-  let aliceSignature = aptos.transactionSubmission.signTransaction({ signer: alice, transaction: transferTxn });
+  let aliceSignature = aptos.signTransaction({ signer: alice, transaction: transferTxn });
 
   // Bob signs
-  let bobSignature = aptos.transactionSubmission.signTransaction({ signer: bob, transaction: transferTxn });
+  let bobSignature = aptos.signTransaction({ signer: bob, transaction: transferTxn });
 
-  const pendingTransferTxn = await aptos.transactionSubmission.submitTransaction({
+  const pendingTransferTxn = await aptos.submitTransaction({
     transaction: transferTxn,
     senderAuthenticator: aliceSignature,
     secondarySignerAuthenticators: {

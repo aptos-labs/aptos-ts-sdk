@@ -66,7 +66,7 @@ const example = async () => {
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
-  const txn = await aptos.transactionSubmission.generateTransaction({
+  const txn = await aptos.generateTransaction({
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",

@@ -76,7 +76,7 @@ const example = async () => {
     amount: TRANSFER_AMOUNT,
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
-  const response = await aptos.waitForTransaction({ txnHash: pendingTxn.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   console.log(`Committed transaction: ${response.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
