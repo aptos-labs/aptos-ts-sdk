@@ -56,6 +56,14 @@ export const secp256k1TestObject = {
     "0xd0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca",
 };
 
+export const singleSignerED25519 = {
+  publicKey: "0xe425451a5dc888ac871976c3c724dec6118910e7d11d344b4b07a22cd94e8c2e",
+  privateKey: "0xf508cbef4e0fe463204aab724a90791c9a9dbe60a53b4978bbddbc712b55f2fd",
+  address: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
+  authKey: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
+  messageEncoded: "68656c6c6f20776f726c64", // "hello world"
+};
+
 export const longTestTimeout = 120 * 1000;
 
 export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {

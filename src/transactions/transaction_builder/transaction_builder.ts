@@ -371,7 +371,7 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
         new Ed25519Signature(signerSignature.toUint8Array()),
       );
     case SigningScheme.SingleKey:
-      return new SingleKeyAuthenticator(new AnyPublicKey(signer.publicKey), new AnySignature(signerSignature));
+      return new SingleKeyAuthenticator(signer.publicKey as AnyPublicKey, new AnySignature(signerSignature));
     // TODO support MultiEd25519
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);

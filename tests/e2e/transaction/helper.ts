@@ -36,7 +36,10 @@ export async function publishModule(
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
-  return (await aptos.waitForTransaction({ transactionHash: txnHash.hash })) as UserTransactionResponse;
+  return (await aptos.waitForTransaction({
+    transactionHash: txnHash.hash,
+    options: { indexerVersionCheck: false },
+  })) as UserTransactionResponse;
 }
 
 export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {

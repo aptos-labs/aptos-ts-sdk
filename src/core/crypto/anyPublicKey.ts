@@ -1,7 +1,7 @@
 import { Serializer, Deserializer } from "../../bcs";
 import { AnyPublicKeyVariant, HexInput } from "../../types";
 import { AnySignature } from "./anySignature";
-import { PublicKey } from "./asymmetric_crypto";
+import { PublicKey } from "./asymmetricCrypto";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 

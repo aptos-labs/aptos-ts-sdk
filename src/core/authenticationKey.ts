@@ -60,7 +60,6 @@ export class AuthenticationKey {
     if (scheme === SigningScheme.SingleKey) {
       let newBytes = publicKey.bcsToBytes();
       const authKeyBytes = new Uint8Array([...newBytes, scheme]);
-      console.log("authKeyBytes", authKeyBytes);
       const hash = sha3Hash.create();
       hash.update(authKeyBytes);
       const hashDigest = hash.digest();
@@ -71,7 +70,6 @@ export class AuthenticationKey {
     const authKeyBytes = new Uint8Array(inputBytes.length + 1);
     authKeyBytes.set(inputBytes);
     authKeyBytes.set([scheme], inputBytes.length);
-
     const hash = sha3Hash.create();
     hash.update(authKeyBytes);
     const hashDigest = hash.digest();
