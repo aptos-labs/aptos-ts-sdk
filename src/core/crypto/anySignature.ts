@@ -1,6 +1,6 @@
 import { Serializer, Deserializer } from "../../bcs";
 import { AnySignatureVariant } from "../../types";
-import { Signature } from "./asymmetric_crypto";
+import { Signature } from "./asymmetricCrypto";
 import { Ed25519Signature } from "./ed25519";
 import { Secp256k1Signature } from "./secp256k1";
 
@@ -38,7 +38,7 @@ export class AnySignature extends Signature {
       serializer.serializeU32AsUleb128(AnySignatureVariant.Secp256k1);
       this.signature.serialize(serializer);
     } else {
-      throw new Error("Unknown public key type");
+      throw new Error("Unknown signature type");
     }
   }
 
@@ -50,7 +50,7 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Secp256k1:
         return new AnySignature(Secp256k1Signature.load(deserializer));
       default:
-        throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
+        throw new Error(`Unknown variant index for AnySignature: ${index}`);
     }
   }
 }

@@ -50,7 +50,7 @@ export class Account {
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
    */
-  private constructor(args: { privateKey: PrivateKey; address: AccountAddress }) {
+  private constructor(args: { privateKey: PrivateKey; address: AccountAddress }, legacy: boolean = false) {
     const { privateKey, address } = args;
 
     // Derive the public key from the private key
@@ -58,10 +58,16 @@ export class Account {
 
     // Derive the signing scheme from the public key
     if (this.publicKey instanceof Ed25519PublicKey) {
-      this.signingScheme = SigningScheme.Ed25519;
+      if (legacy) {
+        this.signingScheme = SigningScheme.Ed25519;
+      } else {
+        this.publicKey = new AnyPublicKey(this.publicKey);
+        this.signingScheme = SigningScheme.SingleKey;
+      }
     } else if (this.publicKey instanceof MultiEd25519PublicKey) {
       this.signingScheme = SigningScheme.MultiEd25519;
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
+      this.publicKey = new AnyPublicKey(this.publicKey);
       this.signingScheme = SigningScheme.SingleKey;
     } else {
       throw new Error("Can not create new Account, unsupported public key type");
@@ -102,17 +108,35 @@ export class Account {
   /**
    * Derives an account with provided private key
    *
+   * NOTE: This function support the new Single Signer and
+   * should be used only with private key that was created
+   * as a Single Signer
+   *
    * @param privateKey Hex - private key of the account
    * @returns Account
    */
-  static fromPrivateKey(privateKey: PrivateKey, legacy: boolean = true): Account {
-    let publicKey = privateKey.publicKey();
-    if (!legacy) {
-      publicKey = new AnyPublicKey(publicKey);
-    }
+  static fromPrivateKey(privateKey: PrivateKey): Account {
+    const publicKey = new AnyPublicKey(privateKey.publicKey());
     const authKey = Account.authKey({ publicKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
     return Account.fromPrivateKeyAndAddress({ privateKey, address });
+  }
+
+  /**
+   * Derives an account with provided legacy private key
+   *
+   * NOTE: This function support the legacy keys and
+   * should be used only with private key that was created
+   * as
+   *
+   * @param privateKey Hex - private key of the account
+   * @returns Account
+   */
+  static fromLegacyPrivateKey(privateKey: PrivateKey) {
+    const publicKey = privateKey.publicKey();
+    const authKey = Account.authKey({ publicKey });
+    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    return Account.fromLegacyPrivateKeyAndAddress({ privateKey, address });
   }
 
   /**
@@ -125,6 +149,10 @@ export class Account {
    */
   static fromPrivateKeyAndAddress(args: { privateKey: PrivateKey; address: AccountAddress }): Account {
     return new Account(args);
+  }
+
+  static fromLegacyPrivateKeyAndAddress(args: { privateKey: PrivateKey; address: AccountAddress }): Account {
+    return new Account(args, true);
   }
 
   /**
@@ -141,6 +169,14 @@ export class Account {
     const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
     return Account.fromPrivateKey(privateKey);
+  }
+
+  static fromLegacyDerivationPath(args: { path: string; mnemonic: string }): Account {
+    const { path, mnemonic } = args;
+
+    const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
+    const privateKey = new Ed25519PrivateKey(key);
+    return Account.fromLegacyPrivateKey(privateKey);
   }
 
   /**

@@ -12,28 +12,33 @@ import {
   Secp256k1PublicKey,
   Secp256k1Signature,
   SigningScheme,
+  SigningSchemeInput,
 } from "../../src";
+import { AnyPublicKey } from "../../src/core/crypto/anyPublicKey";
+import { AnySignature } from "../../src/core/crypto/anySignature";
 import { ed25519, secp256k1TestObject, wallet } from "./helper";
 
 describe("Ed25519 Account", () => {
   it("should create an instance of Account correctly without error when scheme is not specified", () => {
-    // Account with Ed25519 scheme
+    // Account with Ed25519 SingleKey scheme
     const edAccount = Account.generate();
     expect(edAccount).toBeInstanceOf(Account);
-    expect(edAccount.signingScheme).toEqual(SigningScheme.Ed25519);
+    expect(edAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+    expect(edAccount.signingScheme).toEqual(SigningScheme.SingleKey);
   });
 
   it("should create an instance of Account correctly without error when scheme is specified", () => {
-    // Account with Ed25519 scheme
-    const edAccount = Account.generate(SigningScheme.Ed25519);
+    // Account with Ed25519 SingleKey scheme
+    const edAccount = Account.generate(SigningSchemeInput.Secp256k1Ecdsa);
     expect(edAccount).toBeInstanceOf(Account);
-    expect(edAccount.signingScheme).toEqual(SigningScheme.Ed25519);
+    expect(edAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+    expect(edAccount.signingScheme).toEqual(SigningScheme.SingleKey);
   });
 
-  it("should create a new account from a provided private key", () => {
+  it("should create a new account from a provided legacy private key", () => {
     const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
     const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-    const newAccount = Account.fromPrivateKey(privateKey);
+    const newAccount = Account.fromLegacyPrivateKey(privateKey);
     expect(newAccount).toBeInstanceOf(Account);
     expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
     expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
@@ -48,21 +53,22 @@ describe("Ed25519 Account", () => {
       address: AccountAddress.fromString(address),
     });
     expect(newAccount).toBeInstanceOf(Account);
+    expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
     expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
     expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
 
-  it("should create a new account from a bip44 path and mnemonics", () => {
+  it("should create a new account from legacy bip44 path and mnemonics", () => {
     const { mnemonic, address, path } = wallet;
-    const newAccount = Account.fromDerivationPath({ path, mnemonic });
+    const newAccount = Account.fromLegacyDerivationPath({ path, mnemonic });
     expect(newAccount.accountAddress.toString()).toEqual(address);
   });
 
   it("should prevent an invalid bip44 path ", () => {
     const { mnemonic } = wallet;
     const path = "1234";
-    expect(() => Account.fromDerivationPath({ path, mnemonic })).toThrow("Invalid derivation path");
+    expect(() => Account.fromLegacyDerivationPath({ path, mnemonic })).toThrow("Invalid derivation path");
   });
 
   it("should return the authentication key for a public key", () => {
@@ -83,7 +89,7 @@ describe("Ed25519 Account", () => {
     expect(account.sign(message).toString()).toEqual(signedMessage);
 
     // Verify the signature
-    const signature = new Ed25519Signature(signedMessage);
+    const signature = new AnySignature(new Ed25519Signature(signedMessage));
     expect(account.verifySignature({ message, signature })).toBe(true);
   });
 });
@@ -91,9 +97,9 @@ describe("Ed25519 Account", () => {
 describe.skip("Secp256k1 Account", () => {
   it("should create an instance of Account correctly without error", () => {
     // Account with Secp256k1 scheme
-    const secp256k1Account = Account.generate(SigningScheme.Secp256k1Ecdsa);
+    const secp256k1Account = Account.generate(SigningSchemeInput.Secp256k1Ecdsa);
     expect(secp256k1Account).toBeInstanceOf(Account);
-    expect(secp256k1Account.signingScheme).toEqual(SigningScheme.Secp256k1Ecdsa);
+    expect(secp256k1Account.signingScheme).toEqual(SigningSchemeInput.Secp256k1Ecdsa);
   });
 
   it("should create a new account from a provided private key", () => {
