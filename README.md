@@ -40,7 +40,7 @@ Initialize `Aptos` to access the SDK API.
 const aptos = new Aptos();
 ```
 
-If you want to pass in a costum config
+If you want to pass in a custom config
 
 ```ts
 // an optional config information for the SDK client instance.
