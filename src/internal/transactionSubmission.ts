@@ -41,8 +41,8 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  * `
  * data: {
  *  function:"0x1::aptos_account::transfer",
- *  type_arguments:[]
- *  arguments:[receiverAddress,10]
+ *  typeArguments:[]
+ *  functionArguments :[receiverAddress,10]
  * }
  * `
  *
@@ -52,8 +52,8 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  * ```
  * data: {
  *  bytecode:"0x001234567",
- *  type_arguments:[],
- *  arguments:[receiverAddress,10]
+ *  typeArguments:[],
+ *  functionArguments :[receiverAddress,10]
  * }
  * ```
  *
@@ -195,7 +195,7 @@ export async function publishModuleTransaction(args: {
     sender: account,
     data: {
       function: "0x1::code::publish_package_txn",
-      arguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(byteCode)])],
+      functionArguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(byteCode)])],
     },
     options,
   });

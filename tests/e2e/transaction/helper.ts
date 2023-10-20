@@ -25,7 +25,7 @@ export async function publishModule(
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: "0x1::code::publish_package_txn",
-      arguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(codeBytes)])],
+      functionArguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(codeBytes)])],
     },
   });
   const signedTxn = await aptos.signTransaction({
@@ -61,7 +61,7 @@ export async function rawTransactionHelper(
     data: {
       function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
-      arguments: args,
+      functionArguments: args,
     },
   });
   const senderAuthenticator = await aptos.signTransaction({
@@ -94,8 +94,8 @@ export const rawTransactionMultiAgentHelper = async (
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
-      type_arguments: typeArgs,
-      arguments: args,
+      typeArguments: typeArgs,
+      functionArguments: args,
     },
   };
   const generatedTransaction = await (async () => {

@@ -126,8 +126,8 @@ export class General {
    * `
    * const payload: ViewRequest = {
    *  function: "0x1::coin::balance",
-   *  type_arguments: ["0x1::aptos_coin::AptosCoin"],
-   *  arguments: [accountAddress],
+   *  typeArguments: ["0x1::aptos_coin::AptosCoin"],
+   *  functionArguments: [accountAddress],
    * };
    * `
    *

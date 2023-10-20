@@ -90,7 +90,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
   // generate script payload
   if ("bytecode" in args) {
     return new TransactionPayloadScript(
-      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.arguments),
+      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.functionArguments),
     );
   }
 
@@ -105,7 +105,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
             `${funcNameParts[0]}::${funcNameParts[1]}`,
             funcNameParts[2],
             args.typeArguments ?? [],
-            args.arguments,
+            args.functionArguments,
           ),
         ),
       ),
@@ -119,7 +119,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
       `${funcNameParts[0]}::${funcNameParts[1]}`,
       funcNameParts[2],
       args.typeArguments ?? [],
-      args.arguments,
+      args.functionArguments,
     ),
   );
 }

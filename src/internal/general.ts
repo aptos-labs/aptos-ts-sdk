@@ -97,7 +97,7 @@ export async function view(args: {
     body: {
       function: payload.function,
       type_arguments: payload.typeArguments ?? [],
-      arguments: payload.arguments ?? [],
+      arguments: payload.functionArguments ?? [],
     },
   });
   return data;

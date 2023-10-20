@@ -75,7 +75,7 @@ const example = async () => {
     sender: alice.accountAddress.toUint8Array(),
     data: {
       bytecode: CREATE_OBJECT_SCRIPT,
-      arguments: [],
+      functionArguments: [],
     },
   });
   const pendingObjectTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: createObject });
@@ -93,7 +93,7 @@ const example = async () => {
     data: {
       bytecode: TRANSFER_SCRIPT,
       typeArguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
-      arguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
+      functionArguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
     },
   });
 

@@ -25,7 +25,7 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           bytecode: singleSignerScriptBytecode,
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -42,7 +42,7 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -59,7 +59,7 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -79,7 +79,7 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           bytecode: singleSignerScriptBytecode,
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -97,7 +97,7 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -117,7 +117,7 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           bytecode: singleSignerScriptBytecode,
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -136,7 +136,7 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -154,7 +154,7 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -173,7 +173,7 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          arguments: [new U64(1), recieverAccounts[0].accountAddress],
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();

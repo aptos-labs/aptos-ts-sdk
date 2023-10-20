@@ -856,7 +856,7 @@ export type Block = {
 export type ViewRequestData = {
   function: MoveStructType;
   typeArguments?: Array<MoveResourceType>;
-  arguments?: Array<MoveValue>;
+  functionArguments?: Array<MoveValue>;
 };
 
 // REQUEST TYPES
@@ -875,7 +875,7 @@ export type ViewRequest = {
   /**
    * Arguments of the function
    */
-  arguments: Array<MoveValue>;
+  functionArguments: Array<MoveValue>;
 };
 
 /**

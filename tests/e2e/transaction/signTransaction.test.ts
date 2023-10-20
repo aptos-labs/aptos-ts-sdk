@@ -33,7 +33,7 @@ describe("sign transaction", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
@@ -50,7 +50,7 @@ describe("sign transaction", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
@@ -68,7 +68,7 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
@@ -88,7 +88,7 @@ describe("sign transaction", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
@@ -105,7 +105,7 @@ describe("sign transaction", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
@@ -123,7 +123,7 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.signTransaction({
