@@ -20,7 +20,7 @@ import {
   TypeTag,
 } from "../../src";
 import { Identifier } from "../../src/transactions/instances";
-import { parseTypeTag } from "../../src/transactions/typeTag/typeTagParser";
+import { parseTypeTag } from "../../src/transactions/typeTag/parser";
 
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");
@@ -88,6 +88,12 @@ describe("TypeTagParser", () => {
     expect(parseTypeTag("u256")).toEqual(new TypeTagU256());
     expect(parseTypeTag("bool")).toEqual(new TypeTagBool());
     expect(parseTypeTag("address")).toEqual(new TypeTagAddress());
+  });
+
+  test("outside spacing", () => {
+    expect(parseTypeTag(" address")).toEqual(new TypeTagAddress());
+    expect(parseTypeTag("address ")).toEqual(new TypeTagAddress());
+    expect(parseTypeTag(" address ")).toEqual(new TypeTagAddress());
   });
 
   test("vector", () => {

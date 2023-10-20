@@ -146,7 +146,7 @@ export function parseTypeTag(typeStr: string) {
       // The next space MUST be a comma, or a closing > if there was something parsed before
       // e.g. `u8 u8` is invalid but `u8, u8` is valid
       const nextChar = typeStr[cur];
-      if (parsedTypeTag && nextChar !== "," && nextChar !== ">") {
+      if (cur < typeStr.length && parsedTypeTag && nextChar !== "," && nextChar !== ">") {
         throw new TypeTagParserError(typeStr, `Invalid character after space ${nextChar}`);
       }
 
@@ -166,11 +166,17 @@ export function parseTypeTag(typeStr: string) {
   }
 
   // This prevents 'u8, u8' as an input
-  if (curTypes.length > 0) {
-    throw new TypeTagParserError(typeStr, "Unexpected ','");
+  switch (curTypes.length) {
+    case 0:
+      return parseTypeTagInner(currentStr, innerTypes);
+    case 1:
+      if (currentStr === "") {
+        return curTypes[0];
+      }
+      throw new TypeTagParserError(typeStr, "Unexpected ' '");
+    default:
+      throw new TypeTagParserError(typeStr, "Unexpected ','");
   }
-
-  return parseTypeTagInner(currentStr, innerTypes);
 }
 
 /**
