@@ -327,3 +327,18 @@ export async function setTargetAddress(args: {
 
   return transaction as InputSingleSignerTransaction;
 }
+
+export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }): Promise<number> {
+  const { aptosConfig } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+
+  const res = await view({
+    aptosConfig,
+    payload: {
+      function: `${routerAddress}::config::reregistration_grace_sec`,
+      functionArguments: [],
+    },
+  });
+
+  return res[0] as number;
+}
