@@ -38,7 +38,7 @@ export async function fundAccount(args: {
   await waitForTransaction({
     aptosConfig,
     transactionHash: txnHash,
-    options: { timeoutSecs, indexerVersionCheck: false },
+    options: { timeoutSecs },
   });
 
   return txnHash;

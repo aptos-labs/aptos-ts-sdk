@@ -24,8 +24,8 @@ export abstract class TransactionAuthenticator extends Serializable {
         return TransactionAuthenticatorMultiAgent.load(deserializer);
       case TransactionAuthenticatorVariant.FeePayer:
         return TransactionAuthenticatorFeePayer.load(deserializer);
-      case TransactionAuthenticatorVariant.SingleSender:
-        return SingleSender.load(deserializer);
+      case TransactionAuthenticatorVariant.SingleSenderTransactionAuthenticator:
+        return SingleSenderTransactionAuthenticator.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionAuthenticator: ${index}`);
     }
@@ -195,7 +195,7 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
  *
  * @param sender AccountAuthenticator
  */
-export class SingleSender extends TransactionAuthenticator {
+export class SingleSenderTransactionAuthenticator extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
 
   constructor(sender: AccountAuthenticator) {
@@ -204,12 +204,12 @@ export class SingleSender extends TransactionAuthenticator {
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(TransactionAuthenticatorVariant.SingleSender);
+    serializer.serializeU32AsUleb128(TransactionAuthenticatorVariant.SingleSenderTransactionAuthenticator);
     this.sender.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): SingleSender {
+  static load(deserializer: Deserializer): SingleSenderTransactionAuthenticator {
     const sender = AccountAuthenticator.deserialize(deserializer);
-    return new SingleSender(sender);
+    return new SingleSenderTransactionAuthenticator(sender);
   }
 }

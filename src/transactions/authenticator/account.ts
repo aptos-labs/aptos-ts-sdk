@@ -21,7 +21,7 @@ export abstract class AccountAuthenticator extends Serializable {
       case AccountAuthenticatorVariant.MultiEd25519:
         return AccountAuthenticatorMultiEd25519.load(deserializer);
       case AccountAuthenticatorVariant.SingleKey:
-        return SingleKeyAuthenticator.load(deserializer);
+        return AccountAuthenticatorSingleKey.load(deserializer);
       default:
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
@@ -91,13 +91,13 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
 }
 
 /**
- * SingleKeyAuthenticator for a single signer
+ * AccountAuthenticatorSingleKey for a single signer
  *
  * @param public_key AnyPublicKey
  * @param signature AnySignature
  *
  */
-export class SingleKeyAuthenticator extends AccountAuthenticator {
+export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
   public readonly public_key: AnyPublicKey;
 
   public readonly signature: AnySignature;
@@ -114,9 +114,9 @@ export class SingleKeyAuthenticator extends AccountAuthenticator {
     this.signature.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): SingleKeyAuthenticator {
+  static load(deserializer: Deserializer): AccountAuthenticatorSingleKey {
     const public_key = AnyPublicKey.deserialize(deserializer);
     const signature = AnySignature.deserialize(deserializer);
-    return new SingleKeyAuthenticator(public_key, signature);
+    return new AccountAuthenticatorSingleKey(public_key, signature);
   }
 }

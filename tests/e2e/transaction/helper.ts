@@ -38,7 +38,6 @@ export async function publishModule(
   });
   return (await aptos.waitForTransaction({
     transactionHash: txnHash.hash,
-    options: { indexerVersionCheck: false },
   })) as UserTransactionResponse;
 }
 
@@ -152,7 +151,9 @@ export const rawTransactionMultiAgentHelper = async (
     },
   });
 
-  const response = await aptos.waitForTransaction({ transactionHash: transactionResponse.hash });
+  const response = await aptos.waitForTransaction({
+    transactionHash: transactionResponse.hash,
+  });
   return response as UserTransactionResponse;
 };
 

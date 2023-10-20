@@ -10,7 +10,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
-import { AccountAddress, Hex } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import { Hex } from "../core/hex";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,

@@ -6,7 +6,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { AnyPublicKeyVariant, HexInput } from "../../types";
+import { HexInput } from "../../types";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -73,11 +73,6 @@ export class Secp256k1PublicKey extends PublicKey {
   static deserialize(deserializer: Deserializer): Secp256k1PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1PublicKey(bytes);
-  }
-
-  serializeForSingleKey(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256k1);
-    this.serialize(serializer);
   }
 
   static load(deserializer: Deserializer): Secp256k1PublicKey {
@@ -233,11 +228,6 @@ export class Secp256k1Signature extends Signature {
   static deserialize(deserializer: Deserializer): Secp256k1Signature {
     const hex = deserializer.deserializeBytes();
     return new Secp256k1Signature(hex);
-  }
-
-  serializeForSingleKey(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256k1);
-    this.serialize(serializer);
   }
 
   static load(deserializer: Deserializer): Secp256k1Signature {

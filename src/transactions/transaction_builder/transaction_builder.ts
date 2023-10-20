@@ -26,12 +26,16 @@ import {
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
 } from "../../utils/const";
-import { AccountAuthenticator, AccountAuthenticatorEd25519, SingleKeyAuthenticator } from "../authenticator/account";
+import {
+  AccountAuthenticator,
+  AccountAuthenticatorEd25519,
+  AccountAuthenticatorSingleKey,
+} from "../authenticator/account";
 import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
-  SingleSender,
+  SingleSenderTransactionAuthenticator,
 } from "../authenticator/transaction";
 import {
   ChainId,
@@ -317,8 +321,8 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       accountAuthenticator.public_key,
       accountAuthenticator.signature,
     );
-  } else if (accountAuthenticator instanceof SingleKeyAuthenticator) {
-    transactionAuthenticator = new SingleSender(accountAuthenticator);
+  } else if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
+    transactionAuthenticator = new SingleSenderTransactionAuthenticator(accountAuthenticator);
   } else {
     throw new Error("Invalid public key");
   }
@@ -329,10 +333,10 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
     if (publicKey.publicKey instanceof Ed25519PublicKey) {
-      return new SingleKeyAuthenticator(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
+      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
     if (publicKey.publicKey instanceof Secp256k1PublicKey) {
-      return new SingleKeyAuthenticator(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
+      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
     }
   }
 
@@ -371,7 +375,7 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
         new Ed25519Signature(signerSignature.toUint8Array()),
       );
     case SigningScheme.SingleKey:
-      return new SingleKeyAuthenticator(signer.publicKey as AnyPublicKey, new AnySignature(signerSignature));
+      return new AccountAuthenticatorSingleKey(signer.publicKey as AnyPublicKey, new AnySignature(signerSignature));
     // TODO support MultiEd25519
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
@@ -422,8 +426,8 @@ export function generateSignedTransaction(args: {
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }
 
-  if (accountAuthenticator instanceof SingleKeyAuthenticator) {
-    const transactionAuthenticator = new SingleSender(accountAuthenticator);
+  if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
+    const transactionAuthenticator = new SingleSenderTransactionAuthenticator(accountAuthenticator);
     // return signed transaction
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }

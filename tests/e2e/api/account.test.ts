@@ -198,7 +198,7 @@ describe("account api", () => {
       expect(accountCoinsCount).toBe(1);
     });
 
-    test.only("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
+    test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const account = Account.generate();
