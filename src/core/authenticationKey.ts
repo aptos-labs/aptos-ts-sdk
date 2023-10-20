@@ -58,7 +58,7 @@ export class AuthenticationKey {
 
     // TODO - check for single key or multi key
     if (scheme === SigningScheme.SingleKey) {
-      let newBytes = publicKey.bcsToBytes();
+      const newBytes = publicKey.bcsToBytes();
       const authKeyBytes = new Uint8Array([...newBytes, scheme]);
       const hash = sha3Hash.create();
       hash.update(authKeyBytes);
@@ -99,7 +99,7 @@ export class AuthenticationKey {
       throw new Error("No supported authentication scheme for public key");
     }
 
-    return AuthenticationKey.fromBytesAndScheme({ publicKey: publicKey, scheme });
+    return AuthenticationKey.fromBytesAndScheme({ publicKey, scheme });
   }
 
   /**

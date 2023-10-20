@@ -1,38 +1,18 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  AptosConfig,
-  Network,
-  Aptos,
-  U64,
-  SigningScheme,
-  Deserializer,
-  SigningSchemeInput,
-  Ed25519PrivateKey,
-} from "../../../src";
+import { Account, AptosConfig, Network, Aptos, U64, Deserializer, SigningSchemeInput } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
-import { ed25519, FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
-/**
- * generate() // default to ed25519 - should be single_signer
- * generate(secpk) // should be single_signer
- * fromPrivateKey(ed25519) // should be single_signer
- * fromPrivateKey(secpk) // should be single_signer
- * fromLegacyPrivateKey(ed25519 | multied) // should be ed25519
- * fromPrivateKeyAndAddress(ed25519) // should be single_signer
- * fromPrivateKeyAndAddress(secpk) // should be single_signer
- *
- */
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate();
-  const legacyED25519SenderAccount = Account.fromPrivateKey(new Ed25519PrivateKey(ed25519.privateKey), config);
+  const legacyED25519SenderAccount = Account.generate({ legacy: true });
   const receiverAccounts = [Account.generate(), Account.generate()];
   const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
   const secondarySignerAccount = Account.generate();
@@ -50,7 +30,7 @@ describe("transaction submission", () => {
     await publishTransferPackage(aptos, contractPublisherAccount);
   }, longTestTimeout);
   describe("Single Sender ED25519", () => {
-    describe("single sender", () => {
+    describe("single signer", () => {
       test("with script payload", async () => {
         const transaction = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
@@ -67,7 +47,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
 
         expect(response.signature?.type).toBe("single_sender");
@@ -87,7 +66,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("single_sender");
       });
@@ -121,7 +99,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
       });
@@ -156,7 +133,6 @@ describe("transaction submission", () => {
           await waitForTransaction({
             aptosConfig: config,
             transactionHash: response.hash,
-            options: { indexerVersionCheck: false },
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
         },
@@ -186,7 +162,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -211,7 +186,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -248,13 +222,12 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
     });
   });
-  describe("Single Signer Secp256k1", () => {
+  describe("Single Sender Secp256k1", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
         const transaction = await aptos.generateTransaction({
@@ -271,7 +244,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("single_sender");
       });
@@ -290,7 +262,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("single_sender");
       });
@@ -324,7 +295,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
       });
@@ -359,7 +329,6 @@ describe("transaction submission", () => {
           await waitForTransaction({
             aptosConfig: config,
             transactionHash: response.hash,
-            options: { indexerVersionCheck: false },
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
         },
@@ -389,7 +358,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -414,7 +382,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -451,7 +418,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -474,7 +440,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("ed25519_signature");
       });
@@ -493,7 +458,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("ed25519_signature");
       });
@@ -527,7 +491,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
       });
@@ -562,7 +525,6 @@ describe("transaction submission", () => {
           await waitForTransaction({
             aptosConfig: config,
             transactionHash: response.hash,
-            options: { indexerVersionCheck: false },
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
         },
@@ -592,7 +554,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -617,7 +578,6 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
@@ -654,15 +614,12 @@ describe("transaction submission", () => {
         await waitForTransaction({
           aptosConfig: config,
           transactionHash: response.hash,
-          options: { indexerVersionCheck: false },
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
     });
   });
   describe("publish move module", () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
     const account = Account.generate();
     const metadataBytes =
       // eslint-disable-next-line max-len
@@ -700,7 +657,10 @@ describe("transaction submission", () => {
         signer: account,
         transaction,
       });
-      await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+      await waitForTransaction({
+        aptosConfig: config,
+        transactionHash: response.hash,
+      });
       const accountModules = await aptos.getAccountModules({ accountAddress: account.accountAddress.toString() });
       expect(accountModules[0].bytecode).toEqual(`0x${byteCode}`);
     });

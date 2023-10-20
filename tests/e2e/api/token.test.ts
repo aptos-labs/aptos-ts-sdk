@@ -4,7 +4,7 @@
 import { AptosConfig, Aptos, Account } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { Network } from "../../../src/utils/apiEndpoints";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
@@ -55,7 +55,7 @@ describe("token api", () => {
   beforeAll(async () => {
     await setupCollection();
     tokenAddress = await setupToken();
-  });
+  }, longTestTimeout);
 
   test("it gets token data for a token's address", async () => {
     const tokenData = await aptos.getTokenData({ tokenAddress });

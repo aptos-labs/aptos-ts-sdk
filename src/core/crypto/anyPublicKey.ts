@@ -42,6 +42,7 @@ export class AnyPublicKey extends PublicKey {
     const { message, signature } = args;
     if (this.publicKey instanceof Ed25519PublicKey && signature.signature instanceof Ed25519Signature) {
       return this.publicKey.verifySignature({ message, signature: signature.signature });
+      // eslint-disable-next-line no-else-return
     } else if (this.publicKey instanceof Secp256k1PublicKey && signature.signature instanceof Secp256k1Signature) {
       return this.publicKey.verifySignature({ message, signature: signature.signature });
     } else {

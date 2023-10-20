@@ -12,7 +12,7 @@ import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
 import { getInfo, lookupOriginalAccountAddress } from "../internal/account";
-import { AptosConfig } from "../api";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Class for creating and managing account on Aptos network
@@ -48,6 +48,8 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
+   * @param args.legacy optional. If set to true, would create a legacy Ed25519 signing keys. Default
+   * is Single Sender signing key
    *
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
@@ -82,8 +84,10 @@ export class Account {
   /**
    * Derives an account with random private key and address
    *
-   * @param scheme optional SigningScheme - type of SigningScheme to use. Default to Ed25519
+   * @param args.scheme optional. SigningScheme - type of SigningScheme to use. Default to Ed25519
    * Currently only Ed25519 and Secp256k1 are supported
+   * @param args.legacy optional. If set to true, would create a legacy Ed25519 signing keys. Default
+   * is Single Sender signing key
    *
    * @returns Account with the given signing scheme
    */
@@ -118,12 +122,14 @@ export class Account {
    * NOTE: This function derives the public and auth keys
    * from the provided private key and then creates an Account
    * based on the Account configured signing scheme -
-   * ED25519 or Single Sender
+   * Legacy ED25519 or Single Sender
    *
-   * @param privateKey Hex - private key of the account
-   * @returns Account
+   * @param privateKey PrivateKey - private key of the account
+   * @param aptosConfig AptosConfig type
+   *
+   * @returns Promise<Account>
    */
-  static async fromPrivateKey(privateKey: PrivateKey, config: AptosConfig): Promise<Account> {
+  static async fromPrivateKey(privateKey: PrivateKey, aptosConfig: AptosConfig): Promise<Account> {
     const publicKey = new AnyPublicKey(privateKey.publicKey());
 
     if (privateKey instanceof Secp256k1PrivateKey) {
@@ -135,15 +141,21 @@ export class Account {
 
     if (privateKey instanceof Ed25519PrivateKey) {
       // lookup single sender ed25519
-      const singleSenderAuthKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
-      const isSingleSender = await Account.lookupAddress(singleSenderAuthKey, config);
-      if (isSingleSender) {
-        const address = new AccountAddress({ data: singleSenderAuthKey.toUint8Array() });
+      const SingleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromBytesAndScheme({
+        publicKey,
+        scheme: SigningScheme.SingleKey,
+      });
+      const isSingleSenderTransactionAuthenticator = await Account.lookupAddress(
+        SingleSenderTransactionAuthenticatorAuthKey,
+        aptosConfig,
+      );
+      if (isSingleSenderTransactionAuthenticator) {
+        const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
         return new Account({ privateKey, address });
       }
       // lookup legacy ed25519
       const legacyAuthKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
-      const isLegacyEd25519 = await Account.lookupAddress(legacyAuthKey, config);
+      const isLegacyEd25519 = await Account.lookupAddress(legacyAuthKey, aptosConfig);
       if (isLegacyEd25519) {
         const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
         return new Account({ privateKey, address, legacy: true });
@@ -151,24 +163,28 @@ export class Account {
     }
 
     // if we are here, it means we couldn't find an address with an
-    //auth key that matches the provided private key
+    // auth key that matches the provided private key
     throw new Error(`Can't derive account from private key ${privateKey}`);
   }
 
-  private static async lookupAddress(authKey: AuthenticationKey, config: AptosConfig): Promise<boolean> {
-    const potentialAddress1 = await lookupOriginalAccountAddress({
-      aptosConfig: config,
+  private static async lookupAddress(authKey: AuthenticationKey, aptosConfig: AptosConfig): Promise<boolean> {
+    const accountAddress = await lookupOriginalAccountAddress({
+      aptosConfig,
       authenticationKey: authKey.toString(),
     });
 
     try {
       await getInfo({
-        aptosConfig: config,
-        accountAddress: potentialAddress1.toString(),
+        aptosConfig,
+        accountAddress: accountAddress.toString(),
       });
       return true;
     } catch (error: any) {
-      return false;
+      // account not found
+      if (error.code === 404) {
+        return false;
+      }
+      throw new Error(`Error while looking for an account info ${accountAddress.toString()} `);
     }
   }
 
