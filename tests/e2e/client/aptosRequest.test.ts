@@ -20,23 +20,6 @@ const config = new AptosConfig({ network: Network.LOCAL });
 describe("aptos request", () => {
   describe("headers", () => {
     test(
-      "call should include x-aptos-client header",
-      async () => {
-        try {
-          const response = await aptosRequest(
-            { url: `${NetworkToNodeAPI[config.network]}`, method: "GET", path: "accounts/0x1" },
-            config,
-          );
-          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-ts-sdk/${VERSION}`);
-        } catch (error: any) {
-          // should not get here
-          expect(true).toBe(false);
-        }
-      },
-      longTestTimeout,
-    );
-
-    test(
       "call should include all expected headers",
       async () => {
         const aptos = new Aptos(config);
