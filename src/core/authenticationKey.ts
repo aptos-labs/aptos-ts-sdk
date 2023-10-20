@@ -53,7 +53,7 @@ export class AuthenticationKey {
    * This allows for the creation of AuthenticationKeys that are not derived from Public Keys directly
    * @param args
    */
-  private static fromBytesAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
+  public static fromBytesAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey, scheme } = args;
 
     // TODO - check for single key or multi key

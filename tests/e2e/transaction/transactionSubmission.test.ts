@@ -27,15 +27,14 @@ import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, single
  * fromPrivateKeyAndAddress(secpk) // should be single_signer
  *
  */
-
+const config = new AptosConfig({ network: Network.LOCAL });
+const aptos = new Aptos(config);
 describe("transaction submission", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate();
-  const legacyED25519SenderAccount = Account.fromLegacyPrivateKey(new Ed25519PrivateKey(ed25519.privateKey));
+  const legacyED25519SenderAccount = Account.fromPrivateKey(new Ed25519PrivateKey(ed25519.privateKey), config);
   const receiverAccounts = [Account.generate(), Account.generate()];
-  const singleSignerSecp256k1Account = Account.generate(SigningSchemeInput.Secp256k1Ecdsa);
+  const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {

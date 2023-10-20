@@ -11,6 +11,8 @@ import { Hex } from "./hex";
 import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
+import { getInfo, lookupOriginalAccountAddress } from "../internal/account";
+import { AptosConfig } from "../api";
 
 /**
  * Class for creating and managing account on Aptos network
@@ -50,8 +52,8 @@ export class Account {
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
    */
-  private constructor(args: { privateKey: PrivateKey; address: AccountAddress }, legacy: boolean = false) {
-    const { privateKey, address } = args;
+  private constructor(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }) {
+    const { privateKey, address, legacy } = args;
 
     // Derive the public key from the private key
     this.publicKey = privateKey.publicKey();
@@ -85,10 +87,10 @@ export class Account {
    *
    * @returns Account with the given signing scheme
    */
-  static generate(scheme?: SigningSchemeInput): Account {
+  static generate(args?: { scheme?: SigningSchemeInput; legacy?: boolean }): Account {
     let privateKey: PrivateKey;
 
-    switch (scheme) {
+    switch (args?.scheme) {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
@@ -97,62 +99,77 @@ export class Account {
         privateKey = Ed25519PrivateKey.generate();
     }
 
+    let publicKey = privateKey.publicKey();
+    if (!args?.legacy) {
+      publicKey = new AnyPublicKey(privateKey.publicKey());
+    }
+
     const address = new AccountAddress({
       data: Account.authKey({
-        publicKey: new AnyPublicKey(privateKey.publicKey()), // TODO support AnyMultiKey
+        publicKey, // TODO support AnyMultiKey
       }).toUint8Array(),
     });
-    return new Account({ privateKey, address });
+    return new Account({ privateKey, address, legacy: args?.legacy });
   }
 
   /**
    * Derives an account with provided private key
    *
-   * NOTE: This function support the new Single Signer and
-   * should be used only with private key that was created
-   * as a Single Signer
+   * NOTE: This function derives the public and auth keys
+   * from the provided private key and then creates an Account
+   * based on the Account configured signing scheme -
+   * ED25519 or Single Sender
    *
    * @param privateKey Hex - private key of the account
    * @returns Account
    */
-  static fromPrivateKey(privateKey: PrivateKey): Account {
+  static async fromPrivateKey(privateKey: PrivateKey, config: AptosConfig): Promise<Account> {
     const publicKey = new AnyPublicKey(privateKey.publicKey());
-    const authKey = Account.authKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return Account.fromPrivateKeyAndAddress({ privateKey, address });
+
+    if (privateKey instanceof Secp256k1PrivateKey) {
+      // private key is secp256k1, therefore we know it for sure uses a single signer key
+      const authKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: 2 });
+      const address = new AccountAddress({ data: authKey.toUint8Array() });
+      return new Account({ privateKey, address });
+    }
+
+    if (privateKey instanceof Ed25519PrivateKey) {
+      // lookup single sender ed25519
+      const singleSenderAuthKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
+      const isSingleSender = await Account.lookupAddress(singleSenderAuthKey, config);
+      if (isSingleSender) {
+        const address = new AccountAddress({ data: singleSenderAuthKey.toUint8Array() });
+        return new Account({ privateKey, address });
+      }
+      // lookup legacy ed25519
+      const legacyAuthKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
+      const isLegacyEd25519 = await Account.lookupAddress(legacyAuthKey, config);
+      if (isLegacyEd25519) {
+        const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
+        return new Account({ privateKey, address, legacy: true });
+      }
+    }
+
+    // if we are here, it means we couldn't find an address with an
+    //auth key that matches the provided private key
+    throw new Error(`Can't derive account from private key ${privateKey}`);
   }
 
-  /**
-   * Derives an account with provided legacy private key
-   *
-   * NOTE: This function support the legacy keys and
-   * should be used only with private key that was created
-   * as
-   *
-   * @param privateKey Hex - private key of the account
-   * @returns Account
-   */
-  static fromLegacyPrivateKey(privateKey: PrivateKey) {
-    const publicKey = privateKey.publicKey();
-    const authKey = Account.authKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return Account.fromLegacyPrivateKeyAndAddress({ privateKey, address });
-  }
+  private static async lookupAddress(authKey: AuthenticationKey, config: AptosConfig): Promise<boolean> {
+    const potentialAddress1 = await lookupOriginalAccountAddress({
+      aptosConfig: config,
+      authenticationKey: authKey.toString(),
+    });
 
-  /**
-   * Derives an account with provided private key and address
-   * This is intended to be used for account that has it's key rotated
-   *
-   * @param args.privateKey Hex - private key of the account
-   * @param args.address AccountAddress - address of the account
-   * @returns Account
-   */
-  static fromPrivateKeyAndAddress(args: { privateKey: PrivateKey; address: AccountAddress }): Account {
-    return new Account(args);
-  }
-
-  static fromLegacyPrivateKeyAndAddress(args: { privateKey: PrivateKey; address: AccountAddress }): Account {
-    return new Account(args, true);
+    try {
+      await getInfo({
+        aptosConfig: config,
+        accountAddress: potentialAddress1.toString(),
+      });
+      return true;
+    } catch (error: any) {
+      return false;
+    }
   }
 
   /**
@@ -165,18 +182,12 @@ export class Account {
    */
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
     const { path, mnemonic } = args;
-
     const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
-    return Account.fromPrivateKey(privateKey);
-  }
-
-  static fromLegacyDerivationPath(args: { path: string; mnemonic: string }): Account {
-    const { path, mnemonic } = args;
-
-    const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
-    const privateKey = new Ed25519PrivateKey(key);
-    return Account.fromLegacyPrivateKey(privateKey);
+    const publicKey = privateKey.publicKey();
+    const authKey = Account.authKey({ publicKey });
+    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    return new Account({ privateKey, address, legacy: true });
   }
 
   /**

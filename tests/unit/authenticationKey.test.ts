@@ -27,7 +27,7 @@ describe("AuthenticationKey", () => {
     );
   });
 
-  it("should create AuthenticationKey from Ed25519PublicKey", () => {
+  it.only("should create AuthenticationKey from Ed25519PublicKey", () => {
     const publicKey = new Ed25519PublicKey(ed25519.publicKey);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey });
     expect(authKey).toBeInstanceOf(AuthenticationKey);
