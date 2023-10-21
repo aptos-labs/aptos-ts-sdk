@@ -131,6 +131,16 @@ To run the SDK tests, simply run from the root of this repository:
 pnpm test
 ```
 
+## Troubleshooting
+
+If you see import error when you do this
+
+```javascript
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+```
+
+It could be your `tsconfig.json` is not incompatible, make sure your `moduleResolution` is set to `node` instead of `bundler`.
+
 ## Contributing
 
 If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose).
