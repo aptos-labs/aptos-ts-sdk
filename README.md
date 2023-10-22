@@ -135,7 +135,7 @@ pnpm test
 
 If you see import error when you do this
 
-```javascript
+```typescript
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 ```
 
