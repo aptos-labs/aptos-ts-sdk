@@ -3,7 +3,7 @@
 
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { ParsingError, ParsingResult } from "./common";
-import { HexInput } from "../types";
+import { HexInput, HexString } from "../types";
 
 /**
  * This enum is used to explain why parsing might have failed.
@@ -80,7 +80,7 @@ export class Hex {
    *
    * @returns Hex string with 0x prefix
    */
-  toString(): string {
+  toString(): HexString {
     return `0x${this.toStringWithoutPrefix()}`;
   }
 

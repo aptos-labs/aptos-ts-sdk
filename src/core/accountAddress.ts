@@ -6,7 +6,7 @@ import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 import { ParsingError, ParsingResult } from "./common";
 import { TransactionArgument } from "../transactions/instances/transactionArgument";
-import { HexInput, ScriptTransactionArgumentVariants } from "../types";
+import { HexInput, HexString, ScriptTransactionArgumentVariants } from "../types";
 
 /**
  * This enum is used to explain why an address was invalid.
@@ -107,7 +107,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns AccountAddress as a string conforming to AIP-40.
    */
-  toString(): string {
+  toString(): HexString {
     return `0x${this.toStringWithoutPrefix()}`;
   }
 
@@ -139,7 +139,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns AccountAddress as a string in LONG form.
    */
-  toStringLong(): string {
+  toStringLong(): HexString {
     return `0x${this.toStringLongWithoutPrefix()}`;
   }
 

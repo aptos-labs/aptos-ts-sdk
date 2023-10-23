@@ -630,6 +630,8 @@ export type Event = {
   data: any;
 };
 
+export type HexString = `0x${string}`;
+
 /**
  * Map of Move types to local TypeScript types
  */
@@ -639,14 +641,14 @@ export type MoveUint32Type = number;
 export type MoveUint64Type = string;
 export type MoveUint128Type = string;
 export type MoveUint256Type = string;
-export type MoveAddressType = `0x${string}`;
-export type MoveObjectType = `0x${string}`;
-export type MoveStructType = `0x${string}::${string}::${string}`;
+export type MoveAddressType = HexString;
+export type MoveObjectType = HexString;
+export type MoveStructType = `${HexString}::${string}::${string}`;
 export type MoveOptionType = MoveType | null | undefined;
 /**
  * String representation of a on-chain Move struct type.
  */
-export type MoveResourceType = `${string}::${string}::${string}`;
+export type MoveResourceType = `${HexString}::${string}::${string}`;
 
 export type MoveType =
   | boolean
@@ -704,7 +706,7 @@ export type MoveValue =
  * Move module id is a string representation of Move module.
  * Module name is case-sensitive.
  */
-export type MoveModuleId = `${string}::${string}`;
+export type MoveModuleId = `${HexString}::${string}`;
 
 /**
  * Move function visibility
@@ -840,7 +842,7 @@ export type LedgerInfo = {
  */
 export type Block = {
   block_height: string;
-  block_hash: `0x${string}`;
+  block_hash: HexString;
   block_timestamp: string;
   first_version: string;
   last_version: string;

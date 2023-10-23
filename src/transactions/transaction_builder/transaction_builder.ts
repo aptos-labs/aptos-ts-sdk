@@ -102,7 +102,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
         args.multisigAddress,
         new MultiSigTransactionPayload(
           EntryFunction.build(
-            `${funcNameParts[0]}::${funcNameParts[1]}`,
+            `${funcNameParts[0]}::${funcNameParts[1]}` as `0x${string}::${string}`,
             funcNameParts[2],
             args.typeArguments ?? [],
             args.arguments,
@@ -116,7 +116,7 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
   const funcNameParts = args.function.split("::");
   return new TransactionPayloadEntryFunction(
     EntryFunction.build(
-      `${funcNameParts[0]}::${funcNameParts[1]}`,
+      `${funcNameParts[0]}::${funcNameParts[1]}` as `0x${string}::${string}`,
       funcNameParts[2],
       args.typeArguments ?? [],
       args.arguments,
