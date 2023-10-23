@@ -68,22 +68,64 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches an account resource", async () => {
+    test("it fetches an account resource without a type", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const data = await aptos.getAccountResource({
         accountAddress: "0x1",
         resourceType: "0x1::account::Account",
       });
-      expect(data).toHaveProperty("type");
-      expect(data.type).toBe("0x1::account::Account");
+      expect(data).toHaveProperty("sequence_number");
+      expect(data.sequence_number).toBe("0");
+      expect(data).toHaveProperty("authentication_key");
+      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
+    });
+
+    test("it fetches an account resource typed", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      type AccountRes = {
+        authentication_key: string;
+        coin_register_events: {
+          counter: string;
+          guid: {
+            id: {
+              addr: string;
+              creation_num: string;
+            };
+          };
+        };
+        guid_creation_num: string;
+        key_rotation_events: {
+          counter: string;
+          guid: {
+            id: {
+              addr: string;
+              creation_num: string;
+            };
+          };
+        };
+        sequence_number: string;
+      };
+
+      const resource = await aptos.getAccountResource<AccountRes>({
+        accountAddress: "0x1",
+        resourceType: "0x1::account::Account",
+      });
+      expect(resource).toHaveProperty("sequence_number");
+      expect(resource.sequence_number).toBe("0");
+      expect(resource).toHaveProperty("authentication_key");
+      expect(resource.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
     });
 
     test("it fetches account transactions", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
-      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+      await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress.toString(),
+        amount: FUND_AMOUNT,
+      });
       const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
@@ -220,15 +262,15 @@ describe("account api", () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    test("it fetches an account resource", async () => {
+    test("it fetches an account resource with partial information", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const data = await aptos.getAccountResource({
+      const data = await aptos.getAccountResource<{ authentication_key: string }>({
         accountAddress: "0x1",
         resourceType: "0x1::account::Account",
       });
-      expect(data).toHaveProperty("type");
-      expect(data.type).toBe("0x1::account::Account");
+      expect(data).toHaveProperty("authentication_key");
+      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
     });
   });
 });

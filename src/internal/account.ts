@@ -155,12 +155,12 @@ export async function getResources(args: {
   });
 }
 
-export async function getResource(args: {
+export async function getResource<T extends {}>(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
   resourceType: MoveResourceType;
   options?: LedgerVersion;
-}): Promise<MoveResource> {
+}): Promise<T> {
   const { aptosConfig, accountAddress, resourceType, options } = args;
   const { data } = await getAptosFullNode<{}, MoveResource>({
     aptosConfig,
@@ -168,7 +168,7 @@ export async function getResource(args: {
     path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
-  return data;
+  return data.data as T;
 }
 
 export async function lookupOriginalAccountAddress(args: {
@@ -177,7 +177,10 @@ export async function lookupOriginalAccountAddress(args: {
   options?: LedgerVersion;
 }): Promise<AccountAddress> {
   const { aptosConfig, authenticationKey, options } = args;
-  const resource = await getResource({
+  type OriginatingAddress = {
+    address_map: { handle: string };
+  };
+  const resource = await getResource<OriginatingAddress>({
     aptosConfig,
     accountAddress: "0x1",
     resourceType: "0x1::account::OriginatingAddress",
@@ -186,7 +189,7 @@ export async function lookupOriginalAccountAddress(args: {
 
   const {
     address_map: { handle },
-  } = resource.data as any;
+  } = resource;
 
   // If the address is not found in the address map, which means its not rotated
   // then return the address as is

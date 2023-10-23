@@ -65,7 +65,7 @@ describe("general api", () => {
           },
         ],
       },
-    } = resource.data as any;
+    } = resource as any;
 
     const supply = await aptos.getTableItem({
       handle,
