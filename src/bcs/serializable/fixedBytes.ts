@@ -26,7 +26,7 @@ import { TransactionArgument } from "../../transactions/instances/transactionArg
  *  const fixedBytes = new FixedBytes(yourCustomSerializedBytes);
  *  const payload = generateTransactionPayload({
  *    function: "0xbeefcafe::your_module::your_function_that_requires_custom_serialization",
- *    arguments: [yourCustomBytes],
+ *    functionArguments: [yourCustomBytes],
  *  });
  *
  *  For example, if you store each of the 32 bytes for an address as a U8 in a MoveVector<U8>, when you

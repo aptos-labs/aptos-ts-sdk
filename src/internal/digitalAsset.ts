@@ -63,7 +63,7 @@ export async function mintTokenTransaction(args: {
     sender: creator.accountAddress.toString(),
     data: {
       function: "0x4::aptos_token::mint",
-      arguments: [
+      functionArguments: [
         new MoveString(args.collection),
         new MoveString(args.description),
         new MoveString(args.name),
@@ -227,7 +227,7 @@ export async function createCollectionTransaction(
     sender: creator.accountAddress.toString(),
     data: {
       function: "0x4::aptos_token::create_collection",
-      arguments: [
+      functionArguments: [
         // Do not change the order
         new MoveString(args.description),
         new U64(args.maxSupply ?? MAX_U64_BIG_INT),

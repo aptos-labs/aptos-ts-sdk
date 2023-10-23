@@ -27,7 +27,7 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -41,7 +41,7 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -56,7 +56,7 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -73,7 +73,7 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             bytecode: multiSignerScriptBytecode,
-            arguments: [
+            functionArguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
               recieverAccounts[0].accountAddress,
@@ -99,7 +99,7 @@ describe("transaction simulation", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-              arguments: [
+              functionArguments: [
                 new U64(100),
                 new U64(200),
                 recieverAccounts[0].accountAddress,
@@ -126,7 +126,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
 
@@ -143,7 +143,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -160,7 +160,7 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
 
@@ -178,7 +178,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-            arguments: [
+            functionArguments: [
               new U64(100),
               new U64(200),
               recieverAccounts[0].accountAddress,
@@ -206,7 +206,7 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -220,7 +220,7 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -235,7 +235,7 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -252,7 +252,7 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             bytecode: multiSignerScriptBytecode,
-            arguments: [
+            functionArguments: [
               new U64(BigInt(100)),
               new U64(BigInt(200)),
               recieverAccounts[0].accountAddress,
@@ -278,7 +278,7 @@ describe("transaction simulation", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-              arguments: [
+              functionArguments: [
                 new U64(100),
                 new U64(200),
                 recieverAccounts[0].accountAddress,
@@ -305,7 +305,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
 
@@ -322,7 +322,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
         const [response] = await aptos.simulateTransaction({
@@ -339,7 +339,7 @@ describe("transaction simulation", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-            arguments: [new U64(1), recieverAccounts[0].accountAddress],
+            functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
 
@@ -357,7 +357,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
-            arguments: [
+            functionArguments: [
               new U64(100),
               new U64(200),
               recieverAccounts[0].accountAddress,

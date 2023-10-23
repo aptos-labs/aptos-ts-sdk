@@ -58,9 +58,9 @@ export class TransactionSubmission {
    * move function name, move function type arguments, move function arguments
    * `
    * data: {
-   *  function:"0x1::aptos_account::transfer",
-   *  type_arguments:[]
-   *  arguments:[receiverAddress,10]
+   *  function: "0x1::aptos_account::transfer",
+   *  typeArguments: []
+   *  functionArguments: [receiverAddress,10]
    * }
    * `
    *
@@ -69,9 +69,9 @@ export class TransactionSubmission {
    * module bytecode, move function type arguments, move function arguments
    * ```
    * data: {
-   *  bytecode:"0x001234567",
-   *  type_arguments:[],
-   *  arguments:[receiverAddress,10]
+   *  bytecode: "0x001234567",
+   *  typeArguments: [],
+   *  functionArguments: [receiverAddress,10]
    * }
    * ```
    *

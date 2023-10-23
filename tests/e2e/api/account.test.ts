@@ -89,7 +89,7 @@ describe("account api", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
-          arguments: [bob.accountAddress, new U64(10)],
+          functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
       const authenticator = aptos.signTransaction({
