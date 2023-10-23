@@ -15,7 +15,7 @@ import {
   TypeTagU8,
   TypeTagVector,
 } from "./typeTag";
-import { AccountAddress, ParsingError } from "../../core";
+import { AccountAddress } from "../../core";
 import { Identifier } from "../instances";
 
 function isValidIdentifier(str: string) {
@@ -45,9 +45,23 @@ type TypeTagState = {
   savedTypes: Array<TypeTag>;
 };
 
-export class TypeTagParserError extends ParsingError<string> {
-  constructor(invalidReason: string, typeTagStr: string) {
-    super(`Failed to parse typeTag '${typeTagStr}'`, invalidReason);
+export enum TypeTagParserErrorType {
+  InvalidTypeTag = "unknown type",
+  UnexpectedTypeArgumentClose = "unexpected '>'",
+  UnexpectedWhitespaceCharacter = "unexpected whitespace character",
+  UnexpectedComma = "unexpected ','",
+  TypeArgumentCountMismatch = "type argument count doesn't match expected amount",
+  MissingTypeArgumentClose = "no matching '>' for '<'",
+  UnexpectedPrimitiveTypeArguments = "primitive types not expected to have type arguments",
+  UnexpectedVectorTypeArgumentCount = "vector type expected to have exactly one type argument",
+  UnexpectedStructFormat = "unexpected struct format, must be of the form 0xaddress::module_name::struct_name",
+  InvalidModuleNameCharacter = "module name must only contain alphanumeric or '_' characters",
+  InvalidStructNameCharacter = "struct name must only contain alphanumeric or '_' characters",
+}
+
+export class TypeTagParserError extends Error {
+  constructor(typeTagStr: string, invalidReason: TypeTagParserErrorType) {
+    super(`Failed to parse typeTag '${typeTagStr}', ${invalidReason}`);
   }
 }
 
@@ -101,12 +115,12 @@ export function parseTypeTag(typeStr: string) {
       // Pop off stack outer type, if there's nothing left, there were too many '>'
       const savedPop = saved.pop();
       if (savedPop === undefined) {
-        throw new TypeTagParserError(typeStr, "Unexpected '>'");
+        throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedTypeArgumentClose);
       }
 
       // If the expected types don't match the number of commas, then we also fail
       if (expectedTypes !== curTypes.length) {
-        throw new TypeTagParserError(typeStr, "Type argument count mismatch");
+        throw new TypeTagParserError(typeStr, TypeTagParserErrorType.TypeArgumentCountMismatch);
       }
 
       // Add in the new created type, shifting the current types to the inner types
@@ -147,7 +161,7 @@ export function parseTypeTag(typeStr: string) {
       // e.g. `u8 u8` is invalid but `u8, u8` is valid
       const nextChar = typeStr[cur];
       if (cur < typeStr.length && parsedTypeTag && nextChar !== "," && nextChar !== ">") {
-        throw new TypeTagParserError(typeStr, `Invalid character after space ${nextChar}`);
+        throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
       }
 
       // eslint-disable-next-line no-continue
@@ -162,7 +176,7 @@ export function parseTypeTag(typeStr: string) {
 
   // This prevents a missing '>' on type arguments
   if (saved.length > 0) {
-    throw new TypeTagParserError(typeStr, "No matching '>' for '<'");
+    throw new TypeTagParserError(typeStr, TypeTagParserErrorType.MissingTypeArgumentClose);
   }
 
   // This prevents 'u8, u8' as an input
@@ -173,9 +187,9 @@ export function parseTypeTag(typeStr: string) {
       if (currentStr === "") {
         return curTypes[0];
       }
-      throw new TypeTagParserError(typeStr, "Unexpected ' '");
+      throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedComma);
     default:
-      throw new TypeTagParserError(typeStr, "Unexpected ','");
+      throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
   }
 }
 
@@ -188,64 +202,68 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>): TypeTag {
   switch (str) {
     case "bool":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "bool should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagBool();
     case "address":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "address should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagAddress();
     case "u8":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u8 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU8();
     case "u16":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u16 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU16();
     case "u32":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u32 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU32();
     case "u64":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u64 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU64();
     case "u128":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u128 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU128();
     case "u256":
       if (types.length > 0) {
-        throw new TypeTagParserError(str, "u256 should not have type arguments");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
       }
       return new TypeTagU256();
     case "vector":
       if (types.length !== 1) {
-        throw new TypeTagParserError(str, "vector must have exactly 1 type argument");
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedVectorTypeArgumentCount);
       }
       return new TypeTagVector(types[0]);
     default:
-      // Try to parse as a struct
+      // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
+      if (!str.match(/.*:.*/)) {
+        throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);
+      }
+
       // Parse for a struct tag
       // eslint-disable-next-line no-case-declarations
       const structParts = str.split("::");
       if (structParts.length !== 3) {
-        throw new TypeTagParserError(str, `Unexpected format for ${structParts}`);
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedStructFormat);
       }
 
       // Validate identifier characters
       if (!isValidIdentifier(structParts[1])) {
-        throw new TypeTagParserError(str, `Unexpected module name characters ${structParts[1]}`);
+        throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidModuleNameCharacter);
       }
       if (!isValidIdentifier(structParts[2])) {
-        throw new TypeTagParserError(str, `Unexpected struct name characters ${structParts[2]}`);
+        throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidStructNameCharacter);
       }
 
       return new TypeTagStruct(

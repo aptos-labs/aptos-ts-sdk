@@ -2,25 +2,25 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  StructTag,
-  TypeTagStruct,
-  TypeTagU8,
   AccountAddress,
-  TypeTagU16,
-  TypeTagU32,
-  TypeTagU128,
-  TypeTagU64,
-  TypeTagU256,
-  TypeTagBool,
-  TypeTagAddress,
-  TypeTagVector,
-  stringStructTag,
   objectStructTag,
   optionStructTag,
+  stringStructTag,
+  StructTag,
   TypeTag,
+  TypeTagAddress,
+  TypeTagBool,
+  TypeTagStruct,
+  TypeTagU128,
+  TypeTagU16,
+  TypeTagU256,
+  TypeTagU32,
+  TypeTagU64,
+  TypeTagU8,
+  TypeTagVector,
 } from "../../src";
 import { Identifier } from "../../src/transactions/instances";
-import { parseTypeTag } from "../../src/transactions/typeTag/parser";
+import { parseTypeTag, TypeTagParserError, TypeTagParserErrorType } from "../../src/transactions/typeTag/parser";
 
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");
@@ -28,55 +28,76 @@ const STRUCT_NAME = new Identifier("Tag");
 const structTagType = (typeTags?: Array<TypeTag>) =>
   new TypeTagStruct(new StructTag(AccountAddress.ONE, MODULE_NAME, STRUCT_NAME, typeTags ?? []));
 
+const typeTagParserError = (str: string, errorType: TypeTagParserErrorType, subStr?: string) => {
+  expect(() => parseTypeTag(str)).toThrow(new TypeTagParserError(subStr ?? str, errorType));
+};
+
 describe("TypeTagParser", () => {
   test("invalid types", () => {
     // Missing 8
-    expect(() => parseTypeTag("8")).toThrow();
+    typeTagParserError("8", TypeTagParserErrorType.InvalidTypeTag);
 
     // Addr isn't a type
-    expect(() => parseTypeTag("addr")).toThrow();
+    typeTagParserError("addr", TypeTagParserErrorType.InvalidTypeTag);
 
     // No references
-    expect(() => parseTypeTag("&address")).toThrow();
+    typeTagParserError("&address", TypeTagParserErrorType.InvalidTypeTag);
 
     // Standalone generic
-    expect(() => parseTypeTag("T1")).toThrow();
+    typeTagParserError("T1", TypeTagParserErrorType.InvalidTypeTag);
 
     // Not enough colons
-    expect(() => parseTypeTag("0x1:tag::Tag")).toThrow();
-    expect(() => parseTypeTag("0x1::tag:Tag")).toThrow();
+    typeTagParserError("0x1:tag::Tag", TypeTagParserErrorType.UnexpectedStructFormat);
+    typeTagParserError("0x1::tag:Tag", TypeTagParserErrorType.UnexpectedStructFormat);
 
     // Invalid inner type
-    expect(() => parseTypeTag("0x1::tag::Tag<8>")).toThrow();
+    typeTagParserError("0x1::tag::Tag<8>", TypeTagParserErrorType.InvalidTypeTag, "8");
 
     // Invalid address
-    expect(() => parseTypeTag("1::tag::Tag")).toThrow();
-    expect(() => parseTypeTag("1::tag::Tag<u8>")).toThrow();
+    // TODO: We may want to consider a more friendly address message
+    expect(() => parseTypeTag("1::tag::Tag")).toThrow("Hex string must start with a leading 0x.");
+    expect(() => parseTypeTag("1::tag::Tag<u8>")).toThrow("Hex string must start with a leading 0x.");
 
     // Invalid spacing around type arguments
-    expect(() => parseTypeTag("0x1::tag::Tag <u8>")).toThrow();
+    typeTagParserError("0x1::tag::Tag <u8>", TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
 
     // Invalid type argument combinations
-    expect(() => parseTypeTag("0x1::tag::Tag<<u8>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<<u8 u8>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8>>")).toThrow();
+    typeTagParserError("0x1::tag::Tag<<u8>", TypeTagParserErrorType.MissingTypeArgumentClose);
+    typeTagParserError("0x1::tag::Tag<<u8 u8>", TypeTagParserErrorType.UnexpectedWhitespaceCharacter);
+    typeTagParserError("0x1::tag::Tag<u8>>", TypeTagParserErrorType.UnexpectedTypeArgumentClose);
 
     // Comma separated arguments not in type arguments
-    expect(() => parseTypeTag("u8, u8")).toThrow();
-    expect(() => parseTypeTag("u8,u8")).toThrow();
-    expect(() => parseTypeTag("u8 ,u8")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8>,0x1::tag::Tag")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8>, 0x1::tag::Tag")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8> ,0x1::tag::Tag")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8> , 0x1::tag::Tag")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8><u8>")).toThrow();
+    typeTagParserError("u8, u8", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("u8,u8", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("u8 ,u8", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("0x1::tag::Tag<u8>,0x1::tag::Tag", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("0x1::tag::Tag<u8>, 0x1::tag::Tag", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("0x1::tag::Tag<u8> ,0x1::tag::Tag", TypeTagParserErrorType.UnexpectedComma);
+    typeTagParserError("0x1::tag::Tag<u8> , 0x1::tag::Tag", TypeTagParserErrorType.UnexpectedComma);
+
+    typeTagParserError("0x1::tag::Tag<u8<u8>>", TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments, "u8");
+
+    // TODO: These errors are not clear
+    typeTagParserError("0x1::tag::Tag<u8><u8>", TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments, "u8");
+    typeTagParserError("0x1<u8>::tag::Tag<u8>", TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments, "u8");
+    typeTagParserError("0x1::tag<u8>::Tag<u8>", TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments, "u8");
 
     // Invalid type tags without arguments
-    expect(() => parseTypeTag("0x1::tag::Tag<>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<,>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8,>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag< , >")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<u8, >")).toThrow();
+    // TODO: Message could be clearer
+    typeTagParserError("0x1::tag::Tag<>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<, >", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag< ,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag< , >", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<u8,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<u8,>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+
+    // TODO: This should have a better message
+    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<,u8>>>", TypeTagParserErrorType.UnexpectedTypeArgumentClose);
+
+    // TODO: This case isn't caught
+    // typeTagParserError("0x1::tag::Tag<,u8>", TypeTagParserErrorType.TypeArgumentCountMismatch);
   });
 
   test("standard types", () => {
