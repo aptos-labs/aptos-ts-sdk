@@ -78,15 +78,16 @@ export async function aptosRequest<Req, Res>(
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (aptosConfig.isIndexerRequest(url)) {
+    const indexerResponse = result.data as any;
     // errors from indexer
-    if ((result.data as any).errors) {
+    if (indexerResponse.errors) {
       throw new AptosApiError(
         options,
         result,
-        (response.data as any).errors[0].message ?? `Unhandled Error ${response.status} : ${response.statusText}`,
+        indexerResponse.errors[0].message ?? `Unhandled Error ${response.status} : ${response.statusText}`,
       );
     }
-    result.data = (result.data as any).data as Res;
+    result.data = indexerResponse.data as Res;
   }
 
   if (result.status >= 200 && result.status < 300) {

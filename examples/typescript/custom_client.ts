@@ -1,5 +1,5 @@
 /**
- * Example to demostrate how one can config the SDK to use a custom client.
+ * Example to demonstrate how one can config the SDK to use a custom client.
  *
  * The SDK by default supports axios client on web environment and go client on node environment
  * with http2 support.
@@ -37,7 +37,7 @@ export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<
   };
 }
 
-export async function superagnetCustomClient<Req, Res>(
+export async function superagentCustomClient<Req, Res>(
   requestOptions: ClientRequest<Req>,
 ): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
@@ -65,10 +65,10 @@ export async function superagnetCustomClient<Req, Res>(
 }
 
 const example = async () => {
-  console.log("This example demostrate how one can config for a custom client ot be used by the SDK");
+  console.log("This example demonstrate how one can config for a custom client ot be used by the SDK");
 
   async function withSuperagentClient() {
-    const config = new AptosConfig({ client: { provider: superagnetCustomClient } });
+    const config = new AptosConfig({ client: { provider: superagentCustomClient } });
     const aptos = new Aptos(config);
 
     console.log(`\nclient being used ${config.client.provider.name}`);
