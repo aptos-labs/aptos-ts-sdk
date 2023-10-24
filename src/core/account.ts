@@ -8,17 +8,31 @@ import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
-import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
+import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
-import { getInfo, lookupOriginalAccountAddress } from "../internal/account";
-import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Class for creating and managing account on Aptos network
  *
  * Use this class to create accounts, sign transactions, and more.
  * Note: Creating an account instance does not create the account on-chain.
+ *
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * `Legacy` and `Unified` authentications.
+ *
+ * @Legacy includes `ED25519` and `MultiED25519`
+ * @Unified includes `SingleSender` and `MultiSender`, where currently
+ * `SingleSender` supports `ED25519` and `Secp256k1`, and `MultiSender` supports
+ * `MultiED25519`.
+ *
+ * In TypeScript SDK, we support all of these options
+ * @generate default to generate Unified keys, with an optional `legacy` boolean argument
+ * that lets you generate new keys conforming to the Legacy authentication.
+ * @fromPrivateKey derives an account by a provided private key and address, with an optional
+ * `legacy` boolean argument that lets you generate new keys conforming to the Legacy authentication.
+ * @fromDerivationPath derives an account with bip44 path and mnemonics,
+ *
  */
 export class Account {
   /**
@@ -48,8 +62,8 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
-   * @param args.legacy optional. If set to true, would create a legacy Ed25519 signing keys. Default
-   * is Single Sender signing key
+   * @param args.legacy optional. If set to true, would create a Legacy signing keys. Default
+   * is Unified signing key
    *
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
@@ -82,16 +96,33 @@ export class Account {
   }
 
   /**
-   * Derives an account with random private key and address
+   * Derives an account with random private key and address.
+   * Default generation is using the Unified flow with ED25519 key
    *
-   * @param args.scheme optional. SigningScheme - type of SigningScheme to use. Default to Ed25519
-   * Currently only Ed25519 and Secp256k1 are supported
-   * @param args.legacy optional. If set to true, would create a legacy Ed25519 signing keys. Default
-   * is Single Sender signing key
+   * @param args optional. Unify GenerateAccount type for Legacy and Unified keys
+   *
+   * Account input type to generate an account using Legacy
+   * Ed25519 or MultiEd25519 keys or without a specified `scheme`.
+   * ```
+   * GenerateAccountWithLegacyKey = {
+   *  scheme?: SigningSchemeInput.Ed25519 | SigningSchemeInput.MultiEd25519;
+   *  legacy: true;
+   * };
+   * ```
+   *
+   * Account input type to generate an account using Unified
+   * Secp256k1Ecdsa key
+   * In this case `legacy` is always false
+   * ```
+   * GenerateAccountWithUnifiedKey = {
+   *  scheme: SigningSchemeInput.Secp256k1Ecdsa;
+   *  legacy?: false;
+   * };
+   * ```
    *
    * @returns Account with the given signing scheme
    */
-  static generate(args?: { scheme?: SigningSchemeInput; legacy?: boolean }): Account {
+  static generate(args?: GenerateAccount): Account {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
@@ -119,73 +150,16 @@ export class Account {
   /**
    * Derives an account with provided private key
    *
-   * NOTE: This function derives the public and auth keys
-   * from the provided private key and then creates an Account
-   * based on the Account configured signing scheme -
-   * Legacy ED25519 or Single Sender
-   *
    * @param privateKey PrivateKey - private key of the account
-   * @param aptosConfig AptosConfig type
+   * @param address The account address
+   * @param legacy optional. If set to true, would create a Legacy signing keys. Default
+   * is Unified signing key
    *
-   * @returns Promise<Account>
+   * @returns Account
    */
-  static async fromPrivateKey(privateKey: PrivateKey, aptosConfig: AptosConfig): Promise<Account> {
-    const publicKey = new AnyPublicKey(privateKey.publicKey());
-
-    if (privateKey instanceof Secp256k1PrivateKey) {
-      // private key is secp256k1, therefore we know it for sure uses a single signer key
-      const authKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: 2 });
-      const address = new AccountAddress({ data: authKey.toUint8Array() });
-      return new Account({ privateKey, address });
-    }
-
-    if (privateKey instanceof Ed25519PrivateKey) {
-      // lookup single sender ed25519
-      const SingleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromBytesAndScheme({
-        publicKey,
-        scheme: SigningScheme.SingleKey,
-      });
-      const isSingleSenderTransactionAuthenticator = await Account.lookupAddress(
-        SingleSenderTransactionAuthenticatorAuthKey,
-        aptosConfig,
-      );
-      if (isSingleSenderTransactionAuthenticator) {
-        const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
-        return new Account({ privateKey, address });
-      }
-      // lookup legacy ed25519
-      const legacyAuthKey = AuthenticationKey.fromBytesAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
-      const isLegacyEd25519 = await Account.lookupAddress(legacyAuthKey, aptosConfig);
-      if (isLegacyEd25519) {
-        const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
-        return new Account({ privateKey, address, legacy: true });
-      }
-    }
-
-    // if we are here, it means we couldn't find an address with an
-    // auth key that matches the provided private key
-    throw new Error(`Can't derive account from private key ${privateKey}`);
-  }
-
-  private static async lookupAddress(authKey: AuthenticationKey, aptosConfig: AptosConfig): Promise<boolean> {
-    const accountAddress = await lookupOriginalAccountAddress({
-      aptosConfig,
-      authenticationKey: authKey.toString(),
-    });
-
-    try {
-      await getInfo({
-        aptosConfig,
-        accountAddress: accountAddress.toString(),
-      });
-      return true;
-    } catch (error: any) {
-      // account not found
-      if (error.code === 404) {
-        return false;
-      }
-      throw new Error(`Error while looking for an account info ${accountAddress.toString()} `);
-    }
+  static fromPrivateKey(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }): Account {
+    const { privateKey, address, legacy } = args;
+    return new Account({ privateKey, address, legacy });
   }
 
   /**

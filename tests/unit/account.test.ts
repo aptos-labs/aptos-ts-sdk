@@ -3,11 +3,10 @@
 
 import {
   Account,
-  AptosConfig,
+  AccountAddress,
   Ed25519PrivateKey,
   Ed25519PublicKey,
   Hex,
-  Network,
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
   SigningScheme,
@@ -18,7 +17,6 @@ import { AnyPublicKey } from "../../src/core/crypto/anyPublicKey";
 import { ed25519, secp256k1TestObject, singleSignerED25519, wallet } from "./helper";
 
 describe("Account", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
   describe("generate", () => {
     it("should create an instance of Account when Secp256k1 scheme is specified", () => {
       // Account with Ed25519 SingleKey scheme
@@ -50,30 +48,33 @@ describe("Account", () => {
     });
   });
   describe("fromPrivateKey", () => {
-    it("derives the correct account from a legacy ed25519 private key", async () => {
+    it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const newAccount = await Account.fromPrivateKey(privateKey, config);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: true });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
       expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
 
-    it("derives the correct account from a single signer ed25519 private key", async () => {
+    it("derives the correct account from a single signer ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const newAccount = await Account.fromPrivateKey(privateKey, config);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
       expect((newAccount.publicKey as Ed25519PublicKey).toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
 
-    it("derives the correct account from a single signer secp256k1 private key", async () => {
+    it("derives the correct account from a single signer secp256k1 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
-      const newAccount = await Account.fromPrivateKey(privateKey, config);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Secp256k1PrivateKey).toString()).toEqual(privateKey.toString());
       expect((newAccount.publicKey as Secp256k1PublicKey).toString()).toEqual(

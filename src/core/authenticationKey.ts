@@ -53,27 +53,31 @@ export class AuthenticationKey {
    * This allows for the creation of AuthenticationKeys that are not derived from Public Keys directly
    * @param args
    */
-  public static fromBytesAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
+  public static fromPublicKeyAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey, scheme } = args;
+    let authKeyBytes: Uint8Array;
 
-    // TODO - check for single key or multi key
-    if (scheme === SigningScheme.SingleKey) {
-      const newBytes = publicKey.bcsToBytes();
-      const authKeyBytes = new Uint8Array([...newBytes, scheme]);
-      const hash = sha3Hash.create();
-      hash.update(authKeyBytes);
-      const hashDigest = hash.digest();
-      return new AuthenticationKey({ data: hashDigest });
+    // TODO - support multied25519 key and MultiKey
+    switch (scheme) {
+      case SigningScheme.SingleKey: {
+        const singleKeyBytes = publicKey.bcsToBytes();
+        authKeyBytes = new Uint8Array([...singleKeyBytes, scheme]);
+        break;
+      }
+      case SigningScheme.Ed25519:
+      case SigningScheme.MultiEd25519: {
+        const ed25519PublicKeyBytes = publicKey.toUint8Array();
+        const inputBytes = Hex.fromHexInput(ed25519PublicKeyBytes).toUint8Array();
+        authKeyBytes = new Uint8Array([...inputBytes, scheme]);
+        break;
+      }
+      default:
+        throw new Error(`Scheme ${scheme} is not supported`);
     }
-    const bytes = publicKey.toUint8Array();
-    const inputBytes = Hex.fromHexInput(bytes).toUint8Array();
-    const authKeyBytes = new Uint8Array(inputBytes.length + 1);
-    authKeyBytes.set(inputBytes);
-    authKeyBytes.set([scheme], inputBytes.length);
+
     const hash = sha3Hash.create();
     hash.update(authKeyBytes);
     const hashDigest = hash.digest();
-
     return new AuthenticationKey({ data: hashDigest });
   }
 
@@ -99,7 +103,7 @@ export class AuthenticationKey {
       throw new Error("No supported authentication scheme for public key");
     }
 
-    return AuthenticationKey.fromBytesAndScheme({ publicKey, scheme });
+    return AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme });
   }
 
   /**
