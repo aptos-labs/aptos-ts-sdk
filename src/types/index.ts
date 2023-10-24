@@ -1012,7 +1012,7 @@ export type GenerateAccountWithLegacyKey = {
  * In this case `legacy` is always false
  */
 export type GenerateAccountWithUnifiedKey = {
-  scheme: SigningSchemeInput.Secp256k1Ecdsa;
+  scheme: SigningSchemeInput.Secp256k1Ecdsa | SigningSchemeInput.Ed25519;
   legacy?: false;
 };
 
