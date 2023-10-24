@@ -1,11 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import aptosClient from "@aptos-labs/aptos-client";
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
-import { ClientConfig, AptosRequest, MimeType } from "../types";
 import { VERSION } from "../version";
+import { AptosRequest, MimeType, ClientRequest, ClientResponse, Client, AnyNumber } from "../types";
 
 /**
  * Meaningful errors map
@@ -25,15 +24,9 @@ const errors: Record<number, string> = {
  * Given a url and method, sends the request with axios and
  * returns the response.
  */
-async function request<Req, Res>(
-  url: string,
-  method: "GET" | "POST",
-  body?: Req,
-  contentType?: string,
-  params?: any,
-  overrides?: ClientConfig,
-): Promise<any> {
-  const headers: Record<string, string | string[] | undefined> = {
+export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
+  const { url, method, body, contentType, params, overrides } = options;
+  const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
     "x-aptos-client": `aptos-ts-sdk/${VERSION}`,
     "content-type": contentType ?? MimeType.JSON,
@@ -47,7 +40,7 @@ async function request<Req, Res>(
    * make a call using the @aptos-labs/aptos-client package
    * {@link https://www.npmjs.com/package/@aptos-labs/aptos-client}
    */
-  return aptosClient<Res>({
+  return client.provider<Req, Res>({
     url,
     method,
     body,
@@ -68,35 +61,39 @@ export async function aptosRequest<Req, Res>(
   options: AptosRequest,
   aptosConfig: AptosConfig,
 ): Promise<AptosResponse<Req, Res>> {
-  const { url, path, method, body, contentType, params, overrides } = options;
+  const { url, path } = options;
   const fullUrl = `${url}/${path ?? ""}`;
-  const response = await request<Req, Res>(fullUrl, method, body, contentType, params, overrides);
+  const response = await request<Req, Res>({ ...options, url: fullUrl }, aptosConfig.client);
+
   const result: AptosResponse<Req, Res> = {
     status: response.status,
     statusText: response.statusText!,
     data: response.data,
     headers: response.headers,
     config: response.config,
+    request: response.request,
     url: fullUrl,
   };
 
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
   if (aptosConfig.isIndexerRequest(url)) {
+    const indexerResponse = result.data as any;
     // errors from indexer
-    if ((result.data as any).errors) {
+    if (indexerResponse.errors) {
       throw new AptosApiError(
         options,
         result,
-        response.data.errors[0].message ?? `Unhandled Error ${response.status} : ${response.statusText}`,
+        indexerResponse.errors[0].message ?? `Unhandled Error ${response.status} : ${response.statusText}`,
       );
     }
-    result.data = (result.data as any).data as Res;
+    result.data = indexerResponse.data as Res;
   }
 
   if (result.status >= 200 && result.status < 300) {
     return result;
   }
+
   const errorMessage = errors[result.status];
   throw new AptosApiError(
     options,

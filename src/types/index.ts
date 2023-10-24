@@ -117,7 +117,7 @@ export type AnyNumber = number | bigint;
  * behavior and interaction with the Aptos network
  */
 export type AptosSettings = {
-  readonly network: Network;
+  readonly network?: Network;
 
   readonly fullnode?: string;
 
@@ -126,6 +126,8 @@ export type AptosSettings = {
   readonly indexer?: string;
 
   readonly clientConfig?: ClientConfig;
+
+  readonly client?: Client;
 };
 
 /**
@@ -155,6 +157,30 @@ export type ClientConfig = {
   HEADERS?: Record<string, string | number | boolean>;
   WITH_CREDENTIALS?: boolean;
 };
+
+export interface ClientRequest<Req> {
+  url: string;
+  method: "GET" | "POST";
+  body?: Req;
+  contentType?: string;
+  params?: any;
+  overrides?: ClientConfig;
+  headers?: Record<string, any>;
+}
+
+export interface ClientResponse<Res> {
+  status: number;
+  statusText: string;
+  data: Res;
+  config?: any;
+  request?: any;
+  response?: any;
+  headers?: any;
+}
+
+export interface Client {
+  provider<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;
+}
 
 /**
  * The API request type

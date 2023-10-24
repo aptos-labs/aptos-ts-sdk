@@ -37,7 +37,7 @@ export type PostRequestOptions = {
    */
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   /**
-   * The body of the request, should match teh content type of the request
+   * The body of the request, should match the content type of the request
    */
   body?: any;
   /**
@@ -69,7 +69,7 @@ export async function post<Req, Res>(options: PostRequestOptions): Promise<Aptos
       acceptType: acceptType?.valueOf(),
       params,
       overrides: {
-        ...aptosConfig,
+        ...aptosConfig.clientConfig,
         ...overrides,
       },
     },

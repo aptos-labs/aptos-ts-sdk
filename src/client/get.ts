@@ -61,7 +61,7 @@ export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosRe
       acceptType: acceptType?.valueOf(),
       params,
       overrides: {
-        ...aptosConfig,
+        ...aptosConfig.clientConfig,
         ...overrides,
       },
     },

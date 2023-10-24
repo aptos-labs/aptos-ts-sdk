@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { ClientRequest, ClientResponse } from "../../src";
+
 export const FUND_AMOUNT = 100_000_000;
 
 export const wallet = {
@@ -55,3 +57,31 @@ export const secp256k1TestObject = {
 };
 
 export const longTestTimeout = 120 * 1000;
+
+export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
+  const { params, method, url, headers, body } = requestOptions;
+
+  const customHeaders: any = {
+    ...headers,
+    customClient: true,
+  };
+
+  const request = {
+    headers: customHeaders,
+    body:
+      // weird fetch issue
+      headers!["content-type"] === "application/x.aptos.signed_transaction+bcs" ? (body as any) : JSON.stringify(body),
+    method,
+  };
+
+  const response = await fetch(`${url}?${params}`, request);
+  const data = await response.json();
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    data,
+    headers: response.headers,
+    config: response,
+    request,
+  };
+}
