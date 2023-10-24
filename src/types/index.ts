@@ -989,3 +989,29 @@ export enum DeriveScheme {
    */
   DeriveResourceAccountAddress = 255,
 }
+
+/**
+ * Account input type to generate an account using Legacy
+ * Ed25519 or MultiEd25519 keys or without a specified `scheme`.
+ * If `scheme` is not specified, we default to ED25519
+ * In this case `legacy` is always true
+ */
+export type GenerateAccountWithLegacyKey = {
+  scheme?: SigningSchemeInput.Ed25519 | SigningSchemeInput.MultiEd25519;
+  legacy: true;
+};
+
+/**
+ * Account input type to generate an account using Unified
+ * Secp256k1Ecdsa key
+ * In this case `legacy` is always false
+ */
+export type GenerateAccountWithUnifiedKey = {
+  scheme: SigningSchemeInput.Secp256k1Ecdsa;
+  legacy?: false;
+};
+
+/**
+ * Unify GenerateAccount type for Legacy and Unified keys
+ */
+export type GenerateAccount = GenerateAccountWithLegacyKey | GenerateAccountWithUnifiedKey;
