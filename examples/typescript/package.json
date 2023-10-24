@@ -9,7 +9,8 @@
     "mint_nft": "ts-node mint_nft.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
-    "custom_client": "ts-node custom_client.ts"
+    "custom_client": "ts-node custom_client.ts",
+    "swap": "ts-node swap.ts"
   },
   "keywords": [],
   "author": "",
