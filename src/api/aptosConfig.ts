@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosSettings, ClientConfig } from "../types";
+import aptosClient from "@aptos-labs/aptos-client";
+import { AptosSettings, ClientConfig, Client } from "../types";
 import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
@@ -11,6 +12,11 @@ import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 export class AptosConfig {
   /** The Network that this SDK is associated with. */
   readonly network: Network;
+
+  /**
+   * The client instance the SDK uses
+   */
+  readonly client: Client;
 
   /**
    * The optional hardcoded fullnode URL to send requests to instead of using the network
@@ -34,6 +40,7 @@ export class AptosConfig {
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
     this.indexer = settings?.indexer;
+    this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
   }
 
