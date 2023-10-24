@@ -10,6 +10,7 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagSigner,
   TypeTagStruct,
   TypeTagU128,
   TypeTagU16,
@@ -101,6 +102,9 @@ describe("TypeTagParser", () => {
   });
 
   test("standard types", () => {
+    expect(parseTypeTag("signer")).toEqual(new TypeTagSigner());
+    // Technically this isn't a specific type tag, but this is a good estimation of it
+    expect(parseTypeTag("&signer")).toEqual(new TypeTagSigner());
     expect(parseTypeTag("u8")).toEqual(new TypeTagU8());
     expect(parseTypeTag("u16")).toEqual(new TypeTagU16());
     expect(parseTypeTag("u32")).toEqual(new TypeTagU32());

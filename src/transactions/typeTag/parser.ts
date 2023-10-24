@@ -6,6 +6,7 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagSigner,
   TypeTagStruct,
   TypeTagU128,
   TypeTagU16,
@@ -200,6 +201,12 @@ export function parseTypeTag(typeStr: string) {
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>): TypeTag {
   switch (str) {
+    case "&signer":
+    case "signer":
+      if (types.length > 0) {
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+      }
+      return new TypeTagSigner();
     case "bool":
       if (types.length > 0) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
