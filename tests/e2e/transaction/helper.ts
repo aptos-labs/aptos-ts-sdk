@@ -59,7 +59,7 @@ export async function rawTransactionHelper(
   const rawTransaction = await aptos.generateTransaction({
     sender: senderAccount.accountAddress.toString(),
     data: {
-      function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
+      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
       functionArguments: args,
     },
