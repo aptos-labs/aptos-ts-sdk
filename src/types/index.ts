@@ -665,9 +665,9 @@ export type MoveUint32Type = number;
 export type MoveUint64Type = string;
 export type MoveUint128Type = string;
 export type MoveUint256Type = string;
-export type MoveAddressType = `0x${string}`;
-export type MoveObjectType = `0x${string}`;
-export type MoveStructType = `0x${string}::${string}::${string}`;
+export type MoveAddressType = string;
+export type MoveObjectType = string;
+export type MoveStructType = `${string}::${string}::${string}`;
 export type MoveOptionType = MoveType | null | undefined;
 /**
  * String representation of a on-chain Move struct type.
@@ -866,7 +866,7 @@ export type LedgerInfo = {
  */
 export type Block = {
   block_height: string;
-  block_hash: `0x${string}`;
+  block_hash: string;
   block_timestamp: string;
   first_version: string;
   last_version: string;

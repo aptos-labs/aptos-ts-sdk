@@ -40,7 +40,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderAccount.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -55,7 +55,7 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -98,7 +98,7 @@ describe("transaction simulation", () => {
             sender: senderAccount.accountAddress.toString(),
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
-              function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
+              function: `${senderAccount.accountAddress.toString()}::transfer::two_by_two`,
               functionArguments: [
                 new U64(100),
                 new U64(200),
@@ -142,7 +142,7 @@ describe("transaction simulation", () => {
           sender: senderAccount.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -159,7 +159,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -177,7 +177,7 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::two_by_two`,
             functionArguments: [
               new U64(100),
               new U64(200),
@@ -219,7 +219,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -234,7 +234,7 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -277,7 +277,7 @@ describe("transaction simulation", () => {
             sender: senderSecp256k1Account.accountAddress.toString(),
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
-              function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
+              function: `${senderAccount.accountAddress.toString()}::transfer::two_by_two`,
               functionArguments: [
                 new U64(100),
                 new U64(200),
@@ -321,7 +321,7 @@ describe("transaction simulation", () => {
           sender: senderSecp256k1Account.accountAddress.toString(),
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -338,7 +338,7 @@ describe("transaction simulation", () => {
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
@@ -356,7 +356,7 @@ describe("transaction simulation", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           feePayerAddress: feePayerAccount.accountAddress.toString(),
           data: {
-            function: `0x${senderAccount.accountAddress.toStringWithoutPrefix()}::transfer::two_by_two`,
+            function: `${senderAccount.accountAddress.toString()}::transfer::two_by_two`,
             functionArguments: [
               new U64(100),
               new U64(200),
