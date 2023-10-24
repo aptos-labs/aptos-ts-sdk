@@ -58,7 +58,8 @@ export type GetDelegatedStakingActivitiesResponse = GetDelegatedStakingActivitie
 export type GetCollectionDataResponse = GetCollectionDataQuery["current_collections_v2"][0];
 export type GetTokenDataResponse = GetTokenDataQuery["current_token_datas_v2"][0];
 export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_status"];
-export type GetFungibleAssetMetadataResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"];
+export type GetFungibleAssetMetadatasResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"];
+export type GetFungibleAssetMetadataResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"][0];
 export type GetFungibleAssetActivitiesResponse = GetFungibleAssetActivitiesQuery["fungible_asset_activities"];
 export type GetCurrentFungibleAssetBalancesResponse =
   GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances"];

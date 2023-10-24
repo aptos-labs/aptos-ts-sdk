@@ -12,7 +12,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import {
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
-  GetFungibleAssetMetadataResponse,
+  GetFungibleAssetMetadatasResponse,
   PaginationArgs,
 } from "../types";
 import { queryIndexer } from "./general";
@@ -38,7 +38,7 @@ export async function getFungibleAssetMetadata(args: {
     pagination?: PaginationArgs;
     where?: FungibleAssetMetadataBoolExp;
   };
-}): Promise<GetFungibleAssetMetadataResponse> {
+}): Promise<GetFungibleAssetMetadatasResponse> {
   const { aptosConfig, options } = args;
 
   const graphqlQuery = {

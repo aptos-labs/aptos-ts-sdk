@@ -5,6 +5,7 @@ import {
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
+  GetFungibleAssetMetadatasResponse,
   PaginationArgs,
 } from "../types";
 import { AptosConfig } from "./aptosConfig";
@@ -42,8 +43,29 @@ export class FungibleAsset {
       pagination?: PaginationArgs;
       where?: FungibleAssetMetadataBoolExp;
     };
-  }): Promise<GetFungibleAssetMetadataResponse> {
+  }): Promise<GetFungibleAssetMetadatasResponse> {
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries the current specific fungible asset metadata
+   *
+   * This query returns the fungible asset metadata for a specific fungible asset.
+   *
+   * @param assetType The asset type of the fungible asset
+   * @returns getFungibleAssetMetadata A list of fungible asset metadata
+   */
+  async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse> {
+    const data = await getFungibleAssetMetadata({
+      aptosConfig: this.config,
+      options: {
+        where: {
+          asset_type: { _eq: assetType },
+        },
+      },
+    });
+
+    return data[0];
   }
 
   /**
