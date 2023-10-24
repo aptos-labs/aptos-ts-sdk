@@ -5,7 +5,6 @@ import {
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
-  GetFungibleAssetMetadatasResponse,
   PaginationArgs,
 } from "../types";
 import { AptosConfig } from "./aptosConfig";
@@ -43,7 +42,7 @@ export class FungibleAsset {
       pagination?: PaginationArgs;
       where?: FungibleAssetMetadataBoolExp;
     };
-  }): Promise<GetFungibleAssetMetadatasResponse> {
+  }): Promise<GetFungibleAssetMetadataResponse> {
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
   }
 
@@ -52,11 +51,15 @@ export class FungibleAsset {
    *
    * This query returns the fungible asset metadata for a specific fungible asset.
    *
-   * @param assetType The asset type of the fungible asset
-   * @returns getFungibleAssetMetadata A list of fungible asset metadata
+   * @param assetType The asset type of the fungible asset.
+   * e.g
+   * "0x1::aptos_coin::AptosCoin" for Aptos Coin
+   * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" - address format if this is fungible asset
+   *
+   * @returns getFungibleAssetMetadata A fungible asset metadata item
    */
   async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse> {
-    const data = await getFungibleAssetMetadata({
+    return getFungibleAssetMetadata({
       aptosConfig: this.config,
       options: {
         where: {
@@ -64,8 +67,6 @@ export class FungibleAsset {
         },
       },
     });
-
-    return data[0];
   }
 
   /**
