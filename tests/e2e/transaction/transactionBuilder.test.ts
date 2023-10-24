@@ -92,7 +92,7 @@ describe("transaction builder", () => {
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const rawTxn = await generateRawTransaction({
         aptosConfig: config,
@@ -111,7 +111,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const rawTxn = await generateRawTransaction({
         aptosConfig: config,
@@ -157,7 +157,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const secondarySignerAddress = Account.generate();
       const transaction = await buildTransaction({
@@ -183,7 +183,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const feePayer = Account.generate();
       const transaction = await buildTransaction({
@@ -209,7 +209,7 @@ describe("transaction builder", () => {
         const payload = generateTransactionPayload({
           function: "0x1::aptos_account::transfer",
           typeArguments: [],
-          functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+          functionArguments: [bob.accountAddress, new U64(1)],
         });
         const feePayer = Account.generate();
         const secondarySignerAddress = Account.generate();
@@ -306,7 +306,7 @@ describe("transaction builder", () => {
       const payload = generateTransactionPayload({
         multisigAddress: bob.accountAddress,
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -400,7 +400,7 @@ describe("transaction builder", () => {
       );
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -434,7 +434,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -469,7 +469,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -488,7 +488,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -509,7 +509,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = generateTransactionPayload({
         function: "0x1::aptos_account::transfer",
-        functionArguments: [new MoveObject(bob.accountAddress), new U64(1)],
+        functionArguments: [bob.accountAddress, new U64(1)],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
