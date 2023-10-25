@@ -2,7 +2,7 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, StructTag, TypeTagStruct, U64 } from "aptos";
+import { Account, AccountAddress, Aptos, AptosConfig, U64, parseTypeTag } from "aptos";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
@@ -96,7 +96,7 @@ const example = async () => {
     secondarySignerAddresses: [bob.accountAddress.toUint8Array()],
     data: {
       bytecode: TRANSFER_SCRIPT,
-      typeArguments: [new TypeTagStruct(StructTag.fromString(APTOS_COIN))],
+      typeArguments: [parseTypeTag(APTOS_COIN)],
       functionArguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
     },
   });

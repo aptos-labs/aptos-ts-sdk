@@ -3,7 +3,7 @@
  * Similar to ./simple_transfer.ts, but uses transferCoinTransaction to generate the transaction.
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network } from "aptos";
+import { Account, AccountAddress, Aptos, AptosConfig } from "aptos";
 
 const COIN_STORE = `0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;

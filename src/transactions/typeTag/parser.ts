@@ -6,6 +6,7 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagGeneric,
   TypeTagSigner,
   TypeTagStruct,
   TypeTagU128,
@@ -78,7 +79,9 @@ export class TypeTagParserError extends Error {
  * 3. Nested generics of different depths e.g. 0x1::pair::Pair<0x1::coin::Coin<0x1234::coin::MyCoin>, u8>
  * 4. Generics for types in ABIs are filled in with placeholders e.g T1, T2, T3
  */
-export function parseTypeTag(typeStr: string) {
+export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
+  const allowGenerics = options?.allowGenerics ?? false;
+
   const saved: Array<TypeTagState> = [];
   // This represents the internal types for a type tag e.g. '0x1::coin::Coin<innerTypes>'
   let innerTypes: Array<TypeTag> = [];
@@ -109,7 +112,7 @@ export function parseTypeTag(typeStr: string) {
     } else if (char === ">") {
       // Process last type, if there is no type string, then don't parse it
       if (currentStr !== "") {
-        const newType = parseTypeTagInner(currentStr, innerTypes);
+        const newType = parseTypeTagInner(currentStr, innerTypes, allowGenerics);
         curTypes.push(newType);
       }
 
@@ -134,7 +137,7 @@ export function parseTypeTag(typeStr: string) {
       // Comma means we need to start parsing a new tag, push the previous one to the curTypes
       // Process last type, if there is no type string, then don't parse it
       if (currentStr.length !== 0) {
-        const newType = parseTypeTagInner(currentStr, innerTypes);
+        const newType = parseTypeTagInner(currentStr, innerTypes, allowGenerics);
 
         // parse type tag and push it on the types
         innerTypes = [];
@@ -146,7 +149,7 @@ export function parseTypeTag(typeStr: string) {
       // This means we should save what we have and everything else should skip until the next
       let parsedTypeTag = false;
       if (currentStr.length !== 0) {
-        const newType = parseTypeTagInner(currentStr, innerTypes);
+        const newType = parseTypeTagInner(currentStr, innerTypes, allowGenerics);
 
         // parse type tag and push it on the types
         innerTypes = [];
@@ -183,7 +186,7 @@ export function parseTypeTag(typeStr: string) {
   // This prevents 'u8, u8' as an input
   switch (curTypes.length) {
     case 0:
-      return parseTypeTagInner(currentStr, innerTypes);
+      return parseTypeTagInner(currentStr, innerTypes, allowGenerics);
     case 1:
       if (currentStr === "") {
         return curTypes[0];
@@ -199,7 +202,7 @@ export function parseTypeTag(typeStr: string) {
  * @param str
  * @param types
  */
-function parseTypeTagInner(str: string, types: Array<TypeTag>): TypeTag {
+function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
   switch (str) {
     case "&signer":
     case "signer":
@@ -253,6 +256,10 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>): TypeTag {
       }
       return new TypeTagVector(types[0]);
     default:
+      if (allowGenerics && str.match(/^T[0-9]+$/)) {
+        return new TypeTagGeneric(Number(str.split("T")[1]));
+      }
+
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
       if (!str.match(/.*:.*/)) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);

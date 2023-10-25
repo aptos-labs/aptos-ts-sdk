@@ -6,7 +6,7 @@ export * from "./bcs";
 export * from "./client";
 export * from "./core";
 export * from "./transactions/types";
-export * from "./transactions/typeTag/typeTag";
+export * from "./transactions/typeTag";
 export * from "./types";
 export * from "./utils/apiEndpoints";
 export * from "./utils/hdKey";

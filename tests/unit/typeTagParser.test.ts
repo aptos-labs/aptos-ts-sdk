@@ -10,6 +10,7 @@ import {
   TypeTag,
   TypeTagAddress,
   TypeTagBool,
+  TypeTagGeneric,
   TypeTagSigner,
   TypeTagStruct,
   TypeTagU128,
@@ -44,7 +45,7 @@ describe("TypeTagParser", () => {
     // No references
     typeTagParserError("&address", TypeTagParserErrorType.InvalidTypeTag);
 
-    // Standalone generic
+    // Standalone generic (with allow generics off)
     typeTagParserError("T1", TypeTagParserErrorType.InvalidTypeTag);
 
     // Not enough colons
@@ -102,8 +103,8 @@ describe("TypeTagParser", () => {
   });
 
   test("standard types", () => {
+    // TODO: Should we gate signer and &signer similar to how we gate generic?
     expect(parseTypeTag("signer")).toEqual(new TypeTagSigner());
-    // Technically this isn't a specific type tag, but this is a good estimation of it
     expect(parseTypeTag("&signer")).toEqual(new TypeTagSigner());
     expect(parseTypeTag("u8")).toEqual(new TypeTagU8());
     expect(parseTypeTag("u16")).toEqual(new TypeTagU16());
@@ -113,6 +114,15 @@ describe("TypeTagParser", () => {
     expect(parseTypeTag("u256")).toEqual(new TypeTagU256());
     expect(parseTypeTag("bool")).toEqual(new TypeTagBool());
     expect(parseTypeTag("address")).toEqual(new TypeTagAddress());
+  });
+  test("generic types with allow generics on", () => {
+    expect(parseTypeTag("T0", { allowGenerics: true })).toEqual(new TypeTagGeneric(0));
+    expect(parseTypeTag("T1", { allowGenerics: true })).toEqual(new TypeTagGeneric(1));
+    expect(parseTypeTag("T1337", { allowGenerics: true })).toEqual(new TypeTagGeneric(1337));
+    expect(parseTypeTag("vector<T0>", { allowGenerics: true })).toEqual(new TypeTagVector(new TypeTagGeneric(0)));
+    expect(parseTypeTag("0x1::tag::Tag<T0, T1>", { allowGenerics: true })).toEqual(
+      structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]),
+    );
   });
 
   test("outside spacing", () => {
