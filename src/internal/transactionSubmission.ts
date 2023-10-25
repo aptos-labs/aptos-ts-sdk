@@ -182,20 +182,23 @@ export async function signAndSubmitTransaction(args: {
   });
 }
 
-export async function publishModuleTransaction(args: {
+export async function publicPackageTransaction(args: {
   aptosConfig: AptosConfig;
   account: HexInput;
   metadataBytes: HexInput;
-  byteCode: HexInput;
+  moduleBytecode: Array<HexInput>;
   options?: GenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
-  const { aptosConfig, account, metadataBytes, byteCode, options } = args;
+  const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
+
+  const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
+
   const transaction = await generateTransaction({
     aptosConfig,
     sender: account,
     data: {
       function: "0x1::code::publish_package_txn",
-      functionArguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(byteCode)])],
+      functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
     },
     options,
   });

@@ -19,7 +19,7 @@ import {
 import { UserTransactionResponse, PendingTransactionResponse, HexInput } from "../types";
 import {
   generateTransaction,
-  publishModuleTransaction,
+  publicPackageTransaction,
   signAndSubmitTransaction,
   signTransaction,
   simulateTransaction,
@@ -175,18 +175,18 @@ export class TransactionSubmission {
    * `aptos move compile --save-metadata ...`,
    * For more info {@link https://aptos.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
    *
-   * @param account The publisher account
-   * @param metadataBytes The package metadata bytes
-   * @param byteCode The bytecodes of modules
+   * @param args.account The publisher account
+   * @param args.metadataBytes The package metadata bytes
+   * @param args.moduleBytecode An array of the bytecode of each module in the package in compiler output order
    *
    * @returns A SingleSignerTransaction that can be simulated or submitted to chain
    */
-  async publishModuleTransaction(args: {
+  async publishPackageTransaction(args: {
     account: HexInput;
     metadataBytes: HexInput;
-    byteCode: HexInput;
+    moduleBytecode: Array<HexInput>;
     options?: GenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    return publishModuleTransaction({ aptosConfig: this.config, ...args });
+    return publicPackageTransaction({ aptosConfig: this.config, ...args });
   }
 }
