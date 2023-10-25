@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 0.0.2 (2023-10-25)
+
+- Build package before publishing
+
 ## 0.0.1 (2023-10-25)
 
 - [`Breaking`] Changed all instances of `arguments` to `functionArguments` to avoid the reserved keyword in `strict` mode.
