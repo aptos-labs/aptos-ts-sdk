@@ -47,6 +47,31 @@ export class FungibleAsset {
   }
 
   /**
+   * Queries the current specific fungible asset metadata
+   *
+   * This query returns the fungible asset metadata for a specific fungible asset.
+   *
+   * @param assetType The asset type of the fungible asset.
+   * e.g
+   * "0x1::aptos_coin::AptosCoin" for Aptos Coin
+   * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" - address format if this is fungible asset
+   *
+   * @returns getFungibleAssetMetadata A fungible asset metadata item
+   */
+  async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse[0]> {
+    const data = await getFungibleAssetMetadata({
+      aptosConfig: this.config,
+      options: {
+        where: {
+          asset_type: { _eq: assetType },
+        },
+      },
+    });
+
+    return data[0];
+  }
+
+  /**
    * Queries the fungible asset activities
    *
    * This query returns the fungible asset activities.
