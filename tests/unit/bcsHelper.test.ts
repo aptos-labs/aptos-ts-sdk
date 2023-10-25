@@ -599,7 +599,7 @@ describe("Tests for the Serializable class", () => {
       const moveObjectWithConstructor = new MoveObject(AccountAddress.fromHexInputRelaxed("0x1"));
       const moveObject = MoveObject.fromAddress(AccountAddress.ONE);
       const moveObject2 = MoveObject.fromAddress("0x1");
-      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());      
+      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());
       expect(moveObject.bcsToBytes()).toEqual(moveObject2.bcsToBytes());
     });
 

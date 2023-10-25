@@ -7,6 +7,7 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import { AccountAddress } from "../../core/accountAddress";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -14,7 +15,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * or a BCS-serializable struct itself.
  *
  * It is a BCS-serializable, array-like type that contains an array of values of type `T`,
- * where `T` is a class that implements `EntryFunctionArgument`.
+ * where `T` is a class that implements `Serializable`.
  *
  * The purpose of this class is to facilitate easy construction of BCS-serializable
  * Move `vector<T>` types.
@@ -43,7 +44,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
  * @params
- * values: an Array<T> of values where T is a class that implements EntryFunctionArgument
+ * values: an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
  */
 export class MoveVector<T extends Serializable & EntryFunctionArgument>
@@ -227,20 +228,19 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable
-   * EntryFunctionArgument type.
-   *
-   * If you want to use non EntryFunctionArgument types, please use the deserializeVector function
-   * in the Deserializer class.
+   * Deserialize a MoveVector of type T, specifically where T is a Serializable and Deserializable type.
    *
    * NOTE: This only works with a depth of one. Generics will not work.
    *
    * NOTE: This will not work with types that aren't of the Serializable class.
    *
+   * If you're looking for a more flexible deserialization function, you can use the deserializeVector function
+   * in the Deserializer class.
+   *
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
    * @params deserializer: the Deserializer instance to use, with bytes loaded into it already.
-   * cls: the class to typecast the input values to, must be a Serializable and Deserializable EntryFunctionArgument type.
+   * cls: the class to typecast the input values to, must be a Serializable and Deserializable type.
    * @returns a MoveVector of the corresponding class T
    * *
    */
@@ -463,6 +463,32 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
+  }
+
+  /**
+   * Factory method to generate a MoveOption<AccountAddress> from `HexInput`, `AccountAddress` or `undefined`
+   *
+   * @example
+   * MoveOption.AccountAddress("0x1").isSome() === true;
+   * MoveOption.AccountAddress("0xbeefcafe").isSome() === true;
+   * MoveOption.AccountAddress().isSome() === false;
+   * MoveOption.AccountAddress(undefined).isSome() === false;
+   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * the resulting MoveOption's .isSome() method will return false.
+   * @returns a MoveOption<AccountAddress> with an inner value `value`
+   */
+  static AccountAddress(value?: HexInput | AccountAddress | null): MoveOption<AccountAddress> {
+    let accountAddress: AccountAddress | undefined;
+    if (value !== null && value !== undefined) {
+      if (value instanceof AccountAddress) {
+        accountAddress = value;
+      } else {
+        accountAddress = AccountAddress.fromHexInputRelaxed(value);
+      }
+    } else {
+      accountAddress = undefined;
+    }
+    return new MoveOption<AccountAddress>(accountAddress);
   }
 
   static deserialize<U extends Serializable & EntryFunctionArgument>(
