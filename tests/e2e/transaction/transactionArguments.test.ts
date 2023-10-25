@@ -183,7 +183,7 @@ describe("various transaction arguments", () => {
           data: {
             function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
             typeArguments: typeArgs ?? [],
-            arguments: args,
+            functionArguments: args,
           },
         });
         const response = await signAndSubmitSingleSignerHelper(aptos, rawTransaction, senderAccount);
@@ -210,7 +210,7 @@ describe("various transaction arguments", () => {
         });
       });
 
-      describe.skip("sender is secp256k1", () => {
+      describe("sender is secp256k1", () => {
         it("successfully submits a public entry fn with all argument types", async () => {
           await buildAndTestSingleSignerEntryFunction(
             senderAccountSecp256k1,
@@ -243,7 +243,7 @@ describe("various transaction arguments", () => {
               singleSignerScriptArgumentTest,
               publisherAccount.accountAddress,
             ),
-            arguments: [senderAccount.accountAddress, ...scriptFunctionArguments],
+            functionArguments: [senderAccount.accountAddress, ...scriptFunctionArguments],
             typeArguments: typeArgs ?? [],
           },
         });
@@ -255,7 +255,7 @@ describe("various transaction arguments", () => {
         await buildAndTestSingleSignerScriptFunction(senderAccountEd25519, "ed25519_signature");
       });
 
-      it.skip("successfully submits an secp256k1 script fn with all supported argument types", async () => {
+      it("successfully submits an secp256k1 script fn with all supported argument types", async () => {
         await buildAndTestSingleSignerScriptFunction(senderAccountSecp256k1, "secp256k1_ecdsa_signature");
       });
     });
@@ -270,7 +270,7 @@ describe("various transaction arguments", () => {
         senderAccount,
         {
           function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-          arguments: [new MoveVector<AccountAddress>(allSignerAddresses), ...entryFunctionArguments],
+          functionArguments: [new MoveVector<AccountAddress>(allSignerAddresses), ...entryFunctionArguments],
           typeArguments: [],
         },
         "multi_agent_signature",
@@ -287,7 +287,7 @@ describe("various transaction arguments", () => {
           await entryMultiAgent(senderAccountEd25519, "private_arguments_multiple_signers");
         });
       });
-      describe.skip("sender is secp256k1", () => {
+      describe("sender is secp256k1", () => {
         it("successfully submits a public entry multi signer transaction with all argument types", async () => {
           await entryMultiAgent(senderAccountSecp256k1, "public_arguments_multiple_signers");
         });
@@ -306,7 +306,7 @@ describe("various transaction arguments", () => {
               multiSignerScriptArgumentTest,
               publisherAccount.accountAddress,
             ),
-            arguments: [senderAccount.accountAddress, ...secondarySignerAddresses, ...scriptFunctionArguments],
+            functionArguments: [senderAccount.accountAddress, ...secondarySignerAddresses, ...scriptFunctionArguments],
             typeArguments: [],
           },
           "multi_agent_signature",
@@ -318,7 +318,7 @@ describe("various transaction arguments", () => {
         await scriptMultiAgent(senderAccountEd25519);
       });
 
-      it.skip("successfully submits a secp256k1 sender multi agent script fn with all supported argument types", async () => {
+      it("successfully submits a secp256k1 sender multi agent script fn with all supported argument types", async () => {
         await scriptMultiAgent(senderAccountSecp256k1);
       });
     });
@@ -343,7 +343,7 @@ describe("various transaction arguments", () => {
       }
       const payload: GenerateTransactionPayloadData = {
         function: `0x${publisherAccount.accountAddress.toStringWithoutPrefix()}::tx_args_module::${functionName}`,
-        arguments: [...txArgs],
+        functionArguments: [...txArgs],
         typeArguments: [],
       };
       const generatedTransaction = await generateMultiAgentHelper(
@@ -389,7 +389,7 @@ describe("various transaction arguments", () => {
         );
       });
     });
-    describe.skip("sender and fee payer are secp2565k1", () => {
+    describe("sender and fee payer are secp2565k1", () => {
       it("successfully submits a sponsored transaction with all argument types", async () => {
         await buildAndTestFeePayerTx(senderAccountSecp256k1, feePayerAccountSecp256k1, [], "public_arguments");
       });

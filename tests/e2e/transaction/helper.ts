@@ -57,7 +57,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
     sender: firstAccount.accountAddress.toString(),
     data: {
       function: `0x${1}::aptos_account::batch_transfer`,
-      arguments: [new MoveVector(addressesRemaining), MoveVector.U64(addressesRemaining.map(() => amountToSend))],
+      functionArguments: [new MoveVector(addressesRemaining), MoveVector.U64(addressesRemaining.map(() => amountToSend))],
     },
   });
   const signedTxn = await aptos.signTransaction({
@@ -81,14 +81,6 @@ export async function signAndSubmitSingleSignerHelper(
   rawTransaction: SingleSignerTransaction,
   senderAccount: Account,
 ): Promise<UserTransactionResponse> {
-  const rawTransaction = await aptos.generateTransaction({
-    sender: senderAccount.accountAddress.toString(),
-    data: {
-      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
-      typeArguments: typeArgs,
-      functionArguments: args,
-    },
-  });
   const senderAuthenticator = await aptos.signTransaction({
     signer: senderAccount,
     transaction: rawTransaction,
@@ -114,11 +106,7 @@ export const generateMultiAgentHelper = async (
   // compile time errors because it can't resolve the types
   const transactionData = {
     sender: senderAccount.accountAddress.toString(),
-    data: {
-      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
-      typeArguments: typeArgs,
-      functionArguments: args,
-    },
+    data: { ...payload, },
   };
   let generatedTx;
   if (secondarySignerAccounts.length === 0) {
