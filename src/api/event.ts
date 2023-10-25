@@ -3,7 +3,7 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
-import { AnyNumber, GetEventsResponse, HexInput, MoveResourceType, OrderBy, PaginationArgs } from "../types";
+import { AnyNumber, GetEventsResponse, HexInput, MoveStructType, OrderBy, PaginationArgs } from "../types";
 import { EventsBoolExp } from "../types/generated/types";
 
 /**
@@ -41,7 +41,7 @@ export class Event {
    */
   async getAccountEventsByEventType(args: {
     accountAddress: HexInput;
-    eventType: MoveResourceType;
+    eventType: MoveStructType;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetEventsResponse[0]>;

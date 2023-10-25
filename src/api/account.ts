@@ -14,7 +14,7 @@ import {
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
-  MoveResourceType,
+  MoveStructType,
   OrderBy,
   PaginationArgs,
   TokenStandard,
@@ -175,7 +175,7 @@ export class Account {
    */
   async getAccountResource<T extends {} = any>(args: {
     accountAddress: HexInput;
-    resourceType: MoveResourceType;
+    resourceType: MoveStructType;
     options?: LedgerVersion;
   }): Promise<T> {
     return getResource<T>({ aptosConfig: this.config, ...args });

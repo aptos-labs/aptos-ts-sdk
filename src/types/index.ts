@@ -249,7 +249,7 @@ export type GasEstimation = {
 };
 
 export type MoveResource = {
-  type: MoveResourceType;
+  type: MoveStructType;
   data: {};
 };
 
@@ -518,7 +518,7 @@ export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPa
 
 export type EntryFunctionPayloadResponse = {
   type: string;
-  function: MoveResourceType;
+  function: MoveStructType;
   /**
    * Type arguments of the function
    */
@@ -683,7 +683,7 @@ export type MoveOptionType = MoveType | null | undefined;
 /**
  * String representation of a on-chain Move struct type.
  */
-export type MoveResourceType = `${string}::${string}::${string}`;
+export type MoveStructType = `${string}::${string}::${string}`;
 
 export type MoveType =
   | boolean
@@ -696,7 +696,7 @@ export type MoveType =
   | MoveUint256Type
   | MoveAddressType
   | MoveObjectType
-  | MoveResourceType
+  | MoveStructType
   | Array<MoveType>;
 
 /**
@@ -733,7 +733,7 @@ export type MoveValue =
   | MoveUint256Type
   | MoveAddressType
   | MoveObjectType
-  | MoveResourceType
+  | MoveStructType
   | MoveOptionType
   | Array<MoveValue>;
 
@@ -891,8 +891,8 @@ export type Block = {
  * The data needed to generate a View Request payload
  */
 export type ViewRequestData = {
-  function: MoveResourceType;
-  typeArguments?: Array<MoveResourceType>;
+  function: MoveStructType;
+  typeArguments?: Array<MoveStructType>;
   functionArguments?: Array<MoveValue>;
 };
 
@@ -901,14 +901,14 @@ export type ViewRequestData = {
 /**
  * View request for the Move view function API
  *
- * `type MoveResourceType = ${string}::${string}::${string}`;
+ * `type MoveStructType = ${string}::${string}::${string}`;
  */
 export type ViewRequest = {
-  function: MoveResourceType;
+  function: MoveStructType;
   /**
    * Type arguments of the function
    */
-  type_arguments: Array<MoveResourceType>;
+  type_arguments: Array<MoveStructType>;
   /**
    * Arguments of the function
    */

@@ -2,7 +2,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { U64 } from "../bcs/serializable/movePrimitives";
 import { Account, AccountAddress } from "../core";
 import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
-import { HexInput, AnyNumber, MoveResourceType } from "../types";
+import { HexInput, AnyNumber, MoveStructType } from "../types";
 import { APTOS_COIN } from "../utils/const";
 import { generateTransaction } from "./transactionSubmission";
 import { parseTypeTag } from "../transactions/typeTag/parser";
@@ -12,7 +12,7 @@ export async function transferCoinTransaction(args: {
   sender: Account;
   recipient: HexInput;
   amount: AnyNumber;
-  coinType?: MoveResourceType;
+  coinType?: MoveStructType;
   options?: GenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, recipient, amount, coinType, options } = args;
