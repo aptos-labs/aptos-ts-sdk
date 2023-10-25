@@ -26,7 +26,7 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/moveStructs";
+import { MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import {
   fundAccounts,
   rawTransactionHelper,
@@ -53,7 +53,7 @@ describe("various transaction arguments", () => {
   const senderAccount = Account.generate();
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
-  const moduleObjects: Array<MoveObject> = [];
+  const moduleObjects: Array<AccountAddress> = [];
   let transactionArguments: EntryFunctionArgumentTypes[];
 
   beforeAll(async () => {
@@ -74,9 +74,9 @@ describe("various transaction arguments", () => {
       resourceType: `${senderAccount.accountAddress.toString()}::tx_args_module::SetupData`,
     });
 
-    moduleObjects.push(new MoveObject(setupData.empty_object_1.inner));
-    moduleObjects.push(new MoveObject(setupData.empty_object_2.inner));
-    moduleObjects.push(new MoveObject(setupData.empty_object_3.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_1.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_2.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_3.inner));
 
     transactionArguments = [
       new Bool(true),

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
+import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
 import { AccountAddress } from "../core";
@@ -27,7 +27,6 @@ export type EntryFunctionArgumentTypes =
   | U128
   | U256
   | AccountAddress
-  | MoveObject
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
   | MoveString
@@ -41,7 +40,6 @@ export type ScriptFunctionArgumentTypes =
   | U128
   | U256
   | AccountAddress
-  | MoveObject
   | MoveVector<U8>
   | MoveString
   | FixedBytes;

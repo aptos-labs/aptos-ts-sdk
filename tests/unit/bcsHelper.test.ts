@@ -3,7 +3,7 @@
 
 import { FixedBytes } from "../../src/bcs/serializable/fixedBytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/movePrimitives";
-import { MoveObject, MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/moveStructs";
+import { MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/moveStructs";
 import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
 /* eslint-disable @typescript-eslint/no-shadow */
 
@@ -95,15 +95,6 @@ describe("Tests for the Serializable class", () => {
       const deserializedValue = type.deserialize(deserializer);
       expect(deserializedValue.value).toEqual(value.value);
     });
-  });
-
-  it("serializes and deserializes a MoveObject correctly", () => {
-    const moveObject = new MoveObject(AccountAddress.ONE);
-    const moveObjectBytes = AccountAddress.ONE.data;
-    expect(moveObject.bcsToBytes()).toEqual(moveObjectBytes);
-    const deserializer = new Deserializer(moveObjectBytes);
-    const deserializedMoveObject = MoveObject.deserialize(deserializer);
-    expect(deserializedMoveObject.value.equals(moveObject.value)).toEqual(true);
   });
 
   it("serializes and deserializes MoveOption types with defined inner values correctly", () => {
