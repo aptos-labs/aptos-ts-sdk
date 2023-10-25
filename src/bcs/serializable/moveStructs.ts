@@ -6,7 +6,6 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
-import { AccountAddress } from "../../core/accountAddress";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
 
 /**
@@ -427,36 +426,5 @@ export class MoveOption<T extends Serializable> extends Serializable implements 
   static deserialize<U extends Serializable>(deserializer: Deserializer, cls: Deserializable<U>): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
     return new MoveOption(vector.values[0]);
-  }
-}
-
-export class MoveObject extends Serializable implements TransactionArgument {
-  public value: AccountAddress;
-
-  constructor(value: HexInput | AccountAddress) {
-    super();
-
-    if (value instanceof AccountAddress) {
-      this.value = value;
-    } else {
-      this.value = AccountAddress.fromHexInputRelaxed(value);
-    }
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serialize(this.value);
-  }
-
-  serializeForEntryFunction(serializer: Serializer): void {
-    this.value.serializeForEntryFunction(serializer);
-  }
-
-  serializeForScriptFunction(serializer: Serializer): void {
-    this.value.serializeForScriptFunction(serializer);
-  }
-
-  static deserialize(deserializer: Deserializer): MoveObject {
-    const address = deserializer.deserialize(AccountAddress);
-    return new MoveObject(address);
   }
 }
