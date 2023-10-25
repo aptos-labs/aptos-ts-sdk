@@ -28,11 +28,11 @@ describe("FungibleAsset", () => {
 
   test("it should fetch a specific fungible asset metadata", async () => {
     let data = await aptos.getFungibleAssetMetadataByAssetType(APTOS_COIN);
-    expect(data[0].asset_type).toEqual(APTOS_COIN);
+    expect(data.asset_type).toEqual(APTOS_COIN);
 
     // fetch by something that doesn't exist
     data = await aptos.getFungibleAssetMetadataByAssetType("0x1::aptos_coin::testnotexist");
-    expect(data.length).toEqual(0);
+    expect(data).toBeUndefined();
   });
 
   test("it should fetch fungible asset activities with correct number and asset type ", async () => {

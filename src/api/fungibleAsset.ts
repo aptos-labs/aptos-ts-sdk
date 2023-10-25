@@ -58,8 +58,8 @@ export class FungibleAsset {
    *
    * @returns getFungibleAssetMetadata A fungible asset metadata item
    */
-  async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse> {
-    return getFungibleAssetMetadata({
+  async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse[0]> {
+    const data = await getFungibleAssetMetadata({
       aptosConfig: this.config,
       options: {
         where: {
@@ -67,6 +67,8 @@ export class FungibleAsset {
         },
       },
     });
+
+    return data[0];
   }
 
   /**
