@@ -32,14 +32,14 @@ const readline = require("readline").createInterface({
 const getOptimalLpAmount = async (
   aptos: Aptos,
   swap: AccountAddress,
-  token1Addr: HexInput,
-  token2Addr: HexInput,
+  token1Addr: AccountAddress,
+  token2Addr: AccountAddress,
 ): Promise<void> => {
   const payload: ViewRequestData = {
     function: `0x${swap.toStringWithoutPrefix()}::router::optimal_liquidity_amounts`,
     arguments: [
-      `0x${Hex.fromHexInput(token1Addr).toStringWithoutPrefix()}`,
-      `0x${Hex.fromHexInput(token2Addr).toStringWithoutPrefix()}`,
+      token1Addr.toString(),
+      token2Addr.toString(),
       false,
       "200000",
       "300000",
@@ -47,7 +47,7 @@ const getOptimalLpAmount = async (
       "300",
     ],
   };
-  const result: any = await aptos.view({ payload });
+  const result = await aptos.view({ payload });
   console.log("Optimal LP amount: ", result);
 };
 
@@ -55,16 +55,16 @@ const addLiquidity = async (
   aptos: Aptos,
   swap: AccountAddress,
   deployer: Account,
-  token1Addr: HexInput,
-  token2Addr: HexInput,
+  token1Addr: AccountAddress,
+  token2Addr: AccountAddress,
 ): Promise<string> => {
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::router::add_liquidity_entry`,
       arguments: [
-        AccountAddress.fromHexInput(token1Addr),
-        AccountAddress.fromHexInput(token2Addr),
+        token1Addr,
+        token2Addr,
         new Bool(false),
         new U64(200000),
         new U64(300000),
@@ -83,8 +83,8 @@ const swap = async (
   aptos: Aptos,
   swap: AccountAddress,
   deployer: Account,
-  fromToken: HexInput,
-  toToken: HexInput,
+  fromToken: AccountAddress,
+  toToken: AccountAddress,
   amountIn: number,
   amountOutMin: number,
   recipient: AccountAddress,
@@ -96,8 +96,8 @@ const swap = async (
       arguments: [
         new U64(amountIn),
         new U64(amountOutMin),
-        AccountAddress.fromHexInput(fromToken),
-        AccountAddress.fromHexInput(toToken),
+        fromToken,
+        toToken,
         new Bool(false),
         recipient,
       ],
@@ -118,7 +118,7 @@ const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
     },
   });
 
-  if (data.length !== 2) throw new Error("Expected two Fungible Asset.");
+  if (data.length !== 2) throw new Error("Expected two Fungible Assets.");
 
   console.log("Fungible Asset: ", data);
   return {
@@ -144,14 +144,14 @@ const createLiquidityPool = async (
   aptos: Aptos,
   swap: AccountAddress,
   deployer: Account,
-  dogCoinAddr: HexInput,
-  catCoinAddr: HexInput,
+  dogCoinAddr: AccountAddress,
+  catCoinAddr: AccountAddress,
 ): Promise<string> => {
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::router::create_pool`,
-      arguments: [AccountAddress.fromHexInput(dogCoinAddr), AccountAddress.fromHexInput(catCoinAddr), new Bool(false)],
+      arguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -226,7 +226,6 @@ const example = async () => {
 
   console.log("====== Account info ======\n");
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);
-  console.log(`Admin's private key is: ${admin.privateKey.toString()}`);
   console.log(`Swap address is: ${swapAddress.toString()}`);
   // Fund Admin account
   await aptos.fundAccount({ accountAddress: admin.accountAddress.toString(), amount: 100_000_000 });
@@ -234,8 +233,8 @@ const example = async () => {
   console.log("\n====== Create Fungible Asset -> (Dog and Cat coin) ======\n");
   await createFungibleAsset(aptos, admin);
   const assetTypes = await getAssetType(aptos, admin);
-  const dogCoinAddr = assetTypes.dog.toString();
-  const catCoinAddr = assetTypes.cat.toString();
+  const dogCoinAddr = AccountAddress.fromHexInput(assetTypes.dog.toString());
+  const catCoinAddr = AccountAddress.fromHexInput(assetTypes.cat.toString());
   console.log(`Cat FACoin asset type: ${catCoinAddr}`);
   console.log(`Dog FACoin asset type: ${dogCoinAddr}`);
 
@@ -246,8 +245,8 @@ const example = async () => {
   await mintCoin(aptos, admin, 30_000_000, "cat");
 
   console.log("\n====== Current Balance ======\n");
-  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr)}.`);
-  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr)}.`);
+  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr.toString())}.`);
+  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr.toString())}.`);
 
   console.log("\n====== Create Liquidity Pool ======\n");
   console.log("initializing Lquidity Pool......");
@@ -266,8 +265,8 @@ const example = async () => {
   console.log("Swap finished.");
 
   console.log("\n====== Current Balance ======\n");
-  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr)}.`);
-  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr)}.`);
+  console.log(`Admin's Dog coin balance: ${await getFaBalance(aptos, admin, dogCoinAddr.toString())}.`);
+  console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr.toString())}.`);
 
   readline.close();
 };

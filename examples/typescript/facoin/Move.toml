@@ -4,7 +4,6 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-aptos_framework = "0x1"
 FACoin = "_"
 
 [dependencies.AptosFramework]
