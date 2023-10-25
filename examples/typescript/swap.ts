@@ -10,19 +10,7 @@
  * 6. Swap between Alice's FA and Bob's FA
  */
 
-import {
-  Account,
-  AccountAddress,
-  Aptos,
-  Bool,
-  Ed25519PrivateKey,
-  Hex,
-  HexInput,
-  MoveObject,
-  MoveString,
-  U64,
-  ViewRequestData,
-} from "aptos";
+import { Account, AccountAddress, Aptos, Bool, Ed25519PrivateKey, U64, ViewRequestData } from "aptos";
 
 const readline = require("readline").createInterface({
   input: process.stdin,
@@ -37,15 +25,7 @@ const getOptimalLpAmount = async (
 ): Promise<void> => {
   const payload: ViewRequestData = {
     function: `0x${swap.toStringWithoutPrefix()}::router::optimal_liquidity_amounts`,
-    arguments: [
-      token1Addr.toString(),
-      token2Addr.toString(),
-      false,
-      "200000",
-      "300000",
-      "200",
-      "300",
-    ],
+    functionArguments: [token1Addr.toString(), token2Addr.toString(), false, "200000", "300000", "200", "300"],
   };
   const result = await aptos.view({ payload });
   console.log("Optimal LP amount: ", result);
@@ -62,7 +42,7 @@ const addLiquidity = async (
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::router::add_liquidity_entry`,
-      arguments: [
+      functionArguments: [
         token1Addr,
         token2Addr,
         new Bool(false),
@@ -93,14 +73,7 @@ const swap = async (
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::router::swap_entry`,
-      arguments: [
-        new U64(amountIn),
-        new U64(amountOutMin),
-        fromToken,
-        toToken,
-        new Bool(false),
-        recipient,
-      ],
+      functionArguments: [new U64(amountIn), new U64(amountOutMin), fromToken, toToken, new Bool(false), recipient],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -151,7 +124,7 @@ const createLiquidityPool = async (
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::router::create_pool`,
-      arguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
+      functionArguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -165,7 +138,7 @@ const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: A
     sender: deployer.accountAddress.toString(),
     data: {
       function: `0x${swap.toStringLongWithoutPrefix()}::liquidity_pool::initialize`,
-      arguments: [],
+      functionArguments: [],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -194,7 +167,7 @@ const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, c
     sender: admin.accountAddress.toString(),
     data: {
       function: `0x${admin.accountAddress.toStringLongWithoutPrefix()}::${coinName}::mint`,
-      arguments: [admin.accountAddress, new U64(amount)],
+      functionArguments: [admin.accountAddress, new U64(amount)],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: admin, transaction: rawTxn });
