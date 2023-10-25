@@ -51,7 +51,10 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * values: an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
  */
-export class MoveVector<T extends Serializable> extends Serializable implements TransactionArgument {
+export class MoveVector<T extends Serializable & EntryFunctionArgument>
+  extends Serializable
+  implements TransactionArgument
+{
   public values: Array<T>;
 
   constructor(values: Array<T>) {
@@ -208,7 +211,10 @@ export class MoveVector<T extends Serializable> extends Serializable implements 
    * @returns a MoveVector of the corresponding class T
    * *
    */
-  static deserialize<T extends Serializable>(deserializer: Deserializer, cls: Deserializable<T>): MoveVector<T> {
+  static deserialize<T extends Serializable & EntryFunctionArgument>(
+    deserializer: Deserializer,
+    cls: Deserializable<T>,
+  ): MoveVector<T> {
     const length = deserializer.deserializeUleb128AsU32();
     const values = new Array<T>();
     for (let i = 0; i < length; i += 1) {
@@ -246,7 +252,10 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 }
 
-export class MoveOption<T extends Serializable> extends Serializable implements EntryFunctionArgument {
+export class MoveOption<T extends Serializable & EntryFunctionArgument>
+  extends Serializable
+  implements EntryFunctionArgument
+{
   private vec: MoveVector<T>;
 
   public readonly value?: T;
@@ -423,7 +432,10 @@ export class MoveOption<T extends Serializable> extends Serializable implements 
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
   }
 
-  static deserialize<U extends Serializable>(deserializer: Deserializer, cls: Deserializable<U>): MoveOption<U> {
+  static deserialize<U extends Serializable & EntryFunctionArgument>(
+    deserializer: Deserializer,
+    cls: Deserializable<U>,
+  ): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
     return new MoveOption(vector.values[0]);
   }
