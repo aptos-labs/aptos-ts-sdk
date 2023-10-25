@@ -283,10 +283,6 @@ export async function getCollectionData(args: {
     originMethod: "getCollectionData",
   });
 
-  if (data.current_collections_v2.length === 0) {
-    throw Error("Collection not found");
-  }
-
   return data.current_collections_v2[0];
 }
 
