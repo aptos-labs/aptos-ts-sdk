@@ -19,7 +19,6 @@ import {
   Serializable,
   Serializer,
   AccountAddress,
-  EntryFunctionArgumentTypes,
 } from "../../src";
 
 /* eslint-disable @typescript-eslint/no-shadow */
@@ -236,7 +235,7 @@ describe("Tests for the Serializable class", () => {
   });
 
   it("throws an error when trying to unwrap an option with no value, before and after serialization", () => {
-    function testSerdeAndUnwrap<T extends EntryFunctionArgumentTypes>(
+    function testSerdeAndUnwrap<T extends Serializable>(
       optionConstructor: () => MoveOption<T>,
       deserializationClass: Deserializable<T>,
     ) {
@@ -610,7 +609,7 @@ describe("Tests for the Serializable class", () => {
       const moveObjectWithConstructor = new MoveObject(AccountAddress.fromHexInputRelaxed("0x1"));
       const moveObject = MoveObject.fromAddress(AccountAddress.ONE);
       const moveObject2 = MoveObject.fromAddress("0x1");
-      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());      
+      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());
       expect(moveObject.bcsToBytes()).toEqual(moveObject2.bcsToBytes());
     });
 
