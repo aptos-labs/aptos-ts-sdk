@@ -62,8 +62,8 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
-   * @param args.legacy optional. If set to true, would create a Legacy signing keys. Default
-   * is Unified signing key
+   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
+   * to generating a Unified keypair
    *
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
@@ -152,8 +152,8 @@ export class Account {
    *
    * @param privateKey PrivateKey - private key of the account
    * @param address The account address
-   * @param legacy optional. If set to true, would create a Legacy signing keys. Default
-   * is Unified signing key
+   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
+   * to generating a Unified keypair
    *
    * @returns Account
    */

@@ -367,7 +367,7 @@ export class Account {
    * If the privateKey is a Secp256k1 type, it derives the account using the derived public key and
    * auth key using the SingleKey scheme locally.
    *
-   * If the privateKey is a ED25519 type, it looksup the auth key on chain, and uses it to resolve
+   * If the privateKey is a ED25519 type, it looks up the authentication key on chain, and uses it to resolve
    * whether it is a Legacy ED25519 key or a Unified ED25519 key. It then derives the account based
    * on that.
    *
