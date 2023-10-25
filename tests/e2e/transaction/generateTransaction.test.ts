@@ -41,8 +41,8 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -58,8 +58,8 @@ describe("generate transaction", () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -96,8 +96,8 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -135,8 +135,8 @@ describe("generate transaction", () => {
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -153,8 +153,8 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
@@ -172,8 +172,8 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         feePayerAddress: feePayerAccount.accountAddress.toString(),
         data: {
-          function: "0x0000000000000000000000000000000000000000000000000000000000000123::module::name",
-          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
