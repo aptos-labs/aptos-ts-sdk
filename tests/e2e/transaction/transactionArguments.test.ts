@@ -63,18 +63,20 @@ describe("various transaction arguments", () => {
     // when deploying, `init_module` creates 3 objects and stores them into the `SetupData` resource
     // within that resource is 3 fields: `empty_object_1`, `empty_object_2`, `empty_object_3`
     // we need to extract those objects and use them as arguments for the entry functions
-    const accountResources = await aptos.getAccountResources({
+    type SetupData = {
+      empty_object_1: { inner: string };
+      empty_object_2: { inner: string };
+      empty_object_3: { inner: string };
+    };
+
+    const setupData = await aptos.getAccountResource<SetupData>({
       accountAddress: senderAccount.accountAddress.toString(),
+      resourceType: `${senderAccount.accountAddress.toString()}::tx_args_module::SetupData`,
     });
 
-    accountResources.forEach((resource) => {
-      const data = resource.data as any;
-      if (data.empty_object_1 !== undefined) {
-        moduleObjects.push(new MoveObject(data.empty_object_1.inner));
-        moduleObjects.push(new MoveObject(data.empty_object_2.inner));
-        moduleObjects.push(new MoveObject(data.empty_object_3.inner));
-      }
-    });
+    moduleObjects.push(new MoveObject(setupData.empty_object_1.inner));
+    moduleObjects.push(new MoveObject(setupData.empty_object_2.inner));
+    moduleObjects.push(new MoveObject(setupData.empty_object_3.inner));
 
     transactionArguments = [
       new Bool(true),
