@@ -20,9 +20,11 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
+  parseTypeTag,
+  TypeTagParserError,
+  TypeTagParserErrorType,
 } from "../../src";
 import { Identifier } from "../../src/transactions/instances";
-import { parseTypeTag, TypeTagParserError, TypeTagParserErrorType } from "../../src/transactions/typeTag/parser";
 
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");
