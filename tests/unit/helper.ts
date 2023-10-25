@@ -49,11 +49,19 @@ export const secp256k1TestObject = {
   privateKey: "0xd107155adf816a0a94c6db3c9489c13ad8a1eda7ada2e558ba3bfa47c020347e",
   publicKey:
     "0x04acdd16651b839c24665b7e2033b55225f384554949fef46c397b5275f37f6ee95554d70fb5d9f93c5831ebf695c7206e7477ce708f03ae9bb2862dc6c9e033ea",
-  address: "0x44b9b90a0bd6a691a20cb06148f10ec9c21da63bb5df345ae38507e0c3c2f897",
-  authKey: "0x44b9b90a0bd6a691a20cb06148f10ec9c21da63bb5df345ae38507e0c3c2f897",
+  address: "0x5792c985bc96f436270bd2a3c692210b09c7febb8889345ceefdbae4bacfe498",
+  authKey: "0x5792c985bc96f436270bd2a3c692210b09c7febb8889345ceefdbae4bacfe498",
   messageEncoded: "68656c6c6f20776f726c64", // "hello world"
   signatureHex:
     "0xd0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca",
+};
+
+export const singleSignerED25519 = {
+  publicKey: "0xe425451a5dc888ac871976c3c724dec6118910e7d11d344b4b07a22cd94e8c2e",
+  privateKey: "0xf508cbef4e0fe463204aab724a90791c9a9dbe60a53b4978bbddbc712b55f2fd",
+  address: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
+  authKey: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
+  messageEncoded: "68656c6c6f20776f726c64", // "hello world"
 };
 
 export const longTestTimeout = 120 * 1000;

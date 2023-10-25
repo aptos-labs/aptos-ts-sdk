@@ -4,9 +4,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
+import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
@@ -19,8 +20,8 @@ export abstract class AccountAuthenticator extends Serializable {
         return AccountAuthenticatorEd25519.load(deserializer);
       case AccountAuthenticatorVariant.MultiEd25519:
         return AccountAuthenticatorMultiEd25519.load(deserializer);
-      case AccountAuthenticatorVariant.Secp256k1:
-        return AccountAuthenticatorSecp256k1.load(deserializer);
+      case AccountAuthenticatorVariant.SingleKey:
+        return AccountAuthenticatorSingleKey.load(deserializer);
       default:
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
@@ -90,32 +91,32 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
 }
 
 /**
- * A Secp256k1 AccountAuthenticator for a single signer
+ * AccountAuthenticatorSingleKey for a single signer
  *
- * @param public_key A Secp256k1 public key
- * @param signature A Secp256k1 signature
+ * @param public_key AnyPublicKey
+ * @param signature AnySignature
  *
  */
-export class AccountAuthenticatorSecp256k1 extends AccountAuthenticator {
-  public readonly public_key: Secp256k1PublicKey;
+export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
+  public readonly public_key: AnyPublicKey;
 
-  public readonly signature: Secp256k1Signature;
+  public readonly signature: AnySignature;
 
-  constructor(public_key: Secp256k1PublicKey, signature: Secp256k1Signature) {
+  constructor(public_key: AnyPublicKey, signature: AnySignature) {
     super();
     this.public_key = public_key;
     this.signature = signature;
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Secp256k1);
+    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.SingleKey);
     this.public_key.serialize(serializer);
     this.signature.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): AccountAuthenticatorSecp256k1 {
-    const public_key = Secp256k1PublicKey.deserialize(deserializer);
-    const signature = Secp256k1Signature.deserialize(deserializer);
-    return new AccountAuthenticatorSecp256k1(public_key, signature);
+  static load(deserializer: Deserializer): AccountAuthenticatorSingleKey {
+    const public_key = AnyPublicKey.deserialize(deserializer);
+    const signature = AnySignature.deserialize(deserializer);
+    return new AccountAuthenticatorSingleKey(public_key, signature);
   }
 }

@@ -76,6 +76,11 @@ export class Ed25519PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519PublicKey(bytes);
   }
+
+  static load(deserializer: Deserializer): Ed25519PublicKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Ed25519PublicKey(bytes);
+  }
 }
 
 /**
@@ -218,6 +223,11 @@ export class Ed25519Signature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): Ed25519Signature {
+    const bytes = deserializer.deserializeBytes();
+    return new Ed25519Signature(bytes);
+  }
+
+  static load(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
   }

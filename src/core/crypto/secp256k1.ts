@@ -74,6 +74,11 @@ export class Secp256k1PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1PublicKey(bytes);
   }
+
+  static load(deserializer: Deserializer): Secp256k1PublicKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256k1PublicKey(bytes);
+  }
 }
 
 /**
@@ -193,7 +198,7 @@ export class Secp256k1Signature extends Signature {
 
     const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Secp256k1Signature.LENGTH) {
-      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}`);
+      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}, recieved ${hex.toUint8Array().length}`);
     }
     this.data = hex;
   }
@@ -223,5 +228,10 @@ export class Secp256k1Signature extends Signature {
   static deserialize(deserializer: Deserializer): Secp256k1Signature {
     const hex = deserializer.deserializeBytes();
     return new Secp256k1Signature(hex);
+  }
+
+  static load(deserializer: Deserializer): Secp256k1Signature {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256k1Signature(bytes);
   }
 }

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network, U64 } from "../../../src";
+import { Account, Aptos, AptosConfig, Network, SigningSchemeInput, U64 } from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -210,6 +210,35 @@ describe("account api", () => {
         authenticationKey: account.accountAddress.toString(),
       });
       expect(lookupAccount.toString()).toBe(account.accountAddress.toString());
+    });
+
+    describe("it derives an account from a private key", () => {
+      test("single sender ed25519", async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
+        const account = Account.generate();
+        await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
+
+        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        expect(derivedAccount).toStrictEqual(account);
+      });
+      test("single sender secp256k1", async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
+        const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+
+        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        expect(derivedAccount).toStrictEqual(account);
+      });
+      test("legacy ed25519", async () => {
+        const config = new AptosConfig({ network: Network.LOCAL });
+        const aptos = new Aptos(config);
+        const account = Account.generate({ legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
+
+        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        expect(derivedAccount).toStrictEqual(account);
+      });
     });
   });
 

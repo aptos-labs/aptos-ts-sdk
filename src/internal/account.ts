@@ -10,7 +10,10 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
-import { AccountAddress, Hex } from "../core";
+import { AccountAddress } from "../core/accountAddress";
+import { Account } from "../core/account";
+import { PrivateKey } from "../core/crypto/asymmetricCrypto";
+import { Hex } from "../core/hex";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
@@ -26,6 +29,7 @@ import {
   MoveResourceType,
   OrderBy,
   PaginationArgs,
+  SigningScheme,
   TokenStandard,
   TransactionResponse,
 } from "../types";
@@ -50,6 +54,8 @@ import {
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
+import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
+import { AnyPublicKey } from "../core/crypto/anyPublicKey";
 
 export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: HexInput }): Promise<AccountData> {
   const { aptosConfig, accountAddress } = args;
@@ -484,4 +490,67 @@ export async function getAccountOwnedObjects(args: {
   });
 
   return data.current_objects;
+}
+
+export async function deriveAccountFromPrivateKey(args: {
+  aptosConfig: AptosConfig;
+  privateKey: PrivateKey;
+}): Promise<Account> {
+  const { aptosConfig, privateKey } = args;
+  const publicKey = new AnyPublicKey(privateKey.publicKey());
+
+  if (privateKey instanceof Secp256k1PrivateKey) {
+    // private key is secp256k1, therefore we know it for sure uses a single signer key
+    const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
+    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    return Account.fromPrivateKey({ privateKey, address });
+  }
+
+  if (privateKey instanceof Ed25519PrivateKey) {
+    // lookup single sender ed25519
+    const SingleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+      publicKey,
+      scheme: SigningScheme.SingleKey,
+    });
+    const isSingleSenderTransactionAuthenticator = await isAccountExist({
+      authKey: SingleSenderTransactionAuthenticatorAuthKey,
+      aptosConfig,
+    });
+    if (isSingleSenderTransactionAuthenticator) {
+      const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
+      return Account.fromPrivateKey({ privateKey, address });
+    }
+    // lookup legacy ed25519
+    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
+    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
+    if (isLegacyEd25519) {
+      const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
+      return Account.fromPrivateKey({ privateKey, address, legacy: true });
+    }
+  }
+  // if we are here, it means we couldn't find an address with an
+  // auth key that matches the provided private key
+  throw new Error(`Can't derive account from private key ${privateKey}`);
+}
+
+export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: AuthenticationKey }): Promise<boolean> {
+  const { aptosConfig, authKey } = args;
+  const accountAddress = await lookupOriginalAccountAddress({
+    aptosConfig,
+    authenticationKey: authKey.toString(),
+  });
+
+  try {
+    await getInfo({
+      aptosConfig,
+      accountAddress: accountAddress.toString(),
+    });
+    return true;
+  } catch (error: any) {
+    // account not found
+    if (error.status === 404) {
+      return false;
+    }
+    throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
+  }
 }

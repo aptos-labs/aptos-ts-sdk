@@ -8,14 +8,31 @@ import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
-import { HexInput, SigningScheme } from "../types";
+import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
+import { AnyPublicKey } from "./crypto/anyPublicKey";
 
 /**
  * Class for creating and managing account on Aptos network
  *
  * Use this class to create accounts, sign transactions, and more.
  * Note: Creating an account instance does not create the account on-chain.
+ *
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * `Legacy` and `Unified` authentications.
+ *
+ * @Legacy includes `ED25519` and `MultiED25519`
+ * @Unified includes `SingleSender` and `MultiSender`, where currently
+ * `SingleSender` supports `ED25519` and `Secp256k1`, and `MultiSender` supports
+ * `MultiED25519`.
+ *
+ * In TypeScript SDK, we support all of these options
+ * @generate default to generate Unified keys, with an optional `legacy` boolean argument
+ * that lets you generate new keys conforming to the Legacy authentication.
+ * @fromPrivateKey derives an account by a provided private key and address, with an optional
+ * `legacy` boolean argument that lets you generate new keys conforming to the Legacy authentication.
+ * @fromDerivationPath derives an account with bip44 path and mnemonics,
+ *
  */
 export class Account {
   /**
@@ -45,23 +62,31 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
+   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
+   * to generating a Unified keypair
    *
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
    */
-  private constructor(args: { privateKey: PrivateKey; address: AccountAddress }) {
-    const { privateKey, address } = args;
+  private constructor(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }) {
+    const { privateKey, address, legacy } = args;
 
     // Derive the public key from the private key
     this.publicKey = privateKey.publicKey();
 
     // Derive the signing scheme from the public key
     if (this.publicKey instanceof Ed25519PublicKey) {
-      this.signingScheme = SigningScheme.Ed25519;
+      if (legacy) {
+        this.signingScheme = SigningScheme.Ed25519;
+      } else {
+        this.publicKey = new AnyPublicKey(this.publicKey);
+        this.signingScheme = SigningScheme.SingleKey;
+      }
     } else if (this.publicKey instanceof MultiEd25519PublicKey) {
       this.signingScheme = SigningScheme.MultiEd25519;
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
-      this.signingScheme = SigningScheme.Secp256k1Ecdsa;
+      this.publicKey = new AnyPublicKey(this.publicKey);
+      this.signingScheme = SigningScheme.SingleKey;
     } else {
       throw new Error("Can not create new Account, unsupported public key type");
     }
@@ -71,56 +96,70 @@ export class Account {
   }
 
   /**
-   * Derives an account with random private key and address
+   * Derives an account with random private key and address.
+   * Default generation is using the Unified flow with ED25519 key
    *
-   * @param scheme optional SigningScheme - type of SigningScheme to use. Default to Ed25519
-   * Currently only Ed25519 and Secp256k1 are supported
+   * @param args optional. Unify GenerateAccount type for Legacy and Unified keys
+   *
+   * Account input type to generate an account using Legacy
+   * Ed25519 or MultiEd25519 keys or without a specified `scheme`.
+   * ```
+   * GenerateAccountWithLegacyKey = {
+   *  scheme?: SigningSchemeInput.Ed25519 | SigningSchemeInput.MultiEd25519;
+   *  legacy: true;
+   * };
+   * ```
+   *
+   * Account input type to generate an account using Unified
+   * Secp256k1Ecdsa key
+   * In this case `legacy` is always false
+   * ```
+   * GenerateAccountWithUnifiedKey = {
+   *  scheme: SigningSchemeInput.Secp256k1Ecdsa;
+   *  legacy?: false;
+   * };
+   * ```
    *
    * @returns Account with the given signing scheme
    */
-  static generate(scheme?: SigningScheme): Account {
+  static generate(args?: GenerateAccount): Account {
     let privateKey: PrivateKey;
 
-    switch (scheme) {
-      case SigningScheme.Secp256k1Ecdsa:
+    switch (args?.scheme) {
+      case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
-      // TODO: Add support for MultiEd25519
+      // TODO: Add support for MultiEd25519 as AnyMultiKey
       default:
         privateKey = Ed25519PrivateKey.generate();
     }
 
+    let publicKey = privateKey.publicKey();
+    if (!args?.legacy) {
+      publicKey = new AnyPublicKey(privateKey.publicKey());
+    }
+
     const address = new AccountAddress({
       data: Account.authKey({
-        publicKey: privateKey.publicKey(),
+        publicKey, // TODO support AnyMultiKey
       }).toUint8Array(),
     });
-    return new Account({ privateKey, address });
+    return new Account({ privateKey, address, legacy: args?.legacy });
   }
 
   /**
    * Derives an account with provided private key
    *
-   * @param privateKey Hex - private key of the account
-   * @returns Account
-   */
-  static fromPrivateKey(privateKey: PrivateKey): Account {
-    const publicKey = privateKey.publicKey();
-    const authKey = Account.authKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return Account.fromPrivateKeyAndAddress({ privateKey, address });
-  }
-
-  /**
-   * Derives an account with provided private key and address
-   * This is intended to be used for account that has it's key rotated
+   * @param privateKey PrivateKey - private key of the account
+   * @param address The account address
+   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
+   * to generating a Unified keypair
    *
-   * @param args.privateKey Hex - private key of the account
-   * @param args.address AccountAddress - address of the account
    * @returns Account
    */
-  static fromPrivateKeyAndAddress(args: { privateKey: PrivateKey; address: AccountAddress }): Account {
-    return new Account(args);
+  static fromPrivateKey(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }): Account {
+    const { privateKey, address, legacy } = args;
+    return new Account({ privateKey, address, legacy });
   }
 
   /**
@@ -133,10 +172,12 @@ export class Account {
    */
   static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
     const { path, mnemonic } = args;
-
     const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
     const privateKey = new Ed25519PrivateKey(key);
-    return Account.fromPrivateKey(privateKey);
+    const publicKey = privateKey.publicKey();
+    const authKey = Account.authKey({ publicKey });
+    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    return new Account({ privateKey, address, legacy: true });
   }
 
   /**
