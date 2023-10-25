@@ -5,6 +5,7 @@ import { FixedBytes } from "../../src/bcs/serializable/fixedBytes";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../../src/bcs/serializable/movePrimitives";
 import { MoveOption, MoveString, MoveVector } from "../../src/bcs/serializable/moveStructs";
 import { AccountAddress, Deserializable, Deserializer, Serializable, Serializer } from "../../src";
+import { EntryFunctionArgument } from "../../src/transactions/instances";
 /* eslint-disable @typescript-eslint/no-shadow */
 
 describe("Tests for the Serializable class", () => {
@@ -210,7 +211,7 @@ describe("Tests for the Serializable class", () => {
   });
 
   it("throws an error when trying to unwrap an option with no value, before and after serialization", () => {
-    function testSerdeAndUnwrap<T extends Serializable>(
+    function testSerdeAndUnwrap<T extends Serializable & EntryFunctionArgument>(
       optionConstructor: () => MoveOption<T>,
       deserializationClass: Deserializable<T>,
     ) {
