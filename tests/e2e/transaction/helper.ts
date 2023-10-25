@@ -12,21 +12,18 @@ import {
   GenerateMultiAgentRawTransactionInput,
   HexInput,
 } from "../../../src";
-import { MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import { FUND_AMOUNT } from "../../unit/helper";
 
-export async function publishModule(
+export async function publishPackage(
   aptos: Aptos,
   senderAccount: Account,
   metadataBytes: HexInput,
   codeBytes: HexInput,
 ) {
-  const rawTransaction = await aptos.generateTransaction({
-    sender: senderAccount.accountAddress.toString(),
-    data: {
-      function: "0x1::code::publish_package_txn",
-      functionArguments: [MoveVector.U8(metadataBytes), new MoveVector([MoveVector.U8(codeBytes)])],
-    },
+  const rawTransaction = await aptos.publishPackageTransaction({
+    account: senderAccount.accountAddress.toString(),
+    metadataBytes,
+    moduleBytecode: [codeBytes],
   });
   const signedTxn = await aptos.signTransaction({
     signer: senderAccount,
@@ -173,7 +170,7 @@ export async function publishArgumentTestModule(
   senderAccount: Account,
 ): Promise<UserTransactionResponse> {
   const contractBytecode = await getContractBytecode(senderAccount.accountAddress);
-  const response = await publishModule(aptos, senderAccount, ARGUMENT_TESTS_CONTRACT_METADATA, contractBytecode);
+  const response = await publishPackage(aptos, senderAccount, ARGUMENT_TESTS_CONTRACT_METADATA, contractBytecode);
   return response;
 }
 
@@ -186,7 +183,7 @@ export const multiSignerScriptBytecode =
   "a11ceb0b060000000701000402040a030e18042608052e4307713e08af01200000000101020401000100030800010403040100010505060100010607040100010708060100000201020202030207060c060c0303050503030b000108010b000108010b0001080101080102060c03010b0001090002070b000109000b000109000002070b000109000302050b000109000a6170746f735f636f696e04636f696e04436f696e094170746f73436f696e087769746864726177056d657267650765787472616374076465706f73697400000000000000000000000000000000000000000000000000000000000000010000011a0b000a0238000c070b010a0338000c080d070b0838010d070b020b03160b061738020c090b040b0738030b050b09380302";
 
 export async function publishTransferPackage(aptos: Aptos, senderAccount: Account) {
-  await publishModule(
+  await publishPackage(
     aptos,
     senderAccount,
     // eslint-disable-next-line max-len

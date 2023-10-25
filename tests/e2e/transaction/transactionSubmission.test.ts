@@ -630,12 +630,12 @@ describe("transaction submission", () => {
       await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100_000_000 });
     });
 
-    test("it generates a publish move module transaction successfuly", async () => {
-      const transaction = await aptos.publishModuleTransaction({
+    test("it generates a publish move module transaction successfully", async () => {
+      const transaction = await aptos.publishPackageTransaction({
         account: account.accountAddress.toString(),
         // eslint-disable-next-line max-len
         metadataBytes,
-        byteCode,
+        moduleBytecode: [byteCode],
       });
       expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
       expect(transaction.secondarySignerAddresses).not.toBeDefined();
@@ -646,12 +646,12 @@ describe("transaction submission", () => {
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
 
-    test("it submits a publish move module transaction successfuly", async () => {
-      const transaction = await aptos.publishModuleTransaction({
+    test("it submits a publish move module transaction successfully", async () => {
+      const transaction = await aptos.publishPackageTransaction({
         account: account.accountAddress.toString(),
         // eslint-disable-next-line max-len
         metadataBytes,
-        byteCode,
+        moduleBytecode: [byteCode],
       });
       const response = await aptos.signAndSubmitTransaction({
         signer: account,
