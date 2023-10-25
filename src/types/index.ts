@@ -26,7 +26,7 @@ export enum MimeType {
 export type HexInput = string | Uint8Array;
 
 /**
- * Script transaction arguments enum as they are represented in Rust
+ * TypeTag enum as they are represented in Rust
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
  */
 export enum TypeTagVariants {
