@@ -942,3 +942,9 @@ export enum DeriveScheme {
    */
   DeriveResourceAccountAddress = 255,
 }
+
+export type WaitForTransactionOptions = {
+  timeoutSecs?: number;
+  checkSuccess?: boolean;
+  indexerVersionCheck?: boolean;
+};
