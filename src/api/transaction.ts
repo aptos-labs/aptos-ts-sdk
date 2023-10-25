@@ -10,7 +10,14 @@ import {
   isTransactionPending,
   waitForTransaction,
 } from "../internal/transaction";
-import { AnyNumber, GasEstimation, HexInput, PaginationArgs, TransactionResponse } from "../types";
+import {
+  AnyNumber,
+  GasEstimation,
+  HexInput,
+  PaginationArgs,
+  TransactionResponse,
+  WaitForTransactionOptions,
+} from "../types";
 
 export class Transaction {
   readonly config: AptosConfig;
@@ -104,7 +111,7 @@ export class Transaction {
    */
   async waitForTransaction(args: {
     transactionHash: HexInput;
-    options?: { timeoutSecs?: number; checkSuccess?: boolean };
+    options?: WaitForTransactionOptions;
   }): Promise<TransactionResponse> {
     return waitForTransaction({
       aptosConfig: this.config,

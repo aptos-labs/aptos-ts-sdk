@@ -17,6 +17,7 @@ import {
   type HexInput,
   type PaginationArgs,
   type TransactionResponse,
+  WaitForTransactionOptions,
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { sleep } from "../utils/helpers";
@@ -98,7 +99,7 @@ export async function isTransactionPending(args: {
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
-  options?: { timeoutSecs?: number; checkSuccess?: boolean; indexerVersionCheck?: boolean };
+  options?: WaitForTransactionOptions;
 }): Promise<TransactionResponse> {
   const { aptosConfig, transactionHash, options } = args;
   const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
