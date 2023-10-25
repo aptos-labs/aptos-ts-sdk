@@ -2,10 +2,21 @@ import { Serializer, Deserializer } from "../../bcs";
 import { AnyPublicKeyVariant, HexInput } from "../../types";
 import { AnySignature } from "./anySignature";
 import { PublicKey } from "./asymmetricCrypto";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { Ed25519PublicKey } from "./ed25519";
+import { Secp256k1PublicKey } from "./secp256k1";
 
+/**
+ * Represents any public key supported by Aptos.
+ *
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * `Legacy` and `Unified` authentication keys.
+ *
+ * Any unified authentication key is represented in the SDK as `AnyPublicKey`.
+ */
 export class AnyPublicKey extends PublicKey {
+  /**
+   * Reference to the inner public key
+   */
   public readonly publicKey: PublicKey;
 
   constructor(publicKey: PublicKey) {
@@ -40,22 +51,7 @@ export class AnyPublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    if (this.isED25519Signature(signature)) {
-      return this.publicKey.verifySignature({ message, signature: signature.signature });
-      // eslint-disable-next-line no-else-return
-    } else if (this.isSecp256k1Signature(signature)) {
-      return this.publicKey.verifySignature({ message, signature: signature.signature });
-    } else {
-      throw new Error("Unknown public key type");
-    }
-  }
-
-  isED25519Signature(signature: AnySignature): boolean {
-    return this.publicKey instanceof Ed25519PublicKey && signature.signature instanceof Ed25519Signature;
-  }
-
-  isSecp256k1Signature(signature: AnySignature): boolean {
-    return this.publicKey instanceof Secp256k1PublicKey && signature.signature instanceof Secp256k1Signature;
+    return this.publicKey.verifySignature({ message, signature });
   }
 
   serialize(serializer: Serializer): void {

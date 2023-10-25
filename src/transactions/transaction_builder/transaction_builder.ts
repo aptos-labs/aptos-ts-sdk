@@ -28,6 +28,7 @@ import {
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
@@ -490,27 +491,25 @@ export function generateSignedTransaction(args: {
 
   // submit single signer transaction
 
-  // deserialize the senderAuthenticator
-  const deserializer = new Deserializer(senderAuthenticator.bcsToBytes());
-  const accountAuthenticator = AccountAuthenticator.deserialize(deserializer);
   // check what instance is accountAuthenticator
-  if (accountAuthenticator instanceof AccountAuthenticatorEd25519) {
+  if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
     const transactionAuthenticator = new TransactionAuthenticatorEd25519(
-      accountAuthenticator.public_key,
-      accountAuthenticator.signature,
+      senderAuthenticator.public_key,
+      senderAuthenticator.signature,
     );
-    // return signed transaction
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }
 
-  if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
-    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(accountAuthenticator);
-    // return signed transaction
+  if (
+    senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
+    senderAuthenticator instanceof AccountAuthenticatorMultiKey
+  ) {
+    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }
 
   throw new Error(
-    `Cannot generate a signed transaction, ${accountAuthenticator} is not a supported account authentication scheme`,
+    `Cannot generate a signed transaction, ${senderAuthenticator} is not a supported account authentication scheme`,
   );
 }
 

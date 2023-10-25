@@ -1,8 +1,22 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AptosConfig, Network, Aptos, U64, Deserializer, SigningSchemeInput } from "../../../src";
+import {
+  Account,
+  AptosConfig,
+  Network,
+  Aptos,
+  U64,
+  Deserializer,
+  SigningSchemeInput,
+  AuthenticationKey,
+} from "../../../src";
+import { MultiKey } from "../../../src/core/crypto/multiKey";
 import { waitForTransaction } from "../../../src/internal/transaction";
+import {
+  AccountAuthenticatorMultiKey,
+  AccountAuthenticatorSingleKey,
+} from "../../../src/transactions/authenticator/account";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
@@ -617,6 +631,57 @@ describe("transaction submission", () => {
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
+    });
+  });
+  describe("Multi Key", () => {
+    test("it submits a multi key transaction", async () => {
+      const multiKey = new MultiKey({
+        publicKeys: [
+          singleSignerED25519SenderAccount.publicKey,
+          legacyED25519SenderAccount.publicKey,
+          singleSignerSecp256k1Account.publicKey,
+        ],
+        signaturesRequired: 2,
+      });
+      const des = new Deserializer(multiKey.bcsToBytes());
+      expect(multiKey).toEqual(MultiKey.deserialize(des));
+
+      const authKey = AuthenticationKey.fromPublicKey({ publicKey: multiKey });
+
+      const multiKeyAccountAddress = authKey.derivedAddress();
+
+      await aptos.fundAccount({ accountAddress: multiKeyAccountAddress.toString(), amount: 100_000_000 });
+
+      const transaction = await aptos.generateTransaction({
+        sender: multiKeyAccountAddress.toString(),
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+        },
+      });
+      // create a bitmap where singleSignerED25519SenderAccount and singleSignerSecp256k1Account
+      const bitmap = multiKey.createBitmap({ bits: [0, 2] });
+
+      // account1 and account3 sign the transaction
+      const account1Authenticator = aptos.signTransaction({ signer: singleSignerED25519SenderAccount, transaction });
+      const account3Authenticator = aptos.signTransaction({ signer: singleSignerSecp256k1Account, transaction });
+
+      const multiKeyAuth = new AccountAuthenticatorMultiKey(
+        multiKey,
+        [
+          // TODO find a fix
+          (account1Authenticator as AccountAuthenticatorSingleKey).signature,
+          (account3Authenticator as AccountAuthenticatorSingleKey).signature,
+        ],
+        bitmap,
+      );
+
+      const response = await aptos.submitTransaction({ transaction, senderAuthenticator: multiKeyAuth });
+      await waitForTransaction({
+        aptosConfig: config,
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("single_sender");
     });
   });
   describe("publish move module", () => {

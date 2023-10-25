@@ -948,6 +948,8 @@ export enum SigningScheme {
    * For SingleKey ecdsa
    */
   SingleKey = 2,
+
+  MultiKey = 3,
 }
 
 export enum SigningSchemeInput {
@@ -955,10 +957,6 @@ export enum SigningSchemeInput {
    * For Ed25519PublicKey
    */
   Ed25519 = 0,
-  /**
-   * For MultiEd25519PublicKey
-   */
-  MultiEd25519 = 1,
   /**
    * For Secp256k1Ecdsa
    */
@@ -991,6 +989,9 @@ export enum DeriveScheme {
   DeriveResourceAccountAddress = 255,
 }
 
+/**
+ * Option properties to pass for waitForTransaction() function
+ */
 export type WaitForTransactionOptions = {
   timeoutSecs?: number;
   checkSuccess?: boolean;
@@ -1003,7 +1004,7 @@ export type WaitForTransactionOptions = {
  * In this case `legacy` is always true
  */
 export type GenerateAccountWithLegacyKey = {
-  scheme?: SigningSchemeInput.Ed25519 | SigningSchemeInput.MultiEd25519;
+  scheme?: SigningSchemeInput.Ed25519;
   legacy: true;
 };
 

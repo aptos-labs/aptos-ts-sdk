@@ -10,6 +10,8 @@ import { HexInput } from "../../types";
 
 /**
  * Represents the Secp256k1 ecdsa public key
+ *
+ * Secp256k1 authentication key is represented in the SDK as `AnyPublicKey`.
  */
 export class Secp256k1PublicKey extends PublicKey {
   // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.

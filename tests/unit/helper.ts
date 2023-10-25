@@ -62,6 +62,25 @@ export const singleSignerED25519 = {
   address: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
   authKey: "0x5bdf77d5bf826c8c04273d4e7323f7bc4a85ee7ee34b37bd7458b7aed3639dd3",
   messageEncoded: "68656c6c6f20776f726c64", // "hello world"
+  signatureHex:
+    "0xc6f50f4e0cb1961f6f7b28be1a1d80e3ece240dfbb7bd8a8b03cc26bfd144fc176295d7c322c5bf3d9669d2ad49d8bdbfe77254b4a6393d8c49da04b40cee600",
+};
+
+export const multiKeyTestObject = {
+  publicKeys: [
+    // secp256k1
+    "0x049a6f7caddff8064a7dd5800e4fb512bf1ff91daee965409385dfa040e3e63008ab7ef566f4377c2de5aeb2948208a01bcee2050c1c8578ce5fa6e0c3c507cca2",
+    // ed25519
+    "0x7a73df1afd028e75e7f9e23b2187a37d092a6ccebcb3edff6e02f93185cbde86",
+    // ed25519
+    "0x17fe89a825969c1c0e5f5e80b95f563a6cb6240f88c4246c19cb39c9535a1486",
+  ],
+  signaturesReuired: 2,
+  address: "0x738a998ac1f69db4a91fc5a0152f792c98ad87354c65a2a842a118d7a17109b1",
+  authKey: "0x738a998ac1f69db4a91fc5a0152f792c98ad87354c65a2a842a118d7a17109b1",
+  bitmap: [160, 0, 0, 0],
+  stringBytes:
+    "0x030141049a6f7caddff8064a7dd5800e4fb512bf1ff91daee965409385dfa040e3e63008ab7ef566f4377c2de5aeb2948208a01bcee2050c1c8578ce5fa6e0c3c507cca200207a73df1afd028e75e7f9e23b2187a37d092a6ccebcb3edff6e02f93185cbde86002017fe89a825969c1c0e5f5e80b95f563a6cb6240f88c4246c19cb39c9535a148602",
 };
 
 export const longTestTimeout = 120 * 1000;

@@ -97,6 +97,38 @@ describe("Account", () => {
     });
   });
 
+  describe("sign and verify", () => {
+    it("signs a message with Secp256k1 scheme and verifies succefully", () => {
+      const { privateKey: privateKeyBytes, address, signatureHex } = secp256k1TestObject;
+      const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const secpAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
+      const signature = secpAccount.sign("68656c6c6f20776f726c64");
+      expect(signature.toString()).toEqual(signatureHex);
+      expect(secpAccount.verifySignature({ message: "68656c6c6f20776f726c64", signature })).toBeTruthy();
+    });
+
+    it("signs a message with ed25519 scheme and verifies succefully", () => {
+      const { privateKey: privateKeyBytes, address, signatureHex } = singleSignerED25519;
+      const privateKey = new Ed25519PrivateKey(privateKeyBytes);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const edAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
+      const signature = edAccount.sign("68656c6c6f20776f726c64");
+      expect(signature.toString()).toEqual(signatureHex);
+      expect(edAccount.verifySignature({ message: "68656c6c6f20776f726c64", signature })).toBeTruthy();
+    });
+
+    it("derives the correct account from a legacy ed25519 private key", () => {
+      const { privateKey: privateKeyBytes, address, signedMessage } = ed25519;
+      const privateKey = new Ed25519PrivateKey(privateKeyBytes);
+      const accountAddress = AccountAddress.fromHexInput(address);
+      const legacyEdAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: true });
+      const signature = legacyEdAccount.sign("0x7777");
+      expect(signature.toString()).toEqual(signedMessage);
+      expect(legacyEdAccount.verifySignature({ message: "0x7777", signature })).toBeTruthy();
+    });
+  });
+
   it("should return the authentication key for a public key", () => {
     const { publicKey: publicKeyBytes, address } = ed25519;
     const publicKey = new Ed25519PublicKey(publicKeyBytes);
