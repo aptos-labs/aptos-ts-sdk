@@ -155,8 +155,10 @@ export class Account {
   }
 
   /**
-   * Queries a specific account resource given account address and resource type
+   * Queries a specific account resource given account address and resource type. Note that the default is `any` in order
+   * to allow for ease of accessing properties of the object.
    *
+   * @type The typed output of the resource
    * @param args.accountAddress Aptos account address
    * @param args.resourceType String representation of an on-chain Move struct type, i.e "0x1::aptos_coin::AptosCoin"
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
@@ -166,17 +168,16 @@ export class Account {
    * @example An example of an account resource
    * ```
    * {
-   *    type: "0x1::aptos_coin::AptosCoin",
    *    data: { value: 6 }
    * }
    * ```
    */
-  async getAccountResource(args: {
+  async getAccountResource<T extends {} = any>(args: {
     accountAddress: HexInput;
     resourceType: MoveResourceType;
     options?: LedgerVersion;
-  }): Promise<MoveResource> {
-    return getResource({ aptosConfig: this.config, ...args });
+  }): Promise<T> {
+    return getResource<T>({ aptosConfig: this.config, ...args });
   }
 
   /**

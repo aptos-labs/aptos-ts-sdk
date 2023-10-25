@@ -19,8 +19,12 @@ const TRANSFER_AMOUNT = 1_000_000;
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  let resource = await aptos.getAccountResource({ accountAddress: address.toUint8Array(), resourceType: COIN_STORE });
-  let amount = Number((resource.data as { coin: { value: string } }).coin.value);
+  type Coin = { coin: { value: string } };
+  let resource = await aptos.getAccountResource<Coin>({
+    accountAddress: address.toUint8Array(),
+    resourceType: COIN_STORE,
+  });
+  let amount = Number(resource.coin.value);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;

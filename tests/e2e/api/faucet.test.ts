@@ -14,11 +14,12 @@ describe("Faucet", () => {
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
 
     // Check the balance
-    const resource = await aptos.getAccountResource({
+    type Coin = { coin: { value: string } };
+    const resource = await aptos.getAccountResource<Coin>({
       accountAddress: testAccount.accountAddress.toString(),
       resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
     });
-    const amount = Number((resource.data as { coin: { value: string } }).coin.value);
+    const amount = Number(resource.coin.value);
     expect(amount).toBe(FUND_AMOUNT);
   });
 });
