@@ -17,8 +17,8 @@ import {
   TypeTagVector,
   Deserializer,
   Serializer,
+  parseTypeTag,
 } from "../../src";
-import { parseTypeTag } from "../../src/transactions/typeTag/parser";
 
 const expectedTypeTag = {
   string: "0x1::some_module::SomeResource",
