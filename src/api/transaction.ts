@@ -104,7 +104,7 @@ export class Transaction {
    */
   async waitForTransaction(args: {
     transactionHash: HexInput;
-    options?: { timeoutSecs?: number; checkSuccess?: boolean, indexerVersionCheck?: boolean };
+    options?: { timeoutSecs?: number; checkSuccess?: boolean; indexerVersionCheck?: boolean };
   }): Promise<TransactionResponse> {
     return waitForTransaction({
       aptosConfig: this.config,
