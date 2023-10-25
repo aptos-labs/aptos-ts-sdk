@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress, Hex, PublicKey } from "../../core";
+import { AccountAddress, Hex, MultiEd25519PublicKey, MultiEd25519Signature, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
@@ -29,6 +29,7 @@ import {
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
@@ -36,6 +37,7 @@ import {
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
   SingleSenderTransactionAuthenticator,
+  TransactionAuthenticatorMultiEd25519,
 } from "../authenticator/transaction";
 import {
   ChainId,
@@ -409,6 +411,10 @@ export function generateSignedTransaction(args: {
       senderAuthenticator,
       secondarySignerAuthenticators,
     );
+  }
+
+  if (senderAuthenticator instanceof AccountAuthenticatorMultiEd25519) {
+    return new SignedTransaction(transactionToSubmit as RawTransaction, senderAuthenticator).bcsToBytes();
   }
 
   // submit single signer transaction

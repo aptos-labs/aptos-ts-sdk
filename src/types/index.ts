@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountAddress, Ed25519PublicKey, MultiEd25519PublicKey } from "../core";
 import { Network } from "../utils/apiEndpoints";
 
 export * from "./indexer";
@@ -997,7 +998,7 @@ export enum DeriveScheme {
  * In this case `legacy` is always true
  */
 export type GenerateAccountWithLegacyKey = {
-  scheme?: SigningSchemeInput.Ed25519 | SigningSchemeInput.MultiEd25519;
+  scheme?: SigningSchemeInput.Ed25519;
   legacy: true;
 };
 

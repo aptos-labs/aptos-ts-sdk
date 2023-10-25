@@ -1,13 +1,32 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AptosConfig, Network, Aptos, U64, Deserializer, SigningSchemeInput } from "../../../src";
+import {
+  Account,
+  AptosConfig,
+  Network,
+  Aptos,
+  U64,
+  Deserializer,
+  SigningSchemeInput,
+  MultiEd25519PublicKey,
+  Ed25519PublicKey,
+  AuthenticationKey,
+  MultiEd25519Signature,
+  Ed25519Signature,
+} from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
+import {
+  AccountAuthenticator,
+  AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
+} from "../../../src/transactions/authenticator/account";
+import { TransactionAuthenticatorMultiEd25519 } from "../../../src/transactions/authenticator/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
+const config = new AptosConfig({ network: Network.DEVNET });
 const aptos = new Aptos(config);
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
@@ -18,16 +37,16 @@ describe("transaction submission", () => {
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
   beforeAll(async () => {
-    await fundAccounts(aptos, [
-      contractPublisherAccount,
-      singleSignerED25519SenderAccount,
-      singleSignerSecp256k1Account,
-      legacyED25519SenderAccount,
-      ...receiverAccounts,
-      secondarySignerAccount,
-      feePayerAccount,
-    ]);
-    await publishTransferPackage(aptos, contractPublisherAccount);
+    // await fundAccounts(aptos, [
+    //   contractPublisherAccount,
+    //   singleSignerED25519SenderAccount,
+    //   singleSignerSecp256k1Account,
+    //   legacyED25519SenderAccount,
+    //   ...receiverAccounts,
+    //   secondarySignerAccount,
+    //   feePayerAccount,
+    // ]);
+    // await publishTransferPackage(aptos, contractPublisherAccount);
   }, longTestTimeout);
   describe("Single Sender ED25519", () => {
     describe("single signer", () => {
@@ -617,6 +636,61 @@ describe("transaction submission", () => {
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
+    });
+  });
+  describe("Legacy MultiED25519", () => {
+    test.only("multi sig", async () => {
+      const account1 = Account.generate();
+      const account2 = Account.generate();
+      const account3 = Account.generate();
+
+      const multiSigPublicKey = new MultiEd25519PublicKey({
+        publicKeys: [
+          new Ed25519PublicKey(account1.publicKey.toString()),
+          new Ed25519PublicKey(account2.publicKey.toString()),
+          new Ed25519PublicKey(account3.publicKey.toString()),
+        ],
+        threshold: 2,
+      });
+
+      const authKey = AuthenticationKey.fromPublicKey({ publicKey: multiSigPublicKey });
+      const mutisigAccountAddress = authKey.derivedAddress();
+      await aptos.fundAccount({ accountAddress: mutisigAccountAddress.toString(), amount: 100_000_000 });
+
+      const receiver = Account.generate();
+      const transaction = await aptos.generateTransaction({
+        sender: mutisigAccountAddress.toString(),
+        data: {
+          function: `0x1::aptos_account::transfer`,
+          functionArguments: [receiver.accountAddress, new U64(1)],
+        },
+      });
+
+      // account1 and account3 sign the transaction
+      const account1Authenticator = aptos.signTransaction({ signer: account1, transaction });
+      const account3Authenticator = aptos.signTransaction({ signer: account3, transaction });
+
+      // deseralize authenticator to access the account authentication
+      const deserializer1 = new Deserializer(account1Authenticator.bcsToBytes());
+      const authenticator1 = AccountAuthenticator.deserialize(deserializer1);
+
+      const deserializer3 = new Deserializer(account3Authenticator.bcsToBytes());
+      const authenticator3 = AccountAuthenticator.deserialize(deserializer3);
+
+      const bitmap = MultiEd25519Signature.createBitmap({ bits: [0, 2] });
+
+      const multiSigSignature = new MultiEd25519Signature({
+        signatures: [
+          (authenticator1 as AccountAuthenticatorEd25519).signature,
+          (authenticator3 as AccountAuthenticatorEd25519).signature,
+        ],
+        bitmap,
+      });
+
+      const multiSigAuthenticator = new AccountAuthenticatorMultiEd25519(multiSigPublicKey, multiSigSignature);
+
+      const response = await aptos.submitTransaction({ transaction, senderAuthenticator: multiSigAuthenticator });
+      console.log(response);
     });
   });
   describe("publish move module", () => {
