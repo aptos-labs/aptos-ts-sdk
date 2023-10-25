@@ -15,7 +15,7 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveStructType } from "../types";
+import { AnyNumber, HexInput, MoveResourceType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
 
 export type EntryFunctionArgumentTypes =
@@ -79,7 +79,7 @@ export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | Mu
  * The data needed to generate an Entry Function payload
  */
 export type EntryFunctionData = {
-  function: MoveStructType;
+  function: MoveResourceType;
   typeArguments?: Array<TypeTag>;
   functionArguments: Array<EntryFunctionArgumentTypes>;
 };

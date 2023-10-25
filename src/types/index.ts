@@ -679,7 +679,6 @@ export type MoveUint128Type = string;
 export type MoveUint256Type = string;
 export type MoveAddressType = string;
 export type MoveObjectType = string;
-export type MoveStructType = `${string}::${string}::${string}`;
 export type MoveOptionType = MoveType | null | undefined;
 /**
  * String representation of a on-chain Move struct type.
@@ -697,7 +696,7 @@ export type MoveType =
   | MoveUint256Type
   | MoveAddressType
   | MoveObjectType
-  | MoveStructType
+  | MoveResourceType
   | Array<MoveType>;
 
 /**
@@ -734,7 +733,7 @@ export type MoveValue =
   | MoveUint256Type
   | MoveAddressType
   | MoveObjectType
-  | MoveStructType
+  | MoveResourceType
   | MoveOptionType
   | Array<MoveValue>;
 
@@ -892,7 +891,7 @@ export type Block = {
  * The data needed to generate a View Request payload
  */
 export type ViewRequestData = {
-  function: MoveStructType;
+  function: MoveResourceType;
   typeArguments?: Array<MoveResourceType>;
   functionArguments?: Array<MoveValue>;
 };
