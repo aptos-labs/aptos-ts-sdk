@@ -681,7 +681,7 @@ export type MoveAddressType = string;
 export type MoveObjectType = string;
 export type MoveOptionType = MoveType | null | undefined;
 /**
- * String representation of a on-chain Move struct type.
+ * This is the format for a fully qualified struct, resource, or entry function in Move.
  */
 export type MoveStructType = `${string}::${string}::${string}`;
 
