@@ -1,7 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Deserializer, Network, U64 } from "../../../src";
+import {
+  Account,
+  Aptos,
+  AptosConfig,
+  Deserializer,
+  Network,
+  U64,
+  MoveFunctionVisibility,
+  AccountAddress,
+} from "../../../src";
 import { AccountAuthenticator, AccountAuthenticatorSingleKey } from "../../../src/transactions/authenticator/account";
 import {
   FeePayerRawTransaction,
@@ -18,6 +27,8 @@ import {
   generateSignedTransaction,
   generateSignedTransactionForSimulation,
   generateTransactionPayload,
+  generateTransactionPayloadWithABI,
+  generateTransactionPayloadWithRemoteABI,
   sign,
 } from "../../../src/transactions/transaction_builder/transaction_builder";
 import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
@@ -61,6 +72,98 @@ describe("transaction builder", () => {
         functionArguments: [],
       });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+  });
+  describe("generate transaction payload with remote ABI", () => {
+    test("it generates a multi sig transaction payload", async () => {
+      const payload = await generateTransactionPayloadWithRemoteABI(
+        {
+          multisigAddress: Account.generate().accountAddress,
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", "0x1"],
+        },
+        config,
+      );
+      expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
+    });
+    test("it generates an entry function transaction payload", async () => {
+      const payload = await generateTransactionPayloadWithRemoteABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", "0x1"],
+        },
+        config,
+      );
+      expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+    test("it generates an entry function transaction payload with mixed arguments", async () => {
+      const payload = generateTransactionPayloadWithRemoteABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [AccountAddress.ONE, "0x1"],
+        },
+        config,
+      );
+      expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+      const payload2 = generateTransactionPayloadWithRemoteABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", AccountAddress.ONE],
+        },
+        config,
+      );
+      expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+  });
+  describe("generate transaction payload with preset ABI", () => {
+    const functionAbi = {
+      name: "transfer",
+      visibility: MoveFunctionVisibility.PUBLIC,
+      is_entry: true,
+      is_view: false,
+      generic_type_params: [],
+      params: ["address", "0x1::object::Object<T0>"],
+      return: [],
+    };
+
+    test("it generates a multi sig transaction payload", async () => {
+      const payload = generateTransactionPayloadWithABI(
+        {
+          multisigAddress: Account.generate().accountAddress,
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", "0x1"],
+        },
+        functionAbi,
+      );
+      expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
+    });
+    test("it generates an entry function transaction payload", async () => {
+      const payload = generateTransactionPayloadWithABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", "0x1"],
+        },
+        functionAbi,
+      );
+      expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+    test("it generates an entry function transaction payload with mixed arguments", async () => {
+      const payload = generateTransactionPayloadWithABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [AccountAddress.ONE, "0x1"],
+        },
+        functionAbi,
+      );
+      expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+      const payload2 = generateTransactionPayloadWithABI(
+        {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: ["0x1", AccountAddress.ONE],
+        },
+        functionAbi,
+      );
+      expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
   describe("generate raw transaction", () => {

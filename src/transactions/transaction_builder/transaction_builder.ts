@@ -18,7 +18,7 @@ import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp25
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
-import { HexInput, SigningScheme } from "../../types";
+import { HexInput, MoveFunction, SigningScheme } from "../../types";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
 import {
   DEFAULT_MAX_GAS_AMOUNT,
@@ -68,7 +68,12 @@ import {
   MultiSigData,
   ScriptData,
   SimulateTransactionData,
+  EntryFunctionArgumentTypes,
+  EntryFunctionDataWithABI,
+  MultiSigDataWithABI,
+  GenerateTransactionPayloadDataWithABI,
 } from "../types";
+import { convertArgument, fetchEntryFunctionAbi, findFirstNonSignerArg, typeTagConversion } from "./remoteAbi";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -124,6 +129,111 @@ export function generateTransactionPayload(args: GenerateTransactionPayloadData)
       args.functionArguments,
     ),
   );
+}
+
+export async function generateTransactionPayloadWithRemoteABI(
+  args: EntryFunctionDataWithABI,
+  aptosConfig: AptosConfig,
+): Promise<TransactionPayloadEntryFunction>;
+export async function generateTransactionPayloadWithRemoteABI(
+  args: MultiSigDataWithABI,
+  aptosConfig: AptosConfig,
+): Promise<TransactionPayloadMultisig>;
+export async function generateTransactionPayloadWithRemoteABI(
+  args: GenerateTransactionPayloadDataWithABI,
+  aptosConfig: AptosConfig,
+): Promise<TransactionPayload>;
+
+export async function generateTransactionPayloadWithRemoteABI(
+  args: GenerateTransactionPayloadDataWithABI,
+  aptosConfig: AptosConfig,
+): Promise<TransactionPayload> {
+  const funcNameParts = args.function.split("::");
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+
+  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  const functionAbi = await fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  return generateTransactionPayloadWithABI(args, functionAbi);
+}
+
+export function generateTransactionPayloadWithABI(
+  args: EntryFunctionDataWithABI,
+  functionAbi: MoveFunction,
+): TransactionPayloadEntryFunction;
+export function generateTransactionPayloadWithABI(
+  args: MultiSigDataWithABI,
+  functionAbi: MoveFunction,
+): TransactionPayloadMultisig;
+export function generateTransactionPayloadWithABI(
+  args: GenerateTransactionPayloadDataWithABI,
+  functionAbi: MoveFunction,
+): TransactionPayload;
+export function generateTransactionPayloadWithABI(
+  args: GenerateTransactionPayloadDataWithABI,
+  functionAbi: MoveFunction,
+): TransactionPayload {
+  const funcNameParts = args.function.split("::");
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+
+  // We have to find the first non-signer arg for arguments
+  const startAbiIndex = findFirstNonSignerArg(functionAbi);
+  let abiIndex = startAbiIndex;
+
+  // Ensure that all type arguments are typed properly
+  const typeArguments = typeTagConversion(args.typeArguments);
+
+  // Check the type argument count against the ABI
+  if (typeArguments.length !== functionAbi?.generic_type_params.length) {
+    throw new Error(
+      `Type argument count mismatch, expected ${functionAbi.generic_type_params.length}, received ${typeArguments.length}`,
+    );
+  }
+
+  // Check all BCS types, and convert any non-BCS types
+  const functionArguments: Array<EntryFunctionArgumentTypes> = [];
+  for (let i = 0; i < args.functionArguments.length; i += 1) {
+    const arg = args.functionArguments[i];
+    convertArgument(args.function, functionAbi, arg, abiIndex, i, startAbiIndex);
+    abiIndex += 1;
+  }
+
+  // Check that all arguments are accounted for
+  if (abiIndex !== functionAbi.params.length) {
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${
+        functionAbi.params.length - startAbiIndex
+      } but got ${abiIndex - startAbiIndex}`,
+    );
+  }
+
+  // Generate entry function payload
+  const entryFunctionPayload = EntryFunction.build(
+    `${moduleAddress}::${moduleName}`,
+    functionName,
+    typeArguments,
+    functionArguments,
+  );
+
+  // Send it as multi sig if it's a multisig payload
+  if ("multisigAddress" in args) {
+    let multisigAddress: AccountAddress;
+    if (typeof args.multisigAddress === "string") {
+      multisigAddress = AccountAddress.fromString(args.multisigAddress);
+    } else {
+      multisigAddress = args.multisigAddress;
+    }
+    return new TransactionPayloadMultisig(
+      new MultiSig(multisigAddress, new MultiSigTransactionPayload(entryFunctionPayload)),
+    );
+  }
+
+  // Otherwise send as an entry function
+  return new TransactionPayloadEntryFunction(entryFunctionPayload);
 }
 
 /**
