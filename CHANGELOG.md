@@ -4,11 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- Remove MoveObject in favor of AccountAddress
+- Remove MoveObject in favor of AccountAddress, use AccountAddress for Object inputs
 - Use revamped parseTypeTag function instead of StructTag.fromString()
 - Allow use of generics in parseTypeTag
 - Rename publishModuleTransaction to publishPackageTransaction and fix functionality accordingly
 - Added toString() for type tags, and reference placeholder type
+- Add ability to generate transactions with known ABI and remote ABI
 
 ## 0.0.2 (2023-10-25)
 
