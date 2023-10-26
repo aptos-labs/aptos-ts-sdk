@@ -249,7 +249,7 @@ export type GasEstimation = {
 };
 
 export type MoveResource = {
-  type: MoveResourceType;
+  type: MoveStructType;
   data: {};
 };
 
@@ -518,7 +518,7 @@ export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPa
 
 export type EntryFunctionPayloadResponse = {
   type: string;
-  function: MoveResourceType;
+  function: MoveStructType;
   /**
    * Type arguments of the function
    */
@@ -679,12 +679,11 @@ export type MoveUint128Type = string;
 export type MoveUint256Type = string;
 export type MoveAddressType = string;
 export type MoveObjectType = string;
-export type MoveStructType = `${string}::${string}::${string}`;
 export type MoveOptionType = MoveType | null | undefined;
 /**
- * String representation of a on-chain Move struct type.
+ * This is the format for a fully qualified struct, resource, or entry function in Move.
  */
-export type MoveResourceType = `${string}::${string}::${string}`;
+export type MoveStructType = `${string}::${string}::${string}`;
 
 export type MoveType =
   | boolean
@@ -893,7 +892,7 @@ export type Block = {
  */
 export type ViewRequestData = {
   function: MoveStructType;
-  typeArguments?: Array<MoveResourceType>;
+  typeArguments?: Array<MoveStructType>;
   functionArguments?: Array<MoveValue>;
 };
 
@@ -902,14 +901,14 @@ export type ViewRequestData = {
 /**
  * View request for the Move view function API
  *
- * `type MoveResourceType = ${string}::${string}::${string}`;
+ * `type MoveStructType = ${string}::${string}::${string}`;
  */
 export type ViewRequest = {
-  function: MoveResourceType;
+  function: MoveStructType;
   /**
    * Type arguments of the function
    */
-  type_arguments: Array<MoveResourceType>;
+  type_arguments: Array<MoveStructType>;
   /**
    * Arguments of the function
    */

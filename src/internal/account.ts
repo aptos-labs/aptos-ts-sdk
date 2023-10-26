@@ -26,7 +26,7 @@ import {
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
-  MoveResourceType,
+  MoveStructType,
   OrderBy,
   PaginationArgs,
   SigningScheme,
@@ -164,7 +164,7 @@ export async function getResources(args: {
 export async function getResource<T extends {}>(args: {
   aptosConfig: AptosConfig;
   accountAddress: HexInput;
-  resourceType: MoveResourceType;
+  resourceType: MoveStructType;
   options?: LedgerVersion;
 }): Promise<T> {
   const { aptosConfig, accountAddress, resourceType, options } = args;
