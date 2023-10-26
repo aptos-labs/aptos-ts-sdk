@@ -23,6 +23,7 @@ import {
   parseTypeTag,
   TypeTagParserError,
   TypeTagParserErrorType,
+  TypeTagReference,
 } from "../../src";
 import { Identifier } from "../../src/transactions/instances";
 
@@ -107,7 +108,7 @@ describe("TypeTagParser", () => {
   test("standard types", () => {
     // TODO: Should we gate signer and &signer similar to how we gate generic?
     expect(parseTypeTag("signer")).toEqual(new TypeTagSigner());
-    expect(parseTypeTag("&signer")).toEqual(new TypeTagSigner());
+    expect(parseTypeTag("&signer")).toEqual(new TypeTagReference(new TypeTagSigner()));
     expect(parseTypeTag("u8")).toEqual(new TypeTagU8());
     expect(parseTypeTag("u16")).toEqual(new TypeTagU16());
     expect(parseTypeTag("u32")).toEqual(new TypeTagU32());

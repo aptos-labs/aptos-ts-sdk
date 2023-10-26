@@ -7,6 +7,7 @@ import {
   TypeTagAddress,
   TypeTagBool,
   TypeTagGeneric,
+  TypeTagReference,
   TypeTagSigner,
   TypeTagStruct,
   TypeTagU128,
@@ -203,8 +204,13 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
  * @param types
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
+  // TODO: Parse references to any item not just signer
   switch (str) {
     case "&signer":
+      if (types.length > 0) {
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+      }
+      return new TypeTagReference(new TypeTagSigner());
     case "signer":
       if (types.length > 0) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);

@@ -45,9 +45,63 @@ export abstract class TypeTag extends Serializable {
         throw new Error(`Unknown variant index for TypeTag: ${index}`);
     }
   }
+
+  abstract toString(): string;
+
+  isBool(): this is TypeTagBool {
+    return this instanceof TypeTagBool;
+  }
+
+  isAddress(): this is TypeTagAddress {
+    return this instanceof TypeTagAddress;
+  }
+
+  isGeneric(): this is TypeTagGeneric {
+    return this instanceof TypeTagGeneric;
+  }
+
+  isSigner(): this is TypeTagSigner {
+    return this instanceof TypeTagSigner;
+  }
+
+  isVector(): this is TypeTagVector {
+    return this instanceof TypeTagVector;
+  }
+
+  isStruct(): this is TypeTagStruct {
+    return this instanceof TypeTagStruct;
+  }
+
+  isU8(): this is TypeTagU8 {
+    return this instanceof TypeTagU8;
+  }
+
+  isU16(): this is TypeTagU16 {
+    return this instanceof TypeTagU16;
+  }
+
+  isU32(): this is TypeTagU32 {
+    return this instanceof TypeTagU32;
+  }
+
+  isU64(): this is TypeTagU64 {
+    return this instanceof TypeTagU64;
+  }
+
+  isU128(): this is TypeTagU128 {
+    return this instanceof TypeTagU128;
+  }
+
+  isU256(): this is TypeTagU256 {
+    return this instanceof TypeTagU256;
+  }
 }
 
 export class TypeTagBool extends TypeTag {
+  toString(): string {
+    return "bool";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Bool);
   }
@@ -58,6 +112,10 @@ export class TypeTagBool extends TypeTag {
 }
 
 export class TypeTagU8 extends TypeTag {
+  toString(): string {
+    return "u8";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U8);
   }
@@ -68,6 +126,10 @@ export class TypeTagU8 extends TypeTag {
 }
 
 export class TypeTagU16 extends TypeTag {
+  toString(): string {
+    return "u16";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U16);
   }
@@ -78,6 +140,10 @@ export class TypeTagU16 extends TypeTag {
 }
 
 export class TypeTagU32 extends TypeTag {
+  toString(): string {
+    return "u32";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U32);
   }
@@ -88,6 +154,10 @@ export class TypeTagU32 extends TypeTag {
 }
 
 export class TypeTagU64 extends TypeTag {
+  toString(): string {
+    return "u64";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U64);
   }
@@ -98,6 +168,10 @@ export class TypeTagU64 extends TypeTag {
 }
 
 export class TypeTagU128 extends TypeTag {
+  toString(): string {
+    return "u128";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U128);
   }
@@ -108,6 +182,10 @@ export class TypeTagU128 extends TypeTag {
 }
 
 export class TypeTagU256 extends TypeTag {
+  toString(): string {
+    return "u256";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.U256);
   }
@@ -118,6 +196,10 @@ export class TypeTagU256 extends TypeTag {
 }
 
 export class TypeTagAddress extends TypeTag {
+  toString(): string {
+    return "address";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Address);
   }
@@ -128,6 +210,10 @@ export class TypeTagAddress extends TypeTag {
 }
 
 export class TypeTagSigner extends TypeTag {
+  toString(): string {
+    return "signer";
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Signer);
   }
@@ -137,12 +223,35 @@ export class TypeTagSigner extends TypeTag {
   }
 }
 
+export class TypeTagReference extends TypeTag {
+  toString(): string {
+    return `&${this.value.toString()}`;
+  }
+
+  constructor(public readonly value: TypeTag) {
+    super();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(TypeTagVariants.Reference);
+  }
+
+  static load(deserializer: Deserializer): TypeTagReference {
+    const value = TypeTag.deserialize(deserializer);
+    return new TypeTagReference(value);
+  }
+}
+
 /**
  * Generics are used for type parameters in entry functions.  However,
  * they are not actually serialized into a real type, so they cannot be
  * used as a type directly.
  */
 export class TypeTagGeneric extends TypeTag {
+  toString(): string {
+    return `T${this.value}`;
+  }
+
   constructor(public readonly value: number) {
     super();
   }
@@ -159,6 +268,10 @@ export class TypeTagGeneric extends TypeTag {
 }
 
 export class TypeTagVector extends TypeTag {
+  toString(): string {
+    return `vector${this.value.toString()}`;
+  }
+
   constructor(public readonly value: TypeTag) {
     super();
   }
@@ -175,6 +288,18 @@ export class TypeTagVector extends TypeTag {
 }
 
 export class TypeTagStruct extends TypeTag {
+  toString(): string {
+    // Collect type args and add it if there are any
+    let typePredicate = "";
+    if (this.value.type_args.length > 0) {
+      typePredicate = `<${this.value.type_args.map((typeArg) => typeArg.toString()).join(", ")}>`;
+    }
+
+    return `${this.value.address.toString()}::${this.value.module_name.identifier}::${
+      this.value.name.identifier
+    }${typePredicate}`;
+  }
+
   constructor(public readonly value: StructTag) {
     super();
   }
@@ -189,22 +314,24 @@ export class TypeTagStruct extends TypeTag {
     return new TypeTagStruct(value);
   }
 
-  /**
-   * This function checks if the TypeTagStruct is a Move String TypeTag.
-   * In Move, a string is represented as the String struct from string.move, deployed at `0x1`,
-   * meaning it has the following properties:
-   * - address: 0x1
-   * - module_name: "string"
-   * - name: "String"
-   *
-   * @returns true if the StructTag is a String type tag, false otherwise
-   */
-  isStringTypeTag(): boolean {
+  isTypeTag(address: AccountAddress, moduleName: string, structName: string): boolean {
     return (
-      this.value.module_name.identifier === "string" &&
-      this.value.name.identifier === "String" &&
-      this.value.address.toString() === AccountAddress.ONE.toString()
+      this.value.module_name.identifier === moduleName &&
+      this.value.name.identifier === structName &&
+      this.value.address.equals(address)
     );
+  }
+
+  isString(): boolean {
+    return this.isTypeTag(AccountAddress.ONE, "string", "String");
+  }
+
+  isOption(): boolean {
+    return this.isTypeTag(AccountAddress.ONE, "option", "Option");
+  }
+
+  isObject(): boolean {
+    return this.isTypeTag(AccountAddress.ONE, "object", "Object");
   }
 }
 

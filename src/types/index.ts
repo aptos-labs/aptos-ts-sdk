@@ -41,6 +41,7 @@ export enum TypeTagVariants {
   U16 = 8,
   U32 = 9,
   U256 = 10,
+  Reference = 254, // This is specifically a placeholder and does not represent a real type
   Generic = 255, // This is specifically a placeholder and does not represent a real type
 }
 
