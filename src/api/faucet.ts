@@ -3,7 +3,7 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { fundAccount } from "../internal/faucet";
-import { HexInput } from "../types";
+import { HexInput, WaitForTransactionOptions } from "../types";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
@@ -21,10 +21,14 @@ export class Faucet {
    *
    * @param args.accountAddress Address of the account to fund
    * @param args.amount Amount of tokens to fund the account with
-   * @param args.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
+   * @param args.options Configuration options for waitForTransaction
    * @returns Transaction hash of the transaction that funded the account
    */
-  async fundAccount(args: { accountAddress: HexInput; amount: number; timeoutSecs?: number }): Promise<string> {
+  async fundAccount(args: {
+    accountAddress: HexInput;
+    amount: number;
+    options?: WaitForTransactionOptions;
+  }): Promise<string> {
     return fundAccount({ aptosConfig: this.config, ...args });
   }
 }
