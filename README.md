@@ -77,7 +77,7 @@ const aptos = new Aptos();
 // This functions resolves the provided private key type and derives the public key from it
 // to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
 // Read more https://github.com/aptos-labs/aptos-ts-sdk/blob/main/src/api/account.ts#L364
-const account = await aptos.deriveAccountFromPrivateKey(privateKey);
+const account = await aptos.deriveAccountFromPrivateKey({ privateKey: privateKey });
 ```
 
 #### Derive from path
