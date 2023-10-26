@@ -18,6 +18,14 @@ import {
 import { AnyNumber, HexInput, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
 
+export type SimpleEntryFunctionArgumentTypes =
+  | boolean
+  | number
+  | bigint
+  | string
+  | undefined
+  | Uint8Array
+  | Array<SimpleEntryFunctionArgumentTypes>;
 export type EntryFunctionArgumentTypes =
   | Bool
   | U8
@@ -75,6 +83,7 @@ export type TransactionPayload =
  */
 export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | MultiSigData;
 
+export type GenerateTransactionPayloadDataWithABI = EntryFunctionDataWithABI | MultiSigDataWithABI;
 /**
  * The data needed to generate an Entry Function payload
  */
@@ -84,12 +93,24 @@ export type EntryFunctionData = {
   functionArguments: Array<EntryFunctionArgumentTypes>;
 };
 
+export type EntryFunctionDataWithABI = {
+  function: MoveStructType;
+  typeArguments?: Array<TypeTag | string>;
+  functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+};
 /**
  * The data needed to generate a Multi Sig payload
  */
 export type MultiSigData = {
   multisigAddress: AccountAddress;
 } & EntryFunctionData;
+
+/**
+ * The data needed to generate a Multi Sig payload
+ */
+export type MultiSigDataWithABI = {
+  multisigAddress: AccountAddress | string;
+} & EntryFunctionDataWithABI;
 
 /**
  * The data needed to generate a Script payload
