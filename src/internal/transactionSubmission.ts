@@ -23,6 +23,7 @@ import {
   SimulateTransactionData,
   GenerateTransactionOptions,
   SingleSignerTransaction,
+  GenerateTransactionPayloadDataWithRemoteABI,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
 
@@ -70,7 +71,28 @@ export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & GenerateTransactionInput,
 ): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
-  const payload = await generateTransactionPayload(data);
+
+  // Merge in aptosConfig for remote ABI
+  let generateTransactionPayloadData: GenerateTransactionPayloadDataWithRemoteABI;
+  if ("bytecode" in data) {
+    generateTransactionPayloadData = data;
+  } else if ("multisigAddress" in data) {
+    generateTransactionPayloadData = {
+      aptosConfig,
+      multisigAddress: data.multisigAddress,
+      function: data.function,
+      functionArguments: data.functionArguments,
+      typeArguments: data.typeArguments,
+    };
+  } else {
+    generateTransactionPayloadData = {
+      aptosConfig,
+      function: data.function,
+      functionArguments: data.functionArguments,
+      typeArguments: data.typeArguments,
+    };
+  }
+  const payload = await generateTransactionPayload(generateTransactionPayloadData);
   return buildTransaction({
     aptosConfig,
     sender,

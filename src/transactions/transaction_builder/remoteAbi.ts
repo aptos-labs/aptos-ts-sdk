@@ -1,55 +1,40 @@
-import { MoveFunction } from "../../types";
-import {
-  parseTypeTag,
-  TypeTag,
-  TypeTagAddress,
-  TypeTagBool,
-  TypeTagStruct,
-  TypeTagU128,
-  TypeTagU16,
-  TypeTagU256,
-  TypeTagU32,
-  TypeTagU64,
-  TypeTagU8,
-  TypeTagVector,
-} from "../typeTag";
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
+import { parseTypeTag, TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
-import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes } from "../types";
-import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
+import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
+import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress, Hex } from "../../core";
 import { getModule } from "../../internal/account";
-
-/**
- * Finds first non-signer arg.
- *
- * A function is often defined with a `signer` or `&signer` arguments at the start, which are filled in
- * by signatures, and not by the caller.
- * @param functionAbi
- */
-export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
-  return functionAbi.params.findIndex((param) => param !== "signer" && param !== "&signer");
-}
-
-/**
- * Common logic for throwing when there are too many arguments
- * @param functionId
- * @param argumentIndex
- * @param numExpected
- */
-export function ensureNotTooManyArguments(functionId: string, argumentIndex: number, numExpected: number) {
-  if (argumentIndex >= numExpected) {
-    throw new Error(`Too many arguments for '${functionId}', expected ${numExpected}`);
-  }
-}
+import {
+  findFirstNonSignerArg,
+  isBcsAddress,
+  isBcsBool,
+  isBcsFixedBytes,
+  isBcsString,
+  isBcsU128,
+  isBcsU16,
+  isBcsU256,
+  isBcsU32,
+  isBcsU64,
+  isBcsU8,
+  isBool,
+  isLargeNumber,
+  isNull,
+  isNumber,
+  isString,
+  throwTypeMismatch,
+} from "./helpers";
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags
  */
-export function typeTagConversion(typeArguments?: Array<TypeTag | string>): Array<TypeTag> {
+export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Array<TypeTag> {
   return (
     typeArguments?.map((typeArg: string | TypeTag): TypeTag => {
       // Convert to TypeTag if it's a string representation
-      if (typeof typeArg === "string") {
+      if (isString(typeArg)) {
         return parseTypeTag(typeArg);
       }
       return typeArg;
@@ -59,6 +44,8 @@ export function typeTagConversion(typeArguments?: Array<TypeTag | string>): Arra
 
 /**
  * Fetches the ABI for an entry function from the module
+ *
+ * TODO: Memoize this whole function
  * @param moduleAddress
  * @param moduleName
  * @param functionName
@@ -69,10 +56,10 @@ export async function fetchEntryFunctionAbi(
   moduleName: string,
   functionName: string,
   aptosConfig: AptosConfig,
-) {
+): Promise<EntryFunctionABI> {
+  // This fetch from the API is currently cached
   const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
 
-  // TODO: Memoize? or is the module enough
   const functionAbi = module.abi?.exposed_functions.find((func) => func.name === functionName);
 
   // If there's no ABI, then the function is invalid
@@ -85,167 +72,268 @@ export async function fetchEntryFunctionAbi(
     throw new Error(`'${moduleAddress}::${moduleName}::${functionName}' is not an entry function`);
   }
 
-  return functionAbi;
+  // Remove the signer arguments
+  const first = findFirstNonSignerArg(functionAbi);
+  const params = [];
+  for (let i = first; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
 }
 
-export function convertSimpleEntryFunctionType(
-  functionAbi: MoveFunction,
-  arg: SimpleEntryFunctionArgumentTypes,
-  position: number,
-  abiPosition: number,
-): EntryFunctionArgumentTypes {
-  const paramStr = functionAbi.params[abiPosition];
-  const param = parseTypeTag(paramStr, { allowGenerics: true });
-  if (param instanceof TypeTagBool && typeof arg === "boolean") {
-    return new Bool(arg);
-  }
-  if (param instanceof TypeTagAddress && typeof arg === "string") {
-    // TODO: support uint8array?
-    return AccountAddress.fromString(arg);
-  }
-  // TODO: Do we accept bigint or string for these smaller numbers?
-  if (param instanceof TypeTagU8 && typeof arg === "number") {
-    return new U8(arg);
-  }
-  if (param instanceof TypeTagU16 && typeof arg === "number") {
-    return new U16(arg);
-  }
-  if (param instanceof TypeTagU32 && typeof arg === "number") {
-    return new U32(arg);
-  }
-  if (param instanceof TypeTagU64 && (typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string")) {
-    return new U64(BigInt(arg));
-  }
-  if (param instanceof TypeTagU128 && (typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string")) {
-    return new U128(BigInt(arg));
-  }
-  if (param instanceof TypeTagU256 && (typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string")) {
-    return new U256(BigInt(arg));
-  }
-
-  // TODO: Need recursive calls to handle this
-  // TODO: Vector<u8> is a special case to accept hex!
-  if (param instanceof TypeTagVector) {
-    if (param.value instanceof TypeTagU8 && Array.isArray(arg)) {
-      // TODO: Have to get value of inside array
-      throw new Error("Not yet implemented");
-      // return MoveVector.U8(arg);
-    } else if (param.value instanceof TypeTagU8 && typeof arg === "string") {
-      return MoveVector.U8(Hex.fromHexInput(arg).toUint8Array());
-    } else {
-      // We are going to assume that all in the array are uniform
-      throw new Error("Not yet implemented");
-    }
-  }
-
-  // Handle structs as they're more complex
-  if (param instanceof TypeTagStruct) {
-    // Unknown structs won't be parsed
-    if (paramStr === "0x1::string::String" && typeof arg === "string") {
-      return new MoveString(arg);
-    }
-    if (paramStr.startsWith("0x1::object::Object") && typeof arg === "string") {
-      return AccountAddress.fromString(arg);
-    }
-    if (paramStr.startsWith("0x1::object::Option")) {
-      if (arg === undefined) {
-        // TODO: This is a bit of a hack, the real type can be used, but it doesn't matter much
-        return new MoveOption<U8>(null);
-      }
-      // Get the proper parsed type
-      throw new Error("Not yet implemented for option with value");
-    }
-  }
-  throw new Error(`Type mismatch for argument ${position}, expected '${paramStr}'`);
-}
-
-export function checkType(
-  functionAbi: MoveFunction,
-  arg: EntryFunctionArgumentTypes,
-  position: number,
-  abiPosition: number,
-) {
-  const paramStr = functionAbi.params[abiPosition];
-  const param = parseTypeTag(paramStr, { allowGenerics: true });
-  if (param instanceof TypeTagBool && arg instanceof Bool) {
-    return;
-  }
-  if (param instanceof TypeTagAddress && arg instanceof AccountAddress) {
-    return;
-  }
-  if (param instanceof TypeTagU8 && arg instanceof U8) {
-    return;
-  }
-  if (param instanceof TypeTagU16 && arg instanceof U16) {
-    return;
-  }
-  if (param instanceof TypeTagU32 && arg instanceof U32) {
-    return;
-  }
-  if (param instanceof TypeTagU64 && arg instanceof U64) {
-    return;
-  }
-  if (param instanceof TypeTagU128 && arg instanceof U128) {
-    return;
-  }
-  if (param instanceof TypeTagU256 && arg instanceof U256) {
-    return;
-  }
-  if (param instanceof TypeTagVector && arg instanceof MoveVector) {
-    // TODO: More introspection to verify the type
-    return;
-  }
-
-  // Handle structs as they're more complex
-  if (param instanceof TypeTagStruct) {
-    // Unknown structs won't be parsed properly
-    if (paramStr === "0x1::string::String" && arg instanceof MoveString) {
-      return;
-    }
-    // TODO: Allow account address too?
-    if (paramStr.startsWith("0x1::object::Object") && arg instanceof AccountAddress) {
-      return;
-    }
-    if (paramStr.startsWith("0x1::option::Option") && arg instanceof MoveOption) {
-      // TODO: more introspection for the type
-      return;
-    }
-  }
-
-  throw new Error(`Type mismatch for argument ${position}, expected '${paramStr}'`);
-}
-
+/**
+ * Converts a non-BCS encoded argument into BCS encoded, if necessary
+ * @param functionName
+ * @param functionAbi
+ * @param arg
+ * @param position
+ */
 export function convertArgument(
   functionName: string,
-  functionAbi: MoveFunction,
+  functionAbi: EntryFunctionABI,
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
-  abiIndex: number,
-  argIndex: number,
-  abiStartIndex: number,
+  position: number,
+  genericTypeParams: Array<TypeTag>,
 ) {
+  // Ensure not too many arguments
+  if (position >= functionAbi.parameters.length) {
+    throw new Error(`Too many arguments for '${functionName}', expected ${functionAbi.parameters.length}`);
+  }
+
   // If the argument is bcs encoded, we can just use it directly
   if (
-    arg instanceof Bool ||
-    arg instanceof U8 ||
-    arg instanceof U16 ||
-    arg instanceof U32 ||
-    arg instanceof U64 ||
-    arg instanceof U128 ||
-    arg instanceof U256 ||
-    arg instanceof AccountAddress ||
+    isBcsBool(arg) ||
+    isBcsU8(arg) ||
+    isBcsU16(arg) ||
+    isBcsU32(arg) ||
+    isBcsU64(arg) ||
+    isBcsU128(arg) ||
+    isBcsU256(arg) ||
+    isBcsAddress(arg) ||
+    isBcsString(arg) ||
+    isBcsFixedBytes(arg) ||
     arg instanceof MoveVector ||
-    arg instanceof MoveOption ||
-    arg instanceof MoveString ||
-    arg instanceof FixedBytes
+    arg instanceof MoveOption
   ) {
-    // Check the type for BCS arguments
-    ensureNotTooManyArguments(functionName, abiIndex - abiStartIndex, functionAbi.params.length - abiStartIndex);
-    checkType(functionAbi, arg, argIndex, abiIndex);
+    // Ensure the type matches the ABI
+    checkType(functionAbi, arg, position);
     return arg;
   }
 
   // If it is not BCS encoded, we will need to convert it with the ABI
-  ensureNotTooManyArguments(functionName, abiIndex - abiStartIndex, functionAbi.params.length - abiStartIndex);
+  return parseArg(arg, functionAbi.parameters[position], position, genericTypeParams);
+}
 
-  return convertSimpleEntryFunctionType(functionAbi, arg, argIndex, abiIndex);
+/**
+ * Parses a non-BCS encoded argument into a BCS encoded argument recursively
+ * @param arg
+ * @param param
+ * @param position
+ * @param genericTypeParams
+ */
+function parseArg(
+  arg: SimpleEntryFunctionArgumentTypes,
+  param: TypeTag,
+  position: number,
+  genericTypeParams: Array<TypeTag>,
+): EntryFunctionArgumentTypes {
+  if (param.isBool()) {
+    if (isBool(arg)) {
+      return new Bool(arg);
+    }
+    throwTypeMismatch("boolean", position);
+  }
+  // TODO: support uint8array?
+  if (param.isAddress()) {
+    if (isString(arg)) {
+      return AccountAddress.fromString(arg);
+    }
+    throwTypeMismatch("string", position);
+  }
+  if (param.isU8()) {
+    if (isNumber(arg)) {
+      return new U8(arg);
+    }
+    throwTypeMismatch("number", position);
+  }
+  if (param.isU16()) {
+    if (isNumber(arg)) {
+      return new U16(arg);
+    }
+    throwTypeMismatch("number", position);
+  }
+  if (param.isU32()) {
+    if (isNumber(arg)) {
+      return new U32(arg);
+    }
+    throwTypeMismatch("number", position);
+  }
+  if (param.isU64()) {
+    if (isLargeNumber(arg)) {
+      return new U64(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isU128()) {
+    if (isLargeNumber(arg)) {
+      return new U128(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+  if (param.isU256()) {
+    if (isLargeNumber(arg)) {
+      return new U256(BigInt(arg));
+    }
+    throwTypeMismatch("bigint | number | string", position);
+  }
+
+  // Generic needs to use the sub-type
+  if (param.isGeneric()) {
+    const genericIndex = param.value;
+    if (genericIndex < 0 || genericIndex >= genericTypeParams.length) {
+      throw new Error(`Generic argument ${param.toString()} is invalid for argument ${position}`);
+    }
+
+    parseArg(arg, genericTypeParams[genericIndex], position, genericTypeParams);
+  }
+
+  // We have to special case some vectors for Vector<u8>
+  if (param.isVector()) {
+    // Check special case for Vector<u8>
+    if (param.value.isU8() && isString(arg)) {
+      // TODO: Improve message when hex is invalid
+      return MoveVector.U8(Hex.fromHexInput(arg).toUint8Array());
+    }
+
+    if (Array.isArray(arg)) {
+      return new MoveVector(arg.map((item) => parseArg(item, param.value, position, genericTypeParams)));
+    }
+
+    throw new Error(`Type mismatch for argument ${position}, type '${param.toString()}'`);
+  }
+
+  // Handle structs as they're more complex
+  if (param.isStruct()) {
+    if (param.isString()) {
+      if (isString(arg)) {
+        return new MoveString(arg);
+      }
+      throwTypeMismatch("string", position);
+    }
+    if (param.isObject()) {
+      // The inner type of Object doesn't matter, since it's just syntactic sugar
+      if (isString(arg)) {
+        return AccountAddress.fromString(arg);
+      }
+      throwTypeMismatch("string", position);
+    }
+
+    if (param.isOption()) {
+      // Empty option must be handled specially
+      if (isNull(arg)) {
+        // Note: This is a placeholder U8 type, and does not match the actual type, as that can't be dynamically grabbed
+        return new MoveOption<U8>(null);
+      }
+
+      return new MoveOption(parseArg(arg, param.value.type_args[0], position, genericTypeParams));
+    }
+
+    throw new Error(`Unsupported struct input type for argument ${position}, type '${param.toString()}'`);
+  }
+
+  throw new Error(`Type mismatch for argument ${position}, type '${param.toString()}'`);
+}
+
+/**
+ * Checks that the type of an already BCS encoded argument matches the ABI
+ * @param functionAbi
+ * @param arg
+ * @param position
+ */
+function checkType(functionAbi: EntryFunctionABI, arg: EntryFunctionArgumentTypes, position: number) {
+  const param = functionAbi.parameters[position];
+  if (param.isBool()) {
+    if (isBcsBool(arg)) {
+      return;
+    }
+    throwTypeMismatch("Bool", position);
+  }
+  if (param.isAddress()) {
+    if (isBcsAddress(arg)) {
+      return;
+    }
+    throwTypeMismatch("AccountAddress", position);
+  }
+  if (param.isU8()) {
+    if (isBcsU8(arg)) {
+      return;
+    }
+    throwTypeMismatch("U8", position);
+  }
+  if (param.isU16()) {
+    if (isBcsU16(arg)) {
+      return;
+    }
+    throwTypeMismatch("U16", position);
+  }
+  if (param.isU32()) {
+    if (isBcsU32(arg)) {
+      return;
+    }
+    throwTypeMismatch("U32", position);
+  }
+  if (param.isU64()) {
+    if (isBcsU64(arg)) {
+      return;
+    }
+    throwTypeMismatch("U64", position);
+  }
+  if (param.isU128()) {
+    if (isBcsU128(arg)) {
+      return;
+    }
+    throwTypeMismatch("U128", position);
+  }
+  if (param.isU256()) {
+    if (isBcsU256(arg)) {
+      return;
+    }
+    throwTypeMismatch("U256", position);
+  }
+  if (param.isVector()) {
+    if (arg instanceof MoveVector) {
+      // TODO: More introspection to verify the type
+      return;
+    }
+    throwTypeMismatch("MoveVector", position);
+  }
+
+  // Handle structs as they're more complex
+  if (param instanceof TypeTagStruct) {
+    if (param.isString()) {
+      if (isBcsString(arg)) {
+        return;
+      }
+      throwTypeMismatch("MoveString", position);
+    }
+    if (param.isObject()) {
+      if (isBcsAddress(arg)) {
+        return;
+      }
+      throwTypeMismatch("AccountAddress", position);
+    }
+    if (param.isOption()) {
+      if (arg instanceof MoveOption) {
+        // TODO: more introspection for the type
+        return;
+      }
+      throwTypeMismatch("MoveOption", position);
+    }
+  }
+
+  throw new Error(`Type mismatch for argument ${position}, expected '${param.toString()}'`);
 }

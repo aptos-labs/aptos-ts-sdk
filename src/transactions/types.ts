@@ -15,7 +15,7 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveStructType } from "../types";
+import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag/typeTag";
 
 export type SimpleEntryFunctionArgumentTypes =
@@ -23,7 +23,8 @@ export type SimpleEntryFunctionArgumentTypes =
   | number
   | bigint
   | string
-  | undefined
+  | null // To support optional empty
+  | undefined // To support optional empty
   | Uint8Array
   | Array<SimpleEntryFunctionArgumentTypes>;
 export type EntryFunctionArgumentTypes =
@@ -83,21 +84,21 @@ export type TransactionPayload =
  */
 export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | MultiSigData;
 
-export type GenerateTransactionPayloadDataWithABI = EntryFunctionDataWithABI | MultiSigDataWithABI;
+export type GenerateTransactionPayloadDataWithRemoteABI =
+  | (ScriptData & { aptosConfig?: undefined })
+  | EntryFunctionDataWithRemoteABI
+  | MultiSigDataWithRemoteABI;
+
 /**
  * The data needed to generate an Entry Function payload
  */
 export type EntryFunctionData = {
   function: MoveStructType;
   typeArguments?: Array<TypeTag>;
-  functionArguments: Array<EntryFunctionArgumentTypes>;
-};
-
-export type EntryFunctionDataWithABI = {
-  function: MoveStructType;
-  typeArguments?: Array<TypeTag | string>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 };
+
+export type EntryFunctionDataWithRemoteABI = EntryFunctionData & AptosConfigArg;
 /**
  * The data needed to generate a Multi Sig payload
  */
@@ -108,9 +109,9 @@ export type MultiSigData = {
 /**
  * The data needed to generate a Multi Sig payload
  */
-export type MultiSigDataWithABI = {
+export type MultiSigDataWithRemoteABI = {
   multisigAddress: AccountAddress | string;
-} & EntryFunctionDataWithABI;
+} & EntryFunctionDataWithRemoteABI;
 
 /**
  * The data needed to generate a Script payload
@@ -119,6 +120,20 @@ export type ScriptData = {
   bytecode: HexInput;
   typeArguments?: Array<TypeTag>;
   functionArguments: Array<ScriptFunctionArgumentTypes>;
+};
+
+/**
+ * Interface of an Entry function's ABI.
+ *
+ * This is used to provide type checking and simple input conversion on ABI based transaction submission.
+ */
+export type EntryFunctionABI = {
+  typeParameters: Array<MoveFunctionGenericTypeParam>;
+  parameters: Array<TypeTag>;
+};
+
+export type AptosConfigArg = {
+  aptosConfig: AptosConfig;
 };
 
 /**
