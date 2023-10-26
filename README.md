@@ -56,6 +56,38 @@ const aptos = new Aptos(config);
 const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 ```
 
+### Keys management (default to Ed25519)
+
+> Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Genearting an account defaults to Single Sender unified authentication with the option to use the Legacy Ed25519
+
+---
+
+#### Generate new keys
+
+```ts
+const account = Account.generate(); // defaults to Single Sender Ed25519
+const account = Account.generate((scheme:SingingSchemeInput.Secp256k1)); // Single Sender Secp256k1
+const account = Account.generate({legacy:true}); // use Legacy Ed25519
+```
+
+#### Derive from private key
+
+```ts
+const aptos = new Aptos();
+// This functions resolves the provided private key type and derives the public key from it
+// to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
+// Read more https://github.com/aptos-labs/aptos-ts-sdk/blob/main/src/api/account.ts#L364
+const account = await aptos.deriveAccountFromPrivateKey("0x123");
+```
+
+#### Derive from path
+
+```ts
+const path = "m/44'/637'/0'/0'/1";
+const mnemonic = "various float stumble...";
+const account = Account.fromDerivationPath({ path, mnemonic });
+```
+
 ### Submit transaction
 
 ---
@@ -91,30 +123,6 @@ const transaction = await aptos.transferCoinTransaction({
 });
 
 const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
-```
-
-### Keys management (default to Ed25519)
-
----
-
-#### Generate new keys
-
-```ts
-const account = Account.generate();
-```
-
-#### Derive from private key
-
-```ts
-const account = Account.fromPrivateKey("0x123");
-```
-
-#### Derive from path
-
-```ts
-const path = "m/44'/637'/0'/0'/1";
-const mnemonic = "various float stumble...";
-const account = Account.fromDerivationPath({ path, mnemonic });
 ```
 
 ## Documentation and examples
