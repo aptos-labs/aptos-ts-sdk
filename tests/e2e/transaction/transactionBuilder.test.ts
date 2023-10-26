@@ -8,8 +8,9 @@ import {
   Deserializer,
   Network,
   U64,
-  MoveFunctionVisibility,
   AccountAddress,
+  EntryFunctionABI,
+  parseTypeTag,
 } from "../../../src";
 import { AccountAuthenticator, AccountAuthenticatorSingleKey } from "../../../src/transactions/authenticator/account";
 import {
@@ -28,7 +29,6 @@ import {
   generateSignedTransactionForSimulation,
   generateTransactionPayload,
   generateTransactionPayloadWithABI,
-  generateTransactionPayloadWithRemoteABI,
   sign,
 } from "../../../src/transactions/transaction_builder/transaction_builder";
 import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
@@ -39,6 +39,7 @@ const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
 /* eslint-disable max-len */
 describe("transaction builder", () => {
+  // TODO: The example function deployed here has all the arguments backwards from normal transfers, we should fix that
   const contractPublisherAccount = Account.generate();
   beforeAll(async () => {
     await fundAccounts(aptos, [contractPublisherAccount]);
@@ -46,7 +47,7 @@ describe("transaction builder", () => {
   }, longTestTimeout);
   describe("generate transaction payload", () => {
     test("it generates a script transaction payload", async () => {
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -59,71 +60,49 @@ describe("transaction builder", () => {
       expect(payload instanceof TransactionPayloadScript).toBeTruthy();
     });
     test("it generates a multi sig transaction payload", async () => {
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         multisigAddress: Account.generate().accountAddress,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [],
+        functionArguments: [200, "0x1"],
       });
       expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
     });
     test("it generates an entry function transaction payload", async () => {
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [],
+        functionArguments: [200, "0x1"],
       });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
-  });
-  describe("generate transaction payload with remote ABI", () => {
-    test("it generates a multi sig transaction payload", async () => {
-      const payload = await generateTransactionPayloadWithRemoteABI(
-        {
-          multisigAddress: Account.generate().accountAddress,
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: ["0x1", "0x1"],
-        },
-        config,
-      );
-      expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
-    });
-    test("it generates an entry function transaction payload", async () => {
-      const payload = await generateTransactionPayloadWithRemoteABI(
-        {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: ["0x1", "0x1"],
-        },
-        config,
-      );
+    test("it generates an entry function transaction payload with encoded inputs", async () => {
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        functionArguments: [new U64(100), AccountAddress.ONE],
+      });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
     test("it generates an entry function transaction payload with mixed arguments", async () => {
-      const payload = generateTransactionPayloadWithRemoteABI(
-        {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: [AccountAddress.ONE, "0x1"],
-        },
-        config,
-      );
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        functionArguments: ["0x2", AccountAddress.ONE],
+      });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
-      const payload2 = generateTransactionPayloadWithRemoteABI(
-        {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: ["0x1", AccountAddress.ONE],
-        },
-        config,
-      );
+      const payload2 = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        functionArguments: [new U64(10), "0x1"],
+      });
       expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
   describe("generate transaction payload with preset ABI", () => {
-    const functionAbi = {
-      name: "transfer",
-      visibility: MoveFunctionVisibility.PUBLIC,
-      is_entry: true,
-      is_view: false,
-      generic_type_params: [],
-      params: ["address", "0x1::object::Object<T0>"],
-      return: [],
+    const functionAbi: EntryFunctionABI = {
+      typeParameters: [],
+      parameters: [parseTypeTag("address"), parseTypeTag("0x1::object::Object<T0>", { allowGenerics: true })],
     };
 
     test("it generates a multi sig transaction payload", async () => {
@@ -170,7 +149,7 @@ describe("transaction builder", () => {
     test("it generates a raw transaction with script payload", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -193,10 +172,11 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         multisigAddress: bob.accountAddress,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const rawTxn = await generateRawTransaction({
         aptosConfig: config,
@@ -211,9 +191,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const rawTxn = await generateRawTransaction({
         aptosConfig: config,
@@ -228,7 +209,7 @@ describe("transaction builder", () => {
     test("it returns a serialized raw transaction", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -252,9 +233,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const secondarySignerAddress = Account.generate();
       const transaction = await buildTransaction({
@@ -276,9 +258,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const feePayer = Account.generate();
       const transaction = await buildTransaction({
@@ -299,9 +282,10 @@ describe("transaction builder", () => {
         const alice = Account.generate();
         await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
         const bob = Account.generate();
-        const payload = generateTransactionPayload({
+        const payload = await generateTransactionPayload({
+          aptosConfig: config,
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: [bob.accountAddress, new U64(1)],
+          functionArguments: [new U64(1), bob.accountAddress],
         });
         const feePayer = Account.generate();
         const secondarySignerAddress = Account.generate();
@@ -328,7 +312,7 @@ describe("transaction builder", () => {
     test("it generates a signed raw transaction for simulation", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -358,7 +342,7 @@ describe("transaction builder", () => {
     test("it signs a raw transaction", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -387,10 +371,11 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         multisigAddress: bob.accountAddress,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -412,7 +397,7 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -442,7 +427,7 @@ describe("transaction builder", () => {
     test("it generates a single signer signed transaction", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
           new U64(100),
@@ -472,9 +457,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = await Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -504,9 +490,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -537,9 +524,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -554,9 +542,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,
@@ -573,9 +562,10 @@ describe("transaction builder", () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const payload = generateTransactionPayload({
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
         function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-        functionArguments: [bob.accountAddress, new U64(1)],
+        functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
         aptosConfig: config,

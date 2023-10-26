@@ -18,7 +18,6 @@ import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp25
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
-import { HexInput, MoveFunction, SigningScheme } from "../../types";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
 import {
   DEFAULT_MAX_GAS_AMOUNT,
@@ -55,7 +54,6 @@ import {
   GenerateTransactionOptions,
   TransactionPayload,
   AnyRawTransactionInstance,
-  GenerateTransactionPayloadData,
   GenerateFeePayerRawTransactionArgs,
   GenerateMultiAgentRawTransactionArgs,
   GenerateRawTransactionArgs,
@@ -64,16 +62,20 @@ import {
   AnyRawTransaction,
   FeePayerTransaction,
   MultiAgentTransaction,
-  EntryFunctionData,
-  MultiSigData,
   ScriptData,
   SimulateTransactionData,
   EntryFunctionArgumentTypes,
-  EntryFunctionDataWithABI,
-  MultiSigDataWithABI,
-  GenerateTransactionPayloadDataWithABI,
+  EntryFunctionABI,
+  GenerateTransactionPayloadData,
+  EntryFunctionData,
+  MultiSigData,
+  MultiSigDataWithRemoteABI,
+  EntryFunctionDataWithRemoteABI,
+  GenerateTransactionPayloadDataWithRemoteABI,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, findFirstNonSignerArg, typeTagConversion } from "./remoteAbi";
+import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import { memoizeAsync } from "../../utils/memoize";
+import { HexInput, SigningScheme } from "../../types";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -81,133 +83,91 @@ import { convertArgument, fetchEntryFunctionAbi, findFirstNonSignerArg, typeTagC
  * When we call our `generateTransactionPayload` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
  */
-export function generateTransactionPayload(args: EntryFunctionData): TransactionPayloadEntryFunction;
-export function generateTransactionPayload(args: ScriptData): TransactionPayloadScript;
-export function generateTransactionPayload(args: MultiSigData): TransactionPayloadMultisig;
-export function generateTransactionPayload(args: GenerateTransactionPayloadData): TransactionPayload;
+export async function generateTransactionPayload(
+  args: EntryFunctionDataWithRemoteABI,
+): Promise<TransactionPayloadEntryFunction>;
+export async function generateTransactionPayload(args: MultiSigDataWithRemoteABI): Promise<TransactionPayloadMultisig>;
+export async function generateTransactionPayload(
+  args: GenerateTransactionPayloadDataWithRemoteABI,
+): Promise<TransactionPayload>;
+
 /**
  * Builds a transaction payload based on the data argument and returns
  * a transaction payload - TransactionPayloadScript | TransactionPayloadMultisig | TransactionPayloadEntryFunction
+ *
+ * This uses the RemoteABI by default, and the remote ABI can be skipped by using generateTransactionPayloadWithABI
  *
  * @param args.data GenerateTransactionPayloadData
  *
  * @return TransactionPayload
  */
-export function generateTransactionPayload(args: GenerateTransactionPayloadData): TransactionPayload {
-  // generate script payload
-  if ("bytecode" in args) {
-    return new TransactionPayloadScript(
-      new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.functionArguments),
-    );
-  }
-
-  // generate multi sig payload
-  if ("multisigAddress" in args) {
-    const funcNameParts = args.function.split("::");
-    return new TransactionPayloadMultisig(
-      new MultiSig(
-        args.multisigAddress,
-        new MultiSigTransactionPayload(
-          EntryFunction.build(
-            `${funcNameParts[0]}::${funcNameParts[1]}`,
-            funcNameParts[2],
-            args.typeArguments ?? [],
-            args.functionArguments,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // generate entry function payload
-  const funcNameParts = args.function.split("::");
-  return new TransactionPayloadEntryFunction(
-    EntryFunction.build(
-      `${funcNameParts[0]}::${funcNameParts[1]}`,
-      funcNameParts[2],
-      args.typeArguments ?? [],
-      args.functionArguments,
-    ),
-  );
-}
-
-export async function generateTransactionPayloadWithRemoteABI(
-  args: EntryFunctionDataWithABI,
-  aptosConfig: AptosConfig,
-): Promise<TransactionPayloadEntryFunction>;
-export async function generateTransactionPayloadWithRemoteABI(
-  args: MultiSigDataWithABI,
-  aptosConfig: AptosConfig,
-): Promise<TransactionPayloadMultisig>;
-export async function generateTransactionPayloadWithRemoteABI(
-  args: GenerateTransactionPayloadDataWithABI,
-  aptosConfig: AptosConfig,
-): Promise<TransactionPayload>;
-
-export async function generateTransactionPayloadWithRemoteABI(
-  args: GenerateTransactionPayloadDataWithABI,
-  aptosConfig: AptosConfig,
+export async function generateTransactionPayload(
+  args: GenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<TransactionPayload> {
+  if ("bytecode" in args) {
+    return generateTransactionPayloadScript(args);
+  }
+
   const funcNameParts = args.function.split("::");
   const moduleAddress = funcNameParts[0];
   const moduleName = funcNameParts[1];
   const functionName = funcNameParts[2];
 
   // We fetch the entry function ABI, and then pretend that we already had the ABI
-  const functionAbi = await fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  const functionAbi = await memoizeAsync(
+    async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
+    `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
+
   return generateTransactionPayloadWithABI(args, functionAbi);
 }
 
 export function generateTransactionPayloadWithABI(
-  args: EntryFunctionDataWithABI,
-  functionAbi: MoveFunction,
+  args: EntryFunctionData,
+  functionAbi: EntryFunctionABI,
 ): TransactionPayloadEntryFunction;
 export function generateTransactionPayloadWithABI(
-  args: MultiSigDataWithABI,
-  functionAbi: MoveFunction,
+  args: MultiSigData,
+  functionAbi: EntryFunctionABI,
 ): TransactionPayloadMultisig;
 export function generateTransactionPayloadWithABI(
-  args: GenerateTransactionPayloadDataWithABI,
-  functionAbi: MoveFunction,
+  args: GenerateTransactionPayloadData,
+  functionAbi: EntryFunctionABI,
 ): TransactionPayload;
 export function generateTransactionPayloadWithABI(
-  args: GenerateTransactionPayloadDataWithABI,
-  functionAbi: MoveFunction,
+  args: GenerateTransactionPayloadData,
+  functionAbi: EntryFunctionABI,
 ): TransactionPayload {
+  if ("bytecode" in args) {
+    return generateTransactionPayloadScript(args);
+  }
+
   const funcNameParts = args.function.split("::");
   const moduleAddress = funcNameParts[0];
   const moduleName = funcNameParts[1];
   const functionName = funcNameParts[2];
 
-  // We have to find the first non-signer arg for arguments
-  const startAbiIndex = findFirstNonSignerArg(functionAbi);
-  let abiIndex = startAbiIndex;
-
   // Ensure that all type arguments are typed properly
-  const typeArguments = typeTagConversion(args.typeArguments);
+  const typeArguments = standardizeTypeTags(args.typeArguments);
 
   // Check the type argument count against the ABI
-  if (typeArguments.length !== functionAbi?.generic_type_params.length) {
+  if (typeArguments.length !== functionAbi.typeParameters.length) {
     throw new Error(
-      `Type argument count mismatch, expected ${functionAbi.generic_type_params.length}, received ${typeArguments.length}`,
+      `Type argument count mismatch, expected ${functionAbi.typeParameters.length}, received ${typeArguments.length}`,
     );
   }
 
   // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> = [];
-  for (let i = 0; i < args.functionArguments.length; i += 1) {
-    const arg = args.functionArguments[i];
-    convertArgument(args.function, functionAbi, arg, abiIndex, i, startAbiIndex);
-    abiIndex += 1;
-  }
+  const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
+    convertArgument(args.function, functionAbi, arg, i, typeArguments),
+  );
 
   // Check that all arguments are accounted for
-  if (abiIndex !== functionAbi.params.length) {
+  if (functionArguments.length !== functionAbi.parameters.length) {
     throw new Error(
       // eslint-disable-next-line max-len
-      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${
-        functionAbi.params.length - startAbiIndex
-      } but got ${abiIndex - startAbiIndex}`,
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
     );
   }
 
@@ -234,6 +194,12 @@ export function generateTransactionPayloadWithABI(
 
   // Otherwise send as an entry function
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
+}
+
+function generateTransactionPayloadScript(args: ScriptData) {
+  return new TransactionPayloadScript(
+    new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.functionArguments),
+  );
 }
 
 /**
