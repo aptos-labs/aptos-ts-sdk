@@ -58,7 +58,7 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 
 ### Keys management (default to Ed25519)
 
-> Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Genearting an account defaults to Single Sender unified authentication with the option to use the Legacy Ed25519
+> Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Generating an account defaults to Single Sender unified authentication with the option to use the Legacy Ed25519
 
 ---
 
@@ -66,8 +66,8 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 
 ```ts
 const account = Account.generate(); // defaults to Single Sender Ed25519
-const account = Account.generate((scheme:SingingSchemeInput.Secp256k1)); // Single Sender Secp256k1
-const account = Account.generate({legacy:true}); // use Legacy Ed25519
+const account = Account.generate({ scheme: SingingSchemeInput.Secp256k1 }); // Single Sender Secp256k1
+const account = Account.generate({ legacy: true }); // use Legacy Ed25519
 ```
 
 #### Derive from private key
