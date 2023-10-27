@@ -24,7 +24,7 @@ const getOptimalLpAmount = async (
   token2Addr: AccountAddress,
 ): Promise<void> => {
   const payload: ViewRequestData = {
-    function: `0x${swap.toStringWithoutPrefix()}::router::optimal_liquidity_amounts`,
+    function: `${swap.toString()}::router::optimal_liquidity_amounts`,
     functionArguments: [token1Addr.toString(), token2Addr.toString(), false, "200000", "300000", "200", "300"],
   };
   const result = await aptos.view({ payload });
@@ -41,7 +41,7 @@ const addLiquidity = async (
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
-      function: `0x${swap.toStringLongWithoutPrefix()}::router::add_liquidity_entry`,
+      function: `${swap.toString()}::router::add_liquidity_entry`,
       functionArguments: [
         token1Addr,
         token2Addr,
@@ -72,7 +72,7 @@ const swap = async (
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
-      function: `0x${swap.toStringLongWithoutPrefix()}::router::swap_entry`,
+      function: `${swap.toString()}::router::swap_entry`,
       functionArguments: [new U64(amountIn), new U64(amountOutMin), fromToken, toToken, new Bool(false), recipient],
     },
   });
@@ -86,7 +86,7 @@ const getAssetType = async (aptos: Aptos, owner: Account): Promise<any> => {
   const data = await aptos.getFungibleAssetMetadata({
     options: {
       where: {
-        creator_address: { _eq: owner.accountAddress.toString() },
+        creator_address: { _eq: owner.accountAddress.toStringLong() },
       },
     },
   });
@@ -104,7 +104,7 @@ const getFaBalance = async (aptos: Aptos, owner: Account, assetType: string): Pr
   const data = await aptos.getCurrentFungibleAssetBalances({
     options: {
       where: {
-        owner_address: { _eq: owner.accountAddress.toString() },
+        owner_address: { _eq: owner.accountAddress.toStringLong() },
         asset_type: { _eq: assetType },
       },
     },
@@ -123,7 +123,7 @@ const createLiquidityPool = async (
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
-      function: `0x${swap.toStringLongWithoutPrefix()}::router::create_pool`,
+      function: `${swap.toString()}::router::create_pool`,
       functionArguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
     },
   });
@@ -137,7 +137,7 @@ const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: A
   const rawTxn = await aptos.generateTransaction({
     sender: deployer.accountAddress.toString(),
     data: {
-      function: `0x${swap.toStringLongWithoutPrefix()}::liquidity_pool::initialize`,
+      function: `${swap.toString()}::liquidity_pool::initialize`,
       functionArguments: [],
     },
   });
@@ -166,7 +166,7 @@ const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, c
   const rawTxn = await aptos.generateTransaction({
     sender: admin.accountAddress.toString(),
     data: {
-      function: `0x${admin.accountAddress.toStringLongWithoutPrefix()}::${coinName}::mint`,
+      function: `${admin.accountAddress.toString()}::${coinName}::mint`,
       functionArguments: [admin.accountAddress, new U64(amount)],
     },
   });
