@@ -17,9 +17,9 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from "./typeTag";
+} from ".";
 import { AccountAddress } from "../../core";
-import { Identifier } from "../instances";
+import { Identifier } from "../instances/identifier";
 
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);

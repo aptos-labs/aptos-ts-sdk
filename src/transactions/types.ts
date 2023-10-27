@@ -16,7 +16,7 @@ import {
   TransactionPayloadScript,
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
-import { TypeTag } from "./typeTag/typeTag";
+import { TypeTag } from "./typeTag";
 
 export type SimpleEntryFunctionArgumentTypes =
   | boolean
