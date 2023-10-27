@@ -53,6 +53,8 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    */
   static readonly LONG_STRING_LENGTH: number = 64;
 
+  static ZERO: AccountAddress = AccountAddress.fromString("0x0");
+
   static ONE: AccountAddress = AccountAddress.fromString("0x1");
 
   static TWO: AccountAddress = AccountAddress.fromString("0x2");

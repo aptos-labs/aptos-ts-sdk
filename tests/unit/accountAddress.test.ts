@@ -33,6 +33,36 @@ const ADDRESS_ONE: Addresses = {
   ]),
 };
 
+const ADDRESS_TWO: Addresses = {
+  shortWith0x: "0x2",
+  shortWithout0x: "2",
+  longWith0x: "0x0000000000000000000000000000000000000000000000000000000000000002",
+  longWithout0x: "0000000000000000000000000000000000000000000000000000000000000002",
+  bytes: new Uint8Array([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  ]),
+};
+
+const ADDRESS_THREE: Addresses = {
+  shortWith0x: "0x3",
+  shortWithout0x: "3",
+  longWith0x: "0x0000000000000000000000000000000000000000000000000000000000000003",
+  longWithout0x: "0000000000000000000000000000000000000000000000000000000000000003",
+  bytes: new Uint8Array([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+  ]),
+};
+
+const ADDRESS_FOUR: Addresses = {
+  shortWith0x: "0x4",
+  shortWithout0x: "4",
+  longWith0x: "0x0000000000000000000000000000000000000000000000000000000000000004",
+  longWithout0x: "0000000000000000000000000000000000000000000000000000000000000004",
+  bytes: new Uint8Array([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+  ]),
+};
+
 const ADDRESS_F: Addresses = {
   shortWith0x: "0xf",
   shortWithout0x: "f",
@@ -93,6 +123,27 @@ describe("AccountAddress fromStringRelaxed", () => {
     expect(AccountAddress.fromStringRelaxed(ADDRESS_ONE.shortWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
   });
 
+  it("parses special address: 0x2", () => {
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TWO.longWith0x).toString()).toBe(ADDRESS_TWO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TWO.longWithout0x).toString()).toBe(ADDRESS_TWO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TWO.shortWith0x).toString()).toBe(ADDRESS_TWO.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_TWO.shortWithout0x).toString()).toBe(ADDRESS_TWO.shortWith0x);
+  });
+
+  it("parses special address: 0x3", () => {
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_THREE.longWith0x).toString()).toBe(ADDRESS_THREE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_THREE.longWithout0x).toString()).toBe(ADDRESS_THREE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_THREE.shortWith0x).toString()).toBe(ADDRESS_THREE.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_THREE.shortWithout0x).toString()).toBe(ADDRESS_THREE.shortWith0x);
+  });
+
+  it("parses special address: 0x4", () => {
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_FOUR.longWith0x).toString()).toBe(ADDRESS_FOUR.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_FOUR.longWithout0x).toString()).toBe(ADDRESS_FOUR.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_FOUR.shortWith0x).toString()).toBe(ADDRESS_FOUR.shortWith0x);
+    expect(AccountAddress.fromStringRelaxed(ADDRESS_FOUR.shortWithout0x).toString()).toBe(ADDRESS_FOUR.shortWith0x);
+  });
+
   it("parses special address: 0xf", () => {
     expect(AccountAddress.fromStringRelaxed(ADDRESS_F.longWith0x).toString()).toBe(ADDRESS_F.shortWith0x);
     expect(AccountAddress.fromStringRelaxed(ADDRESS_F.longWithout0x).toString()).toBe(ADDRESS_F.shortWith0x);
@@ -120,6 +171,15 @@ describe("AccountAddress fromStringRelaxed", () => {
     expect(AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
     expect(AccountAddress.fromStringRelaxed(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
   });
+});
+
+// These tests ensure that the constant special addresses in the static AccountAddress class are correct.
+describe("AccountAddress static special addresses", () => {
+  expect(AccountAddress.ZERO.toString()).toBe(ADDRESS_ZERO.shortWith0x);
+  expect(AccountAddress.ONE.toString()).toBe(ADDRESS_ONE.shortWith0x);
+  expect(AccountAddress.TWO.toString()).toBe(ADDRESS_TWO.shortWith0x);
+  expect(AccountAddress.THREE.toString()).toBe(ADDRESS_THREE.shortWith0x);
+  expect(AccountAddress.FOUR.toString()).toBe(ADDRESS_FOUR.shortWith0x);
 });
 
 // These tests show that fromString only parses addresses with a leading 0x and only

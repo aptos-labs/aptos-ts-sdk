@@ -6,7 +6,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## 0.0.2 (2023-10-25)
 
-- Build package before publishing
+- Build package before publishing\
+- Add `AccountAddress.ZERO` to support the frequent future use of an optional fee payer address
 
 ## 0.0.1 (2023-10-25)
 
