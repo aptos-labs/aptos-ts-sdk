@@ -46,7 +46,6 @@ export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Ar
 /**
  * Fetches the ABI for an entry function from the module
  *
- * TODO: Memoize this whole function
  * @param moduleAddress
  * @param moduleName
  * @param functionName
