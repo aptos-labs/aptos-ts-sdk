@@ -1,7 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes } from "../types";
+import {
+  EntryFunctionArgumentTypes,
+  GenerateTransactionPayloadData,
+  GenerateTransactionPayloadDataWithRemoteABI,
+  ScriptData,
+  SimpleEntryFunctionArgumentTypes,
+} from "../types";
 import { Bool, FixedBytes, MoveString, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { MoveFunction } from "../../types";
@@ -58,6 +64,12 @@ export function isBcsU128(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionA
 }
 export function isBcsU256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U256 {
   return arg instanceof U256;
+}
+
+export function isScriptDataInput(
+  arg: GenerateTransactionPayloadDataWithRemoteABI | GenerateTransactionPayloadData,
+): arg is ScriptData {
+  return "bytecode" in arg;
 }
 
 export function throwTypeMismatch(expectedType: string, position: number) {

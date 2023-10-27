@@ -76,6 +76,7 @@ import {
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { HexInput, SigningScheme } from "../../types";
+import { isScriptDataInput } from "./helpers";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -104,7 +105,7 @@ export async function generateTransactionPayload(
 export async function generateTransactionPayload(
   args: GenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<TransactionPayload> {
-  if ("bytecode" in args) {
+  if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
 
@@ -139,7 +140,7 @@ export function generateTransactionPayloadWithABI(
   args: GenerateTransactionPayloadData,
   functionAbi: EntryFunctionABI,
 ): TransactionPayload {
-  if ("bytecode" in args) {
+  if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
 

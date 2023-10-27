@@ -72,7 +72,7 @@ export async function generateTransaction(
 ): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
 
-  // Merge in aptosConfig for remote ABI
+  // Merge in aptosConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: GenerateTransactionPayloadDataWithRemoteABI;
   if ("bytecode" in data) {
     generateTransactionPayloadData = data;
