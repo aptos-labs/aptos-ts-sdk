@@ -334,7 +334,7 @@ export class Script {
 export class MultiSig {
   public readonly multisig_address: AccountAddress;
 
-  public readonly transaction_payload?: MultiSigTransactionPayload;
+  public readonly transaction_payload?: TransactionPayloadMultiSig;
 
   /**
    * Contains the payload to run a multi-sig account transaction.
@@ -344,7 +344,7 @@ export class MultiSig {
    * @param transaction_payload The payload of the multi-sig transaction. This is optional when executing a multi-sig
    *  transaction whose payload is already stored on chain.
    */
-  constructor(multisig_address: AccountAddress, transaction_payload?: MultiSigTransactionPayload) {
+  constructor(multisig_address: AccountAddress, transaction_payload?: TransactionPayloadMultiSig) {
     this.multisig_address = multisig_address;
     this.transaction_payload = transaction_payload;
   }
@@ -366,7 +366,7 @@ export class MultiSig {
     const payloadPresent = deserializer.deserializeBool();
     let transaction_payload;
     if (payloadPresent) {
-      transaction_payload = MultiSigTransactionPayload.deserialize(deserializer);
+      transaction_payload = TransactionPayloadMultiSig.deserialize(deserializer);
     }
     return new MultiSig(multisig_address, transaction_payload);
   }
@@ -375,7 +375,7 @@ export class MultiSig {
 /**
  * Representation of a MultiSig Transaction Payload that can serialized and deserialized
  */
-export class MultiSigTransactionPayload {
+export class TransactionPayloadMultiSig {
   public readonly transaction_payload: EntryFunction;
 
   /**
@@ -399,9 +399,9 @@ export class MultiSigTransactionPayload {
     this.transaction_payload.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
+  static deserialize(deserializer: Deserializer): TransactionPayloadMultiSig {
     // This is the enum value indicating which type of payload the multi-sig transaction contains.
     deserializer.deserializeUleb128AsU32();
-    return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
+    return new TransactionPayloadMultiSig(EntryFunction.deserialize(deserializer));
   }
 }
