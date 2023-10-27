@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseTypeTag, TypeTag, TypeTagStruct } from "../typeTag";
+import { parseTypeTag } from "../typeTag/parser";
+import { TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
 import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";

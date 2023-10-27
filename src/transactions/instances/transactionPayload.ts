@@ -13,7 +13,7 @@ import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
 import { MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants } from "../../types";
-import { TypeTag } from "../typeTag/typeTag";
+import { TypeTag } from "../typeTag";
 
 /**
  * Deserialize a Script Transaction Argument
