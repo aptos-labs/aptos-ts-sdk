@@ -17,6 +17,10 @@ import {
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag";
+import { AccountAuthenticatorEd25519, AccountAuthenticatorMultiEd25519, AccountAuthenticatorSingleKey } from "./authenticator/account";
+export * from "./instances/transactionPayload";
+
+export type AccountAuthenticator = AccountAuthenticatorEd25519 | AccountAuthenticatorMultiEd25519 | AccountAuthenticatorSingleKey;
 
 export type SimpleEntryFunctionArgumentTypes =
   | boolean
@@ -77,6 +81,9 @@ export type TransactionPayload =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
   | TransactionPayloadMultisig;
+
+export type TransactionPayloadEntryFunctionType = TransactionPayloadEntryFunction;
+
 
 /**
  * Unified type for the data needed to generate a transaction payload of types:
