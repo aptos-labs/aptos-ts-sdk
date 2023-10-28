@@ -3,6 +3,7 @@
 
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../../core/hex";
+import { SimpleEntryFunctionArgumentTypes } from "../types";
 
 export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
 
@@ -17,6 +18,7 @@ export interface EntryFunctionArgument {
    */
   serializeForEntryFunction(serializer: Serializer): void;
 
+  toInner(): SimpleEntryFunctionArgumentTypes;
   bcsToBytes(): Uint8Array;
   bcsToHex(): Hex;
 }
@@ -32,6 +34,7 @@ export interface ScriptFunctionArgument {
    */
   serializeForScriptFunction(serializer: Serializer): void;
 
+  toInner(): SimpleEntryFunctionArgumentTypes;
   bcsToBytes(): Uint8Array;
   bcsToHex(): Hex;
 }

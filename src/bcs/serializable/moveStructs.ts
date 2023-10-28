@@ -7,6 +7,7 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import { SimpleEntryFunctionArgumentTypes } from "../../transactions/types";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -75,6 +76,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
     serializer.serialize(this);
+  }
+  
+  toInner(): Array<SimpleEntryFunctionArgumentTypes> {
+    return this.values.map((v) => v.toInner());
   }
 
   /**
@@ -243,6 +248,10 @@ export class MoveString extends Serializable implements TransactionArgument {
     vectorU8.serializeForScriptFunction(serializer);
   }
 
+  toInner(): string {
+    return this.value;
+  }
+
   static deserialize(deserializer: Deserializer): MoveString {
     return new MoveString(deserializer.deserializeStr());
   }
@@ -270,6 +279,10 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   serializeForEntryFunction(serializer: Serializer): void {
     const bcsBytes = this.bcsToBytes();
     serializer.serializeBytes(bcsBytes);
+  }
+
+  toInner(): SimpleEntryFunctionArgumentTypes {
+    return this.toInner();
   }
 
   /**

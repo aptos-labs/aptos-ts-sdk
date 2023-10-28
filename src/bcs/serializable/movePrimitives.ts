@@ -37,6 +37,10 @@ export class Bool extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  toInner(): boolean {
+    return this.value;
+  }
+
   static deserialize(deserializer: Deserializer): Bool {
     return new Bool(deserializer.deserializeBool());
   }
@@ -63,6 +67,10 @@ export class U8 extends Serializable implements TransactionArgument {
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8);
     serializer.serialize(this);
+  }
+
+  toInner(): Uint8 {
+    return this.value;
   }
 
   static deserialize(deserializer: Deserializer): U8 {
@@ -93,6 +101,10 @@ export class U16 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  toInner(): Uint16 {
+    return this.value;
+  }
+
   static deserialize(deserializer: Deserializer): U16 {
     return new U16(deserializer.deserializeU16());
   }
@@ -119,6 +131,10 @@ export class U32 extends Serializable implements TransactionArgument {
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U32);
     serializer.serialize(this);
+  }
+
+  toInner(): Uint32 {
+    return this.value;
   }
 
   static deserialize(deserializer: Deserializer): U32 {
@@ -149,6 +165,10 @@ export class U64 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  toInner(): bigint {
+    return this.value;
+  }
+
   static deserialize(deserializer: Deserializer): U64 {
     return new U64(deserializer.deserializeU64());
   }
@@ -177,6 +197,10 @@ export class U128 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  toInner(): bigint {
+    return this.value;
+  }
+
   static deserialize(deserializer: Deserializer): U128 {
     return new U128(deserializer.deserializeU128());
   }
@@ -203,6 +227,10 @@ export class U256 extends Serializable implements TransactionArgument {
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U256);
     serializer.serialize(this);
+  }
+
+  toInner(): bigint {
+    return this.value;
   }
 
   static deserialize(deserializer: Deserializer): U256 {
