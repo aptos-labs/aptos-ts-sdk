@@ -42,7 +42,7 @@ import {
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
   MultiSig,
-  TransactionPayloadMultiSig,
+  MultisigTransactionPayload,
   RawTransaction,
   Script,
   TransactionPayloadEntryFunction,
@@ -189,7 +189,7 @@ export function generateTransactionPayloadWithABI(
       multisigAddress = args.multisigAddress;
     }
     return new TransactionPayloadMultisig(
-      new MultiSig(multisigAddress, new MultiSigTransactionPayload(entryFunctionPayload)),
+      new MultiSig(multisigAddress, new MultisigTransactionPayload(entryFunctionPayload)),
     );
   }
 
