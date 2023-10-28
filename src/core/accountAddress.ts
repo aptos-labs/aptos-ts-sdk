@@ -109,7 +109,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns AccountAddress as a string conforming to AIP-40.
    */
-  toString(): string {
+  toString(): `0x${string}` {
     return `0x${this.toStringWithoutPrefix()}`;
   }
 
@@ -141,7 +141,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns AccountAddress as a string in LONG form.
    */
-  toStringLong(): string {
+  toStringLong(): `0x${string}` {
     return `0x${this.toStringLongWithoutPrefix()}`;
   }
 

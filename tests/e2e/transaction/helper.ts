@@ -8,9 +8,8 @@ import {
   UserTransactionResponse,
   TypeTag,
   EntryFunctionArgumentTypes,
-  GenerateFeePayerRawTransactionInput,
-  GenerateMultiAgentRawTransactionInput,
   HexInput,
+  GenerateTransactionInput,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -87,37 +86,18 @@ export const rawTransactionMultiAgentHelper = async (
   secondarySignerAccounts: Array<Account>,
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
-  // TODO: Combine these to one type later. This should be possible but isn't right now due to typescript
-  // compile time errors because it can't resolve the types
-  const transactionData = {
+  const transactionData: GenerateTransactionInput = {
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
       functionArguments: args,
     },
+    secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
+    feePayerAddress: feePayerAccount?.accountAddress.data,
   };
-  const generatedTransaction = await (async () => {
-    let transaction;
-    if (secondarySignerAccounts.length === 0) {
-      transaction = await aptos.generateTransaction({
-        ...transactionData,
-        feePayerAddress: feePayerAccount?.accountAddress.data,
-      } as GenerateFeePayerRawTransactionInput);
-    } else if (feePayerAccount === undefined) {
-      transaction = await aptos.generateTransaction({
-        ...transactionData,
-        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.data),
-      } as GenerateMultiAgentRawTransactionInput);
-    } else {
-      transaction = await aptos.generateTransaction({
-        ...transactionData,
-        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.data),
-        feePayerAddress: feePayerAccount?.accountAddress.data,
-      } as GenerateFeePayerRawTransactionInput);
-    }
-    return transaction;
-  })();
+
+  const generatedTransaction = await aptos.generateTransaction(transactionData);
 
   const senderAuthenticator = aptos.signTransaction({
     signer: senderAccount,
