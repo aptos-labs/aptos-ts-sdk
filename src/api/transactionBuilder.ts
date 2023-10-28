@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import {
-  GenerateTransactionPayloadData,
-  TransactionPayload,
-} from "../transactions/types";
+import { GenerateTransactionPayloadData, TransactionPayload } from "../transactions/types";
 import { generateTransactionPayload as generateTransactionPayload_ } from "../transactions/transaction_builder/transaction_builder";
 import * as authenticators from "../transactions/authenticator";
 import * as payloads from "../transactions/instances/transactionPayload";
-import * as rawTransactions from "../transactions/instances/rawTransaction"
-import * as signedTransactions from "../transactions/instances/signedTransaction"
-import * as transactionArguments from "../transactions/instances/transactionArgument"
+import * as rawTransactions from "../transactions/instances/rawTransaction";
+import * as signedTransactions from "../transactions/instances/signedTransaction";
+import * as transactionArguments from "../transactions/instances/transactionArgument";
 export namespace TransactionBuilderTypes {
   export async function generateTransactionPayload(args: GenerateTransactionPayloadData): Promise<TransactionPayload> {
     const payload = generateTransactionPayload_(args);
@@ -30,7 +27,7 @@ export namespace TransactionBuilderTypes {
   export type MultiAgentRawTransaction = rawTransactions.MultiAgentRawTransaction;
 
   export type SignedTransaction = signedTransactions.SignedTransaction;
-  
+
   export type EntryFunctionArgument = transactionArguments.EntryFunctionArgument;
   export type ScriptFunctionArgument = transactionArguments.ScriptFunctionArgument;
 
