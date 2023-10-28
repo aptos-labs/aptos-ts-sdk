@@ -148,7 +148,7 @@ export class Account {
   }
 
   /**
-   * Derives an account with provided private key
+   * Derives an account with provided private key and account address
    *
    * @param privateKey PrivateKey - private key of the account
    * @param address The account address
@@ -157,7 +157,11 @@ export class Account {
    *
    * @returns Account
    */
-  static fromPrivateKey(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }): Account {
+  static fromPrivateKeyAndAddress(args: {
+    privateKey: PrivateKey;
+    address: AccountAddress;
+    legacy?: boolean;
+  }): Account {
     const { privateKey, address, legacy } = args;
     return new Account({ privateKey, address, legacy });
   }
