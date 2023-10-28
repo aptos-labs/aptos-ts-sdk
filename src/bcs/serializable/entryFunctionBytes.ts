@@ -46,8 +46,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
     serializer.serialize(this);
   }
 
-  toInner(): Uint8Array {
-    return this.value.value;
+  toSimpleValue(): Uint8Array {
+    return this.value.toSimpleValue();
   }
 
   /**

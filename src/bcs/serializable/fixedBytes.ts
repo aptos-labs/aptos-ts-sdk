@@ -58,7 +58,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): Uint8Array {
+  toSimpleValue(): Uint8Array {
     return this.value;
   }
 

@@ -12,7 +12,6 @@ import {
 } from "./consts";
 import { Hex } from "../core/hex";
 import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
-import { Deserializer } from "./deserializer";
 
 // This class is intended to be used as a base class for all serializable types.
 // It can be used to facilitate composable serialization of a complex type and

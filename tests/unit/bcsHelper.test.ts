@@ -593,4 +593,70 @@ describe("Tests for the Serializable class", () => {
       expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
     });
   });
+
+  describe("toSimpleValue tests", () => {
+    it("correctly converts primitive types to inner simple types", () => {
+      const u8 = new U8(1);
+      const u16 = new U16(1);
+      const u32 = new U32(1);
+      const u64 = new U64(1);
+      const u128 = new U128(1);
+      const u256 = new U256(1);
+      const bool = new Bool(true);
+      const address = AccountAddress.fromHexInputRelaxed("0x01020304");
+      const str = new MoveString("This is a string. It's a simple string...");
+      expect(u8.toSimpleValue()).toEqual(1);
+      expect(u16.toSimpleValue()).toEqual(1);
+      expect(u32.toSimpleValue()).toEqual(1);
+      expect(u64.toSimpleValue()).toEqual(1n);
+      expect(u128.toSimpleValue()).toEqual(1n);
+      expect(u256.toSimpleValue()).toEqual(1n);
+      expect(bool.toSimpleValue()).toEqual(true);
+      expect(address.toSimpleValue()).toEqual(
+        new Uint8Array([
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4,
+        ]),
+      );
+      expect(str.toSimpleValue()).toEqual("This is a string. It's a simple string...");
+    });
+
+    it("correctly converts primitive types to inner nested types", () => {
+      const vector = MoveVector.U8([1, 2, 3]);
+      const option = MoveOption.U8(1);
+      expect(vector.toSimpleValue()).toEqual([1, 2, 3]);
+      expect(option.toSimpleValue()).toEqual([1]);
+      const vec = new MoveVector([
+        new MoveVector([
+          MoveVector.U8([1, 2, 3, 4]),
+          MoveVector.U8([4, 5, 6, 7]),
+          MoveVector.U8([8, 9, 1, 2]),
+          MoveVector.U8([3, 4, 5, 6]),
+        ]),
+        new MoveVector([MoveVector.U8([]), MoveVector.U8([0]), MoveVector.U8([1]), MoveVector.U8([2, 3])]),
+      ]);
+      expect(vec.toSimpleValue()).toEqual([
+        [
+          [1, 2, 3, 4],
+          [4, 5, 6, 7],
+          [8, 9, 1, 2],
+          [3, 4, 5, 6],
+        ],
+        [[], [0], [1], [2, 3]],
+      ]);
+
+      const vec2 = new MoveVector([new MoveOption(new Bool(true)), MoveOption.Bool(false), MoveOption.Bool()]);
+      const vecOfVec2s = new MoveVector([
+        new MoveOption(vec2),
+        new MoveOption(vec2),
+        new MoveOption(vec2),
+        new MoveOption(),
+      ]);
+      expect(vecOfVec2s.toSimpleValue()).toEqual([
+        [[[true], [false], []]],
+        [[[true], [false], []]],
+        [[[true], [false], []]],
+        [],
+      ]);
+    });
+  });
 });

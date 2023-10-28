@@ -170,6 +170,10 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     return this.data;
   }
 
+  toSimpleValue(): Uint8Array {
+    return this.data;
+  }
+
   /**
    * Serialize the AccountAddress to a Serializer instance's data buffer.
    * @param serializer The serializer to serialize the AccountAddress to.

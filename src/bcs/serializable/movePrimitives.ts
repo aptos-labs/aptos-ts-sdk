@@ -37,7 +37,7 @@ export class Bool extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): boolean {
+  toSimpleValue(): boolean {
     return this.value;
   }
 
@@ -69,7 +69,7 @@ export class U8 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): Uint8 {
+  toSimpleValue(): Uint8 {
     return this.value;
   }
 
@@ -101,7 +101,7 @@ export class U16 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): Uint16 {
+  toSimpleValue(): Uint16 {
     return this.value;
   }
 
@@ -133,7 +133,7 @@ export class U32 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): Uint32 {
+  toSimpleValue(): Uint32 {
     return this.value;
   }
 
@@ -165,7 +165,7 @@ export class U64 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): bigint {
+  toSimpleValue(): bigint {
     return this.value;
   }
 
@@ -197,7 +197,7 @@ export class U128 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): bigint {
+  toSimpleValue(): bigint {
     return this.value;
   }
 
@@ -229,7 +229,7 @@ export class U256 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  toInner(): bigint {
+  toSimpleValue(): bigint {
     return this.value;
   }
 
