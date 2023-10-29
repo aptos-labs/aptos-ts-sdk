@@ -148,9 +148,8 @@ export class Account {
   }
 
   /**
-   * Derives an account given a private key and account address
-   *
-   * This is primarily used for an account whose authentication key has been rotated.
+   * Instantiates an account given a private key and a specified account address.
+   * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
    *
    * @param privateKey PrivateKey - private key of the account
    * @param address The account address
