@@ -686,7 +686,7 @@ export type MoveOptionType = MoveType | null | undefined;
 /**
  * This is the format for a fully qualified struct, resource, or entry function in Move.
  */
-export type MoveStructType = `${string}::${string}::${string}`;
+export type MoveStructType = `0x${string}::${string}::${string}`;
 
 export type MoveType =
   | boolean

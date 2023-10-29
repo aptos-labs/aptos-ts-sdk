@@ -40,6 +40,8 @@ export type AccountAddressInput = HexInput | AccountAddress;
  * as well as "special" addresses. To learn what these refer to see AIP-40.
  */
 export class AccountAddress extends Serializable implements TransactionArgument {
+  public static readonly kind = "AccountAddress";
+  
   /**
    * This is the internal representation of an account address.
    */

@@ -6,6 +6,7 @@ module.exports = {
   },
   testEnvironment: "node",
   coveragePathIgnorePatterns: ["./src/internal/queries/", "./src/types/generated"],
+  coverageReporters: ['json', 'lcov', 'clover'],
   testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
   setupFiles: ["dotenv/config"],

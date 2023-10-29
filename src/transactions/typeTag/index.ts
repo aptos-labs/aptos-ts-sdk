@@ -8,7 +8,7 @@ import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
-import { TypeTagVariants } from "../../types";
+import { TypeTagVariants, MoveStructType } from "../../types";
 
 export abstract class TypeTag extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -94,6 +94,10 @@ export abstract class TypeTag extends Serializable {
 
   isU256(): this is TypeTagU256 {
     return this instanceof TypeTagU256;
+  }
+
+  equals(other: TypeTag): boolean {
+    return this.toString() === other.toString();
   }
 }
 
@@ -288,6 +292,8 @@ export class TypeTagVector extends TypeTag {
 }
 
 export class TypeTagStruct extends TypeTag {
+  public static readonly kind: MoveStructType;
+  
   toString(): `0x${string}::${string}::${string}` {
     // Collect type args and add it if there are any
     let typePredicate = "";
@@ -297,7 +303,7 @@ export class TypeTagStruct extends TypeTag {
 
     return `${this.value.address.toString()}::${this.value.moduleName.identifier}::${
       this.value.name.identifier
-    }${typePredicate}`;
+    }${typePredicate}` as const;
   }
 
   constructor(public readonly value: StructTag) {
