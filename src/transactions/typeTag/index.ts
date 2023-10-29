@@ -9,6 +9,7 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
+import { APTOS_COIN } from "../../utils/const";
 
 export abstract class TypeTag extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -224,7 +225,7 @@ export class TypeTagSigner extends TypeTag {
 }
 
 export class TypeTagReference extends TypeTag {
-  toString(): string {
+  toString(): `&${string}` {
     return `&${this.value.toString()}`;
   }
 
@@ -248,7 +249,7 @@ export class TypeTagReference extends TypeTag {
  * used as a type directly.
  */
 export class TypeTagGeneric extends TypeTag {
-  toString(): string {
+  toString(): `T${number}` {
     return `T${this.value}`;
   }
 
@@ -268,8 +269,8 @@ export class TypeTagGeneric extends TypeTag {
 }
 
 export class TypeTagVector extends TypeTag {
-  toString(): string {
-    return `vector${this.value.toString()}`;
+  toString(): `vector<${string}>` {
+    return `vector<${this.value.toString()}>`;
   }
 
   constructor(public readonly value: TypeTag) {
@@ -288,7 +289,7 @@ export class TypeTagVector extends TypeTag {
 }
 
 export class TypeTagStruct extends TypeTag {
-  toString(): string {
+  toString(): `0x${string}::${string}::${string}${string}` {
     // Collect type args and add it if there are any
     let typePredicate = "";
     if (this.value.type_args.length > 0) {
@@ -368,8 +369,13 @@ export class StructTag extends Serializable {
   }
 }
 
-export const stringStructTag = () =>
-  new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+export function aptosCoinStructTag(): StructTag {
+  return new StructTag(AccountAddress.ONE, new Identifier("aptos_coin"), new Identifier("AptosCoin"), []);
+}
+
+export function stringStructTag(): StructTag {
+  return new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+}
 
 export function optionStructTag(typeArg: TypeTag): StructTag {
   return new StructTag(AccountAddress.ONE, new Identifier("option"), new Identifier("Option"), [typeArg]);
