@@ -148,7 +148,7 @@ export class Account {
   }
 
   /**
-   * Derives an account with provided private key and account address
+   * Derives an account given a private key and account address
    *
    * This is primarily used for an account whose authentication key has been rotated.
    *
