@@ -148,7 +148,8 @@ export class Account {
   }
 
   /**
-   * Derives an account with provided private key
+   * Instantiates an account given a private key and a specified account address.
+   * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
    *
    * @param privateKey PrivateKey - private key of the account
    * @param address The account address
@@ -157,7 +158,11 @@ export class Account {
    *
    * @returns Account
    */
-  static fromPrivateKey(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }): Account {
+  static fromPrivateKeyAndAddress(args: {
+    privateKey: PrivateKey;
+    address: AccountAddress;
+    legacy?: boolean;
+  }): Account {
     const { privateKey, address, legacy } = args;
     return new Account({ privateKey, address, legacy });
   }

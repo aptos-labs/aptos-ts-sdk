@@ -503,7 +503,7 @@ export async function deriveAccountFromPrivateKey(args: {
     // private key is secp256k1, therefore we know it for sure uses a single signer key
     const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return Account.fromPrivateKey({ privateKey, address });
+    return Account.fromPrivateKeyAndAddress({ privateKey, address });
   }
 
   if (privateKey instanceof Ed25519PrivateKey) {
@@ -518,14 +518,14 @@ export async function deriveAccountFromPrivateKey(args: {
     });
     if (isSingleSenderTransactionAuthenticator) {
       const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
-      return Account.fromPrivateKey({ privateKey, address });
+      return Account.fromPrivateKeyAndAddress({ privateKey, address });
     }
     // lookup legacy ed25519
     const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
       const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
-      return Account.fromPrivateKey({ privateKey, address, legacy: true });
+      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
     }
   }
   // if we are here, it means we couldn't find an address with an
