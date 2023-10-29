@@ -18,13 +18,13 @@ import { Deserializer } from "../bcs/deserializer";
  * their private key(s) associated with the account without changing the address that hosts their account.
  * @see {@link https://aptos.dev/concepts/accounts | Account Basics}
  *
- * Note: AuthenticationKey only supports Ed25519 and MultiEd25519 public keys for now.
- *
  * Account addresses can be derived from AuthenticationKey
  */
 export class AuthenticationKey extends Serializable {
   /**
    * An authentication key is always a SHA3-256 hash of data, and is always 32 bytes.
+   *
+   * The data to hash depends on the underlying public key type and the derivation scheme.
    */
   static readonly LENGTH: number = 32;
 
@@ -66,9 +66,14 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Creates an AuthenticationKey from seed bytes and a scheme
+   * Derives an AuthenticationKey from the public key seed bytes and an explicit derivation scheme.
    *
-   * This allows for the creation of AuthenticationKeys that are not derived from Public Keys directly
+   * This facilitates explicitly targeting a specific derivation scheme for an authentication key
+   * to use for an account.
+   *
+   * This is useful for deriving an account address from an account whose address
+   * was derived using a legacy derivation scheme.
+   *
    * @param args
    */
   public static fromPublicKeyAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
@@ -102,7 +107,8 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Converts a PublicKey(s) to AuthenticationKey
+   * Converts a PublicKey(s) to an AuthenticationKey, using the derivation scheme inferred from the
+   * instance of the PublicKey type passed in.
    *
    * @param args.publicKey
    * @returns AuthenticationKey
@@ -129,8 +135,8 @@ export class AuthenticationKey extends Serializable {
   }
 
   /**
-   * Derives an account address from AuthenticationKey. Since current AccountAddress is 32 bytes,
-   * AuthenticationKey bytes are directly translated to AccountAddress.
+   * Derives an account address from an AuthenticationKey. Since an AccountAddress is also 32 bytes,
+   * the AuthenticationKey bytes are directly translated to an AccountAddress.
    *
    * @returns AccountAddress
    */

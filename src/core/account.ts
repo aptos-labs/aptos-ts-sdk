@@ -185,10 +185,10 @@ export class Account {
    * Instantiates an account given a private key and a specified account address.
    * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
    *
-   * @param privateKey PrivateKey - private key of the account
-   * @param address The account address
-   * @param args.legacy optional. If set to true, the keypair authentication keys will be derived with a Legacy scheme.
-   * Defaults to deriving an authentication key with a Unified scheme
+   * @param args.privateKey PrivateKey - the underlying private key for the account
+   * @param args.address A specified account address, in case the authentication key has been rotated
+   * @param args.legacy An optional flag to indicate that the authentication key derivation should
+   * use the legacy Ed25519 scheme. Defaults to false
    *
    * @returns Account
    */
