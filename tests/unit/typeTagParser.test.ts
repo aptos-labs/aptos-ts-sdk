@@ -165,7 +165,7 @@ describe("TypeTagParser", () => {
   });
 
   test("aptos coin", () => {
-    const aptosCoin = new TypeTagStruct(aptosCoinStructTag())
+    const aptosCoin = new TypeTagStruct(aptosCoinStructTag());
     expect(parseTypeTag("0x1::aptos_coin::AptosCoin")).toEqual(aptosCoin);
     expect(parseTypeTag(APTOS_COIN)).toEqual(aptosCoin);
   });
