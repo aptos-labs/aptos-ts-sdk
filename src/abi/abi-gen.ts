@@ -77,6 +77,9 @@ const TypeClasses = {
 };
 type Kind = typeof TypeClasses[keyof typeof TypeClasses]["kind"] | "MoveObject";
 
+// TODO: Add an optional field to let users map the types to clearer names, so
+// they will see U8_number instead of `number` for example.
+// We could even let em name the types themselves? Since it's ultimately just a type alias.
 const kindToSimpleTypeMap: { [key in Kind]: string } = {
   Bool: "boolean",
   U8: "number",
