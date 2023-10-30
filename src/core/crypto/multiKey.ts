@@ -22,7 +22,7 @@ export class MultiKey extends PublicKey {
     const { publicKeys, signaturesRequired } = args;
 
     // Validate number of public keys is greater than signature required
-    if (signaturesRequired < 0) {
+    if (signaturesRequired < 1) {
       throw new Error("The number of required signatures needs to be greater then 0");
     }
 

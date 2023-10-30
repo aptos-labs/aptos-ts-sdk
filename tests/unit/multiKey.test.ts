@@ -5,6 +5,34 @@ import { Deserializer, Ed25519PublicKey, Secp256k1PublicKey, MultiKey } from "..
 import { multiKeyTestObject } from "./helper";
 
 describe("MultiKey", () => {
+  it("should throw when number of required signatures is less then 1", () => {
+    expect(
+      () =>
+        new MultiKey({
+          publicKeys: [
+            new Secp256k1PublicKey(multiKeyTestObject.publicKeys[0]),
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[1]),
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[2]),
+          ],
+          signaturesRequired: 0,
+        }),
+    ).toThrow();
+  });
+
+  it("should throw when number of public keys is less then the number of signatures required", () => {
+    expect(
+      () =>
+        new MultiKey({
+          publicKeys: [
+            new Secp256k1PublicKey(multiKeyTestObject.publicKeys[0]),
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[1]),
+            new Ed25519PublicKey(multiKeyTestObject.publicKeys[2]),
+          ],
+          signaturesRequired: 4,
+        }),
+    ).toThrow();
+  });
+
   it("should convert to Uint8Array correctly", async () => {
     const multiKey = new MultiKey({
       publicKeys: [
