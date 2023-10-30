@@ -94,7 +94,7 @@ export class MultiKey extends PublicKey {
   }
 
   /**
-   * Hex string representationog the multi key bytes
+   * Hex string representation the multi key bytes
    *
    * @returns string
    */
