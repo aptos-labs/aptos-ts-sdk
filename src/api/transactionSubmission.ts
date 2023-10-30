@@ -5,16 +5,16 @@ import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
-  AnyRawTransaction,
-  FeePayerTransaction,
-  GenerateMultiAgentRawTransactionInput,
-  GenerateTransactionInput,
-  GenerateFeePayerRawTransactionInput,
-  GenerateSingleSignerRawTransactionInput,
-  MultiAgentTransaction,
-  SingleSignerTransaction,
-  SimulateTransactionData,
-  GenerateTransactionOptions,
+  InputAnyRawTransaction,
+  InputFeePayerTransaction,
+  InputGenerateMultiAgentRawTransaction,
+  InputGenerateTransaction,
+  InputGenerateFeePayerRawTransaction,
+  InputGenerateSingleSignerRawTransaction,
+  InputMultiAgentTransaction,
+  InputSingleSignerTransaction,
+  InputSimulateTransactionData,
+  InputGenerateTransactionOptions,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, HexInput } from "../types";
 import {
@@ -39,10 +39,10 @@ export class TransactionSubmission {
    * When we call `generateTransaction` function with the relevant type properties,
    * Typescript can infer the return type based on the appropriate function overload.
    */
-  async generateTransaction(args: GenerateSingleSignerRawTransactionInput): Promise<SingleSignerTransaction>;
-  async generateTransaction(args: GenerateFeePayerRawTransactionInput): Promise<FeePayerTransaction>;
-  async generateTransaction(args: GenerateMultiAgentRawTransactionInput): Promise<MultiAgentTransaction>;
-  async generateTransaction(args: GenerateTransactionInput): Promise<AnyRawTransaction>;
+  async generateTransaction(args: InputGenerateSingleSignerRawTransaction): Promise<InputSingleSignerTransaction>;
+  async generateTransaction(args: InputGenerateFeePayerRawTransaction): Promise<InputFeePayerTransaction>;
+  async generateTransaction(args: InputGenerateMultiAgentRawTransaction): Promise<InputMultiAgentTransaction>;
+  async generateTransaction(args: InputGenerateTransaction): Promise<InputAnyRawTransaction>;
 
   /**
    * Generates any transaction by passing in the required arguments
@@ -84,7 +84,7 @@ export class TransactionSubmission {
    * }
    * ```
    */
-  async generateTransaction(args: GenerateTransactionInput): Promise<AnyRawTransaction> {
+  async generateTransaction(args: InputGenerateTransaction): Promise<InputAnyRawTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -104,7 +104,7 @@ export class TransactionSubmission {
    * @return The signer AccountAuthenticator
    */
   /* eslint-disable class-methods-use-this */
-  signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  signTransaction(args: { signer: Account; transaction: InputAnyRawTransaction }): AccountAuthenticator {
     return signTransaction({ ...args });
   }
 
@@ -117,7 +117,7 @@ export class TransactionSubmission {
    * @param args.feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
    * @param args.options optional. A config to simulate the transaction with
    */
-  async simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>> {
+  async simulateTransaction(args: InputSimulateTransactionData): Promise<Array<UserTransactionResponse>> {
     return simulateTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -131,7 +131,7 @@ export class TransactionSubmission {
    * @return PendingTransactionResponse
    */
   async submitTransaction(args: {
-    transaction: AnyRawTransaction;
+    transaction: InputAnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     secondarySignerAuthenticators?: {
       feePayerAuthenticator?: AccountAuthenticator;
@@ -158,7 +158,7 @@ export class TransactionSubmission {
    */
   async signAndSubmitTransaction(args: {
     signer: Account;
-    transaction: AnyRawTransaction;
+    transaction: InputAnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
     return signAndSubmitTransaction({
@@ -185,8 +185,8 @@ export class TransactionSubmission {
     account: HexInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
-    options?: GenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+    options?: InputGenerateTransactionOptions;
+  }): Promise<InputSingleSignerTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
   }
 }

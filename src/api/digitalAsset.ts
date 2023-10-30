@@ -14,7 +14,7 @@ import {
 } from "../types";
 import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core";
-import { GenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import {
   CreateCollectionOptions,
   createCollectionTransaction,
@@ -68,9 +68,9 @@ export class DigitalAsset {
       description: string;
       name: string;
       uri: string;
-      options?: GenerateTransactionOptions;
+      options?: InputGenerateTransactionOptions;
     } & CreateCollectionOptions,
-  ): Promise<SingleSignerTransaction> {
+  ): Promise<InputSingleSignerTransaction> {
     return createCollectionTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -133,8 +133,8 @@ export class DigitalAsset {
     description: string;
     name: string;
     uri: string;
-    options?: GenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+    options?: InputGenerateTransactionOptions;
+  }): Promise<InputSingleSignerTransaction> {
     return mintTokenTransaction({ aptosConfig: this.config, ...args });
   }
 

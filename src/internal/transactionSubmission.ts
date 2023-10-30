@@ -16,14 +16,14 @@ import {
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
   sign,
-} from "../transactions/transaction_builder/transaction_builder";
+} from "../transactions/transactionBuilder/transactionBuilder";
 import {
-  GenerateTransactionInput,
-  AnyRawTransaction,
-  SimulateTransactionData,
-  GenerateTransactionOptions,
-  SingleSignerTransaction,
-  GenerateTransactionPayloadDataWithRemoteABI,
+  InputGenerateTransaction,
+  InputAnyRawTransaction,
+  InputSimulateTransactionData,
+  InputGenerateTransactionOptions,
+  InputSingleSignerTransaction,
+  InputGenerateTransactionPayloadDataWithRemoteABI,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
 
@@ -68,12 +68,12 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  * ```
  */
 export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & GenerateTransactionInput,
-): Promise<AnyRawTransaction> {
+  args: { aptosConfig: AptosConfig } & InputGenerateTransaction,
+): Promise<InputAnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
 
   // Merge in aptosConfig for remote ABI on non-script payloads
-  let generateTransactionPayloadData: GenerateTransactionPayloadDataWithRemoteABI;
+  let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
   if ("bytecode" in data) {
     generateTransactionPayloadData = data;
   } else if ("multisigAddress" in data) {
@@ -118,7 +118,7 @@ export async function generateTransaction(
  *
  * @return The signer AccountAuthenticator
  */
-export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function signTransaction(args: { signer: Account; transaction: InputAnyRawTransaction }): AccountAuthenticator {
   const accountAuthenticator = sign({ ...args });
   return accountAuthenticator;
 }
@@ -133,7 +133,7 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
  * @param args.options optional. A config to simulate the transaction with
  */
 export async function simulateTransaction(
-  args: { aptosConfig: AptosConfig } & SimulateTransactionData,
+  args: { aptosConfig: AptosConfig } & InputSimulateTransactionData,
 ): Promise<Array<UserTransactionResponse>> {
   const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
 
@@ -171,7 +171,7 @@ export async function simulateTransaction(
  */
 export async function submitTransaction(args: {
   aptosConfig: AptosConfig;
-  transaction: AnyRawTransaction;
+  transaction: InputAnyRawTransaction;
   senderAuthenticator: AccountAuthenticator;
   secondarySignerAuthenticators?: {
     feePayerAuthenticator?: AccountAuthenticator;
@@ -193,7 +193,7 @@ export async function submitTransaction(args: {
 export async function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
   signer: Account;
-  transaction: AnyRawTransaction;
+  transaction: InputAnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;
   const authenticator = signTransaction({ signer, transaction });
@@ -209,8 +209,8 @@ export async function publicPackageTransaction(args: {
   account: HexInput;
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
-  options?: GenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+  options?: InputGenerateTransactionOptions;
+}): Promise<InputSingleSignerTransaction> {
   const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
@@ -224,5 +224,5 @@ export async function publicPackageTransaction(args: {
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction as InputSingleSignerTransaction;
 }

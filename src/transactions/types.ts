@@ -17,17 +17,6 @@ import {
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag";
-import {
-  AccountAuthenticatorEd25519,
-  AccountAuthenticatorMultiEd25519,
-  AccountAuthenticatorSingleKey,
-} from "./authenticator/account";
-export * from "./instances/transactionPayload";
-
-export type AccountAuthenticator =
-  | AccountAuthenticatorEd25519
-  | AccountAuthenticatorMultiEd25519
-  | AccountAuthenticatorSingleKey;
 
 export type SimpleEntryFunctionArgumentTypes =
   | boolean
@@ -67,14 +56,14 @@ export type ScriptFunctionArgumentTypes =
 /**
  * Type that holds all raw transaction instances Aptos SDK supports
  */
-export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
+export type InputAnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
 
 // TRANSACTION GENERATION TYPES //
 
 /**
  * Optional options to set when generating a transaction
  */
-export type GenerateTransactionOptions = {
+export type InputGenerateTransactionOptions = {
   maxGasAmount?: AnyNumber;
   gasUnitPrice?: AnyNumber;
   expireTimestamp?: AnyNumber;
@@ -84,52 +73,50 @@ export type GenerateTransactionOptions = {
 /**
  * The generated transaction payload type that was produces from `generateTransactionPayload()` function.
  */
-export type TransactionPayload =
+export type InputAnyTransactionPayload =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
   | TransactionPayloadMultisig;
-
-export type TransactionPayloadEntryFunctionType = TransactionPayloadEntryFunction;
 
 /**
  * Unified type for the data needed to generate a transaction payload of types:
  * Entry Function | Script | Multi Sig
  */
-export type GenerateTransactionPayloadData = EntryFunctionData | ScriptData | MultiSigData;
+export type InputGenerateTransactionPayloadData = InputEntryFunctionData | InputScriptData | InputMultiSigData;
 
-export type GenerateTransactionPayloadDataWithRemoteABI =
-  | (ScriptData & { aptosConfig?: undefined })
-  | EntryFunctionDataWithRemoteABI
-  | MultiSigDataWithRemoteABI;
+export type InputGenerateTransactionPayloadDataWithRemoteABI =
+  | (InputScriptData & { aptosConfig?: undefined })
+  | InputEntryFunctionDataWithRemoteABI
+  | InputMultiSigDataWithRemoteABI;
 
 /**
  * The data needed to generate an Entry Function payload
  */
-export type EntryFunctionData = {
+export type InputEntryFunctionData = {
   function: MoveStructType;
   typeArguments?: Array<TypeTag>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 };
 
-export type EntryFunctionDataWithRemoteABI = EntryFunctionData & AptosConfigArg;
+export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & AptosConfigArg;
 /**
  * The data needed to generate a Multi Sig payload
  */
-export type MultiSigData = {
+export type InputMultiSigData = {
   multisigAddress: AccountAddress;
-} & EntryFunctionData;
+} & InputEntryFunctionData;
 
 /**
  * The data needed to generate a Multi Sig payload
  */
-export type MultiSigDataWithRemoteABI = {
+export type InputMultiSigDataWithRemoteABI = {
   multisigAddress: AccountAddress | string;
-} & EntryFunctionDataWithRemoteABI;
+} & InputEntryFunctionDataWithRemoteABI;
 
 /**
  * The data needed to generate a Script payload
  */
-export type ScriptData = {
+export type InputScriptData = {
   bytecode: HexInput;
   typeArguments?: Array<TypeTag>;
   functionArguments: Array<ScriptFunctionArgumentTypes>;
@@ -153,55 +140,55 @@ export type AptosConfigArg = {
  * Interface of the arguments to generate a single signer transaction.
  * Used to provide to `generateTransaction()` method in the transaction builder flow
  */
-export interface GenerateSingleSignerRawTransactionArgs {
+export interface InputGenerateSingleSignerRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: TransactionPayload;
+  payload: InputAnyTransactionPayload;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
-  options?: GenerateTransactionOptions;
+  options?: InputGenerateTransactionOptions;
 }
 
 /**
  * Interface of the arguments to generate a fee payer transaction.
  * Used to provide to `generateTransaction()` method in the transaction builder flow
  */
-export interface GenerateFeePayerRawTransactionArgs {
+export interface InputGenerateFeePayerRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: TransactionPayload;
+  payload: InputAnyTransactionPayload;
   feePayerAddress: HexInput;
   secondarySignerAddresses?: HexInput[];
-  options?: GenerateTransactionOptions;
+  options?: InputGenerateTransactionOptions;
 }
 
 /**
  * Interface of the arguments to generate a multi-agent transaction.
  * Used to provide to `generateTransaction()` method in the transaction builder flow
  */
-export interface GenerateMultiAgentRawTransactionArgs {
+export interface InputGenerateMultiAgentRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: TransactionPayload;
+  payload: InputAnyTransactionPayload;
   secondarySignerAddresses: HexInput[];
   feePayerAddress?: undefined;
-  options?: GenerateTransactionOptions;
+  options?: InputGenerateTransactionOptions;
 }
 
 /**
  * Unified type that holds all the interfaces to generate different transaction types
  */
-export type GenerateRawTransactionArgs =
-  | GenerateSingleSignerRawTransactionArgs
-  | GenerateFeePayerRawTransactionArgs
-  | GenerateMultiAgentRawTransactionArgs;
+export type InputGenerateRawTransactionArgs =
+  | InputGenerateSingleSignerRawTransactionArgs
+  | InputGenerateFeePayerRawTransactionArgs
+  | InputGenerateMultiAgentRawTransactionArgs;
 
 /**
  * Interface that holds the return data when generating a single signer transaction
  *
  * @param rawTransaction a bcs serialized raw transaction
  */
-export interface SingleSignerTransaction {
+export interface InputSingleSignerTransaction {
   rawTransaction: Uint8Array;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
@@ -214,7 +201,7 @@ export interface SingleSignerTransaction {
  * @param secondarySignerAddresses optional. secondary signer addresses for multi-agent transaction
  * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
  */
-export interface FeePayerTransaction {
+export interface InputFeePayerTransaction {
   rawTransaction: Uint8Array;
   feePayerAddress: AccountAddress;
   secondarySignerAddresses?: AccountAddress[];
@@ -226,7 +213,7 @@ export interface FeePayerTransaction {
  * @param rawTransaction a bcs serialized raw transaction
  * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
  */
-export interface MultiAgentTransaction {
+export interface InputMultiAgentTransaction {
   rawTransaction: Uint8Array;
   secondarySignerAddresses: AccountAddress[];
   feePayerAddress?: undefined;
@@ -235,15 +222,15 @@ export interface MultiAgentTransaction {
 /**
  * Unified type that holds all the return interfaces when generating different transaction types
  */
-export type AnyRawTransaction = SingleSignerTransaction | FeePayerTransaction | MultiAgentTransaction;
+export type InputAnyRawTransaction = InputSingleSignerTransaction | InputFeePayerTransaction | InputMultiAgentTransaction;
 
 // TRANSACTION SIMULATION TYPES //
 
-export type SimulateTransactionData = {
+export type InputSimulateTransactionData = {
   /**
    * The transaction to simulate, probably generated by `generateTransaction()`
    */
-  transaction: AnyRawTransaction;
+  transaction: InputAnyRawTransaction;
   /**
    * For a single signer transaction
    */
@@ -256,10 +243,10 @@ export type SimulateTransactionData = {
    * For a fee payer transaction (aka Sponsored Transaction)
    */
   feePayerPublicKey?: PublicKey;
-  options?: SimulateTransactionOptions;
+  options?: InputSimulateTransactionOptions;
 };
 
-export type SimulateTransactionOptions = {
+export type InputSimulateTransactionOptions = {
   estimateGasUnitPrice?: boolean;
   estimateMaxGasAmount?: boolean;
   estimatePrioritizedGasUnitPrice?: boolean;
@@ -270,40 +257,40 @@ export type SimulateTransactionOptions = {
 /**
  * Interface that holds the user data input when generating a single signer transaction
  */
-export interface GenerateSingleSignerRawTransactionInput {
+export interface InputGenerateSingleSignerRawTransaction {
   sender: HexInput;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
-  options?: GenerateTransactionOptions;
-  data: GenerateTransactionPayloadData;
+  options?: InputGenerateTransactionOptions;
+  data: InputGenerateTransactionPayloadData;
 }
 
 /**
  * Interface that holds the user data input when generating a fee payer transaction
  */
-export interface GenerateFeePayerRawTransactionInput {
+export interface InputGenerateFeePayerRawTransaction {
   sender: HexInput;
   feePayerAddress: HexInput;
   secondarySignerAddresses?: HexInput[];
-  options?: GenerateTransactionOptions;
-  data: GenerateTransactionPayloadData;
+  options?: InputGenerateTransactionOptions;
+  data: InputGenerateTransactionPayloadData;
 }
 
 /**
  * Interface that holds the user data input when generating a multi-agent transaction
  */
-export interface GenerateMultiAgentRawTransactionInput {
+export interface InputGenerateMultiAgentRawTransaction {
   sender: HexInput;
   secondarySignerAddresses: HexInput[];
   feePayerAddress?: undefined;
-  options?: GenerateTransactionOptions;
-  data: GenerateTransactionPayloadData;
+  options?: InputGenerateTransactionOptions;
+  data: InputGenerateTransactionPayloadData;
 }
 
 /**
  * Unified type that holds all the user data input interfaces when generating different transaction types
  */
-export type GenerateTransactionInput =
-  | GenerateMultiAgentRawTransactionInput
-  | GenerateFeePayerRawTransactionInput
-  | GenerateSingleSignerRawTransactionInput;
+export type InputGenerateTransaction =
+  | InputGenerateMultiAgentRawTransaction
+  | InputGenerateFeePayerRawTransaction
+  | InputGenerateSingleSignerRawTransaction;
