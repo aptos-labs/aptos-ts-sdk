@@ -15,10 +15,10 @@ export function toCamelCase(input: string): string {
 
 export function sanitizeName(name: string): string {
   if (name === "Object") {
-    return "Object_";
+    return "Object$1";
   }
   if (name === "String") {
-    return "String_";
+    return "String$1";
   }
 
   return name;

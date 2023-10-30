@@ -1,7 +1,7 @@
 import { MoveString, MoveVector, U64, U8 } from "..";
 import { Serializable, Serializer } from "../bcs";
 import { AccountAddress } from "../core";
-import { AnyNumber, HexInput } from "../types";
+import { HexInput } from "../types";
 
 const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
   if (address instanceof AccountAddress) {
@@ -9,22 +9,6 @@ const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
   }
   return AccountAddress.fromHexInputRelaxed(address);
 };
-
-export namespace Lobby {}
-
-export namespace Matchmaker {}
-
-export namespace MiscUtils {}
-
-export namespace TokenUris {}
-
-export namespace ObjectRefs {}
-
-export namespace TokenManager {}
-
-export namespace AddressLookup {}
-
-export namespace PlayerProfile {}
 
 export namespace RockPaperScissor {
   export type CommitActionSerializableArgs = {
@@ -37,7 +21,7 @@ export namespace RockPaperScissor {
 
     constructor(args: {
       arg_0: HexInput | AccountAddress; // address
-      arg_1: Array<number>; // vector<u8>
+      arg_1: Array<Uint8>; // vector<u8>
     }) {
       super();
       this.args = {
@@ -119,8 +103,8 @@ export namespace RockPaperScissor {
 
     constructor(args: {
       arg_0: HexInput | AccountAddress; // address
-      arg_1: Array<number>; // vector<u8>
-      arg_2: Array<number>; // vector<u8>
+      arg_1: Array<Uint8>; // vector<u8>
+      arg_2: Array<Uint8>; // vector<u8>
     }) {
       super();
       this.args = {
@@ -152,9 +136,9 @@ export namespace TournamentManager {
 
     constructor(args: {
       arg_0: string; // 0x1::string::String
-      arg_1: AnyNumber; // u64
-      arg_2: AnyNumber; // u64
-      arg_3: AnyNumber; // u64
+      arg_1: Uint64; // u64
+      arg_2: Uint64; // u64
+      arg_3: Uint64; // u64
     }) {
       super();
       this.args = {

@@ -5,7 +5,7 @@ import { Account, AccountAddress, Aptos, AptosConfig, Network } from "../../../s
 import { fetchABIs } from "../../../src/abi/abi-gen";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { publishArgumentTestModule } from "../transaction/helper";
-import * as FrameworkModules from "../../../src/abi/0x1";
+import * as AptosFramework from "../../../src/abi/0x1";
 // import { TxArgsModule } from "../../../src/abi/example";
 
 describe("abi test", () => {
@@ -19,7 +19,7 @@ describe("abi test", () => {
     console.log(moduleABIs.join("\n\n"));
   });
 
-  it("parses tournament abis correctly", async () => {
+  it.only("parses tournament abis correctly", async () => {
     const accountAddress = AccountAddress.fromHexInputRelaxed(
       "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
     );
@@ -29,37 +29,40 @@ describe("abi test", () => {
     console.log(moduleABIs.join("\n\n"));
   });
 
-  it.only("parses 0x1 module abis correctly", async () => {
+  it("parses 0x1 module abis correctly", async () => {
     const accountAddress = AccountAddress.fromHexInputRelaxed("0x1");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
     console.log(moduleABIs.join("\n\n"));
 
-    const coinTransferPayload = new FrameworkModules.Coin.Transfer({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const coinTransferPayload = new AptosFramework.Coin.Transfer({
       arg_0: Account.generate().accountAddress,
       arg_1: 1000n,
     });
 
-    console.log(coinTransferPayload.bcsToBytes());
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const publishPackagePayload = new AptosFramework.Code.PublishPackageTxn({
+      arg_0: Array.from(new Uint8Array()),
+      arg_1: new Array(Array.from(new Uint8Array())),
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const transferCallPayload = new AptosFramework.Object$1.TransferCall({
+      arg_0: Account.generate().accountAddress,
+      arg_1: Account.generate().accountAddress,
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const batchTransferPayload = new AptosFramework.AptosAccount.BatchTransferCoins({
+      arg_0: [Account.generate().accountAddress],
+      arg_1: [1000n],
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const batchTransferPayloadSerialized = batchTransferPayload.bcsToBytes();
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // it("serializes from abis correctly", async () => {
   //     const address = AccountAddress.ZERO;

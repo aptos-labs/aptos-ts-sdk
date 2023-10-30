@@ -82,12 +82,12 @@ type Kind = typeof TypeClasses[keyof typeof TypeClasses]["kind"] | "MoveObject";
 // We could even let em name the types themselves? Since it's ultimately just a type alias.
 const kindToSimpleTypeMap: { [key in Kind]: string } = {
   Bool: "boolean",
-  U8: "number",
-  U16: "number",
-  U32: "number",
-  U64: "AnyNumber",
-  U128: "AnyNumber",
-  U256: "AnyNumber",
+  U8: "Uint8",
+  U16: "Uint16",
+  U32: "Uint32",
+  U64: "Uint64",
+  U128: "Uint128",
+  U256: "Uint256",
   AccountAddress: "HexInput | AccountAddress",
   MoveString: "string",
   MoveVector: "Array",

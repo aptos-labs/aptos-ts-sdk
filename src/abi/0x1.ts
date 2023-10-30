@@ -1630,7 +1630,7 @@ export namespace MultisigAccount {
   }
 }
 
-export namespace Object_ {
+export namespace Object$1 {
   export type TransferCallSerializableArgs = {
     arg_0: AccountAddress;
     arg_1: AccountAddress;

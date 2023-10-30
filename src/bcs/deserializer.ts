@@ -3,7 +3,6 @@
 
 /* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
-import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../types";
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
@@ -93,7 +92,7 @@ export class Deserializer {
    *
    * BCS layout for "uint8": One byte. Binary format in little-endian representation.
    */
-  deserializeU8(): Uint8 {
+  deserializeU8(): number {
     return new DataView(this.read(1)).getUint8(0);
   }
 
@@ -107,7 +106,7 @@ export class Deserializer {
    * assert(deserializer.deserializeU16() === 4660);
    * ```
    */
-  deserializeU16(): Uint16 {
+  deserializeU16(): number {
     return new DataView(this.read(2)).getUint16(0, true);
   }
 
@@ -121,7 +120,7 @@ export class Deserializer {
    * assert(deserializer.deserializeU32() === 305419896);
    * ```
    */
-  deserializeU32(): Uint32 {
+  deserializeU32(): number {
     return new DataView(this.read(4)).getUint32(0, true);
   }
 
@@ -135,7 +134,7 @@ export class Deserializer {
    * assert(deserializer.deserializeU64() === 1311768467750121216);
    * ```
    */
-  deserializeU64(): Uint64 {
+  deserializeU64(): bigint {
     const low = this.deserializeU32();
     const high = this.deserializeU32();
 
@@ -148,7 +147,7 @@ export class Deserializer {
    *
    * BCS layout for "uint128": Sixteen bytes. Binary format in little-endian representation.
    */
-  deserializeU128(): Uint128 {
+  deserializeU128(): bigint {
     const low = this.deserializeU64();
     const high = this.deserializeU64();
 
@@ -161,7 +160,7 @@ export class Deserializer {
    *
    * BCS layout for "uint256": Thirty-two bytes. Binary format in little-endian representation.
    */
-  deserializeU256(): Uint256 {
+  deserializeU256(): bigint {
     const low = this.deserializeU128();
     const high = this.deserializeU128();
 
@@ -174,7 +173,7 @@ export class Deserializer {
    *
    * BCS use uleb128 encoding in two cases: (1) lengths of variable-length sequences and (2) tags of enum values
    */
-  deserializeUleb128AsU32(): Uint32 {
+  deserializeUleb128AsU32(): number {
     let value: bigint = BigInt(0);
     let shift = 0;
 
