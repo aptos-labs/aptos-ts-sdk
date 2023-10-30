@@ -62,8 +62,8 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
-   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
-   * to generating a Unified keypair
+   * @param args.legacy optional. If set to true, the keypair authentication keys will be derived with a Legacy scheme.
+   * Defaults to deriving an authentication key with a Unified scheme
    *
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
@@ -129,7 +129,6 @@ export class Account {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
         break;
-      // TODO: Add support for MultiEd25519 as AnyMultiKey
       default:
         privateKey = Ed25519PrivateKey.generate();
     }
@@ -141,7 +140,7 @@ export class Account {
 
     const address = new AccountAddress({
       data: Account.authKey({
-        publicKey, // TODO support AnyMultiKey
+        publicKey,
       }).toUint8Array(),
     });
     return new Account({ privateKey, address, legacy: args?.legacy });
@@ -153,8 +152,8 @@ export class Account {
    *
    * @param privateKey PrivateKey - private key of the account
    * @param address The account address
-   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
-   * to generating a Unified keypair
+   * @param args.legacy optional. If set to true, the keypair authentication keys will be derived with a Legacy scheme.
+   * Defaults to deriving an authentication key with a Unified scheme
    *
    * @returns Account
    */

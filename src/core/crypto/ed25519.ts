@@ -10,6 +10,12 @@ import { HexInput } from "../../types";
 
 /**
  * Represents the public key of an Ed25519 key pair.
+ *
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * `Legacy` and `Unified` authentication keys.
+ *
+ * Ed25519 scheme is represented in the SDK as `Legacy authentication key` and also
+ * as `AnyPublicKey` that represents any `Unified authentication key`
  */
 export class Ed25519PublicKey extends PublicKey {
   /**

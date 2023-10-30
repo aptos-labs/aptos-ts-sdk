@@ -9,6 +9,7 @@ import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Hex } from "./hex";
 import { AuthenticationKeyScheme, HexInput, SigningScheme } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
+import { MultiKey } from "./crypto/multiKey";
 
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate
@@ -57,13 +58,14 @@ export class AuthenticationKey {
     const { publicKey, scheme } = args;
     let authKeyBytes: Uint8Array;
 
-    // TODO - support multied25519 key and MultiKey
     switch (scheme) {
+      case SigningScheme.MultiKey:
       case SigningScheme.SingleKey: {
         const singleKeyBytes = publicKey.bcsToBytes();
         authKeyBytes = new Uint8Array([...singleKeyBytes, scheme]);
         break;
       }
+
       case SigningScheme.Ed25519:
       case SigningScheme.MultiEd25519: {
         const ed25519PublicKeyBytes = publicKey.toUint8Array();
@@ -71,6 +73,7 @@ export class AuthenticationKey {
         authKeyBytes = new Uint8Array([...inputBytes, scheme]);
         break;
       }
+
       default:
         throw new Error(`Scheme ${scheme} is not supported`);
     }
@@ -99,6 +102,8 @@ export class AuthenticationKey {
       scheme = SigningScheme.MultiEd25519.valueOf();
     } else if (publicKey instanceof AnyPublicKey) {
       scheme = SigningScheme.SingleKey.valueOf();
+    } else if (publicKey instanceof MultiKey) {
+      scheme = SigningScheme.MultiKey.valueOf();
     } else {
       throw new Error("No supported authentication scheme for public key");
     }

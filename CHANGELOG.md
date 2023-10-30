@@ -10,6 +10,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Rename publishModuleTransaction to publishPackageTransaction and fix functionality accordingly
 - Added toString() for type tags, and reference placeholder type
 - Add ability to generate transactions with known ABI and remote ABI
+- Fix verify signature logic
+- Implement `MultiKey`support for multi authentication key
 
 ## 0.0.2 (2023-10-25)
 
