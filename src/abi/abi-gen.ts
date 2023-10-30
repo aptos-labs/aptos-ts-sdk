@@ -136,18 +136,22 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     // TODO: Handle 1 vs multiple signers, you can construct the payload *for* them knowing how 
     // many signers..!
     signerArguments.forEach((signerArgument, i) => {
-        lines.push(`const account${i}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
+        lines.push(`let account${i}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
     });
+
+    const argsType = `${className}SerializableArgs`;
+
+    // ---------- Declare class field types separately ---------- //
+    lines.push(`export type ${argsType} = {`);
+    functionArguments.forEach((functionArgument, i) => {
+        lines.push(`${TAB.repeat(1)}${fieldNames[i]}: ${functionArgument.kindString};`);
+    });
+    lines.push(`}`);
 
     // ---------- Class fields ---------- //
     lines.push(``);
     lines.push(`export class ${className} extends Serializable {`);
-    lines.push(`${TAB.repeat(1)}public readonly args: {`);
-    functionArguments.forEach((functionArgument, i) => {
-        const argComment = ` // ${functionArgument.annotation}`;
-        lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${functionArgument.kindString}; ${argComment}`);
-    });
-    lines.push(`${TAB.repeat(1)}};`);
+    lines.push(`${TAB.repeat(1)}public readonly args: ${argsType};`);
     lines.push('');
 
     // -------- Constructor input types -------- //
@@ -156,7 +160,8 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     functionArguments.forEach((functionArgument, i) => {
         const inputType = processInputTypes(functionArgument.kindArray);
         // const inputType = processInputTypesConstruction(functionArgument);
-        lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType};`);
+        const argComment = ` // ${functionArgument.annotation}`;
+        lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}; ${argComment}`);
     });
     lines.push(`${TAB.repeat(1)}}) {`);
 
@@ -262,7 +267,7 @@ const kindToSimpleTypeMap: { [key in Kind]: string } = {
     AccountAddress: "HexInput | AccountAddress",
     MoveString: "string",
     MoveVector: "Array",
-    MoveOption: "OptionInput", // OptionInput<T>
+    MoveOption: "OneOrNone", // OneOrNone<T>
     MoveObject: "HexInput | AccountAddress",
     AccountAuthenticator: "AccountAuthenticator",
 }
@@ -306,19 +311,22 @@ type EntryFunctionArgumentSignature = {
     functionArguments: Array<BCSClassAnnotated>,
 }
 
-function getClassArgTypes(typeTags: Array<TypeTag>): EntryFunctionArgumentSignature {
+function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = true): EntryFunctionArgumentSignature {
     const signerArguments = new Array<BCSClassAnnotated>();
     const functionArguments = new Array<BCSClassAnnotated>();
     typeTags.forEach((typeTag) => {
         const kindArray = toBCSClassName(typeTag);
         const annotation = typeTag.toString();
+
+        // Check if it's an AccountAuthenticator, which indicates it's a signer argument
+        // and we add it to the signerArguments array
         if (kindArray[0] == AccountAuthenticator.kind) {
             signerArguments.push({
                 kindArray: [AccountAuthenticator.kind],
                 kindString: AccountAuthenticator.kind,
                 annotation,
             });
-
+        // It's an non-signer entry function argument, so we'll add it to the functionArguments array
         } else {
             // Check if the TypeTag is actually an Object type
             // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
@@ -330,9 +338,27 @@ function getClassArgTypes(typeTags: Array<TypeTag>): EntryFunctionArgumentSignat
                     kindArray.pop();
                 }
             }
+            // Replacing the Option with a Vector is useful for the constructor input types since
+            // ultimately it's the same serialization, and we can restrict the number of elements
+            // with the input type at compile time.
+            // Since we want the annotation to remain the same, we perform the swap here, instead of
+            // in the `toBCSClassName` function.
+            let moveArgString = '';
+            if (replaceOptionWithVector) {
+                const newKindArray = kindArray.map((kindElement) => {
+                    if (kindElement == MoveOption.kind) {
+                        return MoveVector.kind;
+                    } else {
+                        return kindElement;
+                    }
+                });
+                moveArgString = kindArrayToString(newKindArray);
+            } else {
+                moveArgString = kindArrayToString(kindArray);
+            }
             functionArguments.push({
                 kindArray: kindArray,
-                kindString: kindArrayToString(kindArray),
+                kindString: moveArgString,
                 annotation,
             });
         }
