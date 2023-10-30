@@ -23,7 +23,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * // in Move: `vector<u8> [1, 2, 3, 4];`
  * const vecOfU8s = new MoveVector<U8>([new U8(1), new U8(2), new U8(3), new U8(4)]);
  * // in Move: `std::bcs::to_bytes(vector<u8> [1, 2, 3, 4]);`
- * const bcsBytes = vecOfU8s.toUint8Array();
+ * const bcsBytes = vecOfU8s.bcsToBytes();
  *
  * // vector<vector<u8>> [ vector<u8> [1], vector<u8> [1, 2, 3, 4], vector<u8> [5, 6, 7, 8] ];
  * const vecOfVecs = new MoveVector<MoveVector<U8>>([
