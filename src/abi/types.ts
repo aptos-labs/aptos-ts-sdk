@@ -4,5 +4,5 @@
 import { AccountAddress } from "../core";
 import { HexInput } from "../types";
 
-export type OptionInput<T> = [T] | [];
+export type OneOrNone<T> = [T] | [];
 export type AccountAddressInput = HexInput | AccountAddress;

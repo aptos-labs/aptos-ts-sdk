@@ -41,7 +41,7 @@ export type AccountAddressInput = HexInput | AccountAddress;
  */
 export class AccountAddress extends Serializable implements TransactionArgument {
   public static readonly kind = "AccountAddress";
-  
+
   /**
    * This is the internal representation of an account address.
    */

@@ -51,6 +51,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   implements TransactionArgument
 {
   public static readonly kind = "MoveVector";
+
   public values: Array<T>;
 
   constructor(values: Array<T>) {
@@ -225,6 +226,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
 export class MoveString extends Serializable implements TransactionArgument {
   public static readonly kind = "MoveString";
+
   public value: string;
 
   constructor(value: string) {
@@ -259,6 +261,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   implements EntryFunctionArgument
 {
   public static readonly kind = "MoveOption";
+
   private vec: MoveVector<T>;
 
   public readonly value?: T;

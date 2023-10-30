@@ -20,6 +20,7 @@ import { HexInput } from "../../types";
  */
 export class EntryFunctionBytes extends Serializable implements EntryFunctionArgument {
   public static readonly kind = "EntryFunctionBytes";
+
   public readonly value: FixedBytes;
 
   private constructor(value: HexInput) {

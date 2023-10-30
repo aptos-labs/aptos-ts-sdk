@@ -40,6 +40,7 @@ import { TransactionArgument } from "../../transactions/instances/transactionArg
  */
 export class FixedBytes extends Serializable implements TransactionArgument {
   public static readonly kind = "FixedBytes";
+
   public value: Uint8Array;
 
   constructor(value: HexInput) {
