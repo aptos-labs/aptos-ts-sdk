@@ -26,19 +26,22 @@ type AbiFunctions = {
     viewFunctions: Array<MoveFunction>,
 };
 
-function structTagBaseEqual(a: StructTag, b: StructTag): boolean {
-    return a.address.toString() === b.address.toString() && a.module_name.identifier === b.module_name.identifier && a.name.identifier === b.name.identifier;
-}
-
 /**
  * Tracks information about the entry function argument
- * @typeString - the string representation of the type
- * @types - the type of each argument inwards, e.g. MoveVector<MoveOption<MoveVector<u64>>> would be [MoveVector, MoveOption, MoveVector, U64]
- * @comment - the comment for the argument, usually for indicating a generic that doesn't need to be specified in the serialization (for Objects for example)
- * @depth - the depth of the argument, e.g. MoveVector<MoveOption<MoveVector<u64>>> would be 3
+ * @kindArray - the type of each argument inwards, e.g. MoveVector<MoveOption<MoveVector<u64>>> would be [MoveVector, MoveOption, MoveVector, U64]
+ * @kindString - the string representation of the kind, aka its type
+ * @annotation - the original Move argument TypeTag string
  */
-// `types` tracks the type of each argument inwards.
-// MoveVector<MoveOption<MoveVector<u64>>> would be [MoveVector, MoveOption, MoveVector, U64]
+type BCSClassAnnotated = {
+    kindArray: Array<Kind>,
+    kindString: string,
+    annotation: string,
+}
+
+type EntryFunctionArgumentSignature = {
+    signerArguments: Array<BCSClassAnnotated>,
+    functionArguments: Array<BCSClassAnnotated>,
+}
 
 const TypeClasses = { Bool, U8, U16, U32, U64, U128, U256, AccountAddress, MoveString, MoveVector, MoveOption, TypeTagStruct, AccountAuthenticator };
 type Kind = (typeof TypeClasses)[keyof typeof TypeClasses]['kind'] | "MoveObject";
@@ -63,7 +66,6 @@ function toBCSClassName(typeTag: TypeTag): Array<Kind> {
     if (typeTag.isStruct()) {
         if (typeTag.isString()) {
             return [MoveString.kind];
-            // return "MoveString";
         } else if (typeTag.isObject()) {
             // Objects can only have 1 TypeTag
             // when we return this, we will check if an AccountAddress kind is second to last,
@@ -71,15 +73,12 @@ function toBCSClassName(typeTag: TypeTag): Array<Kind> {
             // that T is of type: T
             // NOTE: This means a true Object<T> as an entry function argument will not work
             return ["MoveObject", ...toBCSClassName(typeTag.value.type_args[0])];
-            // return `MoveObject`;
         } else if (typeTag.isOption()) {
             // Options can only have 1 TypeTag
             return [MoveOption.kind, ...toBCSClassName(typeTag.value.type_args[0])];
-            // return `MoveOption<${toBCSClassName(typeTag.value.type_args[0], depth + 1)}>`;
         } else {
             // It must be a resource, otherwise the .move file would not compile
             return [typeTag.toString()];
-            // return typeTag.toString();
         }
     }
     // as any because typeguards aren't working correctly...
@@ -108,8 +107,8 @@ function toBCSClassName(typeTag: TypeTag): Array<Kind> {
 }
 
 const DEFAULT_ARGUMENT_BASE = "arg_";
-
 const TAB = "    ";
+const R_PARENTHESIS = ")";
 
 // Note that the suppliedFieldNames includes the `&signer` and `signer` fields.
 function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedFieldNames?: Array<string>): string {
@@ -158,8 +157,7 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     // constructor fields
     lines.push(`${TAB.repeat(1)}constructor(args: {`);
     functionArguments.forEach((functionArgument, i) => {
-        const inputType = processInputTypes(functionArgument.kindArray);
-        // const inputType = processInputTypesConstruction(functionArgument);
+        const inputType = createInputTypes(functionArgument.kindArray);
         const argComment = ` // ${functionArgument.annotation}`;
         lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}; ${argComment}`);
     });
@@ -168,7 +166,8 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     // -------- Assign constructor fields to class fields -------- //
     lines.push(`${TAB.repeat(2)}super();`);
     functionArguments.forEach((_, i) => {
-        lines.push(`${TAB.repeat(2)}this.${fieldNames[i]} = ${fieldNames[i]};`);
+        const inputTypeConverter = createInputTypeConverter(fieldNames[i], functionArguments[i].kindArray, 0);
+        lines.push(`${TAB.repeat(2)}this.${fieldNames[i]} = ${inputTypeConverter}`);
     });
     lines.push(`${TAB.repeat(1)}}`);
     
@@ -181,58 +180,16 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
         });
     }`;
     lines.push(serializeFunction);
-    // lines.push(`${TAB.repeat(1)}serialize(serializer: Serializer): void {`);
-    // lines.push(`${TAB.repeat(1)}`);
-    // lines.push(`${TAB.repeat(1)}}`);
     lines.push(`}`);
     return lines.join('\n');
 }
 
-/*
-    if (typeTag.isVector()) {
-        return [MoveVector.kind, ...toBCSClassName(typeTag.value)];
-    }
-    if (typeTag.isStruct()) {
-        if (typeTag.isString()) {
-            return [MoveString.kind];
-            // return "MoveString";
-        } else if (typeTag.isObject()) {
-            // Objects can only have 1 TypeTag
-            // when we return this, we will check if an AccountAddress kind is second to last,
-            // because that means it's an Object<T>, then we'll remove the T and add a comment explaining
-            // that T is of type: T
-            // NOTE: This means a true Object<T> as an entry function argument will not work
-            return ["MoveObject", ...toBCSClassName(typeTag.value.type_args[0])];
-            // return `MoveObject`;
-        }  else if (typeTag.isOption()) {
-            // Options can only have 1 TypeTag
-            return [MoveOption.kind, ...toBCSClassName(typeTag.value.type_args[0])];
-            // return `MoveOption<${toBCSClassName(typeTag.value.type_args[0], depth + 1)}>`;
-        } else {
-            // It must be a resource, otherwise the .move file would not compile
-            return [typeTag.toString()];
-            // return typeTag.toString();
-        }
-    }
-    // as any because typeguards aren't working correctly...
-    if ((typeTag as any).isBool()) { return [Bool.kind]; }
-    if ((typeTag as any).isU8()) { return [U8.kind]; }
-    if ((typeTag as any).isU16()) { return [U16.kind]; }
-    if ((typeTag as any).isU32()) { return [U32.kind]; }
-    if ((typeTag as any).isU64()) { return [U64.kind]; }
-    if ((typeTag as any).isU128()) { return [U128.kind]; }
-    if ((typeTag as any).isU256()) { return [U256.kind]; }
-    if ((typeTag as any).isAddress()) { return [AccountAddress.kind]; }
-*/
-
-function processInputTypes(kindArray: Array<Kind>): string {
-    let output = '';
+function createInputTypes(kindArray: Array<Kind>): string {
     const kind = kindArray[0];
     switch (kind) {
         case MoveVector.kind:
         case MoveOption.kind:
-            output += `${kindToSimpleTypeMap[kind]}<${processInputTypes(kindArray.slice(1))}>`;
-            break;
+            return `${kindToSimpleTypeMap[kind]}<${createInputTypes(kindArray.slice(1))}>`;
         case Bool.kind:
         case U8.kind:
         case U16.kind:
@@ -243,17 +200,69 @@ function processInputTypes(kindArray: Array<Kind>): string {
         case AccountAddress.kind:
         case MoveString.kind:
         case "MoveObject":
-            output += `${kindToSimpleTypeMap[kind]}`;
-            break;
+            return `${kindToSimpleTypeMap[kind]}`;
+        default:
+            throw new Error(`Unknown kind: ${kind}`);
+    }
+}
+
+function numberToLetter(num: number): string {
+    // Check if the number corresponds to the letters in the English alphabet
+    if (num < 1 || num > 26) {
+        throw new Error('Number out of range. Please provide a number between 1 and 26.');
     }
 
-    return output;
+    // 64 is the ASCII code right before 'A'; therefore, adding the number gives the corresponding letter
+    return String.fromCharCode(64 + num);
 }
-function processInputTypesConstruction(bcsArgument: BCSClassAnnotated): string {
-    let output = '';
 
+/**
+ * The transformer function for converting the constructor input types to the class field types
+ * @param bcsArgument the BCSClassAnnotated object containing the kindArray, kindString, and annotation
+ * @returns a string representing the generated typescript code to convert the constructor input type to the class field type
+ */
+function createInputTypeConverter(fieldName: string, kindArray: Array<Kind>, depth: number, replaceOptionWithVector = true): string {
+    // replace MoveObject with AccountAddress for the constructor input types
+    const kind = kindArray[0] == "MoveObject" ? AccountAddress.kind : kindArray[0];
+    const nameFromDepth = depth == 0 ? `args.${fieldName}` : `arg${numberToLetter(depth)}`;
+    const whitespace = depth == 0 ? '' : TAB.repeat(depth + 2);
+    switch (kind) {
+        // if the next kindArray (kindArray + 1) == a non-generic type, then let's just use a factory method?
+        // or we can keep it simple.
+        case MoveVector.kind:
+        case MoveOption.kind:
+            // conditionally replace MoveOption with MoveVector for the constructor input types
+            const newKind = replaceOptionWithVector ? MoveVector.kind : kind;
+            const innerNameFromDepth = `arg${numberToLetter(depth + 1)}`;
+            // const mappedString = `${whitespace}${nameFromDepth}.map(${innerNameFromDepth}: ${createInputTypes(kindArray.slice(1))} =>
+            const mappedString = `${whitespace}new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} =>
+                ${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)}`;
+            // ${whitespace}))`;
+            // let stringBuilder = `${whitespace}new ${newKind}(${nameFromDepth}.map((${innerNameFromDepth}: ${createInputTypes(kindArray.slice(1))}) =>\n`;
+            let stringBuilder = `${whitespace}new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} =>\n`;
+            stringBuilder += `${whitespace}${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)}`;
+            stringBuilder += `${whitespace}))`;
+            return mappedString;
+            // const output = `new ${newKind}(${createInputTypeConverter(fieldName, kindArray.slice(1), depth + 1)})`;
+        case Bool.kind:
+        case U8.kind:
+        case U16.kind:
+        case U32.kind:
+        case U64.kind:
+        case U128.kind:
+        case U256.kind:
+        case AccountAddress.kind:
+        case MoveString.kind:
+            let output = `${whitespace}new ${kind}(${nameFromDepth})`;
+            output += `\n${TAB.repeat(2)}${R_PARENTHESIS.repeat(depth)};`
+            return output
+        default:
+            throw new Error(`Unknown kind: ${kind}`);
+    }
+}
 
-    return output;
+function convertInputTypes(kindArray: Array<Kind>): string {
+    return '';
 }
 
 const kindToSimpleTypeMap: { [key in Kind]: string } = {
@@ -261,54 +270,15 @@ const kindToSimpleTypeMap: { [key in Kind]: string } = {
     U8: "number",
     U16: "number",
     U32: "number",
-    U64: "number | bigint",
-    U128: "number | bigint",
-    U256: "number | bigint",
+    U64: "AnyNumber",
+    U128: "AnyNumber",
+    U256: "AnyNumber",
     AccountAddress: "HexInput | AccountAddress",
     MoveString: "string",
     MoveVector: "Array",
     MoveOption: "OneOrNone", // OneOrNone<T>
     MoveObject: "HexInput | AccountAddress",
     AccountAuthenticator: "AccountAuthenticator",
-}
-
-type BCSClassAnnotated = {
-    kindArray: Array<Kind>,
-    kindString: string,
-    annotation: string,
-}
-
-function toSimpleArgumentInputType(kindArray: Array<Kind>): string {
-    let inputs = '';
-    kindArray.forEach((kind) => {
-        switch (kind) {
-            case "Bool":
-                return Bool.kind;
-            case "U8":
-            case "U16":
-            case "U32":
-            case "U64":
-            case "U128":
-            case "U256":
-                return "number";
-            case "AccountAddress":
-            case "MoveString":
-                return "string";
-            case "MoveVector":
-                return "Array";
-            case "MoveOption":
-                return "Option";
-            default:
-                return kind;
-        }
-    });
-
-    return inputs;
-}
-
-type EntryFunctionArgumentSignature = {
-    signerArguments: Array<BCSClassAnnotated>,
-    functionArguments: Array<BCSClassAnnotated>,
 }
 
 function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = true): EntryFunctionArgumentSignature {
