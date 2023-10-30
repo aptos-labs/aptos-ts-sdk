@@ -165,10 +165,12 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
 
     // -------- Assign constructor fields to class fields -------- //
     lines.push(`${TAB.repeat(2)}super();`);
+    lines.push(`${TAB.repeat(2)}this.args = {`);
     functionArguments.forEach((_, i) => {
         const inputTypeConverter = createInputTypeConverter(fieldNames[i], functionArguments[i].kindArray, 0);
-        lines.push(`${TAB.repeat(2)}this.${fieldNames[i]} = ${inputTypeConverter}`);
+        lines.push(`${TAB.repeat(3)}${fieldNames[i]}: ${inputTypeConverter},`);
     });
+    lines.push(`${TAB.repeat(2)}}`);
     lines.push(`${TAB.repeat(1)}}`);
     
     // -------- Add the serialize function -------- //
@@ -235,14 +237,8 @@ function createInputTypeConverter(fieldName: string, kindArray: Array<Kind>, dep
             const newKind = replaceOptionWithVector ? MoveVector.kind : kind;
             const innerNameFromDepth = `arg${numberToLetter(depth + 1)}`;
             // const mappedString = `${whitespace}${nameFromDepth}.map(${innerNameFromDepth}: ${createInputTypes(kindArray.slice(1))} =>
-            const mappedString = `${whitespace}new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} =>
-                ${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)}`;
-            // ${whitespace}))`;
-            // let stringBuilder = `${whitespace}new ${newKind}(${nameFromDepth}.map((${innerNameFromDepth}: ${createInputTypes(kindArray.slice(1))}) =>\n`;
-            let stringBuilder = `${whitespace}new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} =>\n`;
-            stringBuilder += `${whitespace}${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)}`;
-            stringBuilder += `${whitespace}))`;
-            return mappedString;
+            return `new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} => ` +
+            `${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)})`;
             // const output = `new ${newKind}(${createInputTypeConverter(fieldName, kindArray.slice(1), depth + 1)})`;
         case Bool.kind:
         case U8.kind:
@@ -251,11 +247,10 @@ function createInputTypeConverter(fieldName: string, kindArray: Array<Kind>, dep
         case U64.kind:
         case U128.kind:
         case U256.kind:
-        case AccountAddress.kind:
         case MoveString.kind:
-            let output = `${whitespace}new ${kind}(${nameFromDepth})`;
-            output += `\n${TAB.repeat(2)}${R_PARENTHESIS.repeat(depth)};`
-            return output
+            return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`
+        case AccountAddress.kind:
+            return `${kind}.fromHexInputRelaxed(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`
         default:
             throw new Error(`Unknown kind: ${kind}`);
     }
@@ -273,11 +268,11 @@ const kindToSimpleTypeMap: { [key in Kind]: string } = {
     U64: "AnyNumber",
     U128: "AnyNumber",
     U256: "AnyNumber",
-    AccountAddress: "HexInput | AccountAddress",
+    AccountAddress: "HexInput", // don't accept AccountAddress because it makes things messy
     MoveString: "string",
     MoveVector: "Array",
     MoveOption: "OneOrNone", // OneOrNone<T>
-    MoveObject: "HexInput | AccountAddress",
+    MoveObject: "HexInput", // don't accept AccountAddress because it makes things messy
     AccountAuthenticator: "AccountAuthenticator",
 }
 
