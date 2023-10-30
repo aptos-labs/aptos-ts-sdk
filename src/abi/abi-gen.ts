@@ -129,8 +129,6 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     // Get the array of annotated BCS class names, their string representation, and original TypeTag string
     const { signerArguments, functionArguments } = getClassArgTypes(typeTags);
     const lines: Array<string> = [];
-    lines.push(`type MoveObject = AccountAddress`);
-    lines.push();
 
     // TODO: Handle 1 vs multiple signers, you can construct the payload *for* them knowing how 
     // many signers..!
@@ -336,7 +334,7 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
     };
 }
 
-export async function fetchABIs(aptos: Aptos, senderAccount: Account) {
+export async function fetchABIs(aptos: Aptos, senderAccount: Account): Promise<Array<string>> {
     const moduleABIs = await fetchModuleABIs(aptos, senderAccount);
 
     const abiFunctions: AbiFunctions[] = [];
@@ -353,22 +351,22 @@ export async function fetchABIs(aptos: Aptos, senderAccount: Account) {
         });
     });
 
-    const tags = abiFunctions[0].publicEntryFunctions[1].params.map((param) => {
-        // console.log(param);
-        return parseTypeTag(param);
-    });
-    tags.push(parseTypeTag("vector<vector<vector<vector<u64>>>>"));
-    tags.push(parseTypeTag("vector<vector<vector<vector<vector<u64>>>>>"));
-    tags.push(parseTypeTag("0x1::option::Option<u8>"));
-    tags.push(parseTypeTag("0x1::option::Option<vector<u8>>"));
-    tags.push(parseTypeTag("0x1::option::Option<vector<0x1::option::Option<u64>>>"));
-    const metaclass = metaclassBuilder("TestEntryFunctionPayload", tags, []);
-    console.log(metaclass);
+    const functionTypeTags = abiFunctions[0].publicEntryFunctions.map(func =>
+        func.params.map((param) => parseTypeTag(param)
+    ));
+
+    const metaClasses = functionTypeTags.map((tags, i) =>
+        metaclassBuilder(`EntryFunction${i}`, tags, [])
+    );
+    // tags.push(parseTypeTag("vector<vector<vector<vector<u64>>>>"));
+    // tags.push(parseTypeTag("vector<vector<vector<vector<vector<u64>>>>>"));
+    // tags.push(parseTypeTag("0x1::option::Option<u8>"));
+    // tags.push(parseTypeTag("0x1::option::Option<vector<u8>>"));
+    // tags.push(parseTypeTag("0x1::option::Option<vector<0x1::option::Option<u64>>>"));
     // console.log(JSON.stringify(abiFunctions, null, 3));
 
     // createFile();
-
-    return metaclass;
+    return metaClasses;
 }
 
 // TODO: Add `deserializeAsTypeTag(typeTag: TypeTag)` where it deserializes something based solely on

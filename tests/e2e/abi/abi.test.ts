@@ -13,6 +13,8 @@ describe("abi test", () => {
         await aptos.fundAccount({accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT});
         const publishResponse = await publishArgumentTestModule(aptos, account);
         const fetchABIsResponse = await fetchABIs(aptos, account);
-        console.log(fetchABIsResponse);
+        fetchABIsResponse.forEach((abi) => {
+            console.log(abi);
+        });
     });
 });
