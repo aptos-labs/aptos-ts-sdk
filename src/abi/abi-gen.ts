@@ -250,7 +250,8 @@ function createInputTypeConverter(fieldName: string, kindArray: Array<Kind>, dep
         case MoveString.kind:
             return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`
         case AccountAddress.kind:
-            return `${kind}.fromHexInputRelaxed(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`
+            return `new ${kind}(addressFromAny(${nameFromDepth}))${R_PARENTHESIS.repeat(depth)}`
+            // return `${kind}.fromHexInputRelaxed(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`
         default:
             throw new Error(`Unknown kind: ${kind}`);
     }
@@ -268,11 +269,11 @@ const kindToSimpleTypeMap: { [key in Kind]: string } = {
     U64: "AnyNumber",
     U128: "AnyNumber",
     U256: "AnyNumber",
-    AccountAddress: "HexInput", // don't accept AccountAddress because it makes things messy
+    AccountAddress: "HexInput | AccountAddress",
     MoveString: "string",
     MoveVector: "Array",
     MoveOption: "OneOrNone", // OneOrNone<T>
-    MoveObject: "HexInput", // don't accept AccountAddress because it makes things messy
+    MoveObject: "HexInput | AccountAddress",
     AccountAuthenticator: "AccountAuthenticator",
 }
 
