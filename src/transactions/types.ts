@@ -56,7 +56,7 @@ export type ScriptFunctionArgumentTypes =
 /**
  * Type that holds all raw transaction instances Aptos SDK supports
  */
-export type InputAnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
+export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
 
 // TRANSACTION GENERATION TYPES //
 
@@ -73,7 +73,7 @@ export type InputGenerateTransactionOptions = {
 /**
  * The generated transaction payload type that was produces from `generateTransactionPayload()` function.
  */
-export type InputAnyTransactionPayload =
+export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
   | TransactionPayloadMultisig;
@@ -143,7 +143,7 @@ export type AptosConfigArg = {
 export interface InputGenerateSingleSignerRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: InputAnyTransactionPayload;
+  payload: AnyTransactionPayloadInstance;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
@@ -156,7 +156,7 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
 export interface InputGenerateFeePayerRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: InputAnyTransactionPayload;
+  payload: AnyTransactionPayloadInstance;
   feePayerAddress: HexInput;
   secondarySignerAddresses?: HexInput[];
   options?: InputGenerateTransactionOptions;
@@ -169,7 +169,7 @@ export interface InputGenerateFeePayerRawTransactionArgs {
 export interface InputGenerateMultiAgentRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: InputAnyTransactionPayload;
+  payload: AnyTransactionPayloadInstance;
   secondarySignerAddresses: HexInput[];
   feePayerAddress?: undefined;
   options?: InputGenerateTransactionOptions;
@@ -257,7 +257,7 @@ export type InputSimulateTransactionOptions = {
 /**
  * Interface that holds the user data input when generating a single signer transaction
  */
-export interface InputGenerateSingleSignerRawTransaction {
+export interface InputGenerateSingleSignerRawTransactionData {
   sender: HexInput;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
@@ -268,7 +268,7 @@ export interface InputGenerateSingleSignerRawTransaction {
 /**
  * Interface that holds the user data input when generating a fee payer transaction
  */
-export interface InputGenerateFeePayerRawTransaction {
+export interface InputGenerateFeePayerRawTransactionData {
   sender: HexInput;
   feePayerAddress: HexInput;
   secondarySignerAddresses?: HexInput[];
@@ -279,7 +279,7 @@ export interface InputGenerateFeePayerRawTransaction {
 /**
  * Interface that holds the user data input when generating a multi-agent transaction
  */
-export interface InputGenerateMultiAgentRawTransaction {
+export interface InputGenerateMultiAgentRawTransactionData {
   sender: HexInput;
   secondarySignerAddresses: HexInput[];
   feePayerAddress?: undefined;
@@ -290,7 +290,7 @@ export interface InputGenerateMultiAgentRawTransaction {
 /**
  * Unified type that holds all the user data input interfaces when generating different transaction types
  */
-export type InputGenerateTransaction =
-  | InputGenerateMultiAgentRawTransaction
-  | InputGenerateFeePayerRawTransaction
-  | InputGenerateSingleSignerRawTransaction;
+export type InputGenerateTransactionData =
+  | InputGenerateMultiAgentRawTransactionData
+  | InputGenerateFeePayerRawTransactionData
+  | InputGenerateSingleSignerRawTransactionData;

@@ -18,7 +18,7 @@ import {
   sign,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
-  InputGenerateTransaction,
+  InputGenerateTransactionData,
   InputAnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
@@ -68,7 +68,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  * ```
  */
 export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateTransaction,
+  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<InputAnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
 

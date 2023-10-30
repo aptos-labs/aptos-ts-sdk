@@ -53,8 +53,8 @@ import {
 import { SignedTransaction } from "../instances/signedTransaction";
 import {
   InputGenerateTransactionOptions,
-  InputAnyTransactionPayload,
-  InputAnyRawTransactionInstance,
+  AnyTransactionPayloadInstance,
+  AnyRawTransactionInstance,
   InputGenerateFeePayerRawTransactionArgs,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
@@ -91,10 +91,10 @@ export async function generateTransactionPayload(
 export async function generateTransactionPayload(args: InputMultiSigDataWithRemoteABI): Promise<TransactionPayloadMultisig>;
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<InputAnyTransactionPayload>;
+): Promise<AnyTransactionPayloadInstance>;
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<InputAnyTransactionPayload>;
+): Promise<AnyTransactionPayloadInstance>;
 
 /**
  * Builds a transaction payload based on the data argument and returns
@@ -108,7 +108,7 @@ export async function generateTransactionPayload(
  */
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<InputAnyTransactionPayload> {
+): Promise<AnyTransactionPayloadInstance> {
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
@@ -139,11 +139,11 @@ export function generateTransactionPayloadWithABI(
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadData,
   functionAbi: EntryFunctionABI,
-): InputAnyTransactionPayload;
+): AnyTransactionPayloadInstance;
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadData,
   functionAbi: EntryFunctionABI,
-): InputAnyTransactionPayload {
+): AnyTransactionPayloadInstance {
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
@@ -219,7 +219,7 @@ function generateTransactionPayloadScript(args: InputScriptData) {
 export async function generateRawTransaction(args: {
   aptosConfig: AptosConfig;
   sender: HexInput;
-  payload: InputAnyTransactionPayload;
+  payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options } = args;
@@ -523,7 +523,7 @@ export function generateSignedTransaction(args: {
  *
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
-export function deriveTransactionType(transaction: InputAnyRawTransaction): InputAnyRawTransactionInstance {
+export function deriveTransactionType(transaction: InputAnyRawTransaction): AnyRawTransactionInstance {
   const deserializer = new Deserializer(transaction.rawTransaction);
   const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
@@ -594,7 +594,7 @@ export function generateMultiSignersSignedTransaction(
   );
 }
 
-export function getSigningMessage(rawTxn: InputAnyRawTransactionInstance): Uint8Array {
+export function getSigningMessage(rawTxn: AnyRawTransactionInstance): Uint8Array {
   const hash = sha3Hash.create();
 
   if (rawTxn instanceof RawTransaction) {

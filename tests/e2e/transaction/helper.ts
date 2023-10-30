@@ -9,7 +9,7 @@ import {
   TypeTag,
   EntryFunctionArgumentTypes,
   HexInput,
-  InputGenerateTransaction,
+  InputGenerateTransactionData,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -86,7 +86,7 @@ export const rawTransactionMultiAgentHelper = async (
   secondarySignerAccounts: Array<Account>,
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
-  const transactionData: InputGenerateTransaction = {
+  const transactionData: InputGenerateTransactionData = {
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,

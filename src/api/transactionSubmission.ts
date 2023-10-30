@@ -7,10 +7,10 @@ import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   InputAnyRawTransaction,
   InputFeePayerTransaction,
-  InputGenerateMultiAgentRawTransaction,
-  InputGenerateTransaction,
-  InputGenerateFeePayerRawTransaction,
-  InputGenerateSingleSignerRawTransaction,
+  InputGenerateMultiAgentRawTransactionData,
+  InputGenerateTransactionData,
+  InputGenerateFeePayerRawTransactionData,
+  InputGenerateSingleSignerRawTransactionData,
   InputMultiAgentTransaction,
   InputSingleSignerTransaction,
   InputSimulateTransactionData,
@@ -39,10 +39,10 @@ export class TransactionSubmission {
    * When we call `generateTransaction` function with the relevant type properties,
    * Typescript can infer the return type based on the appropriate function overload.
    */
-  async generateTransaction(args: InputGenerateSingleSignerRawTransaction): Promise<InputSingleSignerTransaction>;
-  async generateTransaction(args: InputGenerateFeePayerRawTransaction): Promise<InputFeePayerTransaction>;
-  async generateTransaction(args: InputGenerateMultiAgentRawTransaction): Promise<InputMultiAgentTransaction>;
-  async generateTransaction(args: InputGenerateTransaction): Promise<InputAnyRawTransaction>;
+  async generateTransaction(args: InputGenerateSingleSignerRawTransactionData): Promise<InputSingleSignerTransaction>;
+  async generateTransaction(args: InputGenerateFeePayerRawTransactionData): Promise<InputFeePayerTransaction>;
+  async generateTransaction(args: InputGenerateMultiAgentRawTransactionData): Promise<InputMultiAgentTransaction>;
+  async generateTransaction(args: InputGenerateTransactionData): Promise<InputAnyRawTransaction>;
 
   /**
    * Generates any transaction by passing in the required arguments
@@ -84,7 +84,7 @@ export class TransactionSubmission {
    * }
    * ```
    */
-  async generateTransaction(args: InputGenerateTransaction): Promise<InputAnyRawTransaction> {
+  async generateTransaction(args: InputGenerateTransactionData): Promise<InputAnyRawTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
   }
 
