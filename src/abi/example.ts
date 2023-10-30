@@ -489,15 +489,3 @@ export namespace TxArgsModule {
     serialize(_serializer: Serializer): void {}
   }
 }
-
-// const arg_377 = args.arg_37.map((arg) => {
-//     return new MoveVector(arg.map((arg) => {
-//         return MoveOption.U64(arg[0]);
-//     }));
-// });
-
-// const arg_3777 = args.arg_37?.map((optionArg) => {
-//     return MoveOption.U64(optionArg?.at(0));
-// });
-// const arg_37_converted = new MoveOption(arg_37.values[0]);
-// this.args.arg_37 = arg_37_converted;
