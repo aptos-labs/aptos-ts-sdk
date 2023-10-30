@@ -31,6 +31,14 @@ export const secp256k1WalletTestObject = {
     "0x04913871f1d6cb7b867e8671cf63cf7b4c43819539fa0074ff933434bf20bab825b335535251f720fff72fd8b567e414af84aacf2f26ec804562081f2e0b0c9478",
 };
 
+export const zeroWallet = {
+  address: "0x00fe71257b6b4caca517ef4c9979ada97aa2e2688e950654a40ff82e98f68163",
+  mnemonic: "shoot island position soft burden budget tooth cruel issue economy destroy above",
+  path: "m/44'/637'/0'/0'/44'",
+  privateKey: "0xeb70332d79a384f57052b34282748be65a57548513b3b99ee1bd858244b36d28",
+  publicKey: "0xeb70332d79a384f57052b34282748be65a57548513b3b99ee1bd858244b36d28",
+};
+
 export const ed25519 = {
   privateKey: "0xc5338cd251c22daa8c9c9cc94f498cc8a5c7e1d2e75287a5dda91096fe64efa5",
   publicKey: "0xde19e5d1880cac87d57484ce9ed2e84cf0f9599f12e7cc3a52e4e7657a763f2c",

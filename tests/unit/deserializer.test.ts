@@ -132,9 +132,9 @@ describe("BCS Deserializer", () => {
 
   it("deserializes a vector of Deserializable types correctly", () => {
     const addresses = new Array<AccountAddress>(
-      AccountAddress.fromHexInputRelaxed("0x1"),
-      AccountAddress.fromHexInputRelaxed("0xa"),
-      AccountAddress.fromHexInputRelaxed("0x0123456789abcdef"),
+      AccountAddress.fromRelaxed("0x1"),
+      AccountAddress.fromRelaxed("0xa"),
+      AccountAddress.fromRelaxed("0x0123456789abcdef"),
     );
     const serializer = new Serializer();
     serializer.serializeVector(addresses);

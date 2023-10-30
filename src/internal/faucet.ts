@@ -10,14 +10,14 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFaucet } from "../client";
-import { AccountAddress } from "../core";
-import { HexInput, WaitForTransactionOptions } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { WaitForTransactionOptions } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";
 
 export async function fundAccount(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   amount: number;
   options?: WaitForTransactionOptions;
 }): Promise<string> {
@@ -27,7 +27,7 @@ export async function fundAccount(args: {
     aptosConfig,
     path: "fund",
     body: {
-      address: AccountAddress.fromHexInput(accountAddress).toString(),
+      address: AccountAddress.fromRelaxed(accountAddress).toString(),
       amount,
     },
     originMethod: "fundAccount",

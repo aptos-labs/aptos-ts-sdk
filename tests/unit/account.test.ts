@@ -51,8 +51,8 @@ describe("Account", () => {
     it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
-      const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
+      const accountAddress = AccountAddress.from(address);
+      const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
       expect(newAccount).toBeInstanceOf(Account);
       expect(newAccount.publicKey).toBeInstanceOf(Ed25519PublicKey);
       expect(newAccount.privateKey).toBeInstanceOf(Ed25519PrivateKey);
@@ -64,7 +64,7 @@ describe("Account", () => {
     it("derives the correct account from a single signer ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: false });
       expect(newAccount).toBeInstanceOf(Account);
       expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
@@ -77,7 +77,7 @@ describe("Account", () => {
     it("derives the correct account from a single signer secp256k1 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       expect(newAccount).toBeInstanceOf(Account);
       expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
@@ -166,7 +166,7 @@ describe("Account", () => {
     it("signs a message with single signer Secp256k1 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const secpAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       const signature = secpAccount.sign(messageEncoded);
       expect(signature.toString()).toEqual(signatureHex);
@@ -176,7 +176,7 @@ describe("Account", () => {
     it("signs a message with single signer ed25519 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const edAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: false });
       const signature = edAccount.sign(messageEncoded);
       expect(signature.toString()).toEqual(signatureHex);
@@ -186,8 +186,8 @@ describe("Account", () => {
     it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, address, signedMessage, message } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
-      const legacyEdAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
+      const accountAddress = AccountAddress.from(address);
+      const legacyEdAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
       const signature = legacyEdAccount.sign(message);
       expect(signature.toString()).toEqual(signedMessage);
       expect(legacyEdAccount.verifySignature({ message, signature })).toBeTruthy();

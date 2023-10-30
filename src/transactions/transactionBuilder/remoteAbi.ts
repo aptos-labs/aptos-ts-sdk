@@ -227,7 +227,7 @@ function parseArg(
     if (param.isObject()) {
       // The inner type of Object doesn't matter, since it's just syntactic sugar
       if (isString(arg)) {
-        return AccountAddress.fromString(arg);
+        return AccountAddress.fromStringRelaxed(arg);
       }
       throwTypeMismatch("string", position);
     }

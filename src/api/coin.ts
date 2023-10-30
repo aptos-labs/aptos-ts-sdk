@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { Account } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { InputSingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
-import { AnyNumber, HexInput, MoveStructType } from "../types";
+import { AnyNumber, MoveStructType } from "../types";
 
 /**
  * A class to handle all `Coin` operations
@@ -29,7 +29,7 @@ export class Coin {
    */
   async transferCoinTransaction(args: {
     sender: Account;
-    recipient: HexInput;
+    recipient: AccountAddressInput;
     amount: AnyNumber;
     coinType?: MoveStructType;
     options?: InputGenerateTransactionOptions;

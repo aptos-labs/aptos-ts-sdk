@@ -114,8 +114,8 @@ export class General {
    *
    * @returns Table item value rendered in JSON
    */
-  async getTableItem(args: { handle: string; data: TableItemRequest; options?: LedgerVersion }): Promise<any> {
-    return getTableItem({ aptosConfig: this.config, ...args });
+  async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersion }): Promise<T> {
+    return getTableItem<T>({ aptosConfig: this.config, ...args });
   }
 
   /**

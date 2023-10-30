@@ -9,8 +9,8 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { AccountAddress } from "../core";
-import { AnyNumber, GetEventsResponse, HexInput, PaginationArgs, MoveStructType, OrderBy } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructType, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
 import { EventsBoolExp } from "../types/generated/types";
@@ -18,14 +18,14 @@ import { queryIndexer } from "./general";
 
 export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   creationNumber: AnyNumber;
 }): Promise<GetEventsResponse> {
   const { accountAddress, aptosConfig, creationNumber } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress);
 
   const whereCondition: EventsBoolExp = {
-    account_address: { _eq: address },
+    account_address: { _eq: address.toString() },
     creation_number: { _eq: creationNumber },
   };
 
@@ -34,7 +34,7 @@ export async function getAccountEventsByCreationNumber(args: {
 
 export async function getAccountEventsByEventType(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   eventType: MoveStructType;
   options?: {
     pagination?: PaginationArgs;
@@ -42,7 +42,7 @@ export async function getAccountEventsByEventType(args: {
   };
 }): Promise<GetEventsResponse> {
   const { accountAddress, aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.fromRelaxed(accountAddress).toString();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },

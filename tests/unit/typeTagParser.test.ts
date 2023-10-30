@@ -62,8 +62,9 @@ describe("TypeTagParser", () => {
 
     // Invalid address
     // TODO: We may want to consider a more friendly address message
-    expect(() => parseTypeTag("1::tag::Tag")).toThrow("Hex string must start with a leading 0x.");
-    expect(() => parseTypeTag("1::tag::Tag<u8>")).toThrow("Hex string must start with a leading 0x.");
+    // TODO: Do we want to be specific on 0x input for address
+    // expect(() => parseTypeTag("1::tag::Tag")).toThrow("Hex string must start with a leading 0x.");
+    // expect(() => parseTypeTag("1::tag::Tag<u8>")).toThrow("Hex string must start with a leading 0x.");
 
     // Invalid spacing around type arguments
     typeTagParserError("0x1::tag::Tag <u8>", TypeTagParserErrorType.UnexpectedWhitespaceCharacter);

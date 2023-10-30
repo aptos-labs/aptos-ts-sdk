@@ -7,7 +7,8 @@ import {
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
 } from "../internal/staking";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, HexInput, OrderBy } from "../types";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { AccountAddressInput } from "../core";
 
 /**
  * A class to query all `Staking` related queries on Aptos.
@@ -25,7 +26,7 @@ export class Staking {
    * @param args.poolAddress Pool address
    * @returns The number of delegators for the given pool
    */
-  async getNumberOfDelegators(args: { poolAddress: HexInput }): Promise<number> {
+  async getNumberOfDelegators(args: { poolAddress: AccountAddressInput }): Promise<number> {
     return getNumberOfDelegators({ aptosConfig: this.config, ...args });
   }
 
@@ -50,8 +51,8 @@ export class Staking {
    * @returns GetDelegatedStakingActivitiesResponse response type
    */
   async getDelegatedStakingActivities(args: {
-    delegatorAddress: HexInput;
-    poolAddress: HexInput;
+    delegatorAddress: AccountAddressInput;
+    poolAddress: AccountAddressInput;
   }): Promise<GetDelegatedStakingActivitiesResponse> {
     return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
   }

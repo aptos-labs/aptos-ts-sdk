@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { AccountAddress, PrivateKey, Account as AccountModule } from "../core";
+import { AccountAddress, PrivateKey, Account as AccountModule, AccountAddressInput } from "../core";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -10,7 +10,6 @@ import {
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  HexInput,
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
@@ -64,7 +63,7 @@ export class Account {
    * }
    * ```
    */
-  async getAccountInfo(args: { accountAddress: HexInput }): Promise<AccountData> {
+  async getAccountInfo(args: { accountAddress: AccountAddressInput }): Promise<AccountData> {
     return getInfo({ aptosConfig: this.config, ...args });
   }
 
@@ -83,7 +82,7 @@ export class Account {
    */
 
   async getAccountModules(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: PaginationArgs & LedgerVersion;
   }): Promise<MoveModuleBytecode[]> {
     return getModules({ aptosConfig: this.config, ...args });
@@ -107,7 +106,7 @@ export class Account {
    * ```
    */
   async getAccountModule(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     moduleName: string;
     options?: LedgerVersion;
   }): Promise<MoveModuleBytecode> {
@@ -127,7 +126,7 @@ export class Account {
    * @returns The account transactions
    */
   async getAccountTransactions(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
     return getTransactions({
@@ -149,7 +148,7 @@ export class Account {
    * @returns Account resources
    */
   async getAccountResources(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: PaginationArgs & LedgerVersion;
   }): Promise<MoveResource[]> {
     return getResources({ aptosConfig: this.config, ...args });
@@ -174,7 +173,7 @@ export class Account {
    * ```
    */
   async getAccountResource<T extends {} = any>(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     resourceType: MoveStructType;
     options?: LedgerVersion;
   }): Promise<T> {
@@ -191,7 +190,7 @@ export class Account {
    * @returns Promise<AccountAddress> The accountAddress associated with the authentication key
    */
   async lookupOriginalAccountAddress(args: {
-    authenticationKey: HexInput;
+    authenticationKey: AccountAddressInput;
     options?: LedgerVersion;
   }): Promise<AccountAddress> {
     return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
@@ -203,7 +202,7 @@ export class Account {
    * @param args.accountAddress The account address
    * @returns Current count of tokens owned by the account
    */
-  async getAccountTokensCount(args: { accountAddress: HexInput }): Promise<number> {
+  async getAccountTokensCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
     return getAccountTokensCount({
       aptosConfig: this.config,
       ...args,
@@ -224,7 +223,7 @@ export class Account {
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokens(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -252,8 +251,8 @@ export class Account {
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokensFromCollectionAddress(args: {
-    accountAddress: HexInput;
-    collectionAddress: HexInput;
+    accountAddress: AccountAddressInput;
+    collectionAddress: AccountAddressInput;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -280,7 +279,7 @@ export class Account {
    * @returns Collections array with the collections data
    */
   async getAccountCollectionsWithOwnedTokens(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -299,7 +298,7 @@ export class Account {
    * @param args.accountAddress The account address we want to get the total count for
    * @returns Current count of transactions made by an account
    */
-  async getAccountTransactionsCount(args: { accountAddress: HexInput }): Promise<number> {
+  async getAccountTransactionsCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
     return getAccountTransactionsCount({
       aptosConfig: this.config,
       ...args,
@@ -316,7 +315,7 @@ export class Account {
    * @returns Array with the coins data
    */
   async getAccountCoinsData(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
@@ -334,7 +333,7 @@ export class Account {
    * @param args.accountAddress The account address we want to get the total count for
    * @returns Current count of the aggregated count of all account's coins
    */
-  async getAccountCoinsCount(args: { accountAddress: HexInput }): Promise<number> {
+  async getAccountCoinsCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
     return getAccountCoinsCount({ aptosConfig: this.config, ...args });
   }
 
@@ -348,7 +347,7 @@ export class Account {
    * @returns Objects array with the object data
    */
   async getAccountOwnedObjects(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
