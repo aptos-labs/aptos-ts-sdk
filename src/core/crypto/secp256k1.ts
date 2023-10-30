@@ -3,10 +3,12 @@
 
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
+import { HDKey } from "@scure/bip32";
 import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
+import { isValidBIP32Path, mnemonicToSeed } from "./hdKey";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -172,6 +174,26 @@ export class Secp256k1PrivateKey extends PrivateKey {
   publicKey(): Secp256k1PublicKey {
     const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
     return new Secp256k1PublicKey(bytes);
+  }
+
+  /**
+   * Derives a private key from a mnemonic seed phrase.
+   *
+   * @param path the BIP44 path
+   * @param mnemonics the mnemonic seed phrase
+   */
+  static fromDerivationPath(path: string, mnemonics: string): Uint8Array {
+    if (!isValidBIP32Path(path)) {
+      throw new Error(`Invalid derivation path ${path}`);
+    }
+    const { privateKey } = HDKey.fromMasterSeed(mnemonicToSeed(mnemonics)).derive(path);
+
+    // library returns privateKey as Uint8Array | null
+    if (privateKey == null) {
+      throw new Error("Invalid key");
+    }
+
+    return privateKey;
   }
 }
 

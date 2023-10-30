@@ -7,6 +7,7 @@ import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
+import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, KeyType, mnemonicToSeed, splitPath } from "./hdKey";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -178,6 +179,31 @@ export class Ed25519PrivateKey extends PrivateKey {
   publicKey(): Ed25519PublicKey {
     const bytes = this.signingKeyPair.publicKey;
     return new Ed25519PublicKey(bytes);
+  }
+
+  /**
+   * Derives a private key from a mnemonic seed phrase.
+   *
+   * To derive multiple keys from the same phrase, change the path
+   *
+   * @param path the BIP44 path
+   * @param mnemonics the mnemonic seed phrase
+   * @param offset the offset used for key derivation, defaults to 0x80000000
+   */
+  static fromDerivationPath(path: string, mnemonics: string, offset = HARDENED_OFFSET): Uint8Array {
+    if (!isValidHardenedPath(path)) {
+      throw new Error(`Invalid derivation path ${path}`);
+    }
+    const { key, chainCode } = deriveKey(KeyType.ED25519, mnemonicToSeed(mnemonics));
+
+    const segments = splitPath(path).map((el) => parseInt(el, 10));
+
+    // Derive the child key based on the path
+    const { key: privateKey } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
+      key,
+      chainCode,
+    });
+    return privateKey;
   }
 }
 
