@@ -1,7 +1,8 @@
 import { MoveString, MoveVector, U64, U8 } from "..";
 import { Serializable, Serializer } from "../bcs";
 import { AccountAddress } from "../core";
-import { HexInput } from "../types";
+import { HexInput, Uint8, Uint64 } from "../types";
+
 
 const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
   if (address instanceof AccountAddress) {
