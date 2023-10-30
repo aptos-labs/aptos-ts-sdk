@@ -26,11 +26,12 @@ import {
   InputGenerateTransactionPayloadDataWithRemoteABI,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core";
 
 /**
  * Generates any transaction by passing in the required arguments
  *
- * @param args.sender The transaction sender's account address as a HexInput
+ * @param args.sender The transaction sender's account address as a AccountAddressInput
  * @param args.data EntryFunctionData | ScriptData | MultiSigData
  * @param args.feePayerAddress optional. For a fee payer (aka sponsored) transaction
  * @param args.secondarySignerAddresses optional. For a multi-agent or fee payer (aka sponsored) transactions
@@ -206,7 +207,7 @@ export async function signAndSubmitTransaction(args: {
 
 export async function publicPackageTransaction(args: {
   aptosConfig: AptosConfig;
-  account: HexInput;
+  account: AccountAddressInput;
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
   options?: InputGenerateTransactionOptions;
@@ -217,7 +218,7 @@ export async function publicPackageTransaction(args: {
 
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: account,
+    sender: AccountAddress.fromRelaxed(account),
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],

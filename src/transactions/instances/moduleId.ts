@@ -37,7 +37,7 @@ export class ModuleId extends Serializable {
     if (parts.length !== 2) {
       throw new Error("Invalid module id.");
     }
-    return new ModuleId(AccountAddress.fromString(parts[0]), new Identifier(parts[1]));
+    return new ModuleId(AccountAddress.fromStringRelaxed(parts[0]), new Identifier(parts[1]));
   }
 
   serialize(serializer: Serializer): void {

@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
-import { Account, Hex } from "../core";
+import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import {
   AnyNumber,
@@ -19,7 +19,6 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
-  HexInput,
   OrderBy,
   PaginationArgs,
   TokenStandard,
@@ -80,12 +79,12 @@ export async function mintTokenTransaction(args: {
 
 export async function getTokenData(args: {
   aptosConfig: AptosConfig;
-  tokenAddress: HexInput;
+  tokenAddress: AccountAddressInput;
 }): Promise<GetTokenDataResponse> {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: any = {
-    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString() },
+    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -106,12 +105,12 @@ export async function getTokenData(args: {
 
 export async function getCurrentTokenOwnership(args: {
   aptosConfig: AptosConfig;
-  tokenAddress: HexInput;
+  tokenAddress: AccountAddressInput;
 }): Promise<GetCurrentTokenOwnershipResponse> {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString() },
+    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -132,7 +131,7 @@ export async function getCurrentTokenOwnership(args: {
 
 export async function getOwnedTokens(args: {
   aptosConfig: AptosConfig;
-  ownerAddress: HexInput;
+  ownerAddress: AccountAddressInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetTokenActivityResponse[0]>;
@@ -141,7 +140,7 @@ export async function getOwnedTokens(args: {
   const { aptosConfig, ownerAddress, options } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    owner_address: { _eq: Hex.fromHexInput(ownerAddress).toString() },
+    owner_address: { _eq: AccountAddress.fromRelaxed(ownerAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -165,7 +164,7 @@ export async function getOwnedTokens(args: {
 
 export async function getTokenActivity(args: {
   aptosConfig: AptosConfig;
-  tokenAddress: HexInput;
+  tokenAddress: AccountAddressInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetTokenActivityResponse[0]>;
@@ -174,7 +173,7 @@ export async function getTokenActivity(args: {
   const { aptosConfig, tokenAddress, options } = args;
 
   const whereCondition: TokenActivitiesV2BoolExp = {
-    token_data_id: { _eq: Hex.fromHexInput(tokenAddress).toString() },
+    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -253,14 +252,14 @@ export async function createCollectionTransaction(
 
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
-  creatorAddress: HexInput;
+  creatorAddress: AccountAddressInput;
   collectionName: string;
   options?: {
     tokenStandard?: TokenStandard;
   };
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
-  const address = Hex.fromHexInput(creatorAddress).toString();
+  const address = AccountAddress.fromRelaxed(creatorAddress).toString();
 
   const whereCondition: any = {
     collection_name: { _eq: collectionName },
@@ -288,7 +287,7 @@ export async function getCollectionData(args: {
 
 export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
-  creatorAddress: HexInput;
+  creatorAddress: AccountAddressInput;
   collectionName: string;
   options?: {
     tokenStandard?: TokenStandard;

@@ -66,12 +66,12 @@ export async function getBlockByHeight(args: {
   return data;
 }
 
-export async function getTableItem(args: {
+export async function getTableItem<T>(args: {
   aptosConfig: AptosConfig;
   handle: string;
   data: TableItemRequest;
   options?: LedgerVersion;
-}): Promise<any> {
+}): Promise<T> {
   const { aptosConfig, handle, data, options } = args;
   const response = await postAptosFullNode<TableItemRequest, any>({
     aptosConfig,
@@ -80,7 +80,7 @@ export async function getTableItem(args: {
     params: { ledger_version: options?.ledgerVersion },
     body: data,
   });
-  return response.data;
+  return response.data as T;
 }
 
 export async function view(args: {

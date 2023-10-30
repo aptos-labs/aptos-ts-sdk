@@ -51,7 +51,7 @@ describe("Account", () => {
     it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
@@ -62,7 +62,7 @@ describe("Account", () => {
     it("derives the correct account from a single signer ed25519 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Ed25519PrivateKey).toString()).toEqual(privateKey.toString());
@@ -73,7 +73,7 @@ describe("Account", () => {
     it("derives the correct account from a single signer secp256k1 private key", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = AccountAddress.from(address);
       const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       expect(newAccount).toBeInstanceOf(Account);
       expect((newAccount.privateKey as Secp256k1PrivateKey).toString()).toEqual(privateKey.toString());

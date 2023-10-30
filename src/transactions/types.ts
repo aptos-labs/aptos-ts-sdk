@@ -5,7 +5,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
-import { AccountAddress } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { PublicKey } from "../core/crypto/asymmetricCrypto";
 import {
   MultiAgentRawTransaction,
@@ -149,7 +149,7 @@ export type EntryFunctionABI = {
  */
 export interface InputGenerateSingleSignerRawTransactionArgs {
   aptosConfig: AptosConfig;
-  sender: HexInput;
+  sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
@@ -162,10 +162,10 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
  */
 export interface InputGenerateFeePayerRawTransactionArgs {
   aptosConfig: AptosConfig;
-  sender: HexInput;
+  sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
-  feePayerAddress: HexInput;
-  secondarySignerAddresses?: HexInput[];
+  feePayerAddress: AccountAddressInput;
+  secondarySignerAddresses?: AccountAddressInput[];
   options?: InputGenerateTransactionOptions;
 }
 
@@ -175,9 +175,9 @@ export interface InputGenerateFeePayerRawTransactionArgs {
  */
 export interface InputGenerateMultiAgentRawTransactionArgs {
   aptosConfig: AptosConfig;
-  sender: HexInput;
+  sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
-  secondarySignerAddresses: HexInput[];
+  secondarySignerAddresses: AccountAddressInput[];
   feePayerAddress?: undefined;
   options?: InputGenerateTransactionOptions;
 }
@@ -265,7 +265,7 @@ export type InputSimulateTransactionOptions = {
  * Interface that holds the user data input when generating a single signer transaction
  */
 export interface InputGenerateSingleSignerRawTransactionData {
-  sender: HexInput;
+  sender: AccountAddressInput;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
@@ -276,9 +276,9 @@ export interface InputGenerateSingleSignerRawTransactionData {
  * Interface that holds the user data input when generating a fee payer transaction
  */
 export interface InputGenerateFeePayerRawTransactionData {
-  sender: HexInput;
-  feePayerAddress: HexInput;
-  secondarySignerAddresses?: HexInput[];
+  sender: AccountAddressInput;
+  feePayerAddress: AccountAddressInput;
+  secondarySignerAddresses?: AccountAddressInput[];
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
 }
@@ -287,8 +287,9 @@ export interface InputGenerateFeePayerRawTransactionData {
  * Interface that holds the user data input when generating a multi-agent transaction
  */
 export interface InputGenerateMultiAgentRawTransactionData {
+  sender: AccountAddressInput;
+  secondarySignerAddresses: AccountAddressInput[];
   sender: HexInput;
-  secondarySignerAddresses: HexInput[];
   feePayerAddress?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;

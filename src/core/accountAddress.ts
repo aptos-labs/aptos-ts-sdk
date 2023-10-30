@@ -21,6 +21,8 @@ export enum AddressInvalidReason {
   INVALID_PADDING_ZEROES = "INVALID_PADDING_ZEROES",
 }
 
+export type AccountAddressInput = HexInput | AccountAddress;
+
 /**
  * NOTE: Only use this class for account addresses. For other hex data, e.g. transaction
  * hashes, use the Hex class.
@@ -335,33 +337,35 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Convenience method for creating an AccountAddress from HexInput. For
-   * more information on how this works, see the constructor and fromString.
+   * Convenience method for creating an AccountAddress from all known inputs.
    *
-   * @param input A hex string or Uint8Array representing an account address.
-   *
-   * @returns An instance of AccountAddress.
+   * This handles, Uint8array, string, and AccountAddress itself
+   * @param input
    */
-  static fromHexInput(input: HexInput): AccountAddress {
+  static fromRelaxed(input: AccountAddressInput): AccountAddress {
+    if (input instanceof AccountAddress) {
+      return input;
+    }
+    if (input instanceof Uint8Array) {
+      return new AccountAddress({ data: input });
+    }
+    return AccountAddress.fromStringRelaxed(input);
+  }
+
+  /**
+   * Convenience method for creating an AccountAddress from all known inputs.
+   *
+   * This handles, Uint8array, string, and AccountAddress itself
+   * @param input
+   */
+  static from(input: AccountAddressInput): AccountAddress {
+    if (input instanceof AccountAddress) {
+      return input;
+    }
     if (input instanceof Uint8Array) {
       return new AccountAddress({ data: input });
     }
     return AccountAddress.fromString(input);
-  }
-
-  /**
-   * Convenience method for creating an AccountAddress from HexInput. For
-   * more information on how this works, see the constructor and fromStringRelaxed.
-   *
-   * @param hexInput A hex string or Uint8Array representing an account address.
-   *
-   * @returns An instance of AccountAddress.
-   */
-  static fromHexInputRelaxed(hexInput: HexInput): AccountAddress {
-    if (hexInput instanceof Uint8Array) {
-      return new AccountAddress({ data: hexInput });
-    }
-    return AccountAddress.fromStringRelaxed(hexInput);
   }
 
   // ===
@@ -377,12 +381,12 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @returns valid = true if the string is valid, valid = false if not. If the string
    * is not valid, invalidReason will be set explaining why it is invalid.
    */
-  static isValid(args: { input: string; relaxed?: boolean }): ParsingResult<AddressInvalidReason> {
+  static isValid(args: { input: AccountAddressInput; relaxed?: boolean }): ParsingResult<AddressInvalidReason> {
     try {
       if (args.relaxed) {
-        AccountAddress.fromStringRelaxed(args.input);
+        AccountAddress.fromRelaxed(args.input);
       } else {
-        AccountAddress.fromString(args.input);
+        AccountAddress.from(args.input);
       }
       return { valid: true };
     } catch (e) {
