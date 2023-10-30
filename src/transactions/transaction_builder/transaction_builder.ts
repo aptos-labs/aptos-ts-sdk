@@ -34,7 +34,7 @@ import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
-  SingleSenderTransactionAuthenticator,
+  TransactionAuthenticatorSingleSender,
 } from "../authenticator/transaction";
 import {
   ChainId,
@@ -42,7 +42,7 @@ import {
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
   MultiSig,
-  MultiSigTransactionPayload,
+  MultisigTransactionPayload,
   RawTransaction,
   Script,
   TransactionPayloadEntryFunction,
@@ -189,7 +189,7 @@ export function generateTransactionPayloadWithABI(
       multisigAddress = args.multisigAddress;
     }
     return new TransactionPayloadMultisig(
-      new MultiSig(multisigAddress, new MultiSigTransactionPayload(entryFunctionPayload)),
+      new MultiSig(multisigAddress, new MultisigTransactionPayload(entryFunctionPayload)),
     );
   }
 
@@ -399,7 +399,7 @@ export function generateSignedTransactionForSimulation(args: SimulateTransaction
       accountAuthenticator.signature,
     );
   } else if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
-    transactionAuthenticator = new SingleSenderTransactionAuthenticator(accountAuthenticator);
+    transactionAuthenticator = new TransactionAuthenticatorSingleSender(accountAuthenticator);
   } else {
     throw new Error("Invalid public key");
   }
@@ -504,7 +504,7 @@ export function generateSignedTransaction(args: {
   }
 
   if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
-    const transactionAuthenticator = new SingleSenderTransactionAuthenticator(accountAuthenticator);
+    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(accountAuthenticator);
     // return signed transaction
     return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
   }
