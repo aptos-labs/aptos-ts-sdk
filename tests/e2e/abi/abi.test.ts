@@ -5,6 +5,7 @@ import { Account, AccountAddress, Aptos, AptosConfig, Network } from "../../../s
 import { fetchABIs } from "../../../src/abi/abi-gen";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { publishArgumentTestModule } from "../transaction/helper";
+import * as FrameworkModules from "../../../src/abi/0x1";
 // import { TxArgsModule } from "../../../src/abi/example";
 
 describe("abi test", () => {
@@ -34,7 +35,31 @@ describe("abi test", () => {
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
     console.log(moduleABIs.join("\n\n"));
+
+    const coinTransferPayload = new FrameworkModules.Coin.Transfer({
+      arg_0: Account.generate().accountAddress,
+      arg_1: 1000n,
+    });
+
+    console.log(coinTransferPayload.bcsToBytes());
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // it("serializes from abis correctly", async () => {
   //     const address = AccountAddress.ZERO;
