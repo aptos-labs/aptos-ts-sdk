@@ -28,6 +28,14 @@ describe("abi test", () => {
     console.log(moduleABIs.join("\n\n"));
   });
 
+  it.only("parses 0x1 module abis correctly", async () => {
+    const accountAddress = AccountAddress.fromHexInputRelaxed("0x1");
+    const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+    const moduleABIs = await fetchABIs(aptos, accountAddress);
+    // eslint-disable-next-line no-console
+    console.log(moduleABIs.join("\n\n"));
+  });
+
   // it("serializes from abis correctly", async () => {
   //     const address = AccountAddress.ZERO;
   //     const testPayload = new TxArgsModule.PublicArgumentsMultipleSigners({

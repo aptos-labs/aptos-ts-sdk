@@ -22,7 +22,7 @@ import {
   parseTypeTag,
 } from "..";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { toPascalCase } from "./utils";
+import { sanitizeName, toPascalCase } from "./utils";
 
 async function fetchModuleABIs(aptos: Aptos, accountAddress: AccountAddress) {
   const moduleABIs = await aptos.getAccountModules({
@@ -394,6 +394,8 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
   };
 }
 
+// TODO: accept Uint8Array for vector<u8> arguments?
+//
 // TODO: Add support for view functions. It should be very straightforward, since they're
 // the same as entry functions but with no BCS serialization, so it just uses the input types.
 // Also, no signers (verify this?)
@@ -416,13 +418,31 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
     });
   });
 
+  // sort the abiFunctions by moduleName alphabetically
+  abiFunctions.sort((a, b) => {
+    if (a.moduleName < b.moduleName) {
+      return -1;
+    }
+    return a.moduleName > b.moduleName ? 1 : 0;
+  });
+
   const moduleFunctions = abiFunctions.map((abiFunction) => {
-    const namespaceString = `export namespace ${toPascalCase(abiFunction.moduleName)} {`;
-    const functionStrings = abiFunction.publicEntryFunctions.map((func) => {
-      const typeTags = func.params.map((param) => parseTypeTag(param));
-      return metaclassBuilder(`${toPascalCase(func.name)}`, typeTags, []);
-    });
-    return `${namespaceString}\n${functionStrings.join("\n")}\n}`;
+    const moduleName = toPascalCase(abiFunction.moduleName);
+    const sanitizedModuleName = sanitizeName(moduleName);
+    if (abiFunction.publicEntryFunctions.length > 0) {
+      const namespaceString = `export namespace ${sanitizedModuleName} {`;
+      const functionStrings = abiFunction.publicEntryFunctions.map((func) => {
+        try {
+          const typeTags = func.params.map((param) => parseTypeTag(param));
+          return metaclassBuilder(`${toPascalCase(func.name)}`, typeTags, []);
+        } catch (e) {
+          // do nothing
+        }
+        return "";
+      });
+      return `${namespaceString}\n${functionStrings.join("\n")}\n}`;
+    }
+    return "";
   });
   // tags.push(parseTypeTag("vector<vector<vector<vector<u64>>>>"));
   // tags.push(parseTypeTag("vector<vector<vector<vector<vector<u64>>>>>"));

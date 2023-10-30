@@ -12,3 +12,14 @@ export function toCamelCase(input: string): string {
   const pascalCase = toPascalCase(input);
   return pascalCase[0].toLowerCase() + pascalCase.slice(1);
 }
+
+export function sanitizeName(name: string): string {
+  if (name === "Object") {
+    return "Object_";
+  }
+  if (name === "String") {
+    return "String_";
+  }
+
+  return name;
+}
