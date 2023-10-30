@@ -48,6 +48,10 @@ export abstract class TypeTag extends Serializable {
 
   abstract toString(): string;
 
+  isReference(): this is TypeTagReference {
+    return this instanceof TypeTagReference;
+  }
+
   isBool(): this is TypeTagBool {
     return this instanceof TypeTagBool;
   }
@@ -94,10 +98,6 @@ export abstract class TypeTag extends Serializable {
 
   isU256(): this is TypeTagU256 {
     return this instanceof TypeTagU256;
-  }
-
-  equals(other: TypeTag): boolean {
-    return this.toString() === other.toString();
   }
 }
 
