@@ -186,20 +186,23 @@ export class LegacyMultiEd25519Signature implements Serializable {
    * @param args.bitmap 4 bytes, at most 32 signatures are supported. If Nth bit value is `1`, the Nth
    * signature should be provided in `signatures`. Bits are read from left to right
    */
-  constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array }) {
+  constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array | number[] }) {
     const { signatures, bitmap } = args;
-    if (bitmap.length !== LegacyMultiEd25519Signature.BITMAP_LEN) {
-      throw new Error(`"bitmap" length should be ${LegacyMultiEd25519Signature.BITMAP_LEN}`);
-    }
 
     if (signatures.length > LegacyMultiEd25519Signature.MAX_SIGNATURES_SUPPORTED) {
       throw new Error(
         `The number of signatures cannot be greater than ${LegacyMultiEd25519Signature.MAX_SIGNATURES_SUPPORTED}`,
       );
     }
-
     this.signatures = signatures;
-    this.bitmap = bitmap;
+
+    if (!(bitmap instanceof Uint8Array)) {
+      this.bitmap = LegacyMultiEd25519Signature.createBitmap({ bits: bitmap });
+    } else if (bitmap.length !== LegacyMultiEd25519Signature.BITMAP_LEN) {
+      throw new Error(`"bitmap" length should be ${LegacyMultiEd25519Signature.BITMAP_LEN}`);
+    } else {
+      this.bitmap = bitmap;
+    }
   }
 
   /**

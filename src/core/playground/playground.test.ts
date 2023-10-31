@@ -41,25 +41,57 @@ describe("playground", () => {
     const message = "0xdeadbeef";
     const authenticator1 = account1.sign(message);
     const authenticator2 = account2.sign(message);
+    const authenticator3 = account3.sign(message);
 
-    const multiEd25519Signature = new LegacyMultiEd25519Signature({
-      signatures: [authenticator1.signature, authenticator2.signature],
-      bitmap: LegacyMultiEd25519Signature.createBitmap({ bits: [0, 1] }),
-    });
-    const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
-      multiEd25519PublicKey,
-      multiEd25519Signature,
-    );
-    expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+    {
+      const multiEd25519Signature = new LegacyMultiEd25519Signature({
+        signatures: [authenticator1.signature, authenticator2.signature],
+        bitmap: [0, 1],
+      });
+      const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
+        multiEd25519PublicKey,
+        multiEd25519Signature,
+      );
+      expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+    }
 
-    const wrongMultiEd25519Signature = new LegacyMultiEd25519Signature({
-      signatures: [authenticator1.signature, authenticator2.signature],
-      bitmap: LegacyMultiEd25519Signature.createBitmap({ bits: [0, 2] }),
-    });
-    const wrongMultiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
-      multiEd25519PublicKey,
-      wrongMultiEd25519Signature,
-    );
-    expect(wrongMultiEd25519Authenticator.verify(message)).toBeFalsy();
+    {
+      const multiEd25519Signature = new LegacyMultiEd25519Signature({
+        signatures: [authenticator1.signature, authenticator2.signature],
+        bitmap: [0, 2],
+      });
+      const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
+        multiEd25519PublicKey,
+        multiEd25519Signature,
+      );
+      expect(multiEd25519Authenticator.verify(message)).toBeFalsy();
+    }
+
+    {
+      const authenticators = [authenticator1, authenticator2];
+      const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
+        multiEd25519PublicKey,
+        authenticators,
+      );
+      expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+    }
+
+    {
+      const authenticators = [authenticator1, authenticator3];
+      const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
+        multiEd25519PublicKey,
+        authenticators,
+      );
+      expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+    }
+
+    {
+      const authenticators = [authenticator1];
+      const multiEd25519Authenticator = new LegacyAccountAuthenticatorMultiEd25519(
+        multiEd25519PublicKey,
+        authenticators,
+      );
+      expect(() => multiEd25519Authenticator.verify(message)).toThrow("Not enough signatures");
+    }
   });
 });
