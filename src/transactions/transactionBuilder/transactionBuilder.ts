@@ -60,7 +60,7 @@ import {
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
   InputSingleSignerTransaction,
-  InputAnyRawTransaction,
+  AnyRawTransaction,
   InputFeePayerTransaction,
   InputMultiAgentTransaction,
   InputScriptData,
@@ -77,7 +77,7 @@ import {
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { HexInput, SigningScheme } from "../../types";
-import { isScriptDataInput } from "./helpers";
+import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -86,14 +86,14 @@ import { isScriptDataInput } from "./helpers";
  * Typescript can infer the return type based on the appropriate function overload.
  */
 export async function generateTransactionPayload(
+  args: InputScriptData & { aptosConfig?: undefined },
+): Promise<TransactionPayloadScript>;
+export async function generateTransactionPayload(
   args: InputEntryFunctionDataWithRemoteABI,
 ): Promise<TransactionPayloadEntryFunction>;
 export async function generateTransactionPayload(
   args: InputMultiSigDataWithRemoteABI,
 ): Promise<TransactionPayloadMultisig>;
-export async function generateTransactionPayload(
-  args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<AnyTransactionPayloadInstance>;
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<AnyTransactionPayloadInstance>;
@@ -115,10 +115,7 @@ export async function generateTransactionPayload(
     return generateTransactionPayloadScript(args);
   }
 
-  const funcNameParts = args.function.split("::");
-  const moduleAddress = funcNameParts[0];
-  const moduleName = funcNameParts[1];
-  const functionName = funcNameParts[2];
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
   // We fetch the entry function ABI, and then pretend that we already had the ABI
   const functionAbi = await memoizeAsync(
@@ -150,10 +147,7 @@ export function generateTransactionPayloadWithABI(
     return generateTransactionPayloadScript(args);
   }
 
-  const funcNameParts = args.function.split("::");
-  const moduleAddress = funcNameParts[0];
-  const moduleName = funcNameParts[1];
-  const functionName = funcNameParts[2];
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
   // Ensure that all type arguments are typed properly
   const typeArguments = standardizeTypeTags(args.typeArguments);
@@ -275,7 +269,7 @@ export async function buildTransaction(
 export async function buildTransaction(
   args: InputGenerateMultiAgentRawTransactionArgs,
 ): Promise<InputMultiAgentTransaction>;
-export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<InputAnyRawTransaction>;
+export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction>;
 /**
  * Generates a transaction based on the provided arguments
  *
@@ -298,7 +292,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * }
  * ```
  */
-export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<InputAnyRawTransaction> {
+export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, payload, options, secondarySignerAddresses, feePayerAddress } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
@@ -445,7 +439,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  *
  * @return The signer AccountAuthenticator
  */
-export function sign(args: { signer: Account; transaction: InputAnyRawTransaction }): AccountAuthenticator {
+export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
 
   const transactionToSign = deriveTransactionType(transaction);
@@ -481,7 +475,7 @@ export function sign(args: { signer: Account; transaction: InputAnyRawTransactio
  * @returns A SignedTransaction
  */
 export function generateSignedTransaction(args: {
-  transaction: InputAnyRawTransaction;
+  transaction: AnyRawTransaction;
   senderAuthenticator: AccountAuthenticator;
   secondarySignerAuthenticators?: {
     feePayerAuthenticator?: AccountAuthenticator;
@@ -531,7 +525,7 @@ export function generateSignedTransaction(args: {
  *
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
-export function deriveTransactionType(transaction: InputAnyRawTransaction): AnyRawTransactionInstance {
+export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
   const deserializer = new Deserializer(transaction.rawTransaction);
   const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
