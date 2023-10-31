@@ -4,6 +4,7 @@
 import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
+import { ANS } from "../../../src/api/ans";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
@@ -21,10 +22,8 @@ describe("ANS", () => {
 
   beforeAll(async () => {
     const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-    const contractAccount = Account.fromPrivateKeyAndAddress({
-      privateKey: ANS_PRIVATE_KEY,
-      address: ANS_ADDRESS,
-    });
+    const contractAccount = await aptos.deriveAccountFromPrivateKey({privateKey: ANS_PRIVATE_KEY})
+
     // Publish the contract, should be idempotent
 
     // Enable reverse lookup for the case of v1
