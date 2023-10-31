@@ -10,6 +10,8 @@ import { Hex } from "./hex";
 import { AuthenticationKeyScheme, HexInput, SigningScheme } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
 import { MultiKey } from "./crypto/multiKey";
+import { Serializable, Serializer } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
 
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate
@@ -20,7 +22,7 @@ import { MultiKey } from "./crypto/multiKey";
  *
  * Account addresses can be derived from AuthenticationKey
  */
-export class AuthenticationKey {
+export class AuthenticationKey extends Serializable {
   /**
    * An authentication key is always a SHA3-256 hash of data, and is always 32 bytes.
    */
@@ -32,12 +34,27 @@ export class AuthenticationKey {
   public readonly data: Hex;
 
   constructor(args: { data: HexInput }) {
+    super();
     const { data } = args;
     const hex = Hex.fromHexInput(data);
     if (hex.toUint8Array().length !== AuthenticationKey.LENGTH) {
       throw new Error(`Authentication Key length should be ${AuthenticationKey.LENGTH}`);
     }
     this.data = hex;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeFixedBytes(this.data.toUint8Array());
+  }
+
+  /**
+   * Deserialize an AuthenticationKey from the byte buffer in a Deserializer instance.
+   * @param deserializer The deserializer to deserialize the AuthenticationKey from.
+   * @returns An instance of AuthenticationKey.
+   */
+  static deserialize(deserializer: Deserializer): AuthenticationKey {
+    const bytes = deserializer.deserializeFixedBytes(AuthenticationKey.LENGTH);
+    return new AuthenticationKey({ data: bytes });
   }
 
   toString(): string {
