@@ -63,7 +63,7 @@ describe("transaction builder", () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
         multisigAddress: Account.generate().accountAddress,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [200, "0x1"],
       });
       expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
@@ -71,7 +71,7 @@ describe("transaction builder", () => {
     test("it generates an entry function transaction payload", async () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [200, "0x1"],
       });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -79,7 +79,7 @@ describe("transaction builder", () => {
     test("it generates an entry function transaction payload with encoded inputs", async () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(100), AccountAddress.ONE],
       });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -87,13 +87,13 @@ describe("transaction builder", () => {
     test("it generates an entry function transaction payload with mixed arguments", async () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: ["0x2", AccountAddress.ONE],
       });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
       const payload2 = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(10), "0x1"],
       });
       expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -109,7 +109,7 @@ describe("transaction builder", () => {
       const payload = generateTransactionPayloadWithABI(
         {
           multisigAddress: Account.generate().accountAddress,
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
           functionArguments: ["0x1", "0x1"],
         },
         functionAbi,
@@ -119,7 +119,7 @@ describe("transaction builder", () => {
     test("it generates an entry function transaction payload", async () => {
       const payload = generateTransactionPayloadWithABI(
         {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
           functionArguments: ["0x1", "0x1"],
         },
         functionAbi,
@@ -129,7 +129,7 @@ describe("transaction builder", () => {
     test("it generates an entry function transaction payload with mixed arguments", async () => {
       const payload = generateTransactionPayloadWithABI(
         {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
           functionArguments: [AccountAddress.ONE, "0x1"],
         },
         functionAbi,
@@ -137,7 +137,7 @@ describe("transaction builder", () => {
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
       const payload2 = generateTransactionPayloadWithABI(
         {
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
           functionArguments: ["0x1", AccountAddress.ONE],
         },
         functionAbi,
@@ -175,7 +175,7 @@ describe("transaction builder", () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
         multisigAddress: bob.accountAddress,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const rawTxn = await generateRawTransaction({
@@ -193,7 +193,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const rawTxn = await generateRawTransaction({
@@ -235,7 +235,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const secondarySignerAddress = Account.generate();
@@ -260,7 +260,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const feePayer = Account.generate();
@@ -284,7 +284,7 @@ describe("transaction builder", () => {
         const bob = Account.generate();
         const payload = await generateTransactionPayload({
           aptosConfig: config,
-          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
           functionArguments: [new U64(1), bob.accountAddress],
         });
         const feePayer = Account.generate();
@@ -374,7 +374,7 @@ describe("transaction builder", () => {
       const payload = await generateTransactionPayload({
         aptosConfig: config,
         multisigAddress: bob.accountAddress,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
@@ -459,7 +459,7 @@ describe("transaction builder", () => {
       const bob = await Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
@@ -492,7 +492,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
@@ -526,7 +526,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
@@ -544,7 +544,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({
@@ -564,7 +564,7 @@ describe("transaction builder", () => {
       const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
-        function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
         functionArguments: [new U64(1), bob.accountAddress],
       });
       const transaction = await buildTransaction({

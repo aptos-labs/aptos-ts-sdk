@@ -54,7 +54,7 @@ describe("sign transaction", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
@@ -72,7 +72,7 @@ describe("sign transaction", () => {
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
@@ -108,7 +108,7 @@ describe("sign transaction", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
@@ -126,7 +126,7 @@ describe("sign transaction", () => {
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
@@ -162,7 +162,7 @@ describe("sign transaction", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
@@ -180,7 +180,7 @@ describe("sign transaction", () => {
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
         });
