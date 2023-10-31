@@ -1,10 +1,9 @@
 import type { Deserializer, Serializer } from "../../../bcs";
 import { HexInput } from "../../../types";
 import { Ed25519PublicKey, Ed25519Signature } from "../ed25519";
-import type { Serializable } from "../interfaces";
 import { AccountAuthenticatorVariant } from "./variant";
 
-export class LegacyAccountAuthenticatorEd25519 implements Serializable {
+export class LegacyAccountAuthenticatorEd25519 {
   constructor(public readonly publicKey: Ed25519PublicKey, public readonly signature: Ed25519Signature) {}
 
   verify(message: HexInput): boolean {

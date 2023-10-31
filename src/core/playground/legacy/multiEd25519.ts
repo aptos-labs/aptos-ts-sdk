@@ -7,7 +7,6 @@ import { bcsToBytes } from "../bcs";
 import { Ed25519PublicKey, Ed25519Signature } from "../ed25519";
 import { Hex } from "../../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../../types";
-import type { Serializable } from "../interfaces";
 
 /**
  * Copied and pasted from current implementation, and slightly adapted do work with the playground
@@ -16,7 +15,7 @@ import type { Serializable } from "../interfaces";
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
  */
-export class LegacyMultiEd25519PublicKey implements Serializable {
+export class LegacyMultiEd25519PublicKey {
   /**
    * Maximum number of public keys supported
    */
@@ -153,7 +152,7 @@ export class LegacyMultiEd25519PublicKey implements Serializable {
 /**
  * Represents the signature of a K-of-N Ed25519 multi-sig transaction.
  */
-export class LegacyMultiEd25519Signature implements Serializable {
+export class LegacyMultiEd25519Signature {
   /**
    * Maximum number of Ed25519 signatures supported
    */

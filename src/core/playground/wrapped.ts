@@ -3,13 +3,13 @@ import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types"
 import { AuthenticationKey } from "./authenticationKey";
 import { bcsToBytes } from "./bcs";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import type { PublicKey, Serializable } from "./interfaces";
+import type { PublicKey } from "./interfaces";
 import { SignatureScheme } from "./scheme";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 
 export type AllowedSignatures = Ed25519Signature | Secp256k1Signature;
 
-export class WrappedSignature<TSignature extends AllowedSignatures = AllowedSignatures> implements Serializable {
+export class WrappedSignature<TSignature extends AllowedSignatures = AllowedSignatures> {
   constructor(public readonly signature: TSignature) {}
 
   serialize(serializer: Serializer): void {

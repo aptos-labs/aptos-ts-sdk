@@ -3,9 +3,9 @@ import { Deserializer, Serializer } from "../../bcs";
 import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { Hex } from "../hex";
 import { AuthenticationKey } from "./authenticationKey";
-import type { PrivateKey, PublicKey, Serializable } from "./interfaces";
+import type { PrivateKey, PublicKey } from "./interfaces";
 
-export class Ed25519Signature implements Serializable {
+export class Ed25519Signature {
   /**
    * Length of an Ed25519 signature
    */

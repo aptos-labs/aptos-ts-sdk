@@ -1,12 +1,11 @@
 import type { Deserializer, Serializer } from "../../../bcs";
 import { HexInput } from "../../../types";
 import type { Ed25519Signature } from "../ed25519";
-import type { Serializable } from "../interfaces";
 import { LegacyMultiEd25519PublicKey, LegacyMultiEd25519Signature } from "../legacy/multiEd25519";
 import { LegacyAccountAuthenticatorEd25519 } from "./legacyEd25519";
 import { AccountAuthenticatorVariant } from "./variant";
 
-export class LegacyAccountAuthenticatorMultiEd25519 implements Serializable {
+export class LegacyAccountAuthenticatorMultiEd25519 {
   public readonly publicKey: LegacyMultiEd25519PublicKey;
 
   public readonly signature: LegacyMultiEd25519Signature;

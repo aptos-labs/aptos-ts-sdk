@@ -3,9 +3,9 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { Deserializer, Serializer } from "../../bcs";
 import { HexInput } from "../../types";
 import { Hex } from "../hex";
-import type { PrivateKey, PublicKey, Serializable } from "./interfaces";
+import type { PrivateKey, PublicKey } from "./interfaces";
 
-export class Secp256k1Signature implements Serializable {
+export class Secp256k1Signature {
   public readonly data: Hex;
 
   constructor(data: HexInput) {
