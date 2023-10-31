@@ -36,10 +36,7 @@ export const HARDENED_OFFSET = 0x80000000;
  * @param path path string (e.g. `m/44'/637'/0'/0/0`).
  */
 export function isValidBIP32Path(path: string): boolean {
-  if (!APTOS_BIP32_REGEX.test(path)) {
-    return false;
-  }
-  return true;
+  return APTOS_BIP32_REGEX.test(path);
 }
 
 /**
@@ -53,10 +50,7 @@ export function isValidBIP32Path(path: string): boolean {
  * @param path path string (e.g. `m/44'/637'/0'/0'/0'`).
  */
 export function isValidHardenedPath(path: string): boolean {
-  if (!APTOS_HARDENED_REGEX.test(path)) {
-    return false;
-  }
-  return true;
+  return APTOS_HARDENED_REGEX.test(path);
 }
 
 export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {

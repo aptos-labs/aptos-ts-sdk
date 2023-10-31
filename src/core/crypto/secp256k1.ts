@@ -189,7 +189,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
     const { privateKey } = HDKey.fromMasterSeed(mnemonicToSeed(mnemonics)).derive(path);
 
     // library returns privateKey as Uint8Array | null
-    if (privateKey == null) {
+    if (privateKey === null) {
       throw new Error("Invalid key");
     }
 
