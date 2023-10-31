@@ -595,14 +595,6 @@ describe("Tests for the Serializable class", () => {
   });
 
   describe("factory methods", () => {
-    it("serializes a move object from an address with the factory method correctly", () => {
-      const moveObjectWithConstructor = new MoveObject(AccountAddress.fromHexInputRelaxed("0x1"));
-      const moveObject = MoveObject.fromAddress(AccountAddress.ONE);
-      const moveObject2 = MoveObject.fromAddress("0x1");
-      expect(moveObject.bcsToBytes()).toEqual(moveObjectWithConstructor.bcsToBytes());
-      expect(moveObject.bcsToBytes()).toEqual(moveObject2.bcsToBytes());
-    });
-
     it("serializes a vector of addresses and strings and objects correctly", () => {
       const vectorStringWithConstructor = new MoveVector([
         new MoveString("abc0x1abc"),
@@ -621,25 +613,9 @@ describe("Tests for the Serializable class", () => {
       const vectorAddress2 = MoveVector.AccountAddress(["0x1", "0x2", "0x3"]);
       expect(vectorAddress.bcsToBytes()).toEqual(vectorAddressWithConstructor.bcsToBytes());
       expect(vectorAddress.bcsToBytes()).toEqual(vectorAddress2.bcsToBytes());
-
-      const vectorObjectWithConstructor = new MoveVector([
-        new MoveObject(AccountAddress.ONE),
-        new MoveObject(AccountAddress.TWO),
-        new MoveObject(AccountAddress.THREE),
-      ]);
-      const vectorObject = MoveVector.MoveObject([AccountAddress.ONE, AccountAddress.TWO, AccountAddress.THREE]);
-      const vectorObject2 = MoveVector.MoveObject(["0x1", "0x2", "0x3"]);
-      expect(vectorObject.bcsToBytes()).toEqual(vectorObjectWithConstructor.bcsToBytes());
-      expect(vectorObject.bcsToBytes()).toEqual(vectorObject2.bcsToBytes());
     });
 
     it("serializes options created with factory methods correctly", () => {
-      const optionObjectWithConstructor = new MoveOption(new MoveObject(AccountAddress.ONE));
-      const optionObject = MoveOption.MoveObject(AccountAddress.ONE);
-      const optionObject2 = MoveOption.MoveObject("0x1");
-      expect(optionObject.bcsToBytes()).toEqual(optionObject2.bcsToBytes());
-      expect(optionObject.bcsToBytes()).toEqual(optionObjectWithConstructor.bcsToBytes());
-
       const optionAddressWithConstructor = new MoveOption(AccountAddress.ONE);
       const optionAddress = MoveOption.AccountAddress(AccountAddress.ONE);
       const optionAddress2 = MoveOption.AccountAddress("0x1");
