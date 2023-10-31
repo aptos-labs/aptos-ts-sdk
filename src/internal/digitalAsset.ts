@@ -59,7 +59,7 @@ export async function mintTokenTransaction(args: {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress.toString(),
+    sender: creator.accountAddress,
     data: {
       function: "0x4::aptos_token::mint",
       functionArguments: [
@@ -84,7 +84,7 @@ export async function getTokenData(args: {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: any = {
-    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
+    token_data_id: { _eq: new AccountAddress(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -110,7 +110,7 @@ export async function getCurrentTokenOwnership(args: {
   const { aptosConfig, tokenAddress } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
+    token_data_id: { _eq: new AccountAddress(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -140,7 +140,7 @@ export async function getOwnedTokens(args: {
   const { aptosConfig, ownerAddress, options } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    owner_address: { _eq: AccountAddress.fromRelaxed(ownerAddress).toString() },
+    owner_address: { _eq: new AccountAddress(ownerAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -173,7 +173,7 @@ export async function getTokenActivity(args: {
   const { aptosConfig, tokenAddress, options } = args;
 
   const whereCondition: TokenActivitiesV2BoolExp = {
-    token_data_id: { _eq: AccountAddress.fromRelaxed(tokenAddress).toString() },
+    token_data_id: { _eq: new AccountAddress(tokenAddress).toString() },
   };
 
   const graphqlQuery = {
@@ -223,7 +223,7 @@ export async function createCollectionTransaction(
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress.toString(),
+    sender: creator.accountAddress,
     data: {
       function: "0x4::aptos_token::create_collection",
       functionArguments: [
@@ -259,7 +259,7 @@ export async function getCollectionData(args: {
   };
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
-  const address = AccountAddress.fromRelaxed(creatorAddress).toString();
+  const address = new AccountAddress(creatorAddress).toString();
 
   const whereCondition: any = {
     collection_name: { _eq: collectionName },

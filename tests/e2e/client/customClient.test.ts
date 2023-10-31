@@ -39,7 +39,7 @@ describe("custom client", () => {
       aptosConfig: config,
       path: "fund",
       body: {
-        address: AccountAddress.fromHexInput(account.accountAddress.toString()).toString(),
+        address: new AccountAddress(account.accountAddress).toString(),
         amount: 100_000_000,
       },
       originMethod: "testFundAccount",
@@ -52,10 +52,10 @@ describe("custom client", () => {
     const aptos = new Aptos(config);
     const account = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100_000_000 });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
     const transaction = await aptos.transferCoinTransaction({
       sender: account,
-      recipient: recipient.accountAddress.toString(),
+      recipient: recipient.accountAddress,
       amount: 10,
     });
     const authenticator = aptos.signTransaction({ signer: account, transaction });

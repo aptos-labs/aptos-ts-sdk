@@ -63,7 +63,7 @@ export async function getInfo(args: {
   const { data } = await getAptosFullNode<{}, AccountData>({
     aptosConfig,
     originMethod: "getInfo",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}`,
   });
   return data;
 }
@@ -77,7 +77,7 @@ export async function getModules(args: {
   return paginateWithCursor<{}, MoveModuleBytecode[]>({
     aptosConfig,
     originMethod: "getModules",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}/modules`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}/modules`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -124,7 +124,7 @@ async function getModuleInner(args: {
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}/module/${moduleName}`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}/module/${moduleName}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -139,7 +139,7 @@ export async function getTransactions(args: {
   return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}/transactions`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
 }
@@ -153,7 +153,7 @@ export async function getResources(args: {
   return paginateWithCursor<{}, MoveResource[]>({
     aptosConfig,
     originMethod: "getResources",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}/resources`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -172,7 +172,7 @@ export async function getResource<T extends {}>(args: {
   const { data } = await getAptosFullNode<{}, MoveResource>({
     aptosConfig,
     originMethod: "getResource",
-    path: `accounts/${AccountAddress.fromRelaxed(accountAddress).toString()}/resource/${resourceType}`,
+    path: `accounts/${new AccountAddress(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data.data as T;
@@ -205,17 +205,17 @@ export async function lookupOriginalAccountAddress(args: {
       aptosConfig,
       handle,
       data: {
-        key: AccountAddress.fromRelaxed(authenticationKey).toString(),
+        key: new AccountAddress(authenticationKey).toString(),
         key_type: "address",
         value_type: "address",
       },
       options,
     });
 
-    return AccountAddress.fromRelaxed(originalAddress);
+    return new AccountAddress(originalAddress);
   } catch (err) {
     if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
-      return AccountAddress.fromRelaxed(authenticationKey);
+      return new AccountAddress(authenticationKey);
     }
 
     throw err;
@@ -228,7 +228,7 @@ export async function getAccountTokensCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -261,7 +261,7 @@ export async function getAccountOwnedTokens(args: {
   };
 }): Promise<GetAccountOwnedTokensQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -302,8 +302,8 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
   const { aptosConfig, accountAddress, collectionAddress, options } = args;
-  const ownerAddress = AccountAddress.fromRelaxed(accountAddress).toString();
-  const collAddress = AccountAddress.fromRelaxed(collectionAddress).toString();
+  const ownerAddress = new AccountAddress(accountAddress).toString();
+  const collAddress = new AccountAddress(collectionAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: ownerAddress },
@@ -344,7 +344,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   };
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -382,7 +382,7 @@ export async function getAccountTransactionsCount(args: {
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountTransactionsCount,
@@ -411,7 +411,7 @@ export async function getAccountCoinsData(args: {
   };
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -441,7 +441,7 @@ export async function getAccountCoinsCount(args: {
   accountAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const graphqlQuery = {
     query: GetAccountCoinsCount,
@@ -470,7 +470,7 @@ export async function getAccountOwnedObjects(args: {
   };
 }): Promise<GetAccountOwnedObjectsResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = new AccountAddress(accountAddress).toString();
 
   const whereCondition: any = {
     owner_address: { _eq: address },
@@ -503,7 +503,7 @@ export async function deriveAccountFromPrivateKey(args: {
   if (privateKey instanceof Secp256k1PrivateKey) {
     // private key is secp256k1, therefore we know it for sure uses a single signer key
     const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    const address = new AccountAddress(authKey.toUint8Array());
     return Account.fromPrivateKeyAndAddress({ privateKey, address });
   }
 
@@ -518,14 +518,14 @@ export async function deriveAccountFromPrivateKey(args: {
       aptosConfig,
     });
     if (isSingleSenderTransactionAuthenticator) {
-      const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
+      const address = new AccountAddress(SingleSenderTransactionAuthenticatorAuthKey.toUint8Array());
       return Account.fromPrivateKeyAndAddress({ privateKey, address });
     }
     // lookup legacy ed25519
     const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
-      const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
+      const address = new AccountAddress(legacyAuthKey.toUint8Array());
       return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
     }
   }
@@ -538,13 +538,13 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
   const { aptosConfig, authKey } = args;
   const accountAddress = await lookupOriginalAccountAddress({
     aptosConfig,
-    authenticationKey: authKey.toString(),
+    authenticationKey: authKey.toAddress(),
   });
 
   try {
     await getInfo({
       aptosConfig,
-      accountAddress: accountAddress.toString(),
+      accountAddress,
     });
     return true;
   } catch (error: any) {

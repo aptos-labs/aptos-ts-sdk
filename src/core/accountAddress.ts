@@ -21,7 +21,10 @@ export enum AddressInvalidReason {
   INVALID_PADDING_ZEROES = "INVALID_PADDING_ZEROES",
 }
 
-export type AccountAddressInput = HexInput | AccountAddress;
+/**
+ * Input type for any function that is taking an AccountAddress as an argument in a parsed or unparsed form.
+ */
+export type AccountAddressInput = AccountAddress | HexInput;
 
 /**
  * NOTE: Only use this class for account addresses. For other hex data, e.g. transaction
@@ -55,30 +58,38 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    */
   static readonly LONG_STRING_LENGTH: number = 64;
 
-  static ZERO: AccountAddress = AccountAddress.fromString("0x0");
+  static ZERO: AccountAddress = new AccountAddress("0x0");
 
-  static ONE: AccountAddress = AccountAddress.fromString("0x1");
+  static ONE: AccountAddress = new AccountAddress("0x1");
 
-  static TWO: AccountAddress = AccountAddress.fromString("0x2");
+  static TWO: AccountAddress = new AccountAddress("0x2");
 
-  static THREE: AccountAddress = AccountAddress.fromString("0x3");
+  static THREE: AccountAddress = new AccountAddress("0x3");
 
-  static FOUR: AccountAddress = AccountAddress.fromString("0x4");
+  static FOUR: AccountAddress = new AccountAddress("0x4");
 
   /**
-   * Creates an instance of AccountAddress from a Uint8Array.
+   * Creates an instance of AccountAddress
    *
-   * @param args.data A Uint8Array representing an account address.
+   * @param input A Uint8Array, a hex string, or an instance of AccountAddress to be converted into an address
    */
-  constructor(args: { data: Uint8Array }) {
+  constructor(input: AccountAddressInput) {
     super();
-    if (args.data.length !== AccountAddress.LENGTH) {
-      throw new ParsingError(
-        "AccountAddress data should be exactly 32 bytes long",
-        AddressInvalidReason.INCORRECT_NUMBER_OF_BYTES,
-      );
+
+    // If it's an AccountAddress, clone it
+    if (input instanceof AccountAddress) {
+      this.data = input.data;
+    } else if (input instanceof Uint8Array) {
+      if (input.length !== AccountAddress.LENGTH) {
+        throw new ParsingError(
+          "AccountAddress data should be exactly 32 bytes long",
+          AddressInvalidReason.INCORRECT_NUMBER_OF_BYTES,
+        );
+      }
+      this.data = input;
+    } else {
+      this.data = fromStringRelaxed(input);
     }
-    this.data = args.data;
   }
 
   /**
@@ -209,7 +220,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    */
   static deserialize(deserializer: Deserializer): AccountAddress {
     const bytes = deserializer.deserializeFixedBytes(AccountAddress.LENGTH);
-    return new AccountAddress({ data: bytes });
+    return new AccountAddress(bytes);
   }
 
   // ===
@@ -333,7 +344,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       throw new ParsingError(`Hex characters are invalid: ${error.message}`, AddressInvalidReason.INVALID_HEX_CHARS);
     }
 
-    return new AccountAddress({ data: addressBytes });
+    return new AccountAddress(addressBytes);
   }
 
   /**
@@ -347,7 +358,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       return input;
     }
     if (input instanceof Uint8Array) {
-      return new AccountAddress({ data: input });
+      return new AccountAddress(input);
     }
     return AccountAddress.fromStringRelaxed(input);
   }
@@ -363,7 +374,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       return input;
     }
     if (input instanceof Uint8Array) {
-      return new AccountAddress({ data: input });
+      return new AccountAddress(input);
     }
     return AccountAddress.fromString(input);
   }
@@ -384,7 +395,8 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   static isValid(args: { input: AccountAddressInput; relaxed?: boolean }): ParsingResult<AddressInvalidReason> {
     try {
       if (args.relaxed) {
-        AccountAddress.fromRelaxed(args.input);
+        // eslint-disable-next-line no-new
+        new AccountAddress(args.input);
       } else {
         AccountAddress.from(args.input);
       }
@@ -410,4 +422,70 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     if (this.data.length !== other.data.length) return false;
     return this.data.every((value, index) => value === other.data[index]);
   }
+}
+
+/**
+ * NOTE: This function has relaxed parsing behavior. For strict behavior, please use
+ * the `fromString` function. Where possible use `fromString` rather than this
+ * function, `fromStringRelaxed` is only provided for backwards compatibility.
+ *
+ * Creates an instance of AccountAddress from a hex string.
+ *
+ * This function allows all formats defined by AIP-40. In short this means the
+ * following formats are accepted:
+ *
+ * - LONG, with or without leading 0x
+ * - SHORT, with or without leading 0x
+ *
+ * Where:
+ * - LONG is 64 hex characters.
+ * - SHORT is 1 to 63 hex characters inclusive.
+ * - Padding zeroes are allowed, e.g. 0x0123 is valid.
+ *
+ * Learn more about the different address formats by reading AIP-40:
+ * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
+ *
+ * @param input A hex string representing an account address.
+ *
+ * @returns A byte representation of an account address
+ */
+function fromStringRelaxed(input: string): Uint8Array {
+  let parsedInput = input;
+
+  // Remove leading 0x for parsing.
+  // TODO: Become more strict here and always require 0x?
+  if (input.startsWith("0x")) {
+    parsedInput = input.slice(2);
+  }
+
+  // Ensure the address string is at least 1 character long.
+  if (parsedInput.length === 0) {
+    throw new ParsingError(
+      "Hex string is too short, must be 1 to 64 chars long, excluding the leading 0x.",
+      AddressInvalidReason.TOO_SHORT,
+    );
+  }
+
+  // Ensure the address string is not longer than 64 characters.
+  if (parsedInput.length > 64) {
+    throw new ParsingError(
+      "Hex string is too long, must be 1 to 64 chars long, excluding the leading 0x.",
+      AddressInvalidReason.TOO_LONG,
+    );
+  }
+
+  let addressBytes: Uint8Array;
+  try {
+    // Pad the address with leading zeroes, so it is 64 chars long and then convert
+    // the hex string to bytes. Every two characters in a hex string constitutes a
+    // single byte. So a 64 length hex string becomes a 32 byte array.
+    addressBytes = hexToBytes(parsedInput.padStart(64, "0"));
+  } catch (e) {
+    const error = e as Error;
+    // At this point the only way this can fail is if the hex string contains
+    // invalid characters.
+    throw new ParsingError(`Hex characters are invalid: ${error.message}`, AddressInvalidReason.INVALID_HEX_CHARS);
+  }
+
+  return addressBytes;
 }

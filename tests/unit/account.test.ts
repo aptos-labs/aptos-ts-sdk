@@ -101,7 +101,7 @@ describe("Account", () => {
     it("signs a message with Secp256k1 scheme and verifies succefully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = new AccountAddress(address);
       const secpAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       const signature = secpAccount.sign(messageEncoded);
       expect(signature.toString()).toEqual(signatureHex);
@@ -111,7 +111,7 @@ describe("Account", () => {
     it("signs a message with ed25519 scheme and verifies succefully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = new AccountAddress(address);
       const edAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
       const signature = edAccount.sign(messageEncoded);
       expect(signature.toString()).toEqual(signatureHex);
@@ -121,7 +121,7 @@ describe("Account", () => {
     it("derives the correct account from a legacy ed25519 private key", () => {
       const { privateKey: privateKeyBytes, address, signedMessage, message } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
-      const accountAddress = AccountAddress.fromHexInput(address);
+      const accountAddress = new AccountAddress(address);
       const legacyEdAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
       const signature = legacyEdAccount.sign(message);
       expect(signature.toString()).toEqual(signedMessage);

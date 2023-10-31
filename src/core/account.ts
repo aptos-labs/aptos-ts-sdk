@@ -138,11 +138,11 @@ export class Account {
       publicKey = new AnyPublicKey(privateKey.publicKey());
     }
 
-    const address = new AccountAddress({
-      data: Account.authKey({
+    const address = new AccountAddress(
+      Account.authKey({
         publicKey,
       }).toUint8Array(),
-    });
+    );
     return new Account({ privateKey, address, legacy: args?.legacy });
   }
 
@@ -180,7 +180,7 @@ export class Account {
     const privateKey = new Ed25519PrivateKey(key);
     const publicKey = privateKey.publicKey();
     const authKey = Account.authKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    const address = new AccountAddress(authKey.toUint8Array());
     return new Account({ privateKey, address, legacy: true });
   }
 

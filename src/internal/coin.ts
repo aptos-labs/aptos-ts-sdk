@@ -19,11 +19,11 @@ export async function transferCoinTransaction(args: {
   const coinStructType = coinType ?? APTOS_COIN;
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress.toString(),
+    sender: sender.accountAddress,
     data: {
       function: "0x1::aptos_account::transfer_coins",
       typeArguments: [parseTypeTag(coinStructType)],
-      functionArguments: [AccountAddress.fromRelaxed(recipient), new U64(amount)],
+      functionArguments: [new AccountAddress(recipient), new U64(amount)],
     },
     options,
   });

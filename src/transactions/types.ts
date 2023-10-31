@@ -289,7 +289,6 @@ export interface InputGenerateFeePayerRawTransactionData {
 export interface InputGenerateMultiAgentRawTransactionData {
   sender: AccountAddressInput;
   secondarySignerAddresses: AccountAddressInput[];
-  sender: HexInput;
   feePayerAddress?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;

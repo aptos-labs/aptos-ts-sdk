@@ -184,7 +184,7 @@ export function generateTransactionPayloadWithABI(
   if ("multisigAddress" in args) {
     let multisigAddress: AccountAddress;
     if (typeof args.multisigAddress === "string") {
-      multisigAddress = AccountAddress.fromRelaxed(args.multisigAddress);
+      multisigAddress = new AccountAddress(args.multisigAddress);
     } else {
       multisigAddress = args.multisigAddress;
     }
@@ -244,7 +244,7 @@ export async function generateRawTransaction(args: {
   };
 
   return new RawTransaction(
-    AccountAddress.fromRelaxed(sender),
+    new AccountAddress(sender),
     BigInt(sequenceNumber),
     payload,
     BigInt(maxGasAmount),
@@ -304,18 +304,18 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
 
   if (feePayerAddress) {
     const signers: Array<AccountAddress> = secondarySignerAddresses
-      ? secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer))
+      ? secondarySignerAddresses.map((signer) => new AccountAddress(signer))
       : [];
 
     return {
       rawTransaction: rawTxn.bcsToBytes(),
       secondarySignerAddresses: signers,
-      feePayerAddress: AccountAddress.fromRelaxed(feePayerAddress),
+      feePayerAddress: new AccountAddress(feePayerAddress),
     };
   }
 
   if (secondarySignerAddresses) {
-    const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer));
+    const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) => new AccountAddress(signer));
 
     return {
       rawTransaction: rawTxn.bcsToBytes(),

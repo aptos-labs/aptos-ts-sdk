@@ -249,25 +249,25 @@ describe("AccountAddress from", () => {
 
 describe("AccountAddress fromRelaxed", () => {
   it("parses special address: 0x1", () => {
-    expect(AccountAddress.fromRelaxed(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_ONE.longWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_ONE.shortWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_ONE.bytes).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(new AccountAddress(ADDRESS_ONE.longWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(new AccountAddress(ADDRESS_ONE.longWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(new AccountAddress(ADDRESS_ONE.shortWith0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(new AccountAddress(ADDRESS_ONE.shortWithout0x).toString()).toBe(ADDRESS_ONE.shortWith0x);
+    expect(new AccountAddress(ADDRESS_ONE.bytes).toString()).toBe(ADDRESS_ONE.shortWith0x);
   });
 
   it("parses non-special address: 0x10", () => {
-    expect(AccountAddress.fromRelaxed(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_TEN.bytes).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(new AccountAddress(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(new AccountAddress(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(new AccountAddress(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(new AccountAddress(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(new AccountAddress(ADDRESS_TEN.bytes).toString()).toBe(ADDRESS_TEN.longWith0x);
   });
 
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
-    expect(AccountAddress.fromRelaxed(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
-    expect(AccountAddress.fromRelaxed(ADDRESS_OTHER.bytes).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(new AccountAddress(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(new AccountAddress(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+    expect(new AccountAddress(ADDRESS_OTHER.bytes).toString()).toBe(ADDRESS_OTHER.longWith0x);
   });
 });
 

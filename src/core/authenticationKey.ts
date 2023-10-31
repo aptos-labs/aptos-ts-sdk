@@ -65,6 +65,10 @@ export class AuthenticationKey extends Serializable {
     return this.data.toUint8Array();
   }
 
+  toAddress(): AccountAddress {
+    return new AccountAddress(this.data.toUint8Array());
+  }
+
   /**
    * Creates an AuthenticationKey from seed bytes and a scheme
    *
@@ -135,6 +139,6 @@ export class AuthenticationKey extends Serializable {
    * @returns AccountAddress
    */
   derivedAddress(): AccountAddress {
-    return new AccountAddress({ data: this.data.toUint8Array() });
+    return new AccountAddress(this.data.toUint8Array());
   }
 }

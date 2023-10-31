@@ -67,7 +67,7 @@ describe("general api", () => {
       },
     } = resource as any;
 
-    const supply = await aptos.getTableItem({
+    const supply = await aptos.getTableItem<string>({
       handle,
       data: {
         key_type: "address",
