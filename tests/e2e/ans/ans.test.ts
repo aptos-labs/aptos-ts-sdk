@@ -1,26 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Aptos,
-  Network,
-  Account,
-  AnyRawTransaction,
-  Ed25519PrivateKey,
-  U8,
-  AptosConfig,
-  AccountAddress,
-} from "../../../src";
-import { LOCAL_ANS_ACCOUNT_ADDRESS, LOCAL_ANS_ACCOUNT_PK } from "../../../src/internal/ans";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
+import { publishAnsContract } from "./publishANSContracts";
+
+// This isn't great, we should look into deploying outside the test
+jest.setTimeout(20000);
 
 describe("ANS", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const contractAccount = Account.fromPrivateKeyAndAddress({
-    privateKey: new Ed25519PrivateKey(LOCAL_ANS_ACCOUNT_PK),
-    address: AccountAddress.fromHexInput(LOCAL_ANS_ACCOUNT_ADDRESS),
-  });
 
   const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
@@ -30,6 +20,13 @@ describe("ANS", () => {
   const randomString = () => Math.random().toString().slice(2);
 
   beforeAll(async () => {
+    const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
+    const contractAccount = Account.fromPrivateKeyAndAddress({
+      privateKey: ANS_PRIVATE_KEY,
+      address: ANS_ADDRESS,
+    });
+    // Publish the contract, should be idempotent
+
     // Enable reverse lookup for the case of v1
     await signAndSubmit(
       contractAccount,
@@ -37,7 +34,7 @@ describe("ANS", () => {
         aptosConfig: config,
         sender: contractAccount.accountAddress.toString(),
         data: {
-          function: `${LOCAL_ANS_ACCOUNT_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
+          function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
           functionArguments: [],
         },
       }),
@@ -50,7 +47,7 @@ describe("ANS", () => {
         aptosConfig: config,
         sender: contractAccount.accountAddress.toString(),
         data: {
-          function: `${LOCAL_ANS_ACCOUNT_ADDRESS}::router::set_mode`,
+          function: `${ANS_ADDRESS}::router::set_mode`,
           functionArguments: [new U8(1)],
         },
       }),
