@@ -148,7 +148,7 @@ export class Account {
   /**
    * Instantiates an account given a private key.
    *
-   * This is used a local calculation and therefore is used to instantiate an `Account`
+   * This is used as a local calculation and therefore is used to instantiate an `Account`
    * that has not had its authentication key rotated.
    *
    * @param privateKey PrivateKey - private key of the account
@@ -229,7 +229,7 @@ export class Account {
         privateKey = new Ed25519PrivateKey(Ed25519PrivateKey.fromDerivationPath(path, mnemonic));
         break;
       default:
-        throw new Error(`Unsupported private key ${privateKey}`);
+        throw new Error(`Unsupported scheme ${scheme}`);
     }
     return Account.fromPrivateKey({ privateKey, legacy });
   }

@@ -186,6 +186,9 @@ export class Ed25519PrivateKey extends PrivateKey {
    *
    * To derive multiple keys from the same phrase, change the path
    *
+   * IMPORTANT: Ed25519 supports hardened derivation only (since it lacks a key homomorphism,
+   * so non-hardened derivation cannot work)
+   *
    * @param path the BIP44 path
    * @param mnemonics the mnemonic seed phrase
    * @param offset the offset used for key derivation, defaults to 0x80000000

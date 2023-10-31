@@ -8,7 +8,7 @@ import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
-import { isValidBIP32Path, mnemonicToSeed } from "./hdKey";
+import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -183,7 +183,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
    * @param mnemonics the mnemonic seed phrase
    */
   static fromDerivationPath(path: string, mnemonics: string): Uint8Array {
-    if (!isValidBIP32Path(path)) {
+    if (!isValidBIP44Path(path)) {
       throw new Error(`Invalid derivation path ${path}`);
     }
     const { privateKey } = HDKey.fromMasterSeed(mnemonicToSeed(mnemonics)).derive(path);
