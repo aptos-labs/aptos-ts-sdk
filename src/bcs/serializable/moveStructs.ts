@@ -205,24 +205,6 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     return new MoveVector<AccountAddress>(accountAddresses);
   }
 
-  /**
-   * Factory method to generate a MoveVector of MoveObjects
-   *
-   * @example
-   * const v = MoveVector.MoveObject(["hello", "world"]);
-   * @params values: an array of `HexInput | MoveObject`
-   * @returns a `MoveVector<MoveObject>`
-   */
-  static MoveObject(values: Array<HexInput | AccountAddress | MoveObject>): MoveVector<MoveObject> {
-    const accountAddresses = values.map((v) => {
-      if (v instanceof MoveObject) {
-        return v;
-      }
-      return new MoveObject(v);
-    });
-    return new MoveVector<MoveObject>(accountAddresses);
-  }
-
   serialize(serializer: Serializer): void {
     serializer.serializeVector(this.values);
   }
