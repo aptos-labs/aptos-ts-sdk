@@ -19,7 +19,7 @@ import {
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
-  InputAnyRawTransaction,
+  AnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
   InputSingleSignerTransaction,
@@ -69,7 +69,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  */
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
-): Promise<InputAnyRawTransaction> {
+): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, feePayerAddress } = args;
 
   // Merge in aptosConfig for remote ABI on non-script payloads
@@ -118,7 +118,7 @@ export async function generateTransaction(
  *
  * @return The signer AccountAuthenticator
  */
-export function signTransaction(args: { signer: Account; transaction: InputAnyRawTransaction }): AccountAuthenticator {
+export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const accountAuthenticator = sign({ ...args });
   return accountAuthenticator;
 }
@@ -171,7 +171,7 @@ export async function simulateTransaction(
  */
 export async function submitTransaction(args: {
   aptosConfig: AptosConfig;
-  transaction: InputAnyRawTransaction;
+  transaction: AnyRawTransaction;
   senderAuthenticator: AccountAuthenticator;
   secondarySignerAuthenticators?: {
     feePayerAuthenticator?: AccountAuthenticator;
@@ -193,7 +193,7 @@ export async function submitTransaction(args: {
 export async function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
   signer: Account;
-  transaction: InputAnyRawTransaction;
+  transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;
   const authenticator = signTransaction({ signer, transaction });

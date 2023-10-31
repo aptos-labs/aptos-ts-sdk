@@ -10,7 +10,7 @@ import {
 } from "../types";
 import { Bool, FixedBytes, MoveString, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
-import { MoveFunction } from "../../types";
+import { MoveFunction, MoveStructType } from "../../types";
 
 export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
   return typeof arg === "boolean";
@@ -85,4 +85,15 @@ export function throwTypeMismatch(expectedType: string, position: number) {
  */
 export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
   return functionAbi.params.findIndex((param) => param !== "signer" && param !== "&signer");
+}
+
+export function getFunctionParts(functionArg: MoveStructType) {
+  const funcNameParts = functionArg.split("::");
+  if (funcNameParts.length !== 3) {
+    throw new Error(`Invalid function ${functionArg}`);
+  }
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+  return { moduleAddress, moduleName, functionName };
 }

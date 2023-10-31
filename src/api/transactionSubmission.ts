@@ -5,7 +5,7 @@ import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
-  InputAnyRawTransaction,
+  AnyRawTransaction,
   InputFeePayerTransaction,
   InputGenerateMultiAgentRawTransactionData,
   InputGenerateTransactionData,
@@ -42,7 +42,7 @@ export class TransactionSubmission {
   async generateTransaction(args: InputGenerateSingleSignerRawTransactionData): Promise<InputSingleSignerTransaction>;
   async generateTransaction(args: InputGenerateFeePayerRawTransactionData): Promise<InputFeePayerTransaction>;
   async generateTransaction(args: InputGenerateMultiAgentRawTransactionData): Promise<InputMultiAgentTransaction>;
-  async generateTransaction(args: InputGenerateTransactionData): Promise<InputAnyRawTransaction>;
+  async generateTransaction(args: InputGenerateTransactionData): Promise<AnyRawTransaction>;
 
   /**
    * Generates any transaction by passing in the required arguments
@@ -84,7 +84,7 @@ export class TransactionSubmission {
    * }
    * ```
    */
-  async generateTransaction(args: InputGenerateTransactionData): Promise<InputAnyRawTransaction> {
+  async generateTransaction(args: InputGenerateTransactionData): Promise<AnyRawTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -104,7 +104,7 @@ export class TransactionSubmission {
    * @return The signer AccountAuthenticator
    */
   /* eslint-disable class-methods-use-this */
-  signTransaction(args: { signer: Account; transaction: InputAnyRawTransaction }): AccountAuthenticator {
+  signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({ ...args });
   }
 
@@ -131,7 +131,7 @@ export class TransactionSubmission {
    * @return PendingTransactionResponse
    */
   async submitTransaction(args: {
-    transaction: InputAnyRawTransaction;
+    transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     secondarySignerAuthenticators?: {
       feePayerAuthenticator?: AccountAuthenticator;
@@ -158,7 +158,7 @@ export class TransactionSubmission {
    */
   async signAndSubmitTransaction(args: {
     signer: Account;
-    transaction: InputAnyRawTransaction;
+    transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
     return signAndSubmitTransaction({
