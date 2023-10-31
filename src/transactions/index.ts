@@ -4,6 +4,6 @@
 export * from "./authenticator";
 export * from "./instances";
 export * from "./transactionBuilder";
-export * from "./typeTag/index";
+export * from "./typeTag";
 export * from "./typeTag/parser";
 export * from "./types";
