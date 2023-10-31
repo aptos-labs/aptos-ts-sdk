@@ -9,7 +9,7 @@ import {
   postAptosFullNode,
   MimeType,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transaction_builder/transaction_builder";
+import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { customClient } from "../../unit/helper";
 
 describe("custom client", () => {

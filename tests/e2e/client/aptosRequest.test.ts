@@ -10,7 +10,7 @@ import {
   GraphqlQuery,
   NetworkToIndexerAPI,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transaction_builder/transaction_builder";
+import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
 import { singleSignerScriptBytecode } from "../transaction/helper";

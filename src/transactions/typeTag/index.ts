@@ -9,7 +9,6 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
-import { APTOS_COIN } from "../../utils/const";
 
 export abstract class TypeTag extends Serializable {
   abstract serialize(serializer: Serializer): void;

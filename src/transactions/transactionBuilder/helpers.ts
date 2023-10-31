@@ -3,9 +3,9 @@
 
 import {
   EntryFunctionArgumentTypes,
-  GenerateTransactionPayloadData,
-  GenerateTransactionPayloadDataWithRemoteABI,
-  ScriptData,
+  InputGenerateTransactionPayloadData,
+  InputGenerateTransactionPayloadDataWithRemoteABI,
+  InputScriptData,
   SimpleEntryFunctionArgumentTypes,
 } from "../types";
 import { Bool, FixedBytes, MoveString, U128, U16, U256, U32, U64, U8 } from "../../bcs";
@@ -67,8 +67,8 @@ export function isBcsU256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionA
 }
 
 export function isScriptDataInput(
-  arg: GenerateTransactionPayloadDataWithRemoteABI | GenerateTransactionPayloadData,
-): arg is ScriptData {
+  arg: InputGenerateTransactionPayloadDataWithRemoteABI | InputGenerateTransactionPayloadData,
+): arg is InputScriptData {
   return "bytecode" in arg;
 }
 

@@ -4,7 +4,7 @@
 import { AptosConfig } from "./aptosConfig";
 import { Account } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
-import { SingleSignerTransaction, GenerateTransactionOptions } from "../transactions/types";
+import { InputSingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, HexInput, MoveStructType } from "../types";
 
 /**
@@ -32,8 +32,8 @@ export class Coin {
     recipient: HexInput;
     amount: AnyNumber;
     coinType?: MoveStructType;
-    options?: GenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+    options?: InputGenerateTransactionOptions;
+  }): Promise<InputSingleSignerTransaction> {
     return transferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 }

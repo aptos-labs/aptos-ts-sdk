@@ -30,7 +30,7 @@ import {
   generateTransactionPayload,
   generateTransactionPayloadWithABI,
   sign,
-} from "../../../src/transactions/transaction_builder/transaction_builder";
+} from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage } from "./helper";
