@@ -10,6 +10,7 @@ import {
   EntryFunctionArgumentTypes,
   HexInput,
   InputGenerateTransactionData,
+  SimpleEntryFunctionArgumentTypes,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -52,7 +53,7 @@ export async function rawTransactionHelper(
   senderAccount: Account,
   functionName: string,
   typeArgs: TypeTag[],
-  args: Array<EntryFunctionArgumentTypes>,
+  args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
   const rawTransaction = await aptos.generateTransaction({
     sender: senderAccount.accountAddress.toString(),
@@ -82,7 +83,7 @@ export const rawTransactionMultiAgentHelper = async (
   senderAccount: Account,
   functionName: string,
   typeArgs: Array<TypeTag>,
-  args: Array<EntryFunctionArgumentTypes>,
+  args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
   secondarySignerAccounts: Array<Account>,
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {

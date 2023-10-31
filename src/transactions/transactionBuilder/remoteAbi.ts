@@ -150,7 +150,7 @@ function parseArg(
   // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
-      return AccountAddress.fromString(arg);
+      return AccountAddress.fromStringRelaxed(arg);
     }
     throwTypeMismatch("string", position);
   }

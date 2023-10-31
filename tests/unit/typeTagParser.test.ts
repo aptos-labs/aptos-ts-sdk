@@ -253,7 +253,13 @@ describe("TypeTagParser", () => {
   });
 
   /* These need to be supported for ABI parsing */
-  test.skip("struct with generic", () => {
-    expect(parseTypeTag("0x1::tag::Tag<T1>")).toEqual(structTagType());
+  test("struct with generic", () => {
+    expect(parseTypeTag("0x1::tag::Tag<T0>", { allowGenerics: true })).toEqual(structTagType([new TypeTagGeneric(0)]));
+    expect(parseTypeTag("0x1::tag::Tag<T0, T1>", { allowGenerics: true })).toEqual(
+      structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]),
+    );
+    expect(parseTypeTag("0x1::tag::Tag<0x1::tag::Tag<T0, T1>, T2>", { allowGenerics: true })).toEqual(
+      structTagType([structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]), new TypeTagGeneric(2)]),
+    );
   });
 });
