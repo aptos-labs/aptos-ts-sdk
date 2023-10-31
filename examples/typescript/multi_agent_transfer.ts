@@ -117,6 +117,8 @@ const example = async () => {
   await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
   let bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress.toUint8Array() });
+
+  // TODO: Fix the bytecode on the script, object isn't being transferred correctly
   if (bobObjectsAfter[0].object_address != objectAddress) {
     throw new Error(`Failed to transfer object ${objectAddress}`);
   }

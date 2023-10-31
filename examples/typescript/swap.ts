@@ -194,6 +194,7 @@ const example = async () => {
 
   const aptos = new Aptos();
   // Create three accounts
+  // TODO: Fix this example
   const admin = Account.fromPrivateKey(new Ed25519PrivateKey(process.argv[3]));
   const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
 
