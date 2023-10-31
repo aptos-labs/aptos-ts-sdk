@@ -289,7 +289,7 @@ export class TypeTagVector extends TypeTag {
 }
 
 export class TypeTagStruct extends TypeTag {
-  toString(): `0x${string}::${string}::${string}${string}` {
+  toString(): `0x${string}::${string}::${string}` {
     // Collect type args and add it if there are any
     let typePredicate = "";
     if (this.value.type_args.length > 0) {
