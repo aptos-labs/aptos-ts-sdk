@@ -17,6 +17,7 @@ import {
   TransactionFeePayerSignature,
   TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
+  SimpleEntryFunctionArgumentTypes,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -54,7 +55,9 @@ describe("various transaction arguments", () => {
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
   const moduleObjects: Array<AccountAddress> = [];
-  let transactionArguments: EntryFunctionArgumentTypes[];
+  let transactionArguments: Array<EntryFunctionArgumentTypes>;
+  let simpleTransactionArguments: Array<SimpleEntryFunctionArgumentTypes>;
+  let mixedTransactionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 
   beforeAll(async () => {
     await fundAccounts(aptos, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
@@ -74,9 +77,9 @@ describe("various transaction arguments", () => {
       resourceType: `${senderAccount.accountAddress.toString()}::tx_args_module::SetupData`,
     });
 
-    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_1.inner));
-    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_2.inner));
-    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_3.inner));
+    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_1.inner));
+    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_2.inner));
+    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_3.inner));
 
     transactionArguments = [
       new Bool(true),
@@ -119,6 +122,77 @@ describe("various transaction arguments", () => {
       new MoveOption(new MoveString("expected_string")),
       new MoveOption(moduleObjects[0]),
     ];
+
+    simpleTransactionArguments = [
+      true,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      senderAccount.accountAddress.toString(),
+      "expected_string",
+      moduleObjects[0].toString(),
+      [],
+      [true, false, true],
+      [0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER],
+      [0, 1, 2, MAX_U16_NUMBER - 2, MAX_U16_NUMBER - 1, MAX_U16_NUMBER],
+      [0, 1, 2, MAX_U32_NUMBER - 2, MAX_U32_NUMBER - 1, MAX_U32_NUMBER],
+      [0, 1, 2, MAX_U64_BIG_INT - BigInt(2), MAX_U64_BIG_INT - BigInt(1), MAX_U64_BIG_INT.toString(10)],
+      [0, 1, 2, MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT.toString(10)],
+      [0, 1, 2, MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT.toString(10)],
+      ["0x0", "0xabc", "0xdef", "0x123", "0x456", "0x789"],
+      ["expected_string", "abc", "def", "123", "456", "789"],
+      moduleObjects.map((obj) => obj.toString()),
+      undefined,
+      true,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      senderAccount.accountAddress.toString(),
+      "expected_string",
+      moduleObjects[0].toString(),
+    ];
+
+    // Mixes different types of number arguments, and parsed an unparsed arguments
+    mixedTransactionArguments = [
+      true,
+      1,
+      2,
+      3,
+      4n,
+      BigInt(5),
+      "6",
+      senderAccount.accountAddress,
+      "expected_string",
+      moduleObjects[0],
+      [],
+      [true, false, true],
+      [0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER],
+      [0, 1, 2, MAX_U16_NUMBER - 2, MAX_U16_NUMBER - 1, MAX_U16_NUMBER],
+      [0, 1, 2, MAX_U32_NUMBER - 2, MAX_U32_NUMBER - 1, MAX_U32_NUMBER],
+      [0, 1, 2, MAX_U64_BIG_INT - BigInt(2), MAX_U64_BIG_INT - BigInt(1), MAX_U64_BIG_INT.toString(10)],
+      [0, 1, 2, MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT.toString(10)],
+      [0, 1, 2, MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT.toString(10)],
+      ["0x0", "0xabc", "0xdef", "0x123", "0x456", "0x789"],
+      ["expected_string", "abc", "def", "123", "456", "789"],
+      moduleObjects.map((obj) => obj.toString()),
+      null,
+      new MoveOption(new Bool(true)),
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      senderAccount.accountAddress.toString(),
+      "expected_string",
+      moduleObjects[0].toString(),
+    ];
   });
 
   describe("single signer entry fns, all arguments except `&signer`, both public and private entry functions", () => {
@@ -138,6 +212,50 @@ describe("various transaction arguments", () => {
         );
         expect(response.success).toBe(true);
       });
+
+      it("simple inputs successfully submits a public entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(
+          aptos,
+          senderAccount,
+          "public_arguments",
+          [],
+          simpleTransactionArguments,
+        );
+        expect(response.success).toBe(true);
+      });
+
+      it("simple inputs successfully submits a private entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(
+          aptos,
+          senderAccount,
+          "private_arguments",
+          [],
+          simpleTransactionArguments,
+        );
+        expect(response.success).toBe(true);
+      });
+
+      it("mixed inputs successfully submits a public entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(
+          aptos,
+          senderAccount,
+          "public_arguments",
+          [],
+          mixedTransactionArguments,
+        );
+        expect(response.success).toBe(true);
+      });
+
+      it("mixed inputs successfully submits a private entry fn with all argument types except `&signer`", async () => {
+        const response = await rawTransactionHelper(
+          aptos,
+          senderAccount,
+          "private_arguments",
+          [],
+          mixedTransactionArguments,
+        );
+        expect(response.success).toBe(true);
+      });
     });
   });
 
@@ -150,6 +268,17 @@ describe("various transaction arguments", () => {
         "public_arguments_one_signer",
         [],
         [senderAccount.accountAddress, ...transactionArguments],
+      );
+      expect(response.success).toBe(true);
+    });
+
+    it("simple inputs successfully submits a single signer transaction with all argument types", async () => {
+      const response = await rawTransactionHelper(
+        aptos,
+        senderAccount,
+        "public_arguments_one_signer",
+        [],
+        [senderAccount.accountAddress.toString(), ...simpleTransactionArguments],
       );
       expect(response.success).toBe(true);
     });
@@ -167,6 +296,30 @@ describe("various transaction arguments", () => {
         [
           new MoveVector<AccountAddress>([senderAccount.accountAddress, ...secondarySignerAddresses]),
           ...transactionArguments,
+        ],
+        secondarySignerAccounts,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionMultiAgentSignature;
+      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+        AccountAddress.fromStringRelaxed(address),
+      );
+      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        secondarySignerAddresses.map((address) => address.toString()),
+      );
+      expect((responseSignature as any).fee_payer_address).toBeUndefined();
+    });
+
+    it("simple inputs successfully submits a multi signer transaction with all argument types", async () => {
+      const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        senderAccount,
+        "public_arguments_multiple_signers",
+        [],
+        [
+          [senderAccount.accountAddress.toString(), ...secondarySignerAddresses.map((address) => address.toString())],
+          ...simpleTransactionArguments,
         ],
         secondarySignerAccounts,
       );
@@ -211,6 +364,51 @@ describe("various transaction arguments", () => {
         [
           new MoveVector<AccountAddress>([senderAccount.accountAddress, ...secondarySignerAddresses]),
           ...transactionArguments,
+        ],
+        secondarySignerAccounts,
+        feePayerAccount,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionFeePayerSignature;
+      const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
+        AccountAddress.fromStringRelaxed(address),
+      );
+      expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
+        secondarySignerAddresses.map((address) => address.toString()),
+      );
+      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+        feePayerAccount.accountAddress.toString(),
+      );
+    });
+
+    it("simple inputs successfully submits a sponsored transaction with all argument types", async () => {
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        senderAccount,
+        "public_arguments_one_signer",
+        [],
+        [senderAccount.accountAddress, ...transactionArguments],
+        [], // secondary signers
+        feePayerAccount,
+      );
+      expect(response.success).toBe(true);
+      const responseSignature = response.signature as TransactionFeePayerSignature;
+      expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
+      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+        feePayerAccount.accountAddress.toString(),
+      );
+    });
+
+    it("simple inputs successfully submits a sponsored multi signer transaction with all argument types", async () => {
+      const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        senderAccount,
+        "public_arguments_multiple_signers",
+        [],
+        [
+          [senderAccount.accountAddress.toString(), ...secondarySignerAddresses.map((address) => address.toString())],
+          ...simpleTransactionArguments,
         ],
         secondarySignerAccounts,
         feePayerAccount,
