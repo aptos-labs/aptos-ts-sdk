@@ -1,5 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
+/* eslint-disable max-len */
 
 import { ClientRequest, ClientResponse } from "../../src";
 
@@ -13,7 +14,15 @@ export const wallet = {
   publicKey: "0xea526ba1710343d953461ff68641f1b7df5f23b9042ffa2d2a798d3adb3f3d6c",
 };
 
-/* eslint-disable max-len */
+export const secp256k1WalletTestObject = {
+  address: "0x4b4aa8759fcef40ba49e999409eb73a98252f44f6612a4de2b23bad5c37b15a6",
+  mnemonic: "shoot island position soft burden budget tooth cruel issue economy destroy above",
+  path: "m/44'/637'/0'/0/0",
+  privateKey: "0x1eec55afc2f72c4ab7b46c84d761739035ac420a2b6b22cef3411adaf91ce1f7",
+  publicKey:
+    "0x04913871f1d6cb7b867e8671cf63cf7b4c43819539fa0074ff933434bf20bab825b335535251f720fff72fd8b567e414af84aacf2f26ec804562081f2e0b0c9478",
+};
+
 export const ed25519 = {
   privateKey: "0xc5338cd251c22daa8c9c9cc94f498cc8a5c7e1d2e75287a5dda91096fe64efa5",
   publicKey: "0xde19e5d1880cac87d57484ce9ed2e84cf0f9599f12e7cc3a52e4e7657a763f2c",

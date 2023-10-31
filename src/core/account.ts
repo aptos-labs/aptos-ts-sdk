@@ -9,7 +9,6 @@ import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
 import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "../types";
-import { derivePrivateKeyFromMnemonic, KeyType } from "../utils/hdKey";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
 
 /**
@@ -147,6 +146,42 @@ export class Account {
   }
 
   /**
+   * Instantiates an account given a private key.
+   *
+   * This is used as a local calculation and therefore is used to instantiate an `Account`
+   * that has not had its authentication key rotated.
+   *
+   * @param privateKey PrivateKey - private key of the account
+   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
+   * to generating a Unified keypair
+   *
+   * @returns Account
+   */
+  static fromPrivateKey(args: { privateKey: PrivateKey; legacy?: boolean }): Account {
+    const { privateKey, legacy } = args;
+
+    let publicKey;
+    if (privateKey instanceof Secp256k1PrivateKey) {
+      // Secp256k1 single sender
+      publicKey = new AnyPublicKey(privateKey.publicKey());
+    } else if (privateKey instanceof Ed25519PrivateKey) {
+      // legacy Ed25519
+      if (legacy) {
+        publicKey = privateKey.publicKey();
+      } else {
+        // Ed25519 single sender
+        publicKey = new AnyPublicKey(privateKey.publicKey());
+      }
+    } else {
+      throw new Error(`Unsupported private key ${privateKey}`);
+    }
+
+    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
+    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    return new Account({ privateKey, address, legacy });
+  }
+
+  /**
    * Instantiates an account given a private key and a specified account address.
    * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
    *
@@ -169,19 +204,34 @@ export class Account {
   /**
    * Derives an account with bip44 path and mnemonics,
    *
-   * @param args.path the BIP44 derive path (e.g. m/44'/637'/0'/0'/0')
+   * @param args.scheme The signing scheme to derive with
+   * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
+   * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
    * @param args.mnemonic the mnemonic seed phrase of the account
-   * @returns AptosAccount
+   * @param args.legacy optional. To indicate whether to use a legacy Ed25519
+   *
+   * @returns Account
    */
-  static fromDerivationPath(args: { path: string; mnemonic: string }): Account {
-    const { path, mnemonic } = args;
-    const { key } = derivePrivateKeyFromMnemonic(KeyType.ED25519, path, mnemonic);
-    const privateKey = new Ed25519PrivateKey(key);
-    const publicKey = privateKey.publicKey();
-    const authKey = Account.authKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return new Account({ privateKey, address, legacy: true });
+  static fromDerivationPath(args: {
+    scheme: SigningSchemeInput;
+    path: string;
+    mnemonic: string;
+    legacy?: boolean;
+  }): Account {
+    const { path, mnemonic, scheme, legacy } = args;
+    let privateKey;
+    switch (scheme) {
+      case SigningSchemeInput.Secp256k1Ecdsa:
+        privateKey = new Secp256k1PrivateKey(Secp256k1PrivateKey.fromDerivationPath(path, mnemonic));
+        break;
+      case SigningSchemeInput.Ed25519:
+        privateKey = new Ed25519PrivateKey(Ed25519PrivateKey.fromDerivationPath(path, mnemonic));
+        break;
+      default:
+        throw new Error(`Unsupported scheme ${scheme}`);
+    }
+    return Account.fromPrivateKey({ privateKey, legacy });
   }
 
   /**
@@ -190,7 +240,7 @@ export class Account {
    * See here for more info: {@link https://aptos.dev/concepts/accounts#single-signer-authentication}
    *
    * @param args.publicKey PublicKey - public key of the account
-   * @returns Authentication key for the associated account
+   * @returns The authentication key for the associated account
    */
   static authKey(args: { publicKey: PublicKey }): Hex {
     const { publicKey } = args;
