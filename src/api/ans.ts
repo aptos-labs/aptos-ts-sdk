@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../core";
+import { Account, AccountAddress } from "../core";
 import { getOwnerAddress, registerDomain } from "../internal/ans";
 import { InputSingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
-import { HexInput, MoveAddressType } from "../types";
+import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -30,7 +30,7 @@ export class ANS {
    *
    * @returns MoveAddressType if the name is owned, undefined otherwise
    */
-  async getOwnerAddress(args: { domainName: string; subdomainName?: string }): Promise<MoveAddressType | undefined> {
+  async getOwnerAddress(args: { domainName: string; subdomainName?: string }): Promise<AccountAddress | undefined> {
     return getOwnerAddress({ aptosConfig: this.config, ...args });
   }
 

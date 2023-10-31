@@ -104,7 +104,7 @@ export async function getOwnerAddress({
   aptosConfig: AptosConfig;
   domainName: string;
   subdomainName?: string;
-}): Promise<MoveAddressType | undefined> {
+}): Promise<AccountAddress | undefined> {
   const routerAddress = getRouterAddress(aptosConfig);
 
   const res = await view({
@@ -115,5 +115,7 @@ export async function getOwnerAddress({
     },
   });
 
-  return unwrapOption(res[0]);
+  const owner = unwrapOption(res[0]) as MoveAddressType | undefined;
+
+  return owner ? AccountAddress.fromHexInput(owner) : undefined;
 }

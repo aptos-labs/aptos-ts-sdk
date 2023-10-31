@@ -4,7 +4,6 @@
 import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
-import { ANS } from "../../../src/api/ans";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
@@ -22,7 +21,7 @@ describe("ANS", () => {
 
   beforeAll(async () => {
     const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-    const contractAccount = await aptos.deriveAccountFromPrivateKey({privateKey: ANS_PRIVATE_KEY})
+    const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
     // Publish the contract, should be idempotent
 
@@ -73,7 +72,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.ans.getOwnerAddress({ domainName });
-      expect(owner).toEqual(alice.accountAddress.toString());
+      expect(owner?.equals(alice.accountAddress)).toBeTruthy();
     });
 
     test("it mints a domain name and gives it to the specified address", async () => {
@@ -103,7 +102,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.ans.getOwnerAddress({ domainName });
-      expect(owner).toEqual(bob.accountAddress.toString());
+      expect(owner?.equals(bob.accountAddress)).toBeTruthy();
     });
   });
 });
