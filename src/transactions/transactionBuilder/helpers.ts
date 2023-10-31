@@ -84,7 +84,11 @@ export function throwTypeMismatch(expectedType: string, position: number) {
  * @param functionAbi
  */
 export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
-  return functionAbi.params.findIndex((param) => param !== "signer" && param !== "&signer");
+  const index = functionAbi.params.findIndex((param) => param !== "signer" && param !== "&signer");
+  if (index < 0) {
+    return functionAbi.params.length;
+  }
+  return index;
 }
 
 export function getFunctionParts(functionArg: MoveStructType) {
