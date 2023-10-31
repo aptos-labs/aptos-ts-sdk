@@ -24,8 +24,10 @@ import {
   TypeTagParserError,
   TypeTagParserErrorType,
   TypeTagReference,
+  aptosCoinStructTag,
 } from "../../src";
 import { Identifier } from "../../src/transactions/instances";
+import { APTOS_COIN } from "../../src/utils/const";
 
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");
@@ -160,6 +162,12 @@ describe("TypeTagParser", () => {
     expect(parseTypeTag("vector<vector<0x1::string::String>>")).toEqual(
       new TypeTagVector(new TypeTagVector(new TypeTagStruct(stringStructTag()))),
     );
+  });
+
+  test("aptos coin", () => {
+    const aptosCoin = new TypeTagStruct(aptosCoinStructTag());
+    expect(parseTypeTag("0x1::aptos_coin::AptosCoin")).toEqual(aptosCoin);
+    expect(parseTypeTag(APTOS_COIN)).toEqual(aptosCoin);
   });
 
   test("string", () => {
