@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 0.0.3 (2023-10-31)
+
 - Remove MoveObject in favor of AccountAddress, use AccountAddress for Object inputs
 - Use revamped parseTypeTag function instead of StructTag.fromString()
 - Allow use of generics in parseTypeTag
