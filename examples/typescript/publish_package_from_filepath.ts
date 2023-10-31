@@ -31,7 +31,7 @@ async function main() {
 
   await new Promise<void>((resolve) => {
     readline.question(
-      `Open a new terminal anduUse this address to compile move package
+      `Open a new terminal and use this address to compile the move package
       "aptos move build-publish-payload --json-output-file facoin/facoin.json --package-dir facoin --named-addresses FACoin=aliceAddress"
       Compile and press Enter`,
       () => {
