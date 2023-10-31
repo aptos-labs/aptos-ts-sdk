@@ -68,13 +68,9 @@ export class AuthenticationKey extends Serializable {
   /**
    * Derives an AuthenticationKey from the public key seed bytes and an explicit derivation scheme.
    *
-   * This facilitates explicitly targeting a specific derivation scheme for an authentication key
-   * to use for an account.
+   * This facilitates targeting a specific scheme for deriving an authentication key from a public key.
    *
-   * This is useful for deriving an account address from an account whose address
-   * was derived using a legacy derivation scheme.
-   *
-   * @param args
+   * @param args - the public key and scheme to use for the derivation
    */
   public static fromPublicKeyAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey, scheme } = args;
