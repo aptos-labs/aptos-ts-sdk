@@ -2,13 +2,15 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-const aptos = require("aptos");
+const aptos = require("@aptos-labs/ts-sdk");
+const { NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
+const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -32,7 +34,7 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Setup the client
-  const config = new aptos.AptosConfig({ network: aptos.Network.DEVNET });
+  const config = new aptos.AptosConfig({ network: APTOS_NETWORK });
   const sdk = new aptos.Aptos(config);
 
   // Create two accounts

@@ -4,7 +4,16 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, U64, parseTypeTag } from "aptos";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Network,
+  NetworkToNetworkName,
+  parseTypeTag,
+  U64,
+} from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
@@ -12,6 +21,9 @@ const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
+
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -37,7 +49,7 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Setup the client
-  const config = new AptosConfig();
+  const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
   // Create two accounts

@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aptos": "link:../.."
+    "@aptos-labs/ts-sdk": "link:../.."
   }
 }

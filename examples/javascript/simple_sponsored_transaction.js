@@ -2,7 +2,8 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-const aptos = require("aptos");
+const aptos = require("@aptos-labs/ts-sdk");
+const { NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
@@ -13,9 +14,11 @@ const TRANSFER_AMOUNT = 10;
   console.log(
     "This example will create three accounts (Alice, Bob and Sponsor), fund Alice and Sponsor, transfer between Alice and Bob with sponsor to pay the gas fee.",
   );
+  const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
   // Setup the client
-  const sdk = new aptos.Aptos();
+  const config = new AptosConfig(APTOS_NETWORK);
+  const sdk = new aptos.Aptos(config);
 
   // Create three accounts
   const alice = aptos.Account.generate();

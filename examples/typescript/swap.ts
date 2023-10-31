@@ -12,9 +12,22 @@
  * 5. Create a liquidity pool with Alice's FA and Bob's FA
  * 6. Swap between Alice's FA and Bob's FA
  */
-
-import { Account, AccountAddress, Aptos, Bool, Ed25519PrivateKey, U64, ViewRequestData } from "aptos";
+import "dotenv";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Bool,
+  Ed25519PrivateKey,
+  Network,
+  NetworkToNetworkName,
+  U64,
+  ViewRequestData,
+} from "@aptos-labs/ts-sdk";
 import { createInterface } from "readline";
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 const readline = createInterface({
   input: process.stdin,
@@ -199,10 +212,14 @@ const example = async () => {
     process.exit(1);
   }
 
-  const aptos = new Aptos();
+  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(aptosConfig);
   // Create three accounts
-  const admin = Account.fromPrivateKeyAndAddress(new Ed25519PrivateKey(process.argv[3]));
   const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
+  const admin = Account.fromPrivateKeyAndAddress({
+    privateKey: new Ed25519PrivateKey(process.argv[3]),
+    address: swapAddress,
+  });
 
   console.log("====== Account info ======\n");
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);

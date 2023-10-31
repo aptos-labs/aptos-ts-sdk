@@ -5,9 +5,13 @@
  * This example shows how to use the Aptos client to mint a NFT.
  */
 
-import { Account, Aptos, AptosConfig } from "aptos";
+import "dotenv";
+import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
+
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -40,7 +44,7 @@ const example = async () => {
   );
 
   // Setup the client
-  const config = new AptosConfig();
+  const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
   // Create the account

@@ -5,12 +5,15 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import { Account, Aptos, U64 } from "aptos";
+import "dotenv";
+import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName, U64 } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 const example = async () => {
   console.log(
@@ -18,7 +21,8 @@ const example = async () => {
   );
 
   // Setup the client
-  const aptos = new Aptos();
+  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(aptosConfig);
 
   // Create three accounts
   const alice = Account.generate();

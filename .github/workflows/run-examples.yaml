@@ -1,0 +1,19 @@
+env:
+  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+name: "Run examples against local testnet"
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened, auto_merge_enabled]
+  push:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.GIT_SHA }}
+      - uses: ./.github/actions/run-examples

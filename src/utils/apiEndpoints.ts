@@ -34,3 +34,11 @@ export const NetworkToChainId: Record<string, number> = {
   mainnet: 1,
   testnet: 2,
 };
+
+export const NetworkToNetworkName: Record<string, Network> = {
+  mainnet: Network.MAINNET,
+  testnet: Network.TESTNET,
+  devnet: Network.DEVNET,
+  local: Network.LOCAL,
+  custom: Network.CUSTOM,
+};

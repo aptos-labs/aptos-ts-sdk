@@ -18,11 +18,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.3.1",
     "npm-run-all": "latest",
     "superagent": "^8.1.2"
   },
   "peerDependencies": {
-    "aptos": "link:../.."
+    "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
     "@types/node": "latest",
