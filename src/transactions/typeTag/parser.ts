@@ -17,7 +17,7 @@ import {
   TypeTagU64,
   TypeTagU8,
   TypeTagVector,
-} from ".";
+} from "./typeTag";
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 

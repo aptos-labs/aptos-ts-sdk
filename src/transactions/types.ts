@@ -222,7 +222,10 @@ export interface InputMultiAgentTransaction {
 /**
  * Unified type that holds all the return interfaces when generating different transaction types
  */
-export type InputAnyRawTransaction = InputSingleSignerTransaction | InputFeePayerTransaction | InputMultiAgentTransaction;
+export type InputAnyRawTransaction =
+  | InputSingleSignerTransaction
+  | InputFeePayerTransaction
+  | InputMultiAgentTransaction;
 
 // TRANSACTION SIMULATION TYPES //
 

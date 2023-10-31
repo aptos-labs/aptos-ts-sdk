@@ -88,7 +88,9 @@ import { isScriptDataInput } from "./helpers";
 export async function generateTransactionPayload(
   args: InputEntryFunctionDataWithRemoteABI,
 ): Promise<TransactionPayloadEntryFunction>;
-export async function generateTransactionPayload(args: InputMultiSigDataWithRemoteABI): Promise<TransactionPayloadMultisig>;
+export async function generateTransactionPayload(
+  args: InputMultiSigDataWithRemoteABI,
+): Promise<TransactionPayloadMultisig>;
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<AnyTransactionPayloadInstance>;
@@ -264,9 +266,15 @@ export async function generateRawTransaction(args: {
  * When we call our `generateTransaction` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
  */
-export async function buildTransaction(args: InputGenerateSingleSignerRawTransactionArgs): Promise<InputSingleSignerTransaction>;
-export async function buildTransaction(args: InputGenerateFeePayerRawTransactionArgs): Promise<InputFeePayerTransaction>;
-export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<InputMultiAgentTransaction>;
+export async function buildTransaction(
+  args: InputGenerateSingleSignerRawTransactionArgs,
+): Promise<InputSingleSignerTransaction>;
+export async function buildTransaction(
+  args: InputGenerateFeePayerRawTransactionArgs,
+): Promise<InputFeePayerTransaction>;
+export async function buildTransaction(
+  args: InputGenerateMultiAgentRawTransactionArgs,
+): Promise<InputMultiAgentTransaction>;
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<InputAnyRawTransaction>;
 /**
  * Generates a transaction based on the provided arguments
