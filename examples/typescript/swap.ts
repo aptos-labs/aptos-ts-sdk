@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable max-len */
+
 /**
  * Example to demonstrate creating and adding to liquidity pools, swapping between two fungible asset.
  *
@@ -11,8 +14,9 @@
  */
 
 import { Account, AccountAddress, Aptos, Bool, Ed25519PrivateKey, U64, ViewRequestData } from "aptos";
+import { createInterface } from "readline";
 
-const readline = require("readline").createInterface({
+const readline = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
@@ -59,7 +63,7 @@ const addLiquidity = async (
   return response.hash;
 };
 
-const swap = async (
+const swapAssets = async (
   aptos: Aptos,
   swap: AccountAddress,
   deployer: Account,
@@ -147,10 +151,11 @@ const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: A
   return response.hash;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> => {
   await new Promise<void>((resolve) => {
     readline.question(
-      `Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n` +
+      "Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n" +
         "1. cd to /aptos-ts-sdk/examples/typescript/facoin folder \n" +
         "2. run 'aptos move publish --named-address FACoin=[admin] --profile=[admin] \n" +
         "   Note: [admin] is the same profile you used to publish your 'swap' package",
@@ -161,7 +166,9 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
   });
 };
 
-/** Admin mint the coin*/
+/**
+ *  Admin mint the coin
+ */
 const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
   const rawTxn = await aptos.generateTransaction({
     sender: admin.accountAddress.toString(),
@@ -194,8 +201,7 @@ const example = async () => {
 
   const aptos = new Aptos();
   // Create three accounts
-  // TODO: Fix this example
-  const admin = Account.fromPrivateKey(new Ed25519PrivateKey(process.argv[3]));
+  const admin = Account.fromPrivateKeyAndAddress(new Ed25519PrivateKey(process.argv[3]));
   const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
 
   console.log("====== Account info ======\n");
@@ -235,7 +241,7 @@ const example = async () => {
 
   console.log("\n====== Swap 100 Dog coins for Cat coins ======\n");
   console.log("Swaping 100 Dog coin to Cat coin......");
-  await swap(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
+  await swapAssets(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
   console.log("Swap finished.");
 
   console.log("\n====== Current Balance ======\n");

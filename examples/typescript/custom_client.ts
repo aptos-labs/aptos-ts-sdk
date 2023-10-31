@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Example to demonstrate how one can config the SDK to use a custom client.
  *
@@ -9,7 +11,7 @@
  *
  */
 import { Aptos, AptosConfig, ClientResponse, ClientRequest } from "aptos";
-const superagent = require("superagent");
+import { get as superAgentGet } from "superagent";
 
 export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
@@ -53,7 +55,7 @@ export async function superagentCustomClient<Req, Res>(
     method,
   };
 
-  const response = await superagent.get(`${url}?${params}`, request);
+  const response = await superAgentGet(`${url}?${params}`, request);
   return {
     status: response.status,
     statusText: response.statusText,

@@ -1,8 +1,11 @@
+/* eslint-disable no-console */
+/* eslint-disable max-len */
+
 /**
  * This example shows how to use the Aptos client to mint a NFT.
  */
 
-import { Account, Aptos, AptosConfig, Network } from "aptos";
+import { Account, Aptos, AptosConfig } from "aptos";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 
@@ -15,7 +18,7 @@ const ALICE_INITIAL_BALANCE = 100_000_000;
  *
  */
 const accountTokens = async (aptos: Aptos, name: string, accountAddress: string) => {
-  let tokens = await aptos.getOwnedTokens({ ownerAddress: accountAddress });
+  const tokens = await aptos.getOwnedTokens({ ownerAddress: accountAddress });
 
   if (tokens.length === 0) {
     console.log(`\n${name} has no tokens.\n`);
@@ -23,7 +26,7 @@ const accountTokens = async (aptos: Aptos, name: string, accountAddress: string)
   }
 
   console.log(`\n${name}'s tokens:`);
-  for (let index = 0; index < tokens.length; index++) {
+  for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
     console.log(
       `*${token.current_token_data.token_name}* in the *${token.current_token_data.current_collection.collection_name}* collection`,
@@ -37,11 +40,11 @@ const example = async () => {
   );
 
   // Setup the client
-  const config = new AptosConfig({ network: Network.DEVNET });
+  const config = new AptosConfig();
   const aptos = new Aptos(config);
 
   // Create the account
-  let alice = Account.generate();
+  const alice = Account.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
@@ -73,8 +76,8 @@ const example = async () => {
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
-  console.log(`Created collection:`);
-  let exampleCollection = await aptos.getCollectionData({
+  console.log("Created collection:");
+  const exampleCollection = await aptos.getCollectionData({
     collectionName,
     creatorAddress: alice.accountAddress.toString(),
   });
