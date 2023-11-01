@@ -42,11 +42,6 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
- * // where MySerializableStruct is a class you've made that implements Serializable
- * const vecOfSerializableValues = new MoveVector<MySerializableStruct>([
- *   new MySerializableStruct("hello", "world"),
- *   new MySerializableStruct("foo", "bar"),
- * ]);
  * @params
  * values: an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
@@ -172,7 +167,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const v = MoveVector.Bool([true, false, true, false]);
-   * @params values: an array of `numbers` to convert to Bools
+   * @params values: an array of `bools` to convert to Bools
    * @returns a `MoveVector<Bool>`
    */
   static Bool(values: Array<boolean>): MoveVector<Bool> {
@@ -184,7 +179,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const v = MoveVector.MoveString(["hello", "world"]);
-   * @params values: an array of `numbers` to convert to MoveStrings
+   * @params values: an array of `strings` to convert to MoveStrings
    * @returns a `MoveVector<MoveString>`
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
@@ -202,8 +197,9 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * NOTE: This will not work with types that aren't of the Serializable class.
    *
-   * If you want to use types that merely implement Deserializable,
-   * please use the deserializeVector function in the Deserializer class.
+   * If you're looking for a more flexible deserialization function, you can use the deserializeVector function
+   * in the Deserializer class.
+   *
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
    * @params deserializer: the Deserializer instance to use, with bytes loaded into it already.
