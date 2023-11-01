@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network, SigningSchemeInput, U64 } from "../../../src";
+import { Account, Aptos, AptosConfig, Ed25519PrivateKey, Network, SigningSchemeInput, U64 } from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -300,6 +300,32 @@ describe("account api", () => {
       });
       expect(data).toHaveProperty("authentication_key");
       expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
+    });
+  });
+
+  describe("Key Rotation", () => {
+    test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      // Current Account
+      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 1_000_000_000 });
+
+      // account that holds the new key
+      const rotateToPrivateKey = Ed25519PrivateKey.generate();
+
+      // Rotate the key
+      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+      // lookup original account address
+      const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
+        authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).toString(),
+      });
+
+      // Check if the lookup account address is the same as the original account address
+      expect(lookupAccountAddress.toString()).toBe(account.accountAddress.toString());
     });
   });
 });

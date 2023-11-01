@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { Account } from "../core";
+import { Account, PrivateKey } from "../core";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   AnyRawTransaction,
@@ -16,10 +16,11 @@ import {
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
 } from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, HexInput } from "../types";
+import { UserTransactionResponse, PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
 import {
   generateTransaction,
   publicPackageTransaction,
+  rotateAuthKey,
   signAndSubmitTransaction,
   signTransaction,
   simulateTransaction,
@@ -188,5 +189,19 @@ export class TransactionSubmission {
     options?: InputGenerateTransactionOptions;
   }): Promise<InputSingleSignerTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Rotate an account's auth key. After rotation, only the new private key can be used to sign txns for
+   * the account.
+   * Note: Only legacy Ed25519 scheme is supported for now.
+   * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}
+   * @param args.fromAccount The account to rotate the auth key for
+   * @param args.toNewPrivateKey The new private key to rotate to
+   *
+   * @returns PendingTransactionResponse
+   */
+  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
+    return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 }
