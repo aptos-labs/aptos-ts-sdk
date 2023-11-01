@@ -35,28 +35,23 @@ import {
   rawTransactionHelper,
   rawTransactionMultiAgentHelper,
   publishArgumentTestModule,
-  PUBLISHER_ACCOUNT_ADDRESS,
   PUBLISHER_ACCOUNT_PK,
   MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
 } from "./helper";
 
 jest.setTimeout(10000);
 
-// This test looks enormous, but the breakdown is quite simple:
+// This test uses lots of helper functions, explained here:
 //  the `transactionArguments` array contains every possible argument type
 //  the `rawTransactionHelper` and `rawTransactionMultiAgentHelper` functions are helpers to generate the transactions,
 //    respectively for single signer transactions and for (multi signer & fee payer) transactions
 // In any transaction with a `&signer` the move function asserts that the first argument is the senderAccount's address:
-// `senderAccount_address: address` or all of the `&signer` addresses: `signer_addresses: vector<address>`
-// At the end of the tests with fee payers and secondary signers, we assert that the normalized
-//   `fee_payer_address` and `secondary_signer_addresses` are correct
-//
-// TODO: assert that the SignerScheme is correct in the response type
+// `sender_address: address` or all of the `&signer` addresses: `signer_addresses: vector<address>`
 
 describe("various transaction arguments", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const senderAccount = Account.fromPrivateKey({privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK)});
+  const senderAccount = Account.fromPrivateKey({ privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK) });
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
   const moduleObjects: Array<AccountAddress> = [];
@@ -267,13 +262,7 @@ describe("various transaction arguments", () => {
   // only public entry functions- shouldn't need to test private again
   describe("single signer transactions with all entry function arguments", () => {
     it("successfully submits a single signer transaction with all argument types", async () => {
-      const response = await rawTransactionHelper(
-        aptos,
-        senderAccount,
-        "public_arguments",
-        [],
-        transactionArguments,
-      );
+      const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
       expect(response.success).toBe(true);
     });
 
@@ -457,18 +446,22 @@ describe("various transaction arguments", () => {
         secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.toString()),
       });
       const senderAuthenticator = await aptos.signTransaction({ signer: senderAccount, transaction: rawTransaction });
-      const secondaryAuthenticators = secondarySignerAccounts.map(account => aptos.signTransaction({
-        signer: account,
-        transaction: rawTransaction,
-      }));
+      const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
+        aptos.signTransaction({
+          signer: account,
+          transaction: rawTransaction,
+        }),
+      );
       const transactionResponse = await aptos.submitTransaction({
         transaction: rawTransaction,
         senderAuthenticator,
         secondarySignerAuthenticators: {
           additionalSignersAuthenticators: secondaryAuthenticators,
-        }
+        },
       });
-      const response = (await aptos.waitForTransaction({ transactionHash: transactionResponse.hash })) as UserTransactionResponse;
+      const response = (await aptos.waitForTransaction({
+        transactionHash: transactionResponse.hash,
+      })) as UserTransactionResponse;
       expect(response.success).toBe(true);
       expect((response.signature as TransactionMultiAgentSignature).type).toBe("multi_agent_signature");
       expect(response.payload.type).toBe("script_payload");

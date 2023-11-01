@@ -70,7 +70,8 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     // runtime check to ensure that you can't serialize anything other than vector<u8>
     const isU8 = this.values[0] instanceof U8;
     // if the inner array is length 0, we can't check the type because it has no instance, so we assume it's a u8
-    // it may not be, but we don't care because it's serialized as `0x0` regardless
+    // it may not be, but we don't care because regardless of a vector's type,
+    // a zero-length vector is serialized to a single byte value: 0
     if (!isU8 && this.values[0] !== undefined) {
       throw new Error("Script function arguments only accept u8 vectors");
     }
