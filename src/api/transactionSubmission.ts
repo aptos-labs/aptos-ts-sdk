@@ -194,6 +194,8 @@ export class TransactionSubmission {
   /**
    * Rotate an account's auth key. After rotation, only the new private key can be used to sign txns for
    * the account.
+   * Note: Only legacy Ed25519 scheme is supported for now.
+   * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}
    * @param args.fromAccount The account to rotate the auth key for
    * @param args.toNewPrivateKey The new private key to rotate to
    *

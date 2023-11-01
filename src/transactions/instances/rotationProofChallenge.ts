@@ -12,19 +12,26 @@ import { MoveString, MoveVector, U64, U8 } from "../../bcs";
  * to rotate the authentication key.
  */
 export class RotationProofChallenge extends Serializable {
+  // Resource account address
   public readonly accountAddress: AccountAddress = AccountAddress.ONE;
 
-  public readonly sequenceNumber: U64;
-
+  // Module name, i.e: 0x1::account
   public readonly moduleName: MoveString = new MoveString("account");
 
+  // The rotation proof challenge struct name that live under the module
   public readonly structName: MoveString = new MoveString("RotationProofChallenge");
 
+  // Signer's address
   public readonly originator: AccountAddress;
 
+  // Signer's current authentication key
   public readonly currentAuthKey: AccountAddress;
 
+  // New public key to rotate to
   public readonly newPublicKey: MoveVector<U8>;
+
+  // Sequence number of the account
+  public readonly sequenceNumber: U64;
 
   constructor(args: {
     sequenceNumber: AnyNumber;
