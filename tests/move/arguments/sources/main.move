@@ -158,9 +158,6 @@ module transaction_arguments::tx_args_module {
         option_address: Option<address>,
         option_string: Option<String>,
         option_object: Option<Object<EmptyResource>>,
-        // deeply_nested_1: vector<Option<vector<Option<vector<String>>>>>, // TODO
-        // deeply_nested_2: vector<Option<vector<vector<vector<Option<u256>>>>>>, // TODO
-        // deeply_nested_3: vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>>, // TODO
     ) acquires SetupData {
         let expected_obj = get_setup_data().empty_object_1;
         assert!(arg_bool == EXPECTED_BOOL, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 0);
@@ -195,6 +192,32 @@ module transaction_arguments::tx_args_module {
         assert_options_equal(option_address, option::some(EXPECTED_ADDRESS), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 29);
         assert_options_equal(option_string, option::some(string::utf8(EXPECTED_STRING)), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 30);
         assert_options_equal(option_object, option::some(expected_obj), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 31);
+    }
+
+    entry fun complex_arguments(
+        deeply_nested_1: vector<vector<u8>>,
+        deeply_nested_2: vector<vector<String>>,
+        deeply_nested_3: vector<vector<Option<String>>>,
+        deeply_nested_4: vector<vector<Option<vector<String>>>>,
+        deeply_nested_5: vector<Option<vector<Option<vector<String>>>>>,
+        deeply_nested_6: vector<Option<vector<vector<vector<Option<u8>>>>>>,
+        deeply_nested_7: vector<Option<vector<vector<vector<Option<u256>>>>>>,
+        deeply_nested_8: vector<Option<vector<vector<vector<Option<String>>>>>>,
+        deeply_nested_9: vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>>,
+        deeply_nested_10: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>>>,
+        deeply_nested_11: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u256>>>>>>>>>>,
+        deeply_nested_12: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<String>>>>>>>>>>,
+    ) {
+        // assert_vectors_equal(deeply_nested_1, vector<vector<u8>> [ vector<u8> [ b"abc" ] ], 0);
+        // assert_vectors_equal(deeply_nested_2, vector<vector<String>> [ vector<String> [ string::utf8(b"abc") ] ], 1);
+        // assert_vectors_equal(deeply_nested_3, vector<vector<Option<String>>> [ vector<Option<String>> [ option::some(string::utf8(b"abc")) ] ], 2);
+        // assert_vectors_equal(deeply_nested_4, vector<vector<Option<vector<String>>>> [ vector<Option<vector<String>>> [ option::some(vector<String> [ string::utf8(b"abc") ]) ] ], 3);
+        // assert_vectors_equal(deeply_nested_5, vector<Option<vector<Option<vector<String>>>>> [ option::some(vector<Option<vector<String>>> [ option::some(vector<String> [ string::utf8(b"abc") ]) ]) ], 4);
+        // assert_vectors_equal(deeply_nested_6, vector<Option<vector<vector<vector<Option<u8>>>>>> [ option::some(vector<vector<vector<Option<u8>>>> [ vector<vector<Option<u8>>> [ vector<Option<u8>> [ option::some(1) ] ] ] ) ], 5);
+        // assert_vectors_equal(deeply_nested_7, vector<Option<vector<vector<vector<Option<u256>>>>>> [ option::some(vector<vector<vector<Option<u256>>>> [ vector<vector<Option<u256>>> [ vector<Option<u256>> [ option::some(1) ] ] ] ) ], 6);
+        // assert_vectors_equal(deeply_nested_8, vector<Option<vector<vector<vector<Option<String>>>>>> [ option::some(vector<vector<vector<Option<String>>>> [ vector<vector<Option<String>>> [ vector<Option<String>> [ option::some(string::utf8(b"abc")) ] ] ] ) ], 7);
+        // assert_vectors_equal(deeply_nested_9, vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>> [ option::some(vector<vector<vector<Option<Object<EmptyResource>>>>> [ vector<vector<Option<Object<EmptyResource>>>> [ vector<Option<Object<EmptyResource>>> [ option::some(get_setup_data().empty_object_1) ] ] ] ) ], 8);
+        // assert_vectors_equal(deeply_nested_10, vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>>> [ vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>> [ vector<vector<vector<vector<vector<vector
     }
 
     // Can't be called from a script payload
@@ -242,9 +265,9 @@ module transaction_arguments::tx_args_module {
 
     public entry fun public_arguments_multiple_signers(
         account_1: &signer,
-        account_2: &signer,
+        account_2: signer,
         account_3: &signer,
-        account_4: &signer,
+        account_4: signer,
         account_5: &signer,
         signer_addresses: vector<address>,
         arg_bool: bool,
@@ -282,9 +305,9 @@ module transaction_arguments::tx_args_module {
     ) acquires SetupData {
         let signer_addresses_passed_in = vector<address> [
             signer::address_of(account_1),
-            signer::address_of(account_2),
+            signer::address_of(&account_2),
             signer::address_of(account_3),
-            signer::address_of(account_4),
+            signer::address_of(&account_4),
             signer::address_of(account_5),
         ];
         assert_vectors_equal(signer_addresses, signer_addresses_passed_in, BASE_ERROR_CODE_MULTI_SIGNER);
@@ -298,9 +321,9 @@ module transaction_arguments::tx_args_module {
 
     entry fun private_arguments_multiple_signers(
         account_1: &signer,
-        account_2: &signer,
+        account_2: signer,
         account_3: &signer,
-        account_4: &signer,
+        account_4: signer,
         account_5: &signer,
         signer_addresses: vector<address>,
         arg_bool: bool,
@@ -347,6 +370,17 @@ module transaction_arguments::tx_args_module {
         assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
         vector::zip<T, T>(vec_1, vec_2, |a, b| {
             assert!(a == b, error::invalid_state(arg_index));
+        });
+    }
+
+    // if type_of<T1>() == type_of<vector<T2>>()
+    // then do assert_vectors_equal<T2>(vec_1, vec_2, arg_index)
+    // if type_of<T1>() == type_of<vector<vector<T>>>()
+    // then do assert_deep_equality<T>(vec_1, vec_2, arg_index)
+    public inline fun assert_deep_equality<T1: drop, T2: drop>(vec_1: vector<vector<T2>>, vec_2: vector<vector<T2>>, arg_index: u64) {
+        assert!(vector::length<vector<T>>(&vec_1) == vector::length<vector<T>>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
+        vector::zip<vector<T>, vector<T>>(vec_1, vec_2, |a, b| {
+            assert_vectors_equal<T>(a, b, arg_index);
         });
     }
 
