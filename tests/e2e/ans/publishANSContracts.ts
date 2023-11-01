@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import "dotenv";
 import { AccountAddress, Aptos, Ed25519PrivateKey } from "../../../src";
-import { LOCAL_ANS_ACCOUNT_PK } from "../../../src/internal/ans";
+import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
 import { AptosApiType } from "../../../src/utils/const";
 
 /**
@@ -19,10 +19,6 @@ import { AptosApiType } from "../../../src/utils/const";
 /* eslint-disable max-len */
 
 // ANS account we use to publish the contract
-const ANS_TEST_ACCOUNT_PRIVATE_KEY =
-  process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY || "0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221";
-const ANS_TEST_ACCOUNT_ADDRESS =
-  process.env.ANS_TEST_ACCOUNT_ADDRESS || "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
 
 function execCmdString(command: string): string {
   console.log(`Executing '${command}'`);
@@ -37,12 +33,12 @@ export async function publishAnsContract(
   aptos: Aptos,
 ): Promise<{ address: AccountAddress; privateKey: Ed25519PrivateKey }> {
   const ret = {
-    address: AccountAddress.fromStringRelaxed(ANS_TEST_ACCOUNT_ADDRESS),
+    address: AccountAddress.fromStringRelaxed(LOCAL_ANS_ACCOUNT_ADDRESS),
     privateKey: new Ed25519PrivateKey(LOCAL_ANS_ACCOUNT_PK),
   };
   try {
     await aptos.account.getAccountModule({
-      accountAddress: ANS_TEST_ACCOUNT_ADDRESS.toString(),
+      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
       moduleName: "domains",
     });
     console.log("ANS contract already published");
@@ -75,7 +71,7 @@ export async function publishAnsContract(
     const ROUTER_SIGNER = `0x${
       JSON.parse(
         execCmdString(
-          `${cliInvocation} account derive-resource-account-address --address ${ANS_TEST_ACCOUNT_ADDRESS} --seed "ANS ROUTER" --seed-encoding utf8`,
+          `${cliInvocation} account derive-resource-account-address --address ${LOCAL_ANS_ACCOUNT_ADDRESS} --seed "ANS ROUTER" --seed-encoding utf8`,
         ),
       ).Result
     }`;
@@ -84,11 +80,11 @@ export async function publishAnsContract(
     // 2. Fund ANS account.
     console.log("---funding account---");
     const fundHash = await aptos.fundAccount({
-      accountAddress: ANS_TEST_ACCOUNT_ADDRESS.toString(),
+      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
       amount: 100_000_000_000,
     });
     await aptos.waitForTransaction({ transactionHash: fundHash });
-    console.log(`Test account funded ${ANS_TEST_ACCOUNT_ADDRESS}`);
+    console.log(`Test account funded ${LOCAL_ANS_ACCOUNT_ADDRESS}`);
 
     // 3. Publish the ANS modules under the ANS account.
     console.log("---publishing ans modules---");
@@ -96,7 +92,7 @@ export async function publishAnsContract(
     // eslint-disable-next-line no-restricted-syntax
     for (const contract of contracts) {
       execCmdBuffer(
-        `${cliInvocation} move publish --package-dir ${repoDir}/${contract} --assume-yes --private-key=${ANS_TEST_ACCOUNT_PRIVATE_KEY} --named-addresses aptos_names=${ANS_TEST_ACCOUNT_ADDRESS},router=${ANS_TEST_ACCOUNT_ADDRESS},aptos_names_v2_1=${ANS_TEST_ACCOUNT_ADDRESS},aptos_names_admin=${ANS_TEST_ACCOUNT_ADDRESS},aptos_names_funds=${ANS_TEST_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
+        `${cliInvocation} move publish --package-dir ${repoDir}/${contract} --assume-yes --private-key=${LOCAL_ANS_ACCOUNT_PK} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
           AptosApiType.FULLNODE,
         )}`,
       );
