@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Deserializer, Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Hex, Serializer } from "../../src";
-import { ed25519 } from "./helper";
+import { ed25519, wallet } from "./helper";
 
 describe("Ed25519PublicKey", () => {
   it("should create the instance correctly without error", () => {
@@ -165,6 +165,19 @@ describe("PrivateKey", () => {
     const publicKey = privateKey.publicKey();
     expect(publicKey).toBeInstanceOf(Ed25519PublicKey);
     expect(publicKey.toString()).toEqual(ed25519.publicKey);
+  });
+
+  it("should prevent an invalid bip44 path ", () => {
+    const { mnemonic } = wallet;
+    const path = "1234";
+    expect(() => Ed25519PrivateKey.fromDerivationPath(path, mnemonic)).toThrow("Invalid derivation path");
+  });
+
+  it("should derive from path and mnemonic", () => {
+    const { mnemonic, path, privateKey } = wallet;
+    const key = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);
+    expect(key).toBeInstanceOf(Ed25519PrivateKey);
+    expect(privateKey).toEqual(key.toString());
   });
 });
 

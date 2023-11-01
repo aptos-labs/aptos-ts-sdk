@@ -138,14 +138,6 @@ describe("Account", () => {
       });
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
-
-    it("should prevent an invalid bip44 path ", () => {
-      const { mnemonic } = wallet;
-      const path = "1234";
-      expect(() => Account.fromDerivationPath({ path, mnemonic, scheme: SigningSchemeInput.Ed25519 })).toThrow(
-        "Invalid derivation path",
-      );
-    });
   });
 
   describe("sign and verify", () => {
