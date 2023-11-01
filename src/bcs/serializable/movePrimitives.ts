@@ -37,6 +37,10 @@ export class Bool extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the boolean input that initialized this class instance
+   */
   toSimpleValue(): boolean {
     return this.value;
   }
@@ -69,6 +73,10 @@ export class U8 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the Uint8 (number) input that initialized this class instance
+   */
   toSimpleValue(): Uint8 {
     return this.value;
   }
@@ -101,6 +109,10 @@ export class U16 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the Uint16 (number) input that initialized this class instance
+   */
   toSimpleValue(): Uint16 {
     return this.value;
   }
@@ -133,6 +145,10 @@ export class U32 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the Uint32 (number) input that initialized this class instance
+   */
   toSimpleValue(): Uint32 {
     return this.value;
   }
@@ -165,6 +181,10 @@ export class U64 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the bigint input that initialized this class instance
+   */
   toSimpleValue(): bigint {
     return this.value;
   }
@@ -197,6 +217,10 @@ export class U128 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the bigint input that initialized this class instance
+   */
   toSimpleValue(): bigint {
     return this.value;
   }
@@ -229,6 +253,10 @@ export class U256 extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the bigint input that initialized this class instance
+   */
   toSimpleValue(): bigint {
     return this.value;
   }

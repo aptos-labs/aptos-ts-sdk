@@ -46,6 +46,10 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
     serializer.serialize(this);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the Uint8Array input that initialized this class instance
+   */
   toSimpleValue(): Uint8Array {
     return this.value.toSimpleValue();
   }

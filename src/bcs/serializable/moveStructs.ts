@@ -6,7 +6,11 @@ import { Serializable, Serializer } from "../serializer";
 import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
-import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import {
+  EntryFunctionArgument,
+  SimpleEntryFunctionArgumentTypes,
+  TransactionArgument,
+} from "../../transactions/instances/transactionArgument";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -77,7 +81,12 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     serializer.serialize(this);
   }
 
-  toSimpleValue() {
+  /**
+   * This function converts the nested inner BCS class instances to their inner value representations as
+   * simple typescript types.
+   * @returns the original inputs that initialized this class instance
+   */
+  toSimpleValue(): Array<SimpleEntryFunctionArgumentTypes> {
     return this.values.map((v) => v.toSimpleValue());
   }
 
@@ -247,6 +256,10 @@ export class MoveString extends Serializable implements TransactionArgument {
     vectorU8.serializeForScriptFunction(serializer);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the string input that initialized this class instance
+   */
   toSimpleValue(): string {
     return this.value;
   }
@@ -280,6 +293,10 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
     serializer.serializeBytes(bcsBytes);
   }
 
+  /**
+   * This function converts a BCS class instance to its inner value representation as a simple typescript type.
+   * @returns the only element in the inner MoveVector used to represent the MoveOption- thus, it will return [] | [T]
+   */
   toSimpleValue() {
     return this.vec.toSimpleValue();
   }
