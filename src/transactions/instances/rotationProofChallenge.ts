@@ -23,7 +23,7 @@ export class RotationProofChallenge extends Serializable {
   public readonly originator: AccountAddress;
 
   public readonly currentAuthKey: AccountAddress;
-  
+
   public readonly newPublicKey: MoveVector<U8>;
 
   constructor(args: {

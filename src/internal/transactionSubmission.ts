@@ -6,10 +6,13 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveVector } from "../bcs";
+import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account } from "../core/account";
+import { AccountAddress } from "../core/accountAddress";
+import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
+import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
   buildTransaction,
   generateTransactionPayload,
@@ -25,7 +28,8 @@ import {
   InputSingleSignerTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
 } from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
+import { getInfo } from "./account";
 
 /**
  * Generates any transaction by passing in the required arguments
@@ -225,4 +229,56 @@ export async function publicPackageTransaction(args: {
     options,
   });
   return transaction as InputSingleSignerTransaction;
+}
+
+/**
+ * TODO: Need to refactor and move this function out of transactionSubmission
+ */
+export async function rotateAuthKey(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
+  toNewPrivateKey: PrivateKey;
+}): Promise<TransactionResponse> {
+  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
+  const accountInfo = await getInfo({
+    aptosConfig,
+    accountAddress: fromAccount.accountAddress.toString(),
+  });
+
+  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
+
+  const challenge = new RotationProofChallenge({
+    sequenceNumber: BigInt(accountInfo.sequence_number),
+    originator: fromAccount.accountAddress,
+    currentAuthKey: AccountAddress.fromHexInput(accountInfo.authentication_key),
+    newPublicKey: newAccount.publicKey,
+  });
+
+  // Sign the challenge
+  const challengeHex = challenge.bcsToBytes();
+  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
+  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
+
+  // Generate transaction
+  const rawTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress.toString(),
+    data: {
+      function: "0x1::account::rotate_authentication_key",
+      functionArguments: [
+        new U8(fromAccount.signingScheme.valueOf()), // from scheme
+        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
+        new U8(newAccount.signingScheme.valueOf()), // to scheme
+        MoveVector.U8(newAccount.publicKey.toUint8Array()),
+        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
+        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
+      ],
+    },
+  });
+  const pendingTxn = await signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: rawTxn,
+  });
+  return pendingTxn;
 }

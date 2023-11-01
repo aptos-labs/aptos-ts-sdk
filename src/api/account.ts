@@ -38,9 +38,6 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
-import { generateTransaction, signAndSubmitTransaction } from "../internal/transactionSubmission";
-import { MoveVector, U8 } from "../bcs";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -379,59 +376,5 @@ export class Account {
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * Rotate an account's auth key. After rotation, only the new private key can be used to sign txns for
-   * the account.
-   * @param args.fromAccount The account to rotate the auth key for
-   * @param args.toNewPrivateKey The new private key to rotate to
-   *
-   * @returns PendingTransactionResponse
-   */
-  async rotateAuthKey(args: { fromAccount: AccountModule; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
-    const { fromAccount, toNewPrivateKey } = args;
-    const aptosConfig = this.config;
-    const accountInfo = await getInfo({
-      aptosConfig,
-      accountAddress: fromAccount.accountAddress.toString(),
-    });
-
-    const newAccount = AccountModule.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
-
-    const challenge = new RotationProofChallenge({
-      sequenceNumber: BigInt(accountInfo.sequence_number),
-      originator: fromAccount.accountAddress,
-      currentAuthKey: AccountAddress.fromHexInput(accountInfo.authentication_key),
-      newPublicKey: newAccount.publicKey,
-    });
-
-    // Sign the challenge
-    const challengeHex = challenge.bcsToBytes();
-    const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
-    const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
-
-    // Generate transaction
-    const rawTxn = await generateTransaction({
-      aptosConfig,
-      sender: fromAccount.accountAddress.toString(),
-      data: {
-        function: "0x1::account::rotate_authentication_key",
-        functionArguments: [
-          new U8(fromAccount.signingScheme.valueOf()), // from scheme
-          MoveVector.U8(fromAccount.publicKey.toUint8Array()),
-          new U8(newAccount.signingScheme.valueOf()), // to scheme
-          MoveVector.U8(newAccount.publicKey.toUint8Array()),
-          MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
-          MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
-        ],
-      },
-    });
-    const pendingTxn = await signAndSubmitTransaction({
-      aptosConfig,
-      signer: fromAccount,
-      transaction: rawTxn,
-    });
-    return pendingTxn;
   }
 }
