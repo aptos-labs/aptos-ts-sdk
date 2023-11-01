@@ -1,10 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress } from "../core";
-import { getOwnerAddress, registerDomain } from "../internal/ans";
-import { InputSingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
-import { HexInput } from "../types";
+import { AccountAddress } from "../core";
+import { ANSName, RegisterNameParameters, getOwnerAddress, registerName } from "../internal/ans";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -30,17 +28,23 @@ export class ANS {
    *
    * @returns MoveAddressType if the name is owned, undefined otherwise
    */
-  async getOwnerAddress(args: { domainName: string; subdomainName?: string }): Promise<AccountAddress | undefined> {
+  async getOwnerAddress(args: { name: ANSName }): Promise<AccountAddress | undefined> {
     return getOwnerAddress({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Registers a new domain name
+   * Registers a new domain or subdomain name
    *
    * @param args.sender - The sender account
-   * @param args.domainName - A string of the domain name to register, will be suffixed with .apt
-   * @param args.registrationDuration  - Time in seconds for how long the name will be registered for. This
-   * is part of the cost of the transaction. Must be a multiple of one year in seconds.
+   * @param args.name - A string or {domainName: string, subdomainName?: string} of the name to register. This
+   * can be inclusive or exclusive of the .apt suffix.
+   * Examples include: "xyz", "xyz.apt", "xyz.kyc.apt", {domainName: "xyz"}, {domainName: "kyc", subdomainName: "xyz"}.
+   * @param args.expiration  - An object with the expiration policy of the name.
+   * @param args.expiration.policy - 'domain' | 'subdomain:follow-domain' | 'subdomain:independent'
+   * - domain: Years is required and the name will expire after the given number of years.
+   * - subdomain:follow-domain: The name will expire at the same time as the domain name.
+   * - subdomain:independent: The name will expire at the given date.
+   * @param args.transferable  - Determines if the subdomain being minted is soul-bound. Applicable only to subdomains.
    * @param args.targetAddress optional - The address the domain name will resolve to. If not provided,
    * the sender's address will be used.
    * @param args.toAddress optional - The address to send the domain name to. If not provided,
@@ -48,14 +52,7 @@ export class ANS {
    *
    * @returns InputSingleSignerTransaction
    */
-  async registerDomain(args: {
-    sender: Account;
-    domainName: string;
-    registrationDuration: 31536000;
-    targetAddress?: HexInput;
-    toAddress?: HexInput;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
-    return registerDomain({ aptosConfig: this.config, ...args });
+  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): ReturnType<typeof registerName> {
+    return registerName({ aptosConfig: this.config, ...args });
   }
 }
