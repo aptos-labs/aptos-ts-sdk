@@ -83,8 +83,6 @@ describe("various transaction arguments", () => {
     moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_2.inner));
     moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_3.inner));
 
-
-
     transactionArguments = [
       new Bool(true),
       new U8(1),
@@ -475,17 +473,9 @@ describe("various transaction arguments", () => {
   describe("nested, complex arguments", () => {
     it("successfully submits a function with very complex arguments", async () => {
       const optionVector = new MoveOption(EXPECTED_VECTOR_STRING);
-      const deeplyNested3 = new MoveVector([
-        optionVector,
-        optionVector,
-        optionVector,
-      ]);
-      const deeplyNested4 = new MoveVector([
-        deeplyNested3,
-        deeplyNested3,
-        deeplyNested3,
-      ]);
-  
+      const deeplyNested3 = new MoveVector([optionVector, optionVector, optionVector]);
+      const deeplyNested4 = new MoveVector([deeplyNested3, deeplyNested3, deeplyNested3]);
+
       const response = await rawTransactionMultiAgentHelper(
         aptos,
         senderAccount,
@@ -502,6 +492,5 @@ describe("various transaction arguments", () => {
       );
       expect(response.success).toBe(true);
     });
-
   });
 });
