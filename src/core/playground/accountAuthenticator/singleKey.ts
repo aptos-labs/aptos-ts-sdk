@@ -1,7 +1,7 @@
 import type { Deserializer, Serializer } from "../../../bcs";
 import { HexInput } from "../../../types";
 import type { PublicKey } from "../interfaces";
-import { type AllowedSignatures, WrappedPublicKey, WrappedSignature } from "../wrapped";
+import { type AllowedSignatures, AnyPublicKey, AnySignature } from "../wrapped";
 import { AccountAuthenticatorVariant } from "./variant";
 
 export class AccountAuthenticatorSingleKey<
@@ -9,8 +9,8 @@ export class AccountAuthenticatorSingleKey<
   TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
 > {
   constructor(
-    public readonly publicKey: WrappedPublicKey<TSignature, TPublicKey>,
-    public readonly signature: WrappedSignature<TSignature>,
+    public readonly publicKey: AnyPublicKey<TSignature, TPublicKey>,
+    public readonly signature: AnySignature<TSignature>,
   ) {}
 
   verify(message: HexInput): boolean {
@@ -24,8 +24,8 @@ export class AccountAuthenticatorSingleKey<
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorSingleKey {
-    const publicKey = WrappedPublicKey.deserialize(deserializer);
-    const signature = WrappedSignature.deserialize(deserializer);
+    const publicKey = AnyPublicKey.deserialize(deserializer);
+    const signature = AnySignature.deserialize(deserializer);
     return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
 }

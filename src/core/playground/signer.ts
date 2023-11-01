@@ -5,7 +5,7 @@ import { Ed25519PrivateKey, type Ed25519PublicKey, type Ed25519Signature } from 
 import type { BaseSigner, PrivateKey, PublicKey } from "./interfaces";
 import { SignatureScheme } from "./scheme";
 import { Secp256k1PrivateKey, type Secp256k1PublicKey, type Secp256k1Signature } from "./secp256k1";
-import { AllowedSignatures, WrappedPublicKey, WrappedSignature } from "./wrapped";
+import { AllowedSignatures, AnyPublicKey, AnySignature } from "./wrapped";
 
 export interface SignerConstructorArgs<
   TSignature extends AllowedSignatures,
@@ -26,13 +26,13 @@ export class Signer<
 {
   public readonly privateKey: PrivateKey<TSignature, TPublicKey>;
 
-  public readonly publicKey: WrappedPublicKey<TSignature, TPublicKey>;
+  public readonly publicKey: AnyPublicKey<TSignature, TPublicKey>;
 
   public readonly address: AccountAddress;
 
   constructor({ privateKey, address }: SignerConstructorArgs<TSignature, TPublicKey>) {
     this.privateKey = privateKey;
-    this.publicKey = new WrappedPublicKey(this.privateKey.publicKey());
+    this.publicKey = new AnyPublicKey(this.privateKey.publicKey());
 
     if (address instanceof AccountAddress) {
       this.address = address;
@@ -60,7 +60,7 @@ export class Signer<
   }
 
   sign(message: HexInput): AccountAuthenticatorSingleKey<TSignature, TPublicKey> {
-    const signature = new WrappedSignature(this.privateKey.sign(message));
+    const signature = new AnySignature(this.privateKey.sign(message));
     return new AccountAuthenticatorSingleKey(this.publicKey, signature);
   }
 }

@@ -9,7 +9,7 @@ import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 
 export type AllowedSignatures = Ed25519Signature | Secp256k1Signature;
 
-export class WrappedSignature<TSignature extends AllowedSignatures = AllowedSignatures> {
+export class AnySignature<TSignature extends AllowedSignatures = AllowedSignatures> {
   constructor(public readonly signature: TSignature) {}
 
   serialize(serializer: Serializer): void {
@@ -23,27 +23,27 @@ export class WrappedSignature<TSignature extends AllowedSignatures = AllowedSign
     this.signature.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): WrappedSignature {
+  static deserialize(deserializer: Deserializer): AnySignature {
     const scheme = deserializer.deserializeUleb128AsU32();
     switch (scheme) {
       case SignatureScheme.Ed25519:
-        return new WrappedSignature(Ed25519Signature.deserialize(deserializer));
+        return new AnySignature(Ed25519Signature.deserialize(deserializer));
       case SignatureScheme.Secp256k1:
-        return new WrappedSignature(Secp256k1Signature.deserialize(deserializer));
+        return new AnySignature(Secp256k1Signature.deserialize(deserializer));
       default:
         throw new Error(`Unknown signature scheme ${scheme}`);
     }
   }
 }
 
-export class WrappedPublicKey<
+export class AnyPublicKey<
   TSignature extends AllowedSignatures = AllowedSignatures,
   TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
-> implements PublicKey<WrappedSignature<TSignature>>
+> implements PublicKey<AnySignature<TSignature>>
 {
   constructor(public readonly publicKey: TPublicKey) {}
 
-  verifySignature(message: HexInput, signature: WrappedSignature<TSignature>) {
+  verifySignature(message: HexInput, signature: AnySignature<TSignature>) {
     return this.publicKey.verifySignature(message, signature.signature);
   }
 
@@ -65,13 +65,13 @@ export class WrappedPublicKey<
     this.publicKey.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): WrappedPublicKey {
+  static deserialize(deserializer: Deserializer): AnyPublicKey {
     const scheme = deserializer.deserializeUleb128AsU32();
     switch (scheme) {
       case SignatureScheme.Ed25519:
-        return new WrappedPublicKey(Ed25519PublicKey.deserialize(deserializer));
+        return new AnyPublicKey(Ed25519PublicKey.deserialize(deserializer));
       case SignatureScheme.Secp256k1:
-        return new WrappedPublicKey(Secp256k1PublicKey.deserialize(deserializer));
+        return new AnyPublicKey(Secp256k1PublicKey.deserialize(deserializer));
       default:
         throw new Error(`Unknown signature scheme ${scheme}`);
     }
