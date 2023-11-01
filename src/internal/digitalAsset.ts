@@ -140,7 +140,7 @@ export async function getOwnedTokens(args: {
   const { aptosConfig, ownerAddress, options } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    owner_address: { _eq: AccountAddress.from(ownerAddress).toString() },
+    owner_address: { _eq: AccountAddress.from(ownerAddress).toStringLong() },
   };
 
   const graphqlQuery = {
@@ -173,7 +173,7 @@ export async function getTokenActivity(args: {
   const { aptosConfig, tokenAddress, options } = args;
 
   const whereCondition: TokenActivitiesV2BoolExp = {
-    token_data_id: { _eq: AccountAddress.from(tokenAddress).toString() },
+    token_data_id: { _eq: AccountAddress.from(tokenAddress).toStringLong() },
   };
 
   const graphqlQuery = {
@@ -263,7 +263,7 @@ export async function getCollectionData(args: {
 
   const whereCondition: any = {
     collection_name: { _eq: collectionName },
-    creator_address: { _eq: address.toString() },
+    creator_address: { _eq: address.toStringLong() },
   };
 
   if (options?.tokenStandard) {

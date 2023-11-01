@@ -25,7 +25,7 @@ export async function getAccountEventsByCreationNumber(args: {
   const address = AccountAddress.from(accountAddress);
 
   const whereCondition: EventsBoolExp = {
-    account_address: { _eq: address.toString() },
+    account_address: { _eq: address.toStringLong() },
     creation_number: { _eq: creationNumber },
   };
 
@@ -42,7 +42,7 @@ export async function getAccountEventsByEventType(args: {
   };
 }): Promise<GetEventsResponse> {
   const { accountAddress, aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toString();
+  const address = AccountAddress.fromRelaxed(accountAddress).toStringLong();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
