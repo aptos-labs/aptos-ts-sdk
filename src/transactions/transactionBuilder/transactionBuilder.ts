@@ -521,21 +521,18 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
-  const deserializedTransaction = RawTransaction.deserialize(deserializer);
-
   if (transaction.feePayerAddress) {
     return new FeePayerRawTransaction(
-      deserializedTransaction,
+      transaction.rawTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
   }
   if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(deserializedTransaction, transaction.secondarySignerAddresses);
+    return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
   }
 
-  return deserializedTransaction as RawTransaction;
+  return transaction.rawTransaction as RawTransaction;
 }
 
 /**
