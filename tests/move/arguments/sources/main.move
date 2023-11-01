@@ -19,6 +19,10 @@ module transaction_arguments::tx_args_module {
     /// Option 1 contains a different value than Option 2.
     const OPTION_EQUALITY_ERROR_2: u64 = 500;
 
+    const BASE_ERROR_CODE_PUBLIC_ARGUMENTS: u64 = 10000;
+    const BASE_ERROR_CODE_MULTI_SIGNER: u64 = 2000;
+    const DEPLOYER_MUST_MATCH_MODULE_ADDRESS: u64 = 7777; // 0X1e61
+
     const MAX_U8: u8 = 255;
     const MAX_U16: u16 = 65535;
     const MAX_U32: u32 = 4294967295;
@@ -57,7 +61,7 @@ module transaction_arguments::tx_args_module {
     struct EmptyResource has key { }
 
     fun init_module(deployer: &signer) {
-        assert!(signer::address_of(deployer) == @transaction_arguments, 0);
+        assert!(signer::address_of(deployer) == @transaction_arguments, DEPLOYER_MUST_MATCH_MODULE_ADDRESS);
         let objs = vector<Object<EmptyResource>> [ ];
         let i = 0;
         while(i < 3) {
@@ -121,6 +125,7 @@ module transaction_arguments::tx_args_module {
     }
 
     public entry fun public_arguments(
+        _account_1: &signer,
         arg_bool: bool,
         arg_u8: u8,
         arg_u16: u16,
@@ -157,86 +162,44 @@ module transaction_arguments::tx_args_module {
         // deeply_nested_2: vector<Option<vector<vector<vector<Option<u256>>>>>>, // TODO
         // deeply_nested_3: vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>>, // TODO
     ) acquires SetupData {
-        assert!(arg_bool == EXPECTED_BOOL, 0);
-        assert!(arg_u8 == EXPECTED_U8, 1);
-        assert!(arg_u16 == EXPECTED_U16, 2);
-        assert!(arg_u32 == EXPECTED_U32, 3);
-        assert!(arg_u64 == EXPECTED_U64, 4);
-        assert!(arg_u128 == EXPECTED_U128, 5);
-        assert!(arg_u256 == EXPECTED_U256, 6);
-        assert!(arg_address == EXPECTED_ADDRESS, 7);
-        assert!(arg_string == string::utf8(EXPECTED_STRING), 8);
-        assert!(arg_object == get_setup_data().empty_object_1, 9);
-        assert_vectors_equal(vector_empty, vector<u8>[], 10);
-        assert_vectors_equal(vector_bool, EXPECTED_VECTOR_BOOL, 11);
-        assert_vectors_equal(vector_u8, EXPECTED_VECTOR_U8, 12);
-        assert_vectors_equal(vector_u16, EXPECTED_VECTOR_U16, 13);
-        assert_vectors_equal(vector_u32, EXPECTED_VECTOR_U32, 14);
-        assert_vectors_equal(vector_u64, EXPECTED_VECTOR_U64, 15);
-        assert_vectors_equal(vector_u128, EXPECTED_VECTOR_U128, 16);
-        assert_vectors_equal(vector_u256, EXPECTED_VECTOR_U256, 17);
-        assert_vectors_equal(vector_address, EXPECTED_VECTOR_ADDRESS, 18);
-        assert_vectors_equal(vector_string, get_expected_vector_string(), 19);
-        assert_vectors_equal(vector_object, get_test_objects_vector(), 20);
-        assert_options_equal(option_empty, option::none<u8>(), 21);
-        assert_options_equal(option_bool, option::some(EXPECTED_BOOL), 22);
-        assert_options_equal(option_u8, option::some(EXPECTED_U8),23);
-        assert_options_equal(option_u16, option::some(EXPECTED_U16), 24);
-        assert_options_equal(option_u32, option::some(EXPECTED_U32),25);
-        assert_options_equal(option_u64, option::some(EXPECTED_U64),26);
-        assert_options_equal(option_u128, option::some(EXPECTED_U128), 27);
-        assert_options_equal(option_u256, option::some(EXPECTED_U256), 28);
-        assert_options_equal(option_address, option::some(EXPECTED_ADDRESS), 29);
-        assert_options_equal(option_string, option::some(string::utf8(EXPECTED_STRING)), 30);
-        let obj = get_setup_data().empty_object_1;
-        assert_options_equal(option_object, option::some(obj), 31);
+        let expected_obj = get_setup_data().empty_object_1;
+        assert!(arg_bool == EXPECTED_BOOL, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 0);
+        assert!(arg_u8 == EXPECTED_U8, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 1);
+        assert!(arg_u16 == EXPECTED_U16, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 2);
+        assert!(arg_u32 == EXPECTED_U32, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 3);
+        assert!(arg_u64 == EXPECTED_U64, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 4);
+        assert!(arg_u128 == EXPECTED_U128, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 5);
+        assert!(arg_u256 == EXPECTED_U256, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 6);
+        assert!(arg_address == EXPECTED_ADDRESS, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 7);
+        assert!(arg_string == string::utf8(EXPECTED_STRING), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 8);
+        assert!(arg_object == expected_obj, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 9);
+        assert_vectors_equal(vector_empty, vector<u8>[], BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 10);
+        assert_vectors_equal(vector_bool, EXPECTED_VECTOR_BOOL, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 11);
+        assert_vectors_equal(vector_u8, EXPECTED_VECTOR_U8, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 12);
+        assert_vectors_equal(vector_u16, EXPECTED_VECTOR_U16, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 13);
+        assert_vectors_equal(vector_u32, EXPECTED_VECTOR_U32, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 14);
+        assert_vectors_equal(vector_u64, EXPECTED_VECTOR_U64, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 15);
+        assert_vectors_equal(vector_u128, EXPECTED_VECTOR_U128, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 16);
+        assert_vectors_equal(vector_u256, EXPECTED_VECTOR_U256, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 17);
+        assert_vectors_equal(vector_address, EXPECTED_VECTOR_ADDRESS, BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 18);
+        assert_vectors_equal(vector_string, get_expected_vector_string(), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 19);
+        assert_vectors_equal(vector_object, get_test_objects_vector(), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 20);
+        assert_options_equal(option_empty, option::none<u8>(), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 21);
+        assert_options_equal(option_bool, option::some(EXPECTED_BOOL), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 22);
+        assert_options_equal(option_u8, option::some(EXPECTED_U8),BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 23);
+        assert_options_equal(option_u16, option::some(EXPECTED_U16), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 24);
+        assert_options_equal(option_u32, option::some(EXPECTED_U32),BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 25);
+        assert_options_equal(option_u64, option::some(EXPECTED_U64),BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 26);
+        assert_options_equal(option_u128, option::some(EXPECTED_U128), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 27);
+        assert_options_equal(option_u256, option::some(EXPECTED_U256), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 28);
+        assert_options_equal(option_address, option::some(EXPECTED_ADDRESS), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 29);
+        assert_options_equal(option_string, option::some(string::utf8(EXPECTED_STRING)), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 30);
+        assert_options_equal(option_object, option::some(expected_obj), BASE_ERROR_CODE_PUBLIC_ARGUMENTS + 31);
     }
 
     // Can't be called from a script payload
     entry fun private_arguments(
-        arg_bool: bool,
-        arg_u8: u8,
-        arg_u16: u16,
-        arg_u32: u32,
-        arg_u64: u64,
-        arg_u128: u128,
-        arg_u256: u256,
-        arg_address: address,
-        arg_string: String,
-        arg_object: Object<EmptyResource>,
-        vector_empty: vector<u8>,
-        vector_bool: vector<bool>,
-        vector_u8: vector<u8>,
-        vector_u16: vector<u16>,
-        vector_u32: vector<u32>,
-        vector_u64: vector<u64>,
-        vector_u128: vector<u128>,
-        vector_u256: vector<u256>,
-        vector_address: vector<address>,
-        vector_string: vector<String>,
-        vector_object: vector<Object<EmptyResource>>,
-        option_empty: Option<u8>,
-        option_bool: Option<bool>,
-        option_u8: Option<u8>,
-        option_u16: Option<u16>,
-        option_u32: Option<u32>,
-        option_u64: Option<u64>,
-        option_u128: Option<u128>,
-        option_u256: Option<u256>,
-        option_address: Option<address>,
-        option_string: Option<String>,
-        option_object: Option<Object<EmptyResource>>,
-    ) acquires SetupData {
-        public_arguments(
-            arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
-            vector_empty, vector_bool, vector_u8, vector_u16, vector_u32, vector_u64, vector_u128, vector_u256, vector_address, vector_string, vector_object,
-            option_empty, option_bool, option_u8, option_u16, option_u32, option_u64, option_u128, option_u256, option_address, option_string, option_object,
-        );
-    }
-
-    public entry fun public_arguments_one_signer(
         account_1: &signer,
-        signer_address: address,
         arg_bool: bool,
         arg_u8: u8,
         arg_u16: u16,
@@ -270,10 +233,8 @@ module transaction_arguments::tx_args_module {
         option_string: Option<String>,
         option_object: Option<Object<EmptyResource>>,
     ) acquires SetupData {
-        assert!(signer::address_of(account_1) == signer_address, 0);
-
         public_arguments(
-            arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
+            account_1, arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
             vector_empty, vector_bool, vector_u8, vector_u16, vector_u32, vector_u64, vector_u128, vector_u256, vector_address, vector_string, vector_object,
             option_empty, option_bool, option_u8, option_u16, option_u32, option_u64, option_u128, option_u256, option_address, option_string, option_object,
         );
@@ -326,23 +287,70 @@ module transaction_arguments::tx_args_module {
             signer::address_of(account_4),
             signer::address_of(account_5),
         ];
-        assert_vectors_equal(signer_addresses, signer_addresses_passed_in, 0);
+        assert_vectors_equal(signer_addresses, signer_addresses_passed_in, BASE_ERROR_CODE_MULTI_SIGNER);
 
         public_arguments(
-            arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
+            account_1, arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
             vector_empty, vector_bool, vector_u8, vector_u16, vector_u32, vector_u64, vector_u128, vector_u256, vector_address, vector_string, vector_object,
             option_empty, option_bool, option_u8, option_u16, option_u32, option_u64, option_u128, option_u256, option_address, option_string, option_object,
         );
     }
 
-    inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
+    entry fun private_arguments_multiple_signers(
+        account_1: &signer,
+        account_2: &signer,
+        account_3: &signer,
+        account_4: &signer,
+        account_5: &signer,
+        signer_addresses: vector<address>,
+        arg_bool: bool,
+        arg_u8: u8,
+        arg_u16: u16,
+        arg_u32: u32,
+        arg_u64: u64,
+        arg_u128: u128,
+        arg_u256: u256,
+        arg_address: address,
+        arg_string: String,
+        arg_object: Object<EmptyResource>,
+        vector_empty: vector<u8>,
+        vector_bool: vector<bool>,
+        vector_u8: vector<u8>,
+        vector_u16: vector<u16>,
+        vector_u32: vector<u32>,
+        vector_u64: vector<u64>,
+        vector_u128: vector<u128>,
+        vector_u256: vector<u256>,
+        vector_address: vector<address>,
+        vector_string: vector<String>,
+        vector_object: vector<Object<EmptyResource>>,
+        option_empty: Option<u8>,
+        option_bool: Option<bool>,
+        option_u8: Option<u8>,
+        option_u16: Option<u16>,
+        option_u32: Option<u32>,
+        option_u64: Option<u64>,
+        option_u128: Option<u128>,
+        option_u256: Option<u256>,
+        option_address: Option<address>,
+        option_string: Option<String>,
+        option_object: Option<Object<EmptyResource>>,
+    ) acquires SetupData {
+        public_arguments_multiple_signers(
+            account_1, account_2, account_3, account_4, account_5, signer_addresses, arg_bool, arg_u8, arg_u16, arg_u32, arg_u64, arg_u128, arg_u256, arg_address, arg_string, arg_object,
+            vector_empty, vector_bool, vector_u8, vector_u16, vector_u32, vector_u64, vector_u128, vector_u256, vector_address, vector_string, vector_object,
+            option_empty, option_bool, option_u8, option_u16, option_u32, option_u64, option_u128, option_u256, option_address, option_string, option_object,
+        );
+    }
+
+    public inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
         assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
         vector::zip<T, T>(vec_1, vec_2, |a, b| {
             assert!(a == b, error::invalid_state(arg_index));
         });
     }
 
-    inline fun assert_options_equal<T>(option_1: Option<T>, option_2: Option<T>, arg_index: u64) {
+    public inline fun assert_options_equal<T>(option_1: Option<T>, option_2: Option<T>, arg_index: u64) {
         if (option::is_none<T>(&option_1)) {
             assert!(option::is_none<T>(&option_2), error::invalid_state(OPTION_EQUALITY_ERROR_0 + arg_index));
         } else {
@@ -350,6 +358,34 @@ module transaction_arguments::tx_args_module {
             let element = option::borrow<T>(&option_1);
             assert!(option::contains(&option_2, element), error::invalid_state(OPTION_EQUALITY_ERROR_2 + arg_index));
         }
+    }
+
+    // Only test these script args right now. Most other forms of arguments aren't supported.
+    public fun assert_values_for_script(
+        arg_bool: bool,
+        arg_u8: u8,
+        arg_u16: u16,
+        arg_u32: u32,
+        arg_u64: u64,
+        arg_u128: u128,
+        arg_u256: u256,
+        arg_address: address,
+        arg_string: String,
+        arg_object: Object<EmptyResource>,
+        vector_u8: vector<u8>,
+    ) acquires SetupData {
+        let expected_obj = get_setup_data().empty_object_1;
+        assert!(arg_bool == EXPECTED_BOOL, 0);
+        assert!(arg_u8 == EXPECTED_U8, 1);
+        assert!(arg_u16 == EXPECTED_U16, 2);
+        assert!(arg_u32 == EXPECTED_U32, 3);
+        assert!(arg_u64 == EXPECTED_U64, 4);
+        assert!(arg_u128 == EXPECTED_U128, 5);
+        assert!(arg_u256 == EXPECTED_U256, 6);
+        assert!(arg_address == EXPECTED_ADDRESS, 7);
+        assert!(arg_string == string::utf8(EXPECTED_STRING), 8);
+        assert!(arg_object == expected_obj, 9);
+        assert_vectors_equal(vector_u8, EXPECTED_VECTOR_U8, 10);
     }
 
     #[view]
@@ -514,6 +550,7 @@ module transaction_arguments::tx_args_module {
         init_module(deployer);
 
         public_arguments(
+            deployer,
             EXPECTED_BOOL,
             EXPECTED_U8,
             EXPECTED_U16,
@@ -549,43 +586,7 @@ module transaction_arguments::tx_args_module {
         );
 
         private_arguments(
-            EXPECTED_BOOL,
-            EXPECTED_U8,
-            EXPECTED_U16,
-            EXPECTED_U32,
-            EXPECTED_U64,
-            EXPECTED_U128,
-            EXPECTED_U256,
-            EXPECTED_ADDRESS,
-            string::utf8(EXPECTED_STRING),
-            get_setup_data().empty_object_1,
-            vector<u8>[],
-            EXPECTED_VECTOR_BOOL,
-            EXPECTED_VECTOR_U8,
-            EXPECTED_VECTOR_U16,
-            EXPECTED_VECTOR_U32,
-            EXPECTED_VECTOR_U64,
-            EXPECTED_VECTOR_U128,
-            EXPECTED_VECTOR_U256,
-            EXPECTED_VECTOR_ADDRESS,
-            get_expected_vector_string(),
-            get_test_objects_vector(),
-            option::none<u8>(),
-            option::some(EXPECTED_BOOL),
-            option::some(EXPECTED_U8),
-            option::some(EXPECTED_U16),
-            option::some(EXPECTED_U32),
-            option::some(EXPECTED_U64),
-            option::some(EXPECTED_U128),
-            option::some(EXPECTED_U256),
-            option::some(EXPECTED_ADDRESS),
-            option::some(string::utf8(EXPECTED_STRING)),
-            option::some(get_setup_data().empty_object_1),
-        );
-
-        public_arguments_one_signer(
             deployer,
-            deployer_address,
             EXPECTED_BOOL,
             EXPECTED_U8,
             EXPECTED_U16,
@@ -621,6 +622,47 @@ module transaction_arguments::tx_args_module {
         );
         
         public_arguments_multiple_signers(
+            deployer,
+            signer_2,
+            signer_3,
+            signer_4,
+            signer_5,
+            vector<address> [ deployer_address, signer_2_address, signer_3_address, signer_4_address, signer_5_address, ],
+            EXPECTED_BOOL,
+            EXPECTED_U8,
+            EXPECTED_U16,
+            EXPECTED_U32,
+            EXPECTED_U64,
+            EXPECTED_U128,
+            EXPECTED_U256,
+            EXPECTED_ADDRESS,
+            string::utf8(EXPECTED_STRING),
+            get_setup_data().empty_object_1,
+            vector<u8>[],
+            EXPECTED_VECTOR_BOOL,
+            EXPECTED_VECTOR_U8,
+            EXPECTED_VECTOR_U16,
+            EXPECTED_VECTOR_U32,
+            EXPECTED_VECTOR_U64,
+            EXPECTED_VECTOR_U128,
+            EXPECTED_VECTOR_U256,
+            EXPECTED_VECTOR_ADDRESS,
+            get_expected_vector_string(),
+            get_test_objects_vector(),
+            option::none<u8>(),
+            option::some(EXPECTED_BOOL),
+            option::some(EXPECTED_U8),
+            option::some(EXPECTED_U16),
+            option::some(EXPECTED_U32),
+            option::some(EXPECTED_U64),
+            option::some(EXPECTED_U128),
+            option::some(EXPECTED_U256),
+            option::some(EXPECTED_ADDRESS),
+            option::some(string::utf8(EXPECTED_STRING)),
+            option::some(get_setup_data().empty_object_1),
+        );
+
+        private_arguments_multiple_signers(
             deployer,
             signer_2,
             signer_3,

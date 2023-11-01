@@ -68,9 +68,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    */
   serializeForScriptFunction(serializer: Serializer): void {
     // runtime check to ensure that you can't serialize anything other than vector<u8>
-    // TODO: consider adding support for MoveString later?
     const isU8 = this.values[0] instanceof U8;
-    if (!isU8) {
+    // if the inner array is length 0, we can't check the type because it has no instance, so we assume it's a u8
+    // it may not be, but we don't care because it's serialized as `0x0` regardless
+    if (!isU8 && this.values[0] !== undefined) {
       throw new Error("Script function arguments only accept u8 vectors");
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
@@ -238,8 +239,10 @@ export class MoveString extends Serializable implements TransactionArgument {
   }
 
   serializeForScriptFunction(serializer: Serializer): void {
-    // serialize the string, load it into a vector<u8> and serialize it as a script vector<u8> argument
-    const vectorU8 = MoveVector.U8(this.bcsToBytes());
+    // Serialize the string as a fixed byte string, i.e., without the length prefix
+    const fixedStringBytes = this.bcsToBytes().slice(1);
+    // Put those bytes into a vector<u8> and serialize it as a script function argument
+    const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);
   }
 

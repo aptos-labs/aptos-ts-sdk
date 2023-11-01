@@ -18,6 +18,8 @@ import {
   TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
   SimpleEntryFunctionArgumentTypes,
+  Ed25519PrivateKey,
+  UserTransactionResponse,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -33,6 +35,9 @@ import {
   rawTransactionHelper,
   rawTransactionMultiAgentHelper,
   publishArgumentTestModule,
+  PUBLISHER_ACCOUNT_ADDRESS,
+  PUBLISHER_ACCOUNT_PK,
+  MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
 } from "./helper";
 
 jest.setTimeout(10000);
@@ -51,7 +56,7 @@ jest.setTimeout(10000);
 describe("various transaction arguments", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const senderAccount = Account.generate();
+  const senderAccount = Account.fromPrivateKey({privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK)});
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
   const moduleObjects: Array<AccountAddress> = [];
@@ -265,9 +270,9 @@ describe("various transaction arguments", () => {
       const response = await rawTransactionHelper(
         aptos,
         senderAccount,
-        "public_arguments_one_signer",
+        "public_arguments",
         [],
-        [senderAccount.accountAddress, ...transactionArguments],
+        transactionArguments,
       );
       expect(response.success).toBe(true);
     });
@@ -276,9 +281,9 @@ describe("various transaction arguments", () => {
       const response = await rawTransactionHelper(
         aptos,
         senderAccount,
-        "public_arguments_one_signer",
+        "public_arguments",
         [],
-        [senderAccount.accountAddress.toString(), ...simpleTransactionArguments],
+        simpleTransactionArguments,
       );
       expect(response.success).toBe(true);
     });
@@ -340,9 +345,9 @@ describe("various transaction arguments", () => {
       const response = await rawTransactionMultiAgentHelper(
         aptos,
         senderAccount,
-        "public_arguments_one_signer",
+        "public_arguments",
         [],
-        [senderAccount.accountAddress, ...transactionArguments],
+        transactionArguments,
         [], // secondary signers
         feePayerAccount,
       );
@@ -385,9 +390,9 @@ describe("various transaction arguments", () => {
       const response = await rawTransactionMultiAgentHelper(
         aptos,
         senderAccount,
-        "public_arguments_one_signer",
+        "public_arguments",
         [],
-        [senderAccount.accountAddress, ...transactionArguments],
+        transactionArguments,
         [], // secondary signers
         feePayerAccount,
       );
@@ -424,6 +429,49 @@ describe("various transaction arguments", () => {
       expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
+    });
+  });
+
+  describe("script transactions", () => {
+    it("successfully submits a script transaction with all argument types", async () => {
+      const rawTransaction = await aptos.generateTransaction({
+        sender: senderAccount.accountAddress.toString(),
+        data: {
+          bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
+          functionArguments: [
+            senderAccount.accountAddress,
+            ...secondarySignerAccounts.map((account) => account.accountAddress),
+            new Bool(true),
+            new U8(1),
+            new U16(2),
+            new U32(3),
+            new U64(4),
+            new U128(5),
+            new U256(6),
+            senderAccount.accountAddress,
+            new MoveString("expected_string"),
+            moduleObjects[0],
+            MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]),
+          ],
+        },
+        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.toString()),
+      });
+      const senderAuthenticator = await aptos.signTransaction({ signer: senderAccount, transaction: rawTransaction });
+      const secondaryAuthenticators = secondarySignerAccounts.map(account => aptos.signTransaction({
+        signer: account,
+        transaction: rawTransaction,
+      }));
+      const transactionResponse = await aptos.submitTransaction({
+        transaction: rawTransaction,
+        senderAuthenticator,
+        secondarySignerAuthenticators: {
+          additionalSignersAuthenticators: secondaryAuthenticators,
+        }
+      });
+      const response = (await aptos.waitForTransaction({ transactionHash: transactionResponse.hash })) as UserTransactionResponse;
+      expect(response.success).toBe(true);
+      expect((response.signature as TransactionMultiAgentSignature).type).toBe("multi_agent_signature");
+      expect(response.payload.type).toBe("script_payload");
     });
   });
 });
