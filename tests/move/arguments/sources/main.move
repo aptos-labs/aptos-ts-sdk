@@ -197,27 +197,32 @@ module transaction_arguments::tx_args_module {
     entry fun complex_arguments(
         deeply_nested_1: vector<vector<u8>>,
         deeply_nested_2: vector<vector<String>>,
-        deeply_nested_3: vector<vector<Option<String>>>,
+        deeply_nested_3: vector<Option<vector<String>>>,
         deeply_nested_4: vector<vector<Option<vector<String>>>>,
-        deeply_nested_5: vector<Option<vector<Option<vector<String>>>>>,
-        deeply_nested_6: vector<Option<vector<vector<vector<Option<u8>>>>>>,
-        deeply_nested_7: vector<Option<vector<vector<vector<Option<u256>>>>>>,
-        deeply_nested_8: vector<Option<vector<vector<vector<Option<String>>>>>>,
-        deeply_nested_9: vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>>,
-        deeply_nested_10: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>>>,
-        deeply_nested_11: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u256>>>>>>>>>>,
-        deeply_nested_12: vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<String>>>>>>>>>>,
     ) {
-        // assert_vectors_equal(deeply_nested_1, vector<vector<u8>> [ vector<u8> [ b"abc" ] ], 0);
-        // assert_vectors_equal(deeply_nested_2, vector<vector<String>> [ vector<String> [ string::utf8(b"abc") ] ], 1);
-        // assert_vectors_equal(deeply_nested_3, vector<vector<Option<String>>> [ vector<Option<String>> [ option::some(string::utf8(b"abc")) ] ], 2);
-        // assert_vectors_equal(deeply_nested_4, vector<vector<Option<vector<String>>>> [ vector<Option<vector<String>>> [ option::some(vector<String> [ string::utf8(b"abc") ]) ] ], 3);
-        // assert_vectors_equal(deeply_nested_5, vector<Option<vector<Option<vector<String>>>>> [ option::some(vector<Option<vector<String>>> [ option::some(vector<String> [ string::utf8(b"abc") ]) ]) ], 4);
-        // assert_vectors_equal(deeply_nested_6, vector<Option<vector<vector<vector<Option<u8>>>>>> [ option::some(vector<vector<vector<Option<u8>>>> [ vector<vector<Option<u8>>> [ vector<Option<u8>> [ option::some(1) ] ] ] ) ], 5);
-        // assert_vectors_equal(deeply_nested_7, vector<Option<vector<vector<vector<Option<u256>>>>>> [ option::some(vector<vector<vector<Option<u256>>>> [ vector<vector<Option<u256>>> [ vector<Option<u256>> [ option::some(1) ] ] ] ) ], 6);
-        // assert_vectors_equal(deeply_nested_8, vector<Option<vector<vector<vector<Option<String>>>>>> [ option::some(vector<vector<vector<Option<String>>>> [ vector<vector<Option<String>>> [ vector<Option<String>> [ option::some(string::utf8(b"abc")) ] ] ] ) ], 7);
-        // assert_vectors_equal(deeply_nested_9, vector<Option<vector<vector<vector<Option<Object<EmptyResource>>>>>>> [ option::some(vector<vector<vector<Option<Object<EmptyResource>>>>> [ vector<vector<Option<Object<EmptyResource>>>> [ vector<Option<Object<EmptyResource>>> [ option::some(get_setup_data().empty_object_1) ] ] ] ) ], 8);
-        // assert_vectors_equal(deeply_nested_10, vector<vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>>> [ vector<vector<vector<vector<vector<vector<vector<vector<vector<u8>>>>>>>>> [ vector<vector<vector<vector<vector<vector
+        let deeply_nested_1_comparison = vector<vector<u8>> [ EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8 ];
+        let deeply_nested_2_comparison = vector<vector<String>> [ get_expected_vector_string(), get_expected_vector_string(), get_expected_vector_string() ];
+        let option_vector = option::some(get_expected_vector_string());
+        let deeply_nested_3_comparison = vector<Option<vector<String>>> [ option_vector, option_vector, option_vector ];
+        let deeply_nested_4_comparison = vector<vector<Option<vector<String>>>> [ deeply_nested_3_comparison, deeply_nested_3_comparison, deeply_nested_3_comparison ];
+        assert_deep_equality(deeply_nested_1, deeply_nested_1_comparison, 0);
+        assert_deep_equality(deeply_nested_2, deeply_nested_2_comparison, 1);
+
+        vector::zip(deeply_nested_3, deeply_nested_3_comparison, |a, b| {
+            assert_options_equal(a, b, 2);
+            let option_vec1 = option::extract(&mut a);
+            let option_vec2 = option::extract(&mut b);
+            assert_vectors_equal(option_vec1, option_vec2, 2);
+        });
+
+        vector::zip(deeply_nested_4, deeply_nested_4_comparison, |a, b| {
+            vector::zip(a, b, |aa, bb| {
+                assert_options_equal(aa, bb, 3);
+                let option_vec1 = option::extract(&mut aa);
+                let option_vec2 = option::extract(&mut bb);
+                assert_vectors_equal(option_vec1, option_vec2, 3);
+            });
+        });
     }
 
     // Can't be called from a script payload
@@ -373,11 +378,7 @@ module transaction_arguments::tx_args_module {
         });
     }
 
-    // if type_of<T1>() == type_of<vector<T2>>()
-    // then do assert_vectors_equal<T2>(vec_1, vec_2, arg_index)
-    // if type_of<T1>() == type_of<vector<vector<T>>>()
-    // then do assert_deep_equality<T>(vec_1, vec_2, arg_index)
-    public inline fun assert_deep_equality<T1: drop, T2: drop>(vec_1: vector<vector<T2>>, vec_2: vector<vector<T2>>, arg_index: u64) {
+    public inline fun assert_deep_equality<T: drop>(vec_1: vector<vector<T>>, vec_2: vector<vector<T>>, arg_index: u64) {
         assert!(vector::length<vector<T>>(&vec_1) == vector::length<vector<T>>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
         vector::zip<vector<T>, vector<T>>(vec_1, vec_2, |a, b| {
             assert_vectors_equal<T>(a, b, arg_index);
@@ -562,13 +563,15 @@ module transaction_arguments::tx_args_module {
         )
     }
 
-    #[test(deployer=@transaction_arguments, signer_2=@0xa, signer_3=@0xb, signer_4=@0xc, signer_5=@0xd, core=@0x1)]
+    #[test(deployer=@transaction_arguments, signer_2=@0xa, signer_3=@0xb, signer_4=@0xc, signer_5=@0xd, signer_2_clone=@0xa, signer_4_clone=@0xc, core=@0x1)]
     fun test_all_functions(
         deployer: &signer,
-        signer_2: &signer,
+        signer_2: signer,
         signer_3: &signer,
-        signer_4: &signer,
+        signer_4: signer,
         signer_5: &signer,
+        signer_2_clone: signer,
+        signer_4_clone: signer,
         core: &signer,
     ) acquires SetupData {
         use std::features;
@@ -576,9 +579,9 @@ module transaction_arguments::tx_args_module {
         features::change_feature_flags(core, vector[feature], vector[]);
 
         let deployer_address = signer::address_of(deployer);
-        let signer_2_address = signer::address_of(signer_2);
+        let signer_2_address = signer::address_of(&signer_2);
         let signer_3_address = signer::address_of(signer_3);
-        let signer_4_address = signer::address_of(signer_4);
+        let signer_4_address = signer::address_of(&signer_4);
         let signer_5_address = signer::address_of(signer_5);
 
         init_module(deployer);
@@ -657,9 +660,9 @@ module transaction_arguments::tx_args_module {
         
         public_arguments_multiple_signers(
             deployer,
-            signer_2,
+            signer_2_clone,
             signer_3,
-            signer_4,
+            signer_4_clone,
             signer_5,
             vector<address> [ deployer_address, signer_2_address, signer_3_address, signer_4_address, signer_5_address, ],
             EXPECTED_BOOL,
@@ -735,6 +738,19 @@ module transaction_arguments::tx_args_module {
             option::some(EXPECTED_ADDRESS),
             option::some(string::utf8(EXPECTED_STRING)),
             option::some(get_setup_data().empty_object_1),
+        );
+
+        let deeply_nested_1_comparison = vector<vector<u8>> [ EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8 ];
+        let deeply_nested_2_comparison = vector<vector<String>> [ get_expected_vector_string(), get_expected_vector_string(), get_expected_vector_string() ];
+        let option_vector = option::some(get_expected_vector_string());
+        let deeply_nested_3_comparison = vector<Option<vector<String>>> [ option_vector, option_vector, option_vector ];
+        let deeply_nested_4_comparison = vector<vector<Option<vector<String>>>> [ deeply_nested_3_comparison, deeply_nested_3_comparison, deeply_nested_3_comparison ];
+
+        complex_arguments(
+            deeply_nested_1_comparison,
+            deeply_nested_2_comparison,
+            deeply_nested_3_comparison,
+            deeply_nested_4_comparison,
         );
     }
 

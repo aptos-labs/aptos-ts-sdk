@@ -58,6 +58,8 @@ describe("various transaction arguments", () => {
   let transactionArguments: Array<EntryFunctionArgumentTypes>;
   let simpleTransactionArguments: Array<SimpleEntryFunctionArgumentTypes>;
   let mixedTransactionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  const EXPECTED_VECTOR_U8 = MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]);
+  const EXPECTED_VECTOR_STRING = MoveVector.MoveString(["expected_string", "abc", "def", "123", "456", "789"]);
 
   beforeAll(async () => {
     await fundAccounts(aptos, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
@@ -81,6 +83,8 @@ describe("various transaction arguments", () => {
     moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_2.inner));
     moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_3.inner));
 
+
+
     transactionArguments = [
       new Bool(true),
       new U8(1),
@@ -94,7 +98,7 @@ describe("various transaction arguments", () => {
       moduleObjects[0],
       new MoveVector([]),
       MoveVector.Bool([true, false, true]),
-      MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]),
+      EXPECTED_VECTOR_U8,
       MoveVector.U16([0, 1, 2, MAX_U16_NUMBER - 2, MAX_U16_NUMBER - 1, MAX_U16_NUMBER]),
       MoveVector.U32([0, 1, 2, MAX_U32_NUMBER - 2, MAX_U32_NUMBER - 1, MAX_U32_NUMBER]),
       MoveVector.U64([0, 1, 2, MAX_U64_BIG_INT - BigInt(2), MAX_U64_BIG_INT - BigInt(1), MAX_U64_BIG_INT]),
@@ -108,7 +112,7 @@ describe("various transaction arguments", () => {
         AccountAddress.fromStringRelaxed("0x456"),
         AccountAddress.fromStringRelaxed("0x789"),
       ]),
-      MoveVector.MoveString(["expected_string", "abc", "def", "123", "456", "789"]),
+      EXPECTED_VECTOR_STRING,
       new MoveVector(moduleObjects),
       new MoveOption(),
       new MoveOption(new Bool(true)),
@@ -466,5 +470,38 @@ describe("various transaction arguments", () => {
       expect((response.signature as TransactionMultiAgentSignature).type).toBe("multi_agent_signature");
       expect(response.payload.type).toBe("script_payload");
     });
+  });
+
+  describe("nested, complex arguments", () => {
+    it("successfully submits a function with very complex arguments", async () => {
+      const optionVector = new MoveOption(EXPECTED_VECTOR_STRING);
+      const deeplyNested3 = new MoveVector([
+        optionVector,
+        optionVector,
+        optionVector,
+      ]);
+      const deeplyNested4 = new MoveVector([
+        deeplyNested3,
+        deeplyNested3,
+        deeplyNested3,
+      ]);
+  
+      const response = await rawTransactionMultiAgentHelper(
+        aptos,
+        senderAccount,
+        "complex_arguments",
+        [],
+        [
+          new MoveVector([EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8]),
+          new MoveVector([EXPECTED_VECTOR_STRING, EXPECTED_VECTOR_STRING, EXPECTED_VECTOR_STRING]),
+          deeplyNested3,
+          deeplyNested4,
+        ],
+        secondarySignerAccounts,
+        feePayerAccount,
+      );
+      expect(response.success).toBe(true);
+    });
+
   });
 });
