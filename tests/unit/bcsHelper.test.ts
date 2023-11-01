@@ -593,34 +593,4 @@ describe("Tests for the Serializable class", () => {
       expect(() => MoveVector.U8([BigInt(1)] as any)).toThrow();
     });
   });
-
-  describe("factory methods", () => {
-    it("serializes a vector of addresses and strings and objects correctly", () => {
-      const vectorStringWithConstructor = new MoveVector([
-        new MoveString("abc0x1abc"),
-        new MoveString("def0x2def"),
-        new MoveString("ghi0x3ghi"),
-      ]);
-      const vectorString = MoveVector.MoveString(["abc0x1abc", "def0x2def", "ghi0x3ghi"]);
-      expect(vectorString.bcsToBytes()).toEqual(vectorStringWithConstructor.bcsToBytes());
-
-      const vectorAddressWithConstructor = new MoveVector([
-        AccountAddress.ONE,
-        AccountAddress.TWO,
-        AccountAddress.THREE,
-      ]);
-      const vectorAddress = MoveVector.AccountAddress([AccountAddress.ONE, AccountAddress.TWO, AccountAddress.THREE]);
-      const vectorAddress2 = MoveVector.AccountAddress(["0x1", "0x2", "0x3"]);
-      expect(vectorAddress.bcsToBytes()).toEqual(vectorAddressWithConstructor.bcsToBytes());
-      expect(vectorAddress.bcsToBytes()).toEqual(vectorAddress2.bcsToBytes());
-    });
-
-    it("serializes options created with factory methods correctly", () => {
-      const optionAddressWithConstructor = new MoveOption(AccountAddress.ONE);
-      const optionAddress = MoveOption.AccountAddress(AccountAddress.ONE);
-      const optionAddress2 = MoveOption.AccountAddress("0x1");
-      expect(optionAddress.bcsToBytes()).toEqual(optionAddress2.bcsToBytes());
-      expect(optionAddress.bcsToBytes()).toEqual(optionAddressWithConstructor.bcsToBytes());
-    });
-  });
 });

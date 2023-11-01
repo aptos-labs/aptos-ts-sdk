@@ -7,7 +7,6 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { AccountAddress } from "../../core/accountAddress";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -185,24 +184,6 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
-  }
-
-  /**
-   * Factory method to generate a MoveVector of AccountAddresses
-   *
-   * @example
-   * const v = MoveVector.AccountAddress(["hello", "world"]);
-   * @params values: an array of `HexInput | AccountAddress`
-   * @returns a `MoveVector<AccountAddress>`
-   */
-  static AccountAddress(values: Array<HexInput | AccountAddress>): MoveVector<AccountAddress> {
-    const accountAddresses = values.map((v) => {
-      if (v instanceof AccountAddress) {
-        return v;
-      }
-      return AccountAddress.fromHexInputRelaxed(v);
-    });
-    return new MoveVector<AccountAddress>(accountAddresses);
   }
 
   serialize(serializer: Serializer): void {
@@ -445,32 +426,6 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
-  }
-
-  /**
-   * Factory method to generate a MoveOption<AccountAddress> from `HexInput`, `AccountAddress` or `undefined`
-   *
-   * @example
-   * MoveOption.AccountAddress("0x1").isSome() === true;
-   * MoveOption.AccountAddress("0xbeefcafe").isSome() === true;
-   * MoveOption.AccountAddress().isSome() === false;
-   * MoveOption.AccountAddress(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
-   * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<AccountAddress> with an inner value `value`
-   */
-  static AccountAddress(value?: HexInput | AccountAddress | null): MoveOption<AccountAddress> {
-    let accountAddress: AccountAddress | undefined;
-    if (value !== null && value !== undefined) {
-      if (value instanceof AccountAddress) {
-        accountAddress = value;
-      } else {
-        accountAddress = AccountAddress.fromHexInputRelaxed(value);
-      }
-    } else {
-      accountAddress = undefined;
-    }
-    return new MoveOption<AccountAddress>(accountAddress);
   }
 
   static deserialize<U extends Serializable & EntryFunctionArgument>(
