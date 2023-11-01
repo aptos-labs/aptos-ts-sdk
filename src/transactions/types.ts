@@ -14,7 +14,6 @@ import {
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
-  SimpleEntryFunctionArgumentTypes,
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag";

@@ -3,18 +3,9 @@
 
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../../core/hex";
+import { SimpleEntryFunctionArgumentTypes } from "../types";
 
 export interface TransactionArgument extends EntryFunctionArgument, ScriptFunctionArgument {}
-
-export type SimpleEntryFunctionArgumentTypes =
-  | boolean
-  | number
-  | bigint
-  | string
-  | null // To support optional empty
-  | undefined // To support optional empty
-  | Uint8Array
-  | Array<SimpleEntryFunctionArgumentTypes>;
 
 export interface EntryFunctionArgument {
   /**

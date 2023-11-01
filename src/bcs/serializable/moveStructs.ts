@@ -8,9 +8,9 @@ import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../ty
 import { Hex } from "../../core/hex";
 import {
   EntryFunctionArgument,
-  SimpleEntryFunctionArgumentTypes,
   TransactionArgument,
 } from "../../transactions/instances/transactionArgument";
+import { SimpleEntryFunctionArgumentTypes } from "../../transactions/types";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,

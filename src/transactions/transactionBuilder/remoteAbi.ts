@@ -4,7 +4,7 @@
 import { parseTypeTag } from "../typeTag/parser";
 import { TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
-import { EntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
+import { EntryFunctionArgumentTypes, EntryFunctionABI, SimpleEntryFunctionArgumentTypes } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress, Hex } from "../../core";
 import { getModule } from "../../internal/account";
@@ -27,7 +27,6 @@ import {
   isString,
   throwTypeMismatch,
 } from "./helpers";
-import { SimpleEntryFunctionArgumentTypes } from "../instances/transactionArgument";
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags
