@@ -45,9 +45,10 @@ export class Ed25519PublicKey implements PublicKey<Ed25519Signature> {
   }
 
   authKey() {
-    const scheme = AuthenticationKeyScheme.Ed25519;
-    const hashInput = new Uint8Array([...this.key.toUint8Array(), scheme]);
-    return AuthenticationKey.fromHashInput({ hashInput });
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.Ed25519,
+      input: this.key.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer) {

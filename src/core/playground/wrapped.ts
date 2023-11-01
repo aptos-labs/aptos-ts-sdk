@@ -48,9 +48,10 @@ export class WrappedPublicKey<
   }
 
   authKey(): AuthenticationKey {
-    const scheme = AuthenticationKeyScheme.SingleKey;
-    const hashInput = new Uint8Array([...bcsToBytes(this.publicKey), scheme]);
-    return AuthenticationKey.fromHashInput({ hashInput });
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.SingleKey,
+      input: bcsToBytes(this.publicKey),
+    });
   }
 
   serialize(serializer: Serializer) {

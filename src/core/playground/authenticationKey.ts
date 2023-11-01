@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 
 import { AccountAddress } from "../accountAddress";
 import { Hex } from "../hex";
@@ -44,9 +44,15 @@ export class AuthenticationKey {
     return this.data.toUint8Array();
   }
 
-  // Extracted the common logic for authkey derivation and put it here.
-  // Don't love the name but we can find something better
-  static fromHashInput({ hashInput }: { hashInput: HexInput }): AuthenticationKey {
+  static fromSchemeAndBytes({
+    scheme,
+    input,
+  }: {
+    scheme: AuthenticationKeyScheme;
+    input: HexInput;
+  }): AuthenticationKey {
+    const inputBytes = Hex.fromHexInput(input).toUint8Array();
+    const hashInput = new Uint8Array([...inputBytes, scheme]);
     const hash = sha3Hash.create();
     hash.update(Hex.fromHexInput(hashInput).toUint8Array());
     const hashDigest = hash.digest();

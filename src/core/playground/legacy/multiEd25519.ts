@@ -126,9 +126,10 @@ export class LegacyMultiEd25519PublicKey {
   }
 
   authKey() {
-    const scheme = AuthenticationKeyScheme.MultiEd25519;
-    const hashInput = new Uint8Array([...this.toUint8Array(), scheme]);
-    return AuthenticationKey.fromHashInput({ hashInput });
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.MultiEd25519,
+      input: this.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer): void {
