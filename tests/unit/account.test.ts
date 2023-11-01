@@ -6,7 +6,6 @@ import {
   AccountAddress,
   Ed25519PrivateKey,
   Ed25519PublicKey,
-  Hex,
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
   SigningScheme,
@@ -198,7 +197,6 @@ describe("Account", () => {
     const { publicKey: publicKeyBytes, address } = ed25519;
     const publicKey = new Ed25519PublicKey(publicKeyBytes);
     const authKey = Account.authKey({ publicKey });
-    expect(authKey).toBeInstanceOf(Hex);
-    expect(authKey.toString()).toEqual(address);
+    expect(authKey.derivedAddress().toString()).toBe(address);
   });
 });

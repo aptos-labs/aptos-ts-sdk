@@ -71,7 +71,7 @@ export class Ed25519PublicKey extends PublicKey {
   verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
     const { message, signature } = args;
     const rawMessage = Hex.fromHexInput(message).toUint8Array();
-    const rawSignature = Hex.fromHexInput(signature.toUint8Array()).toUint8Array();
+    const rawSignature = signature.toUint8Array();
     return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
   }
 
