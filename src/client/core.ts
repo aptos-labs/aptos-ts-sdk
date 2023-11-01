@@ -94,11 +94,19 @@ export async function aptosRequest<Req, Res>(
     return result;
   }
 
-  const errorMessage = errors[result.status];
+  let errorMessage: string;
 
-  throw new AptosApiError(
-    options,
-    result,
-    errorMessage ?? `Unhandled Error ${response.status} : ${response.statusText}`,
-  );
+  // If it is the shape of an AptosApiError, convert it properly
+  if ("message" in response.data && "error_code" in response.data) {
+    const data = response.data as { message: string; error_code: string; vm_error_code?: string };
+    errorMessage = JSON.stringify(data);
+  } else if (result.status in errors) {
+    // If it's not an API type, it must come form infra, these are prehandled
+    errorMessage = errors[result.status];
+  } else {
+    // Everything else is unhandled
+    errorMessage = `Unhandled Error ${response.status} : ${response.statusText}`;
+  }
+
+  throw new AptosApiError(options, result, errorMessage);
 }
