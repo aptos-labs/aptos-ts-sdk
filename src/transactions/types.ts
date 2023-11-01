@@ -197,7 +197,7 @@ export type InputGenerateRawTransactionArgs =
  * @param rawTransaction a bcs serialized raw transaction
  */
 export interface InputSingleSignerTransaction {
-  rawTransaction: Uint8Array;
+  rawTransaction: RawTransaction;
   feePayerAddress?: undefined;
   secondarySignerAddresses?: undefined;
 }
@@ -210,7 +210,7 @@ export interface InputSingleSignerTransaction {
  * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
  */
 export interface InputFeePayerTransaction {
-  rawTransaction: Uint8Array;
+  rawTransaction: RawTransaction;
   feePayerAddress: AccountAddress;
   secondarySignerAddresses?: AccountAddress[];
 }
@@ -222,7 +222,7 @@ export interface InputFeePayerTransaction {
  * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
  */
 export interface InputMultiAgentTransaction {
-  rawTransaction: Uint8Array;
+  rawTransaction: RawTransaction;
   secondarySignerAddresses: AccountAddress[];
   feePayerAddress?: undefined;
 }

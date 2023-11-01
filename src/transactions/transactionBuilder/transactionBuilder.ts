@@ -284,10 +284,10 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * @param args.secondarySignerAddresses optional. For when want to create a multi signers transaction
  * @param args.feePayerAddress optional. For when want to create a fee payer (aka sponsored) transaction
  *
- * @return An Aptos raw transaction type (note that it holds the raw transaction as a bcs serialized data)
+ * @return An instance of a RawTransaction, plus optional secondary/fee payer addresses
  * ```
  * {
- *  rawTransaction: Uint8Array,
+ *  rawTransaction: RawTransaction,
  *  secondarySignerAddresses? : Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
@@ -309,7 +309,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
       : [];
 
     return {
-      rawTransaction: rawTxn.bcsToBytes(),
+      rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
       feePayerAddress: AccountAddress.fromHexInput(feePayerAddress),
     };
@@ -321,12 +321,12 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     );
 
     return {
-      rawTransaction: rawTxn.bcsToBytes(),
+      rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
     };
   }
   // return the raw transaction
-  return { rawTransaction: rawTxn.bcsToBytes() };
+  return { rawTransaction: rawTxn };
 }
 
 /**
@@ -343,7 +343,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
 export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
 
-  const deserializer = new Deserializer(transaction.rawTransaction);
+  const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
   const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
   const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
@@ -521,7 +521,7 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  const deserializer = new Deserializer(transaction.rawTransaction);
+  const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
   const deserializedTransaction = RawTransaction.deserialize(deserializer);
 
   if (transaction.feePayerAddress) {

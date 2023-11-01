@@ -224,7 +224,7 @@ describe("transaction builder", () => {
         sender: alice.accountAddress.toString(),
         payload,
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).toBeUndefined();
       expect(transaction.feePayerAddress).toBeUndefined();
     });
@@ -245,7 +245,7 @@ describe("transaction builder", () => {
         payload,
         secondarySignerAddresses: [secondarySignerAddress.accountAddress.toString()],
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).not.toBeUndefined();
       expect(transaction.secondarySignerAddresses?.length).toBe(1);
       expect(transaction.secondarySignerAddresses![0].data).toStrictEqual(
@@ -270,7 +270,7 @@ describe("transaction builder", () => {
         payload,
         feePayerAddress: feePayer.accountAddress.toString(),
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
       expect(transaction.feePayerAddress).not.toBeUndefined();
       expect(transaction.feePayerAddress?.data).toStrictEqual(feePayer.accountAddress.toUint8Array());
@@ -296,7 +296,7 @@ describe("transaction builder", () => {
           secondarySignerAddresses: [secondarySignerAddress.accountAddress.toString()],
           feePayerAddress: feePayer.accountAddress.toString(),
         });
-        expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+        expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
         expect(transaction.secondarySignerAddresses).not.toBeUndefined();
         expect(transaction.secondarySignerAddresses?.length).toBe(1);
         expect(transaction.secondarySignerAddresses![0].data).toStrictEqual(

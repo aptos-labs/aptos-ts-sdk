@@ -28,10 +28,10 @@ describe("generate transaction", () => {
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).not.toBeDefined();
       expect(transaction.feePayerAddress).not.toBeDefined();
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
@@ -45,10 +45,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).not.toBeDefined();
       expect(transaction.feePayerAddress).not.toBeDefined();
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
@@ -62,10 +62,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).not.toBeDefined();
       expect(transaction.feePayerAddress).not.toBeDefined();
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -82,10 +82,10 @@ describe("generate transaction", () => {
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses[0]).toStrictEqual(secondarySignerAccount.accountAddress);
       expect(transaction.feePayerAddress).not.toBeDefined();
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
@@ -100,10 +100,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses[0]).toStrictEqual(secondarySignerAccount.accountAddress);
       expect(transaction.feePayerAddress).not.toBeDefined();
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -120,10 +120,10 @@ describe("generate transaction", () => {
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
@@ -139,10 +139,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
       expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
@@ -157,10 +157,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
       expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
@@ -176,10 +176,10 @@ describe("generate transaction", () => {
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
         },
       });
-      expect(transaction.rawTransaction instanceof Uint8Array).toBeTruthy();
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses![0]).toStrictEqual(secondarySignerAccount.accountAddress);
       expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
-      const deserializer = new Deserializer(transaction.rawTransaction);
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
