@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Support derive account from private key `Account.fromPrivateKey()`
 - Derive account from derivation path secp256k1 support
+- Default Account generation to Legacy Ed25519
 
 ## 0.0.3 (2023-10-31)
 

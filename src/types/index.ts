@@ -997,28 +997,23 @@ export type WaitForTransactionOptions = {
   checkSuccess?: boolean;
   indexerVersionCheck?: boolean;
 };
+
 /**
- * Account input type to generate an account using Legacy
- * Ed25519 or MultiEd25519 keys or without a specified `scheme`.
- * If `scheme` is not specified, we default to ED25519
- * In this case `legacy` is always true
+ * Input type to generate an account using Single Signer
+ * Ed25519 or Legacy Ed25519
  */
-export type GenerateAccountWithLegacyKey = {
-  scheme?: SigningSchemeInput.Ed25519;
-  legacy: true;
+export type GenerateAccountWithEd25519 = {
+  scheme: SigningSchemeInput.Ed25519;
+  legacy: boolean;
 };
 
 /**
- * Account input type to generate an account using Unified
- * Secp256k1Ecdsa key
- * In this case `legacy` is always false
+ * Input type to generate an account using Single Signer
+ * Secp256k1
  */
-export type GenerateAccountWithUnifiedKey = {
-  scheme: SigningSchemeInput.Secp256k1Ecdsa | SigningSchemeInput.Ed25519;
+export type GenerateAccountWithSingleSignerSecp256k1Key = {
+  scheme: SigningSchemeInput.Secp256k1Ecdsa;
   legacy?: false;
 };
 
-/**
- * Unify GenerateAccount type for Legacy and Unified keys
- */
-export type GenerateAccount = GenerateAccountWithLegacyKey | GenerateAccountWithUnifiedKey;
+export type GenerateAccount = GenerateAccountWithEd25519 | GenerateAccountWithSingleSignerSecp256k1Key;

@@ -138,7 +138,7 @@ describe("Secp256k1PrivateKey", () => {
     const { mnemonic, path, privateKey } = secp256k1WalletTestObject;
     const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey).toEqual(key.toString());
+    expect(key.toString()).toEqual(privateKey);
   });
 });
 

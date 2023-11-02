@@ -12,8 +12,8 @@ const aptos = new Aptos(config);
 
 describe("sign transaction", () => {
   const contractPublisherAccount = Account.generate();
-  const singleSignerED25519SenderAccount = Account.generate();
-  const legacyED25519SenderAccount = Account.generate({ legacy: true });
+  const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+  const legacyED25519SenderAccount = Account.generate();
   const receiverAccounts = [Account.generate(), Account.generate()];
   const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
   const secondarySignerAccount = Account.generate();

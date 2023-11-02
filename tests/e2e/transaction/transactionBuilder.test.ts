@@ -12,7 +12,7 @@ import {
   EntryFunctionABI,
   parseTypeTag,
 } from "../../../src";
-import { AccountAuthenticator, AccountAuthenticatorSingleKey } from "../../../src/transactions/authenticator/account";
+import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
 import {
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
@@ -364,7 +364,7 @@ describe("transaction builder", () => {
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
+      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
 
     test("it signs a fee payer transaction", async () => {
@@ -390,7 +390,7 @@ describe("transaction builder", () => {
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
+      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
 
     test("it signs a multi agent transaction", async () => {
@@ -420,7 +420,7 @@ describe("transaction builder", () => {
       expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
       const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
-      expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
+      expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
   });
   describe("generateSignedTransaction", () => {

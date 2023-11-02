@@ -201,8 +201,9 @@ export class Secp256k1PrivateKey extends PrivateKey {
    * @returns The generated key
    */
   private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256k1PrivateKey {
-    const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
-
+    const { privateKey, publicKey } = HDKey.fromMasterSeed(seed).derive(path);
+    console.log(privateKey);
+    console.log(publicKey);
     // library returns privateKey as Uint8Array | null
     if (privateKey === null) {
       throw new Error("Invalid key");
