@@ -67,7 +67,10 @@ const example = async () => {
     },
   });
 
+  // Alice signs
   const senderSignature = aptos.signTransaction({ signer: alice, transaction });
+
+  // Sponsor signs
   const sponsorSignature = aptos.signTransaction({ signer: sponsor, transaction });
 
   // Submit the transaction to chain
