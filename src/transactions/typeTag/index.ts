@@ -293,7 +293,7 @@ export class TypeTagVector extends TypeTag {
 
 export class TypeTagStruct extends TypeTag {
   public static readonly kind: MoveStructType;
-  
+
   toString(): `0x${string}::${string}::${string}` {
     // Collect type args and add it if there are any
     let typePredicate = "";

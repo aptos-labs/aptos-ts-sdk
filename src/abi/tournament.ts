@@ -3,7 +3,6 @@ import { Serializable, Serializer } from "../bcs";
 import { AccountAddress } from "../core";
 import { HexInput, Uint8, Uint64 } from "../types";
 
-
 const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
   if (address instanceof AccountAddress) {
     return address;
