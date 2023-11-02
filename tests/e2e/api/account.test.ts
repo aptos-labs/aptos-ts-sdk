@@ -216,7 +216,7 @@ describe("account api", () => {
       test("single sender ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate();
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
         await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
@@ -233,7 +233,7 @@ describe("account api", () => {
       test("legacy ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate({ legacy: true });
+        const account = Account.generate();
         await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
@@ -309,7 +309,7 @@ describe("account api", () => {
       const aptos = new Aptos(config);
 
       // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const account = Account.generate();
       await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 1_000_000_000 });
 
       // account that holds the new key

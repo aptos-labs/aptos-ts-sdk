@@ -69,13 +69,14 @@ export class Account {
    */
   private constructor(args: { privateKey: PrivateKey; address: AccountAddress; legacy?: boolean }) {
     const { privateKey, address, legacy } = args;
+    const useLegacy = legacy ?? true;
 
     // Derive the public key from the private key
     this.publicKey = privateKey.publicKey();
 
     // Derive the signing scheme from the public key
     if (this.publicKey instanceof Ed25519PublicKey) {
-      if (legacy) {
+      if (useLegacy) {
         this.signingScheme = SigningScheme.Ed25519;
       } else {
         this.publicKey = new AnyPublicKey(this.publicKey);
@@ -96,7 +97,8 @@ export class Account {
 
   /**
    * Derives an account with random private key and address.
-   * Default generation is using the Unified flow with ED25519 key
+   *
+   * Default generation is using the Legacy ED25519 key
    *
    * @param args optional. Unify GenerateAccount type for Legacy and Unified keys
    *
@@ -122,19 +124,23 @@ export class Account {
    * @returns Account with the given signing scheme
    */
   static generate(args?: GenerateAccount): Account {
+    const useLegacy = args?.legacy ?? true;
+
     let privateKey: PrivateKey;
+    let publicKey: PublicKey;
 
     switch (args?.scheme) {
       case SigningSchemeInput.Secp256k1Ecdsa:
         privateKey = Secp256k1PrivateKey.generate();
+        publicKey = new AnyPublicKey(privateKey.publicKey());
         break;
       default:
         privateKey = Ed25519PrivateKey.generate();
-    }
-
-    let publicKey = privateKey.publicKey();
-    if (!args?.legacy) {
-      publicKey = new AnyPublicKey(privateKey.publicKey());
+        if (useLegacy === false) {
+          publicKey = new AnyPublicKey(privateKey.publicKey());
+        } else {
+          publicKey = privateKey.publicKey();
+        }
     }
 
     const address = new AccountAddress({
@@ -142,7 +148,7 @@ export class Account {
         publicKey,
       }).toUint8Array(),
     });
-    return new Account({ privateKey, address, legacy: args?.legacy });
+    return new Account({ privateKey, address, legacy: useLegacy });
   }
 
   /**
@@ -152,13 +158,14 @@ export class Account {
    * that has not had its authentication key rotated.
    *
    * @param privateKey PrivateKey - private key of the account
-   * @param args.legacy optional. If set to true, the keypair generated is a Legacy keypair. Defaults
-   * to generating a Unified keypair
+   * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
+   * to generating a Legacy Ed25519 keypair
    *
    * @returns Account
    */
   static fromPrivateKey(args: { privateKey: PrivateKey; legacy?: boolean }): Account {
     const { privateKey, legacy } = args;
+    const useLegacy = legacy ?? true;
 
     let publicKey;
     if (privateKey instanceof Secp256k1PrivateKey) {
@@ -166,7 +173,7 @@ export class Account {
       publicKey = new AnyPublicKey(privateKey.publicKey());
     } else if (privateKey instanceof Ed25519PrivateKey) {
       // legacy Ed25519
-      if (legacy) {
+      if (useLegacy) {
         publicKey = privateKey.publicKey();
       } else {
         // Ed25519 single sender
@@ -178,7 +185,7 @@ export class Account {
 
     const authKey = AuthenticationKey.fromPublicKey({ publicKey });
     const address = new AccountAddress({ data: authKey.toUint8Array() });
-    return new Account({ privateKey, address, legacy });
+    return new Account({ privateKey, address, legacy: useLegacy });
   }
 
   /**
@@ -187,8 +194,8 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - the underlying private key for the account
    * @param args.address AccountAddress - The account address the `Account` will sign for
-   * @param args.legacy An optional flag to indicate that the authentication key derivation should
-   * use the legacy Ed25519 scheme. Defaults to false
+   * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
+   * to generating a Legacy Ed25519 keypair
    *
    * @returns Account
    */
@@ -209,7 +216,8 @@ export class Account {
    * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
    * @param args.mnemonic the mnemonic seed phrase of the account
-   * @param args.legacy optional. To indicate whether to use a legacy Ed25519
+   * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
+   * to generating a Legacy Ed25519 keypair
    *
    * @returns Account
    */

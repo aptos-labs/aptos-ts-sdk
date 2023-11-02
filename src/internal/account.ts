@@ -492,6 +492,15 @@ export async function getAccountOwnedObjects(args: {
   return data.current_objects;
 }
 
+/**
+ * NOTE: There is a potential issue once unified single signer scheme will be adopted
+ * by the community.
+ *
+ * Becuase on could create 2 accounts with the same private key with this new authenticator type,
+ * we’ll need to determine the order in which we lookup the accounts. First unified
+ * scheme and then legacy scheme vs first legacy scheme and then unified scheme.
+ *
+ */
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;
   privateKey: PrivateKey;
@@ -518,14 +527,14 @@ export async function deriveAccountFromPrivateKey(args: {
     });
     if (isSingleSenderTransactionAuthenticator) {
       const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
-      return Account.fromPrivateKeyAndAddress({ privateKey, address });
+      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
     }
     // lookup legacy ed25519
     const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
       const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
-      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
+      return Account.fromPrivateKeyAndAddress({ privateKey, address });
     }
   }
   // if we are here, it means we couldn't find an address with an
