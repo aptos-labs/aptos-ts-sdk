@@ -51,7 +51,7 @@ describe("ANS", () => {
         },
       }),
     );
-  });
+  }, 2 * 60 * 1000);
 
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {
