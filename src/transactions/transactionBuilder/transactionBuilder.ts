@@ -52,27 +52,28 @@ import {
 } from "../instances";
 import { SignedTransaction } from "../instances/signedTransaction";
 import {
-  InputGenerateTransactionOptions,
+  AnyRawTransaction,
   AnyTransactionPayloadInstance,
   AnyRawTransactionInstance,
+  EntryFunctionArgumentTypes,
+  EntryFunctionABI,
   InputGenerateFeePayerRawTransactionArgs,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
   InputSingleSignerTransaction,
-  AnyRawTransaction,
+  InputGenerateTransactionOptions,
   InputFeePayerTransaction,
   InputMultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
-  EntryFunctionArgumentTypes,
-  EntryFunctionABI,
   InputGenerateTransactionPayloadData,
   InputEntryFunctionData,
   InputMultiSigData,
   InputMultiSigDataWithRemoteABI,
   InputEntryFunctionDataWithRemoteABI,
   InputGenerateTransactionPayloadDataWithRemoteABI,
+  InputSubmitTransactionData,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
@@ -474,14 +475,7 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
  *
  * @returns A SignedTransaction
  */
-export function generateSignedTransaction(args: {
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  secondarySignerAuthenticators?: {
-    feePayerAuthenticator?: AccountAuthenticator;
-    additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-  };
-}): Uint8Array {
+export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, senderAuthenticator, secondarySignerAuthenticators } = args;
 
   const transactionToSubmit = deriveTransactionType(transaction);
