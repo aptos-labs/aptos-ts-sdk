@@ -21,7 +21,7 @@ describe("coin", () => {
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
     const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
     expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
-    expect((typeArgs[0] as TypeTagStruct).value.module_name.identifier).toBe("aptos_coin");
+    expect((typeArgs[0] as TypeTagStruct).value.moduleName.identifier).toBe("aptos_coin");
     expect((typeArgs[0] as TypeTagStruct).value.name.identifier).toBe("AptosCoin");
   });
 
@@ -43,7 +43,7 @@ describe("coin", () => {
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
     const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
     expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
-    expect((typeArgs[0] as TypeTagStruct).value.module_name.identifier).toBe("my_coin");
+    expect((typeArgs[0] as TypeTagStruct).value.moduleName.identifier).toBe("my_coin");
     expect((typeArgs[0] as TypeTagStruct).value.name.identifier).toBe("type");
   });
 
