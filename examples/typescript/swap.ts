@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable max-len */
+
 /**
  * Example to demonstrate creating and adding to liquidity pools, swapping between two fungible asset.
  *
@@ -9,10 +12,24 @@
  * 5. Create a liquidity pool with Alice's FA and Bob's FA
  * 6. Swap between Alice's FA and Bob's FA
  */
+import "dotenv";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Bool,
+  Ed25519PrivateKey,
+  Network,
+  NetworkToNetworkName,
+  U64,
+  ViewRequestData,
+} from "@aptos-labs/ts-sdk";
+import { createInterface } from "readline";
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
-import { Account, AccountAddress, Aptos, Bool, Ed25519PrivateKey, U64, ViewRequestData } from "aptos";
-
-const readline = require("readline").createInterface({
+const readline = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
@@ -59,7 +76,7 @@ const addLiquidity = async (
   return response.hash;
 };
 
-const swap = async (
+const swapAssets = async (
   aptos: Aptos,
   swap: AccountAddress,
   deployer: Account,
@@ -147,10 +164,11 @@ const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: A
   return response.hash;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> => {
   await new Promise<void>((resolve) => {
     readline.question(
-      `Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n` +
+      "Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n" +
         "1. cd to /aptos-ts-sdk/examples/typescript/facoin folder \n" +
         "2. run 'aptos move publish --named-address FACoin=[admin] --profile=[admin] \n" +
         "   Note: [admin] is the same profile you used to publish your 'swap' package",
@@ -161,7 +179,9 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
   });
 };
 
-/** Admin mint the coin*/
+/**
+ *  Admin mint the coin
+ */
 const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
   const rawTxn = await aptos.generateTransaction({
     sender: admin.accountAddress.toString(),
@@ -192,10 +212,14 @@ const example = async () => {
     process.exit(1);
   }
 
-  const aptos = new Aptos();
+  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(aptosConfig);
   // Create three accounts
-  const admin = Account.fromPrivateKey(new Ed25519PrivateKey(process.argv[3]));
   const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
+  const admin = Account.fromPrivateKeyAndAddress({
+    privateKey: new Ed25519PrivateKey(process.argv[3]),
+    address: swapAddress,
+  });
 
   console.log("====== Account info ======\n");
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);
@@ -234,7 +258,7 @@ const example = async () => {
 
   console.log("\n====== Swap 100 Dog coins for Cat coins ======\n");
   console.log("Swaping 100 Dog coin to Cat coin......");
-  await swap(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
+  await swapAssets(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
   console.log("Swap finished.");
 
   console.log("\n====== Current Balance ======\n");

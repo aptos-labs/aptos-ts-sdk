@@ -7,20 +7,25 @@
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
  * 3. Run `pnpm run publish_package_from_filepath` and follow the prompt
  */
+/* eslint-disable no-console */
+/* eslint-disable max-len */
 
 import assert from "assert";
 import fs from "fs";
 import path from "path";
-import { Account, Aptos, Hex } from "aptos";
+import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { createInterface } from "readline";
 
-const readline = require("readline").createInterface({
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const readline = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
 /** run our demo! */
 async function main() {
-  const aptos = new Aptos();
+  const config = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(config);
 
   const alice = Account.generate();
 
@@ -69,7 +74,7 @@ async function main() {
     accountAddress: alice.accountAddress.toString(),
   });
   // published 2 modules
-  assert(accountModules.length == 2);
+  assert(accountModules.length === 2);
   // first account's module bytecode equals the published bytecode
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode

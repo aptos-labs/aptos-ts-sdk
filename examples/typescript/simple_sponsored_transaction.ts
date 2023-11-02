@@ -1,13 +1,19 @@
+/* eslint-disable no-console */
+/* eslint-disable max-len */
+
 /**
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-import { Account, Aptos, U64, UserTransactionResponse } from "aptos";
+import "dotenv";
+import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName, U64 } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 const example = async () => {
   console.log(
@@ -15,7 +21,8 @@ const example = async () => {
   );
 
   // Setup the client
-  const aptos = new Aptos();
+  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(aptosConfig);
 
   // Create three accounts
   const alice = Account.generate();
@@ -72,9 +79,10 @@ const example = async () => {
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  const txn = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  const gasUsed = (txn as UserTransactionResponse).gas_used;
+  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   await sleep(500);
+
   console.log("\n=== Balances after transfer ===\n");
   const aliceBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: aliceAddres });
   const bobBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: bobAddress });
@@ -95,10 +103,10 @@ const example = async () => {
   console.log(`Bob's balance is: ${bobBalanceAfter[0].amount}`);
   console.log(`Sponsor's balance is: ${sponsorBalanceAfter[0].amount}`);
 };
-const sleep = async (timeMs: number): Promise<null> => {
-  return new Promise((resolve) => {
+
+const sleep = async (timeMs: number): Promise<null> =>
+  new Promise((resolve) => {
     setTimeout(resolve, timeMs);
   });
-};
 
 example();

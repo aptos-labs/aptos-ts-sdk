@@ -1,10 +1,10 @@
 lockfileVersion: '6.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 dependencies:
-  aptos:
+  '@aptos-labs/ts-sdk':
     specifier: link:../..
     version: link:../..

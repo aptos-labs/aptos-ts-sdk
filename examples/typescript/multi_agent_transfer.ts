@@ -1,15 +1,29 @@
+/* eslint-disable max-len */
+/* eslint-disable no-console */
+
 /**
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
-
-import { Account, AccountAddress, Aptos, AptosConfig, U64, parseTypeTag } from "aptos";
+import "dotenv";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  U64,
+  parseTypeTag,
+  Network,
+  NetworkToNetworkName,
+} from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = `0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>`;
+const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 /**
  * Prints the balance of an account
@@ -21,11 +35,11 @@ const TRANSFER_AMOUNT = 10;
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
   type Coin = { coin: { value: string } };
-  let resource = await aptos.getAccountResource<Coin>({
+  const resource = await aptos.getAccountResource<Coin>({
     accountAddress: address.toUint8Array(),
     resourceType: COIN_STORE,
   });
-  let amount = Number(resource.coin.value);
+  const amount = Number(resource.coin.value);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
@@ -37,12 +51,12 @@ const example = async () => {
   );
 
   // Setup the client
-  const config = new AptosConfig();
+  const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
   // Create two accounts
-  let alice = Account.generate();
-  let bob = Account.generate();
+  const alice = Account.generate();
+  const bob = Account.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
@@ -65,8 +79,8 @@ const example = async () => {
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  let alicePreBalance = await balance(aptos, "Alice", alice.accountAddress);
-  let bobPreBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const alicePreBalance = await balance(aptos, "Alice", alice.accountAddress);
+  const bobPreBalance = await balance(aptos, "Bob", bob.accountAddress);
   console.log(`Alice: ${alicePreBalance}`);
   console.log(`Bob: ${bobPreBalance}`);
 
@@ -78,6 +92,7 @@ const example = async () => {
   const createObject = await aptos.generateTransaction({
     sender: alice.accountAddress.toUint8Array(),
     data: {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       bytecode: CREATE_OBJECT_SCRIPT,
       functionArguments: [],
     },
@@ -85,16 +100,17 @@ const example = async () => {
   const pendingObjectTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: createObject });
   await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
-  let objects = await aptos.getAccountOwnedObjects({ accountAddress: alice.accountAddress.toUint8Array() });
-  let objectAddress = objects[0].object_address;
+  const objects = await aptos.getAccountOwnedObjects({ accountAddress: alice.accountAddress.toUint8Array() });
+  const objectAddress = objects[0].object_address;
 
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
 
   console.log("\n=== Transfer object ownership to Bob ===\n");
-  let transferTxn = await aptos.generateTransaction({
+  const transferTxn = await aptos.generateTransaction({
     sender: alice.accountAddress.toUint8Array(),
     secondarySignerAddresses: [bob.accountAddress.toUint8Array()],
     data: {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       bytecode: TRANSFER_SCRIPT,
       typeArguments: [parseTypeTag(APTOS_COIN)],
       functionArguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
@@ -102,10 +118,10 @@ const example = async () => {
   });
 
   // Alice signs
-  let aliceSignature = aptos.signTransaction({ signer: alice, transaction: transferTxn });
+  const aliceSignature = aptos.signTransaction({ signer: alice, transaction: transferTxn });
 
   // Bob signs
-  let bobSignature = aptos.signTransaction({ signer: bob, transaction: transferTxn });
+  const bobSignature = aptos.signTransaction({ signer: bob, transaction: transferTxn });
 
   const pendingTransferTxn = await aptos.submitTransaction({
     transaction: transferTxn,
@@ -116,8 +132,10 @@ const example = async () => {
   });
   await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
-  let bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress.toUint8Array() });
-  if (bobObjectsAfter[0].object_address != objectAddress) {
+  const bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress.toUint8Array() });
+
+  // TODO: Fix the bytecode on the script, object isn't being transferred correctly
+  if (bobObjectsAfter[0].object_address !== objectAddress) {
     throw new Error(`Failed to transfer object ${objectAddress}`);
   }
 
@@ -125,8 +143,8 @@ const example = async () => {
 
   // Check balance
   console.log("\n=== New Balances ===\n");
-  let alicePostBalance = await balance(aptos, "Alice", alice.accountAddress);
-  let bobPostBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const alicePostBalance = await balance(aptos, "Alice", alice.accountAddress);
+  const bobPostBalance = await balance(aptos, "Bob", bob.accountAddress);
 
   if (alicePostBalance >= ALICE_INITIAL_BALANCE + TRANSFER_AMOUNT) throw new Error("Alice's balance is incorrect");
   if (bobPostBalance !== BOB_INITIAL_BALANCE - TRANSFER_AMOUNT) throw new Error("Bob's balance is incorrect");

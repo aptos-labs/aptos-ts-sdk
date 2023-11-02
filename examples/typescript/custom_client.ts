@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Example to demonstrate how one can config the SDK to use a custom client.
  *
@@ -8,8 +10,13 @@
  * `<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;`
  *
  */
-import { Aptos, AptosConfig, ClientResponse, ClientRequest } from "aptos";
+import "dotenv";
+import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+// eslint-disable-next-line import/no-commonjs
 const superagent = require("superagent");
+
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
 export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;
@@ -65,10 +72,10 @@ export async function superagentCustomClient<Req, Res>(
 }
 
 const example = async () => {
-  console.log("This example demonstrate how one can config for a custom client ot be used by the SDK");
+  console.log("This example demonstrate how one can config for a custom client to be used by the SDK");
 
   async function withSuperagentClient() {
-    const config = new AptosConfig({ client: { provider: superagentCustomClient } });
+    const config = new AptosConfig({ network: APTOS_NETWORK, client: { provider: superagentCustomClient } });
     const aptos = new Aptos(config);
 
     console.log(`\nclient being used ${config.client.provider.name}`);
@@ -78,7 +85,7 @@ const example = async () => {
   }
 
   async function withFetchClient() {
-    const config = new AptosConfig({ client: { provider: fetchCustomClient } });
+    const config = new AptosConfig({ network: APTOS_NETWORK, client: { provider: fetchCustomClient } });
     const aptos = new Aptos(config);
 
     console.log(`\nclient being used ${config.client.provider.name}`);
