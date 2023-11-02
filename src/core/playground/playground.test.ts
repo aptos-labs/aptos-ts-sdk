@@ -1,3 +1,4 @@
+import { SigningSchemeInput } from "../../types";
 import { Account } from "./account";
 import { LegacyAccountAuthenticatorMultiEd25519 } from "./accountAuthenticator";
 import { LegacyEd25519Account } from "./legacy/ed25519Account";
@@ -5,7 +6,6 @@ import { LegacyEd25519Signer } from "./legacy/ed25519Signer";
 import { LegacyMultiEd25519PublicKey, LegacyMultiEd25519Signature } from "./legacy/multiEd25519";
 import { LegacyMultiEd25519Account } from "./legacy/multiEd25519Account";
 import { Signer } from "./signer";
-import { SignatureScheme } from "./scheme";
 
 describe("playground", () => {
   test("LegacyEd25519Signer", () => {
@@ -27,7 +27,7 @@ describe("playground", () => {
   });
 
   test("Ed25519Signer", () => {
-    const signer = Signer.generate({ scheme: SignatureScheme.Ed25519 });
+    const signer = Signer.generate({ scheme: SigningSchemeInput.Ed25519 });
     const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
 
@@ -36,7 +36,7 @@ describe("playground", () => {
   });
 
   test("Secp256k1Signer", () => {
-    const signer = Signer.generate({ scheme: SignatureScheme.Secp256k1 });
+    const signer = Signer.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
     const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
 

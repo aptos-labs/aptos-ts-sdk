@@ -1,10 +1,9 @@
 import type { Deserializer, Serializer } from "../../bcs";
-import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme, SigningSchemeInput } from "../../types";
 import { AuthenticationKey } from "./authenticationKey";
 import { bcsToBytes } from "./bcs";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import type { PublicKey } from "./interfaces";
-import { SignatureScheme } from "./scheme";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 
 export type AllowedSignatures = Ed25519Signature | Secp256k1Signature;
@@ -18,9 +17,9 @@ export class AnySignature<TSignature extends AllowedSignatures = AllowedSignatur
 
   serialize(serializer: Serializer): void {
     if (this.signature instanceof Ed25519Signature) {
-      serializer.serializeU32AsUleb128(SignatureScheme.Ed25519);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Ed25519);
     } else if (this.signature instanceof Secp256k1Signature) {
-      serializer.serializeU32AsUleb128(SignatureScheme.Secp256k1);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Secp256k1Ecdsa);
     } else {
       throw new Error("Unknown signature type");
     }
@@ -30,9 +29,9 @@ export class AnySignature<TSignature extends AllowedSignatures = AllowedSignatur
   static deserialize(deserializer: Deserializer): AnySignature {
     const scheme = deserializer.deserializeUleb128AsU32();
     switch (scheme) {
-      case SignatureScheme.Ed25519:
+      case SigningSchemeInput.Ed25519:
         return new AnySignature(Ed25519Signature.deserialize(deserializer));
-      case SignatureScheme.Secp256k1:
+      case SigningSchemeInput.Secp256k1Ecdsa:
         return new AnySignature(Secp256k1Signature.deserialize(deserializer));
       default:
         throw new Error(`Unknown signature scheme ${scheme}`);
@@ -64,9 +63,9 @@ export class AnyPublicKey<
 
   serialize(serializer: Serializer) {
     if (this.publicKey instanceof Ed25519PublicKey) {
-      serializer.serializeU32AsUleb128(SignatureScheme.Ed25519);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Ed25519);
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
-      serializer.serializeU32AsUleb128(SignatureScheme.Secp256k1);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Secp256k1Ecdsa);
     } else {
       throw new Error("Unknown key type");
     }
@@ -76,9 +75,9 @@ export class AnyPublicKey<
   static deserialize(deserializer: Deserializer): AnyPublicKey {
     const scheme = deserializer.deserializeUleb128AsU32();
     switch (scheme) {
-      case SignatureScheme.Ed25519:
+      case SigningSchemeInput.Ed25519:
         return new AnyPublicKey(Ed25519PublicKey.deserialize(deserializer));
-      case SignatureScheme.Secp256k1:
+      case SigningSchemeInput.Secp256k1Ecdsa:
         return new AnyPublicKey(Secp256k1PublicKey.deserialize(deserializer));
       default:
         throw new Error(`Unknown signature scheme ${scheme}`);
