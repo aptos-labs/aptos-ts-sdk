@@ -130,7 +130,7 @@ describe("Account", () => {
     });
   });
   describe("fromDerivationPath", () => {
-    it("should create a new account from bip44 path and mnemonics with legacy Ed255519", async () => {
+    it("should create a new account from bip44 path and mnemonics with legacy Ed25519", async () => {
       const { mnemonic, address, path } = wallet;
       const newAccount = Account.fromDerivationPath({
         path,
@@ -140,7 +140,7 @@ describe("Account", () => {
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
 
-    it("should create a new account from bip44 path and mnemonics with single signer Ed255519", async () => {
+    it("should create a new account from bip44 path and mnemonics with single signer Ed25519", async () => {
       const { mnemonic, address, path } = Ed25519WalletTestObject;
       const newAccount = Account.fromDerivationPath({
         path,
@@ -163,7 +163,7 @@ describe("Account", () => {
   });
 
   describe("sign and verify", () => {
-    it("signs a message with single signer Secp256k1 scheme and verifies succefully", () => {
+    it("signs a message with single signer Secp256k1 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.fromHexInput(address);
@@ -173,7 +173,7 @@ describe("Account", () => {
       expect(secpAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
 
-    it("signs a message with single signer ed25519 scheme and verifies succefully", () => {
+    it("signs a message with single signer ed25519 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.fromHexInput(address);
