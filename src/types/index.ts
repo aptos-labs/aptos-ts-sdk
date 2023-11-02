@@ -996,6 +996,7 @@ export type WaitForTransactionOptions = {
   timeoutSecs?: number;
   checkSuccess?: boolean;
   indexerVersionCheck?: boolean;
+  indexerTimeoutSecs?: number;
 };
 /**
  * Account input type to generate an account using Legacy

@@ -43,6 +43,14 @@ export const DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
 export const DEFAULT_TXN_TIMEOUT_SEC = 20;
 
 /**
+ * The default number of seconds to wait for the indexer to sync.
+ *
+ * This is the amount of time that the SDK will wait for the indexer to sync and catch up with the full node.
+ * Based on the processor_status's last success version.
+ */
+export const DEFAULT_INDEXER_SYNC_TIMEOUT_SEC = 3;
+
+/**
  * The default gas currency for the network.
  */
 export const APTOS_COIN = "0x1::aptos_coin::AptosCoin";

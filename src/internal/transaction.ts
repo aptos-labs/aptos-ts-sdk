@@ -19,7 +19,7 @@ import {
   type TransactionResponse,
   WaitForTransactionOptions,
 } from "../types";
-import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
+import { DEFAULT_INDEXER_SYNC_TIMEOUT_SEC, DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { sleep } from "../utils/helpers";
 import { memoizeAsync } from "../utils/memoize";
 import { getIndexerLastSuccessVersion } from "./general";
@@ -105,6 +105,7 @@ export async function waitForTransaction(args: {
   const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
   const checkSuccess = options?.checkSuccess ?? true;
   const indexerVersionCheck = options?.indexerVersionCheck ?? true;
+  const indexerTimeoutSecs = options?.indexerTimeoutSecs ?? DEFAULT_INDEXER_SYNC_TIMEOUT_SEC;
 
   let isPending = true;
   let timeElapsed = 0;
@@ -175,7 +176,11 @@ export async function waitForTransaction(args: {
   // Make sure indexer is synced with the latest ledger version
   if (indexerVersionCheck) {
     try {
-      await waitForLastSuccessIndexerVersionSync({ aptosConfig, ledgerVersion: Number(lastTxn.version) });
+      await waitForLastSuccessIndexerVersionSync({
+        aptosConfig,
+        ledgerVersion: Number(lastTxn.version),
+        timeOutSecs: indexerTimeoutSecs,
+      });
     } catch (_e) {
       throw new WaitForTransactionError(
         // eslint-disable-next-line max-len
@@ -190,14 +195,15 @@ export async function waitForTransaction(args: {
 }
 
 /**
- * Waits for the indexer to sync up to the ledgerVersion. Timeout is 3 seconds.
+ * Waits for the indexer to sync up to the ledgerVersion. Default timeout is 3 seconds.
  */
 async function waitForLastSuccessIndexerVersionSync(args: {
   aptosConfig: AptosConfig;
   ledgerVersion: number;
+  timeOutSecs: number;
 }): Promise<void> {
-  const { aptosConfig, ledgerVersion } = args;
-  const timeoutMilliseconds = 3000; // 3 seconds
+  const { aptosConfig, ledgerVersion, timeOutSecs } = args;
+  const timeoutMilliseconds = timeOutSecs * 1000;
   const startTime = new Date().getTime();
   let indexerVersion = -1;
 
