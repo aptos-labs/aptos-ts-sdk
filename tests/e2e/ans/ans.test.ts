@@ -94,7 +94,7 @@ describe("ANS", () => {
       const name = randomString();
 
       expect(
-        await aptos.ans.registerName({
+        await aptos.registerName({
           name,
           sender: alice,
           expiration: { policy: "domain", years: 1 },
@@ -102,7 +102,7 @@ describe("ANS", () => {
       ).toBeTruthy();
 
       await expect(
-        aptos.ans.registerName({
+        aptos.registerName({
           sender: alice,
           name,
           // Force the year to be absent
@@ -112,7 +112,7 @@ describe("ANS", () => {
 
       // Testing to make sure that the subdomain policy is enforced
       await expect(
-        aptos.ans.registerName({
+        aptos.registerName({
           sender: alice,
           name,
           // Force the year to be absent
@@ -131,14 +131,14 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.ans.registerName({
+        await aptos.registerName({
           name,
           expiration: { policy: "domain", years: 1 },
           sender: alice,
         }),
       );
 
-      const owner = await aptos.ans.getOwnerAddress({ name });
+      const owner = await aptos.getOwnerAddress({ name });
       expect(owner).toEqual(alice.accountAddress.toString());
     });
 
@@ -159,7 +159,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.ans.registerName({
+        await aptos.registerName({
           name,
           expiration: { policy: "domain", years: 1 },
           sender: alice,
@@ -168,7 +168,7 @@ describe("ANS", () => {
         }),
       );
 
-      const owner = await aptos.ans.getOwnerAddress({ name });
+      const owner = await aptos.getOwnerAddress({ name });
       expect(owner).toEqual(bob.accountAddress.toString());
     });
   });
