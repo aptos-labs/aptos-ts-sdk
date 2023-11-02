@@ -6,10 +6,10 @@ import { Account, AccountAddress } from "../../core";
 import { Signer } from "../../core/signer";
 import { waitForTransaction } from "../../internal/transaction";
 import { submitTransaction } from "../../internal/transactionSubmission";
+import { generateRawTransaction } from "../../transactions";
 import { AccountAuthenticator } from "../../transactions/authenticator/account";
-import { EntryFunction, Identifier, ModuleId, RawTransaction, RawTransactionWithData, TransactionPayloadEntryFunction } from "../../transactions/instances";
-import { buildTransaction, deriveTransactionType, generateRawTransaction, getSigningMessage } from "../../transactions/transaction_builder/transaction_builder";
-import { EntryFunctionArgumentTypes, GenerateTransactionOptions, SimulateTransactionData, TransactionPayload } from "../../transactions/types";
+import { EntryFunction, Identifier, ModuleId, RawTransaction, RawTransactionWithData, TransactionPayload, TransactionPayloadEntryFunction } from "../../transactions/instances";
+import { EntryFunctionArgumentTypes, InputGenerateTransactionOptions, InputSimulateTransactionData } from "../../transactions/types";
 import { HexInput, PendingTransactionResponse, UserTransactionResponse, WaitForTransactionOptions } from "../../types";
 import { Network } from "../../utils/apiEndpoints";
 import { Deserializer } from "../deserializer";
@@ -66,7 +66,7 @@ function getConfigOrNetwork(aptosConfigOrNetwork: AptosConfig | Network): AptosC
  * 
  * 
  */
-export class TransactionBuilder {
+export abstract class TransactionBuilder {
     protected readonly rawTransaction: RawTransaction; // the RawTransaction that is used to create a signing message that is signed by 1 or more signers
     protected readonly aptosConfig: AptosConfig;
     protected senderSigner?: Signer;
@@ -105,10 +105,11 @@ export class TransactionBuilder {
      * @param args.forSeconds The number of seconds to wait for the transaction to complete
      * @returns PendingTransactionResponse a response that contains the transaction hash and other information about the transaction
      */
-    abstract async submit(): Promise<PendingTransactionResponse>;
-    abstract async addWalletSignature(signFeePayerTransaction: SignFeePayerTransactionFunction): Promise<void>;
-    abstract async waitForResponse(waitForTransactionOptions?: WaitForTransactionOptions): Promise<UserTransactionResponse>;
-    abstract async submitAndWaitForResponse(waitForTransactionOptions?: WaitForTransactionOptions): Promise<UserTransactionResponse>;
+    abstract submit(): Promise<PendingTransactionResponse>;
+    abstract addWalletSignature(signFeePayerTransaction: SignFeePayerTransactionFunction): Promise<void>;
+    abstract waitForResponse(waitForTransactionOptions?: WaitForTransactionOptions): Promise<UserTransactionResponse>;
+    abstract submitAndWaitForResponse(waitForTransactionOptions?: WaitForTransactionOptions): Promise<UserTransactionResponse>;
+    abstract signSubmitAndWaitForResponse(args: { signer: Account, waitForTransactionOptions?: WaitForTransactionOptions }): Promise<UserTransactionResponse>;
     // abstract simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>>;
 }
 
@@ -129,7 +130,7 @@ export type CreateTransactionBuilderArgs = {
     sender: AccountAddress,
     payload: TransactionPayload,
     configOrNetwork: AptosConfig | Network,
-    options?: GenerateTransactionOptions,
+    options?: InputGenerateTransactionOptions,
 };
 
 export type CreateTransactionBuilderWithFeePayerArgs = CreateTransactionBuilderArgs & {
@@ -152,7 +153,7 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
     protected constructor(args: CreateTransactionBuilderArgs & { feePayerAddress?: AccountAddress }) {
         const { sender, payload, configOrNetwork, options } = args;
         const config = getConfigOrNetwork(configOrNetwork);
-        const rawTransaction = await generateRawTransaction({ sender: sender.toString(), payload, aptosConfig: config, options });
+        const rawTransaction = await generateRawTransaction({ sender: sender.toString(), payload: payload as any, aptosConfig: config, options });
         super({
             rawTransaction,
             aptosConfig: config,
@@ -175,15 +176,15 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
         };
     }
 
-    async static create(args: CreateTransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
+    static async create(args: CreateTransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
         return new SingleSignerTransactionBuilder(args);
     }
 
-    async static createWithFeePayer(args: CreateTransactionBuilderWithFeePayerArgs): Promise<SingleSignerTransactionBuilder> {
+    static async createWithFeePayer(args: CreateTransactionBuilderWithFeePayerArgs): Promise<SingleSignerTransactionBuilder> {
         return new SingleSignerTransactionBuilder(args);
     }
 
-    async static createWithAnonymousFeePayer(args: CreateTransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
+    static async createWithAnonymousFeePayer(args: CreateTransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
         return new SingleSignerTransactionBuilder(args);
     }
 
@@ -258,6 +259,12 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
         const response = await this.waitForResponse(waitForTransactionOptions);
         return response as UserTransactionResponse;
     }
+
+    async signSubmitAndWaitForResponse(args: { signer: Account, waitForTransactionOptions?: WaitForTransactionOptions }): Promise<UserTransactionResponse> {
+        const { signer, waitForTransactionOptions } = args;
+        this.sign(signer);
+        return this.submitAndWaitForResponse(waitForTransactionOptions);
+    }
 }
 
 export class CreateResourceAccountAndPublishPackage extends SingleSignerTransactionBuilder {
@@ -290,9 +297,11 @@ const craappTransactionBuilder = new CreateResourceAccountAndPublishPackage({
     bytecode: [new Uint8Array()],
     configOrNetwork: Network.TESTNET,
     options: {},
-});
+}); // with fee payer too?
 
-craappTransactionBuilder.
+await craappTransactionBuilder.sign(Account.generate());
+await craappTransactionBuilder.signSubmitAndWaitForResponse({ signer: Account.generate() });
+
 
 
 const sender = Account.generate();
@@ -393,51 +402,3 @@ export class MultiSignerTransactionBuilder extends TransactionBuilder {
         });
     }
 }
-
-
-// create TransactionBuilder
-const coinTransferBuilder = new AptosFramework.AptosCoin.TransferCoins();
-// declaratively build the transaction
-coinTransferBuilder.generateSigningMessage(sender: AccountAddress); // fills the `rawTransaction` field
-coinTransferBuilder.gatherSignature(); // gets the `senderAuthenticator`
-
-const coinTransferBuilder.generateSigningMessage();
-
-
-// Build the single signer transaction for them, either with or without fee payer
-export abstract class SingleSignerTransaction extends TransactionBuilder {
-    abstract sender: AccountAddress;
-    abstract payload: EntryFunctionPayload;
-    abstract feePayer?: AccountAuthenticator;
-    abstract signingMessage: RawTransaction | RawTransactionWithData; // the message that's hashed and signed by a private key to create an AccountAuthenticator 
-    // other fields ...
-
-    abstract rawTransactionWithData?: RawTransactionWithData; // signing message if a fee payer is used
-    abstract generateSigningMessage(): RawTransaction | RawTransactionWithData;
-    abstract submitTransaction(
-        senderSigner: Signer,
-        secondarySigners: Array<Signer>,
-    )
-}
-
-// Build the multi signer transaction for them, either with or without fee payer
-export abstract class MultiAgentTransaction extends TransactionBuilder {
-    abstract senders: Array<AccountAuthenticator>;
-    abstract secondarySigners: Array<AccountAuthenticator>;
-    abstract payload: EntryFunctionPayload;
-    abstract feePayer?: AccountAuthenticator;
-
-    abstract rawTransactionWithData: RawTransactionWithData; // signing message
-    // other fields ...
-}
-
-
-// So now that you have the ABIs, you can skip half of the decision tree for the tx builder...
-// You're now at `sign: RawTransaction[WithData]`
-// Ultimately, this is half of a `SignedTransaction`:
-
-pub enum SignedTransaction {
-    raw_txn: RawTransaction,
-    authenticators: Vec<AccountAuthenticator>, // these are generated from each signer signing the RawTransactionMessage
-}
-
