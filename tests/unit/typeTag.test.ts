@@ -128,8 +128,8 @@ describe("Deserialize TypeTags", () => {
     expect(deserialized).toBeInstanceOf(TypeTagStruct);
     expect(deserialized.value).toBeInstanceOf(StructTag);
     expect(deserialized.value.address.toString()).toEqual(expectedTypeTag.address);
-    expect(deserialized.value.module_name.identifier).toEqual("some_module");
+    expect(deserialized.value.moduleName.identifier).toEqual("some_module");
     expect(deserialized.value.name.identifier).toEqual("SomeResource");
-    expect(deserialized.value.type_args.length).toEqual(0);
+    expect(deserialized.value.typeArgs.length).toEqual(0);
   });
 });

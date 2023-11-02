@@ -291,11 +291,11 @@ export class TypeTagStruct extends TypeTag {
   toString(): `0x${string}::${string}::${string}` {
     // Collect type args and add it if there are any
     let typePredicate = "";
-    if (this.value.type_args.length > 0) {
-      typePredicate = `<${this.value.type_args.map((typeArg) => typeArg.toString()).join(", ")}>`;
+    if (this.value.typeArgs.length > 0) {
+      typePredicate = `<${this.value.typeArgs.map((typeArg) => typeArg.toString()).join(", ")}>`;
     }
 
-    return `${this.value.address.toString()}::${this.value.module_name.identifier}::${
+    return `${this.value.address.toString()}::${this.value.moduleName.identifier}::${
       this.value.name.identifier
     }${typePredicate}`;
   }
@@ -316,7 +316,7 @@ export class TypeTagStruct extends TypeTag {
 
   isTypeTag(address: AccountAddress, moduleName: string, structName: string): boolean {
     return (
-      this.value.module_name.identifier === moduleName &&
+      this.value.moduleName.identifier === moduleName &&
       this.value.name.identifier === structName &&
       this.value.address.equals(address)
     );
@@ -338,25 +338,25 @@ export class TypeTagStruct extends TypeTag {
 export class StructTag extends Serializable {
   public readonly address: AccountAddress;
 
-  public readonly module_name: Identifier;
+  public readonly moduleName: Identifier;
 
   public readonly name: Identifier;
 
-  public readonly type_args: Array<TypeTag>;
+  public readonly typeArgs: Array<TypeTag>;
 
   constructor(address: AccountAddress, module_name: Identifier, name: Identifier, type_args: Array<TypeTag>) {
     super();
     this.address = address;
-    this.module_name = module_name;
+    this.moduleName = module_name;
     this.name = name;
-    this.type_args = type_args;
+    this.typeArgs = type_args;
   }
 
   serialize(serializer: Serializer): void {
     serializer.serialize(this.address);
-    serializer.serialize(this.module_name);
+    serializer.serialize(this.moduleName);
     serializer.serialize(this.name);
-    serializer.serializeVector(this.type_args);
+    serializer.serializeVector(this.typeArgs);
   }
 
   static deserialize(deserializer: Deserializer): StructTag {

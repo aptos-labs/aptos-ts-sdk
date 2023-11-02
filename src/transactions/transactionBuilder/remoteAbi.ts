@@ -239,7 +239,7 @@ function parseArg(
         return new MoveOption<U8>(null);
       }
 
-      return new MoveOption(parseArg(arg, param.value.type_args[0], position, genericTypeParams));
+      return new MoveOption(parseArg(arg, param.value.typeArgs[0], position, genericTypeParams));
     }
 
     throw new Error(`Unsupported struct input type for argument ${position}, type '${param.toString()}'`);
