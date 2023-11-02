@@ -5,8 +5,8 @@ import { AptosConfig } from "../../../api";
 import { Network } from "../../../utils/apiEndpoints";
 
 function getConfigOrNetwork(aptosConfigOrNetwork: AptosConfig | Network): AptosConfig {
-    if (aptosConfigOrNetwork instanceof AptosConfig) {
-        return aptosConfigOrNetwork;
-    }
-    return new AptosConfig({ network: aptosConfigOrNetwork });
+  if (aptosConfigOrNetwork instanceof AptosConfig) {
+    return aptosConfigOrNetwork;
+  }
+  return new AptosConfig({ network: aptosConfigOrNetwork });
 }

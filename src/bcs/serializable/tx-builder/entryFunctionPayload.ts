@@ -5,12 +5,12 @@ import { EntryFunctionArgsField } from "./types";
 
 // Build the payload for them
 export abstract class EntryFunctionPayload extends Serializable {
-    abstract args: EntryFunctionArgsField;
+  abstract args: EntryFunctionArgsField;
 
-    serialize(serializer: Serializer): void {
-        Object.keys(this.args).forEach((field) => {
-            const value = this.args[field as keyof typeof this.args];
-            serializer.serialize(value);
-        });
-    }
+  serialize(serializer: Serializer): void {
+    Object.keys(this.args).forEach((field) => {
+      const value = this.args[field as keyof typeof this.args];
+      serializer.serialize(value);
+    });
+  }
 }
