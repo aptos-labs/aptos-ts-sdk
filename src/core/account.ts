@@ -220,13 +220,13 @@ export class Account {
     legacy?: boolean;
   }): Account {
     const { path, mnemonic, scheme, legacy } = args;
-    let privateKey;
+    let privateKey: PrivateKey;
     switch (scheme) {
       case SigningSchemeInput.Secp256k1Ecdsa:
-        privateKey = new Secp256k1PrivateKey(Secp256k1PrivateKey.fromDerivationPath(path, mnemonic));
+        privateKey = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
         break;
       case SigningSchemeInput.Ed25519:
-        privateKey = new Ed25519PrivateKey(Ed25519PrivateKey.fromDerivationPath(path, mnemonic));
+        privateKey = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);
         break;
       default:
         throw new Error(`Unsupported scheme ${scheme}`);

@@ -181,19 +181,34 @@ export class Secp256k1PrivateKey extends PrivateKey {
    *
    * @param path the BIP44 path
    * @param mnemonics the mnemonic seed phrase
+   *
+   * @returns The generated key
    */
-  static fromDerivationPath(path: string, mnemonics: string): Uint8Array {
+  static fromDerivationPath(path: string, mnemonics: string): Secp256k1PrivateKey {
     if (!isValidBIP44Path(path)) {
       throw new Error(`Invalid derivation path ${path}`);
     }
-    const { privateKey } = HDKey.fromMasterSeed(mnemonicToSeed(mnemonics)).derive(path);
+    return Secp256k1PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  /**
+   * A private inner function so we can separate from the main fromDerivationPath() method
+   * to add tests to verify we create the keys correctly.
+   *
+   * @param path the BIP44 path
+   * @param seed the seed phrase created by the mnemonics
+   *
+   * @returns The generated key
+   */
+  private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256k1PrivateKey {
+    const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
 
     // library returns privateKey as Uint8Array | null
     if (privateKey === null) {
       throw new Error("Invalid key");
     }
 
-    return privateKey;
+    return new Secp256k1PrivateKey(privateKey);
   }
 }
 

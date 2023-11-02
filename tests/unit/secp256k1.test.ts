@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { secp256k1TestObject } from "./helper";
+import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
 import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
 
 /* eslint-disable max-len */
@@ -126,6 +126,19 @@ describe("Secp256k1PrivateKey", () => {
     const deserializedPrivateKey = Secp256k1PrivateKey.deserialize(deserializer);
 
     expect(deserializedPrivateKey.toString()).toEqual(privateKey.toString());
+  });
+
+  it("should prevent an invalid bip44 path ", () => {
+    const { mnemonic } = secp256k1WalletTestObject;
+    const path = "1234";
+    expect(() => Secp256k1PrivateKey.fromDerivationPath(path, mnemonic)).toThrow("Invalid derivation path");
+  });
+
+  it("should derive from path and mnemonic", () => {
+    const { mnemonic, path, privateKey } = secp256k1WalletTestObject;
+    const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
+    expect(key).toBeInstanceOf(Secp256k1PrivateKey);
+    expect(privateKey).toEqual(key.toString());
   });
 });
 

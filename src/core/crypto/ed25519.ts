@@ -7,7 +7,7 @@ import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
-import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, KeyType, mnemonicToSeed, splitPath } from "./hdKey";
+import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -98,6 +98,12 @@ export class Ed25519PrivateKey extends PrivateKey {
    * Length of an Ed25519 private key
    */
   static readonly LENGTH: number = 32;
+
+  /**
+   * The Ed25519 key seed to use for BIP-32 compatibility
+   * See more {@link https://github.com/satoshilabs/slips/blob/master/slip-0010.md}
+   */
+  static readonly SLIP_0010_SEED = "ed25519 seed";
 
   /**
    * The Ed25519 signing key
@@ -191,13 +197,25 @@ export class Ed25519PrivateKey extends PrivateKey {
    *
    * @param path the BIP44 path
    * @param mnemonics the mnemonic seed phrase
-   * @param offset the offset used for key derivation, defaults to 0x80000000
    */
-  static fromDerivationPath(path: string, mnemonics: string, offset = HARDENED_OFFSET): Uint8Array {
+  static fromDerivationPath(path: string, mnemonics: string): Ed25519PrivateKey {
     if (!isValidHardenedPath(path)) {
       throw new Error(`Invalid derivation path ${path}`);
     }
-    const { key, chainCode } = deriveKey(KeyType.ED25519, mnemonicToSeed(mnemonics));
+    return Ed25519PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  /**
+   * A private inner function so we can separate from the main fromDerivationPath() method
+   * to add tests to verify we create the keys correctly.
+   *
+   * @param path the BIP44 path
+   * @param seed the seed phrase created by the mnemonics
+   * @param offset the offset used for key derivation, defaults to 0x80000000
+   * @returns
+   */
+  private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): Ed25519PrivateKey {
+    const { key, chainCode } = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
 
     const segments = splitPath(path).map((el) => parseInt(el, 10));
 
@@ -206,7 +224,7 @@ export class Ed25519PrivateKey extends PrivateKey {
       key,
       chainCode,
     });
-    return privateKey;
+    return new Ed25519PrivateKey(privateKey);
   }
 }
 
