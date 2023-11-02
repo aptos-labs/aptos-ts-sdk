@@ -121,7 +121,9 @@ export async function getOwnerAddress({
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.fromHexInput(owner).toString() : undefined;
+  // We ideally want fromString or fromHexInput but the view function currently
+  // truncates leading 0s
+  return owner ? AccountAddress.fromHexInputRelaxed(owner).toString() : undefined;
 }
 
 export interface RegisterNameParameters {
