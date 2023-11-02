@@ -17,6 +17,7 @@ import {
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
 import { TypeTag } from "./typeTag";
+import { AccountAuthenticator } from "./authenticator/account";
 
 /**
  * Entry function arguments to be used when building a raw transaction using remote ABI
@@ -301,3 +302,13 @@ export type InputGenerateTransactionData =
   | InputGenerateMultiAgentRawTransactionData
   | InputGenerateFeePayerRawTransactionData
   | InputGenerateSingleSignerRawTransactionData;
+
+/**
+ * Interface that holds the user data input when submitting a transaction
+ */
+export interface InputSubmitTransactionData {
+  transaction: AnyRawTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
+}

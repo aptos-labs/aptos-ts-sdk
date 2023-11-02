@@ -15,6 +15,7 @@ import {
   InputSingleSignerTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
+  InputSubmitTransactionData,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
 import {
@@ -131,14 +132,7 @@ export class TransactionSubmission {
    *
    * @return PendingTransactionResponse
    */
-  async submitTransaction(args: {
-    transaction: AnyRawTransaction;
-    senderAuthenticator: AccountAuthenticator;
-    secondarySignerAuthenticators?: {
-      feePayerAuthenticator?: AccountAuthenticator;
-      additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-    };
-  }): Promise<PendingTransactionResponse> {
+  async submitTransaction(args: InputSubmitTransactionData): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 

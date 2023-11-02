@@ -123,10 +123,8 @@ export const rawTransactionMultiAgentHelper = async (
   const transactionResponse = await aptos.submitTransaction({
     transaction: generatedTransaction,
     senderAuthenticator,
-    secondarySignerAuthenticators: {
-      additionalSignersAuthenticators: secondaryAuthenticators,
-      feePayerAuthenticator,
-    },
+    additionalSignersAuthenticators: secondaryAuthenticators,
+    feePayerAuthenticator,
   });
 
   const response = await aptos.waitForTransaction({

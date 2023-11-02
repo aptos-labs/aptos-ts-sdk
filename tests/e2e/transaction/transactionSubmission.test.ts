@@ -107,7 +107,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
         await waitForTransaction({
@@ -141,7 +141,7 @@ describe("transaction submission", () => {
           const response = await aptos.submitTransaction({
             transaction,
             senderAuthenticator,
-            secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+            additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
           await waitForTransaction({
@@ -170,7 +170,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -194,7 +194,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -227,10 +227,8 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: {
-            additionalSignersAuthenticators: [secondarySignerAuthenticator],
-            feePayerAuthenticator: feePayerSignerAuthenticator,
-          },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -303,7 +301,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
         await waitForTransaction({
@@ -337,7 +335,7 @@ describe("transaction submission", () => {
           const response = await aptos.submitTransaction({
             transaction,
             senderAuthenticator,
-            secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+            additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
           await waitForTransaction({
@@ -366,7 +364,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -390,7 +388,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -423,10 +421,8 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: {
-            additionalSignersAuthenticators: [secondarySignerAuthenticator],
-            feePayerAuthenticator: feePayerSignerAuthenticator,
-          },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -499,7 +495,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
         await waitForTransaction({
@@ -533,7 +529,7 @@ describe("transaction submission", () => {
           const response = await aptos.submitTransaction({
             transaction,
             senderAuthenticator,
-            secondarySignerAuthenticators: { additionalSignersAuthenticators: [secondarySignerAuthenticator] },
+            additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
           await waitForTransaction({
@@ -562,7 +558,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -586,7 +582,7 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({
@@ -619,10 +615,8 @@ describe("transaction submission", () => {
         const response = await aptos.submitTransaction({
           transaction,
           senderAuthenticator,
-          secondarySignerAuthenticators: {
-            additionalSignersAuthenticators: [secondarySignerAuthenticator],
-            feePayerAuthenticator: feePayerSignerAuthenticator,
-          },
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
+          feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
         await waitForTransaction({

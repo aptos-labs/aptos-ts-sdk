@@ -27,6 +27,7 @@ import {
   InputGenerateTransactionOptions,
   InputSingleSignerTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
+  InputSubmitTransactionData,
 } from "../transactions/types";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
 import { getInfo } from "./account";
@@ -173,15 +174,11 @@ export async function simulateTransaction(
  *
  * @return PendingTransactionResponse
  */
-export async function submitTransaction(args: {
-  aptosConfig: AptosConfig;
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  secondarySignerAuthenticators?: {
-    feePayerAuthenticator?: AccountAuthenticator;
-    additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-  };
-}): Promise<PendingTransactionResponse> {
+export async function submitTransaction(
+  args: {
+    aptosConfig: AptosConfig;
+  } & InputSubmitTransactionData,
+): Promise<PendingTransactionResponse> {
   const { aptosConfig } = args;
   const signedTransaction = generateSignedTransaction({ ...args });
   const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
