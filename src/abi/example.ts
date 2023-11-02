@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 /* eslint-disable max-len */
 import { Bool, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "..";
 import { Serializable, Serializer } from "../bcs";

@@ -225,13 +225,13 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
   // -------- Constructor input types -------- //
   // constructor fields
   if (functionArguments.length > 0) {
-    lines.push(`${TAB.repeat(1)}constructor(args: {`);
+    lines.push(`${TAB.repeat(1)}constructor(`);
     functionArguments.forEach((functionArgument, i) => {
       const inputType = createInputTypes(functionArgument.kindArray);
       const argComment = ` // ${functionArgument.annotation}`;
       lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}; ${argComment}`);
     });
-    lines.push(`${TAB.repeat(1)}}) {`);
+    lines.push(`${TAB.repeat(1)}) {`);
   } else {
     // lines.push(`${TAB.repeat(1)}constructor() {`);
   }
