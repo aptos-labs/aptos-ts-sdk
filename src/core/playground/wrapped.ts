@@ -10,7 +10,11 @@ import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 export type AllowedSignatures = Ed25519Signature | Secp256k1Signature;
 
 export class AnySignature<TSignature extends AllowedSignatures = AllowedSignatures> {
-  constructor(public readonly signature: TSignature) {}
+  public readonly signature: TSignature;
+
+  constructor(signature: TSignature) {
+    this.signature = signature;
+  }
 
   serialize(serializer: Serializer): void {
     if (this.signature instanceof Ed25519Signature) {
@@ -41,7 +45,11 @@ export class AnyPublicKey<
   TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
 > implements PublicKey<AnySignature<TSignature>>
 {
-  constructor(public readonly publicKey: TPublicKey) {}
+  public readonly publicKey: TPublicKey;
+
+  constructor(publicKey: TPublicKey) {
+    this.publicKey = publicKey;
+  }
 
   verifySignature(message: HexInput, signature: AnySignature<TSignature>) {
     return this.publicKey.verifySignature(message, signature.signature);

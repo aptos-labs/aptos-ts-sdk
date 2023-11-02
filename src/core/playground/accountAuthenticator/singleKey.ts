@@ -8,10 +8,14 @@ export class AccountAuthenticatorSingleKey<
   TSignature extends AllowedSignatures = AllowedSignatures,
   TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
 > {
-  constructor(
-    public readonly publicKey: AnyPublicKey<TSignature, TPublicKey>,
-    public readonly signature: AnySignature<TSignature>,
-  ) {}
+  public readonly publicKey: AnyPublicKey<TSignature, TPublicKey>;
+
+  public readonly signature: AnySignature<TSignature>;
+
+  constructor(publicKey: AnyPublicKey<TSignature, TPublicKey>, signature: AnySignature<TSignature>) {
+    this.publicKey = publicKey;
+    this.signature = signature;
+  }
 
   verify(message: HexInput): boolean {
     return this.publicKey.verifySignature(message, this.signature);
