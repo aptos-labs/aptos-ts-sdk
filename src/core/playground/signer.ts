@@ -40,15 +40,14 @@ export class Signer<
   static generate(args: GenerateSignerArgs<SignatureScheme.Secp256k1>): Signer<Secp256k1Signature, Secp256k1PublicKey>;
   static generate(args?: GenerateSignerArgs) {
     const scheme = args?.scheme ?? SignatureScheme.Ed25519;
-    if (scheme === SignatureScheme.Ed25519) {
-      const privateKey = Ed25519PrivateKey.generate();
-      return new Signer({ privateKey });
+    switch (scheme) {
+      case SignatureScheme.Ed25519:
+        return new Signer({ privateKey: Ed25519PrivateKey.generate() });
+      case SignatureScheme.Secp256k1:
+        return new Signer({ privateKey: Secp256k1PrivateKey.generate() });
+      default:
+        throw new Error(`Signing scheme ${scheme} is not supported`);
     }
-    if (scheme === SignatureScheme.Secp256k1) {
-      const privateKey = Secp256k1PrivateKey.generate();
-      return new Signer({ privateKey });
-    }
-    throw new Error(`Signing scheme ${scheme} is not supported`);
   }
 
   sign(message: HexInput): AccountAuthenticatorSingleKey<TSignature, TPublicKey> {
