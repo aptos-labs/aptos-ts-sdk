@@ -139,7 +139,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.ans.getOwnerAddress({ name });
-      expect(owner?.equals(alice.accountAddress)).toBeTruthy();
+      expect(owner).toEqual(alice.accountAddress.toString());
     });
 
     test("it mints a domain name and gives it to the specified address", async () => {
@@ -169,7 +169,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.ans.getOwnerAddress({ name });
-      expect(owner?.equals(bob.accountAddress)).toBeTruthy();
+      expect(owner).toEqual(bob.accountAddress.toString());
     });
   });
 });

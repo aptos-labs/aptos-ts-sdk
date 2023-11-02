@@ -83,7 +83,7 @@ const NetworkToAnsContract: Record<Network, MoveAddressType | null> = {
 
 function getRouterAddress(aptosConfig: AptosConfig): MoveAddressType {
   const address = NetworkToAnsContract[aptosConfig.network];
-  if (!address) throw new Error("The ANS contract is not deployed to your network");
+  if (!address) throw new Error(`The ANS contract is not deployed to ${aptosConfig.network}`);
   return address;
 }
 
@@ -107,7 +107,7 @@ export async function getOwnerAddress({
 }: {
   aptosConfig: AptosConfig;
   name: ANSName;
-}): Promise<AccountAddress | undefined> {
+}): Promise<MoveAddressType | undefined> {
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -121,7 +121,7 @@ export async function getOwnerAddress({
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.fromHexInput(owner) : undefined;
+  return owner ? AccountAddress.fromHexInput(owner).toString() : undefined;
 }
 
 export interface RegisterNameParameters {
@@ -146,7 +146,7 @@ export async function registerName({
   toAddress,
   targetAddress,
   options,
-}: RegisterNameParameters) {
+}: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
