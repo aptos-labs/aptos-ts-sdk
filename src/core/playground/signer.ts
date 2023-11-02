@@ -1,5 +1,6 @@
 import { HexInput } from "../../types";
 import { AccountAddress } from "../accountAddress";
+import { Account } from "./account";
 import { AccountAuthenticatorSingleKey } from "./accountAuthenticator";
 import { Ed25519PrivateKey, type Ed25519PublicKey, type Ed25519Signature } from "./ed25519";
 import type { BaseSigner, PrivateKey, PublicKey } from "./interfaces";
@@ -20,27 +21,18 @@ export interface GenerateSignerArgs<TSignatureScheme extends SignatureScheme = S
 }
 
 export class Signer<
-  TSignature extends AllowedSignatures = AllowedSignatures,
-  TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
-> implements BaseSigner<AccountAuthenticatorSingleKey<TSignature, TPublicKey>>
+    TSignature extends AllowedSignatures = AllowedSignatures,
+    TPublicKey extends PublicKey<TSignature> = PublicKey<TSignature>,
+  >
+  extends Account<TSignature, TPublicKey>
+  implements BaseSigner<AccountAuthenticatorSingleKey<TSignature, TPublicKey>>
 {
   public readonly privateKey: PrivateKey<TSignature, TPublicKey>;
 
-  public readonly publicKey: AnyPublicKey<TSignature, TPublicKey>;
-
-  public readonly address: AccountAddress;
-
   constructor({ privateKey, address }: SignerConstructorArgs<TSignature, TPublicKey>) {
+    const publicKey = new AnyPublicKey(privateKey.publicKey());
+    super({ publicKey, address });
     this.privateKey = privateKey;
-    this.publicKey = new AnyPublicKey(this.privateKey.publicKey());
-
-    if (address instanceof AccountAddress) {
-      this.address = address;
-    } else if (address !== undefined) {
-      this.address = AccountAddress.fromHexInput(address);
-    } else {
-      this.address = this.publicKey.authKey().derivedAddress();
-    }
   }
 
   static generate(): Signer<Ed25519Signature, Ed25519PublicKey>;

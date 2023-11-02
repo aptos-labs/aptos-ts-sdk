@@ -1,47 +1,64 @@
+import { Account } from "./account";
 import { LegacyAccountAuthenticatorMultiEd25519 } from "./accountAuthenticator";
+import { LegacyEd25519Account } from "./legacy/ed25519Account";
 import { LegacyEd25519Signer } from "./legacy/ed25519Signer";
 import { LegacyMultiEd25519PublicKey, LegacyMultiEd25519Signature } from "./legacy/multiEd25519";
+import { LegacyMultiEd25519Account } from "./legacy/multiEd25519Account";
 import { Signer } from "./signer";
 import { SignatureScheme } from "./scheme";
 
 describe("playground", () => {
   test("LegacyEd25519Signer", () => {
-    const account = LegacyEd25519Signer.generate();
-    const authenticator = account.sign("0xdeadbeef");
+    const signer = LegacyEd25519Signer.generate();
+    const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
+
+    const account = new LegacyEd25519Account({ publicKey: signer.publicKey, address: signer.address });
+    expect(account.verifySignature("0xdeadbeef", authenticator.signature)).toBeTruthy();
   });
 
   test("DefaultSigner", () => {
-    const account = Signer.generate();
-    const authenticator = account.sign("0xdeadbeef");
+    const signer = Signer.generate();
+    const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
+
+    const account = new Account({ publicKey: signer.publicKey });
+    expect(account.verifySignature("0xdeadbeef", authenticator.signature)).toBeTruthy();
   });
 
   test("Ed25519Signer", () => {
-    const account = Signer.generate({ scheme: SignatureScheme.Ed25519 });
-    const authenticator = account.sign("0xdeadbeef");
+    const signer = Signer.generate({ scheme: SignatureScheme.Ed25519 });
+    const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
+
+    const account = new Account({ publicKey: signer.publicKey });
+    expect(account.verifySignature("0xdeadbeef", authenticator.signature)).toBeTruthy();
   });
 
   test("Secp256k1Signer", () => {
-    const account = Signer.generate({ scheme: SignatureScheme.Secp256k1 });
-    const authenticator = account.sign("0xdeadbeef");
+    const signer = Signer.generate({ scheme: SignatureScheme.Secp256k1 });
+    const authenticator = signer.sign("0xdeadbeef");
     expect(authenticator.verify("0xdeadbeef")).toBeTruthy();
+
+    const account = new Account({ publicKey: signer.publicKey });
+    expect(account.verifySignature("0xdeadbeef", authenticator.signature)).toBeTruthy();
   });
 
   test("LegacyMultiEd25519Authenticator", () => {
-    const account1 = LegacyEd25519Signer.generate();
-    const account2 = LegacyEd25519Signer.generate();
-    const account3 = LegacyEd25519Signer.generate();
+    const signer1 = LegacyEd25519Signer.generate();
+    const signer2 = LegacyEd25519Signer.generate();
+    const signer3 = LegacyEd25519Signer.generate();
     const multiEd25519PublicKey = new LegacyMultiEd25519PublicKey({
-      publicKeys: [account1.publicKey, account2.publicKey, account3.publicKey],
+      publicKeys: [signer1.publicKey, signer2.publicKey, signer3.publicKey],
       threshold: 2,
     });
 
+    const multiAccount = new LegacyMultiEd25519Account({ publicKey: multiEd25519PublicKey });
+
     const message = "0xdeadbeef";
-    const authenticator1 = account1.sign(message);
-    const authenticator2 = account2.sign(message);
-    const authenticator3 = account3.sign(message);
+    const authenticator1 = signer1.sign(message);
+    const authenticator2 = signer2.sign(message);
+    const authenticator3 = signer3.sign(message);
 
     {
       const multiEd25519Signature = new LegacyMultiEd25519Signature({
@@ -53,6 +70,7 @@ describe("playground", () => {
         multiEd25519Signature,
       );
       expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+      expect(multiAccount.verifySignature(message, multiEd25519Signature)).toBeTruthy();
     }
 
     {
@@ -65,6 +83,7 @@ describe("playground", () => {
         multiEd25519Signature,
       );
       expect(multiEd25519Authenticator.verify(message)).toBeFalsy();
+      expect(multiAccount.verifySignature(message, multiEd25519Signature)).toBeFalsy();
     }
 
     {
@@ -74,6 +93,7 @@ describe("playground", () => {
         authenticators,
       );
       expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+      expect(multiAccount.verifySignature(message, multiEd25519Authenticator.signature)).toBeTruthy();
     }
 
     {
@@ -83,6 +103,7 @@ describe("playground", () => {
         authenticators,
       );
       expect(multiEd25519Authenticator.verify(message)).toBeTruthy();
+      expect(multiAccount.verifySignature(message, multiEd25519Authenticator.signature)).toBeTruthy();
     }
 
     {
@@ -92,6 +113,9 @@ describe("playground", () => {
         authenticators,
       );
       expect(() => multiEd25519Authenticator.verify(message)).toThrow("Not enough signatures");
+      expect(() => multiAccount.verifySignature(message, multiEd25519Authenticator.signature)).toThrow(
+        "Not enough signatures",
+      );
     }
   });
 });

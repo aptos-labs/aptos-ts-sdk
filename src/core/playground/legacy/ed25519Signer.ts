@@ -1,27 +1,17 @@
 import { HexInput } from "../../../types";
 import { AccountAddress } from "../../accountAddress";
 import { LegacyAccountAuthenticatorEd25519 } from "../accountAuthenticator";
-import { Ed25519PrivateKey, Ed25519PublicKey } from "../ed25519";
+import { Ed25519PrivateKey } from "../ed25519";
 import type { BaseSigner } from "../interfaces";
+import { LegacyEd25519Account } from "./ed25519Account";
 
-export class LegacyEd25519Signer implements BaseSigner<LegacyAccountAuthenticatorEd25519> {
+export class LegacyEd25519Signer extends LegacyEd25519Account implements BaseSigner<LegacyAccountAuthenticatorEd25519> {
   public readonly privateKey: Ed25519PrivateKey;
 
-  public readonly publicKey: Ed25519PublicKey;
-
-  public readonly address: AccountAddress;
-
   constructor(privateKey: Ed25519PrivateKey, address?: AccountAddress | HexInput) {
+    const publicKey = privateKey.publicKey();
+    super({ publicKey, address });
     this.privateKey = privateKey;
-    this.publicKey = this.privateKey.publicKey();
-
-    if (address instanceof AccountAddress) {
-      this.address = address;
-    } else if (address !== undefined) {
-      this.address = AccountAddress.fromHexInput(address);
-    } else {
-      this.address = this.publicKey.authKey().derivedAddress();
-    }
   }
 
   static generate() {
