@@ -9,6 +9,7 @@ import { Event } from "./event";
 import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
+import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
@@ -24,6 +25,8 @@ export class Aptos {
   readonly config: AptosConfig;
 
   readonly account: Account;
+
+  readonly ans: ANS;
 
   readonly coin: Coin;
 
@@ -46,6 +49,7 @@ export class Aptos {
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
+    this.ans = new ANS(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
     this.event = new Event(this.config);
@@ -68,11 +72,12 @@ export interface Aptos
     General,
     Staking,
     Transaction,
+    ANS,
     TransactionSubmission {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
-Mixins helps us to get around that by creating a partial classes 
+Mixins helps us to get around that by creating a partial classes
 that we can combine to form a single class that contains all the methods and properties from the partial classes.
 {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
 
@@ -92,6 +97,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 }
 
 applyMixin(Aptos, Account, "account");
+applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
 applyMixin(Aptos, Event, "event");
