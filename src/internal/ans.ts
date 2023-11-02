@@ -17,8 +17,6 @@ import { Network } from "../utils/apiEndpoints";
 import { view } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 
-export type ANSName = string | { domainName: string; subdomainName?: string };
-
 export const VALIDATION_RULES_DESCRIPTION = [
   "A name must be between 3 and 63 characters long,",
   "and can only contain lowercase a-z, 0-9, and hyphens.",
@@ -44,8 +42,7 @@ export function isValidANSSegment(fragment: string): boolean {
  *
  * @param name A string of the domain name, can include or exclude the .apt suffix
  */
-export function isValidANSName(_name: ANSName): { domainName: string; subdomainName?: string } {
-  const name = typeof _name === "string" ? _name : `${_name.subdomainName}.${_name.domainName}.apt`;
+export function isValidANSName(name: string): { domainName: string; subdomainName?: string } {
   const [first, second, ...rest] = name.replace(/\.apt$/, "").split(".");
 
   if (rest.length > 0) {
@@ -106,7 +103,7 @@ export async function getOwnerAddress({
   name,
 }: {
   aptosConfig: AptosConfig;
-  name: ANSName;
+  name: string;
 }): Promise<MoveAddressType | undefined> {
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -129,7 +126,7 @@ export async function getOwnerAddress({
 export interface RegisterNameParameters {
   aptosConfig: AptosConfig;
   sender: Account;
-  name: ANSName;
+  name: string;
   expiration:
     | { policy: "domain"; years: 1 }
     | { policy: "subdomain:follow-domain" }

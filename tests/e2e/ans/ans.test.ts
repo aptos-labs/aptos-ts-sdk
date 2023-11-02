@@ -60,11 +60,6 @@ describe("ANS", () => {
 
       expect(isValidANSName("secondary.primary")).toEqual({ domainName: "primary", subdomainName: "secondary" });
       expect(isValidANSName("secondary.primary.apt")).toEqual({ domainName: "primary", subdomainName: "secondary" });
-
-      expect(isValidANSName({ domainName: "primary", subdomainName: "secondary" })).toEqual({
-        domainName: "primary",
-        subdomainName: "secondary",
-      });
     });
 
     test("it returns false for invalid names", () => {
@@ -79,8 +74,6 @@ describe("ANS", () => {
       expect(() => isValidANSName("1")).toThrow();
       expect(() => isValidANSName("1.apt")).toThrow();
       expect(() => isValidANSName("bad.bad.bad")).toThrow();
-      expect(() => isValidANSName({ domainName: "1" })).toThrow();
-      expect(() => isValidANSName({ domainName: "1", subdomainName: "2" })).toThrow();
     });
   });
 
