@@ -63,10 +63,10 @@ import { getInfo } from "./account";
  * }
  * ```
  *
- * @return A raw transaction type (note that it holds the raw transaction as a bcs serialized data)
+ * @return An instance of a RawTransaction, plus optional secondary/fee payer addresses
  * ```
  * {
- *  rawTransaction: Uint8Array,
+ *  rawTransaction: RawTransaction,
  *  secondarySignerAddresses? : Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
@@ -112,10 +112,10 @@ export async function generateTransaction(
  * Sign a transaction that can later be submitted to chain
  *
  * @param args.signer The signer account to sign the transaction
- * @param args.transaction A raw transaction type (note that it holds the raw transaction as a bcs serialized data)
+ * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
  * ```
  * {
- *  rawTransaction: Uint8Array,
+ *  rawTransaction: RawTransaction,
  *  secondarySignerAddresses? : Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }

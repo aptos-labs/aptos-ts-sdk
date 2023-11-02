@@ -17,7 +17,7 @@ describe("coin", () => {
       amount: 10,
     });
 
-    const txnDeserializer = new Deserializer(transaction.rawTransaction);
+    const txnDeserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
     const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
     expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
@@ -39,7 +39,7 @@ describe("coin", () => {
       coinType: "0x1::my_coin::type",
     });
 
-    const txnDeserializer = new Deserializer(transaction.rawTransaction);
+    const txnDeserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
     const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
     expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
