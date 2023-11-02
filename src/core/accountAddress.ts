@@ -70,15 +70,15 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @param args.data A Uint8Array representing an account address.
    */
-  constructor(args: { data: Uint8Array }) {
+  constructor(input: Uint8Array) {
     super();
-    if (args.data.length !== AccountAddress.LENGTH) {
+    if (input.length !== AccountAddress.LENGTH) {
       throw new ParsingError(
         "AccountAddress data should be exactly 32 bytes long",
         AddressInvalidReason.INCORRECT_NUMBER_OF_BYTES,
       );
     }
-    this.data = args.data;
+    this.data = input;
   }
 
   /**
@@ -209,7 +209,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    */
   static deserialize(deserializer: Deserializer): AccountAddress {
     const bytes = deserializer.deserializeFixedBytes(AccountAddress.LENGTH);
-    return new AccountAddress({ data: bytes });
+    return new AccountAddress(bytes);
   }
 
   // ===
@@ -333,7 +333,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       throw new ParsingError(`Hex characters are invalid: ${error.message}`, AddressInvalidReason.INVALID_HEX_CHARS);
     }
 
-    return new AccountAddress({ data: addressBytes });
+    return new AccountAddress(addressBytes);
   }
 
   /**
@@ -347,7 +347,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       return input;
     }
     if (input instanceof Uint8Array) {
-      return new AccountAddress({ data: input });
+      return new AccountAddress(input);
     }
     return AccountAddress.fromStringRelaxed(input);
   }
@@ -363,7 +363,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       return input;
     }
     if (input instanceof Uint8Array) {
-      return new AccountAddress({ data: input });
+      return new AccountAddress(input);
     }
     return AccountAddress.fromString(input);
   }

@@ -181,7 +181,7 @@ export class Account {
     }
 
     const authKey = AuthenticationKey.fromPublicKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    const address = authKey.derivedAddress();
     return new Account({ privateKey, address, legacy: useLegacy });
   }
 

@@ -123,12 +123,12 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
       await aptos.fundAccount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
       const rawTxn = await aptos.generateTransaction({
-        sender: senderAccount.accountAddress.toString(),
+        sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
@@ -144,7 +144,7 @@ describe("account api", () => {
       });
       const txn = await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactions = await aptos.getAccountTransactions({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
       });
       expect(accountTransactions[0]).toStrictEqual(txn);
     });
@@ -154,13 +154,13 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ transactionHash: response });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
       });
       expect(accountTransactionsCount).toBe(1);
     });
@@ -170,13 +170,13 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinData = await aptos.getAccountCoinsData({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
       });
       expect(accountCoinData[0].amount).toBe(FUND_AMOUNT);
       expect(accountCoinData[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");
@@ -187,13 +187,13 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
       const response = await aptos.fundAccount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
       await aptos.waitForTransaction({ transactionHash: response });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
-        accountAddress: senderAccount.accountAddress.toString(),
+        accountAddress: senderAccount.accountAddress,
       });
       expect(accountCoinsCount).toBe(1);
     });
@@ -204,12 +204,12 @@ describe("account api", () => {
       const account = Account.generate();
 
       // Fund and create account on-chain
-      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: FUND_AMOUNT });
 
       const lookupAccount = await aptos.lookupOriginalAccountAddress({
-        authenticationKey: account.accountAddress.toString(),
+        authenticationKey: account.accountAddress,
       });
-      expect(lookupAccount.toString()).toBe(account.accountAddress.toString());
+      expect(lookupAccount).toStrictEqual(account.accountAddress);
     });
 
     describe("it derives an account from a private key", () => {
@@ -217,7 +217,7 @@ describe("account api", () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
         const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-        await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
@@ -233,8 +233,8 @@ describe("account api", () => {
       test("legacy ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate();
-        await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100 });
+        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
@@ -309,8 +309,8 @@ describe("account api", () => {
       const aptos = new Aptos(config);
 
       // Current Account
-      const account = Account.generate();
-      await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 1_000_000_000 });
+      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       // account that holds the new key
       const rotateToPrivateKey = Ed25519PrivateKey.generate();
@@ -321,11 +321,11 @@ describe("account api", () => {
 
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-        authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).toString(),
+        authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
       });
 
       // Check if the lookup account address is the same as the original account address
-      expect(lookupAccountAddress.toString()).toBe(account.accountAddress.toString());
+      expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
     });
   });
 });
