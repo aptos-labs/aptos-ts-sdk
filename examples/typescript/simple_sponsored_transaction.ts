@@ -67,7 +67,6 @@ const example = async () => {
     },
   });
 
-  // Alice and sponsor to sign the transaction (order matters)
   const senderSignature = aptos.signTransaction({ signer: alice, transaction });
   const sponsorSignature = aptos.signTransaction({ signer: sponsor, transaction });
 
