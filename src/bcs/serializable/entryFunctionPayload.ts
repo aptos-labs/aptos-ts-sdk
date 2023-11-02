@@ -202,7 +202,7 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
             // It's possible the fee payer is 0x0, so we need to manually override that
             feePayerAddressToUse = signer.accountAddress;
         }
-        const inferredSigner = Signer.fromLocalAccount({ account: signer, rawTransaction: this.rawTransaction, feePayerAddress: feePayerAddressToUse });
+        const inferredSigner = Signer.fromAccount({ account: signer, rawTransaction: this.rawTransaction, feePayerAddress: feePayerAddressToUse });
         this.addSignature(inferredSigner);
     }
 
