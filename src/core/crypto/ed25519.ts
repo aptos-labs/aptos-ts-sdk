@@ -103,7 +103,7 @@ export class Ed25519PrivateKey extends PrivateKey {
    * The Ed25519 key seed to use for BIP-32 compatibility
    * See more {@link https://github.com/satoshilabs/slips/blob/master/slip-0010.md}
    */
-  static readonly SEED = "ed25519 seed";
+  static readonly SLIP_0010_SEED = "ed25519 seed";
 
   /**
    * The Ed25519 signing key
@@ -215,7 +215,7 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @returns
    */
   private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): Ed25519PrivateKey {
-    const { key, chainCode } = deriveKey(Ed25519PrivateKey.SEED, seed);
+    const { key, chainCode } = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
 
     const segments = splitPath(path).map((el) => parseInt(el, 10));
 
