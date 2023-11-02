@@ -118,6 +118,7 @@ export const rawTransactionMultiAgentHelper = async (
 ): Promise<UserTransactionResponse> => {
   const transactionData: InputGenerateTransactionData = {
     sender: senderAccount.accountAddress.toString(),
+    hasSponsor: false,
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
