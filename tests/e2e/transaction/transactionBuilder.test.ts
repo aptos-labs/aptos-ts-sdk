@@ -476,9 +476,7 @@ describe("transaction builder", () => {
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
-        secondarySignerAuthenticators: {
-          additionalSignersAuthenticators: [secondaryAuthenticator],
-        },
+        additionalSignersAuthenticators: [secondaryAuthenticator],
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);
@@ -509,9 +507,7 @@ describe("transaction builder", () => {
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
-        secondarySignerAuthenticators: {
-          feePayerAuthenticator,
-        },
+        feePayerAuthenticator,
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);

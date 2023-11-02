@@ -309,8 +309,6 @@ export type InputGenerateTransactionData =
 export interface InputSubmitTransactionData {
   transaction: AnyRawTransaction;
   senderAuthenticator: AccountAuthenticator;
-  secondarySignerAuthenticators?: {
-    feePayerAuthenticator?: AccountAuthenticator;
-    additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-  };
+  feePayerAuthenticator?: AccountAuthenticator;
+  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
 }
