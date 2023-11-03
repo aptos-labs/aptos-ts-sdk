@@ -46,8 +46,7 @@ export class ANS {
   /**
    * Retrieve the expiration time of a domain name or subdomain name.
    *
-   * @param args.domainName - A string of the domain name to retrieve
-   * @param args.subdomainName - A string of the subdomain name to retrieve
+   * @param args.name - A string of the name to retrieve
    *
    * @returns number as a unix timestamp in seconds.
    */
@@ -119,35 +118,31 @@ export class ANS {
   }
 
   /**
-   * Registers a new domain name
+   * Registers a new name
    *
    * ```ts
-   * // Example of building the transaction if the domain expires in 30 days
-   * // Notes, `valueOf` gives us milliseconds.
-   * const expirationTime = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).valueOf()
-   *
-   * // Build the transaction
-   * const txn = await aptos.ans.registerSubdomain({
-   *   domainName,
-   *   subdomainName,
-   *   expirationPolicy: "independent",
-   *   expirationDateInMillisecondsSinceEpoch: expirationTime,
-   *   transferable: true,
-   *   sender: alice,
-   *   targetAddress: bob.accountAddress.toString(),
-   *   toAddress: bob.accountAddress.toString(),
-   * })
+   * // An example of registering a subdomain name assuming def.apt is already registered
+   * // and belongs to the sender alice.
+   *  const txn = aptos.registerName({
+   *    sender: alice,
+   *    name: "abc.def.apt",
+   *    expiration: {
+   *      policy: "subdomain:independent",
+   *      expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+   *    },
+   *  });
    * ```
    *
    * @param args.sender - The sender account
-   * @param args.name - A string or {domainName: string, subdomainName?: string} of the name to register. This
-   * can be inclusive or exclusive of the .apt suffix.
-   * Examples include: "xyz", "xyz.apt", "xyz.kyc.apt", {domainName: "xyz"}, {domainName: "kyc", subdomainName: "xyz"}.
+   * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .apt suffix.
+   * Examples include: "xyz", "xyz.apt", "xyz.kyc.apt", etc.
    * @param args.expiration  - An object with the expiration policy of the name.
    * @param args.expiration.policy - 'domain' | 'subdomain:follow-domain' | 'subdomain:independent'
    * - domain: Years is required and the name will expire after the given number of years.
    * - subdomain:follow-domain: The name will expire at the same time as the domain name.
    * - subdomain:independent: The name will expire at the given date.
+   * @param args.expiration.expirationDate - A javascript date of when the subdomain will expire. Only applicable when
+   * the policy is set to 'subdomain:independent'.
    * @param args.transferable  - Determines if the subdomain being minted is soul-bound. Applicable only to subdomains.
    * @param args.targetAddress optional - The address the domain name will resolve to. If not provided,
    * the sender's address will be used.
