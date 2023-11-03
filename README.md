@@ -127,6 +127,7 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 
 ## Documentation and examples
 
+- For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
 - For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
