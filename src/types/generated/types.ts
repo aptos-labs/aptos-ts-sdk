@@ -3,82 +3,84 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-  bigint: any;
-  jsonb: any;
-  numeric: any;
-  timestamp: any;
-  timestamptz: any;
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
+  bigint: { input: any; output: any };
+  jsonb: { input: any; output: any };
+  numeric: { input: any; output: any };
+  timestamp: { input: any; output: any };
+  timestamptz: { input: any; output: any };
 };
 
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
 export type BooleanComparisonExp = {
-  _eq?: InputMaybe<Scalars["Boolean"]>;
-  _gt?: InputMaybe<Scalars["Boolean"]>;
-  _gte?: InputMaybe<Scalars["Boolean"]>;
-  _in?: InputMaybe<Array<Scalars["Boolean"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["Boolean"]>;
-  _lte?: InputMaybe<Scalars["Boolean"]>;
-  _neq?: InputMaybe<Scalars["Boolean"]>;
-  _nin?: InputMaybe<Array<Scalars["Boolean"]>>;
+  _eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _gt?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _gte?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["Boolean"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lte?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _neq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["Boolean"]["input"]>>;
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type IntComparisonExp = {
-  _eq?: InputMaybe<Scalars["Int"]>;
-  _gt?: InputMaybe<Scalars["Int"]>;
-  _gte?: InputMaybe<Scalars["Int"]>;
-  _in?: InputMaybe<Array<Scalars["Int"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["Int"]>;
-  _lte?: InputMaybe<Scalars["Int"]>;
-  _neq?: InputMaybe<Scalars["Int"]>;
-  _nin?: InputMaybe<Array<Scalars["Int"]>>;
+  _eq?: InputMaybe<Scalars["Int"]["input"]>;
+  _gt?: InputMaybe<Scalars["Int"]["input"]>;
+  _gte?: InputMaybe<Scalars["Int"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["Int"]["input"]>;
+  _lte?: InputMaybe<Scalars["Int"]["input"]>;
+  _neq?: InputMaybe<Scalars["Int"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["Int"]["input"]>>;
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type StringComparisonExp = {
-  _eq?: InputMaybe<Scalars["String"]>;
-  _gt?: InputMaybe<Scalars["String"]>;
-  _gte?: InputMaybe<Scalars["String"]>;
+  _eq?: InputMaybe<Scalars["String"]["input"]>;
+  _gt?: InputMaybe<Scalars["String"]["input"]>;
+  _gte?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column match the given case-insensitive pattern */
-  _ilike?: InputMaybe<Scalars["String"]>;
-  _in?: InputMaybe<Array<Scalars["String"]>>;
+  _ilike?: InputMaybe<Scalars["String"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** does the column match the given POSIX regular expression, case insensitive */
-  _iregex?: InputMaybe<Scalars["String"]>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
+  _iregex?: InputMaybe<Scalars["String"]["input"]>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** does the column match the given pattern */
-  _like?: InputMaybe<Scalars["String"]>;
-  _lt?: InputMaybe<Scalars["String"]>;
-  _lte?: InputMaybe<Scalars["String"]>;
-  _neq?: InputMaybe<Scalars["String"]>;
+  _like?: InputMaybe<Scalars["String"]["input"]>;
+  _lt?: InputMaybe<Scalars["String"]["input"]>;
+  _lte?: InputMaybe<Scalars["String"]["input"]>;
+  _neq?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column NOT match the given case-insensitive pattern */
-  _nilike?: InputMaybe<Scalars["String"]>;
-  _nin?: InputMaybe<Array<Scalars["String"]>>;
+  _nilike?: InputMaybe<Scalars["String"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** does the column NOT match the given POSIX regular expression, case insensitive */
-  _niregex?: InputMaybe<Scalars["String"]>;
+  _niregex?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column NOT match the given pattern */
-  _nlike?: InputMaybe<Scalars["String"]>;
+  _nlike?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column NOT match the given POSIX regular expression, case sensitive */
-  _nregex?: InputMaybe<Scalars["String"]>;
+  _nregex?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column NOT match the given SQL regular expression */
-  _nsimilar?: InputMaybe<Scalars["String"]>;
+  _nsimilar?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column match the given POSIX regular expression, case sensitive */
-  _regex?: InputMaybe<Scalars["String"]>;
+  _regex?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column match the given SQL regular expression */
-  _similar?: InputMaybe<Scalars["String"]>;
+  _similar?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "account_transactions" */
 export type AccountTransactions = {
-  account_address: Scalars["String"];
+  account_address: Scalars["String"]["output"];
   /** An array relationship */
   coin_activities: Array<CoinActivities>;
   /** An aggregate relationship */
@@ -95,14 +97,14 @@ export type AccountTransactions = {
   token_activities_v2: Array<TokenActivitiesV2>;
   /** An aggregate relationship */
   token_activities_v2_aggregate: TokenActivitiesV2Aggregate;
-  transaction_version: Scalars["bigint"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsCoinActivitiesArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -110,8 +112,8 @@ export type AccountTransactionsCoinActivitiesArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsCoinActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -119,8 +121,8 @@ export type AccountTransactionsCoinActivitiesAggregateArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsDelegatedStakingActivitiesArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingActivitiesOrderBy>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
@@ -128,8 +130,8 @@ export type AccountTransactionsDelegatedStakingActivitiesArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsFungibleAssetActivitiesArgs = {
   distinct_on?: InputMaybe<Array<FungibleAssetActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<FungibleAssetActivitiesOrderBy>>;
   where?: InputMaybe<FungibleAssetActivitiesBoolExp>;
 };
@@ -137,8 +139,8 @@ export type AccountTransactionsFungibleAssetActivitiesArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsTokenActivitiesArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -146,8 +148,8 @@ export type AccountTransactionsTokenActivitiesArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsTokenActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -155,8 +157,8 @@ export type AccountTransactionsTokenActivitiesAggregateArgs = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsTokenActivitiesV2Args = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -164,8 +166,8 @@ export type AccountTransactionsTokenActivitiesV2Args = {
 /** columns and relationships of "account_transactions" */
 export type AccountTransactionsTokenActivitiesV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -179,7 +181,7 @@ export type AccountTransactionsAggregate = {
 /** aggregate fields of "account_transactions" */
 export type AccountTransactionsAggregateFields = {
   avg?: Maybe<AccountTransactionsAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<AccountTransactionsMaxFields>;
   min?: Maybe<AccountTransactionsMinFields>;
   stddev?: Maybe<AccountTransactionsStddevFields>;
@@ -194,12 +196,12 @@ export type AccountTransactionsAggregateFields = {
 /** aggregate fields of "account_transactions" */
 export type AccountTransactionsAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<AccountTransactionsSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type AccountTransactionsAvgFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "account_transactions". All fields are combined with a logical 'AND'. */
@@ -218,14 +220,14 @@ export type AccountTransactionsBoolExp = {
 
 /** aggregate max on columns */
 export type AccountTransactionsMaxFields = {
-  account_address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type AccountTransactionsMinFields = {
-  account_address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** Ordering options when selecting data from "account_transactions". */
@@ -249,17 +251,17 @@ export enum AccountTransactionsSelectColumn {
 
 /** aggregate stddev on columns */
 export type AccountTransactionsStddevFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type AccountTransactionsStddevPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type AccountTransactionsStddevSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "account_transactions" */
@@ -272,37 +274,37 @@ export type AccountTransactionsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type AccountTransactionsStreamCursorValueInput = {
-  account_address?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  account_address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type AccountTransactionsSumFields = {
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type AccountTransactionsVarPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type AccountTransactionsVarSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type AccountTransactionsVarianceFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "address_events_summary" */
 export type AddressEventsSummary = {
-  account_address?: Maybe<Scalars["String"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   block_metadata?: Maybe<BlockMetadataTransactions>;
-  min_block_height?: Maybe<Scalars["bigint"]>;
-  num_distinct_versions?: Maybe<Scalars["bigint"]>;
+  min_block_height?: Maybe<Scalars["bigint"]["output"]>;
+  num_distinct_versions?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "address_events_summary". All fields are combined with a logical 'AND'. */
@@ -344,14 +346,14 @@ export type AddressEventsSummaryStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type AddressEventsSummaryStreamCursorValueInput = {
-  account_address?: InputMaybe<Scalars["String"]>;
-  min_block_height?: InputMaybe<Scalars["bigint"]>;
-  num_distinct_versions?: InputMaybe<Scalars["bigint"]>;
+  account_address?: InputMaybe<Scalars["String"]["input"]>;
+  min_block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  num_distinct_versions?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEvents = {
-  account_address?: Maybe<Scalars["String"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
   coin_activities: Array<CoinActivities>;
   /** An aggregate relationship */
@@ -366,14 +368,14 @@ export type AddressVersionFromEvents = {
   token_activities_v2: Array<TokenActivitiesV2>;
   /** An aggregate relationship */
   token_activities_v2_aggregate: TokenActivitiesV2Aggregate;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsCoinActivitiesArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -381,8 +383,8 @@ export type AddressVersionFromEventsCoinActivitiesArgs = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsCoinActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -390,8 +392,8 @@ export type AddressVersionFromEventsCoinActivitiesAggregateArgs = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsDelegatedStakingActivitiesArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingActivitiesOrderBy>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
@@ -399,8 +401,8 @@ export type AddressVersionFromEventsDelegatedStakingActivitiesArgs = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsTokenActivitiesArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -408,8 +410,8 @@ export type AddressVersionFromEventsTokenActivitiesArgs = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsTokenActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -417,8 +419,8 @@ export type AddressVersionFromEventsTokenActivitiesAggregateArgs = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsTokenActivitiesV2Args = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -426,8 +428,8 @@ export type AddressVersionFromEventsTokenActivitiesV2Args = {
 /** columns and relationships of "address_version_from_events" */
 export type AddressVersionFromEventsTokenActivitiesV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -441,7 +443,7 @@ export type AddressVersionFromEventsAggregate = {
 /** aggregate fields of "address_version_from_events" */
 export type AddressVersionFromEventsAggregateFields = {
   avg?: Maybe<AddressVersionFromEventsAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<AddressVersionFromEventsMaxFields>;
   min?: Maybe<AddressVersionFromEventsMinFields>;
   stddev?: Maybe<AddressVersionFromEventsStddevFields>;
@@ -456,12 +458,12 @@ export type AddressVersionFromEventsAggregateFields = {
 /** aggregate fields of "address_version_from_events" */
 export type AddressVersionFromEventsAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<AddressVersionFromEventsSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type AddressVersionFromEventsAvgFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "address_version_from_events". All fields are combined with a logical 'AND'. */
@@ -479,14 +481,14 @@ export type AddressVersionFromEventsBoolExp = {
 
 /** aggregate max on columns */
 export type AddressVersionFromEventsMaxFields = {
-  account_address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type AddressVersionFromEventsMinFields = {
-  account_address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  account_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** Ordering options when selecting data from "address_version_from_events". */
@@ -509,17 +511,17 @@ export enum AddressVersionFromEventsSelectColumn {
 
 /** aggregate stddev on columns */
 export type AddressVersionFromEventsStddevFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type AddressVersionFromEventsStddevPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type AddressVersionFromEventsStddevSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "address_version_from_events" */
@@ -532,33 +534,33 @@ export type AddressVersionFromEventsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type AddressVersionFromEventsStreamCursorValueInput = {
-  account_address?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  account_address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type AddressVersionFromEventsSumFields = {
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type AddressVersionFromEventsVarPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type AddressVersionFromEventsVarSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type AddressVersionFromEventsVarianceFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResources = {
-  address?: Maybe<Scalars["String"]>;
+  address?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
   coin_activities: Array<CoinActivities>;
   /** An aggregate relationship */
@@ -573,14 +575,14 @@ export type AddressVersionFromMoveResources = {
   token_activities_v2: Array<TokenActivitiesV2>;
   /** An aggregate relationship */
   token_activities_v2_aggregate: TokenActivitiesV2Aggregate;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesCoinActivitiesArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -588,8 +590,8 @@ export type AddressVersionFromMoveResourcesCoinActivitiesArgs = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesCoinActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
@@ -597,8 +599,8 @@ export type AddressVersionFromMoveResourcesCoinActivitiesAggregateArgs = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesDelegatedStakingActivitiesArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingActivitiesOrderBy>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
@@ -606,8 +608,8 @@ export type AddressVersionFromMoveResourcesDelegatedStakingActivitiesArgs = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesTokenActivitiesArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -615,8 +617,8 @@ export type AddressVersionFromMoveResourcesTokenActivitiesArgs = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesTokenActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
@@ -624,8 +626,8 @@ export type AddressVersionFromMoveResourcesTokenActivitiesAggregateArgs = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesTokenActivitiesV2Args = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -633,8 +635,8 @@ export type AddressVersionFromMoveResourcesTokenActivitiesV2Args = {
 /** columns and relationships of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesTokenActivitiesV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
@@ -648,7 +650,7 @@ export type AddressVersionFromMoveResourcesAggregate = {
 /** aggregate fields of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesAggregateFields = {
   avg?: Maybe<AddressVersionFromMoveResourcesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<AddressVersionFromMoveResourcesMaxFields>;
   min?: Maybe<AddressVersionFromMoveResourcesMinFields>;
   stddev?: Maybe<AddressVersionFromMoveResourcesStddevFields>;
@@ -663,12 +665,12 @@ export type AddressVersionFromMoveResourcesAggregateFields = {
 /** aggregate fields of "address_version_from_move_resources" */
 export type AddressVersionFromMoveResourcesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<AddressVersionFromMoveResourcesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type AddressVersionFromMoveResourcesAvgFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "address_version_from_move_resources". All fields are combined with a logical 'AND'. */
@@ -686,14 +688,14 @@ export type AddressVersionFromMoveResourcesBoolExp = {
 
 /** aggregate max on columns */
 export type AddressVersionFromMoveResourcesMaxFields = {
-  address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type AddressVersionFromMoveResourcesMinFields = {
-  address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** Ordering options when selecting data from "address_version_from_move_resources". */
@@ -716,17 +718,17 @@ export enum AddressVersionFromMoveResourcesSelectColumn {
 
 /** aggregate stddev on columns */
 export type AddressVersionFromMoveResourcesStddevFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type AddressVersionFromMoveResourcesStddevPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type AddressVersionFromMoveResourcesStddevSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "address_version_from_move_resources" */
@@ -739,64 +741,64 @@ export type AddressVersionFromMoveResourcesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type AddressVersionFromMoveResourcesStreamCursorValueInput = {
-  address?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type AddressVersionFromMoveResourcesSumFields = {
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type AddressVersionFromMoveResourcesVarPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type AddressVersionFromMoveResourcesVarSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type AddressVersionFromMoveResourcesVarianceFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'. */
 export type BigintComparisonExp = {
-  _eq?: InputMaybe<Scalars["bigint"]>;
-  _gt?: InputMaybe<Scalars["bigint"]>;
-  _gte?: InputMaybe<Scalars["bigint"]>;
-  _in?: InputMaybe<Array<Scalars["bigint"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["bigint"]>;
-  _lte?: InputMaybe<Scalars["bigint"]>;
-  _neq?: InputMaybe<Scalars["bigint"]>;
-  _nin?: InputMaybe<Array<Scalars["bigint"]>>;
+  _eq?: InputMaybe<Scalars["bigint"]["input"]>;
+  _gt?: InputMaybe<Scalars["bigint"]["input"]>;
+  _gte?: InputMaybe<Scalars["bigint"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["bigint"]["input"]>;
+  _lte?: InputMaybe<Scalars["bigint"]["input"]>;
+  _neq?: InputMaybe<Scalars["bigint"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
 };
 
 /** columns and relationships of "block_metadata_transactions" */
 export type BlockMetadataTransactions = {
-  block_height: Scalars["bigint"];
-  epoch: Scalars["bigint"];
-  failed_proposer_indices: Scalars["jsonb"];
-  id: Scalars["String"];
-  previous_block_votes_bitvec: Scalars["jsonb"];
-  proposer: Scalars["String"];
-  round: Scalars["bigint"];
-  timestamp: Scalars["timestamp"];
-  version: Scalars["bigint"];
+  block_height: Scalars["bigint"]["output"];
+  epoch: Scalars["bigint"]["output"];
+  failed_proposer_indices: Scalars["jsonb"]["output"];
+  id: Scalars["String"]["output"];
+  previous_block_votes_bitvec: Scalars["jsonb"]["output"];
+  proposer: Scalars["String"]["output"];
+  round: Scalars["bigint"]["output"];
+  timestamp: Scalars["timestamp"]["output"];
+  version: Scalars["bigint"]["output"];
 };
 
 /** columns and relationships of "block_metadata_transactions" */
 export type BlockMetadataTransactionsFailedProposerIndicesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "block_metadata_transactions" */
 export type BlockMetadataTransactionsPreviousBlockVotesBitvecArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "block_metadata_transactions". All fields are combined with a logical 'AND'. */
@@ -860,47 +862,47 @@ export type BlockMetadataTransactionsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type BlockMetadataTransactionsStreamCursorValueInput = {
-  block_height?: InputMaybe<Scalars["bigint"]>;
-  epoch?: InputMaybe<Scalars["bigint"]>;
-  failed_proposer_indices?: InputMaybe<Scalars["jsonb"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  previous_block_votes_bitvec?: InputMaybe<Scalars["jsonb"]>;
-  proposer?: InputMaybe<Scalars["String"]>;
-  round?: InputMaybe<Scalars["bigint"]>;
-  timestamp?: InputMaybe<Scalars["timestamp"]>;
-  version?: InputMaybe<Scalars["bigint"]>;
+  block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  epoch?: InputMaybe<Scalars["bigint"]["input"]>;
+  failed_proposer_indices?: InputMaybe<Scalars["jsonb"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  previous_block_votes_bitvec?: InputMaybe<Scalars["jsonb"]["input"]>;
+  proposer?: InputMaybe<Scalars["String"]["input"]>;
+  round?: InputMaybe<Scalars["bigint"]["input"]>;
+  timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "coin_activities" */
 export type CoinActivities = {
-  activity_type: Scalars["String"];
-  amount: Scalars["numeric"];
+  activity_type: Scalars["String"]["output"];
+  amount: Scalars["numeric"]["output"];
   /** An array relationship */
   aptos_names: Array<CurrentAptosNames>;
   /** An aggregate relationship */
   aptos_names_aggregate: CurrentAptosNamesAggregate;
-  block_height: Scalars["bigint"];
+  block_height: Scalars["bigint"]["output"];
   /** An object relationship */
   coin_info?: Maybe<CoinInfos>;
-  coin_type: Scalars["String"];
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number: Scalars["bigint"];
-  is_gas_fee: Scalars["Boolean"];
-  is_transaction_success: Scalars["Boolean"];
-  owner_address: Scalars["String"];
-  storage_refund_amount: Scalars["numeric"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
+  coin_type: Scalars["String"]["output"];
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address: Scalars["String"]["output"];
+  event_creation_number: Scalars["bigint"]["output"];
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number: Scalars["bigint"]["output"];
+  is_gas_fee: Scalars["Boolean"]["output"];
+  is_transaction_success: Scalars["Boolean"]["output"];
+  owner_address: Scalars["String"]["output"];
+  storage_refund_amount: Scalars["numeric"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** columns and relationships of "coin_activities" */
 export type CoinActivitiesAptosNamesArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -908,8 +910,8 @@ export type CoinActivitiesAptosNamesArgs = {
 /** columns and relationships of "coin_activities" */
 export type CoinActivitiesAptosNamesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -923,7 +925,7 @@ export type CoinActivitiesAggregate = {
 /** aggregate fields of "coin_activities" */
 export type CoinActivitiesAggregateFields = {
   avg?: Maybe<CoinActivitiesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CoinActivitiesMaxFields>;
   min?: Maybe<CoinActivitiesMinFields>;
   stddev?: Maybe<CoinActivitiesStddevFields>;
@@ -938,7 +940,7 @@ export type CoinActivitiesAggregateFields = {
 /** aggregate fields of "coin_activities" */
 export type CoinActivitiesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "coin_activities" */
@@ -958,13 +960,13 @@ export type CoinActivitiesAggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type CoinActivitiesAvgFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "coin_activities" */
@@ -1004,19 +1006,19 @@ export type CoinActivitiesBoolExp = {
 
 /** aggregate max on columns */
 export type CoinActivitiesMaxFields = {
-  activity_type?: Maybe<Scalars["String"]>;
-  amount?: Maybe<Scalars["numeric"]>;
-  block_height?: Maybe<Scalars["bigint"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  storage_refund_amount?: Maybe<Scalars["numeric"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  activity_type?: Maybe<Scalars["String"]["output"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  block_height?: Maybe<Scalars["bigint"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by max() on columns of table "coin_activities" */
@@ -1038,19 +1040,19 @@ export type CoinActivitiesMaxOrderBy = {
 
 /** aggregate min on columns */
 export type CoinActivitiesMinFields = {
-  activity_type?: Maybe<Scalars["String"]>;
-  amount?: Maybe<Scalars["numeric"]>;
-  block_height?: Maybe<Scalars["bigint"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  storage_refund_amount?: Maybe<Scalars["numeric"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  activity_type?: Maybe<Scalars["String"]["output"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  block_height?: Maybe<Scalars["bigint"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by min() on columns of table "coin_activities" */
@@ -1127,13 +1129,13 @@ export enum CoinActivitiesSelectColumn {
 
 /** aggregate stddev on columns */
 export type CoinActivitiesStddevFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "coin_activities" */
@@ -1149,13 +1151,13 @@ export type CoinActivitiesStddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type CoinActivitiesStddevPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "coin_activities" */
@@ -1171,13 +1173,13 @@ export type CoinActivitiesStddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type CoinActivitiesStddevSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "coin_activities" */
@@ -1201,32 +1203,32 @@ export type CoinActivitiesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CoinActivitiesStreamCursorValueInput = {
-  activity_type?: InputMaybe<Scalars["String"]>;
-  amount?: InputMaybe<Scalars["numeric"]>;
-  block_height?: InputMaybe<Scalars["bigint"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  event_account_address?: InputMaybe<Scalars["String"]>;
-  event_creation_number?: InputMaybe<Scalars["bigint"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  event_sequence_number?: InputMaybe<Scalars["bigint"]>;
-  is_gas_fee?: InputMaybe<Scalars["Boolean"]>;
-  is_transaction_success?: InputMaybe<Scalars["Boolean"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  storage_refund_amount?: InputMaybe<Scalars["numeric"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  activity_type?: InputMaybe<Scalars["String"]["input"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  event_account_address?: InputMaybe<Scalars["String"]["input"]>;
+  event_creation_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  is_gas_fee?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_transaction_success?: InputMaybe<Scalars["Boolean"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  storage_refund_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CoinActivitiesSumFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  block_height?: Maybe<Scalars["bigint"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  storage_refund_amount?: Maybe<Scalars["numeric"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  block_height?: Maybe<Scalars["bigint"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by sum() on columns of table "coin_activities" */
@@ -1242,13 +1244,13 @@ export type CoinActivitiesSumOrderBy = {
 
 /** aggregate var_pop on columns */
 export type CoinActivitiesVarPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "coin_activities" */
@@ -1264,13 +1266,13 @@ export type CoinActivitiesVarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type CoinActivitiesVarSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "coin_activities" */
@@ -1286,13 +1288,13 @@ export type CoinActivitiesVarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type CoinActivitiesVarianceFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  block_height?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  storage_refund_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  block_height?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  storage_refund_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "coin_activities" */
@@ -1308,12 +1310,12 @@ export type CoinActivitiesVarianceOrderBy = {
 
 /** columns and relationships of "coin_balances" */
 export type CoinBalances = {
-  amount: Scalars["numeric"];
-  coin_type: Scalars["String"];
-  coin_type_hash: Scalars["String"];
-  owner_address: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
+  amount: Scalars["numeric"]["output"];
+  coin_type: Scalars["String"]["output"];
+  coin_type_hash: Scalars["String"]["output"];
+  owner_address: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "coin_balances". All fields are combined with a logical 'AND'. */
@@ -1365,26 +1367,26 @@ export type CoinBalancesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CoinBalancesStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  coin_type_hash?: InputMaybe<Scalars["String"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type_hash?: InputMaybe<Scalars["String"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "coin_infos" */
 export type CoinInfos = {
-  coin_type: Scalars["String"];
-  coin_type_hash: Scalars["String"];
-  creator_address: Scalars["String"];
-  decimals: Scalars["Int"];
-  name: Scalars["String"];
-  supply_aggregator_table_handle?: Maybe<Scalars["String"]>;
-  supply_aggregator_table_key?: Maybe<Scalars["String"]>;
-  symbol: Scalars["String"];
-  transaction_created_timestamp: Scalars["timestamp"];
-  transaction_version_created: Scalars["bigint"];
+  coin_type: Scalars["String"]["output"];
+  coin_type_hash: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  decimals: Scalars["Int"]["output"];
+  name: Scalars["String"]["output"];
+  supply_aggregator_table_handle?: Maybe<Scalars["String"]["output"]>;
+  supply_aggregator_table_key?: Maybe<Scalars["String"]["output"]>;
+  symbol: Scalars["String"]["output"];
+  transaction_created_timestamp: Scalars["timestamp"]["output"];
+  transaction_version_created: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "coin_infos". All fields are combined with a logical 'AND'. */
@@ -1452,26 +1454,26 @@ export type CoinInfosStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CoinInfosStreamCursorValueInput = {
-  coin_type?: InputMaybe<Scalars["String"]>;
-  coin_type_hash?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  decimals?: InputMaybe<Scalars["Int"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  supply_aggregator_table_handle?: InputMaybe<Scalars["String"]>;
-  supply_aggregator_table_key?: InputMaybe<Scalars["String"]>;
-  symbol?: InputMaybe<Scalars["String"]>;
-  transaction_created_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version_created?: InputMaybe<Scalars["bigint"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type_hash?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  decimals?: InputMaybe<Scalars["Int"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  supply_aggregator_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  supply_aggregator_table_key?: InputMaybe<Scalars["String"]["input"]>;
+  symbol?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_created_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version_created?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "coin_supply" */
 export type CoinSupply = {
-  coin_type: Scalars["String"];
-  coin_type_hash: Scalars["String"];
-  supply: Scalars["numeric"];
-  transaction_epoch: Scalars["bigint"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
+  coin_type: Scalars["String"]["output"];
+  coin_type_hash: Scalars["String"]["output"];
+  supply: Scalars["numeric"]["output"];
+  transaction_epoch: Scalars["bigint"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "coin_supply". All fields are combined with a logical 'AND'. */
@@ -1523,29 +1525,29 @@ export type CoinSupplyStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CoinSupplyStreamCursorValueInput = {
-  coin_type?: InputMaybe<Scalars["String"]>;
-  coin_type_hash?: InputMaybe<Scalars["String"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  transaction_epoch?: InputMaybe<Scalars["bigint"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type_hash?: InputMaybe<Scalars["String"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  transaction_epoch?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "collection_datas" */
 export type CollectionDatas = {
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  description: Scalars["String"];
-  description_mutable: Scalars["Boolean"];
-  maximum: Scalars["numeric"];
-  maximum_mutable: Scalars["Boolean"];
-  metadata_uri: Scalars["String"];
-  supply: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  uri_mutable: Scalars["Boolean"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  description: Scalars["String"]["output"];
+  description_mutable: Scalars["Boolean"]["output"];
+  maximum: Scalars["numeric"]["output"];
+  maximum_mutable: Scalars["Boolean"]["output"];
+  metadata_uri: Scalars["String"]["output"];
+  supply: Scalars["numeric"]["output"];
+  table_handle: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  uri_mutable: Scalars["Boolean"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "collection_datas". All fields are combined with a logical 'AND'. */
@@ -1625,19 +1627,19 @@ export type CollectionDatasStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CollectionDatasStreamCursorValueInput = {
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  description_mutable?: InputMaybe<Scalars["Boolean"]>;
-  maximum?: InputMaybe<Scalars["numeric"]>;
-  maximum_mutable?: InputMaybe<Scalars["Boolean"]>;
-  metadata_uri?: InputMaybe<Scalars["String"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  uri_mutable?: InputMaybe<Scalars["Boolean"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  description_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  maximum?: InputMaybe<Scalars["numeric"]["input"]>;
+  maximum_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  metadata_uri?: InputMaybe<Scalars["String"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  uri_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** columns and relationships of "current_ans_lookup" */
@@ -1646,20 +1648,20 @@ export type CurrentAnsLookup = {
   all_token_ownerships: Array<CurrentTokenOwnerships>;
   /** An aggregate relationship */
   all_token_ownerships_aggregate: CurrentTokenOwnershipsAggregate;
-  domain: Scalars["String"];
-  expiration_timestamp: Scalars["timestamp"];
-  is_deleted: Scalars["Boolean"];
-  last_transaction_version: Scalars["bigint"];
-  registered_address?: Maybe<Scalars["String"]>;
-  subdomain: Scalars["String"];
-  token_name: Scalars["String"];
+  domain: Scalars["String"]["output"];
+  expiration_timestamp: Scalars["timestamp"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  registered_address?: Maybe<Scalars["String"]["output"]>;
+  subdomain: Scalars["String"]["output"];
+  token_name: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_ans_lookup" */
 export type CurrentAnsLookupAllTokenOwnershipsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
@@ -1667,8 +1669,8 @@ export type CurrentAnsLookupAllTokenOwnershipsArgs = {
 /** columns and relationships of "current_ans_lookup" */
 export type CurrentAnsLookupAllTokenOwnershipsAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
@@ -1728,25 +1730,25 @@ export type CurrentAnsLookupStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentAnsLookupStreamCursorValueInput = {
-  domain?: InputMaybe<Scalars["String"]>;
-  expiration_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  registered_address?: InputMaybe<Scalars["String"]>;
-  subdomain?: InputMaybe<Scalars["String"]>;
-  token_name?: InputMaybe<Scalars["String"]>;
+  domain?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  registered_address?: InputMaybe<Scalars["String"]["input"]>;
+  subdomain?: InputMaybe<Scalars["String"]["input"]>;
+  token_name?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_ans_lookup_v2" */
 export type CurrentAnsLookupV2 = {
-  domain: Scalars["String"];
-  expiration_timestamp: Scalars["timestamp"];
-  is_deleted: Scalars["Boolean"];
-  last_transaction_version: Scalars["bigint"];
-  registered_address?: Maybe<Scalars["String"]>;
-  subdomain: Scalars["String"];
-  token_name?: Maybe<Scalars["String"]>;
-  token_standard: Scalars["String"];
+  domain: Scalars["String"]["output"];
+  expiration_timestamp: Scalars["timestamp"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  registered_address?: Maybe<Scalars["String"]["output"]>;
+  subdomain: Scalars["String"]["output"];
+  token_name?: Maybe<Scalars["String"]["output"]>;
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_ans_lookup_v2". All fields are combined with a logical 'AND'. */
@@ -1806,31 +1808,31 @@ export type CurrentAnsLookupV2StreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentAnsLookupV2StreamCursorValueInput = {
-  domain?: InputMaybe<Scalars["String"]>;
-  expiration_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  registered_address?: InputMaybe<Scalars["String"]>;
-  subdomain?: InputMaybe<Scalars["String"]>;
-  token_name?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  domain?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  registered_address?: InputMaybe<Scalars["String"]["input"]>;
+  subdomain?: InputMaybe<Scalars["String"]["input"]>;
+  token_name?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_aptos_names" */
 export type CurrentAptosNames = {
-  domain?: Maybe<Scalars["String"]>;
-  domain_with_suffix?: Maybe<Scalars["String"]>;
-  expiration_timestamp?: Maybe<Scalars["timestamp"]>;
-  is_active?: Maybe<Scalars["Boolean"]>;
+  domain?: Maybe<Scalars["String"]["output"]>;
+  domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
+  expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  is_active?: Maybe<Scalars["Boolean"]["output"]>;
   /** An object relationship */
   is_domain_owner?: Maybe<CurrentAptosNames>;
-  is_primary?: Maybe<Scalars["Boolean"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  registered_address?: Maybe<Scalars["String"]>;
-  subdomain?: Maybe<Scalars["String"]>;
-  token_name?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  is_primary?: Maybe<Scalars["Boolean"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  registered_address?: Maybe<Scalars["String"]["output"]>;
+  subdomain?: Maybe<Scalars["String"]["output"]>;
+  token_name?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregated selection of "current_aptos_names" */
@@ -1842,7 +1844,7 @@ export type CurrentAptosNamesAggregate = {
 /** aggregate fields of "current_aptos_names" */
 export type CurrentAptosNamesAggregateFields = {
   avg?: Maybe<CurrentAptosNamesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CurrentAptosNamesMaxFields>;
   min?: Maybe<CurrentAptosNamesMinFields>;
   stddev?: Maybe<CurrentAptosNamesStddevFields>;
@@ -1857,7 +1859,7 @@ export type CurrentAptosNamesAggregateFields = {
 /** aggregate fields of "current_aptos_names" */
 export type CurrentAptosNamesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "current_aptos_names" */
@@ -1877,7 +1879,7 @@ export type CurrentAptosNamesAggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type CurrentAptosNamesAvgFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "current_aptos_names" */
@@ -1906,15 +1908,15 @@ export type CurrentAptosNamesBoolExp = {
 
 /** aggregate max on columns */
 export type CurrentAptosNamesMaxFields = {
-  domain?: Maybe<Scalars["String"]>;
-  domain_with_suffix?: Maybe<Scalars["String"]>;
-  expiration_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  registered_address?: Maybe<Scalars["String"]>;
-  subdomain?: Maybe<Scalars["String"]>;
-  token_name?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  domain?: Maybe<Scalars["String"]["output"]>;
+  domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
+  expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  registered_address?: Maybe<Scalars["String"]["output"]>;
+  subdomain?: Maybe<Scalars["String"]["output"]>;
+  token_name?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "current_aptos_names" */
@@ -1932,15 +1934,15 @@ export type CurrentAptosNamesMaxOrderBy = {
 
 /** aggregate min on columns */
 export type CurrentAptosNamesMinFields = {
-  domain?: Maybe<Scalars["String"]>;
-  domain_with_suffix?: Maybe<Scalars["String"]>;
-  expiration_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  registered_address?: Maybe<Scalars["String"]>;
-  subdomain?: Maybe<Scalars["String"]>;
-  token_name?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  domain?: Maybe<Scalars["String"]["output"]>;
+  domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
+  expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  registered_address?: Maybe<Scalars["String"]["output"]>;
+  subdomain?: Maybe<Scalars["String"]["output"]>;
+  token_name?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "current_aptos_names" */
@@ -2000,7 +2002,7 @@ export enum CurrentAptosNamesSelectColumn {
 
 /** aggregate stddev on columns */
 export type CurrentAptosNamesStddevFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "current_aptos_names" */
@@ -2010,7 +2012,7 @@ export type CurrentAptosNamesStddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type CurrentAptosNamesStddevPopFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "current_aptos_names" */
@@ -2020,7 +2022,7 @@ export type CurrentAptosNamesStddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type CurrentAptosNamesStddevSampFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "current_aptos_names" */
@@ -2038,22 +2040,22 @@ export type CurrentAptosNamesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentAptosNamesStreamCursorValueInput = {
-  domain?: InputMaybe<Scalars["String"]>;
-  domain_with_suffix?: InputMaybe<Scalars["String"]>;
-  expiration_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  is_active?: InputMaybe<Scalars["Boolean"]>;
-  is_primary?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  registered_address?: InputMaybe<Scalars["String"]>;
-  subdomain?: InputMaybe<Scalars["String"]>;
-  token_name?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  domain?: InputMaybe<Scalars["String"]["input"]>;
+  domain_with_suffix?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  is_active?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_primary?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  registered_address?: InputMaybe<Scalars["String"]["input"]>;
+  subdomain?: InputMaybe<Scalars["String"]["input"]>;
+  token_name?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CurrentAptosNamesSumFields = {
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by sum() on columns of table "current_aptos_names" */
@@ -2063,7 +2065,7 @@ export type CurrentAptosNamesSumOrderBy = {
 
 /** aggregate var_pop on columns */
 export type CurrentAptosNamesVarPopFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "current_aptos_names" */
@@ -2073,7 +2075,7 @@ export type CurrentAptosNamesVarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type CurrentAptosNamesVarSampFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "current_aptos_names" */
@@ -2083,7 +2085,7 @@ export type CurrentAptosNamesVarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type CurrentAptosNamesVarianceFields = {
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "current_aptos_names" */
@@ -2093,14 +2095,14 @@ export type CurrentAptosNamesVarianceOrderBy = {
 
 /** columns and relationships of "current_coin_balances" */
 export type CurrentCoinBalances = {
-  amount: Scalars["numeric"];
+  amount: Scalars["numeric"]["output"];
   /** An object relationship */
   coin_info?: Maybe<CoinInfos>;
-  coin_type: Scalars["String"];
-  coin_type_hash: Scalars["String"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  owner_address: Scalars["String"];
+  coin_type: Scalars["String"]["output"];
+  coin_type_hash: Scalars["String"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  owner_address: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_coin_balances". All fields are combined with a logical 'AND'. */
@@ -2154,29 +2156,29 @@ export type CurrentCoinBalancesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentCoinBalancesStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  coin_type_hash?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type_hash?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_collection_datas" */
 export type CurrentCollectionDatas = {
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  description: Scalars["String"];
-  description_mutable: Scalars["Boolean"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  maximum: Scalars["numeric"];
-  maximum_mutable: Scalars["Boolean"];
-  metadata_uri: Scalars["String"];
-  supply: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  uri_mutable: Scalars["Boolean"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  description: Scalars["String"]["output"];
+  description_mutable: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  maximum: Scalars["numeric"]["output"];
+  maximum_mutable: Scalars["Boolean"]["output"];
+  metadata_uri: Scalars["String"]["output"];
+  supply: Scalars["numeric"]["output"];
+  table_handle: Scalars["String"]["output"];
+  uri_mutable: Scalars["Boolean"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_collection_datas". All fields are combined with a logical 'AND'. */
@@ -2256,33 +2258,33 @@ export type CurrentCollectionDatasStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentCollectionDatasStreamCursorValueInput = {
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  description_mutable?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  maximum?: InputMaybe<Scalars["numeric"]>;
-  maximum_mutable?: InputMaybe<Scalars["Boolean"]>;
-  metadata_uri?: InputMaybe<Scalars["String"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  uri_mutable?: InputMaybe<Scalars["Boolean"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  description_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  maximum?: InputMaybe<Scalars["numeric"]["input"]>;
+  maximum_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  metadata_uri?: InputMaybe<Scalars["String"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  uri_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** columns and relationships of "current_collection_ownership_v2_view" */
 export type CurrentCollectionOwnershipV2View = {
-  collection_id?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  collection_uri?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
+  collection_id?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  collection_uri?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   current_collection?: Maybe<CurrentCollectionsV2>;
-  distinct_tokens?: Maybe<Scalars["bigint"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  single_token_uri?: Maybe<Scalars["String"]>;
+  distinct_tokens?: Maybe<Scalars["bigint"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  single_token_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregated selection of "current_collection_ownership_v2_view" */
@@ -2294,7 +2296,7 @@ export type CurrentCollectionOwnershipV2ViewAggregate = {
 /** aggregate fields of "current_collection_ownership_v2_view" */
 export type CurrentCollectionOwnershipV2ViewAggregateFields = {
   avg?: Maybe<CurrentCollectionOwnershipV2ViewAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CurrentCollectionOwnershipV2ViewMaxFields>;
   min?: Maybe<CurrentCollectionOwnershipV2ViewMinFields>;
   stddev?: Maybe<CurrentCollectionOwnershipV2ViewStddevFields>;
@@ -2309,13 +2311,13 @@ export type CurrentCollectionOwnershipV2ViewAggregateFields = {
 /** aggregate fields of "current_collection_ownership_v2_view" */
 export type CurrentCollectionOwnershipV2ViewAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type CurrentCollectionOwnershipV2ViewAvgFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_collection_ownership_v2_view". All fields are combined with a logical 'AND'. */
@@ -2336,26 +2338,26 @@ export type CurrentCollectionOwnershipV2ViewBoolExp = {
 
 /** aggregate max on columns */
 export type CurrentCollectionOwnershipV2ViewMaxFields = {
-  collection_id?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  collection_uri?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  distinct_tokens?: Maybe<Scalars["bigint"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  single_token_uri?: Maybe<Scalars["String"]>;
+  collection_id?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  collection_uri?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  distinct_tokens?: Maybe<Scalars["bigint"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  single_token_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type CurrentCollectionOwnershipV2ViewMinFields = {
-  collection_id?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  collection_uri?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  distinct_tokens?: Maybe<Scalars["bigint"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  single_token_uri?: Maybe<Scalars["String"]>;
+  collection_id?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  collection_uri?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  distinct_tokens?: Maybe<Scalars["bigint"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  single_token_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "current_collection_ownership_v2_view". */
@@ -2393,20 +2395,20 @@ export enum CurrentCollectionOwnershipV2ViewSelectColumn {
 
 /** aggregate stddev on columns */
 export type CurrentCollectionOwnershipV2ViewStddevFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type CurrentCollectionOwnershipV2ViewStddevPopFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type CurrentCollectionOwnershipV2ViewStddevSampFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "current_collection_ownership_v2_view" */
@@ -2419,58 +2421,58 @@ export type CurrentCollectionOwnershipV2ViewStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentCollectionOwnershipV2ViewStreamCursorValueInput = {
-  collection_id?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  collection_uri?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  distinct_tokens?: InputMaybe<Scalars["bigint"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  single_token_uri?: InputMaybe<Scalars["String"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  collection_uri?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  distinct_tokens?: InputMaybe<Scalars["bigint"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  single_token_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CurrentCollectionOwnershipV2ViewSumFields = {
-  distinct_tokens?: Maybe<Scalars["bigint"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
+  distinct_tokens?: Maybe<Scalars["bigint"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type CurrentCollectionOwnershipV2ViewVarPopFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type CurrentCollectionOwnershipV2ViewVarSampFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type CurrentCollectionOwnershipV2ViewVarianceFields = {
-  distinct_tokens?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  distinct_tokens?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "current_collections_v2" */
 export type CurrentCollectionsV2 = {
   /** An object relationship */
   cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
-  collection_id: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  current_supply: Scalars["numeric"];
-  description: Scalars["String"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  max_supply?: Maybe<Scalars["numeric"]>;
-  mutable_description?: Maybe<Scalars["Boolean"]>;
-  mutable_uri?: Maybe<Scalars["Boolean"]>;
-  table_handle_v1?: Maybe<Scalars["String"]>;
-  token_standard: Scalars["String"];
-  total_minted_v2?: Maybe<Scalars["numeric"]>;
-  uri: Scalars["String"];
+  collection_id: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  current_supply: Scalars["numeric"]["output"];
+  description: Scalars["String"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  max_supply?: Maybe<Scalars["numeric"]["output"]>;
+  mutable_description?: Maybe<Scalars["Boolean"]["output"]>;
+  mutable_uri?: Maybe<Scalars["Boolean"]["output"]>;
+  table_handle_v1?: Maybe<Scalars["String"]["output"]>;
+  token_standard: Scalars["String"]["output"];
+  total_minted_v2?: Maybe<Scalars["numeric"]["output"]>;
+  uri: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_collections_v2". All fields are combined with a logical 'AND'. */
@@ -2556,31 +2558,31 @@ export type CurrentCollectionsV2StreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentCollectionsV2StreamCursorValueInput = {
-  collection_id?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  current_supply?: InputMaybe<Scalars["numeric"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  max_supply?: InputMaybe<Scalars["numeric"]>;
-  mutable_description?: InputMaybe<Scalars["Boolean"]>;
-  mutable_uri?: InputMaybe<Scalars["Boolean"]>;
-  table_handle_v1?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
-  total_minted_v2?: InputMaybe<Scalars["numeric"]>;
-  uri?: InputMaybe<Scalars["String"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  current_supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  max_supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  mutable_description?: InputMaybe<Scalars["Boolean"]["input"]>;
+  mutable_uri?: InputMaybe<Scalars["Boolean"]["input"]>;
+  table_handle_v1?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+  total_minted_v2?: InputMaybe<Scalars["numeric"]["input"]>;
+  uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_delegated_staking_pool_balances" */
 export type CurrentDelegatedStakingPoolBalances = {
-  active_table_handle: Scalars["String"];
-  inactive_table_handle: Scalars["String"];
-  last_transaction_version: Scalars["bigint"];
-  operator_commission_percentage: Scalars["numeric"];
-  staking_pool_address: Scalars["String"];
-  total_coins: Scalars["numeric"];
-  total_shares: Scalars["numeric"];
+  active_table_handle: Scalars["String"]["output"];
+  inactive_table_handle: Scalars["String"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  operator_commission_percentage: Scalars["numeric"]["output"];
+  staking_pool_address: Scalars["String"]["output"];
+  total_coins: Scalars["numeric"]["output"];
+  total_shares: Scalars["numeric"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_delegated_staking_pool_balances". All fields are combined with a logical 'AND'. */
@@ -2636,24 +2638,24 @@ export type CurrentDelegatedStakingPoolBalancesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentDelegatedStakingPoolBalancesStreamCursorValueInput = {
-  active_table_handle?: InputMaybe<Scalars["String"]>;
-  inactive_table_handle?: InputMaybe<Scalars["String"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  operator_commission_percentage?: InputMaybe<Scalars["numeric"]>;
-  staking_pool_address?: InputMaybe<Scalars["String"]>;
-  total_coins?: InputMaybe<Scalars["numeric"]>;
-  total_shares?: InputMaybe<Scalars["numeric"]>;
+  active_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  inactive_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  operator_commission_percentage?: InputMaybe<Scalars["numeric"]["input"]>;
+  staking_pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  total_coins?: InputMaybe<Scalars["numeric"]["input"]>;
+  total_shares?: InputMaybe<Scalars["numeric"]["input"]>;
 };
 
 /** columns and relationships of "current_delegated_voter" */
 export type CurrentDelegatedVoter = {
-  delegation_pool_address: Scalars["String"];
-  delegator_address: Scalars["String"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  pending_voter?: Maybe<Scalars["String"]>;
-  table_handle?: Maybe<Scalars["String"]>;
-  voter?: Maybe<Scalars["String"]>;
+  delegation_pool_address: Scalars["String"]["output"];
+  delegator_address: Scalars["String"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  pending_voter?: Maybe<Scalars["String"]["output"]>;
+  table_handle?: Maybe<Scalars["String"]["output"]>;
+  voter?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_delegated_voter". All fields are combined with a logical 'AND'. */
@@ -2709,28 +2711,28 @@ export type CurrentDelegatedVoterStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentDelegatedVoterStreamCursorValueInput = {
-  delegation_pool_address?: InputMaybe<Scalars["String"]>;
-  delegator_address?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  pending_voter?: InputMaybe<Scalars["String"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  voter?: InputMaybe<Scalars["String"]>;
+  delegation_pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  delegator_address?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  pending_voter?: InputMaybe<Scalars["String"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  voter?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_delegator_balances" */
 export type CurrentDelegatorBalances = {
   /** An object relationship */
   current_pool_balance?: Maybe<CurrentDelegatedStakingPoolBalances>;
-  delegator_address: Scalars["String"];
-  last_transaction_version: Scalars["bigint"];
-  parent_table_handle: Scalars["String"];
-  pool_address: Scalars["String"];
-  pool_type: Scalars["String"];
-  shares: Scalars["numeric"];
+  delegator_address: Scalars["String"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  parent_table_handle: Scalars["String"]["output"];
+  pool_address: Scalars["String"]["output"];
+  pool_type: Scalars["String"]["output"];
+  shares: Scalars["numeric"]["output"];
   /** An object relationship */
   staking_pool_metadata?: Maybe<CurrentStakingPoolVoter>;
-  table_handle: Scalars["String"];
+  table_handle: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_delegator_balances". All fields are combined with a logical 'AND'. */
@@ -2790,28 +2792,28 @@ export type CurrentDelegatorBalancesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentDelegatorBalancesStreamCursorValueInput = {
-  delegator_address?: InputMaybe<Scalars["String"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  parent_table_handle?: InputMaybe<Scalars["String"]>;
-  pool_address?: InputMaybe<Scalars["String"]>;
-  pool_type?: InputMaybe<Scalars["String"]>;
-  shares?: InputMaybe<Scalars["numeric"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
+  delegator_address?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  parent_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  pool_type?: InputMaybe<Scalars["String"]["input"]>;
+  shares?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_fungible_asset_balances" */
 export type CurrentFungibleAssetBalances = {
-  amount: Scalars["numeric"];
-  asset_type: Scalars["String"];
-  is_frozen: Scalars["Boolean"];
-  is_primary: Scalars["Boolean"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
+  amount: Scalars["numeric"]["output"];
+  asset_type: Scalars["String"]["output"];
+  is_frozen: Scalars["Boolean"]["output"];
+  is_primary: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
   /** An object relationship */
   metadata?: Maybe<FungibleAssetMetadata>;
-  owner_address: Scalars["String"];
-  storage_id: Scalars["String"];
-  token_standard: Scalars["String"];
+  owner_address: Scalars["String"]["output"];
+  storage_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** aggregated selection of "current_fungible_asset_balances" */
@@ -2823,7 +2825,7 @@ export type CurrentFungibleAssetBalancesAggregate = {
 /** aggregate fields of "current_fungible_asset_balances" */
 export type CurrentFungibleAssetBalancesAggregateFields = {
   avg?: Maybe<CurrentFungibleAssetBalancesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CurrentFungibleAssetBalancesMaxFields>;
   min?: Maybe<CurrentFungibleAssetBalancesMinFields>;
   stddev?: Maybe<CurrentFungibleAssetBalancesStddevFields>;
@@ -2838,13 +2840,13 @@ export type CurrentFungibleAssetBalancesAggregateFields = {
 /** aggregate fields of "current_fungible_asset_balances" */
 export type CurrentFungibleAssetBalancesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type CurrentFungibleAssetBalancesAvgFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_fungible_asset_balances". All fields are combined with a logical 'AND'. */
@@ -2866,24 +2868,24 @@ export type CurrentFungibleAssetBalancesBoolExp = {
 
 /** aggregate max on columns */
 export type CurrentFungibleAssetBalancesMaxFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  asset_type?: Maybe<Scalars["String"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  storage_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  asset_type?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type CurrentFungibleAssetBalancesMinFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  asset_type?: Maybe<Scalars["String"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  storage_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  asset_type?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "current_fungible_asset_balances". */
@@ -2924,20 +2926,20 @@ export enum CurrentFungibleAssetBalancesSelectColumn {
 
 /** aggregate stddev on columns */
 export type CurrentFungibleAssetBalancesStddevFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type CurrentFungibleAssetBalancesStddevPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type CurrentFungibleAssetBalancesStddevSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "current_fungible_asset_balances" */
@@ -2950,50 +2952,50 @@ export type CurrentFungibleAssetBalancesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentFungibleAssetBalancesStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  asset_type?: InputMaybe<Scalars["String"]>;
-  is_frozen?: InputMaybe<Scalars["Boolean"]>;
-  is_primary?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  storage_id?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  asset_type?: InputMaybe<Scalars["String"]["input"]>;
+  is_frozen?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_primary?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  storage_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CurrentFungibleAssetBalancesSumFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type CurrentFungibleAssetBalancesVarPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type CurrentFungibleAssetBalancesVarSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type CurrentFungibleAssetBalancesVarianceFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "current_objects" */
 export type CurrentObjects = {
-  allow_ungated_transfer: Scalars["Boolean"];
-  is_deleted: Scalars["Boolean"];
-  last_guid_creation_num: Scalars["numeric"];
-  last_transaction_version: Scalars["bigint"];
-  object_address: Scalars["String"];
-  owner_address: Scalars["String"];
-  state_key_hash: Scalars["String"];
+  allow_ungated_transfer: Scalars["Boolean"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_guid_creation_num: Scalars["numeric"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  object_address: Scalars["String"]["output"];
+  owner_address: Scalars["String"]["output"];
+  state_key_hash: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_objects". All fields are combined with a logical 'AND'. */
@@ -3049,32 +3051,32 @@ export type CurrentObjectsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentObjectsStreamCursorValueInput = {
-  allow_ungated_transfer?: InputMaybe<Scalars["Boolean"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_guid_creation_num?: InputMaybe<Scalars["numeric"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  object_address?: InputMaybe<Scalars["String"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  state_key_hash?: InputMaybe<Scalars["String"]>;
+  allow_ungated_transfer?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_guid_creation_num?: InputMaybe<Scalars["numeric"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  object_address?: InputMaybe<Scalars["String"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  state_key_hash?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_staking_pool_voter" */
 export type CurrentStakingPoolVoter = {
-  last_transaction_version: Scalars["bigint"];
-  operator_address: Scalars["String"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  operator_address: Scalars["String"]["output"];
   /** An array relationship */
   operator_aptos_name: Array<CurrentAptosNames>;
   /** An aggregate relationship */
   operator_aptos_name_aggregate: CurrentAptosNamesAggregate;
-  staking_pool_address: Scalars["String"];
-  voter_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["output"];
+  voter_address: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_staking_pool_voter" */
 export type CurrentStakingPoolVoterOperatorAptosNameArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -3082,8 +3084,8 @@ export type CurrentStakingPoolVoterOperatorAptosNameArgs = {
 /** columns and relationships of "current_staking_pool_voter" */
 export type CurrentStakingPoolVoterOperatorAptosNameAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -3131,31 +3133,31 @@ export type CurrentStakingPoolVoterStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentStakingPoolVoterStreamCursorValueInput = {
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  operator_address?: InputMaybe<Scalars["String"]>;
-  staking_pool_address?: InputMaybe<Scalars["String"]>;
-  voter_address?: InputMaybe<Scalars["String"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  operator_address?: InputMaybe<Scalars["String"]["input"]>;
+  staking_pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  voter_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_table_items" */
 export type CurrentTableItems = {
-  decoded_key: Scalars["jsonb"];
-  decoded_value?: Maybe<Scalars["jsonb"]>;
-  is_deleted: Scalars["Boolean"];
-  key: Scalars["String"];
-  key_hash: Scalars["String"];
-  last_transaction_version: Scalars["bigint"];
-  table_handle: Scalars["String"];
+  decoded_key: Scalars["jsonb"]["output"];
+  decoded_value?: Maybe<Scalars["jsonb"]["output"]>;
+  is_deleted: Scalars["Boolean"]["output"];
+  key: Scalars["String"]["output"];
+  key_hash: Scalars["String"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  table_handle: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_table_items" */
 export type CurrentTableItemsDecodedKeyArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_table_items" */
 export type CurrentTableItemsDecodedValueArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_table_items". All fields are combined with a logical 'AND'. */
@@ -3211,45 +3213,45 @@ export type CurrentTableItemsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTableItemsStreamCursorValueInput = {
-  decoded_key?: InputMaybe<Scalars["jsonb"]>;
-  decoded_value?: InputMaybe<Scalars["jsonb"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  key?: InputMaybe<Scalars["String"]>;
-  key_hash?: InputMaybe<Scalars["String"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
+  decoded_key?: InputMaybe<Scalars["jsonb"]["input"]>;
+  decoded_value?: InputMaybe<Scalars["jsonb"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  key_hash?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_token_datas" */
 export type CurrentTokenDatas = {
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
   /** An object relationship */
   current_collection_data?: Maybe<CurrentCollectionDatas>;
-  default_properties: Scalars["jsonb"];
-  description: Scalars["String"];
-  description_mutable: Scalars["Boolean"];
-  largest_property_version: Scalars["numeric"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  maximum: Scalars["numeric"];
-  maximum_mutable: Scalars["Boolean"];
-  metadata_uri: Scalars["String"];
-  name: Scalars["String"];
-  payee_address: Scalars["String"];
-  properties_mutable: Scalars["Boolean"];
-  royalty_mutable: Scalars["Boolean"];
-  royalty_points_denominator: Scalars["numeric"];
-  royalty_points_numerator: Scalars["numeric"];
-  supply: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  uri_mutable: Scalars["Boolean"];
+  default_properties: Scalars["jsonb"]["output"];
+  description: Scalars["String"]["output"];
+  description_mutable: Scalars["Boolean"]["output"];
+  largest_property_version: Scalars["numeric"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  maximum: Scalars["numeric"]["output"];
+  maximum_mutable: Scalars["Boolean"]["output"];
+  metadata_uri: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  payee_address: Scalars["String"]["output"];
+  properties_mutable: Scalars["Boolean"]["output"];
+  royalty_mutable: Scalars["Boolean"]["output"];
+  royalty_points_denominator: Scalars["numeric"]["output"];
+  royalty_points_numerator: Scalars["numeric"]["output"];
+  supply: Scalars["numeric"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
+  uri_mutable: Scalars["Boolean"]["output"];
 };
 
 /** columns and relationships of "current_token_datas" */
 export type CurrentTokenDatasDefaultPropertiesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_token_datas". All fields are combined with a logical 'AND'. */
@@ -3363,27 +3365,27 @@ export type CurrentTokenDatasStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenDatasStreamCursorValueInput = {
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  default_properties?: InputMaybe<Scalars["jsonb"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  description_mutable?: InputMaybe<Scalars["Boolean"]>;
-  largest_property_version?: InputMaybe<Scalars["numeric"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  maximum?: InputMaybe<Scalars["numeric"]>;
-  maximum_mutable?: InputMaybe<Scalars["Boolean"]>;
-  metadata_uri?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  payee_address?: InputMaybe<Scalars["String"]>;
-  properties_mutable?: InputMaybe<Scalars["Boolean"]>;
-  royalty_mutable?: InputMaybe<Scalars["Boolean"]>;
-  royalty_points_denominator?: InputMaybe<Scalars["numeric"]>;
-  royalty_points_numerator?: InputMaybe<Scalars["numeric"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  uri_mutable?: InputMaybe<Scalars["Boolean"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  default_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  description_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  largest_property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  maximum?: InputMaybe<Scalars["numeric"]["input"]>;
+  maximum_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  metadata_uri?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  payee_address?: InputMaybe<Scalars["String"]["input"]>;
+  properties_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  royalty_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  royalty_points_denominator?: InputMaybe<Scalars["numeric"]["input"]>;
+  royalty_points_numerator?: InputMaybe<Scalars["numeric"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  uri_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** columns and relationships of "current_token_datas_v2" */
@@ -3392,28 +3394,28 @@ export type CurrentTokenDatasV2 = {
   aptos_name?: Maybe<CurrentAptosNames>;
   /** An object relationship */
   cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
-  collection_id: Scalars["String"];
+  collection_id: Scalars["String"]["output"];
   /** An object relationship */
   current_collection?: Maybe<CurrentCollectionsV2>;
   /** An object relationship */
   current_token_ownership?: Maybe<CurrentTokenOwnershipsV2>;
-  description: Scalars["String"];
-  is_fungible_v2?: Maybe<Scalars["Boolean"]>;
-  largest_property_version_v1?: Maybe<Scalars["numeric"]>;
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  maximum?: Maybe<Scalars["numeric"]>;
-  supply: Scalars["numeric"];
-  token_data_id: Scalars["String"];
-  token_name: Scalars["String"];
-  token_properties: Scalars["jsonb"];
-  token_standard: Scalars["String"];
-  token_uri: Scalars["String"];
+  description: Scalars["String"]["output"];
+  is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
+  largest_property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  maximum?: Maybe<Scalars["numeric"]["output"]>;
+  supply: Scalars["numeric"]["output"];
+  token_data_id: Scalars["String"]["output"];
+  token_name: Scalars["String"]["output"];
+  token_properties: Scalars["jsonb"]["output"];
+  token_standard: Scalars["String"]["output"];
+  token_uri: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_token_datas_v2" */
 export type CurrentTokenDatasV2TokenPropertiesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "current_token_datas_v2". All fields are combined with a logical 'AND'. */
@@ -3501,46 +3503,46 @@ export type CurrentTokenDatasV2StreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenDatasV2StreamCursorValueInput = {
-  collection_id?: InputMaybe<Scalars["String"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  is_fungible_v2?: InputMaybe<Scalars["Boolean"]>;
-  largest_property_version_v1?: InputMaybe<Scalars["numeric"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  maximum?: InputMaybe<Scalars["numeric"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_name?: InputMaybe<Scalars["String"]>;
-  token_properties?: InputMaybe<Scalars["jsonb"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
-  token_uri?: InputMaybe<Scalars["String"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  is_fungible_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
+  largest_property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  maximum?: InputMaybe<Scalars["numeric"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_name?: InputMaybe<Scalars["String"]["input"]>;
+  token_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+  token_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "current_token_ownerships" */
 export type CurrentTokenOwnerships = {
-  amount: Scalars["numeric"];
+  amount: Scalars["numeric"]["output"];
   /** An object relationship */
   aptos_name?: Maybe<CurrentAptosNames>;
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
   /** An object relationship */
   current_collection_data?: Maybe<CurrentCollectionDatas>;
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatas>;
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  name: Scalars["String"];
-  owner_address: Scalars["String"];
-  property_version: Scalars["numeric"];
-  table_type: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
-  token_properties: Scalars["jsonb"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  name: Scalars["String"]["output"];
+  owner_address: Scalars["String"]["output"];
+  property_version: Scalars["numeric"]["output"];
+  table_type: Scalars["String"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
+  token_properties: Scalars["jsonb"]["output"];
 };
 
 /** columns and relationships of "current_token_ownerships" */
 export type CurrentTokenOwnershipsTokenPropertiesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregated selection of "current_token_ownerships" */
@@ -3552,7 +3554,7 @@ export type CurrentTokenOwnershipsAggregate = {
 /** aggregate fields of "current_token_ownerships" */
 export type CurrentTokenOwnershipsAggregateFields = {
   avg?: Maybe<CurrentTokenOwnershipsAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CurrentTokenOwnershipsMaxFields>;
   min?: Maybe<CurrentTokenOwnershipsMinFields>;
   stddev?: Maybe<CurrentTokenOwnershipsStddevFields>;
@@ -3567,7 +3569,7 @@ export type CurrentTokenOwnershipsAggregateFields = {
 /** aggregate fields of "current_token_ownerships" */
 export type CurrentTokenOwnershipsAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "current_token_ownerships" */
@@ -3587,9 +3589,9 @@ export type CurrentTokenOwnershipsAggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type CurrentTokenOwnershipsAvgFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "current_token_ownerships" */
@@ -3623,17 +3625,17 @@ export type CurrentTokenOwnershipsBoolExp = {
 
 /** aggregate max on columns */
 export type CurrentTokenOwnershipsMaxFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  collection_data_id_hash?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  name?: Maybe<Scalars["String"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
-  table_type?: Maybe<Scalars["String"]>;
-  token_data_id_hash?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
+  table_type?: Maybe<Scalars["String"]["output"]>;
+  token_data_id_hash?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "current_token_ownerships" */
@@ -3653,17 +3655,17 @@ export type CurrentTokenOwnershipsMaxOrderBy = {
 
 /** aggregate min on columns */
 export type CurrentTokenOwnershipsMinFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  collection_data_id_hash?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  name?: Maybe<Scalars["String"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
-  table_type?: Maybe<Scalars["String"]>;
-  token_data_id_hash?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
+  table_type?: Maybe<Scalars["String"]["output"]>;
+  token_data_id_hash?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "current_token_ownerships" */
@@ -3730,9 +3732,9 @@ export enum CurrentTokenOwnershipsSelectColumn {
 
 /** aggregate stddev on columns */
 export type CurrentTokenOwnershipsStddevFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "current_token_ownerships" */
@@ -3744,9 +3746,9 @@ export type CurrentTokenOwnershipsStddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type CurrentTokenOwnershipsStddevPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "current_token_ownerships" */
@@ -3758,9 +3760,9 @@ export type CurrentTokenOwnershipsStddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type CurrentTokenOwnershipsStddevSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "current_token_ownerships" */
@@ -3780,25 +3782,25 @@ export type CurrentTokenOwnershipsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenOwnershipsStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  property_version?: InputMaybe<Scalars["numeric"]>;
-  table_type?: InputMaybe<Scalars["String"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  token_properties?: InputMaybe<Scalars["jsonb"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_type?: InputMaybe<Scalars["String"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  token_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CurrentTokenOwnershipsSumFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
 };
 
 /** order by sum() on columns of table "current_token_ownerships" */
@@ -3810,31 +3812,31 @@ export type CurrentTokenOwnershipsSumOrderBy = {
 
 /** columns and relationships of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2 = {
-  amount: Scalars["numeric"];
+  amount: Scalars["numeric"]["output"];
   /** An array relationship */
   composed_nfts: Array<CurrentTokenOwnershipsV2>;
   /** An aggregate relationship */
   composed_nfts_aggregate: CurrentTokenOwnershipsV2Aggregate;
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  is_fungible_v2?: Maybe<Scalars["Boolean"]>;
-  is_soulbound_v2?: Maybe<Scalars["Boolean"]>;
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  owner_address: Scalars["String"];
-  property_version_v1: Scalars["numeric"];
-  storage_id: Scalars["String"];
-  table_type_v1?: Maybe<Scalars["String"]>;
-  token_data_id: Scalars["String"];
-  token_properties_mutated_v1?: Maybe<Scalars["jsonb"]>;
-  token_standard: Scalars["String"];
+  is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
+  is_soulbound_v2?: Maybe<Scalars["Boolean"]["output"]>;
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  owner_address: Scalars["String"]["output"];
+  property_version_v1: Scalars["numeric"]["output"];
+  storage_id: Scalars["String"]["output"];
+  table_type_v1?: Maybe<Scalars["String"]["output"]>;
+  token_data_id: Scalars["String"]["output"];
+  token_properties_mutated_v1?: Maybe<Scalars["jsonb"]["output"]>;
+  token_standard: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2ComposedNftsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
@@ -3842,15 +3844,15 @@ export type CurrentTokenOwnershipsV2ComposedNftsArgs = {
 /** columns and relationships of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2ComposedNftsAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 /** columns and relationships of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2TokenPropertiesMutatedV1Args = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregated selection of "current_token_ownerships_v2" */
@@ -3862,7 +3864,7 @@ export type CurrentTokenOwnershipsV2Aggregate = {
 /** aggregate fields of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2AggregateFields = {
   avg?: Maybe<CurrentTokenOwnershipsV2AvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<CurrentTokenOwnershipsV2MaxFields>;
   min?: Maybe<CurrentTokenOwnershipsV2MinFields>;
   stddev?: Maybe<CurrentTokenOwnershipsV2StddevFields>;
@@ -3877,7 +3879,7 @@ export type CurrentTokenOwnershipsV2AggregateFields = {
 /** aggregate fields of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2AggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "current_token_ownerships_v2" */
@@ -3897,9 +3899,9 @@ export type CurrentTokenOwnershipsV2AggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type CurrentTokenOwnershipsV2AvgFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "current_token_ownerships_v2" */
@@ -3932,15 +3934,15 @@ export type CurrentTokenOwnershipsV2BoolExp = {
 
 /** aggregate max on columns */
 export type CurrentTokenOwnershipsV2MaxFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
-  storage_id?: Maybe<Scalars["String"]>;
-  table_type_v1?: Maybe<Scalars["String"]>;
-  token_data_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  table_type_v1?: Maybe<Scalars["String"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "current_token_ownerships_v2" */
@@ -3958,15 +3960,15 @@ export type CurrentTokenOwnershipsV2MaxOrderBy = {
 
 /** aggregate min on columns */
 export type CurrentTokenOwnershipsV2MinFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  owner_address?: Maybe<Scalars["String"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
-  storage_id?: Maybe<Scalars["String"]>;
-  table_type_v1?: Maybe<Scalars["String"]>;
-  token_data_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  table_type_v1?: Maybe<Scalars["String"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "current_token_ownerships_v2" */
@@ -4030,9 +4032,9 @@ export enum CurrentTokenOwnershipsV2SelectColumn {
 
 /** aggregate stddev on columns */
 export type CurrentTokenOwnershipsV2StddevFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "current_token_ownerships_v2" */
@@ -4044,9 +4046,9 @@ export type CurrentTokenOwnershipsV2StddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type CurrentTokenOwnershipsV2StddevPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "current_token_ownerships_v2" */
@@ -4058,9 +4060,9 @@ export type CurrentTokenOwnershipsV2StddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type CurrentTokenOwnershipsV2StddevSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "current_token_ownerships_v2" */
@@ -4080,25 +4082,25 @@ export type CurrentTokenOwnershipsV2StreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenOwnershipsV2StreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  is_fungible_v2?: InputMaybe<Scalars["Boolean"]>;
-  is_soulbound_v2?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  property_version_v1?: InputMaybe<Scalars["numeric"]>;
-  storage_id?: InputMaybe<Scalars["String"]>;
-  table_type_v1?: InputMaybe<Scalars["String"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_properties_mutated_v1?: InputMaybe<Scalars["jsonb"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  is_fungible_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_soulbound_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
+  storage_id?: InputMaybe<Scalars["String"]["input"]>;
+  table_type_v1?: InputMaybe<Scalars["String"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_properties_mutated_v1?: InputMaybe<Scalars["jsonb"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type CurrentTokenOwnershipsV2SumFields = {
-  amount?: Maybe<Scalars["numeric"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
 };
 
 /** order by sum() on columns of table "current_token_ownerships_v2" */
@@ -4110,9 +4112,9 @@ export type CurrentTokenOwnershipsV2SumOrderBy = {
 
 /** aggregate var_pop on columns */
 export type CurrentTokenOwnershipsV2VarPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "current_token_ownerships_v2" */
@@ -4124,9 +4126,9 @@ export type CurrentTokenOwnershipsV2VarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type CurrentTokenOwnershipsV2VarSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "current_token_ownerships_v2" */
@@ -4138,9 +4140,9 @@ export type CurrentTokenOwnershipsV2VarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type CurrentTokenOwnershipsV2VarianceFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "current_token_ownerships_v2" */
@@ -4152,9 +4154,9 @@ export type CurrentTokenOwnershipsV2VarianceOrderBy = {
 
 /** aggregate var_pop on columns */
 export type CurrentTokenOwnershipsVarPopFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "current_token_ownerships" */
@@ -4166,9 +4168,9 @@ export type CurrentTokenOwnershipsVarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type CurrentTokenOwnershipsVarSampFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "current_token_ownerships" */
@@ -4180,9 +4182,9 @@ export type CurrentTokenOwnershipsVarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type CurrentTokenOwnershipsVarianceFields = {
-  amount?: Maybe<Scalars["Float"]>;
-  last_transaction_version?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "current_token_ownerships" */
@@ -4194,11 +4196,11 @@ export type CurrentTokenOwnershipsVarianceOrderBy = {
 
 /** columns and relationships of "current_token_pending_claims" */
 export type CurrentTokenPendingClaims = {
-  amount: Scalars["numeric"];
-  collection_data_id_hash: Scalars["String"];
-  collection_id: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
+  amount: Scalars["numeric"]["output"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_id: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
   /** An object relationship */
   current_collection_data?: Maybe<CurrentCollectionDatas>;
   /** An object relationship */
@@ -4207,17 +4209,17 @@ export type CurrentTokenPendingClaims = {
   current_token_data?: Maybe<CurrentTokenDatas>;
   /** An object relationship */
   current_token_data_v2?: Maybe<CurrentTokenDatasV2>;
-  from_address: Scalars["String"];
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  name: Scalars["String"];
-  property_version: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  to_address: Scalars["String"];
+  from_address: Scalars["String"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  name: Scalars["String"]["output"];
+  property_version: Scalars["numeric"]["output"];
+  table_handle: Scalars["String"]["output"];
+  to_address: Scalars["String"]["output"];
   /** An object relationship */
   token?: Maybe<Tokens>;
-  token_data_id: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
+  token_data_id: Scalars["String"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "current_token_pending_claims". All fields are combined with a logical 'AND'. */
@@ -4311,20 +4313,20 @@ export type CurrentTokenPendingClaimsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenPendingClaimsStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  from_address?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  property_version?: InputMaybe<Scalars["numeric"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  to_address?: InputMaybe<Scalars["String"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  from_address?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  to_address?: InputMaybe<Scalars["String"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** ordering argument of a cursor */
@@ -4337,12 +4339,12 @@ export enum CursorOrdering {
 
 /** columns and relationships of "delegated_staking_activities" */
 export type DelegatedStakingActivities = {
-  amount: Scalars["numeric"];
-  delegator_address: Scalars["String"];
-  event_index: Scalars["bigint"];
-  event_type: Scalars["String"];
-  pool_address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  amount: Scalars["numeric"]["output"];
+  delegator_address: Scalars["String"]["output"];
+  event_index: Scalars["bigint"]["output"];
+  event_type: Scalars["String"]["output"];
+  pool_address: Scalars["String"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** order by aggregate values of table "delegated_staking_activities" */
@@ -4457,12 +4459,12 @@ export type DelegatedStakingActivitiesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type DelegatedStakingActivitiesStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  delegator_address?: InputMaybe<Scalars["String"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  event_type?: InputMaybe<Scalars["String"]>;
-  pool_address?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  delegator_address?: InputMaybe<Scalars["String"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_type?: InputMaybe<Scalars["String"]["input"]>;
+  pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** order by sum() on columns of table "delegated_staking_activities" */
@@ -4497,8 +4499,8 @@ export type DelegatedStakingActivitiesVarianceOrderBy = {
 export type DelegatedStakingPools = {
   /** An object relationship */
   current_staking_pool?: Maybe<CurrentStakingPoolVoter>;
-  first_transaction_version: Scalars["bigint"];
-  staking_pool_address: Scalars["String"];
+  first_transaction_version: Scalars["bigint"]["output"];
+  staking_pool_address: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "delegated_staking_pools". All fields are combined with a logical 'AND'. */
@@ -4536,16 +4538,16 @@ export type DelegatedStakingPoolsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type DelegatedStakingPoolsStreamCursorValueInput = {
-  first_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  staking_pool_address?: InputMaybe<Scalars["String"]>;
+  first_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  staking_pool_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "delegator_distinct_pool" */
 export type DelegatorDistinctPool = {
   /** An object relationship */
   current_pool_balance?: Maybe<CurrentDelegatedStakingPoolBalances>;
-  delegator_address?: Maybe<Scalars["String"]>;
-  pool_address?: Maybe<Scalars["String"]>;
+  delegator_address?: Maybe<Scalars["String"]["output"]>;
+  pool_address?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   staking_pool_metadata?: Maybe<CurrentStakingPoolVoter>;
 };
@@ -4558,7 +4560,7 @@ export type DelegatorDistinctPoolAggregate = {
 
 /** aggregate fields of "delegator_distinct_pool" */
 export type DelegatorDistinctPoolAggregateFields = {
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<DelegatorDistinctPoolMaxFields>;
   min?: Maybe<DelegatorDistinctPoolMinFields>;
 };
@@ -4566,7 +4568,7 @@ export type DelegatorDistinctPoolAggregateFields = {
 /** aggregate fields of "delegator_distinct_pool" */
 export type DelegatorDistinctPoolAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<DelegatorDistinctPoolSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "delegator_distinct_pool". All fields are combined with a logical 'AND'. */
@@ -4582,14 +4584,14 @@ export type DelegatorDistinctPoolBoolExp = {
 
 /** aggregate max on columns */
 export type DelegatorDistinctPoolMaxFields = {
-  delegator_address?: Maybe<Scalars["String"]>;
-  pool_address?: Maybe<Scalars["String"]>;
+  delegator_address?: Maybe<Scalars["String"]["output"]>;
+  pool_address?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type DelegatorDistinctPoolMinFields = {
-  delegator_address?: Maybe<Scalars["String"]>;
-  pool_address?: Maybe<Scalars["String"]>;
+  delegator_address?: Maybe<Scalars["String"]["output"]>;
+  pool_address?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "delegator_distinct_pool". */
@@ -4618,26 +4620,26 @@ export type DelegatorDistinctPoolStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type DelegatorDistinctPoolStreamCursorValueInput = {
-  delegator_address?: InputMaybe<Scalars["String"]>;
-  pool_address?: InputMaybe<Scalars["String"]>;
+  delegator_address?: InputMaybe<Scalars["String"]["input"]>;
+  pool_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "events" */
 export type Events = {
-  account_address: Scalars["String"];
-  creation_number: Scalars["bigint"];
-  data: Scalars["jsonb"];
-  event_index: Scalars["bigint"];
-  indexed_type: Scalars["String"];
-  sequence_number: Scalars["bigint"];
-  transaction_block_height: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
-  type: Scalars["String"];
+  account_address: Scalars["String"]["output"];
+  creation_number: Scalars["bigint"]["output"];
+  data: Scalars["jsonb"]["output"];
+  event_index: Scalars["bigint"]["output"];
+  indexed_type: Scalars["String"]["output"];
+  sequence_number: Scalars["bigint"]["output"];
+  transaction_block_height: Scalars["bigint"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  type: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "events" */
 export type EventsDataArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "events". All fields are combined with a logical 'AND'. */
@@ -4701,48 +4703,48 @@ export type EventsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type EventsStreamCursorValueInput = {
-  account_address?: InputMaybe<Scalars["String"]>;
-  creation_number?: InputMaybe<Scalars["bigint"]>;
-  data?: InputMaybe<Scalars["jsonb"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  indexed_type?: InputMaybe<Scalars["String"]>;
-  sequence_number?: InputMaybe<Scalars["bigint"]>;
-  transaction_block_height?: InputMaybe<Scalars["bigint"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  type?: InputMaybe<Scalars["String"]>;
+  account_address?: InputMaybe<Scalars["String"]["input"]>;
+  creation_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  data?: InputMaybe<Scalars["jsonb"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  indexed_type?: InputMaybe<Scalars["String"]["input"]>;
+  sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "fungible_asset_activities" */
 export type FungibleAssetActivities = {
-  amount?: Maybe<Scalars["numeric"]>;
-  asset_type: Scalars["String"];
-  block_height: Scalars["bigint"];
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_index: Scalars["bigint"];
-  gas_fee_payer_address?: Maybe<Scalars["String"]>;
-  is_frozen?: Maybe<Scalars["Boolean"]>;
-  is_gas_fee: Scalars["Boolean"];
-  is_transaction_success: Scalars["Boolean"];
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  asset_type: Scalars["String"]["output"];
+  block_height: Scalars["bigint"]["output"];
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_index: Scalars["bigint"]["output"];
+  gas_fee_payer_address?: Maybe<Scalars["String"]["output"]>;
+  is_frozen?: Maybe<Scalars["Boolean"]["output"]>;
+  is_gas_fee: Scalars["Boolean"]["output"];
+  is_transaction_success: Scalars["Boolean"]["output"];
   /** An object relationship */
   metadata?: Maybe<FungibleAssetMetadata>;
-  owner_address: Scalars["String"];
+  owner_address: Scalars["String"]["output"];
   /** An array relationship */
   owner_aptos_names: Array<CurrentAptosNames>;
   /** An aggregate relationship */
   owner_aptos_names_aggregate: CurrentAptosNamesAggregate;
-  storage_id: Scalars["String"];
-  storage_refund_amount: Scalars["numeric"];
-  token_standard: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  type: Scalars["String"];
+  storage_id: Scalars["String"]["output"];
+  storage_refund_amount: Scalars["numeric"]["output"];
+  token_standard: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  type: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "fungible_asset_activities" */
 export type FungibleAssetActivitiesOwnerAptosNamesArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -4750,8 +4752,8 @@ export type FungibleAssetActivitiesOwnerAptosNamesArgs = {
 /** columns and relationships of "fungible_asset_activities" */
 export type FungibleAssetActivitiesOwnerAptosNamesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -4934,22 +4936,22 @@ export type FungibleAssetActivitiesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type FungibleAssetActivitiesStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  asset_type?: InputMaybe<Scalars["String"]>;
-  block_height?: InputMaybe<Scalars["bigint"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  gas_fee_payer_address?: InputMaybe<Scalars["String"]>;
-  is_frozen?: InputMaybe<Scalars["Boolean"]>;
-  is_gas_fee?: InputMaybe<Scalars["Boolean"]>;
-  is_transaction_success?: InputMaybe<Scalars["Boolean"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  storage_id?: InputMaybe<Scalars["String"]>;
-  storage_refund_amount?: InputMaybe<Scalars["numeric"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  type?: InputMaybe<Scalars["String"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  asset_type?: InputMaybe<Scalars["String"]["input"]>;
+  block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  gas_fee_payer_address?: InputMaybe<Scalars["String"]["input"]>;
+  is_frozen?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_gas_fee?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_transaction_success?: InputMaybe<Scalars["Boolean"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  storage_id?: InputMaybe<Scalars["String"]["input"]>;
+  storage_refund_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** order by sum() on columns of table "fungible_asset_activities" */
@@ -4990,18 +4992,18 @@ export type FungibleAssetActivitiesVarianceOrderBy = {
 
 /** columns and relationships of "fungible_asset_metadata" */
 export type FungibleAssetMetadata = {
-  asset_type: Scalars["String"];
-  creator_address: Scalars["String"];
-  decimals: Scalars["Int"];
-  icon_uri?: Maybe<Scalars["String"]>;
-  last_transaction_timestamp: Scalars["timestamp"];
-  last_transaction_version: Scalars["bigint"];
-  name: Scalars["String"];
-  project_uri?: Maybe<Scalars["String"]>;
-  supply_aggregator_table_handle_v1?: Maybe<Scalars["String"]>;
-  supply_aggregator_table_key_v1?: Maybe<Scalars["String"]>;
-  symbol: Scalars["String"];
-  token_standard: Scalars["String"];
+  asset_type: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  decimals: Scalars["Int"]["output"];
+  icon_uri?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  name: Scalars["String"]["output"];
+  project_uri?: Maybe<Scalars["String"]["output"]>;
+  supply_aggregator_table_handle_v1?: Maybe<Scalars["String"]["output"]>;
+  supply_aggregator_table_key_v1?: Maybe<Scalars["String"]["output"]>;
+  symbol: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "fungible_asset_metadata". All fields are combined with a logical 'AND'. */
@@ -5077,24 +5079,24 @@ export type FungibleAssetMetadataStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type FungibleAssetMetadataStreamCursorValueInput = {
-  asset_type?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  decimals?: InputMaybe<Scalars["Int"]>;
-  icon_uri?: InputMaybe<Scalars["String"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  project_uri?: InputMaybe<Scalars["String"]>;
-  supply_aggregator_table_handle_v1?: InputMaybe<Scalars["String"]>;
-  supply_aggregator_table_key_v1?: InputMaybe<Scalars["String"]>;
-  symbol?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  asset_type?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  decimals?: InputMaybe<Scalars["Int"]["input"]>;
+  icon_uri?: InputMaybe<Scalars["String"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  project_uri?: InputMaybe<Scalars["String"]["input"]>;
+  supply_aggregator_table_handle_v1?: InputMaybe<Scalars["String"]["input"]>;
+  supply_aggregator_table_key_v1?: InputMaybe<Scalars["String"]["input"]>;
+  symbol?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "indexer_status" */
 export type IndexerStatus = {
-  db: Scalars["String"];
-  is_indexer_up: Scalars["Boolean"];
+  db: Scalars["String"]["output"];
+  is_indexer_up: Scalars["Boolean"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "indexer_status". All fields are combined with a logical 'AND'. */
@@ -5130,8 +5132,8 @@ export type IndexerStatusStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type IndexerStatusStreamCursorValueInput = {
-  db?: InputMaybe<Scalars["String"]>;
-  is_indexer_up?: InputMaybe<Scalars["Boolean"]>;
+  db?: InputMaybe<Scalars["String"]["input"]>;
+  is_indexer_up?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type JsonbCastExp = {
@@ -5142,29 +5144,29 @@ export type JsonbCastExp = {
 export type JsonbComparisonExp = {
   _cast?: InputMaybe<JsonbCastExp>;
   /** is the column contained in the given json value */
-  _contained_in?: InputMaybe<Scalars["jsonb"]>;
+  _contained_in?: InputMaybe<Scalars["jsonb"]["input"]>;
   /** does the column contain the given json value at the top level */
-  _contains?: InputMaybe<Scalars["jsonb"]>;
-  _eq?: InputMaybe<Scalars["jsonb"]>;
-  _gt?: InputMaybe<Scalars["jsonb"]>;
-  _gte?: InputMaybe<Scalars["jsonb"]>;
+  _contains?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _eq?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _gt?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _gte?: InputMaybe<Scalars["jsonb"]["input"]>;
   /** does the string exist as a top-level key in the column */
-  _has_key?: InputMaybe<Scalars["String"]>;
+  _has_key?: InputMaybe<Scalars["String"]["input"]>;
   /** do all of these strings exist as top-level keys in the column */
-  _has_keys_all?: InputMaybe<Array<Scalars["String"]>>;
+  _has_keys_all?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** do any of these strings exist as top-level keys in the column */
-  _has_keys_any?: InputMaybe<Array<Scalars["String"]>>;
-  _in?: InputMaybe<Array<Scalars["jsonb"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["jsonb"]>;
-  _lte?: InputMaybe<Scalars["jsonb"]>;
-  _neq?: InputMaybe<Scalars["jsonb"]>;
-  _nin?: InputMaybe<Array<Scalars["jsonb"]>>;
+  _has_keys_any?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  _in?: InputMaybe<Array<Scalars["jsonb"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _lte?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _neq?: InputMaybe<Scalars["jsonb"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["jsonb"]["input"]>>;
 };
 
 /** columns and relationships of "ledger_infos" */
 export type LedgerInfos = {
-  chain_id: Scalars["bigint"];
+  chain_id: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "ledger_infos". All fields are combined with a logical 'AND'. */
@@ -5196,13 +5198,13 @@ export type LedgerInfosStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type LedgerInfosStreamCursorValueInput = {
-  chain_id?: InputMaybe<Scalars["bigint"]>;
+  chain_id?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "move_resources" */
 export type MoveResources = {
-  address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  address: Scalars["String"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** aggregated selection of "move_resources" */
@@ -5214,7 +5216,7 @@ export type MoveResourcesAggregate = {
 /** aggregate fields of "move_resources" */
 export type MoveResourcesAggregateFields = {
   avg?: Maybe<MoveResourcesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<MoveResourcesMaxFields>;
   min?: Maybe<MoveResourcesMinFields>;
   stddev?: Maybe<MoveResourcesStddevFields>;
@@ -5229,12 +5231,12 @@ export type MoveResourcesAggregateFields = {
 /** aggregate fields of "move_resources" */
 export type MoveResourcesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<MoveResourcesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type MoveResourcesAvgFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "move_resources". All fields are combined with a logical 'AND'. */
@@ -5248,14 +5250,14 @@ export type MoveResourcesBoolExp = {
 
 /** aggregate max on columns */
 export type MoveResourcesMaxFields = {
-  address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type MoveResourcesMinFields = {
-  address?: Maybe<Scalars["String"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  address?: Maybe<Scalars["String"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** Ordering options when selecting data from "move_resources". */
@@ -5274,17 +5276,17 @@ export enum MoveResourcesSelectColumn {
 
 /** aggregate stddev on columns */
 export type MoveResourcesStddevFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type MoveResourcesStddevPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type MoveResourcesStddevSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "move_resources" */
@@ -5297,53 +5299,53 @@ export type MoveResourcesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type MoveResourcesStreamCursorValueInput = {
-  address?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type MoveResourcesSumFields = {
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type MoveResourcesVarPopFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type MoveResourcesVarSampFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type MoveResourcesVarianceFields = {
-  transaction_version?: Maybe<Scalars["Float"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_auctions" */
 export type NftMarketplaceV2CurrentNftMarketplaceAuctions = {
-  buy_it_now_price?: Maybe<Scalars["numeric"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_id: Scalars["String"];
-  contract_address: Scalars["String"];
-  current_bid_price?: Maybe<Scalars["numeric"]>;
-  current_bidder?: Maybe<Scalars["String"]>;
+  buy_it_now_price?: Maybe<Scalars["numeric"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id: Scalars["String"]["output"];
+  contract_address: Scalars["String"]["output"];
+  current_bid_price?: Maybe<Scalars["numeric"]["output"]>;
+  current_bidder?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  entry_function_id_str: Scalars["String"];
-  expiration_time: Scalars["numeric"];
-  fee_schedule_id: Scalars["String"];
-  is_deleted: Scalars["Boolean"];
-  last_transaction_timestamp: Scalars["timestamptz"];
-  last_transaction_version: Scalars["bigint"];
-  listing_id: Scalars["String"];
-  marketplace: Scalars["String"];
-  seller: Scalars["String"];
-  starting_bid_price: Scalars["numeric"];
-  token_amount: Scalars["numeric"];
-  token_data_id: Scalars["String"];
-  token_standard: Scalars["String"];
+  entry_function_id_str: Scalars["String"]["output"];
+  expiration_time: Scalars["numeric"]["output"];
+  fee_schedule_id: Scalars["String"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamptz"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  listing_id: Scalars["String"]["output"];
+  marketplace: Scalars["String"]["output"];
+  seller: Scalars["String"]["output"];
+  starting_bid_price: Scalars["numeric"]["output"];
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_auctions". All fields are combined with a logical 'AND'. */
@@ -5449,46 +5451,46 @@ export type NftMarketplaceV2CurrentNftMarketplaceAuctionsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type NftMarketplaceV2CurrentNftMarketplaceAuctionsStreamCursorValueInput = {
-  buy_it_now_price?: InputMaybe<Scalars["numeric"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  contract_address?: InputMaybe<Scalars["String"]>;
-  current_bid_price?: InputMaybe<Scalars["numeric"]>;
-  current_bidder?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  expiration_time?: InputMaybe<Scalars["numeric"]>;
-  fee_schedule_id?: InputMaybe<Scalars["String"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  listing_id?: InputMaybe<Scalars["String"]>;
-  marketplace?: InputMaybe<Scalars["String"]>;
-  seller?: InputMaybe<Scalars["String"]>;
-  starting_bid_price?: InputMaybe<Scalars["numeric"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  buy_it_now_price?: InputMaybe<Scalars["numeric"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  contract_address?: InputMaybe<Scalars["String"]["input"]>;
+  current_bid_price?: InputMaybe<Scalars["numeric"]["input"]>;
+  current_bidder?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_time?: InputMaybe<Scalars["numeric"]["input"]>;
+  fee_schedule_id?: InputMaybe<Scalars["String"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  listing_id?: InputMaybe<Scalars["String"]["input"]>;
+  marketplace?: InputMaybe<Scalars["String"]["input"]>;
+  seller?: InputMaybe<Scalars["String"]["input"]>;
+  starting_bid_price?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_collection_offers" */
 export type NftMarketplaceV2CurrentNftMarketplaceCollectionOffers = {
-  buyer: Scalars["String"];
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_id: Scalars["String"];
-  collection_offer_id: Scalars["String"];
-  contract_address: Scalars["String"];
+  buyer: Scalars["String"]["output"];
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id: Scalars["String"]["output"];
+  collection_offer_id: Scalars["String"]["output"];
+  contract_address: Scalars["String"]["output"];
   /** An object relationship */
   current_collection_v2?: Maybe<CurrentCollectionsV2>;
-  entry_function_id_str: Scalars["String"];
-  expiration_time: Scalars["numeric"];
-  fee_schedule_id: Scalars["String"];
-  is_deleted: Scalars["Boolean"];
-  item_price: Scalars["numeric"];
-  last_transaction_timestamp: Scalars["timestamptz"];
-  last_transaction_version: Scalars["bigint"];
-  marketplace: Scalars["String"];
-  remaining_token_amount: Scalars["numeric"];
-  token_standard: Scalars["String"];
+  entry_function_id_str: Scalars["String"]["output"];
+  expiration_time: Scalars["numeric"]["output"];
+  fee_schedule_id: Scalars["String"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  item_price: Scalars["numeric"]["output"];
+  last_transaction_timestamp: Scalars["timestamptz"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  marketplace: Scalars["String"]["output"];
+  remaining_token_amount: Scalars["numeric"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_collection_offers". All fields are combined with a logical 'AND'. */
@@ -5578,42 +5580,42 @@ export type NftMarketplaceV2CurrentNftMarketplaceCollectionOffersStreamCursorInp
 
 /** Initial value of the column from where the streaming should start */
 export type NftMarketplaceV2CurrentNftMarketplaceCollectionOffersStreamCursorValueInput = {
-  buyer?: InputMaybe<Scalars["String"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  collection_offer_id?: InputMaybe<Scalars["String"]>;
-  contract_address?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  expiration_time?: InputMaybe<Scalars["numeric"]>;
-  fee_schedule_id?: InputMaybe<Scalars["String"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  item_price?: InputMaybe<Scalars["numeric"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  marketplace?: InputMaybe<Scalars["String"]>;
-  remaining_token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  buyer?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  collection_offer_id?: InputMaybe<Scalars["String"]["input"]>;
+  contract_address?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_time?: InputMaybe<Scalars["numeric"]["input"]>;
+  fee_schedule_id?: InputMaybe<Scalars["String"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  item_price?: InputMaybe<Scalars["numeric"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  marketplace?: InputMaybe<Scalars["String"]["input"]>;
+  remaining_token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_listings" */
 export type NftMarketplaceV2CurrentNftMarketplaceListings = {
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_id: Scalars["String"];
-  contract_address: Scalars["String"];
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id: Scalars["String"]["output"];
+  contract_address: Scalars["String"]["output"];
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  entry_function_id_str: Scalars["String"];
-  fee_schedule_id: Scalars["String"];
-  is_deleted: Scalars["Boolean"];
-  last_transaction_timestamp: Scalars["timestamptz"];
-  last_transaction_version: Scalars["bigint"];
-  listing_id: Scalars["String"];
-  marketplace: Scalars["String"];
-  price: Scalars["numeric"];
-  seller: Scalars["String"];
-  token_amount: Scalars["numeric"];
-  token_data_id: Scalars["String"];
-  token_standard: Scalars["String"];
+  entry_function_id_str: Scalars["String"]["output"];
+  fee_schedule_id: Scalars["String"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamptz"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  listing_id: Scalars["String"]["output"];
+  marketplace: Scalars["String"]["output"];
+  price: Scalars["numeric"]["output"];
+  seller: Scalars["String"]["output"];
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_listings". All fields are combined with a logical 'AND'. */
@@ -5703,43 +5705,43 @@ export type NftMarketplaceV2CurrentNftMarketplaceListingsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type NftMarketplaceV2CurrentNftMarketplaceListingsStreamCursorValueInput = {
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  contract_address?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  fee_schedule_id?: InputMaybe<Scalars["String"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  listing_id?: InputMaybe<Scalars["String"]>;
-  marketplace?: InputMaybe<Scalars["String"]>;
-  price?: InputMaybe<Scalars["numeric"]>;
-  seller?: InputMaybe<Scalars["String"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  contract_address?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  fee_schedule_id?: InputMaybe<Scalars["String"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  listing_id?: InputMaybe<Scalars["String"]["input"]>;
+  marketplace?: InputMaybe<Scalars["String"]["input"]>;
+  price?: InputMaybe<Scalars["numeric"]["input"]>;
+  seller?: InputMaybe<Scalars["String"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_token_offers" */
 export type NftMarketplaceV2CurrentNftMarketplaceTokenOffers = {
-  buyer: Scalars["String"];
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_id: Scalars["String"];
-  contract_address: Scalars["String"];
+  buyer: Scalars["String"]["output"];
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id: Scalars["String"]["output"];
+  contract_address: Scalars["String"]["output"];
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  entry_function_id_str: Scalars["String"];
-  expiration_time: Scalars["numeric"];
-  fee_schedule_id: Scalars["String"];
-  is_deleted: Scalars["Boolean"];
-  last_transaction_timestamp: Scalars["timestamptz"];
-  last_transaction_version: Scalars["bigint"];
-  marketplace: Scalars["String"];
-  offer_id: Scalars["String"];
-  price: Scalars["numeric"];
-  token_amount: Scalars["numeric"];
-  token_data_id: Scalars["String"];
-  token_standard: Scalars["String"];
+  entry_function_id_str: Scalars["String"]["output"];
+  expiration_time: Scalars["numeric"]["output"];
+  fee_schedule_id: Scalars["String"]["output"];
+  is_deleted: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamptz"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
+  marketplace: Scalars["String"]["output"];
+  offer_id: Scalars["String"]["output"];
+  price: Scalars["numeric"]["output"];
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_token_offers". All fields are combined with a logical 'AND'. */
@@ -5833,49 +5835,49 @@ export type NftMarketplaceV2CurrentNftMarketplaceTokenOffersStreamCursorInput = 
 
 /** Initial value of the column from where the streaming should start */
 export type NftMarketplaceV2CurrentNftMarketplaceTokenOffersStreamCursorValueInput = {
-  buyer?: InputMaybe<Scalars["String"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  contract_address?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  expiration_time?: InputMaybe<Scalars["numeric"]>;
-  fee_schedule_id?: InputMaybe<Scalars["String"]>;
-  is_deleted?: InputMaybe<Scalars["Boolean"]>;
-  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]>;
-  last_transaction_version?: InputMaybe<Scalars["bigint"]>;
-  marketplace?: InputMaybe<Scalars["String"]>;
-  offer_id?: InputMaybe<Scalars["String"]>;
-  price?: InputMaybe<Scalars["numeric"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
+  buyer?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  contract_address?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  expiration_time?: InputMaybe<Scalars["numeric"]["input"]>;
+  fee_schedule_id?: InputMaybe<Scalars["String"]["input"]>;
+  is_deleted?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  marketplace?: InputMaybe<Scalars["String"]["input"]>;
+  offer_id?: InputMaybe<Scalars["String"]["input"]>;
+  price?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.nft_marketplace_activities" */
 export type NftMarketplaceV2NftMarketplaceActivities = {
-  buyer?: Maybe<Scalars["String"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_id: Scalars["String"];
-  collection_name: Scalars["String"];
-  contract_address: Scalars["String"];
-  creator_address: Scalars["String"];
+  buyer?: Maybe<Scalars["String"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  contract_address: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  entry_function_id_str: Scalars["String"];
-  event_index: Scalars["bigint"];
-  event_type: Scalars["String"];
-  fee_schedule_id: Scalars["String"];
-  marketplace: Scalars["String"];
-  offer_or_listing_id: Scalars["String"];
-  price: Scalars["numeric"];
-  property_version?: Maybe<Scalars["String"]>;
-  seller?: Maybe<Scalars["String"]>;
-  token_amount: Scalars["numeric"];
-  token_data_id?: Maybe<Scalars["String"]>;
-  token_name?: Maybe<Scalars["String"]>;
-  token_standard: Scalars["String"];
-  transaction_timestamp: Scalars["timestamptz"];
-  transaction_version: Scalars["bigint"];
+  entry_function_id_str: Scalars["String"]["output"];
+  event_index: Scalars["bigint"]["output"];
+  event_type: Scalars["String"]["output"];
+  fee_schedule_id: Scalars["String"]["output"];
+  marketplace: Scalars["String"]["output"];
+  offer_or_listing_id: Scalars["String"]["output"];
+  price: Scalars["numeric"]["output"];
+  property_version?: Maybe<Scalars["String"]["output"]>;
+  seller?: Maybe<Scalars["String"]["output"]>;
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_name?: Maybe<Scalars["String"]["output"]>;
+  token_standard: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamptz"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.nft_marketplace_activities". All fields are combined with a logical 'AND'. */
@@ -5989,40 +5991,40 @@ export type NftMarketplaceV2NftMarketplaceActivitiesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type NftMarketplaceV2NftMarketplaceActivitiesStreamCursorValueInput = {
-  buyer?: InputMaybe<Scalars["String"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_id?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  contract_address?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  event_type?: InputMaybe<Scalars["String"]>;
-  fee_schedule_id?: InputMaybe<Scalars["String"]>;
-  marketplace?: InputMaybe<Scalars["String"]>;
-  offer_or_listing_id?: InputMaybe<Scalars["String"]>;
-  price?: InputMaybe<Scalars["numeric"]>;
-  property_version?: InputMaybe<Scalars["String"]>;
-  seller?: InputMaybe<Scalars["String"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_name?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamptz"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  buyer?: InputMaybe<Scalars["String"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  contract_address?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_type?: InputMaybe<Scalars["String"]["input"]>;
+  fee_schedule_id?: InputMaybe<Scalars["String"]["input"]>;
+  marketplace?: InputMaybe<Scalars["String"]["input"]>;
+  offer_or_listing_id?: InputMaybe<Scalars["String"]["input"]>;
+  price?: InputMaybe<Scalars["numeric"]["input"]>;
+  property_version?: InputMaybe<Scalars["String"]["input"]>;
+  seller?: InputMaybe<Scalars["String"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_name?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "nft_metadata_crawler.parsed_asset_uris" */
 export type NftMetadataCrawlerParsedAssetUris = {
-  animation_optimizer_retry_count: Scalars["Int"];
-  asset_uri: Scalars["String"];
-  cdn_animation_uri?: Maybe<Scalars["String"]>;
-  cdn_image_uri?: Maybe<Scalars["String"]>;
-  cdn_json_uri?: Maybe<Scalars["String"]>;
-  image_optimizer_retry_count: Scalars["Int"];
-  json_parser_retry_count: Scalars["Int"];
-  raw_animation_uri?: Maybe<Scalars["String"]>;
-  raw_image_uri?: Maybe<Scalars["String"]>;
+  animation_optimizer_retry_count: Scalars["Int"]["output"];
+  asset_uri: Scalars["String"]["output"];
+  cdn_animation_uri?: Maybe<Scalars["String"]["output"]>;
+  cdn_image_uri?: Maybe<Scalars["String"]["output"]>;
+  cdn_json_uri?: Maybe<Scalars["String"]["output"]>;
+  image_optimizer_retry_count: Scalars["Int"]["output"];
+  json_parser_retry_count: Scalars["Int"]["output"];
+  raw_animation_uri?: Maybe<Scalars["String"]["output"]>;
+  raw_image_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "nft_metadata_crawler.parsed_asset_uris". All fields are combined with a logical 'AND'. */
@@ -6086,21 +6088,21 @@ export type NftMetadataCrawlerParsedAssetUrisStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type NftMetadataCrawlerParsedAssetUrisStreamCursorValueInput = {
-  animation_optimizer_retry_count?: InputMaybe<Scalars["Int"]>;
-  asset_uri?: InputMaybe<Scalars["String"]>;
-  cdn_animation_uri?: InputMaybe<Scalars["String"]>;
-  cdn_image_uri?: InputMaybe<Scalars["String"]>;
-  cdn_json_uri?: InputMaybe<Scalars["String"]>;
-  image_optimizer_retry_count?: InputMaybe<Scalars["Int"]>;
-  json_parser_retry_count?: InputMaybe<Scalars["Int"]>;
-  raw_animation_uri?: InputMaybe<Scalars["String"]>;
-  raw_image_uri?: InputMaybe<Scalars["String"]>;
+  animation_optimizer_retry_count?: InputMaybe<Scalars["Int"]["input"]>;
+  asset_uri?: InputMaybe<Scalars["String"]["input"]>;
+  cdn_animation_uri?: InputMaybe<Scalars["String"]["input"]>;
+  cdn_image_uri?: InputMaybe<Scalars["String"]["input"]>;
+  cdn_json_uri?: InputMaybe<Scalars["String"]["input"]>;
+  image_optimizer_retry_count?: InputMaybe<Scalars["Int"]["input"]>;
+  json_parser_retry_count?: InputMaybe<Scalars["Int"]["input"]>;
+  raw_animation_uri?: InputMaybe<Scalars["String"]["input"]>;
+  raw_image_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "num_active_delegator_per_pool" */
 export type NumActiveDelegatorPerPool = {
-  num_active_delegator?: Maybe<Scalars["bigint"]>;
-  pool_address?: Maybe<Scalars["String"]>;
+  num_active_delegator?: Maybe<Scalars["bigint"]["output"]>;
+  pool_address?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "num_active_delegator_per_pool". All fields are combined with a logical 'AND'. */
@@ -6136,21 +6138,21 @@ export type NumActiveDelegatorPerPoolStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type NumActiveDelegatorPerPoolStreamCursorValueInput = {
-  num_active_delegator?: InputMaybe<Scalars["bigint"]>;
-  pool_address?: InputMaybe<Scalars["String"]>;
+  num_active_delegator?: InputMaybe<Scalars["bigint"]["input"]>;
+  pool_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
 export type NumericComparisonExp = {
-  _eq?: InputMaybe<Scalars["numeric"]>;
-  _gt?: InputMaybe<Scalars["numeric"]>;
-  _gte?: InputMaybe<Scalars["numeric"]>;
-  _in?: InputMaybe<Array<Scalars["numeric"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["numeric"]>;
-  _lte?: InputMaybe<Scalars["numeric"]>;
-  _neq?: InputMaybe<Scalars["numeric"]>;
-  _nin?: InputMaybe<Array<Scalars["numeric"]>>;
+  _eq?: InputMaybe<Scalars["numeric"]["input"]>;
+  _gt?: InputMaybe<Scalars["numeric"]["input"]>;
+  _gte?: InputMaybe<Scalars["numeric"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["numeric"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["numeric"]["input"]>;
+  _lte?: InputMaybe<Scalars["numeric"]["input"]>;
+  _neq?: InputMaybe<Scalars["numeric"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["numeric"]["input"]>>;
 };
 
 /** column ordering options */
@@ -6171,9 +6173,9 @@ export enum OrderBy {
 
 /** columns and relationships of "processor_status" */
 export type ProcessorStatus = {
-  last_success_version: Scalars["bigint"];
-  last_updated: Scalars["timestamp"];
-  processor: Scalars["String"];
+  last_success_version: Scalars["bigint"]["output"];
+  last_updated: Scalars["timestamp"]["output"];
+  processor: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "processor_status". All fields are combined with a logical 'AND'. */
@@ -6213,20 +6215,20 @@ export type ProcessorStatusStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type ProcessorStatusStreamCursorValueInput = {
-  last_success_version?: InputMaybe<Scalars["bigint"]>;
-  last_updated?: InputMaybe<Scalars["timestamp"]>;
-  processor?: InputMaybe<Scalars["String"]>;
+  last_success_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  last_updated?: InputMaybe<Scalars["timestamp"]["input"]>;
+  processor?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "proposal_votes" */
 export type ProposalVotes = {
-  num_votes: Scalars["numeric"];
-  proposal_id: Scalars["bigint"];
-  should_pass: Scalars["Boolean"];
-  staking_pool_address: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  voter_address: Scalars["String"];
+  num_votes: Scalars["numeric"]["output"];
+  proposal_id: Scalars["bigint"]["output"];
+  should_pass: Scalars["Boolean"]["output"];
+  staking_pool_address: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  voter_address: Scalars["String"]["output"];
 };
 
 /** aggregated selection of "proposal_votes" */
@@ -6238,7 +6240,7 @@ export type ProposalVotesAggregate = {
 /** aggregate fields of "proposal_votes" */
 export type ProposalVotesAggregateFields = {
   avg?: Maybe<ProposalVotesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<ProposalVotesMaxFields>;
   min?: Maybe<ProposalVotesMinFields>;
   stddev?: Maybe<ProposalVotesStddevFields>;
@@ -6253,14 +6255,14 @@ export type ProposalVotesAggregateFields = {
 /** aggregate fields of "proposal_votes" */
 export type ProposalVotesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<ProposalVotesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
 export type ProposalVotesAvgFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to filter rows from the table "proposal_votes". All fields are combined with a logical 'AND'. */
@@ -6279,22 +6281,22 @@ export type ProposalVotesBoolExp = {
 
 /** aggregate max on columns */
 export type ProposalVotesMaxFields = {
-  num_votes?: Maybe<Scalars["numeric"]>;
-  proposal_id?: Maybe<Scalars["bigint"]>;
-  staking_pool_address?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  voter_address?: Maybe<Scalars["String"]>;
+  num_votes?: Maybe<Scalars["numeric"]["output"]>;
+  proposal_id?: Maybe<Scalars["bigint"]["output"]>;
+  staking_pool_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  voter_address?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type ProposalVotesMinFields = {
-  num_votes?: Maybe<Scalars["numeric"]>;
-  proposal_id?: Maybe<Scalars["bigint"]>;
-  staking_pool_address?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  voter_address?: Maybe<Scalars["String"]>;
+  num_votes?: Maybe<Scalars["numeric"]["output"]>;
+  proposal_id?: Maybe<Scalars["bigint"]["output"]>;
+  staking_pool_address?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  voter_address?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "proposal_votes". */
@@ -6328,23 +6330,23 @@ export enum ProposalVotesSelectColumn {
 
 /** aggregate stddev on columns */
 export type ProposalVotesStddevFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type ProposalVotesStddevPopFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type ProposalVotesStddevSampFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "proposal_votes" */
@@ -6357,41 +6359,41 @@ export type ProposalVotesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type ProposalVotesStreamCursorValueInput = {
-  num_votes?: InputMaybe<Scalars["numeric"]>;
-  proposal_id?: InputMaybe<Scalars["bigint"]>;
-  should_pass?: InputMaybe<Scalars["Boolean"]>;
-  staking_pool_address?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  voter_address?: InputMaybe<Scalars["String"]>;
+  num_votes?: InputMaybe<Scalars["numeric"]["input"]>;
+  proposal_id?: InputMaybe<Scalars["bigint"]["input"]>;
+  should_pass?: InputMaybe<Scalars["Boolean"]["input"]>;
+  staking_pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  voter_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type ProposalVotesSumFields = {
-  num_votes?: Maybe<Scalars["numeric"]>;
-  proposal_id?: Maybe<Scalars["bigint"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  num_votes?: Maybe<Scalars["numeric"]["output"]>;
+  proposal_id?: Maybe<Scalars["bigint"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type ProposalVotesVarPopFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type ProposalVotesVarSampFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type ProposalVotesVarianceFields = {
-  num_votes?: Maybe<Scalars["Float"]>;
-  proposal_id?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  num_votes?: Maybe<Scalars["Float"]["output"]>;
+  proposal_id?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type QueryRoot = {
@@ -6631,788 +6633,788 @@ export type QueryRoot = {
 
 export type QueryRootAccountTransactionsArgs = {
   distinct_on?: InputMaybe<Array<AccountTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AccountTransactionsOrderBy>>;
   where?: InputMaybe<AccountTransactionsBoolExp>;
 };
 
 export type QueryRootAccountTransactionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AccountTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AccountTransactionsOrderBy>>;
   where?: InputMaybe<AccountTransactionsBoolExp>;
 };
 
 export type QueryRootAccountTransactionsByPkArgs = {
-  account_address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  account_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootAddressEventsSummaryArgs = {
   distinct_on?: InputMaybe<Array<AddressEventsSummarySelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressEventsSummaryOrderBy>>;
   where?: InputMaybe<AddressEventsSummaryBoolExp>;
 };
 
 export type QueryRootAddressVersionFromEventsArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromEventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromEventsOrderBy>>;
   where?: InputMaybe<AddressVersionFromEventsBoolExp>;
 };
 
 export type QueryRootAddressVersionFromEventsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromEventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromEventsOrderBy>>;
   where?: InputMaybe<AddressVersionFromEventsBoolExp>;
 };
 
 export type QueryRootAddressVersionFromMoveResourcesArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromMoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromMoveResourcesOrderBy>>;
   where?: InputMaybe<AddressVersionFromMoveResourcesBoolExp>;
 };
 
 export type QueryRootAddressVersionFromMoveResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromMoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromMoveResourcesOrderBy>>;
   where?: InputMaybe<AddressVersionFromMoveResourcesBoolExp>;
 };
 
 export type QueryRootBlockMetadataTransactionsArgs = {
   distinct_on?: InputMaybe<Array<BlockMetadataTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<BlockMetadataTransactionsOrderBy>>;
   where?: InputMaybe<BlockMetadataTransactionsBoolExp>;
 };
 
 export type QueryRootBlockMetadataTransactionsByPkArgs = {
-  version: Scalars["bigint"];
+  version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCoinActivitiesArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
 
 export type QueryRootCoinActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
 
 export type QueryRootCoinActivitiesByPkArgs = {
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_sequence_number: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_account_address: Scalars["String"]["input"];
+  event_creation_number: Scalars["bigint"]["input"];
+  event_sequence_number: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCoinBalancesArgs = {
   distinct_on?: InputMaybe<Array<CoinBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinBalancesOrderBy>>;
   where?: InputMaybe<CoinBalancesBoolExp>;
 };
 
 export type QueryRootCoinBalancesByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  owner_address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  coin_type_hash: Scalars["String"]["input"];
+  owner_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCoinInfosArgs = {
   distinct_on?: InputMaybe<Array<CoinInfosSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinInfosOrderBy>>;
   where?: InputMaybe<CoinInfosBoolExp>;
 };
 
 export type QueryRootCoinInfosByPkArgs = {
-  coin_type_hash: Scalars["String"];
+  coin_type_hash: Scalars["String"]["input"];
 };
 
 export type QueryRootCoinSupplyArgs = {
   distinct_on?: InputMaybe<Array<CoinSupplySelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinSupplyOrderBy>>;
   where?: InputMaybe<CoinSupplyBoolExp>;
 };
 
 export type QueryRootCoinSupplyByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  coin_type_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCollectionDatasArgs = {
   distinct_on?: InputMaybe<Array<CollectionDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CollectionDatasOrderBy>>;
   where?: InputMaybe<CollectionDatasBoolExp>;
 };
 
 export type QueryRootCollectionDatasByPkArgs = {
-  collection_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  collection_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootCurrentAnsLookupArgs = {
   distinct_on?: InputMaybe<Array<CurrentAnsLookupSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAnsLookupOrderBy>>;
   where?: InputMaybe<CurrentAnsLookupBoolExp>;
 };
 
 export type QueryRootCurrentAnsLookupByPkArgs = {
-  domain: Scalars["String"];
-  subdomain: Scalars["String"];
+  domain: Scalars["String"]["input"];
+  subdomain: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentAnsLookupV2Args = {
   distinct_on?: InputMaybe<Array<CurrentAnsLookupV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAnsLookupV2OrderBy>>;
   where?: InputMaybe<CurrentAnsLookupV2BoolExp>;
 };
 
 export type QueryRootCurrentAnsLookupV2ByPkArgs = {
-  domain: Scalars["String"];
-  subdomain: Scalars["String"];
-  token_standard: Scalars["String"];
+  domain: Scalars["String"]["input"];
+  subdomain: Scalars["String"]["input"];
+  token_standard: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentAptosNamesArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 export type QueryRootCurrentAptosNamesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 export type QueryRootCurrentCoinBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentCoinBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCoinBalancesOrderBy>>;
   where?: InputMaybe<CurrentCoinBalancesBoolExp>;
 };
 
 export type QueryRootCurrentCoinBalancesByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  owner_address: Scalars["String"];
+  coin_type_hash: Scalars["String"]["input"];
+  owner_address: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentCollectionDatasArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionDatasOrderBy>>;
   where?: InputMaybe<CurrentCollectionDatasBoolExp>;
 };
 
 export type QueryRootCurrentCollectionDatasByPkArgs = {
-  collection_data_id_hash: Scalars["String"];
+  collection_data_id_hash: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentCollectionOwnershipV2ViewArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewOrderBy>>;
   where?: InputMaybe<CurrentCollectionOwnershipV2ViewBoolExp>;
 };
 
 export type QueryRootCurrentCollectionOwnershipV2ViewAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewOrderBy>>;
   where?: InputMaybe<CurrentCollectionOwnershipV2ViewBoolExp>;
 };
 
 export type QueryRootCurrentCollectionsV2Args = {
   distinct_on?: InputMaybe<Array<CurrentCollectionsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionsV2OrderBy>>;
   where?: InputMaybe<CurrentCollectionsV2BoolExp>;
 };
 
 export type QueryRootCurrentCollectionsV2ByPkArgs = {
-  collection_id: Scalars["String"];
+  collection_id: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentDelegatedStakingPoolBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatedStakingPoolBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatedStakingPoolBalancesOrderBy>>;
   where?: InputMaybe<CurrentDelegatedStakingPoolBalancesBoolExp>;
 };
 
 export type QueryRootCurrentDelegatedStakingPoolBalancesByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentDelegatedVoterArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatedVoterSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatedVoterOrderBy>>;
   where?: InputMaybe<CurrentDelegatedVoterBoolExp>;
 };
 
 export type QueryRootCurrentDelegatedVoterByPkArgs = {
-  delegation_pool_address: Scalars["String"];
-  delegator_address: Scalars["String"];
+  delegation_pool_address: Scalars["String"]["input"];
+  delegator_address: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentDelegatorBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatorBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatorBalancesOrderBy>>;
   where?: InputMaybe<CurrentDelegatorBalancesBoolExp>;
 };
 
 export type QueryRootCurrentDelegatorBalancesByPkArgs = {
-  delegator_address: Scalars["String"];
-  pool_address: Scalars["String"];
-  pool_type: Scalars["String"];
-  table_handle: Scalars["String"];
+  delegator_address: Scalars["String"]["input"];
+  pool_address: Scalars["String"]["input"];
+  pool_type: Scalars["String"]["input"];
+  table_handle: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentFungibleAssetBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesOrderBy>>;
   where?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
 };
 
 export type QueryRootCurrentFungibleAssetBalancesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesOrderBy>>;
   where?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
 };
 
 export type QueryRootCurrentFungibleAssetBalancesByPkArgs = {
-  storage_id: Scalars["String"];
+  storage_id: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentObjectsArgs = {
   distinct_on?: InputMaybe<Array<CurrentObjectsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentObjectsOrderBy>>;
   where?: InputMaybe<CurrentObjectsBoolExp>;
 };
 
 export type QueryRootCurrentObjectsByPkArgs = {
-  object_address: Scalars["String"];
+  object_address: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentStakingPoolVoterArgs = {
   distinct_on?: InputMaybe<Array<CurrentStakingPoolVoterSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentStakingPoolVoterOrderBy>>;
   where?: InputMaybe<CurrentStakingPoolVoterBoolExp>;
 };
 
 export type QueryRootCurrentStakingPoolVoterByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTableItemsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTableItemsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTableItemsOrderBy>>;
   where?: InputMaybe<CurrentTableItemsBoolExp>;
 };
 
 export type QueryRootCurrentTableItemsByPkArgs = {
-  key_hash: Scalars["String"];
-  table_handle: Scalars["String"];
+  key_hash: Scalars["String"]["input"];
+  table_handle: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTokenDatasArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenDatasOrderBy>>;
   where?: InputMaybe<CurrentTokenDatasBoolExp>;
 };
 
 export type QueryRootCurrentTokenDatasByPkArgs = {
-  token_data_id_hash: Scalars["String"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTokenDatasV2Args = {
   distinct_on?: InputMaybe<Array<CurrentTokenDatasV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenDatasV2OrderBy>>;
   where?: InputMaybe<CurrentTokenDatasV2BoolExp>;
 };
 
 export type QueryRootCurrentTokenDatasV2ByPkArgs = {
-  token_data_id: Scalars["String"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTokenOwnershipsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
 
 export type QueryRootCurrentTokenOwnershipsAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
 
 export type QueryRootCurrentTokenOwnershipsByPkArgs = {
-  owner_address: Scalars["String"];
-  property_version: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
+  owner_address: Scalars["String"]["input"];
+  property_version: Scalars["numeric"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTokenOwnershipsV2Args = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 export type QueryRootCurrentTokenOwnershipsV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 export type QueryRootCurrentTokenOwnershipsV2ByPkArgs = {
-  owner_address: Scalars["String"];
-  property_version_v1: Scalars["numeric"];
-  storage_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  owner_address: Scalars["String"]["input"];
+  property_version_v1: Scalars["numeric"]["input"];
+  storage_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type QueryRootCurrentTokenPendingClaimsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenPendingClaimsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenPendingClaimsOrderBy>>;
   where?: InputMaybe<CurrentTokenPendingClaimsBoolExp>;
 };
 
 export type QueryRootCurrentTokenPendingClaimsByPkArgs = {
-  from_address: Scalars["String"];
-  property_version: Scalars["numeric"];
-  to_address: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
+  from_address: Scalars["String"]["input"];
+  property_version: Scalars["numeric"]["input"];
+  to_address: Scalars["String"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type QueryRootDelegatedStakingActivitiesArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingActivitiesOrderBy>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
 
 export type QueryRootDelegatedStakingActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootDelegatedStakingPoolsArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingPoolsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingPoolsOrderBy>>;
   where?: InputMaybe<DelegatedStakingPoolsBoolExp>;
 };
 
 export type QueryRootDelegatedStakingPoolsByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type QueryRootDelegatorDistinctPoolArgs = {
   distinct_on?: InputMaybe<Array<DelegatorDistinctPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatorDistinctPoolOrderBy>>;
   where?: InputMaybe<DelegatorDistinctPoolBoolExp>;
 };
 
 export type QueryRootDelegatorDistinctPoolAggregateArgs = {
   distinct_on?: InputMaybe<Array<DelegatorDistinctPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatorDistinctPoolOrderBy>>;
   where?: InputMaybe<DelegatorDistinctPoolBoolExp>;
 };
 
 export type QueryRootEventsArgs = {
   distinct_on?: InputMaybe<Array<EventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<EventsOrderBy>>;
   where?: InputMaybe<EventsBoolExp>;
 };
 
 export type QueryRootEventsByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootFungibleAssetActivitiesArgs = {
   distinct_on?: InputMaybe<Array<FungibleAssetActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<FungibleAssetActivitiesOrderBy>>;
   where?: InputMaybe<FungibleAssetActivitiesBoolExp>;
 };
 
 export type QueryRootFungibleAssetActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootFungibleAssetMetadataArgs = {
   distinct_on?: InputMaybe<Array<FungibleAssetMetadataSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<FungibleAssetMetadataOrderBy>>;
   where?: InputMaybe<FungibleAssetMetadataBoolExp>;
 };
 
 export type QueryRootFungibleAssetMetadataByPkArgs = {
-  asset_type: Scalars["String"];
+  asset_type: Scalars["String"]["input"];
 };
 
 export type QueryRootIndexerStatusArgs = {
   distinct_on?: InputMaybe<Array<IndexerStatusSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<IndexerStatusOrderBy>>;
   where?: InputMaybe<IndexerStatusBoolExp>;
 };
 
 export type QueryRootIndexerStatusByPkArgs = {
-  db: Scalars["String"];
+  db: Scalars["String"]["input"];
 };
 
 export type QueryRootLedgerInfosArgs = {
   distinct_on?: InputMaybe<Array<LedgerInfosSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<LedgerInfosOrderBy>>;
   where?: InputMaybe<LedgerInfosBoolExp>;
 };
 
 export type QueryRootLedgerInfosByPkArgs = {
-  chain_id: Scalars["bigint"];
+  chain_id: Scalars["bigint"]["input"];
 };
 
 export type QueryRootMoveResourcesArgs = {
   distinct_on?: InputMaybe<Array<MoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<MoveResourcesOrderBy>>;
   where?: InputMaybe<MoveResourcesBoolExp>;
 };
 
 export type QueryRootMoveResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<MoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<MoveResourcesOrderBy>>;
   where?: InputMaybe<MoveResourcesBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceAuctionsArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceAuctionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceAuctionsOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceAuctionsBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceAuctionsByPkArgs = {
-  listing_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  listing_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersByPkArgs = {
-  collection_id: Scalars["String"];
-  collection_offer_id: Scalars["String"];
+  collection_id: Scalars["String"]["input"];
+  collection_offer_id: Scalars["String"]["input"];
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceListingsArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceListingsByPkArgs = {
-  listing_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  listing_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceTokenOffersArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffersSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffersOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceTokenOffersBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceTokenOffersByPkArgs = {
-  offer_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  offer_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type QueryRootNftMarketplaceV2NftMarketplaceActivitiesArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2NftMarketplaceActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2NftMarketplaceActivitiesOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesBoolExp>;
 };
 
 export type QueryRootNftMarketplaceV2NftMarketplaceActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootNftMetadataCrawlerParsedAssetUrisArgs = {
   distinct_on?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisOrderBy>>;
   where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
 };
 
 export type QueryRootNftMetadataCrawlerParsedAssetUrisByPkArgs = {
-  asset_uri: Scalars["String"];
+  asset_uri: Scalars["String"]["input"];
 };
 
 export type QueryRootNumActiveDelegatorPerPoolArgs = {
   distinct_on?: InputMaybe<Array<NumActiveDelegatorPerPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NumActiveDelegatorPerPoolOrderBy>>;
   where?: InputMaybe<NumActiveDelegatorPerPoolBoolExp>;
 };
 
 export type QueryRootProcessorStatusArgs = {
   distinct_on?: InputMaybe<Array<ProcessorStatusSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProcessorStatusOrderBy>>;
   where?: InputMaybe<ProcessorStatusBoolExp>;
 };
 
 export type QueryRootProcessorStatusByPkArgs = {
-  processor: Scalars["String"];
+  processor: Scalars["String"]["input"];
 };
 
 export type QueryRootProposalVotesArgs = {
   distinct_on?: InputMaybe<Array<ProposalVotesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProposalVotesOrderBy>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
 };
 
 export type QueryRootProposalVotesAggregateArgs = {
   distinct_on?: InputMaybe<Array<ProposalVotesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProposalVotesOrderBy>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
 };
 
 export type QueryRootProposalVotesByPkArgs = {
-  proposal_id: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
-  voter_address: Scalars["String"];
+  proposal_id: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+  voter_address: Scalars["String"]["input"];
 };
 
 export type QueryRootTableItemsArgs = {
   distinct_on?: InputMaybe<Array<TableItemsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TableItemsOrderBy>>;
   where?: InputMaybe<TableItemsBoolExp>;
 };
 
 export type QueryRootTableItemsByPkArgs = {
-  transaction_version: Scalars["bigint"];
-  write_set_change_index: Scalars["bigint"];
+  transaction_version: Scalars["bigint"]["input"];
+  write_set_change_index: Scalars["bigint"]["input"];
 };
 
 export type QueryRootTableMetadatasArgs = {
   distinct_on?: InputMaybe<Array<TableMetadatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TableMetadatasOrderBy>>;
   where?: InputMaybe<TableMetadatasBoolExp>;
 };
 
 export type QueryRootTableMetadatasByPkArgs = {
-  handle: Scalars["String"];
+  handle: Scalars["String"]["input"];
 };
 
 export type QueryRootTokenActivitiesArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
 
 export type QueryRootTokenActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
 
 export type QueryRootTokenActivitiesByPkArgs = {
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_sequence_number: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_account_address: Scalars["String"]["input"];
+  event_creation_number: Scalars["bigint"]["input"];
+  event_sequence_number: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootTokenActivitiesV2Args = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
 
 export type QueryRootTokenActivitiesV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
 
 export type QueryRootTokenActivitiesV2ByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootTokenDatasArgs = {
   distinct_on?: InputMaybe<Array<TokenDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenDatasOrderBy>>;
   where?: InputMaybe<TokenDatasBoolExp>;
 };
 
 export type QueryRootTokenDatasByPkArgs = {
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootTokenOwnershipsArgs = {
   distinct_on?: InputMaybe<Array<TokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenOwnershipsOrderBy>>;
   where?: InputMaybe<TokenOwnershipsBoolExp>;
 };
 
 export type QueryRootTokenOwnershipsByPkArgs = {
-  property_version: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  property_version: Scalars["numeric"]["input"];
+  table_handle: Scalars["String"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootTokensArgs = {
   distinct_on?: InputMaybe<Array<TokensSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokensOrderBy>>;
   where?: InputMaybe<TokensBoolExp>;
 };
 
 export type QueryRootTokensByPkArgs = {
-  property_version: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  property_version: Scalars["numeric"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type QueryRootUserTransactionsArgs = {
   distinct_on?: InputMaybe<Array<UserTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<UserTransactionsOrderBy>>;
   where?: InputMaybe<UserTransactionsBoolExp>;
 };
 
 export type QueryRootUserTransactionsByPkArgs = {
-  version: Scalars["bigint"];
+  version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRoot = {
@@ -7762,1138 +7764,1138 @@ export type SubscriptionRoot = {
 
 export type SubscriptionRootAccountTransactionsArgs = {
   distinct_on?: InputMaybe<Array<AccountTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AccountTransactionsOrderBy>>;
   where?: InputMaybe<AccountTransactionsBoolExp>;
 };
 
 export type SubscriptionRootAccountTransactionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AccountTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AccountTransactionsOrderBy>>;
   where?: InputMaybe<AccountTransactionsBoolExp>;
 };
 
 export type SubscriptionRootAccountTransactionsByPkArgs = {
-  account_address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  account_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootAccountTransactionsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<AccountTransactionsStreamCursorInput>>;
   where?: InputMaybe<AccountTransactionsBoolExp>;
 };
 
 export type SubscriptionRootAddressEventsSummaryArgs = {
   distinct_on?: InputMaybe<Array<AddressEventsSummarySelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressEventsSummaryOrderBy>>;
   where?: InputMaybe<AddressEventsSummaryBoolExp>;
 };
 
 export type SubscriptionRootAddressEventsSummaryStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<AddressEventsSummaryStreamCursorInput>>;
   where?: InputMaybe<AddressEventsSummaryBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromEventsArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromEventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromEventsOrderBy>>;
   where?: InputMaybe<AddressVersionFromEventsBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromEventsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromEventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromEventsOrderBy>>;
   where?: InputMaybe<AddressVersionFromEventsBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromEventsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<AddressVersionFromEventsStreamCursorInput>>;
   where?: InputMaybe<AddressVersionFromEventsBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromMoveResourcesArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromMoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromMoveResourcesOrderBy>>;
   where?: InputMaybe<AddressVersionFromMoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromMoveResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AddressVersionFromMoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<AddressVersionFromMoveResourcesOrderBy>>;
   where?: InputMaybe<AddressVersionFromMoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootAddressVersionFromMoveResourcesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<AddressVersionFromMoveResourcesStreamCursorInput>>;
   where?: InputMaybe<AddressVersionFromMoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootBlockMetadataTransactionsArgs = {
   distinct_on?: InputMaybe<Array<BlockMetadataTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<BlockMetadataTransactionsOrderBy>>;
   where?: InputMaybe<BlockMetadataTransactionsBoolExp>;
 };
 
 export type SubscriptionRootBlockMetadataTransactionsByPkArgs = {
-  version: Scalars["bigint"];
+  version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootBlockMetadataTransactionsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<BlockMetadataTransactionsStreamCursorInput>>;
   where?: InputMaybe<BlockMetadataTransactionsBoolExp>;
 };
 
 export type SubscriptionRootCoinActivitiesArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
 
 export type SubscriptionRootCoinActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinActivitiesOrderBy>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
 
 export type SubscriptionRootCoinActivitiesByPkArgs = {
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_sequence_number: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_account_address: Scalars["String"]["input"];
+  event_creation_number: Scalars["bigint"]["input"];
+  event_sequence_number: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootCoinActivitiesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CoinActivitiesStreamCursorInput>>;
   where?: InputMaybe<CoinActivitiesBoolExp>;
 };
 
 export type SubscriptionRootCoinBalancesArgs = {
   distinct_on?: InputMaybe<Array<CoinBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinBalancesOrderBy>>;
   where?: InputMaybe<CoinBalancesBoolExp>;
 };
 
 export type SubscriptionRootCoinBalancesByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  owner_address: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  coin_type_hash: Scalars["String"]["input"];
+  owner_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootCoinBalancesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CoinBalancesStreamCursorInput>>;
   where?: InputMaybe<CoinBalancesBoolExp>;
 };
 
 export type SubscriptionRootCoinInfosArgs = {
   distinct_on?: InputMaybe<Array<CoinInfosSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinInfosOrderBy>>;
   where?: InputMaybe<CoinInfosBoolExp>;
 };
 
 export type SubscriptionRootCoinInfosByPkArgs = {
-  coin_type_hash: Scalars["String"];
+  coin_type_hash: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCoinInfosStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CoinInfosStreamCursorInput>>;
   where?: InputMaybe<CoinInfosBoolExp>;
 };
 
 export type SubscriptionRootCoinSupplyArgs = {
   distinct_on?: InputMaybe<Array<CoinSupplySelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CoinSupplyOrderBy>>;
   where?: InputMaybe<CoinSupplyBoolExp>;
 };
 
 export type SubscriptionRootCoinSupplyByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  coin_type_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootCoinSupplyStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CoinSupplyStreamCursorInput>>;
   where?: InputMaybe<CoinSupplyBoolExp>;
 };
 
 export type SubscriptionRootCollectionDatasArgs = {
   distinct_on?: InputMaybe<Array<CollectionDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CollectionDatasOrderBy>>;
   where?: InputMaybe<CollectionDatasBoolExp>;
 };
 
 export type SubscriptionRootCollectionDatasByPkArgs = {
-  collection_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  collection_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootCollectionDatasStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CollectionDatasStreamCursorInput>>;
   where?: InputMaybe<CollectionDatasBoolExp>;
 };
 
 export type SubscriptionRootCurrentAnsLookupArgs = {
   distinct_on?: InputMaybe<Array<CurrentAnsLookupSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAnsLookupOrderBy>>;
   where?: InputMaybe<CurrentAnsLookupBoolExp>;
 };
 
 export type SubscriptionRootCurrentAnsLookupByPkArgs = {
-  domain: Scalars["String"];
-  subdomain: Scalars["String"];
+  domain: Scalars["String"]["input"];
+  subdomain: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentAnsLookupStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentAnsLookupStreamCursorInput>>;
   where?: InputMaybe<CurrentAnsLookupBoolExp>;
 };
 
 export type SubscriptionRootCurrentAnsLookupV2Args = {
   distinct_on?: InputMaybe<Array<CurrentAnsLookupV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAnsLookupV2OrderBy>>;
   where?: InputMaybe<CurrentAnsLookupV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentAnsLookupV2ByPkArgs = {
-  domain: Scalars["String"];
-  subdomain: Scalars["String"];
-  token_standard: Scalars["String"];
+  domain: Scalars["String"]["input"];
+  subdomain: Scalars["String"]["input"];
+  token_standard: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentAnsLookupV2StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentAnsLookupV2StreamCursorInput>>;
   where?: InputMaybe<CurrentAnsLookupV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentAptosNamesArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 export type SubscriptionRootCurrentAptosNamesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 export type SubscriptionRootCurrentAptosNamesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentAptosNamesStreamCursorInput>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
 
 export type SubscriptionRootCurrentCoinBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentCoinBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCoinBalancesOrderBy>>;
   where?: InputMaybe<CurrentCoinBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentCoinBalancesByPkArgs = {
-  coin_type_hash: Scalars["String"];
-  owner_address: Scalars["String"];
+  coin_type_hash: Scalars["String"]["input"];
+  owner_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentCoinBalancesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentCoinBalancesStreamCursorInput>>;
   where?: InputMaybe<CurrentCoinBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionDatasArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionDatasOrderBy>>;
   where?: InputMaybe<CurrentCollectionDatasBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionDatasByPkArgs = {
-  collection_data_id_hash: Scalars["String"];
+  collection_data_id_hash: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentCollectionDatasStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentCollectionDatasStreamCursorInput>>;
   where?: InputMaybe<CurrentCollectionDatasBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionOwnershipV2ViewArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewOrderBy>>;
   where?: InputMaybe<CurrentCollectionOwnershipV2ViewBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionOwnershipV2ViewAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionOwnershipV2ViewOrderBy>>;
   where?: InputMaybe<CurrentCollectionOwnershipV2ViewBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionOwnershipV2ViewStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentCollectionOwnershipV2ViewStreamCursorInput>>;
   where?: InputMaybe<CurrentCollectionOwnershipV2ViewBoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionsV2Args = {
   distinct_on?: InputMaybe<Array<CurrentCollectionsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentCollectionsV2OrderBy>>;
   where?: InputMaybe<CurrentCollectionsV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentCollectionsV2ByPkArgs = {
-  collection_id: Scalars["String"];
+  collection_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentCollectionsV2StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentCollectionsV2StreamCursorInput>>;
   where?: InputMaybe<CurrentCollectionsV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatedStakingPoolBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatedStakingPoolBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatedStakingPoolBalancesOrderBy>>;
   where?: InputMaybe<CurrentDelegatedStakingPoolBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatedStakingPoolBalancesByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentDelegatedStakingPoolBalancesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentDelegatedStakingPoolBalancesStreamCursorInput>>;
   where?: InputMaybe<CurrentDelegatedStakingPoolBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatedVoterArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatedVoterSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatedVoterOrderBy>>;
   where?: InputMaybe<CurrentDelegatedVoterBoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatedVoterByPkArgs = {
-  delegation_pool_address: Scalars["String"];
-  delegator_address: Scalars["String"];
+  delegation_pool_address: Scalars["String"]["input"];
+  delegator_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentDelegatedVoterStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentDelegatedVoterStreamCursorInput>>;
   where?: InputMaybe<CurrentDelegatedVoterBoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatorBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentDelegatorBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentDelegatorBalancesOrderBy>>;
   where?: InputMaybe<CurrentDelegatorBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentDelegatorBalancesByPkArgs = {
-  delegator_address: Scalars["String"];
-  pool_address: Scalars["String"];
-  pool_type: Scalars["String"];
-  table_handle: Scalars["String"];
+  delegator_address: Scalars["String"]["input"];
+  pool_address: Scalars["String"]["input"];
+  pool_type: Scalars["String"]["input"];
+  table_handle: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentDelegatorBalancesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentDelegatorBalancesStreamCursorInput>>;
   where?: InputMaybe<CurrentDelegatorBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentFungibleAssetBalancesArgs = {
   distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesOrderBy>>;
   where?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentFungibleAssetBalancesAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesOrderBy>>;
   where?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentFungibleAssetBalancesByPkArgs = {
-  storage_id: Scalars["String"];
+  storage_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentFungibleAssetBalancesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentFungibleAssetBalancesStreamCursorInput>>;
   where?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
 };
 
 export type SubscriptionRootCurrentObjectsArgs = {
   distinct_on?: InputMaybe<Array<CurrentObjectsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentObjectsOrderBy>>;
   where?: InputMaybe<CurrentObjectsBoolExp>;
 };
 
 export type SubscriptionRootCurrentObjectsByPkArgs = {
-  object_address: Scalars["String"];
+  object_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentObjectsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentObjectsStreamCursorInput>>;
   where?: InputMaybe<CurrentObjectsBoolExp>;
 };
 
 export type SubscriptionRootCurrentStakingPoolVoterArgs = {
   distinct_on?: InputMaybe<Array<CurrentStakingPoolVoterSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentStakingPoolVoterOrderBy>>;
   where?: InputMaybe<CurrentStakingPoolVoterBoolExp>;
 };
 
 export type SubscriptionRootCurrentStakingPoolVoterByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentStakingPoolVoterStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentStakingPoolVoterStreamCursorInput>>;
   where?: InputMaybe<CurrentStakingPoolVoterBoolExp>;
 };
 
 export type SubscriptionRootCurrentTableItemsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTableItemsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTableItemsOrderBy>>;
   where?: InputMaybe<CurrentTableItemsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTableItemsByPkArgs = {
-  key_hash: Scalars["String"];
-  table_handle: Scalars["String"];
+  key_hash: Scalars["String"]["input"];
+  table_handle: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTableItemsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTableItemsStreamCursorInput>>;
   where?: InputMaybe<CurrentTableItemsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenDatasArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenDatasOrderBy>>;
   where?: InputMaybe<CurrentTokenDatasBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenDatasByPkArgs = {
-  token_data_id_hash: Scalars["String"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTokenDatasStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTokenDatasStreamCursorInput>>;
   where?: InputMaybe<CurrentTokenDatasBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenDatasV2Args = {
   distinct_on?: InputMaybe<Array<CurrentTokenDatasV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenDatasV2OrderBy>>;
   where?: InputMaybe<CurrentTokenDatasV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenDatasV2ByPkArgs = {
-  token_data_id: Scalars["String"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTokenDatasV2StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTokenDatasV2StreamCursorInput>>;
   where?: InputMaybe<CurrentTokenDatasV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsOrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsByPkArgs = {
-  owner_address: Scalars["String"];
-  property_version: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
+  owner_address: Scalars["String"]["input"];
+  property_version: Scalars["numeric"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTokenOwnershipsStreamCursorInput>>;
   where?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsV2Args = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsV2ByPkArgs = {
-  owner_address: Scalars["String"];
-  property_version_v1: Scalars["numeric"];
-  storage_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  owner_address: Scalars["String"]["input"];
+  property_version_v1: Scalars["numeric"]["input"];
+  storage_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTokenOwnershipsV2StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTokenOwnershipsV2StreamCursorInput>>;
   where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenPendingClaimsArgs = {
   distinct_on?: InputMaybe<Array<CurrentTokenPendingClaimsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentTokenPendingClaimsOrderBy>>;
   where?: InputMaybe<CurrentTokenPendingClaimsBoolExp>;
 };
 
 export type SubscriptionRootCurrentTokenPendingClaimsByPkArgs = {
-  from_address: Scalars["String"];
-  property_version: Scalars["numeric"];
-  to_address: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
+  from_address: Scalars["String"]["input"];
+  property_version: Scalars["numeric"]["input"];
+  to_address: Scalars["String"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootCurrentTokenPendingClaimsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<CurrentTokenPendingClaimsStreamCursorInput>>;
   where?: InputMaybe<CurrentTokenPendingClaimsBoolExp>;
 };
 
 export type SubscriptionRootDelegatedStakingActivitiesArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingActivitiesOrderBy>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
 
 export type SubscriptionRootDelegatedStakingActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootDelegatedStakingActivitiesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<DelegatedStakingActivitiesStreamCursorInput>>;
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
 
 export type SubscriptionRootDelegatedStakingPoolsArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingPoolsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatedStakingPoolsOrderBy>>;
   where?: InputMaybe<DelegatedStakingPoolsBoolExp>;
 };
 
 export type SubscriptionRootDelegatedStakingPoolsByPkArgs = {
-  staking_pool_address: Scalars["String"];
+  staking_pool_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootDelegatedStakingPoolsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<DelegatedStakingPoolsStreamCursorInput>>;
   where?: InputMaybe<DelegatedStakingPoolsBoolExp>;
 };
 
 export type SubscriptionRootDelegatorDistinctPoolArgs = {
   distinct_on?: InputMaybe<Array<DelegatorDistinctPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatorDistinctPoolOrderBy>>;
   where?: InputMaybe<DelegatorDistinctPoolBoolExp>;
 };
 
 export type SubscriptionRootDelegatorDistinctPoolAggregateArgs = {
   distinct_on?: InputMaybe<Array<DelegatorDistinctPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<DelegatorDistinctPoolOrderBy>>;
   where?: InputMaybe<DelegatorDistinctPoolBoolExp>;
 };
 
 export type SubscriptionRootDelegatorDistinctPoolStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<DelegatorDistinctPoolStreamCursorInput>>;
   where?: InputMaybe<DelegatorDistinctPoolBoolExp>;
 };
 
 export type SubscriptionRootEventsArgs = {
   distinct_on?: InputMaybe<Array<EventsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<EventsOrderBy>>;
   where?: InputMaybe<EventsBoolExp>;
 };
 
 export type SubscriptionRootEventsByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootEventsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<EventsStreamCursorInput>>;
   where?: InputMaybe<EventsBoolExp>;
 };
 
 export type SubscriptionRootFungibleAssetActivitiesArgs = {
   distinct_on?: InputMaybe<Array<FungibleAssetActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<FungibleAssetActivitiesOrderBy>>;
   where?: InputMaybe<FungibleAssetActivitiesBoolExp>;
 };
 
 export type SubscriptionRootFungibleAssetActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootFungibleAssetActivitiesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<FungibleAssetActivitiesStreamCursorInput>>;
   where?: InputMaybe<FungibleAssetActivitiesBoolExp>;
 };
 
 export type SubscriptionRootFungibleAssetMetadataArgs = {
   distinct_on?: InputMaybe<Array<FungibleAssetMetadataSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<FungibleAssetMetadataOrderBy>>;
   where?: InputMaybe<FungibleAssetMetadataBoolExp>;
 };
 
 export type SubscriptionRootFungibleAssetMetadataByPkArgs = {
-  asset_type: Scalars["String"];
+  asset_type: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootFungibleAssetMetadataStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<FungibleAssetMetadataStreamCursorInput>>;
   where?: InputMaybe<FungibleAssetMetadataBoolExp>;
 };
 
 export type SubscriptionRootIndexerStatusArgs = {
   distinct_on?: InputMaybe<Array<IndexerStatusSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<IndexerStatusOrderBy>>;
   where?: InputMaybe<IndexerStatusBoolExp>;
 };
 
 export type SubscriptionRootIndexerStatusByPkArgs = {
-  db: Scalars["String"];
+  db: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootIndexerStatusStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<IndexerStatusStreamCursorInput>>;
   where?: InputMaybe<IndexerStatusBoolExp>;
 };
 
 export type SubscriptionRootLedgerInfosArgs = {
   distinct_on?: InputMaybe<Array<LedgerInfosSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<LedgerInfosOrderBy>>;
   where?: InputMaybe<LedgerInfosBoolExp>;
 };
 
 export type SubscriptionRootLedgerInfosByPkArgs = {
-  chain_id: Scalars["bigint"];
+  chain_id: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootLedgerInfosStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<LedgerInfosStreamCursorInput>>;
   where?: InputMaybe<LedgerInfosBoolExp>;
 };
 
 export type SubscriptionRootMoveResourcesArgs = {
   distinct_on?: InputMaybe<Array<MoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<MoveResourcesOrderBy>>;
   where?: InputMaybe<MoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootMoveResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<MoveResourcesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<MoveResourcesOrderBy>>;
   where?: InputMaybe<MoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootMoveResourcesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<MoveResourcesStreamCursorInput>>;
   where?: InputMaybe<MoveResourcesBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceAuctionsArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceAuctionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceAuctionsOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceAuctionsBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceAuctionsByPkArgs = {
-  listing_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  listing_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceAuctionsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMarketplaceV2CurrentNftMarketplaceAuctionsStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceAuctionsBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersByPkArgs = {
-  collection_id: Scalars["String"];
-  collection_offer_id: Scalars["String"];
+  collection_id: Scalars["String"]["input"];
+  collection_offer_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffersBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceListingsArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceListingsByPkArgs = {
-  listing_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  listing_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceListingsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceTokenOffersArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffersSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffersOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceTokenOffersBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceTokenOffersByPkArgs = {
-  offer_id: Scalars["String"];
-  token_data_id: Scalars["String"];
+  offer_id: Scalars["String"]["input"];
+  token_data_id: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceTokenOffersStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMarketplaceV2CurrentNftMarketplaceTokenOffersStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceTokenOffersBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2NftMarketplaceActivitiesArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2NftMarketplaceActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMarketplaceV2NftMarketplaceActivitiesOrderBy>>;
   where?: InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesBoolExp>;
 };
 
 export type SubscriptionRootNftMarketplaceV2NftMarketplaceActivitiesByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootNftMarketplaceV2NftMarketplaceActivitiesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesStreamCursorInput>>;
   where?: InputMaybe<NftMarketplaceV2NftMarketplaceActivitiesBoolExp>;
 };
 
 export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisArgs = {
   distinct_on?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NftMetadataCrawlerParsedAssetUrisOrderBy>>;
   where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
 };
 
 export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisByPkArgs = {
-  asset_uri: Scalars["String"];
+  asset_uri: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootNftMetadataCrawlerParsedAssetUrisStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NftMetadataCrawlerParsedAssetUrisStreamCursorInput>>;
   where?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
 };
 
 export type SubscriptionRootNumActiveDelegatorPerPoolArgs = {
   distinct_on?: InputMaybe<Array<NumActiveDelegatorPerPoolSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<NumActiveDelegatorPerPoolOrderBy>>;
   where?: InputMaybe<NumActiveDelegatorPerPoolBoolExp>;
 };
 
 export type SubscriptionRootNumActiveDelegatorPerPoolStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<NumActiveDelegatorPerPoolStreamCursorInput>>;
   where?: InputMaybe<NumActiveDelegatorPerPoolBoolExp>;
 };
 
 export type SubscriptionRootProcessorStatusArgs = {
   distinct_on?: InputMaybe<Array<ProcessorStatusSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProcessorStatusOrderBy>>;
   where?: InputMaybe<ProcessorStatusBoolExp>;
 };
 
 export type SubscriptionRootProcessorStatusByPkArgs = {
-  processor: Scalars["String"];
+  processor: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootProcessorStatusStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<ProcessorStatusStreamCursorInput>>;
   where?: InputMaybe<ProcessorStatusBoolExp>;
 };
 
 export type SubscriptionRootProposalVotesArgs = {
   distinct_on?: InputMaybe<Array<ProposalVotesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProposalVotesOrderBy>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
 };
 
 export type SubscriptionRootProposalVotesAggregateArgs = {
   distinct_on?: InputMaybe<Array<ProposalVotesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<ProposalVotesOrderBy>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
 };
 
 export type SubscriptionRootProposalVotesByPkArgs = {
-  proposal_id: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
-  voter_address: Scalars["String"];
+  proposal_id: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+  voter_address: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootProposalVotesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<ProposalVotesStreamCursorInput>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
 };
 
 export type SubscriptionRootTableItemsArgs = {
   distinct_on?: InputMaybe<Array<TableItemsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TableItemsOrderBy>>;
   where?: InputMaybe<TableItemsBoolExp>;
 };
 
 export type SubscriptionRootTableItemsByPkArgs = {
-  transaction_version: Scalars["bigint"];
-  write_set_change_index: Scalars["bigint"];
+  transaction_version: Scalars["bigint"]["input"];
+  write_set_change_index: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTableItemsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TableItemsStreamCursorInput>>;
   where?: InputMaybe<TableItemsBoolExp>;
 };
 
 export type SubscriptionRootTableMetadatasArgs = {
   distinct_on?: InputMaybe<Array<TableMetadatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TableMetadatasOrderBy>>;
   where?: InputMaybe<TableMetadatasBoolExp>;
 };
 
 export type SubscriptionRootTableMetadatasByPkArgs = {
-  handle: Scalars["String"];
+  handle: Scalars["String"]["input"];
 };
 
 export type SubscriptionRootTableMetadatasStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TableMetadatasStreamCursorInput>>;
   where?: InputMaybe<TableMetadatasBoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesAggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesOrderBy>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesByPkArgs = {
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_sequence_number: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_account_address: Scalars["String"]["input"];
+  event_creation_number: Scalars["bigint"]["input"];
+  event_sequence_number: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTokenActivitiesStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TokenActivitiesStreamCursorInput>>;
   where?: InputMaybe<TokenActivitiesBoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesV2Args = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesV2AggregateArgs = {
   distinct_on?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenActivitiesV2OrderBy>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
 
 export type SubscriptionRootTokenActivitiesV2ByPkArgs = {
-  event_index: Scalars["bigint"];
-  transaction_version: Scalars["bigint"];
+  event_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTokenActivitiesV2StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TokenActivitiesV2StreamCursorInput>>;
   where?: InputMaybe<TokenActivitiesV2BoolExp>;
 };
 
 export type SubscriptionRootTokenDatasArgs = {
   distinct_on?: InputMaybe<Array<TokenDatasSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenDatasOrderBy>>;
   where?: InputMaybe<TokenDatasBoolExp>;
 };
 
 export type SubscriptionRootTokenDatasByPkArgs = {
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTokenDatasStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TokenDatasStreamCursorInput>>;
   where?: InputMaybe<TokenDatasBoolExp>;
 };
 
 export type SubscriptionRootTokenOwnershipsArgs = {
   distinct_on?: InputMaybe<Array<TokenOwnershipsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokenOwnershipsOrderBy>>;
   where?: InputMaybe<TokenOwnershipsBoolExp>;
 };
 
 export type SubscriptionRootTokenOwnershipsByPkArgs = {
-  property_version: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  property_version: Scalars["numeric"]["input"];
+  table_handle: Scalars["String"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTokenOwnershipsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TokenOwnershipsStreamCursorInput>>;
   where?: InputMaybe<TokenOwnershipsBoolExp>;
 };
 
 export type SubscriptionRootTokensArgs = {
   distinct_on?: InputMaybe<Array<TokensSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<TokensOrderBy>>;
   where?: InputMaybe<TokensBoolExp>;
 };
 
 export type SubscriptionRootTokensByPkArgs = {
-  property_version: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  transaction_version: Scalars["bigint"];
+  property_version: Scalars["numeric"]["input"];
+  token_data_id_hash: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootTokensStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<TokensStreamCursorInput>>;
   where?: InputMaybe<TokensBoolExp>;
 };
 
 export type SubscriptionRootUserTransactionsArgs = {
   distinct_on?: InputMaybe<Array<UserTransactionsSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<UserTransactionsOrderBy>>;
   where?: InputMaybe<UserTransactionsBoolExp>;
 };
 
 export type SubscriptionRootUserTransactionsByPkArgs = {
-  version: Scalars["bigint"];
+  version: Scalars["bigint"]["input"];
 };
 
 export type SubscriptionRootUserTransactionsStreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<UserTransactionsStreamCursorInput>>;
   where?: InputMaybe<UserTransactionsBoolExp>;
 };
 
 /** columns and relationships of "table_items" */
 export type TableItems = {
-  decoded_key: Scalars["jsonb"];
-  decoded_value?: Maybe<Scalars["jsonb"]>;
-  key: Scalars["String"];
-  table_handle: Scalars["String"];
-  transaction_version: Scalars["bigint"];
-  write_set_change_index: Scalars["bigint"];
+  decoded_key: Scalars["jsonb"]["output"];
+  decoded_value?: Maybe<Scalars["jsonb"]["output"]>;
+  key: Scalars["String"]["output"];
+  table_handle: Scalars["String"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  write_set_change_index: Scalars["bigint"]["output"];
 };
 
 /** columns and relationships of "table_items" */
 export type TableItemsDecodedKeyArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** columns and relationships of "table_items" */
 export type TableItemsDecodedValueArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "table_items". All fields are combined with a logical 'AND'. */
@@ -8945,19 +8947,19 @@ export type TableItemsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TableItemsStreamCursorValueInput = {
-  decoded_key?: InputMaybe<Scalars["jsonb"]>;
-  decoded_value?: InputMaybe<Scalars["jsonb"]>;
-  key?: InputMaybe<Scalars["String"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  write_set_change_index?: InputMaybe<Scalars["bigint"]>;
+  decoded_key?: InputMaybe<Scalars["jsonb"]["input"]>;
+  decoded_value?: InputMaybe<Scalars["jsonb"]["input"]>;
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  write_set_change_index?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "table_metadatas" */
 export type TableMetadatas = {
-  handle: Scalars["String"];
-  key_type: Scalars["String"];
-  value_type: Scalars["String"];
+  handle: Scalars["String"]["output"];
+  key_type: Scalars["String"]["output"];
+  value_type: Scalars["String"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "table_metadatas". All fields are combined with a logical 'AND'. */
@@ -8997,35 +8999,35 @@ export type TableMetadatasStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TableMetadatasStreamCursorValueInput = {
-  handle?: InputMaybe<Scalars["String"]>;
-  key_type?: InputMaybe<Scalars["String"]>;
-  value_type?: InputMaybe<Scalars["String"]>;
+  handle?: InputMaybe<Scalars["String"]["input"]>;
+  key_type?: InputMaybe<Scalars["String"]["input"]>;
+  value_type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'. */
 export type TimestampComparisonExp = {
-  _eq?: InputMaybe<Scalars["timestamp"]>;
-  _gt?: InputMaybe<Scalars["timestamp"]>;
-  _gte?: InputMaybe<Scalars["timestamp"]>;
-  _in?: InputMaybe<Array<Scalars["timestamp"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["timestamp"]>;
-  _lte?: InputMaybe<Scalars["timestamp"]>;
-  _neq?: InputMaybe<Scalars["timestamp"]>;
-  _nin?: InputMaybe<Array<Scalars["timestamp"]>>;
+  _eq?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _gt?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _gte?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["timestamp"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _lte?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _neq?: InputMaybe<Scalars["timestamp"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["timestamp"]["input"]>>;
 };
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type TimestamptzComparisonExp = {
-  _eq?: InputMaybe<Scalars["timestamptz"]>;
-  _gt?: InputMaybe<Scalars["timestamptz"]>;
-  _gte?: InputMaybe<Scalars["timestamptz"]>;
-  _in?: InputMaybe<Array<Scalars["timestamptz"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["timestamptz"]>;
-  _lte?: InputMaybe<Scalars["timestamptz"]>;
-  _neq?: InputMaybe<Scalars["timestamptz"]>;
-  _nin?: InputMaybe<Array<Scalars["timestamptz"]>>;
+  _eq?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _gt?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _gte?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["timestamptz"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _lte?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _neq?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["timestamptz"]["input"]>>;
 };
 
 /** columns and relationships of "token_activities" */
@@ -9038,33 +9040,33 @@ export type TokenActivities = {
   aptos_names_to: Array<CurrentAptosNames>;
   /** An aggregate relationship */
   aptos_names_to_aggregate: CurrentAptosNamesAggregate;
-  coin_amount?: Maybe<Scalars["numeric"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
+  coin_amount?: Maybe<Scalars["numeric"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatas>;
-  event_account_address: Scalars["String"];
-  event_creation_number: Scalars["bigint"];
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number: Scalars["bigint"];
-  from_address?: Maybe<Scalars["String"]>;
-  name: Scalars["String"];
-  property_version: Scalars["numeric"];
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  transfer_type: Scalars["String"];
+  event_account_address: Scalars["String"]["output"];
+  event_creation_number: Scalars["bigint"]["output"];
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number: Scalars["bigint"]["output"];
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  name: Scalars["String"]["output"];
+  property_version: Scalars["numeric"]["output"];
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  transfer_type: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "token_activities" */
 export type TokenActivitiesAptosNamesOwnerArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9072,8 +9074,8 @@ export type TokenActivitiesAptosNamesOwnerArgs = {
 /** columns and relationships of "token_activities" */
 export type TokenActivitiesAptosNamesOwnerAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9081,8 +9083,8 @@ export type TokenActivitiesAptosNamesOwnerAggregateArgs = {
 /** columns and relationships of "token_activities" */
 export type TokenActivitiesAptosNamesToArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9090,8 +9092,8 @@ export type TokenActivitiesAptosNamesToArgs = {
 /** columns and relationships of "token_activities" */
 export type TokenActivitiesAptosNamesToAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9105,7 +9107,7 @@ export type TokenActivitiesAggregate = {
 /** aggregate fields of "token_activities" */
 export type TokenActivitiesAggregateFields = {
   avg?: Maybe<TokenActivitiesAvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<TokenActivitiesMaxFields>;
   min?: Maybe<TokenActivitiesMinFields>;
   stddev?: Maybe<TokenActivitiesStddevFields>;
@@ -9120,7 +9122,7 @@ export type TokenActivitiesAggregateFields = {
 /** aggregate fields of "token_activities" */
 export type TokenActivitiesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "token_activities" */
@@ -9140,13 +9142,13 @@ export type TokenActivitiesAggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type TokenActivitiesAvgFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "token_activities" */
@@ -9190,24 +9192,24 @@ export type TokenActivitiesBoolExp = {
 
 /** aggregate max on columns */
 export type TokenActivitiesMaxFields = {
-  coin_amount?: Maybe<Scalars["numeric"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_data_id_hash?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  from_address?: Maybe<Scalars["String"]>;
-  name?: Maybe<Scalars["String"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  token_data_id_hash?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  transfer_type?: Maybe<Scalars["String"]>;
+  coin_amount?: Maybe<Scalars["numeric"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  transfer_type?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "token_activities" */
@@ -9234,24 +9236,24 @@ export type TokenActivitiesMaxOrderBy = {
 
 /** aggregate min on columns */
 export type TokenActivitiesMinFields = {
-  coin_amount?: Maybe<Scalars["numeric"]>;
-  coin_type?: Maybe<Scalars["String"]>;
-  collection_data_id_hash?: Maybe<Scalars["String"]>;
-  collection_name?: Maybe<Scalars["String"]>;
-  creator_address?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  from_address?: Maybe<Scalars["String"]>;
-  name?: Maybe<Scalars["String"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  token_data_id_hash?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  transfer_type?: Maybe<Scalars["String"]>;
+  coin_amount?: Maybe<Scalars["numeric"]["output"]>;
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  collection_name?: Maybe<Scalars["String"]["output"]>;
+  creator_address?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id_hash?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  transfer_type?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "token_activities" */
@@ -9343,13 +9345,13 @@ export enum TokenActivitiesSelectColumn {
 
 /** aggregate stddev on columns */
 export type TokenActivitiesStddevFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "token_activities" */
@@ -9365,13 +9367,13 @@ export type TokenActivitiesStddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type TokenActivitiesStddevPopFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "token_activities" */
@@ -9387,13 +9389,13 @@ export type TokenActivitiesStddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type TokenActivitiesStddevSampFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "token_activities" */
@@ -9417,35 +9419,35 @@ export type TokenActivitiesStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokenActivitiesStreamCursorValueInput = {
-  coin_amount?: InputMaybe<Scalars["numeric"]>;
-  coin_type?: InputMaybe<Scalars["String"]>;
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  event_account_address?: InputMaybe<Scalars["String"]>;
-  event_creation_number?: InputMaybe<Scalars["bigint"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  event_sequence_number?: InputMaybe<Scalars["bigint"]>;
-  from_address?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  property_version?: InputMaybe<Scalars["numeric"]>;
-  to_address?: InputMaybe<Scalars["String"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  transfer_type?: InputMaybe<Scalars["String"]>;
+  coin_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  coin_type?: InputMaybe<Scalars["String"]["input"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  event_account_address?: InputMaybe<Scalars["String"]["input"]>;
+  event_creation_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  event_sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  from_address?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  to_address?: InputMaybe<Scalars["String"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  transfer_type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type TokenActivitiesSumFields = {
-  coin_amount?: Maybe<Scalars["numeric"]>;
-  event_creation_number?: Maybe<Scalars["bigint"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  event_sequence_number?: Maybe<Scalars["bigint"]>;
-  property_version?: Maybe<Scalars["numeric"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  coin_amount?: Maybe<Scalars["numeric"]["output"]>;
+  event_creation_number?: Maybe<Scalars["bigint"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["bigint"]["output"]>;
+  property_version?: Maybe<Scalars["numeric"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by sum() on columns of table "token_activities" */
@@ -9461,7 +9463,7 @@ export type TokenActivitiesSumOrderBy = {
 
 /** columns and relationships of "token_activities_v2" */
 export type TokenActivitiesV2 = {
-  after_value?: Maybe<Scalars["String"]>;
+  after_value?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
   aptos_names_from: Array<CurrentAptosNames>;
   /** An aggregate relationship */
@@ -9470,29 +9472,29 @@ export type TokenActivitiesV2 = {
   aptos_names_to: Array<CurrentAptosNames>;
   /** An aggregate relationship */
   aptos_names_to_aggregate: CurrentAptosNamesAggregate;
-  before_value?: Maybe<Scalars["String"]>;
+  before_value?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   current_token_data?: Maybe<CurrentTokenDatasV2>;
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address: Scalars["String"];
-  event_index: Scalars["bigint"];
-  from_address?: Maybe<Scalars["String"]>;
-  is_fungible_v2?: Maybe<Scalars["Boolean"]>;
-  property_version_v1: Scalars["numeric"];
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount: Scalars["numeric"];
-  token_data_id: Scalars["String"];
-  token_standard: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  type: Scalars["String"];
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address: Scalars["String"]["output"];
+  event_index: Scalars["bigint"]["output"];
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
+  property_version_v1: Scalars["numeric"]["output"];
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount: Scalars["numeric"]["output"];
+  token_data_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  type: Scalars["String"]["output"];
 };
 
 /** columns and relationships of "token_activities_v2" */
 export type TokenActivitiesV2AptosNamesFromArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9500,8 +9502,8 @@ export type TokenActivitiesV2AptosNamesFromArgs = {
 /** columns and relationships of "token_activities_v2" */
 export type TokenActivitiesV2AptosNamesFromAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9509,8 +9511,8 @@ export type TokenActivitiesV2AptosNamesFromAggregateArgs = {
 /** columns and relationships of "token_activities_v2" */
 export type TokenActivitiesV2AptosNamesToArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9518,8 +9520,8 @@ export type TokenActivitiesV2AptosNamesToArgs = {
 /** columns and relationships of "token_activities_v2" */
 export type TokenActivitiesV2AptosNamesToAggregateArgs = {
   distinct_on?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<CurrentAptosNamesOrderBy>>;
   where?: InputMaybe<CurrentAptosNamesBoolExp>;
 };
@@ -9533,7 +9535,7 @@ export type TokenActivitiesV2Aggregate = {
 /** aggregate fields of "token_activities_v2" */
 export type TokenActivitiesV2AggregateFields = {
   avg?: Maybe<TokenActivitiesV2AvgFields>;
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<TokenActivitiesV2MaxFields>;
   min?: Maybe<TokenActivitiesV2MinFields>;
   stddev?: Maybe<TokenActivitiesV2StddevFields>;
@@ -9548,7 +9550,7 @@ export type TokenActivitiesV2AggregateFields = {
 /** aggregate fields of "token_activities_v2" */
 export type TokenActivitiesV2AggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** order by aggregate values of table "token_activities_v2" */
@@ -9568,10 +9570,10 @@ export type TokenActivitiesV2AggregateOrderBy = {
 
 /** aggregate avg on columns */
 export type TokenActivitiesV2AvgFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "token_activities_v2" */
@@ -9609,20 +9611,20 @@ export type TokenActivitiesV2BoolExp = {
 
 /** aggregate max on columns */
 export type TokenActivitiesV2MaxFields = {
-  after_value?: Maybe<Scalars["String"]>;
-  before_value?: Maybe<Scalars["String"]>;
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  from_address?: Maybe<Scalars["String"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  token_data_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  type?: Maybe<Scalars["String"]>;
+  after_value?: Maybe<Scalars["String"]["output"]>;
+  before_value?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  type?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "token_activities_v2" */
@@ -9645,20 +9647,20 @@ export type TokenActivitiesV2MaxOrderBy = {
 
 /** aggregate min on columns */
 export type TokenActivitiesV2MinFields = {
-  after_value?: Maybe<Scalars["String"]>;
-  before_value?: Maybe<Scalars["String"]>;
-  entry_function_id_str?: Maybe<Scalars["String"]>;
-  event_account_address?: Maybe<Scalars["String"]>;
-  event_index?: Maybe<Scalars["bigint"]>;
-  from_address?: Maybe<Scalars["String"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
-  to_address?: Maybe<Scalars["String"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  token_data_id?: Maybe<Scalars["String"]>;
-  token_standard?: Maybe<Scalars["String"]>;
-  transaction_timestamp?: Maybe<Scalars["timestamp"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
-  type?: Maybe<Scalars["String"]>;
+  after_value?: Maybe<Scalars["String"]["output"]>;
+  before_value?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  event_account_address?: Maybe<Scalars["String"]["output"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  from_address?: Maybe<Scalars["String"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  to_address?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
+  transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  type?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "token_activities_v2" */
@@ -9737,10 +9739,10 @@ export enum TokenActivitiesV2SelectColumn {
 
 /** aggregate stddev on columns */
 export type TokenActivitiesV2StddevFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "token_activities_v2" */
@@ -9753,10 +9755,10 @@ export type TokenActivitiesV2StddevOrderBy = {
 
 /** aggregate stddev_pop on columns */
 export type TokenActivitiesV2StddevPopFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "token_activities_v2" */
@@ -9769,10 +9771,10 @@ export type TokenActivitiesV2StddevPopOrderBy = {
 
 /** aggregate stddev_samp on columns */
 export type TokenActivitiesV2StddevSampFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "token_activities_v2" */
@@ -9793,29 +9795,29 @@ export type TokenActivitiesV2StreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokenActivitiesV2StreamCursorValueInput = {
-  after_value?: InputMaybe<Scalars["String"]>;
-  before_value?: InputMaybe<Scalars["String"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  event_account_address?: InputMaybe<Scalars["String"]>;
-  event_index?: InputMaybe<Scalars["bigint"]>;
-  from_address?: InputMaybe<Scalars["String"]>;
-  is_fungible_v2?: InputMaybe<Scalars["Boolean"]>;
-  property_version_v1?: InputMaybe<Scalars["numeric"]>;
-  to_address?: InputMaybe<Scalars["String"]>;
-  token_amount?: InputMaybe<Scalars["numeric"]>;
-  token_data_id?: InputMaybe<Scalars["String"]>;
-  token_standard?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  type?: InputMaybe<Scalars["String"]>;
+  after_value?: InputMaybe<Scalars["String"]["input"]>;
+  before_value?: InputMaybe<Scalars["String"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  event_account_address?: InputMaybe<Scalars["String"]["input"]>;
+  event_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  from_address?: InputMaybe<Scalars["String"]["input"]>;
+  is_fungible_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
+  property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
+  to_address?: InputMaybe<Scalars["String"]["input"]>;
+  token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type TokenActivitiesV2SumFields = {
-  event_index?: Maybe<Scalars["bigint"]>;
-  property_version_v1?: Maybe<Scalars["numeric"]>;
-  token_amount?: Maybe<Scalars["numeric"]>;
-  transaction_version?: Maybe<Scalars["bigint"]>;
+  event_index?: Maybe<Scalars["bigint"]["output"]>;
+  property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by sum() on columns of table "token_activities_v2" */
@@ -9828,10 +9830,10 @@ export type TokenActivitiesV2SumOrderBy = {
 
 /** aggregate var_pop on columns */
 export type TokenActivitiesV2VarPopFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "token_activities_v2" */
@@ -9844,10 +9846,10 @@ export type TokenActivitiesV2VarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type TokenActivitiesV2VarSampFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "token_activities_v2" */
@@ -9860,10 +9862,10 @@ export type TokenActivitiesV2VarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type TokenActivitiesV2VarianceFields = {
-  event_index?: Maybe<Scalars["Float"]>;
-  property_version_v1?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  property_version_v1?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "token_activities_v2" */
@@ -9876,13 +9878,13 @@ export type TokenActivitiesV2VarianceOrderBy = {
 
 /** aggregate var_pop on columns */
 export type TokenActivitiesVarPopFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "token_activities" */
@@ -9898,13 +9900,13 @@ export type TokenActivitiesVarPopOrderBy = {
 
 /** aggregate var_samp on columns */
 export type TokenActivitiesVarSampFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "token_activities" */
@@ -9920,13 +9922,13 @@ export type TokenActivitiesVarSampOrderBy = {
 
 /** aggregate variance on columns */
 export type TokenActivitiesVarianceFields = {
-  coin_amount?: Maybe<Scalars["Float"]>;
-  event_creation_number?: Maybe<Scalars["Float"]>;
-  event_index?: Maybe<Scalars["Float"]>;
-  event_sequence_number?: Maybe<Scalars["Float"]>;
-  property_version?: Maybe<Scalars["Float"]>;
-  token_amount?: Maybe<Scalars["Float"]>;
-  transaction_version?: Maybe<Scalars["Float"]>;
+  coin_amount?: Maybe<Scalars["Float"]["output"]>;
+  event_creation_number?: Maybe<Scalars["Float"]["output"]>;
+  event_index?: Maybe<Scalars["Float"]["output"]>;
+  event_sequence_number?: Maybe<Scalars["Float"]["output"]>;
+  property_version?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "token_activities" */
@@ -9942,32 +9944,32 @@ export type TokenActivitiesVarianceOrderBy = {
 
 /** columns and relationships of "token_datas" */
 export type TokenDatas = {
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  default_properties: Scalars["jsonb"];
-  description: Scalars["String"];
-  description_mutable: Scalars["Boolean"];
-  largest_property_version: Scalars["numeric"];
-  maximum: Scalars["numeric"];
-  maximum_mutable: Scalars["Boolean"];
-  metadata_uri: Scalars["String"];
-  name: Scalars["String"];
-  payee_address: Scalars["String"];
-  properties_mutable: Scalars["Boolean"];
-  royalty_mutable: Scalars["Boolean"];
-  royalty_points_denominator: Scalars["numeric"];
-  royalty_points_numerator: Scalars["numeric"];
-  supply: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
-  uri_mutable: Scalars["Boolean"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  default_properties: Scalars["jsonb"]["output"];
+  description: Scalars["String"]["output"];
+  description_mutable: Scalars["Boolean"]["output"];
+  largest_property_version: Scalars["numeric"]["output"];
+  maximum: Scalars["numeric"]["output"];
+  maximum_mutable: Scalars["Boolean"]["output"];
+  metadata_uri: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  payee_address: Scalars["String"]["output"];
+  properties_mutable: Scalars["Boolean"]["output"];
+  royalty_mutable: Scalars["Boolean"]["output"];
+  royalty_points_denominator: Scalars["numeric"]["output"];
+  royalty_points_numerator: Scalars["numeric"]["output"];
+  supply: Scalars["numeric"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  uri_mutable: Scalars["Boolean"]["output"];
 };
 
 /** columns and relationships of "token_datas" */
 export type TokenDatasDefaultPropertiesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "token_datas". All fields are combined with a logical 'AND'. */
@@ -10079,43 +10081,43 @@ export type TokenDatasStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokenDatasStreamCursorValueInput = {
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  default_properties?: InputMaybe<Scalars["jsonb"]>;
-  description?: InputMaybe<Scalars["String"]>;
-  description_mutable?: InputMaybe<Scalars["Boolean"]>;
-  largest_property_version?: InputMaybe<Scalars["numeric"]>;
-  maximum?: InputMaybe<Scalars["numeric"]>;
-  maximum_mutable?: InputMaybe<Scalars["Boolean"]>;
-  metadata_uri?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  payee_address?: InputMaybe<Scalars["String"]>;
-  properties_mutable?: InputMaybe<Scalars["Boolean"]>;
-  royalty_mutable?: InputMaybe<Scalars["Boolean"]>;
-  royalty_points_denominator?: InputMaybe<Scalars["numeric"]>;
-  royalty_points_numerator?: InputMaybe<Scalars["numeric"]>;
-  supply?: InputMaybe<Scalars["numeric"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
-  uri_mutable?: InputMaybe<Scalars["Boolean"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  default_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  description_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  largest_property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  maximum?: InputMaybe<Scalars["numeric"]["input"]>;
+  maximum_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  metadata_uri?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  payee_address?: InputMaybe<Scalars["String"]["input"]>;
+  properties_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  royalty_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
+  royalty_points_denominator?: InputMaybe<Scalars["numeric"]["input"]>;
+  royalty_points_numerator?: InputMaybe<Scalars["numeric"]["input"]>;
+  supply?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  uri_mutable?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** columns and relationships of "token_ownerships" */
 export type TokenOwnerships = {
-  amount: Scalars["numeric"];
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  name: Scalars["String"];
-  owner_address?: Maybe<Scalars["String"]>;
-  property_version: Scalars["numeric"];
-  table_handle: Scalars["String"];
-  table_type?: Maybe<Scalars["String"]>;
-  token_data_id_hash: Scalars["String"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
+  amount: Scalars["numeric"]["output"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  property_version: Scalars["numeric"]["output"];
+  table_handle: Scalars["String"]["output"];
+  table_type?: Maybe<Scalars["String"]["output"]>;
+  token_data_id_hash: Scalars["String"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "token_ownerships". All fields are combined with a logical 'AND'. */
@@ -10191,36 +10193,36 @@ export type TokenOwnershipsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokenOwnershipsStreamCursorValueInput = {
-  amount?: InputMaybe<Scalars["numeric"]>;
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  owner_address?: InputMaybe<Scalars["String"]>;
-  property_version?: InputMaybe<Scalars["numeric"]>;
-  table_handle?: InputMaybe<Scalars["String"]>;
-  table_type?: InputMaybe<Scalars["String"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  table_type?: InputMaybe<Scalars["String"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "tokens" */
 export type Tokens = {
-  collection_data_id_hash: Scalars["String"];
-  collection_name: Scalars["String"];
-  creator_address: Scalars["String"];
-  name: Scalars["String"];
-  property_version: Scalars["numeric"];
-  token_data_id_hash: Scalars["String"];
-  token_properties: Scalars["jsonb"];
-  transaction_timestamp: Scalars["timestamp"];
-  transaction_version: Scalars["bigint"];
+  collection_data_id_hash: Scalars["String"]["output"];
+  collection_name: Scalars["String"]["output"];
+  creator_address: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  property_version: Scalars["numeric"]["output"];
+  token_data_id_hash: Scalars["String"]["output"];
+  token_properties: Scalars["jsonb"]["output"];
+  transaction_timestamp: Scalars["timestamp"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
 };
 
 /** columns and relationships of "tokens" */
 export type TokensTokenPropertiesArgs = {
-  path?: InputMaybe<Scalars["String"]>;
+  path?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "tokens". All fields are combined with a logical 'AND'. */
@@ -10284,30 +10286,30 @@ export type TokensStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type TokensStreamCursorValueInput = {
-  collection_data_id_hash?: InputMaybe<Scalars["String"]>;
-  collection_name?: InputMaybe<Scalars["String"]>;
-  creator_address?: InputMaybe<Scalars["String"]>;
-  name?: InputMaybe<Scalars["String"]>;
-  property_version?: InputMaybe<Scalars["numeric"]>;
-  token_data_id_hash?: InputMaybe<Scalars["String"]>;
-  token_properties?: InputMaybe<Scalars["jsonb"]>;
-  transaction_timestamp?: InputMaybe<Scalars["timestamp"]>;
-  transaction_version?: InputMaybe<Scalars["bigint"]>;
+  collection_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  creator_address?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  property_version?: InputMaybe<Scalars["numeric"]["input"]>;
+  token_data_id_hash?: InputMaybe<Scalars["String"]["input"]>;
+  token_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
+  transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** columns and relationships of "user_transactions" */
 export type UserTransactions = {
-  block_height: Scalars["bigint"];
-  entry_function_id_str: Scalars["String"];
-  epoch: Scalars["bigint"];
-  expiration_timestamp_secs: Scalars["timestamp"];
-  gas_unit_price: Scalars["numeric"];
-  max_gas_amount: Scalars["numeric"];
-  parent_signature_type: Scalars["String"];
-  sender: Scalars["String"];
-  sequence_number: Scalars["bigint"];
-  timestamp: Scalars["timestamp"];
-  version: Scalars["bigint"];
+  block_height: Scalars["bigint"]["output"];
+  entry_function_id_str: Scalars["String"]["output"];
+  epoch: Scalars["bigint"]["output"];
+  expiration_timestamp_secs: Scalars["timestamp"]["output"];
+  gas_unit_price: Scalars["numeric"]["output"];
+  max_gas_amount: Scalars["numeric"]["output"];
+  parent_signature_type: Scalars["String"]["output"];
+  sender: Scalars["String"]["output"];
+  sequence_number: Scalars["bigint"]["output"];
+  timestamp: Scalars["timestamp"]["output"];
+  version: Scalars["bigint"]["output"];
 };
 
 /** Boolean expression to filter rows from the table "user_transactions". All fields are combined with a logical 'AND'. */
@@ -10379,15 +10381,15 @@ export type UserTransactionsStreamCursorInput = {
 
 /** Initial value of the column from where the streaming should start */
 export type UserTransactionsStreamCursorValueInput = {
-  block_height?: InputMaybe<Scalars["bigint"]>;
-  entry_function_id_str?: InputMaybe<Scalars["String"]>;
-  epoch?: InputMaybe<Scalars["bigint"]>;
-  expiration_timestamp_secs?: InputMaybe<Scalars["timestamp"]>;
-  gas_unit_price?: InputMaybe<Scalars["numeric"]>;
-  max_gas_amount?: InputMaybe<Scalars["numeric"]>;
-  parent_signature_type?: InputMaybe<Scalars["String"]>;
-  sender?: InputMaybe<Scalars["String"]>;
-  sequence_number?: InputMaybe<Scalars["bigint"]>;
-  timestamp?: InputMaybe<Scalars["timestamp"]>;
-  version?: InputMaybe<Scalars["bigint"]>;
+  block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  entry_function_id_str?: InputMaybe<Scalars["String"]["input"]>;
+  epoch?: InputMaybe<Scalars["bigint"]["input"]>;
+  expiration_timestamp_secs?: InputMaybe<Scalars["timestamp"]["input"]>;
+  gas_unit_price?: InputMaybe<Scalars["numeric"]["input"]>;
+  max_gas_amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  parent_signature_type?: InputMaybe<Scalars["String"]["input"]>;
+  sender?: InputMaybe<Scalars["String"]["input"]>;
+  sequence_number?: InputMaybe<Scalars["bigint"]["input"]>;
+  timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  version?: InputMaybe<Scalars["bigint"]["input"]>;
 };

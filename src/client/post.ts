@@ -54,7 +54,9 @@ export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
  * @param options PostRequestOptions
  * @returns
  */
-export async function post<Req, Res>(options: PostRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function post<Req extends {}, Res extends {}>(
+  options: PostRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   const { type, originMethod, path, body, acceptType, contentType, params, aptosConfig, overrides } = options;
   const url = aptosConfig.getRequestUrl(type);
 
@@ -77,14 +79,20 @@ export async function post<Req, Res>(options: PostRequestOptions): Promise<Aptos
   );
 }
 
-export async function postAptosFullNode<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function postAptosFullNode<Req extends {}, Res extends {}>(
+  options: PostAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
 }
 
-export async function postAptosIndexer<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function postAptosIndexer<Req extends {}, Res extends {}>(
+  options: PostAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.INDEXER });
 }
 
-export async function postAptosFaucet<Req, Res>(options: PostAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function postAptosFaucet<Req extends {}, Res extends {}>(
+  options: PostAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.FAUCET });
 }

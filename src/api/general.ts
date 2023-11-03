@@ -170,7 +170,7 @@ export class General {
    *
    * @return The provided T type
    */
-  async queryIndexer<T>(args: { query: GraphqlQuery }): Promise<T> {
+  async queryIndexer<T extends {}>(args: { query: GraphqlQuery }): Promise<T> {
     return queryIndexer<T>({
       aptosConfig: this.config,
       ...args,

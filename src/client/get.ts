@@ -47,7 +47,9 @@ export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
  * @param options GetRequestOptions
  * @returns
  */
-export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function get<Req extends {}, Res extends {}>(
+  options: GetRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   const { aptosConfig, overrides, params, contentType, acceptType, path, originMethod, type } = options;
   const url = aptosConfig.getRequestUrl(type);
 
@@ -69,7 +71,9 @@ export async function get<Req, Res>(options: GetRequestOptions): Promise<AptosRe
   );
 }
 
-export async function getAptosFullNode<Req, Res>(options: GetAptosRequestOptions): Promise<AptosResponse<Req, Res>> {
+export async function getAptosFullNode<Req extends {}, Res extends {}>(
+  options: GetAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
   return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
 }
 
