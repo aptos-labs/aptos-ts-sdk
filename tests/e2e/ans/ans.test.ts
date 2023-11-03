@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, MoveString, MoveOption, U64 } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -13,6 +13,15 @@ describe("ANS", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
 
+  let changeExpirationDate: (
+    tokenMode: 0 | 1,
+    expirationDate: number,
+    domainName: string,
+    subdomainName?: string,
+  ) => void;
+
+  let changeRouterMode: (mode: 0 | 1) => void;
+
   const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
     return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -20,41 +29,77 @@ describe("ANS", () => {
 
   const randomString = () => Math.random().toString().slice(2);
 
-  beforeAll(
-    async () => {
-      const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+  beforeAll(async () => {
+    const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
+    const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
-      // Publish the contract, should be idempotent
+    // Publish the contract, should be idempotent
 
-      // Enable reverse lookup for the case of v1
-      await signAndSubmit(
+    // Enable reverse lookup for the case of v1
+    await signAndSubmit(
+      contractAccount,
+      await generateTransaction({
+        aptosConfig: config,
+        sender: contractAccount.accountAddress.toString(),
+        data: {
+          function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
+          functionArguments: [],
+        },
+      }),
+    );
+
+    // Toggle router to v2
+    await signAndSubmit(
+      contractAccount,
+      await generateTransaction({
+        aptosConfig: config,
+        sender: contractAccount.accountAddress.toString(),
+        data: {
+          function: `${ANS_ADDRESS}::router::set_mode`,
+          functionArguments: [new U8(1)],
+        },
+      }),
+    );
+
+    changeExpirationDate = async (
+      tokenMode: 0 | 1,
+      expirationDate: number,
+      domainName: string,
+      subdomainName?: string,
+    ) => {
+      const domain = new MoveString(domainName);
+      const subdomain = new MoveOption(subdomainName ? new MoveString(subdomainName) : null);
+      const expiration = new U64(expirationDate);
+
+      return signAndSubmit(
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
           sender: contractAccount.accountAddress.toString(),
           data: {
-            function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
-            functionArguments: [],
+            function:
+              tokenMode === 0
+                ? `${ANS_ADDRESS}::domain::force_set_expiration`
+                : `${ANS_ADDRESS}::v2_1_domains::force_set_name_expiration`,
+            functionArguments: tokenMode === 0 ? [subdomain, domain, expiration] : [domain, subdomain, expiration],
           },
         }),
       );
+    };
 
-      // Toggle router to v2
-      await signAndSubmit(
+    changeRouterMode = async (mode: 0 | 1) =>
+      signAndSubmit(
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
           sender: contractAccount.accountAddress.toString(),
           data: {
             function: `${ANS_ADDRESS}::router::set_mode`,
-            functionArguments: [new U8(1)],
+            functionArguments: [new U8(mode)],
           },
         }),
       );
-    },
-    2 * 60 * 1000,
-  );
+  }, 2 * 60 * 1000);
 
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {
@@ -406,6 +451,79 @@ describe("ANS", () => {
       expect(res).toBeTruthy();
       expect(res?.domainName).toEqual(domainName);
       expect(res?.subdomainName).toEqual(subdomainName);
+    });
+  });
+
+  describe("renewDomain", () => {
+    let alice: Account;
+    let bob: Account;
+    let domainName: string;
+    let subdomainName: string;
+
+    beforeEach(async () => {
+      alice = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      bob = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: bob.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      domainName = randomString();
+      subdomainName = randomString();
+    });
+
+    xtest("can renew a v2 name that is eligible for renewal", async () => {
+      const name = domainName;
+
+      await changeRouterMode(1);
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      // Change the expiration date of the name to be tomorrow
+      await changeExpirationDate(1, new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf(), name);
+
+      await signAndSubmit(alice, await aptos.renewDomain({ name, years: 1, sender: alice }));
+
+      expect(await aptos.ans.getExpiration({ name })).not.toThrow();
+    });
+
+    test("throws an error for subdomain renewals", async () => {
+      const tld = domainName;
+      const name = `${subdomainName}.${domainName}`;
+
+      await changeRouterMode(1);
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: tld,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name,
+          expiration: { policy: "subdomain:follow-domain" },
+          sender: alice,
+        }),
+      );
+
+      expect(aptos.renewDomain({ name, years: 1, sender: alice })).rejects.toThrow();
     });
   });
 });
