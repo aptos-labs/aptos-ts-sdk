@@ -11,6 +11,7 @@ import {
   setPrimaryName,
   getTargetAddress,
   setTargetAddress,
+  renewDomain,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { HexInput, MoveAddressType } from "../types";
@@ -157,5 +158,21 @@ export class ANS {
    */
   async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<InputSingleSignerTransaction> {
     return registerName({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Renews a domain name
+   *
+   * Note: If a domain name was minted with V1 of the contract, it will automatically be upgraded to V2 via this transaction.
+   *
+   * @param args.sender - The sender account
+   * @param args.name - A string of the domain the subdomain will be under. The signer must be the domain owner.
+   * Subdomains cannot be renewed.
+   * @param args.years - The number of years to renew the name. Currently only one year is permitted.
+   *
+   * @returns SingleSignerTransaction
+   */
+  async renewDomain(args: { sender: Account; name: string; years: 1 }): Promise<InputSingleSignerTransaction> {
+    return renewDomain({ aptosConfig: this.config, ...args });
   }
 }

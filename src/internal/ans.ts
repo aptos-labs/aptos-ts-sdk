@@ -342,3 +342,36 @@ export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }
 
   return res[0] as number;
 }
+
+export async function renewDomain(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  name: string;
+  years: 1;
+  options?: InputGenerateTransactionOptions;
+}): Promise<InputSingleSignerTransaction> {
+  const { aptosConfig, sender, name, years, options } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+  const renewalDuration = years * 31536000;
+  const { domainName, subdomainName } = isValidANSName(name);
+
+  if (subdomainName) {
+    throw new Error("Subdomains cannot be renewed");
+  }
+
+  if (years !== 1) {
+    throw new Error("Currently, only 1 year renewals are supported");
+  }
+
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress.toString(),
+    data: {
+      function: `${routerAddress}::router::renew_domain`,
+      functionArguments: [new MoveString(domainName), new U64(renewalDuration)],
+    },
+    options,
+  });
+
+  return transaction as InputSingleSignerTransaction;
+}
