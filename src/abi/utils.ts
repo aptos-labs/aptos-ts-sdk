@@ -4,7 +4,7 @@
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../bcs";
 import { AccountAddress, AccountAddressInput, Hex } from "../core";
 import { AccountAuthenticator, TypeTag } from "../transactions";
-import { HexInput, MoveModule, MoveModuleBytecode } from "../types";
+import { MoveModule, MoveModuleBytecode } from "../types";
 import pako from "pako";
 import { Aptos } from "../api";
 import { BCSKinds } from "./types";
@@ -36,7 +36,7 @@ export function addressBytes(input: AccountAddressInput): Uint8Array {
   if (input instanceof AccountAddress) {
     return input.data;
   }
-  return AccountAddress.from(input).data;
+  return AccountAddress.fromRelaxed(input).data;
 }
 
 /**
@@ -69,11 +69,11 @@ export const kindToSimpleTypeMap: { [key in BCSKinds]: string } = {
   U64: "Uint64",
   U128: "Uint128",
   U256: "Uint256",
-  AccountAddress: "HexInput | AccountAddress",
+  AccountAddress: "AccountAddressInput",
   MoveString: "string",
   MoveVector: "Array",
   MoveOption: "OneOrNone", // OneOrNone<T>
-  MoveObject: "HexInput | AccountAddress",
+  MoveObject: "AccountAddressInput",
   AccountAuthenticator: "AccountAuthenticator",
 };
 

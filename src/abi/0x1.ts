@@ -11,7 +11,7 @@ const addressBytes = (address: AccountAddressInput): Uint8Array => {
   if (address instanceof AccountAddress) {
     return address.data;
   }
-  return AccountAddress.from(address).data;
+  return AccountAddress.fromRelaxed(address).data;
 };
 
 export namespace Account {

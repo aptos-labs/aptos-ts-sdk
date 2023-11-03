@@ -21,7 +21,6 @@ import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import * as AptosFramework from "../../../src/abi/0x1";
 import { RockPaperScissor, TournamentManager } from "../../../src/abi/tournament";
 import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
-// import { TxArgsModule } from "../../../src/abi/example";
 import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 
@@ -39,7 +38,9 @@ describe("abi test", () => {
   });
 
   it.only("parses tournament abis correctly", async () => {
-    const accountAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    const accountAddress = AccountAddress.fromRelaxed(
+      "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
+    );
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
@@ -47,7 +48,7 @@ describe("abi test", () => {
   });
 
   it("parses 0x1 module abis correctly", async () => {
-    const accountAddress = AccountAddress.from("0x4");
+    const accountAddress = AccountAddress.fromRelaxed("0x4");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
@@ -92,7 +93,7 @@ describe("abi test", () => {
     const account2 = Account.generate();
     const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
     await fundAccounts(aptos, [tournamentManager, account1, account2]);
-    const TOURNAMENT_ADDRESS = AccountAddress.from(
+    const TOURNAMENT_ADDRESS = AccountAddress.fromRelaxed(
       "0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451",
     );
     const TOURNAMENT_NAME = "Tournament";
@@ -141,7 +142,7 @@ describe("abi test", () => {
       sender: account1.accountAddress,
       payload: new RockPaperScissor.CommitAction(
         TOURNAMENT_ADDRESS,
-        Array.from(Hex.fromString(sha3_256("Rock" + "uuid1")).toUint8Array()),
+        Hex.fromString(sha3_256("Rock" + "uuid1")).toUint8Array(),
       ).toPayload(),
       configOrNetwork: Network.LOCAL,
     });
@@ -154,7 +155,7 @@ describe("abi test", () => {
       sender: account2.accountAddress,
       payload: new RockPaperScissor.CommitAction(
         TOURNAMENT_ADDRESS,
-        Array.from(Hex.fromString(sha3_256("Paper" + "uuid2")).toUint8Array()),
+        Hex.fromString(sha3_256("Paper" + "uuid2")).toUint8Array(),
       ).toPayload(),
       configOrNetwork: Network.LOCAL,
     });
@@ -166,8 +167,8 @@ describe("abi test", () => {
       sender: account1.accountAddress,
       payload: new RockPaperScissor.VerifyAction(
         TOURNAMENT_ADDRESS,
-        Array.from(new MoveString("Rock").bcsToBytes().slice(1)),
-        Array.from(new MoveString("uuid1").bcsToBytes().slice(1)),
+        new MoveString("Rock").bcsToBytes().slice(1),
+        new MoveString("uuid1").bcsToBytes().slice(1),
       ).toPayload(),
       configOrNetwork: Network.LOCAL,
     });
@@ -180,8 +181,8 @@ describe("abi test", () => {
       sender: account2.accountAddress,
       payload: new RockPaperScissor.VerifyAction(
         TOURNAMENT_ADDRESS,
-        Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
-        Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
+        new MoveString("Paper").bcsToBytes().slice(1),
+        new MoveString("uuid2").bcsToBytes().slice(1),
       ).toPayload(),
       configOrNetwork: Network.LOCAL,
     });
@@ -226,14 +227,18 @@ describe("abi test", () => {
   });
 
   it("gets package metadata", async () => {
-    const accountAddress = AccountAddress.from("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const accountAddress = AccountAddress.fromRelaxed(
+      "0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451",
+    );
     const network = Network.LOCAL;
     const r = await getSourceCodeMap(accountAddress, network);
     // const parsed = r.map(p => p.map(m => m.source.replace(/\n/g, " ")));
   });
 
   it("gets argument names from package metadata regex", async () => {
-    const accountAddress = AccountAddress.from("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const accountAddress = AccountAddress.fromRelaxed(
+      "0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451",
+    );
     const network = Network.LOCAL;
     const sourceCode = await getSourceCodeMap(accountAddress, network);
     // sourceCode.forEach(pkg => {

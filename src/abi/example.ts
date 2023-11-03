@@ -63,7 +63,7 @@ export namespace TxArgsModule {
   };
 
   export class PrivateArguments extends Serializable {
-    public readonly moduleAddress = AccountAddress.from(
+    public readonly moduleAddress = AccountAddress.fromRelaxed(
       "0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c",
     );
     public readonly moduleName = "tx_args_module";
@@ -200,7 +200,7 @@ export namespace TxArgsModule {
   };
 
   export class PublicArgumentsMultipleSigners extends Serializable {
-    public readonly moduleAddress = AccountAddress.from(
+    public readonly moduleAddress = AccountAddress.fromRelaxed(
       "0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c",
     );
     public readonly moduleName = "tx_args_module";
@@ -338,7 +338,7 @@ export namespace TxArgsModule {
   };
 
   export class PublicArgumentsOneSigner extends Serializable {
-    public readonly moduleAddress = AccountAddress.from(
+    public readonly moduleAddress = AccountAddress.fromRelaxed(
       "0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c",
     );
     public readonly moduleName = "tx_args_module";
@@ -441,7 +441,7 @@ export namespace TxArgsModule {
   }
 
   export class TypeTags extends Serializable {
-    public readonly moduleAddress = AccountAddress.from(
+    public readonly moduleAddress = AccountAddress.fromRelaxed(
       "0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c",
     );
     public readonly moduleName = "tx_args_module";

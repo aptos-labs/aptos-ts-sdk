@@ -76,7 +76,7 @@ function metaclassBuilder(
   //   lines.push(`let account${i}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
   // });
 
-  const argsType = `${className}SerializableArgs`;
+  const argsType = `${className}PayloadArgs`;
 
   // ---------- Declare class field types separately ---------- //
   if (functionArguments.length > 0) {
@@ -89,8 +89,10 @@ function metaclassBuilder(
 
   // ---------- Class fields ---------- //
   lines.push("");
-  lines.push(`export class ${className} extends Serializable {`);
-  lines.push(`${TAB.repeat(1)}public readonly moduleAddress = AccountAddress.from("${moduleAddress.toString()}");`);
+  lines.push(`export class ${className} extends EntryFunctionPayloadBuilder {`);
+  lines.push(
+    `${TAB.repeat(1)}public readonly moduleAddress = AccountAddress.fromRelaxed("${moduleAddress.toString()}");`,
+  );
   lines.push(`${TAB.repeat(1)}public readonly moduleName = "${moduleName}";`);
   lines.push(`${TAB.repeat(1)}public readonly functionName = "${functionName}";`);
   if (functionArguments.length > 0) {
@@ -152,6 +154,9 @@ function createInputTypes(kindArray: Array<BCSKinds>): string {
   const kind = kindArray[0];
   switch (kind) {
     case MoveVector.kind:
+      if (kindArray.length === 2 && kindArray[1] === U8.kind) {
+        return "HexInput";
+      }
     case MoveOption.kind:
       return `${kindToSimpleTypeMap[kind]}<${createInputTypes(kindArray.slice(1))}>`;
     case Bool.kind:
@@ -186,6 +191,10 @@ function createInputTypeConverter(
   const nameFromDepth = depth === 0 ? `${fieldName}` : `arg${numberToLetter(depth)}`;
   switch (kind) {
     case MoveVector.kind:
+      // if we're at the innermost type and it's a vector<u8>, we'll use the MoveVector.U8(hex: HexInput) factory method
+      if (kindArray.length === 2 && kindArray[1] === U8.kind) {
+        return `MoveVector.U8(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
+      }
     case MoveOption.kind: {
       // conditionally replace MoveOption with MoveVector for the constructor input types
       const newBCSKinds = replaceOptionWithVector ? MoveVector.kind : kind;
@@ -269,8 +278,6 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
   };
 }
 
-// TODO: accept Uint8Array for vector<u8> arguments?
-//
 // TODO: Add support for view functions. It should be very straightforward, since they're
 // the same as entry functions but with no BCS serialization, so it just uses the input types.
 // Also, no signers (verify this?)
@@ -297,7 +304,7 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
     const viewMapping = getArgNameMapping(abi, viewFunctions, sourceCode);
 
     abiFunctions.push({
-      moduleAddress: AccountAddress.from(abi.address),
+      moduleAddress: AccountAddress.fromRelaxed(abi.address),
       moduleName: abi.name,
       publicEntryFunctions: getMoveFunctionsWithArgumentNames(abi, publicEntryFunctions, publicMapping),
       privateEntryFunctions: getMoveFunctionsWithArgumentNames(abi, privateEntryFunctions, privateMapping),
