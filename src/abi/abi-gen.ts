@@ -18,9 +18,23 @@ import {
   parseTypeTag,
 } from "..";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { getArgNameMapping, getMoveFunctionsWithArgumentNames, getSourceCodeMap, sortByNameField } from "./package-metadata";
+import {
+  getArgNameMapping,
+  getMoveFunctionsWithArgumentNames,
+  getSourceCodeMap,
+  sortByNameField,
+} from "./package-metadata";
 import { AbiFunctions, BCSClassAnnotated, BCSKinds, EntryFunctionArgumentSignature } from "./types";
-import { fetchModuleABIs, isAbiDefined, kindArrayToString, kindToSimpleTypeMap, numberToLetter, sanitizeName, toBCSClassName, toPascalCase } from "./utils";
+import {
+  fetchModuleABIs,
+  isAbiDefined,
+  kindArrayToString,
+  kindToSimpleTypeMap,
+  numberToLetter,
+  sanitizeName,
+  toBCSClassName,
+  toPascalCase,
+} from "./utils";
 
 const DEFAULT_ARGUMENT_BASE = "arg_";
 const TAB = "    ";
@@ -33,7 +47,7 @@ function metaclassBuilder(
   functionName: string,
   className: string,
   typeTags: Array<TypeTag>,
-  suppliedFieldNames?: Array<string>
+  suppliedFieldNames?: Array<string>,
 ): string {
   const GENERIC_TYPE_TAGS = new Array<TypeTag>();
   const fieldNames = suppliedFieldNames ?? [];
@@ -112,10 +126,12 @@ function metaclassBuilder(
   lines.push("");
 
   // -------- Create payload -------- //
-  lines.push(entryFunctionCodeGen(
-    GENERIC_TYPE_TAGS.map((typeTag) => typeTag.toString()),
-    2,
-  ));
+  lines.push(
+    entryFunctionCodeGen(
+      GENERIC_TYPE_TAGS.map((typeTag) => typeTag.toString()),
+      2,
+    ),
+  );
   lines.push("");
 
   // -------- Add the argsToArray function -------- //
@@ -253,7 +269,6 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
   };
 }
 
-
 // TODO: accept Uint8Array for vector<u8> arguments?
 //
 // TODO: Add support for view functions. It should be very straightforward, since they're
@@ -300,7 +315,14 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
       const functionStrings = abiFunction.publicEntryFunctions.map((func) => {
         try {
           const typeTags = func.params.map((param) => parseTypeTag(param));
-          return metaclassBuilder(abiFunction.moduleAddress, abiFunction.moduleName, func.name, `${toPascalCase(func.name)}`, typeTags, func.arg_names);
+          return metaclassBuilder(
+            abiFunction.moduleAddress,
+            abiFunction.moduleName,
+            func.name,
+            `${toPascalCase(func.name)}`,
+            typeTags,
+            func.arg_names,
+          );
         } catch (e) {
           // do nothing
         }
@@ -319,33 +341,29 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
 // This would mean we have to include a `kind` in each BCS class instance that we can use as a string
 // type tag.
 
-
-const entryFunctionCodeGen = (
-  typeArgs: Array<string>,
-  tabs: number = 0,
-): string => {
+const entryFunctionCodeGen = (typeArgs: Array<string>, tabs: number = 0): string => {
   const lines: Array<string> = [];
   lines.push(`toPayload(): TransactionPayloadEntryFunction {`);
   const tabbedLines: Array<string> = [];
   tabbedLines.push(`const entryFunction = new EntryFunction(`);
   tabbedLines.push(`  new ModuleId(this.moduleAddress, new Identifier(this.moduleName)),`);
   tabbedLines.push(`  new Identifier(this.functionName),`);
-  tabbedLines.push(`  [${typeArgs.map(t => "parseTypeTag(" + t + ")").join(",")}],`);
+  tabbedLines.push(`  [${typeArgs.map((t) => "parseTypeTag(" + t + ")").join(",")}],`);
   tabbedLines.push(`  ${ARGS_TO_ARRAY_FUNCTION_CALL}`);
   tabbedLines.push(`)`);
   tabbedLines.push(`return new TransactionPayloadEntryFunction(entryFunction)`);
-  lines.push(...tabbedLines.map(line => TAB.repeat(tabs + 1) + line));
+  lines.push(...tabbedLines.map((line) => TAB.repeat(tabs + 1) + line));
   lines.push(`}`);
-  lines.map(line => TAB.repeat(tabs) + line);
+  lines.map((line) => TAB.repeat(tabs) + line);
   return lines.join("\n");
-}
+};
 
 const ARGS_TO_ARRAY_FUNCTION_NAME = `argsToArray`;
 const ARGS_TO_ARRAY_FUNCTION_CALL = `this.argsToArray()`;
 
 const ARGS_TO_ARRAY_FUNCTION = `${ARGS_TO_ARRAY_FUNCTION_NAME}(): Array<EntryFunctionArgumentTypes> {
   return Object.keys(this.args).map(field => this.args[field as keyof typeof this.args]);
-}`
+}`;
 
 const SERIALIZE_FUNCTION = `
 serialize(serializer: Serializer): void {

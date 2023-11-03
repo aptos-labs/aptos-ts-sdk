@@ -45,7 +45,7 @@ export function addressBytes(input: AccountAddressInput): Uint8Array {
  * @returns original source code in plain text
  */
 export function transformCode(source: string): string {
-  return pako.ungzip(Hex.fromHexInput(source).toUint8Array(), {to: "string"});
+  return pako.ungzip(Hex.fromHexInput(source).toUint8Array(), { to: "string" });
 }
 
 export async function fetchModuleABIs(aptos: Aptos, accountAddress: AccountAddress) {

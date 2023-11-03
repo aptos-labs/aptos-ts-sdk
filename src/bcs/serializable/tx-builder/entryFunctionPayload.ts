@@ -16,12 +16,12 @@ export abstract class TransactionPayloadSubmitter {
 
   constructor(transactionBuilder: TransactionBuilder) {
     this.transactionBuilder = transactionBuilder;
-  };
+  }
 
   abstract toPayload(): TransactionPayload;
 
   argsToArray(): Array<EntryFunctionArgumentTypes> {
-    return Object.keys(this.args).map(field => this.args[field as keyof typeof this.args]);
+    return Object.keys(this.args).map((field) => this.args[field as keyof typeof this.args]);
   }
 
   serialize(serializer: Serializer): void {

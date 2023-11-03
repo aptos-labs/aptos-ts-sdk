@@ -15,11 +15,17 @@ import {
 } from "../../../types";
 import { getConfigOrNetwork } from "./helper";
 import { CreateWithFeePayer, TransactionBuilder } from "./transactionBuilder";
-import { SignFeePayerTransactionFunction, TransactionBuilderArgs, TransactionBuilderInfo, TransactionBuilderWithFeePayerArgs, TransactionBuilderWithSingleSignerArgs } from "./types";
+import {
+  SignFeePayerTransactionFunction,
+  TransactionBuilderArgs,
+  TransactionBuilderInfo,
+  TransactionBuilderWithFeePayerArgs,
+  TransactionBuilderWithSingleSignerArgs,
+} from "./types";
 
 export class SingleSignerTransactionBuilder extends TransactionBuilder implements CreateWithFeePayer {
   protected senderSigner?: Signer;
-  // if fee payer is 0x0, then it's an anonymous fee payer 
+  // if fee payer is 0x0, then it's an anonymous fee payer
   private withFeePayer: boolean = false;
   private feePayerAddress: AccountAddress = AccountAddress.ZERO;
   private feePayerSigner?: Signer;
@@ -50,12 +56,15 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder implement
     };
   }
 
-  private static async generate(
-    args: TransactionBuilderArgs,
-  ): Promise<SingleSignerTransactionBuilder> {
+  private static async generate(args: TransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
     const { sender, payload, configOrNetwork, options, feePayerAddress } = args;
     const aptosConfig = getConfigOrNetwork(configOrNetwork);
-    const rawTransaction = await generateRawTransaction({ sender: sender.data, payload: payload as any, aptosConfig, options });
+    const rawTransaction = await generateRawTransaction({
+      sender: sender.data,
+      payload: payload as any,
+      aptosConfig,
+      options,
+    });
     return new SingleSignerTransactionBuilder({ rawTransaction, aptosConfig, feePayerAddress });
   }
 
@@ -108,7 +117,10 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder implement
   // This one is less explicit, since it requires you get a `Signer` back from a wallet adapter (or an `AccountAuthenticator` that you create a
   // `Signer` with yourself)
   addSignature(signer: Signer): void {
-    if (this.withFeePayer && (signer.accountAddress == this.feePayerAddress || this.feePayerAddress == AccountAddress.ZERO)) {
+    if (
+      this.withFeePayer &&
+      (signer.accountAddress == this.feePayerAddress || this.feePayerAddress == AccountAddress.ZERO)
+    ) {
       this.feePayerSigner = signer;
     } else if (signer.accountAddress.equals(this.rawTransaction.sender)) {
       this.senderSigner = signer;

@@ -47,10 +47,16 @@ export type TransactionBuilderArgs = {
   secondarySignerAddresses?: Array<AccountAddress>;
 };
 
-export type TransactionBuilderWithSingleSignerArgs = Omit<TransactionBuilderArgs, "feePayerAddress" | "secondarySignerAddresses">;
+export type TransactionBuilderWithSingleSignerArgs = Omit<
+  TransactionBuilderArgs,
+  "feePayerAddress" | "secondarySignerAddresses"
+>;
 export type TransactionBuilderWithFeePayerArgs = TransactionBuilderArgs & { feePayerAddress: AccountAddress };
-export type TransactionBuilderWithSecondarySignersArgs = TransactionBuilderArgs & { secondarySignerAddresses: Array<AccountAddress> };
-export type TransactionBuilderWithFeePayerAndSecondarySignersArgs = TransactionBuilderWithFeePayerArgs & TransactionBuilderWithSecondarySignersArgs;
+export type TransactionBuilderWithSecondarySignersArgs = TransactionBuilderArgs & {
+  secondarySignerAddresses: Array<AccountAddress>;
+};
+export type TransactionBuilderWithFeePayerAndSecondarySignersArgs = TransactionBuilderWithFeePayerArgs &
+  TransactionBuilderWithSecondarySignersArgs;
 
 export type SignFeePayerTransactionFunction = (
   sender: AccountAddress,

@@ -18,17 +18,17 @@ export type AbiFunctions = {
 };
 
 export type ArgumentNamesWithTypes = {
-  argName: string,
-  typeTag: string,
-}
+  argName: string;
+  typeTag: string;
+};
 
 export type ModuleFunctionArgNameMap = Record<string, Record<string, Array<ArgumentNamesWithTypes>>>;
 
 export type BCSKinds = typeof BCSClassesTypes[keyof typeof BCSClassesTypes]["kind"] | "MoveObject";
 
 export type MoveFunctionWithArgumentNames = MoveFunction & {
-  arg_names: Array<string>,
-}
+  arg_names: Array<string>;
+};
 
 export type ModuleMetadata = {
   name: string;
@@ -41,9 +41,9 @@ export type PackageMetadata = {
 };
 
 export type PackageSourceCode = {
-  name: string,
-  source: string,
-}
+  name: string;
+  source: string;
+};
 
 /**
  * Tracks information about the entry function argument
@@ -77,4 +77,3 @@ export const BCSClassesTypes = {
   TypeTagStruct,
   AccountAuthenticator,
 };
-

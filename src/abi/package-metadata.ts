@@ -2,7 +2,13 @@ import { Aptos, AptosConfig } from "../api";
 import { AccountAddress } from "../core";
 import { MoveFunction, MoveModule } from "../types";
 import { Network } from "../utils/apiEndpoints";
-import { ArgumentNamesWithTypes, ModuleFunctionArgNameMap, ModuleMetadata, MoveFunctionWithArgumentNames, PackageMetadata } from "./types";
+import {
+  ArgumentNamesWithTypes,
+  ModuleFunctionArgNameMap,
+  ModuleMetadata,
+  MoveFunctionWithArgumentNames,
+  PackageMetadata,
+} from "./types";
 import { transformCode } from "./utils";
 
 export const sortByNameField = (objs: any[]): any[] => {
@@ -14,11 +20,14 @@ export const sortByNameField = (objs: any[]): any[] => {
     return a.name > b.name ? 1 : 0;
   });
   return objs;
-}
+};
 
 export async function getPackageMetadata(accountAddress: AccountAddress, network: Network): Promise<PackageMetadata[]> {
   const aptos = new Aptos(new AptosConfig({ network }));
-  const packageMetadata = await aptos.getAccountResource<PackageMetadata[]>({ accountAddress: accountAddress.toString(), resourceType: "0x1::code::PackageRegistry" });
+  const packageMetadata = await aptos.getAccountResource<PackageMetadata[]>({
+    accountAddress: accountAddress.toString(),
+    resourceType: "0x1::code::PackageRegistry",
+  });
   const registryData = packageMetadata as {
     packages?: PackageMetadata[];
   };
@@ -32,7 +41,10 @@ export async function getPackageMetadata(accountAddress: AccountAddress, network
   return packages;
 }
 
-export async function getSourceCodeMap(accountAddress: AccountAddress, network: Network): Promise<Record<string, string>> {
+export async function getSourceCodeMap(
+  accountAddress: AccountAddress,
+  network: Network,
+): Promise<Record<string, string>> {
   const packageMetadata = await getPackageMetadata(accountAddress, network);
 
   let sourceCodeByModuleName: Record<string, string> = {};
@@ -41,7 +53,7 @@ export async function getSourceCodeMap(accountAddress: AccountAddress, network: 
     pkg.modules.forEach((module: ModuleMetadata) => {
       const sourceCode = transformCode(module.source);
       sourceCodeByModuleName[module.name] = sourceCode;
-    })
+    }),
   );
 
   return sourceCodeByModuleName;
@@ -49,7 +61,7 @@ export async function getSourceCodeMap(accountAddress: AccountAddress, network: 
 
 export function extractSignature(functionName: string, sourceCode: string) {
   // find the function signature in the source code
-  const regex = new RegExp(`${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, 'm');
+  const regex = new RegExp(`${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, "m");
   const match = sourceCode.match(regex);
   return match ? match[2].trim() : null;
 }
@@ -61,17 +73,20 @@ export function extractArguments(functionSignature: string): ArgumentNamesWithTy
   const argumentsList = [];
 
   while ((match = regex.exec(functionSignature)) !== null) {
-      argumentsList.push({
-          argName: match[1],
-          typeTag: match[2]
-      });
+    argumentsList.push({
+      argName: match[1],
+      typeTag: match[2],
+    });
   }
 
   return argumentsList;
 }
 
-
-export function getArgNameMapping(abi: MoveModule, funcs: MoveFunction[], sourceCode: string): ModuleFunctionArgNameMap {
+export function getArgNameMapping(
+  abi: MoveModule,
+  funcs: MoveFunction[],
+  sourceCode: string,
+): ModuleFunctionArgNameMap {
   let modulesWithFunctionSignatures: ModuleFunctionArgNameMap = {};
 
   funcs.map((func) => {
@@ -90,14 +105,18 @@ export function getArgNameMapping(abi: MoveModule, funcs: MoveFunction[], source
   return modulesWithFunctionSignatures;
 }
 
-export function getMoveFunctionsWithArgumentNames(abi: MoveModule, funcs: MoveFunction[], mapping: ModuleFunctionArgNameMap): Array<MoveFunctionWithArgumentNames> {
-  return funcs.map(func => {
+export function getMoveFunctionsWithArgumentNames(
+  abi: MoveModule,
+  funcs: MoveFunction[],
+  mapping: ModuleFunctionArgNameMap,
+): Array<MoveFunctionWithArgumentNames> {
+  return funcs.map((func) => {
     let argNames = new Array<string>();
     if (abi.name in mapping && func.name in mapping[abi.name]) {
       argNames = mapping[abi.name][func.name].map((arg: ArgumentNamesWithTypes) => arg.argName);
     } else {
-      argNames = []
+      argNames = [];
     }
-    return { ...func, arg_names: argNames}
+    return { ...func, arg_names: argNames };
   });
 }
