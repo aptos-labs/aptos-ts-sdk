@@ -2,10 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, AccountAddress, Aptos, AptosConfig, Hex, MoveString, Network } from "../../../src";
-import {
-  fetchABIs,
-  writeGeneratedCodeToFiles,
-} from "../../../generated/0xfc61b067f2ac61afd82f78d3854e8016de6e747602e0dba6814862b48441bd1d/abi-gen";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import * as AptosFramework from "../../../src/abi/0x1";
@@ -13,6 +9,8 @@ import { RockPaperScissor, TournamentManager } from "../../../src/abi/tournament
 import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
 import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
+import { AptosToken } from "../../../src/abi/aptos_token_objects";
+import { fetchABIs, writeGeneratedCodeToFiles } from "../../../src/abi/abi-gen";
 
 jest.setTimeout(15000);
 

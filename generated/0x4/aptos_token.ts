@@ -28,12 +28,12 @@ import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
 
 export namespace AptosToken {
+  // let creator: AccountAuthenticator | undefined; // &signer
   export type CreateCollectionPayloadBCSArguments = {
-    creator: MoveString;
-    description: U64;
-    max_supply: MoveString;
+    description: MoveString;
+    max_supply: U64;
     name: MoveString;
-    uri: Bool;
+    uri: MoveString;
     mutable_description: Bool;
     mutable_royalty: Bool;
     mutable_uri: Bool;
@@ -42,8 +42,9 @@ export namespace AptosToken {
     mutable_token_properties: Bool;
     mutable_token_uri: Bool;
     tokens_burnable_by_creator: Bool;
-    tokens_freezable_by_creator: U64;
+    tokens_freezable_by_creator: Bool;
     royalty_numerator: U64;
+    royalty_denominator: U64;
   };
 
   export class CreateCollection extends EntryFunctionPayloadBuilder {
@@ -53,11 +54,10 @@ export namespace AptosToken {
     public readonly args: CreateCollectionPayloadBCSArguments;
 
     constructor(
-      creator: string, // 0x1::string::String
-      description: Uint64, // u64
-      max_supply: string, // 0x1::string::String
+      description: string, // 0x1::string::String
+      max_supply: Uint64, // u64
       name: string, // 0x1::string::String
-      uri: boolean, // bool
+      uri: string, // 0x1::string::String
       mutable_description: boolean, // bool
       mutable_royalty: boolean, // bool
       mutable_uri: boolean, // bool
@@ -66,16 +66,16 @@ export namespace AptosToken {
       mutable_token_properties: boolean, // bool
       mutable_token_uri: boolean, // bool
       tokens_burnable_by_creator: boolean, // bool
-      tokens_freezable_by_creator: Uint64, // u64
+      tokens_freezable_by_creator: boolean, // bool
       royalty_numerator: Uint64, // u64
+      royalty_denominator: Uint64, // u64
     ) {
       super();
       this.args = {
-        creator: new MoveString(creator),
-        description: new U64(description),
-        max_supply: new MoveString(max_supply),
+        description: new MoveString(description),
+        max_supply: new U64(max_supply),
         name: new MoveString(name),
-        uri: new Bool(uri),
+        uri: new MoveString(uri),
         mutable_description: new Bool(mutable_description),
         mutable_royalty: new Bool(mutable_royalty),
         mutable_uri: new Bool(mutable_uri),
@@ -84,20 +84,22 @@ export namespace AptosToken {
         mutable_token_properties: new Bool(mutable_token_properties),
         mutable_token_uri: new Bool(mutable_token_uri),
         tokens_burnable_by_creator: new Bool(tokens_burnable_by_creator),
-        tokens_freezable_by_creator: new U64(tokens_freezable_by_creator),
+        tokens_freezable_by_creator: new Bool(tokens_freezable_by_creator),
         royalty_numerator: new U64(royalty_numerator),
+        royalty_denominator: new U64(royalty_denominator),
       };
     }
   }
 
+  // let creator: AccountAuthenticator | undefined; // &signer
   export type MintPayloadBCSArguments = {
-    creator: MoveString;
     collection: MoveString;
     description: MoveString;
     name: MoveString;
-    uri: MoveVector<MoveString>;
+    uri: MoveString;
     property_keys: MoveVector<MoveString>;
-    property_types: MoveVector<MoveVector<U8>>;
+    property_types: MoveVector<MoveString>;
+    property_values: MoveVector<MoveVector<U8>>;
   };
 
   export class Mint extends EntryFunctionPayloadBuilder {
@@ -107,35 +109,36 @@ export namespace AptosToken {
     public readonly args: MintPayloadBCSArguments;
 
     constructor(
-      creator: string, // 0x1::string::String
       collection: string, // 0x1::string::String
       description: string, // 0x1::string::String
       name: string, // 0x1::string::String
-      uri: Array<string>, // vector<0x1::string::String>
+      uri: string, // 0x1::string::String
       property_keys: Array<string>, // vector<0x1::string::String>
-      property_types: Array<HexInput>, // vector<vector<u8>>
+      property_types: Array<string>, // vector<0x1::string::String>
+      property_values: Array<HexInput>, // vector<vector<u8>>
     ) {
       super();
       this.args = {
-        creator: new MoveString(creator),
         collection: new MoveString(collection),
         description: new MoveString(description),
         name: new MoveString(name),
-        uri: new MoveVector(uri.map((argA) => new MoveString(argA))),
+        uri: new MoveString(uri),
         property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
-        property_types: new MoveVector(property_types.map((argA) => MoveVector.U8(argA))),
+        property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
+        property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
       };
     }
   }
+  // let creator: AccountAuthenticator | undefined; // &signer
   export type MintSoulBoundPayloadBCSArguments = {
-    creator: MoveString;
     collection: MoveString;
     description: MoveString;
     name: MoveString;
-    uri: MoveVector<MoveString>;
+    uri: MoveString;
     property_keys: MoveVector<MoveString>;
-    property_types: MoveVector<MoveVector<U8>>;
-    property_values: AccountAddress;
+    property_types: MoveVector<MoveString>;
+    property_values: MoveVector<MoveVector<U8>>;
+    soul_bound_to: AccountAddress;
   };
 
   export class MintSoulBound extends EntryFunctionPayloadBuilder {
@@ -145,25 +148,25 @@ export namespace AptosToken {
     public readonly args: MintSoulBoundPayloadBCSArguments;
 
     constructor(
-      creator: string, // 0x1::string::String
       collection: string, // 0x1::string::String
       description: string, // 0x1::string::String
       name: string, // 0x1::string::String
-      uri: Array<string>, // vector<0x1::string::String>
+      uri: string, // 0x1::string::String
       property_keys: Array<string>, // vector<0x1::string::String>
-      property_types: Array<HexInput>, // vector<vector<u8>>
-      property_values: AccountAddressInput, // address
+      property_types: Array<string>, // vector<0x1::string::String>
+      property_values: Array<HexInput>, // vector<vector<u8>>
+      soul_bound_to: AccountAddressInput, // address
     ) {
       super();
       this.args = {
-        creator: new MoveString(creator),
         collection: new MoveString(collection),
         description: new MoveString(description),
         name: new MoveString(name),
-        uri: new MoveVector(uri.map((argA) => new MoveString(argA))),
+        uri: new MoveString(uri),
         property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
-        property_types: new MoveVector(property_types.map((argA) => MoveVector.U8(argA))),
-        property_values: AccountAddress.fromRelaxed(property_values),
+        property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
+        property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
+        soul_bound_to: AccountAddress.fromRelaxed(soul_bound_to),
       };
     }
   }

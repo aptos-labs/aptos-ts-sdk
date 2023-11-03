@@ -28,12 +28,13 @@ import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
 
 export namespace Token {
+  // let owner: AccountAuthenticator | undefined; // &signer
   export type BurnPayloadBCSArguments = {
-    owner: AccountAddress;
-    creators_address: MoveString;
+    creators_address: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
     property_version: U64;
+    amount: U64;
   };
 
   export class Burn extends EntryFunctionPayloadBuilder {
@@ -43,28 +44,29 @@ export namespace Token {
     public readonly args: BurnPayloadBCSArguments;
 
     constructor(
-      owner: AccountAddressInput, // address
-      creators_address: string, // 0x1::string::String
+      creators_address: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
       property_version: Uint64, // u64
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        owner: AccountAddress.fromRelaxed(owner),
-        creators_address: new MoveString(creators_address),
+        creators_address: AccountAddress.fromRelaxed(creators_address),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
         property_version: new U64(property_version),
+        amount: new U64(amount),
       };
     }
   }
+  // let creator: AccountAuthenticator | undefined; // &signer
   export type BurnByCreatorPayloadBCSArguments = {
-    creator: AccountAddress;
-    owner: MoveString;
+    owner: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
     property_version: U64;
+    amount: U64;
   };
 
   export class BurnByCreator extends EntryFunctionPayloadBuilder {
@@ -74,28 +76,29 @@ export namespace Token {
     public readonly args: BurnByCreatorPayloadBCSArguments;
 
     constructor(
-      creator: AccountAddressInput, // address
-      owner: string, // 0x1::string::String
+      owner: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
       property_version: Uint64, // u64
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        creator: AccountAddress.fromRelaxed(creator),
-        owner: new MoveString(owner),
+        owner: AccountAddress.fromRelaxed(owner),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
         property_version: new U64(property_version),
+        amount: new U64(amount),
       };
     }
   }
+  // let creator: AccountAuthenticator | undefined; // &signer
   export type CreateCollectionScriptPayloadBCSArguments = {
-    creator: MoveString;
     name: MoveString;
     description: MoveString;
-    uri: U64;
-    maximum: MoveVector<Bool>;
+    uri: MoveString;
+    maximum: U64;
+    mutate_setting: MoveVector<Bool>;
   };
 
   export class CreateCollectionScript extends EntryFunctionPayloadBuilder {
@@ -105,36 +108,37 @@ export namespace Token {
     public readonly args: CreateCollectionScriptPayloadBCSArguments;
 
     constructor(
-      creator: string, // 0x1::string::String
       name: string, // 0x1::string::String
       description: string, // 0x1::string::String
-      uri: Uint64, // u64
-      maximum: Array<boolean>, // vector<bool>
+      uri: string, // 0x1::string::String
+      maximum: Uint64, // u64
+      mutate_setting: Array<boolean>, // vector<bool>
     ) {
       super();
       this.args = {
-        creator: new MoveString(creator),
         name: new MoveString(name),
         description: new MoveString(description),
-        uri: new U64(uri),
-        maximum: new MoveVector(maximum.map((argA) => new Bool(argA))),
+        uri: new MoveString(uri),
+        maximum: new U64(maximum),
+        mutate_setting: new MoveVector(mutate_setting.map((argA) => new Bool(argA))),
       };
     }
   }
+  // let account: AccountAuthenticator | undefined; // &signer
   export type CreateTokenScriptPayloadBCSArguments = {
-    account: MoveString;
     collection: MoveString;
     name: MoveString;
-    description: U64;
+    description: MoveString;
     balance: U64;
-    maximum: MoveString;
-    uri: AccountAddress;
-    royalty_payee_address: U64;
+    maximum: U64;
+    uri: MoveString;
+    royalty_payee_address: AccountAddress;
     royalty_points_denominator: U64;
-    royalty_points_numerator: MoveVector<Bool>;
-    mutate_setting: MoveVector<MoveString>;
-    property_keys: MoveVector<MoveVector<U8>>;
-    property_values: MoveVector<MoveString>;
+    royalty_points_numerator: U64;
+    mutate_setting: MoveVector<Bool>;
+    property_keys: MoveVector<MoveString>;
+    property_values: MoveVector<MoveVector<U8>>;
+    property_types: MoveVector<MoveString>;
   };
 
   export class CreateTokenScript extends EntryFunctionPayloadBuilder {
@@ -144,44 +148,46 @@ export namespace Token {
     public readonly args: CreateTokenScriptPayloadBCSArguments;
 
     constructor(
-      account: string, // 0x1::string::String
       collection: string, // 0x1::string::String
       name: string, // 0x1::string::String
-      description: Uint64, // u64
+      description: string, // 0x1::string::String
       balance: Uint64, // u64
-      maximum: string, // 0x1::string::String
-      uri: AccountAddressInput, // address
-      royalty_payee_address: Uint64, // u64
+      maximum: Uint64, // u64
+      uri: string, // 0x1::string::String
+      royalty_payee_address: AccountAddressInput, // address
       royalty_points_denominator: Uint64, // u64
-      royalty_points_numerator: Array<boolean>, // vector<bool>
-      mutate_setting: Array<string>, // vector<0x1::string::String>
-      property_keys: Array<HexInput>, // vector<vector<u8>>
-      property_values: Array<string>, // vector<0x1::string::String>
+      royalty_points_numerator: Uint64, // u64
+      mutate_setting: Array<boolean>, // vector<bool>
+      property_keys: Array<string>, // vector<0x1::string::String>
+      property_values: Array<HexInput>, // vector<vector<u8>>
+      property_types: Array<string>, // vector<0x1::string::String>
     ) {
       super();
       this.args = {
-        account: new MoveString(account),
         collection: new MoveString(collection),
         name: new MoveString(name),
-        description: new U64(description),
+        description: new MoveString(description),
         balance: new U64(balance),
-        maximum: new MoveString(maximum),
-        uri: AccountAddress.fromRelaxed(uri),
-        royalty_payee_address: new U64(royalty_payee_address),
+        maximum: new U64(maximum),
+        uri: new MoveString(uri),
+        royalty_payee_address: AccountAddress.fromRelaxed(royalty_payee_address),
         royalty_points_denominator: new U64(royalty_points_denominator),
-        royalty_points_numerator: new MoveVector(royalty_points_numerator.map((argA) => new Bool(argA))),
-        mutate_setting: new MoveVector(mutate_setting.map((argA) => new MoveString(argA))),
-        property_keys: new MoveVector(property_keys.map((argA) => MoveVector.U8(argA))),
-        property_values: new MoveVector(property_values.map((argA) => new MoveString(argA))),
+        royalty_points_numerator: new U64(royalty_points_numerator),
+        mutate_setting: new MoveVector(mutate_setting.map((argA) => new Bool(argA))),
+        property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
+        property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
+        property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
       };
     }
   }
+  // let sender: AccountAuthenticator | undefined; // &signer
+  // let receiver: AccountAuthenticator | undefined; // &signer
   export type DirectTransferScriptPayloadBCSArguments = {
-    sender: AccountAddress;
-    receiver: MoveString;
-    creators_address: MoveString;
-    collection: U64;
-    name: U64;
+    creators_address: AccountAddress;
+    collection: MoveString;
+    name: MoveString;
+    property_version: U64;
+    amount: U64;
   };
 
   export class DirectTransferScript extends EntryFunctionPayloadBuilder {
@@ -191,22 +197,23 @@ export namespace Token {
     public readonly args: DirectTransferScriptPayloadBCSArguments;
 
     constructor(
-      sender: AccountAddressInput, // address
-      receiver: string, // 0x1::string::String
-      creators_address: string, // 0x1::string::String
-      collection: Uint64, // u64
-      name: Uint64, // u64
+      creators_address: AccountAddressInput, // address
+      collection: string, // 0x1::string::String
+      name: string, // 0x1::string::String
+      property_version: Uint64, // u64
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        sender: AccountAddress.fromRelaxed(sender),
-        receiver: new MoveString(receiver),
-        creators_address: new MoveString(creators_address),
-        collection: new U64(collection),
-        name: new U64(name),
+        creators_address: AccountAddress.fromRelaxed(creators_address),
+        collection: new MoveString(collection),
+        name: new MoveString(name),
+        property_version: new U64(property_version),
+        amount: new U64(amount),
       };
     }
   }
+  // let _account: AccountAuthenticator | undefined; // &signer
 
   export class InitializeTokenScript extends EntryFunctionPayloadBuilder {
     public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
@@ -219,11 +226,12 @@ export namespace Token {
       this.args = {};
     }
   }
+  // let account: AccountAuthenticator | undefined; // &signer
   export type MintScriptPayloadBCSArguments = {
-    account: AccountAddress;
-    token_data_address: MoveString;
+    token_data_address: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
+    amount: U64;
   };
 
   export class MintScript extends EntryFunctionPayloadBuilder {
@@ -233,30 +241,31 @@ export namespace Token {
     public readonly args: MintScriptPayloadBCSArguments;
 
     constructor(
-      account: AccountAddressInput, // address
-      token_data_address: string, // 0x1::string::String
+      token_data_address: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        account: AccountAddress.fromRelaxed(account),
-        token_data_address: new MoveString(token_data_address),
+        token_data_address: AccountAddress.fromRelaxed(token_data_address),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
+        amount: new U64(amount),
       };
     }
   }
+  // let account: AccountAuthenticator | undefined; // &signer
   export type MutateTokenPropertiesPayloadBCSArguments = {
-    account: AccountAddress;
     token_owner: AccountAddress;
-    creator: MoveString;
+    creator: AccountAddress;
     collection_name: MoveString;
-    token_name: U64;
+    token_name: MoveString;
     token_property_version: U64;
-    amount: MoveVector<MoveString>;
-    keys: MoveVector<MoveVector<U8>>;
-    values: MoveVector<MoveString>;
+    amount: U64;
+    keys: MoveVector<MoveString>;
+    values: MoveVector<MoveVector<U8>>;
+    types: MoveVector<MoveString>;
   };
 
   export class MutateTokenProperties extends EntryFunctionPayloadBuilder {
@@ -266,32 +275,33 @@ export namespace Token {
     public readonly args: MutateTokenPropertiesPayloadBCSArguments;
 
     constructor(
-      account: AccountAddressInput, // address
       token_owner: AccountAddressInput, // address
-      creator: string, // 0x1::string::String
+      creator: AccountAddressInput, // address
       collection_name: string, // 0x1::string::String
-      token_name: Uint64, // u64
+      token_name: string, // 0x1::string::String
       token_property_version: Uint64, // u64
-      amount: Array<string>, // vector<0x1::string::String>
-      keys: Array<HexInput>, // vector<vector<u8>>
-      values: Array<string>, // vector<0x1::string::String>
+      amount: Uint64, // u64
+      keys: Array<string>, // vector<0x1::string::String>
+      values: Array<HexInput>, // vector<vector<u8>>
+      types: Array<string>, // vector<0x1::string::String>
     ) {
       super();
       this.args = {
-        account: AccountAddress.fromRelaxed(account),
         token_owner: AccountAddress.fromRelaxed(token_owner),
-        creator: new MoveString(creator),
+        creator: AccountAddress.fromRelaxed(creator),
         collection_name: new MoveString(collection_name),
-        token_name: new U64(token_name),
+        token_name: new MoveString(token_name),
         token_property_version: new U64(token_property_version),
-        amount: new MoveVector(amount.map((argA) => new MoveString(argA))),
-        keys: new MoveVector(keys.map((argA) => MoveVector.U8(argA))),
-        values: new MoveVector(values.map((argA) => new MoveString(argA))),
+        amount: new U64(amount),
+        keys: new MoveVector(keys.map((argA) => new MoveString(argA))),
+        values: new MoveVector(values.map((argA) => MoveVector.U8(argA))),
+        types: new MoveVector(types.map((argA) => new MoveString(argA))),
       };
     }
   }
+  // let account: AccountAuthenticator | undefined; // &signer
   export type OptInDirectTransferPayloadBCSArguments = {
-    account: Bool;
+    opt_in: Bool;
   };
 
   export class OptInDirectTransfer extends EntryFunctionPayloadBuilder {
@@ -301,21 +311,22 @@ export namespace Token {
     public readonly args: OptInDirectTransferPayloadBCSArguments;
 
     constructor(
-      account: boolean, // bool
+      opt_in: boolean, // bool
     ) {
       super();
       this.args = {
-        account: new Bool(account),
+        opt_in: new Bool(opt_in),
       };
     }
   }
+  // let from: AccountAuthenticator | undefined; // &signer
   export type TransferWithOptInPayloadBCSArguments = {
-    from: AccountAddress;
-    creator: MoveString;
+    creator: AccountAddress;
     collection_name: MoveString;
-    token_name: U64;
-    token_property_version: AccountAddress;
-    to: U64;
+    token_name: MoveString;
+    token_property_version: U64;
+    to: AccountAddress;
+    amount: U64;
   };
 
   export class TransferWithOptIn extends EntryFunctionPayloadBuilder {
@@ -325,21 +336,21 @@ export namespace Token {
     public readonly args: TransferWithOptInPayloadBCSArguments;
 
     constructor(
-      from: AccountAddressInput, // address
-      creator: string, // 0x1::string::String
+      creator: AccountAddressInput, // address
       collection_name: string, // 0x1::string::String
-      token_name: Uint64, // u64
-      token_property_version: AccountAddressInput, // address
-      to: Uint64, // u64
+      token_name: string, // 0x1::string::String
+      token_property_version: Uint64, // u64
+      to: AccountAddressInput, // address
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        from: AccountAddress.fromRelaxed(from),
-        creator: new MoveString(creator),
+        creator: AccountAddress.fromRelaxed(creator),
         collection_name: new MoveString(collection_name),
-        token_name: new U64(token_name),
-        token_property_version: AccountAddress.fromRelaxed(token_property_version),
-        to: new U64(to),
+        token_name: new MoveString(token_name),
+        token_property_version: new U64(token_property_version),
+        to: AccountAddress.fromRelaxed(to),
+        amount: new U64(amount),
       };
     }
   }

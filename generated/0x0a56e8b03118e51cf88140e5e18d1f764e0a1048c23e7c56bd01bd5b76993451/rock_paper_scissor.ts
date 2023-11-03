@@ -28,9 +28,10 @@ import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
 
 export namespace RockPaperScissor {
+  // let player: AccountAuthenticator | undefined; // &signer
   export type CommitActionPayloadBCSArguments = {
-    player: AccountAddress;
-    game_address: MoveVector<U8>;
+    game_address: AccountAddress;
+    action_hash: MoveVector<U8>;
   };
 
   export class CommitAction extends EntryFunctionPayloadBuilder {
@@ -42,21 +43,22 @@ export namespace RockPaperScissor {
     public readonly args: CommitActionPayloadBCSArguments;
 
     constructor(
-      player: AccountAddressInput, // address
-      game_address: HexInput, // vector<u8>
+      game_address: AccountAddressInput, // address
+      action_hash: HexInput, // vector<u8>
     ) {
       super();
       this.args = {
-        player: AccountAddress.fromRelaxed(player),
-        game_address: MoveVector.U8(game_address),
+        game_address: AccountAddress.fromRelaxed(game_address),
+        action_hash: MoveVector.U8(action_hash),
       };
     }
   }
+  // let room_obj: AccountAuthenticator | undefined; // &signer
   export type CreateGamePayloadBCSArguments = {
-    room_obj: AccountAddress;
     player1_address: AccountAddress;
     player2_address: AccountAddress;
     token1_address: AccountAddress;
+    token2_address: AccountAddress;
   };
 
   export class CreateGame extends EntryFunctionPayloadBuilder {
@@ -68,17 +70,17 @@ export namespace RockPaperScissor {
     public readonly args: CreateGamePayloadBCSArguments;
 
     constructor(
-      room_obj: AccountAddressInput, // address
       player1_address: AccountAddressInput, // address
       player2_address: AccountAddressInput, // address
       token1_address: AccountAddressInput, // address
+      token2_address: AccountAddressInput, // address
     ) {
       super();
       this.args = {
-        room_obj: AccountAddress.fromRelaxed(room_obj),
         player1_address: AccountAddress.fromRelaxed(player1_address),
         player2_address: AccountAddress.fromRelaxed(player2_address),
         token1_address: AccountAddress.fromRelaxed(token1_address),
+        token2_address: AccountAddress.fromRelaxed(token2_address),
       };
     }
   }
@@ -103,10 +105,11 @@ export namespace RockPaperScissor {
       };
     }
   }
+  // let player: AccountAuthenticator | undefined; // &signer
   export type VerifyActionPayloadBCSArguments = {
-    player: AccountAddress;
-    game_address: MoveVector<U8>;
+    game_address: AccountAddress;
     action: MoveVector<U8>;
+    hash_addition: MoveVector<U8>;
   };
 
   export class VerifyAction extends EntryFunctionPayloadBuilder {
@@ -118,15 +121,15 @@ export namespace RockPaperScissor {
     public readonly args: VerifyActionPayloadBCSArguments;
 
     constructor(
-      player: AccountAddressInput, // address
-      game_address: HexInput, // vector<u8>
+      game_address: AccountAddressInput, // address
       action: HexInput, // vector<u8>
+      hash_addition: HexInput, // vector<u8>
     ) {
       super();
       this.args = {
-        player: AccountAddress.fromRelaxed(player),
-        game_address: MoveVector.U8(game_address),
+        game_address: AccountAddress.fromRelaxed(game_address),
         action: MoveVector.U8(action),
+        hash_addition: MoveVector.U8(hash_addition),
       };
     }
   }

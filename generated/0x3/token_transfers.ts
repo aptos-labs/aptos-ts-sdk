@@ -28,12 +28,13 @@ import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
 
 export namespace TokenTransfers {
+  // let sender: AccountAuthenticator | undefined; // signer
   export type CancelOfferScriptPayloadBCSArguments = {
-    sender: AccountAddress;
     receiver: AccountAddress;
-    creator: MoveString;
+    creator: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
+    property_version: U64;
   };
 
   export class CancelOfferScript extends EntryFunctionPayloadBuilder {
@@ -43,28 +44,29 @@ export namespace TokenTransfers {
     public readonly args: CancelOfferScriptPayloadBCSArguments;
 
     constructor(
-      sender: AccountAddressInput, // address
       receiver: AccountAddressInput, // address
-      creator: string, // 0x1::string::String
+      creator: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
+      property_version: Uint64, // u64
     ) {
       super();
       this.args = {
-        sender: AccountAddress.fromRelaxed(sender),
         receiver: AccountAddress.fromRelaxed(receiver),
-        creator: new MoveString(creator),
+        creator: AccountAddress.fromRelaxed(creator),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
+        property_version: new U64(property_version),
       };
     }
   }
+  // let receiver: AccountAuthenticator | undefined; // signer
   export type ClaimScriptPayloadBCSArguments = {
-    receiver: AccountAddress;
     sender: AccountAddress;
-    creator: MoveString;
+    creator: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
+    property_version: U64;
   };
 
   export class ClaimScript extends EntryFunctionPayloadBuilder {
@@ -74,29 +76,30 @@ export namespace TokenTransfers {
     public readonly args: ClaimScriptPayloadBCSArguments;
 
     constructor(
-      receiver: AccountAddressInput, // address
       sender: AccountAddressInput, // address
-      creator: string, // 0x1::string::String
+      creator: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
+      property_version: Uint64, // u64
     ) {
       super();
       this.args = {
-        receiver: AccountAddress.fromRelaxed(receiver),
         sender: AccountAddress.fromRelaxed(sender),
-        creator: new MoveString(creator),
+        creator: AccountAddress.fromRelaxed(creator),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
+        property_version: new U64(property_version),
       };
     }
   }
+  // let sender: AccountAuthenticator | undefined; // signer
   export type OfferScriptPayloadBCSArguments = {
-    sender: AccountAddress;
     receiver: AccountAddress;
-    creator: MoveString;
+    creator: AccountAddress;
     collection: MoveString;
-    name: U64;
+    name: MoveString;
     property_version: U64;
+    amount: U64;
   };
 
   export class OfferScript extends EntryFunctionPayloadBuilder {
@@ -106,21 +109,21 @@ export namespace TokenTransfers {
     public readonly args: OfferScriptPayloadBCSArguments;
 
     constructor(
-      sender: AccountAddressInput, // address
       receiver: AccountAddressInput, // address
-      creator: string, // 0x1::string::String
+      creator: AccountAddressInput, // address
       collection: string, // 0x1::string::String
-      name: Uint64, // u64
+      name: string, // 0x1::string::String
       property_version: Uint64, // u64
+      amount: Uint64, // u64
     ) {
       super();
       this.args = {
-        sender: AccountAddress.fromRelaxed(sender),
         receiver: AccountAddress.fromRelaxed(receiver),
-        creator: new MoveString(creator),
+        creator: AccountAddress.fromRelaxed(creator),
         collection: new MoveString(collection),
-        name: new U64(name),
+        name: new MoveString(name),
         property_version: new U64(property_version),
+        amount: new U64(amount),
       };
     }
   }

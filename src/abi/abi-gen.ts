@@ -83,16 +83,16 @@ function metaclassBuilder(
 
   // --------------- Handle signers --------------- //
   // Get the array of annotated BCS class names, their string representation, and original TypeTag string
-  const { functionArguments } = getClassArgTypes(typeTags);
-  // const { signerArguments, functionArguments } = getClassArgTypes(typeTags);
+  const { signerArguments, functionArguments } = getClassArgTypes(typeTags);
   const lines: Array<string> = [];
 
   // TODO: Handle 1 vs multiple signers, you can construct the payload *for* them knowing how
   // many signers..!
-  // signerArguments.forEach((signerArgument, i) => {
-  //   TODO: add later and support the various types of transaction construction
-  //   lines.push(`let account${i}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
-  // });
+  const signerArgumentNames = suppliedFieldNames ? suppliedFieldNames.splice(0, signerArguments.length) : [];
+  signerArguments.forEach((signerArgument, i) => {
+    // TODO: add later and support the various types of transaction construction
+    lines.push(`// let ${signerArgumentNames[i]}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
+  });
 
   const argsType = `${className}PayloadBCSArguments`;
 

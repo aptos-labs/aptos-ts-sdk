@@ -28,11 +28,12 @@ import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
 
 export namespace TournamentManager {
+  // let tournament_creator: AccountAuthenticator | undefined; // &signer
   export type InitializeTournamentPayloadBCSArguments = {
-    tournament_creator: MoveString;
-    tournament_name: U64;
+    tournament_name: MoveString;
     max_players: U64;
     num_winners: U64;
+    time_between_rounds_secs: U64;
   };
 
   export class InitializeTournament extends EntryFunctionPayloadBuilder {
@@ -44,23 +45,24 @@ export namespace TournamentManager {
     public readonly args: InitializeTournamentPayloadBCSArguments;
 
     constructor(
-      tournament_creator: string, // 0x1::string::String
-      tournament_name: Uint64, // u64
+      tournament_name: string, // 0x1::string::String
       max_players: Uint64, // u64
       num_winners: Uint64, // u64
+      time_between_rounds_secs: Uint64, // u64
     ) {
       super();
       this.args = {
-        tournament_creator: new MoveString(tournament_creator),
-        tournament_name: new U64(tournament_name),
+        tournament_name: new MoveString(tournament_name),
         max_players: new U64(max_players),
         num_winners: new U64(num_winners),
+        time_between_rounds_secs: new U64(time_between_rounds_secs),
       };
     }
   }
+  // let player: AccountAuthenticator | undefined; // &signer
   export type JoinTournamentPayloadBCSArguments = {
-    player: AccountAddress;
-    tournament_address: MoveString;
+    tournament_address: AccountAddress;
+    player_name: MoveString;
   };
 
   export class JoinTournament extends EntryFunctionPayloadBuilder {
@@ -72,18 +74,19 @@ export namespace TournamentManager {
     public readonly args: JoinTournamentPayloadBCSArguments;
 
     constructor(
-      player: AccountAddressInput, // address
-      tournament_address: string, // 0x1::string::String
+      tournament_address: AccountAddressInput, // address
+      player_name: string, // 0x1::string::String
     ) {
       super();
       this.args = {
-        player: AccountAddress.fromRelaxed(player),
-        tournament_address: new MoveString(tournament_address),
+        tournament_address: AccountAddress.fromRelaxed(tournament_address),
+        player_name: new MoveString(player_name),
       };
     }
   }
+  // let tournament_creator: AccountAuthenticator | undefined; // &signer
   export type StartNewRoundPayloadBCSArguments = {
-    tournament_creator: AccountAddress;
+    tournament_address: AccountAddress;
   };
 
   export class StartNewRound extends EntryFunctionPayloadBuilder {
@@ -95,11 +98,11 @@ export namespace TournamentManager {
     public readonly args: StartNewRoundPayloadBCSArguments;
 
     constructor(
-      tournament_creator: AccountAddressInput, // address
+      tournament_address: AccountAddressInput, // address
     ) {
       super();
       this.args = {
-        tournament_creator: AccountAddress.fromRelaxed(tournament_creator),
+        tournament_address: AccountAddress.fromRelaxed(tournament_address),
       };
     }
   }
