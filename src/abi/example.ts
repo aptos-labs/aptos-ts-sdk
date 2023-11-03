@@ -11,12 +11,6 @@ import { toAccountAddress } from "./utils";
 
 type MoveObject = AccountAddress;
 
-const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
-  if (address instanceof AccountAddress) {
-    return address;
-  }
-  return AccountAddress.fromHexInputRelaxed(address);
-};
 export namespace TxArgsModule {
   export type PrivateArgumentsSerializableArgs = {
     arg_bool: Bool;
@@ -54,7 +48,7 @@ export namespace TxArgsModule {
   }
 
   export class PrivateArguments extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
+    public readonly moduleAddress = AccountAddress.from("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
     public readonly moduleName = "tx_args_module";
     public readonly functionName = "private_arguments";
     public readonly args: PrivateArgumentsSerializableArgs;
@@ -189,7 +183,7 @@ eObject >; ector_u64: MoveVector < Mov
 }
 
 export class PublicArgumentsMultipleSigners extends Serializable {
-  public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
+  public readonly moduleAddress = AccountAddress.from("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "public_arguments_multiple_signers";
   public readonly args: PublicArgumentsMultipleSignersSerializableArgs;
@@ -426,7 +420,7 @@ export class PublicArgumentsOneSigner extends Serializable {
 }
 
 export class TypeTags extends Serializable {
-  public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
+  public readonly moduleAddress = AccountAddress.from("0x5fc6a85c6d2db2e2ffff0eb449d05f8ca5ccc16858e6d6595fc625a43366aa7c");
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "type_tags";
 

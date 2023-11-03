@@ -124,20 +124,16 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder implement
   }
 
   async submit(): Promise<PendingTransactionResponse> {
-    console.log(this.senderSigner);
-    console.log(this.withFeePayer);
-    console.log(this.feePayerSigner);
     if (this.senderSigner === undefined || (this.withFeePayer && this.feePayerSigner === undefined)) {
       throw new Error("You must sign the transaction before submitting it.");
     }
-    const secondarySignerAuthenticators = this.withFeePayer ? { feePayerAuthenticator: this.feePayerSigner?.authenticator } : undefined;
     const response = await submitTransaction({
       aptosConfig: this.aptosConfig,
       transaction: {
-        rawTransaction: this.rawTransaction.bcsToBytes(),
+        rawTransaction: this.rawTransaction,
       },
       senderAuthenticator: this.senderSigner.authenticator,
-      secondarySignerAuthenticators,
+      feePayerAuthenticator: this.withFeePayer ? this.feePayerSigner?.authenticator : undefined,
     });
     this.transactionHash = response.hash;
     return response as PendingTransactionResponse;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../bcs";
-import { AccountAddress, Hex } from "../core";
+import { AccountAddress, AccountAddressInput, Hex } from "../core";
 import { AccountAuthenticator, TypeTag } from "../transactions";
 import { HexInput, MoveModule, MoveModuleBytecode } from "../types";
 import pako from "pako";
@@ -32,11 +32,11 @@ export function sanitizeName(name: string): string {
   return name;
 }
 
-export function toAccountAddress(input: HexInput | AccountAddress): AccountAddress {
+export function addressBytes(input: AccountAddressInput): Uint8Array {
   if (input instanceof AccountAddress) {
-    return input;
+    return input.data;
   }
-  return AccountAddress.fromHexInputRelaxed(input);
+  return AccountAddress.from(input).data;
 }
 
 /**
@@ -104,11 +104,11 @@ export function toBCSClassName(typeTag: TypeTag): Array<BCSKinds> {
       // because that means it's an Object<T>, then we'll remove the T and add a comment explaining
       // that T is of type: T
       // NOTE: This means a true Object<T> as an entry function argument will not work
-      return ["MoveObject", ...toBCSClassName(typeTag.value.type_args[0])];
+      return ["MoveObject", ...toBCSClassName(typeTag.value.typeArgs[0])];
     }
     if (typeTag.isOption()) {
       // Options can only have 1 TypeTag
-      return [MoveOption.kind, ...toBCSClassName(typeTag.value.type_args[0])];
+      return [MoveOption.kind, ...toBCSClassName(typeTag.value.typeArgs[0])];
     }
     // It must be a resource, otherwise the .move file would not compile
     return [typeTag.toString()];

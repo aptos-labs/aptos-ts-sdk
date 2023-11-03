@@ -64,7 +64,7 @@ export class Signer {
     const { account, rawTransaction, secondarySignerAddresses, feePayerAddress } = args;
     // sign transaction as Account, inferring the signature type from the transaction payload and other args
     const anyRawTransaction = {
-      rawTransaction: rawTransaction.bcsToBytes(),
+      rawTransaction: rawTransaction,
       feePayerAddress: feePayerAddress,
       secondarySignerAddresses: secondarySignerAddresses,
     };

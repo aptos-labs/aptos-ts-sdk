@@ -26,7 +26,7 @@ describe("abi test", () => {
   });
 
   it.only("parses tournament abis correctly", async () => {
-    const accountAddress = AccountAddress.fromHexInputRelaxed(
+    const accountAddress = AccountAddress.from(
       "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
     );
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
@@ -36,7 +36,7 @@ describe("abi test", () => {
   });
 
   it("parses 0x1 module abis correctly", async () => {
-    const accountAddress = AccountAddress.fromHexInputRelaxed("0x4");
+    const accountAddress = AccountAddress.from("0x4");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
@@ -81,7 +81,7 @@ describe("abi test", () => {
     const account2 = Account.generate();
     const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
     await fundAccounts(aptos, [tournamentManager,account1, account2]);
-    const TOURNAMENT_ADDRESS = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const TOURNAMENT_ADDRESS = AccountAddress.from("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
     const TOURNAMENT_NAME = "Tournament";
 
     const tournamentCreate = await SingleSignerTransactionBuilder.create({
@@ -228,14 +228,14 @@ describe("abi test", () => {
   });
 
   it("gets package metadata", async() => {
-    const accountAddress = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const accountAddress = AccountAddress.from("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
     const network = Network.LOCAL;
     const r = await getSourceCodeMap(accountAddress, network);
     // const parsed = r.map(p => p.map(m => m.source.replace(/\n/g, " ")));
   });
 
   it("gets argument names from package metadata regex", async() => {
-    const accountAddress = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const accountAddress = AccountAddress.from("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
     const network = Network.LOCAL;
     const sourceCode = await getSourceCodeMap(accountAddress, network);
     // sourceCode.forEach(pkg => {

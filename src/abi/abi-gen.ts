@@ -76,7 +76,7 @@ function metaclassBuilder(
   // ---------- Class fields ---------- //
   lines.push("");
   lines.push(`export class ${className} extends Serializable {`);
-  lines.push(`${TAB.repeat(1)}public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("${moduleAddress.toString()}");`);
+  lines.push(`${TAB.repeat(1)}public readonly moduleAddress = AccountAddress.from("${moduleAddress.toString()}");`);
   lines.push(`${TAB.repeat(1)}public readonly moduleName = "${moduleName}";`);
   lines.push(`${TAB.repeat(1)}public readonly functionName = "${functionName}";`);
   if (functionArguments.length > 0) {
@@ -189,7 +189,7 @@ function createInputTypeConverter(
     case MoveString.kind:
       return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
     case AccountAddress.kind:
-      return `new ${kind}(toAccountAddress(${nameFromDepth}))${R_PARENTHESIS.repeat(depth)}`;
+      return `new ${kind}(addressBytes(${nameFromDepth}))${R_PARENTHESIS.repeat(depth)}`;
     default:
       throw new Error(`Unknown kind: ${kind}`);
   }
@@ -282,7 +282,7 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
     const viewMapping = getArgNameMapping(abi, viewFunctions, sourceCode);
 
     abiFunctions.push({
-      moduleAddress: AccountAddress.fromHexInputRelaxed(abi.address),
+      moduleAddress: AccountAddress.from(abi.address),
       moduleName: abi.name,
       publicEntryFunctions: getMoveFunctionsWithArgumentNames(abi, publicEntryFunctions, publicMapping),
       privateEntryFunctions: getMoveFunctionsWithArgumentNames(abi, privateEntryFunctions, privateMapping),

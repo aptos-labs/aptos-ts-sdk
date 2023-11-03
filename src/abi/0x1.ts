@@ -4,14 +4,14 @@
 /* eslint-disable max-classes-per-file */
 import { MoveString, MoveVector, U64, U8 } from "..";
 import { Bool, Serializable, Serializer } from "../bcs";
-import { AccountAddress } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { AnyNumber, HexInput } from "../types";
 
-const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
+const addressBytes = (address: AccountAddressInput): Uint8Array => {
   if (address instanceof AccountAddress) {
-    return address;
+    return address.data;
   }
-  return AccountAddress.fromHexInputRelaxed(address);
+  return AccountAddress.from(address).data;
 };
 
 export namespace Account {
@@ -36,7 +36,7 @@ export namespace Account {
         arg_0: new MoveVector(args.arg_0.map((argA) => new U8(argA))),
         arg_1: new U8(args.arg_1),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
-        arg_3: new AccountAddress(addressFromAny(args.arg_3)),
+        arg_3: new AccountAddress(addressBytes(args.arg_3)),
       };
     }
 
@@ -68,7 +68,7 @@ export namespace Account {
         arg_0: new MoveVector(args.arg_0.map((argA) => new U8(argA))),
         arg_1: new U8(args.arg_1),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
-        arg_3: new AccountAddress(addressFromAny(args.arg_3)),
+        arg_3: new AccountAddress(addressBytes(args.arg_3)),
       };
     }
 
@@ -101,7 +101,7 @@ export namespace Account {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -124,7 +124,7 @@ export namespace Account {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -191,7 +191,7 @@ export namespace Account {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U8(args.arg_1),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new U8(argA))),
@@ -222,7 +222,7 @@ export namespace AptosAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U64(argA))),
       };
     }
@@ -248,7 +248,7 @@ export namespace AptosAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U64(argA))),
       };
     }
@@ -272,7 +272,7 @@ export namespace AptosAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -320,7 +320,7 @@ export namespace AptosAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -346,7 +346,7 @@ export namespace AptosAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -377,7 +377,7 @@ export namespace AptosCoin {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -402,7 +402,7 @@ export namespace AptosCoin {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -458,7 +458,7 @@ export namespace AptosGovernance {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new U8(argA))),
@@ -492,7 +492,7 @@ export namespace AptosGovernance {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new U8(argA))),
@@ -525,7 +525,7 @@ export namespace AptosGovernance {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
         arg_2: new U64(args.arg_2),
         arg_3: new Bool(args.arg_3),
@@ -555,7 +555,7 @@ export namespace AptosGovernance {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
         arg_2: new Bool(args.arg_2),
       };
@@ -614,7 +614,7 @@ export namespace Coin {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -648,7 +648,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -680,7 +680,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new U8(argA))),
@@ -709,8 +709,8 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -733,7 +733,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -784,7 +784,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -808,7 +808,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -831,7 +831,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -854,7 +854,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -879,7 +879,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -909,7 +909,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
         arg_2: new U64(args.arg_2),
         arg_3: new Bool(args.arg_3),
@@ -937,7 +937,7 @@ export namespace DelegationPool {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -1023,7 +1023,7 @@ export namespace ManagedCoin {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -1055,7 +1055,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1078,7 +1078,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
       };
     }
 
@@ -1103,7 +1103,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -1129,7 +1129,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -1184,7 +1184,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
       };
     }
@@ -1210,7 +1210,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
       };
     }
@@ -1248,8 +1248,8 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_2: new U64(args.arg_2),
         arg_3: new U8(args.arg_3),
         arg_4: new MoveVector(args.arg_4.map((argA) => new U8(argA))),
@@ -1292,8 +1292,8 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_2: new U64(args.arg_2),
         arg_3: new U8(args.arg_3),
         arg_4: new MoveVector(args.arg_4.map((argA) => new U8(argA))),
@@ -1328,7 +1328,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_1: new U64(args.arg_1),
         arg_2: new MoveVector(args.arg_2.map((argA) => new MoveString(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new MoveVector(argA.map((argB) => new U8(argB))))),
@@ -1360,7 +1360,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_1: new U64(args.arg_1),
         arg_2: new MoveVector(args.arg_2.map((argA) => new MoveString(argA))),
         arg_3: new MoveVector(args.arg_3.map((argA) => new MoveVector(argA.map((argB) => new U8(argB))))),
@@ -1386,7 +1386,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1411,7 +1411,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -1435,7 +1435,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1458,7 +1458,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
       };
     }
 
@@ -1483,8 +1483,8 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -1509,8 +1509,8 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
-        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
+        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressBytes(argA)))),
       };
     }
 
@@ -1537,8 +1537,8 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
-        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressFromAny(argA)))),
+        arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
+        arg_1: new MoveVector(args.arg_1.map((argA) => new AccountAddress(addressBytes(argA)))),
         arg_2: new U64(args.arg_2),
       };
     }
@@ -1615,7 +1615,7 @@ export namespace MultisigAccount {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
         arg_2: new Bool(args.arg_2),
       };
@@ -1645,8 +1645,8 @@ export namespace Object$1 {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -1794,8 +1794,8 @@ export namespace Stake {
       super();
       this.args = {
         arg_0: new U64(args.arg_0),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
-        arg_2: new AccountAddress(addressFromAny(args.arg_2)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
+        arg_2: new AccountAddress(addressBytes(args.arg_2)),
       };
     }
 
@@ -1850,7 +1850,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1873,7 +1873,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1923,7 +1923,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
       };
@@ -1948,7 +1948,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -1971,7 +1971,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -2021,7 +2021,7 @@ export namespace Stake {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new MoveVector(args.arg_1.map((argA) => new U8(argA))),
         arg_2: new MoveVector(args.arg_2.map((argA) => new U8(argA))),
       };
@@ -2074,7 +2074,7 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -2106,8 +2106,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
         arg_2: new U64(args.arg_2),
         arg_3: new U64(args.arg_3),
         arg_4: new MoveVector(args.arg_4.map((argA) => new U8(argA))),
@@ -2135,8 +2135,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -2161,8 +2161,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -2185,7 +2185,7 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -2212,8 +2212,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
         arg_2: new U64(args.arg_2),
       };
     }
@@ -2239,8 +2239,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -2263,7 +2263,7 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
       };
     }
 
@@ -2288,7 +2288,7 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -2314,7 +2314,7 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
         arg_1: new U64(args.arg_1),
       };
     }
@@ -2340,8 +2340,8 @@ export namespace StakingContract {
     }) {
       super();
       this.args = {
-        arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-        arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+        arg_0: new AccountAddress(addressBytes(args.arg_0)),
+        arg_1: new AccountAddress(addressBytes(args.arg_1)),
       };
     }
 
@@ -2368,8 +2368,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2392,7 +2392,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2415,7 +2415,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2440,8 +2440,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2466,8 +2466,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2492,8 +2492,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2518,8 +2518,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2544,8 +2544,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2597,7 +2597,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2620,7 +2620,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2643,7 +2643,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         };
       }
 
@@ -2668,8 +2668,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2692,7 +2692,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2719,9 +2719,9 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
-          arg_2: new AccountAddress(addressFromAny(args.arg_2)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
+          arg_2: new AccountAddress(addressBytes(args.arg_2)),
         };
       }
 
@@ -2746,8 +2746,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2774,9 +2774,9 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
           arg_1: new MoveString(args.arg_1),
-          arg_2: new AccountAddress(addressFromAny(args.arg_2)),
+          arg_2: new AccountAddress(addressBytes(args.arg_2)),
         };
       }
 
@@ -2799,7 +2799,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2822,7 +2822,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2845,7 +2845,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         };
       }
 
@@ -2870,7 +2870,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
           arg_1: new U64(args.arg_1),
         };
       }
@@ -2898,8 +2898,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
           arg_2: new U64(args.arg_2),
         };
       }
@@ -2925,8 +2925,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2951,8 +2951,8 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
-          arg_1: new AccountAddress(addressFromAny(args.arg_1)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
+          arg_1: new AccountAddress(addressBytes(args.arg_1)),
         };
       }
 
@@ -2975,7 +2975,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new AccountAddress(addressFromAny(args.arg_0)),
+          arg_0: new AccountAddress(addressBytes(args.arg_0)),
         };
       }
 
@@ -2998,7 +2998,7 @@ export namespace StakingContract {
       }) {
         super();
         this.args = {
-          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressFromAny(argA)))),
+          arg_0: new MoveVector(args.arg_0.map((argA) => new AccountAddress(addressBytes(argA)))),
         };
       }
 

@@ -5,18 +5,7 @@ import { TransactionBuilder } from "../bcs/serializable/tx-builder/transactionBu
 import { Account, AccountAddress } from "../core";
 import { Signer } from "../core/signer";
 import { HexInput, Uint8, Uint64, UserTransactionResponse } from "../types";
-import { toAccountAddress } from "./utils";
-
-const addressFromAny = (address: HexInput | AccountAddress): AccountAddress => {
-  if (address instanceof AccountAddress) {
-    return address;
-  }
-  return AccountAddress.fromHexInputRelaxed(address);
-};
-
-
-
-
+import { addressBytes } from "./utils";
 export namespace RockPaperScissor {
   export type CommitActionSerializableArgs = {
     player: AccountAddress;
@@ -24,7 +13,7 @@ export namespace RockPaperScissor {
   }
 
   export class CommitAction extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "rock_paper_scissor";
     public readonly functionName = "commit_action";
     public readonly args: CommitActionSerializableArgs;
@@ -35,7 +24,7 @@ export namespace RockPaperScissor {
     ) {
       super();
       this.args = {
-        player: new AccountAddress(addressFromAny(player)),
+        player: new AccountAddress(addressBytes(player)),
         game_address: new MoveVector(game_address.map(argA => new U8(argA))),
       }
     }
@@ -69,7 +58,7 @@ export namespace RockPaperScissor {
   }
 
   export class CreateGame extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "rock_paper_scissor";
     public readonly functionName = "create_game";
     public readonly args: CreateGameSerializableArgs;
@@ -82,10 +71,10 @@ export namespace RockPaperScissor {
     ) {
       super();
       this.args = {
-        room_obj: new AccountAddress(addressFromAny(room_obj)),
-        player1_address: new AccountAddress(addressFromAny(player1_address)),
-        player2_address: new AccountAddress(addressFromAny(player2_address)),
-        token1_address: new AccountAddress(addressFromAny(token1_address)),
+        room_obj: new AccountAddress(addressBytes(room_obj)),
+        player1_address: new AccountAddress(addressBytes(player1_address)),
+        player2_address: new AccountAddress(addressBytes(player2_address)),
+        token1_address: new AccountAddress(addressBytes(token1_address)),
       }
     }
 
@@ -115,7 +104,7 @@ export namespace RockPaperScissor {
   }
 
   export class ResetGame extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "rock_paper_scissor";
     public readonly functionName = "reset_game";
     public readonly args: ResetGameSerializableArgs;
@@ -125,7 +114,7 @@ export namespace RockPaperScissor {
     ) {
       super();
       this.args = {
-        game_address: new AccountAddress(addressFromAny(game_address)),
+        game_address: new AccountAddress(addressBytes(game_address)),
       }
     }
 
@@ -157,7 +146,7 @@ export namespace RockPaperScissor {
   }
 
   export class VerifyAction extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "rock_paper_scissor";
     public readonly functionName = "verify_action";
     public readonly args: VerifyActionSerializableArgs;
@@ -169,7 +158,7 @@ export namespace RockPaperScissor {
     ) {
       super();
       this.args = {
-        player: new AccountAddress(addressFromAny(player)),
+        player: new AccountAddress(addressBytes(player)),
         game_address: new MoveVector(game_address.map(argA => new U8(argA))),
         action: new MoveVector(action.map(argA => new U8(argA))),
       }
@@ -207,7 +196,7 @@ export namespace TournamentManager {
   }
 
   export class InitializeTournament extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "tournament_manager";
     public readonly functionName = "initialize_tournament";
     public readonly args: InitializeTournamentSerializableArgs;
@@ -254,7 +243,7 @@ export namespace TournamentManager {
   }
 
   export class JoinTournament extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "tournament_manager";
     public readonly functionName = "join_tournament";
     public readonly args: JoinTournamentSerializableArgs;
@@ -265,7 +254,7 @@ export namespace TournamentManager {
     ) {
       super();
       this.args = {
-        player: new AccountAddress(addressFromAny(player)),
+        player: new AccountAddress(addressBytes(player)),
         tournament_address: new MoveString(tournament_address),
       }
     }
@@ -296,7 +285,7 @@ export namespace TournamentManager {
   }
 
   export class StartNewRound extends Serializable {
-    public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
+    public readonly moduleAddress = AccountAddress.from("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44");
     public readonly moduleName = "tournament_manager";
     public readonly functionName = "start_new_round";
     public readonly args: StartNewRoundSerializableArgs;
@@ -306,7 +295,7 @@ export namespace TournamentManager {
     ) {
       super();
       this.args = {
-        tournament_creator: new AccountAddress(addressFromAny(tournament_creator)),
+        tournament_creator: new AccountAddress(addressBytes(tournament_creator)),
       }
     }
 
