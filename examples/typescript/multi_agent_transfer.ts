@@ -45,6 +45,16 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
   return amount;
 };
 
+const sleep = async (timeMs: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, timeMs);
+  });
+
+const CREATE_OBJECT_SCRIPT =
+  "0xa11ceb0b060000000601000402040403080a051209071b3608512000000001000302000102000200000402030001060c000105010800066f626a656374067369676e65720a616464726573735f6f660e436f6e7374727563746f725265660d6372656174655f6f626a6563740000000000000000000000000000000000000000000000000000000000000001000001050b00110011010102";
+const TRANSFER_SCRIPT =
+  "0xa11ceb0b060000000701000602060a031017042706052d2d075a4b08a5012000000001000201030701000101040800020503040000060602010001070408010801060902010801050207030704060c060c0503010b000108010001060c010501090003060c0503010801010b0001090003060c0b000109000504636f696e066f626a656374067369676e6572064f626a6563740a4f626a656374436f72650a616464726573735f6f66087472616e7366657211616464726573735f746f5f6f626a6563740000000000000000000000000000000000000000000000000000000000000001010000010e0a010a0011000b0338000b0238010c040b000b040b011100380202";
+
 const example = async () => {
   console.log(
     "This example will create two accounts (Alice and Bob), fund them, create an object, and transfer the object between them using move scripts and a multi-agent transaction.",
@@ -92,7 +102,6 @@ const example = async () => {
   const createObject = await aptos.generateTransaction({
     sender: alice.accountAddress.toUint8Array(),
     data: {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       bytecode: CREATE_OBJECT_SCRIPT,
       functionArguments: [],
     },
@@ -110,7 +119,6 @@ const example = async () => {
     sender: alice.accountAddress.toUint8Array(),
     secondarySignerAddresses: [bob.accountAddress.toUint8Array()],
     data: {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       bytecode: TRANSFER_SCRIPT,
       typeArguments: [parseTypeTag(APTOS_COIN)],
       functionArguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
@@ -126,17 +134,17 @@ const example = async () => {
   const pendingTransferTxn = await aptos.submitTransaction({
     transaction: transferTxn,
     senderAuthenticator: aliceSignature,
-    secondarySignerAuthenticators: {
-      additionalSignersAuthenticators: [bobSignature],
-    },
+    additionalSignersAuthenticators: [bobSignature],
   });
   await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
+  // TODO: There's some indexer consistency issue to be improved here
+  await sleep(200);
+
   const bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress.toUint8Array() });
 
-  // TODO: Fix the bytecode on the script, object isn't being transferred correctly
-  if (bobObjectsAfter[0].object_address !== objectAddress) {
-    throw new Error(`Failed to transfer object ${objectAddress}`);
+  if (bobObjectsAfter.find((object) => object.object_address === objectAddress) === undefined) {
+    throw new Error(`Failed to transfer object to bob ${objectAddress}`);
   }
 
   console.log("Transferred object in txn: ", pendingTransferTxn.hash);
@@ -151,8 +159,3 @@ const example = async () => {
 };
 
 example();
-
-const CREATE_OBJECT_SCRIPT =
-  "a11ceb0b060000000601000402040403080a051209071b3608512000000001000302000102000200000402030001060c000105010800066f626a656374067369676e65720a616464726573735f6f660e436f6e7374727563746f725265660d6372656174655f6f626a6563740000000000000000000000000000000000000000000000000000000000000001000001050b00110011010102";
-const TRANSFER_SCRIPT =
-  "a11ceb0b060000000701000602060a031017042706052d2d075a4b08a5012000000001000201030701000101040800020503040000060602010001070408010801060902010801050207030704060c060c0503010b000108010001060c010501090003060c0503010801010b0001090003060c0b000109000504636f696e066f626a656374067369676e6572064f626a6563740a4f626a656374436f72650a616464726573735f6f66087472616e7366657211616464726573735f746f5f6f626a6563740000000000000000000000000000000000000000000000000000000000000001010000010e0a010a0011000b0338000b0238010c040b000b040b011100380202";
