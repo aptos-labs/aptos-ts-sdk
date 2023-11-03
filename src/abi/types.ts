@@ -76,3 +76,13 @@ export const BCSClassesTypes = {
   TypeTagStruct,
   AccountAuthenticator,
 };
+
+export type ABIGeneratedCode = {
+  address: string;
+  name: string;
+  code: string;
+};
+
+export type ABIGeneratedCodeMap = Record<string, ABIGeneratedCode>;
+
+export type MoveObject = AccountAddress;

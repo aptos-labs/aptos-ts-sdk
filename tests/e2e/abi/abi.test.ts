@@ -1,21 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { Account, AccountAddress, Aptos, AptosConfig, Hex, MoveString, Network } from "../../../src";
 import {
-  Account,
-  AccountAddress,
-  Aptos,
-  AptosConfig,
-  EntryFunction,
-  Hex,
-  Identifier,
-  ModuleId,
-  MoveString,
-  MoveVector,
-  Network,
-  TransactionPayloadEntryFunction,
-} from "../../../src";
-import { fetchABIs } from "../../../src/abi/abi-gen";
+  fetchABIs,
+  writeGeneratedCodeToFiles,
+} from "../../../generated/0xfc61b067f2ac61afd82f78d3854e8016de6e747602e0dba6814862b48441bd1d/abi-gen";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import * as AptosFramework from "../../../src/abi/0x1";
@@ -27,14 +17,28 @@ import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 jest.setTimeout(15000);
 
 describe("abi test", () => {
-  it("parses abis correctly", async () => {
+  it.only("parses abis correctly", async () => {
     const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
     const account = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
     await publishArgumentTestModule(aptos, account);
-    const moduleABIs = await fetchABIs(aptos, account.accountAddress);
+    const myModuleABIs = await fetchABIs(aptos, account.accountAddress);
+    const frameworkModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x1"));
+    const tokenModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x3"));
+    const tokenObjectsModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x4"));
+    console.log(tokenObjectsModuleABIs);
+    const aptosTestnet = new Aptos(new AptosConfig({ network: Network.LOCAL }));
+    const tournamentModuleABIs = await fetchABIs(
+      aptosTestnet,
+      AccountAddress.fromRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451"),
+    );
+
     // eslint-disable-next-line no-console
-    console.log(moduleABIs.join("\n\n"));
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', myModuleABIs);
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', frameworkModuleABIs);
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tokenModuleABIs);
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tokenObjectsModuleABIs);
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tournamentModuleABIs);
   });
 
   it("parses tournament abis correctly", async () => {
@@ -44,7 +48,7 @@ describe("abi test", () => {
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
-    console.log(moduleABIs.join("\n\n"));
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
   });
 
   it.only("parses 0x1 module abis correctly", async () => {
@@ -52,39 +56,34 @@ describe("abi test", () => {
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
-    console.log(moduleABIs.join("\n\n"));
+    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const coinTransferPayload = new AptosFramework.Coin.Transfer({
-      arg_0: Account.generate().accountAddress,
-      arg_1: 1000n,
-    });
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const coinTransferPayload = new AptosFramework.Coin.Transfer(
+    //   Account.generate().accountAddress,
+    //   1000n,
+    // );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const publishPackagePayload = new AptosFramework.Code.PublishPackageTxn({
-      arg_0: Array.from(new Uint8Array()),
-      arg_1: new Array(Array.from(new Uint8Array())),
-    });
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const publishPackagePayload = new AptosFramework.Code.PublishPackageTxn(
+    //   new Uint8Array(),
+    //   new Array(new Uint8Array()),
+    // );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const transferCallPayload = new AptosFramework.Object$1.TransferCall({
-      arg_0: Account.generate().accountAddress,
-      arg_1: Account.generate().accountAddress,
-    });
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const transferCallPayload = new AptosFramework.Object$1.TransferCall(
+    //   Account.generate().accountAddress,
+    //   Account.generate().accountAddress,
+    // );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const batchTransferPayload = new AptosFramework.AptosAccount.BatchTransferCoins({
-      arg_0: [Account.generate().accountAddress],
-      arg_1: [1000n],
-    });
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const batchTransferPayload = new AptosFramework.AptosAccount.BatchTransferCoins(
+    //   [Account.generate().accountAddress],
+    //   [1000n],
+    // );
 
-    const payload1 = new AptosFramework.AptosAccount.BatchTransferCoins({
-      arg_0: [Account.generate().accountAddress],
-      arg_1: [1000n],
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const batchTransferPayloadSerialized = batchTransferPayload.bcsToBytes();
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const batchTransferPayloadSerialized = batchTransferPayload.bcsToBytes();
   });
 
   it("tests rock paper scissors commands", async () => {
