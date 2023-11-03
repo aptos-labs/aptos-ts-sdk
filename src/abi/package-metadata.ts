@@ -48,12 +48,14 @@ export async function getSourceCodeMap(accountAddress: AccountAddress, network: 
 }
 
 export function extractSignature(functionName: string, sourceCode: string) {
-  const regex = new RegExp(`${functionName}\\s*\\(([^)]*)\\)`, 'm');
+  // find the function signature in the source code
+  const regex = new RegExp(`${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, 'm');
   const match = sourceCode.match(regex);
-  return match ? match[1].trim() : null;
+  return match ? match[2].trim() : null;
 }
 
 export function extractArguments(functionSignature: string): ArgumentNamesWithTypes[] {
+  // parsing argument names
   const regex = /([\w_\d]+):\s*(&?[\w_\d]+)/g;
   let match;
   const argumentsList = [];

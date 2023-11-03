@@ -15,7 +15,7 @@ import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 jest.setTimeout(15000);
 
 describe("abi test", () => {
-  it("parses abis correctly", async () => {
+  it.only("parses abis correctly", async () => {
     const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
     const account = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
