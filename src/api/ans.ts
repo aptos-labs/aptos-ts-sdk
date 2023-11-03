@@ -20,12 +20,11 @@ export class ANS {
    * Retrieve the owner address of a domain name or subdomain name.
    *
    * ```ts
-   * getOwnerAddress({domainName: "aptos", subdomainName: "test"})
+   * getOwnerAddress({name: "test.aptos"})
    * // Will return the owner address of "test.aptos.apt" or undefined
    * ```
    *
-   * @param args.domainName - A string of the domain name to retrieve
-   * @param args.subdomainName - A string of the subdomain name to retrieve
+   * @param args.name - A string of the name to retrieve
    *
    * @returns MoveAddressType if the name is owned, undefined otherwise
    */
