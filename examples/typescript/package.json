@@ -12,7 +12,7 @@
     "custom_client": "ts-node custom_client.ts",
     "swap": "ts-node swap.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
-    "test": "run-s simple_transfer mint_nft simple_sponsored_transaction transfer_coin custom_client"
+    "test": "run-s simple_transfer mint_nft multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath"
   },
   "keywords": [],
   "author": "",
