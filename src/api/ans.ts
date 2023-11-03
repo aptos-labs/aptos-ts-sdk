@@ -77,7 +77,7 @@ export class ANS {
     sender: Account;
     name: string;
     address: HexInput;
-  }): ReturnType<typeof setTargetAddress> {
+  }): Promise<InputSingleSignerTransaction> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -113,7 +113,7 @@ export class ANS {
     sender: Account;
     name: string;
     options?: InputGenerateTransactionOptions;
-  }): ReturnType<typeof setPrimaryName> {
+  }): Promise<InputSingleSignerTransaction> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
   }
 
