@@ -4,10 +4,18 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 0.0.4 (2023-11-03)
+
+- [`Breaking`] Changed all instances of `AccountAddress.fromHexInput` to `AccountAddress.from` to accept AccountAddress as well
+- [`Fixed`] Fixed a bug where an entry function with only signers would fail due to type tag parsing
+- [`Fixed`] REST API errors now properly give error messages in JSON rather than just `BadRequest`
+- All address inputs now also accept AccountAddress
 - Support derive account from private key `Account.fromPrivateKey()`
 - Derive account from derivation path secp256k1 support
 - Default Account generation to Legacy Ed25519
 - Remove unnecessary pre-emptive serialization of the field `rawTransaction: Uint8Array` by replacing it with the unserialized `rawTransaction: RawTransaction` class
+- ANS (Aptos Names Service) SDK initial support for creation and lookup of names
+- Initial Auth key rotation support
 
 ## 0.0.3 (2023-10-31)
 
@@ -18,7 +26,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Added toString() for type tags, and reference placeholder type
 - Add ability to generate transactions with known ABI and remote ABI
 - Fix verify signature logic
-- Implement `MultiKey`support for multi authentication key
+- Implement `MultiKey` support for multi authentication key
 
 ## 0.0.2 (2023-10-25)
 
