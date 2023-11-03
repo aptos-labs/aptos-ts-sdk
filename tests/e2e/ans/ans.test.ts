@@ -228,6 +228,95 @@ describe("ANS", () => {
     });
   });
 
+  describe("setTargetAddress and getTargetAddress", () => {
+    let alice: Account;
+    let bob: Account;
+    let domainName: string;
+    let subdomainName: string;
+    let addr: string | undefined;
+
+    beforeEach(async () => {
+      alice = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      bob = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: bob.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      domainName = randomString();
+      subdomainName = randomString();
+    });
+
+    test("it sets and gets the target address for a tld", async () => {
+      const name = domainName;
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+          targetAddress: alice.accountAddress.toString(),
+          toAddress: alice.accountAddress.toString(),
+        }),
+      );
+
+      addr = await aptos.getTargetAddress({ name });
+      expect(addr).toEqual(alice.accountAddress.toString());
+
+      await signAndSubmit(
+        alice,
+        await aptos.setTargetAddress({
+          name,
+          address: bob.accountAddress.toString(),
+          sender: alice,
+        }),
+      );
+      addr = await aptos.getTargetAddress({ name });
+      expect(addr).toEqual(bob.accountAddress.toString());
+    });
+
+    test("it sets and gets the target address for a subdomain", async () => {
+      const name = `${subdomainName}.${domainName}`;
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: domainName,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name,
+          expiration: { policy: "subdomain:follow-domain" },
+          sender: alice,
+        }),
+      );
+
+      addr = await aptos.getTargetAddress({ name });
+      expect(addr).toEqual(alice.accountAddress.toString());
+
+      await signAndSubmit(
+        alice,
+        await aptos.setTargetAddress({
+          name,
+          address: bob.accountAddress.toString(),
+          sender: alice,
+        }),
+      );
+      addr = await aptos.getTargetAddress({ name });
+      expect(addr).toEqual(bob.accountAddress.toString());
+    });
+  });
 
   describe("setPrimaryName and getPrimaryName", () => {
     test("it returns null if no primary name is set", async () => {
