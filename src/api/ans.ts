@@ -9,6 +9,8 @@ import {
   registerName,
   getPrimaryName,
   setPrimaryName,
+  getTargetAddress,
+  setTargetAddress,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { HexInput, MoveAddressType } from "../types";
@@ -41,7 +43,53 @@ export class ANS {
   }
 
   /**
-   * Retrieve the primary name for an account address.
+   * Retrieve the expiration time of a domain name or subdomain name.
+   *
+   * @param args.domainName - A string of the domain name to retrieve
+   * @param args.subdomainName - A string of the subdomain name to retrieve
+   *
+   * @returns number as a unix timestamp in seconds.
+   */
+  async getExpiration(args: { name: string }): ReturnType<typeof getExpiration> {
+    return getExpiration({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Retrieve the expiration time of a domain name or subdomain name.
+   *
+   * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
+   *
+   * @returns MoveAddressType if the name has a target, undefined otherwise
+   */
+  async getTargetAddress(args: { name: string }): ReturnType<typeof getTargetAddress> {
+    return getTargetAddress({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Sets the target address for a domain name or subdomain name.
+   *
+   * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
+   * @param args.address - A HexInput of the address to set the domain or subdomain to
+   *
+   * @returns SingleSignerTransaction
+   */
+  async setTargetAddress(args: {
+    sender: Account;
+    name: string;
+    address: HexInput;
+  }): ReturnType<typeof setTargetAddress> {
+    return setTargetAddress({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Retrieve the primary name for an account address. Note, with the recent migration from
+   * ANS v1 to ANS v2, it is possible for an account to have two primary names, one for each version.
+   *
+   * For example, if the account address `0x1` has the primary name `aptos` in ANS v1 and `test` in ANS v2,
+   * this function will return `{v1: "aptos", v2: "test"}`.
+   *
+   * Similarly, if the account has a subdomain as their primary name in v2 without a primary name in v1
+   * (e.g. `test.aptos.apt`), this function will return `{v2: "test.aptos"}`.
    *
    * @param args.address - A HexInput (address) of the account
    *
@@ -67,18 +115,6 @@ export class ANS {
     options?: InputGenerateTransactionOptions;
   }): ReturnType<typeof setPrimaryName> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * Retrieve the expiration time of a domain name or subdomain name.
-   *
-   * @param args.domainName - A string of the domain name to retrieve
-   * @param args.subdomainName - A string of the subdomain name to retrieve
-   *
-   * @returns number as a unix timestamp in seconds.
-   */
-  async getExpiration(args: { domainName: string; subdomainName?: string }): ReturnType<typeof getExpiration> {
-    return getExpiration({ aptosConfig: this.config, ...args });
   }
 
   /**

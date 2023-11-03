@@ -176,7 +176,7 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
   }
 
-  let tldExpiration = await getExpiration({ aptosConfig, domainName });
+  let tldExpiration = await getExpiration({ aptosConfig, name: domainName });
   if (!tldExpiration) {
     throw new Error("The domain does not exist");
   }
@@ -211,13 +211,10 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
   return transaction as InputSingleSignerTransaction;
 }
 
-export async function getExpiration(args: {
-  aptosConfig: AptosConfig;
-  domainName: string;
-  subdomainName?: string;
-}): Promise<number | undefined> {
-  const { aptosConfig, domainName, subdomainName } = args;
+export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
+  const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
+  const { domainName, subdomainName } = isValidANSName(name);
 
   try {
     const res = await view({
@@ -275,6 +272,54 @@ export async function setPrimaryName(args: {
       functionArguments: [
         new MoveString(domainName),
         new MoveOption(subdomainName ? new MoveString(subdomainName) : null),
+      ],
+    },
+    options,
+  });
+
+  return transaction as InputSingleSignerTransaction;
+}
+
+export async function getTargetAddress(args: {
+  aptosConfig: AptosConfig;
+  name: string;
+}): Promise<MoveAddressType | undefined> {
+  const { aptosConfig, name } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+  const { domainName, subdomainName } = isValidANSName(name);
+
+  const res = await view({
+    aptosConfig,
+    payload: {
+      function: `${routerAddress}::router::get_target_addr`,
+      functionArguments: [domainName, Option(subdomainName)],
+    },
+  });
+
+  const target = unwrapOption<MoveAddressType>(res[0]);
+  return target ? AccountAddress.fromRelaxed(target).toString() : undefined;
+}
+
+export async function setTargetAddress(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  name: string;
+  address: HexInput;
+  options?: InputGenerateTransactionOptions;
+}): Promise<InputSingleSignerTransaction> {
+  const { aptosConfig, sender, name, address, options } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+  const { domainName, subdomainName } = isValidANSName(name);
+
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress.toString(),
+    data: {
+      function: `${routerAddress}::router::set_target_addr`,
+      functionArguments: [
+        new MoveString(domainName),
+        new MoveOption(subdomainName ? new MoveString(subdomainName) : null),
+        AccountAddress.fromRelaxed(address),
       ],
     },
     options,
