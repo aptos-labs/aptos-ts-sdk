@@ -14,7 +14,6 @@ import {
   U64,
   U8,
   Bool,
-  EntryFunctionPayloadBuilder,
   AccountAddressInput,
   HexInput,
   Uint8,
