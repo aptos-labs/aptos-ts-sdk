@@ -116,18 +116,39 @@ export const rawTransactionMultiAgentHelper = async (
   secondarySignerAccounts: Array<Account>,
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
-  const hasFeePayer = feePayerAccount !== undefined ? true : undefined;
-
-  const transactionData: InputGenerateTransactionData = {
-    sender: senderAccount.accountAddress.toString(),
-    hasFeePayer,
-    data: {
-      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
-      typeArguments: typeArgs,
-      functionArguments: args,
-    },
-    secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
-  };
+  let transactionData: InputGenerateTransactionData;
+  // Fee payer
+  if (feePayerAccount) {
+    transactionData = {
+      sender: senderAccount.accountAddress.toString(),
+      data: {
+        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        typeArguments: typeArgs,
+        functionArguments: args,
+      },
+      secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
+      hasFeePayer: true,
+    };
+  } else if (secondarySignerAccounts) {
+    transactionData = {
+      sender: senderAccount.accountAddress.toString(),
+      data: {
+        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        typeArguments: typeArgs,
+        functionArguments: args,
+      },
+      secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
+    };
+  } else {
+    transactionData = {
+      sender: senderAccount.accountAddress.toString(),
+      data: {
+        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        typeArguments: typeArgs,
+        functionArguments: args,
+      },
+    };
+  }
 
   const generatedTransaction = await aptos.generateTransaction(transactionData);
 

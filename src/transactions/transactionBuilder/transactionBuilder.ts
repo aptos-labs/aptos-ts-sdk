@@ -86,9 +86,7 @@ import { getFunctionParts, isScriptDataInput } from "./helpers";
  * When we call our `generateTransactionPayload` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
  */
-export async function generateTransactionPayload(
-  args: InputScriptData & { aptosConfig?: undefined },
-): Promise<TransactionPayloadScript>;
+export async function generateTransactionPayload(args: InputScriptData): Promise<TransactionPayloadScript>;
 export async function generateTransactionPayload(
   args: InputEntryFunctionDataWithRemoteABI,
 ): Promise<TransactionPayloadEntryFunction>;
@@ -290,7 +288,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * ```
  */
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, payload, options, secondarySignerAddresses, feePayerAddress } = args;
+  const { aptosConfig, sender, payload, options } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
     aptosConfig,
@@ -299,20 +297,21 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     options,
   });
 
-  if (feePayerAddress) {
-    const signers: Array<AccountAddress> = secondarySignerAddresses
-      ? secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer))
-      : [];
+  if ("feePayerAddress" in args) {
+    const signers: Array<AccountAddress> =
+      args.secondarySignerAddresses?.map((signer) => AccountAddress.fromRelaxed(signer)) ?? [];
 
     return {
       rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
-      feePayerAddress: AccountAddress.fromRelaxed(feePayerAddress),
+      feePayerAddress:
+        args?.feePayerAddress !== undefined ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
     };
   }
 
-  if (secondarySignerAddresses) {
-    const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer));
+  if ("secondarySignerAddresses" in args) {
+    const signers: Array<AccountAddress> =
+      args.secondarySignerAddresses?.map((signer) => AccountAddress.fromRelaxed(signer)) ?? [];
 
     return {
       rawTransaction: rawTxn,
@@ -342,7 +341,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 
   const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
   // fee payer transaction
-  if (transaction.feePayerAddress) {
+  if ("feePayerAddress" in transaction) {
     const transactionToSign = new FeePayerRawTransaction(
       deserializedTransaction,
       transaction.secondarySignerAddresses ?? [],
@@ -371,7 +370,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   }
 
   // multi agent transaction
-  if (transaction.secondarySignerAddresses) {
+  if ("secondarySignerAddresses" in transaction) {
     const transactionToSign = new MultiAgentRawTransaction(
       deserializedTransaction,
       transaction.secondarySignerAddresses,
@@ -515,14 +514,14 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  if (transaction.feePayerAddress) {
+  if ("feePayerAddress" in transaction) {
     return new FeePayerRawTransaction(
       transaction.rawTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
   }
-  if (transaction.secondarySignerAddresses) {
+  if ("secondarySignerAddresses" in transaction) {
     return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
   }
 
