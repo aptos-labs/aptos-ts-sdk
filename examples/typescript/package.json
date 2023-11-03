@@ -2,7 +2,7 @@
   "name": "ts-test",
   "version": "1.0.0",
   "description": "",
-  "main": "transfer.ts",
+  "main": "simple_transfer.ts",
   "scripts": {
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_transfer": "ts-node simple_transfer.ts",

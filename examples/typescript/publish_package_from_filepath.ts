@@ -14,13 +14,9 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { createInterface } from "readline";
+import { execSync } from "child_process";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
-const readline = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 /** run our demo! */
 async function main() {
@@ -34,17 +30,12 @@ async function main() {
 
   await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 100_000_000 });
 
-  await new Promise<void>((resolve) => {
-    readline.question(
-      `Open a new terminal and use this address to compile the move package
-      "aptos move build-publish-payload --json-output-file facoin/facoin.json --package-dir facoin --named-addresses FACoin=aliceAddress"
-      Compile and press Enter`,
-      () => {
-        resolve();
-        readline.close();
-      },
-    );
-  });
+  // Please ensure you have the aptos CLI installed
+  console.log("\n=== Compiling the package locally ===");
+  const compileCommand = `aptos move build-publish-payload --json-output-file facoin/facoin.json --package-dir facoin --named-addresses FACoin=${alice.accountAddress.toString()} --assume-yes`;
+  console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");
+  console.log(compileCommand);
+  execSync(compileCommand);
 
   // current working directory - the root folder of this repo
   const cwd = process.cwd();
@@ -56,7 +47,7 @@ async function main() {
   const metadataBytes = jsonData.args[0].value;
   const byteCode = jsonData.args[1].value;
 
-  console.log("Publishing FAcoin package.");
+  console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
     account: alice.accountAddress.toString(),
     metadataBytes,
@@ -66,10 +57,12 @@ async function main() {
     signer: alice,
     transaction,
   });
-  console.log(response.hash);
+  console.log(`Transaction hash: ${response.hash}`);
   await aptos.waitForTransaction({
     transactionHash: response.hash,
   });
+
+  console.log("\n===Checking modules onchain===");
   const accountModules = await aptos.getAccountModules({
     accountAddress: alice.accountAddress.toString(),
   });
@@ -79,6 +72,7 @@ async function main() {
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode
   assert(accountModules[1].bytecode === `${Hex.fromHexInput(byteCode[1]).toString()}`);
+  console.log("Modules onchain check passed");
 }
 
 if (require.main === module) {
