@@ -36,7 +36,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
   type Coin = { coin: { value: string } };
   const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address.toUint8Array(),
+    accountAddress: address,
     resourceType: COIN_STORE,
   });
   const amount = Number(resource.coin.value);
@@ -69,20 +69,20 @@ const example = async () => {
   const bob = Account.generate();
 
   console.log("=== Addresses ===\n");
-  console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
-  console.log(`Bob's address is: ${bob.accountAddress.toString()}`);
+  console.log(`Alice's address is: ${alice.accountAddress}`);
+  console.log(`Bob's address is: ${bob.accountAddress}`);
 
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
   const aliceFundTxn = await aptos.faucet.fundAccount({
-    accountAddress: alice.accountAddress.toUint8Array(),
+    accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
 
   const bobFundTxn = await aptos.faucet.fundAccount({
-    accountAddress: bob.accountAddress.toUint8Array(),
+    accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });
   console.log("Bob's fund transaction: ", bobFundTxn);
@@ -100,7 +100,7 @@ const example = async () => {
   // Create the object
   console.log("\n=== Create an object owned by Alice ===\n");
   const createObject = await aptos.generateTransaction({
-    sender: alice.accountAddress.toUint8Array(),
+    sender: alice.accountAddress,
     data: {
       bytecode: CREATE_OBJECT_SCRIPT,
       functionArguments: [],
@@ -109,15 +109,15 @@ const example = async () => {
   const pendingObjectTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: createObject });
   await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
-  const objects = await aptos.getAccountOwnedObjects({ accountAddress: alice.accountAddress.toUint8Array() });
+  const objects = await aptos.getAccountOwnedObjects({ accountAddress: alice.accountAddress });
   const objectAddress = objects[0].object_address;
 
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
 
   console.log("\n=== Transfer object ownership to Bob ===\n");
   const transferTxn = await aptos.generateTransaction({
-    sender: alice.accountAddress.toUint8Array(),
-    secondarySignerAddresses: [bob.accountAddress.toUint8Array()],
+    sender: alice.accountAddress,
+    secondarySignerAddresses: [bob.accountAddress],
     data: {
       bytecode: TRANSFER_SCRIPT,
       typeArguments: [parseTypeTag(APTOS_COIN)],
@@ -141,7 +141,7 @@ const example = async () => {
   // TODO: There's some indexer consistency issue to be improved here
   await sleep(200);
 
-  const bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress.toUint8Array() });
+  const bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress });
 
   if (bobObjectsAfter.find((object) => object.object_address === objectAddress) === undefined) {
     throw new Error(`Failed to transfer object to bob ${objectAddress}`);

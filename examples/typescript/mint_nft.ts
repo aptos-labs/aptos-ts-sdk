@@ -6,7 +6,7 @@
  */
 
 import "dotenv";
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddressInput, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 
@@ -21,7 +21,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
  * @returns {Promise<*>}
  *
  */
-const accountTokens = async (aptos: Aptos, name: string, accountAddress: string) => {
+const accountTokens = async (aptos: Aptos, name: string, accountAddress: AccountAddressInput) => {
   const tokens = await aptos.getOwnedTokens({ ownerAddress: accountAddress });
 
   if (tokens.length === 0) {
@@ -51,13 +51,13 @@ const example = async () => {
   const alice = Account.generate();
 
   console.log("=== Addresses ===\n");
-  console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
+  console.log(`Alice's address is: ${alice.accountAddress}`);
 
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
   const aliceFundTxn = await aptos.faucet.fundAccount({
-    accountAddress: alice.accountAddress.toUint8Array(),
+    accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
@@ -83,11 +83,11 @@ const example = async () => {
   console.log("Created collection:");
   const exampleCollection = await aptos.getCollectionData({
     collectionName,
-    creatorAddress: alice.accountAddress.toString(),
+    creatorAddress: alice.accountAddress,
   });
   console.log(exampleCollection);
 
-  await accountTokens(aptos, "Alice", alice.accountAddress.toString());
+  await accountTokens(aptos, "Alice", alice.accountAddress);
 
   const tokenName = "Example Token";
   const tokenDescription = "Example token description.";
@@ -107,7 +107,7 @@ const example = async () => {
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
 
-  await accountTokens(aptos, "Alice", alice.accountAddress.toString());
+  await accountTokens(aptos, "Alice", alice.accountAddress);
 };
 
 example();
