@@ -26,6 +26,7 @@ import {
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject } from "../../src/abi/types";
+import { EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilder";
 
 export namespace TournamentManager {
   // let tournament_creator: AccountAuthenticator | undefined; // &signer
