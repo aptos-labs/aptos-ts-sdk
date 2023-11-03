@@ -30,9 +30,9 @@ const example = async () => {
   const sponsor = Account.generate();
 
   // Variables to hold Alice and sponsor accounts address
-  const aliceAddress = alice.accountAddress.toString();
-  const bobAddress = bob.accountAddress.toString();
-  const sponsorAddress = sponsor.accountAddress.toString();
+  const aliceAddress = alice.accountAddress;
+  const bobAddress = bob.accountAddress;
+  const sponsorAddress = sponsor.accountAddress;
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${aliceAddress}`);
@@ -40,8 +40,8 @@ const example = async () => {
   console.log(`Sponsor's address is: ${sponsorAddress}`);
 
   // Fund Alice and sponsor accounts
-  await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: ALICE_INITIAL_BALANCE });
-  await aptos.fundAccount({ accountAddress: sponsor.accountAddress.toString(), amount: SPONSOR_INITIAL_BALANCE });
+  await aptos.fundAccount({ accountAddress: aliceAddress, amount: ALICE_INITIAL_BALANCE });
+  await aptos.fundAccount({ accountAddress: sponsorAddress, amount: SPONSOR_INITIAL_BALANCE });
 
   // Show account balances
   const aliceBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });

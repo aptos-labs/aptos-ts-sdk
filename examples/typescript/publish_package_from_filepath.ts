@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 import { execSync } from "child_process";
+import { compilePackage } from "./utils";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
@@ -26,16 +27,13 @@ async function main() {
   const alice = Account.generate();
 
   console.log("\n=== Addresses ===");
-  console.log(`Alice: ${alice.accountAddress.toString()}`);
+  console.log(`Alice: ${alice.accountAddress}`);
 
-  await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");
-  const compileCommand = `aptos move build-publish-payload --json-output-file facoin/facoin.json --package-dir facoin --named-addresses FACoin=${alice.accountAddress.toString()} --assume-yes`;
-  console.log("Running the compilation locally, in a real situation you may want to compile this ahead of time.");
-  console.log(compileCommand);
-  execSync(compileCommand);
+  compilePackage("facoin", "facoin/facoin.json", [{name: "FACoin", address: alice.accountAddress}]);
 
   // current working directory - the root folder of this repo
   const cwd = process.cwd();
@@ -49,7 +47,7 @@ async function main() {
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
-    account: alice.accountAddress.toString(),
+    account: alice.accountAddress,
     metadataBytes,
     moduleBytecode: byteCode,
   });
@@ -64,7 +62,7 @@ async function main() {
 
   console.log("\n===Checking modules onchain===");
   const accountModules = await aptos.getAccountModules({
-    accountAddress: alice.accountAddress.toString(),
+    accountAddress: alice.accountAddress,
   });
   // published 2 modules
   assert(accountModules.length === 2);

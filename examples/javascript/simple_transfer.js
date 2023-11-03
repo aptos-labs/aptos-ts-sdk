@@ -27,7 +27,6 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
  * @param address
  * @returns {Promise<*>}
  *
- * TODO: Change to AccountAddress for address
  */
 const balance = async (sdk, name, address) => {
   let balance = await sdk.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
@@ -50,35 +49,35 @@ const example = async () => {
   let bob = Account.generate({ scheme: 0 });
 
   console.log("=== Addresses ===\n");
-  console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
-  console.log(`Bob's address is: ${bob.accountAddress.toString()}`);
+  console.log(`Alice's address is: ${alice.accountAddress}`);
+  console.log(`Bob's address is: ${bob.accountAddress}`);
 
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
   const aliceFundTxn = await sdk.fundAccount({
-    accountAddress: alice.accountAddress.toUint8Array(),
+    accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
 
   const bobFundTxn = await sdk.fundAccount({
-    accountAddress: bob.accountAddress.toUint8Array(),
+    accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });
   console.log("Bob's fund transaction: ", bobFundTxn);
 
   // Show the balances
   console.log("\n=== Balances ===\n");
-  let aliceBalance = await balance(sdk, "Alice", alice.accountAddress.toUint8Array());
-  let bobBalance = await balance(sdk, "Bob", bob.accountAddress.toUint8Array());
+  let aliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  let bobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
   const txn = await sdk.generateTransaction({
-    sender: alice.accountAddress.toString(),
+    sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [parseTypeTag(APTOS_COIN)],
@@ -92,8 +91,8 @@ const example = async () => {
   await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
-  let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress.toUint8Array());
-  let newBobBalance = await balance(sdk, "Bob", bob.accountAddress.toUint8Array());
+  let newAliceBalance = await balance(sdk, "Alice", alice.accountAddress);
+  let newBobBalance = await balance(sdk, "Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (newBobBalance !== TRANSFER_AMOUNT + BOB_INITIAL_BALANCE)
