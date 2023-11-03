@@ -234,7 +234,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
 export async function getPrimaryName(args: {
   aptosConfig: AptosConfig;
   address: HexInput;
-}): Promise<null | { domainName: MoveAddressType; subdomainName?: MoveAddressType }> {
+}): Promise<string | undefined> {
   const { aptosConfig, address } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
@@ -249,9 +249,9 @@ export async function getPrimaryName(args: {
   const domainName = unwrapOption<MoveAddressType>(res[1]);
   const subdomainName = unwrapOption<MoveAddressType>(res[0]);
 
-  if (!domainName) return null;
+  if (!domainName) return undefined;
 
-  return { domainName, subdomainName };
+  return [subdomainName, domainName].filter(Boolean).join(".");
 }
 
 export async function setPrimaryName(args: {

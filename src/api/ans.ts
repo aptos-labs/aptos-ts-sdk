@@ -82,20 +82,11 @@ export class ANS {
   }
 
   /**
-   * Retrieve the primary name for an account address. Note, with the recent migration from
-   * ANS v1 to ANS v2, it is possible for an account to have two primary names, one for each version.
-   *
-   * For example, if the account address `0x1` has the primary name `aptos` in ANS v1 and `test` in ANS v2,
-   * this function will return `{v1: "aptos", v2: "test"}`.
-   *
-   * Similarly, if the account has a subdomain as their primary name in v2 without a primary name in v1
-   * (e.g. `test.aptos.apt`), this function will return `{v2: "test.aptos"}`.
+   * Retrieve the primary name for an account address.
    *
    * @param args.address - A HexInput (address) of the account
    *
-   * @returns null if no primary name is set
-   * and an object {domainName: string, subdomainName?: string} if a primary name is set
-   *
+   * @returns a string if the account has a primary name, undefined otherwise
    */
   async getPrimaryName(args: { address: HexInput }): ReturnType<typeof getPrimaryName> {
     return getPrimaryName({ aptosConfig: this.config, ...args });
