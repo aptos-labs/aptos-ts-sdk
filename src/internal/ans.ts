@@ -113,7 +113,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner;
+  return owner ? AccountAddress.fromRelaxed(owner).toString() : undefined;
 }
 
 export interface RegisterNameParameters {
