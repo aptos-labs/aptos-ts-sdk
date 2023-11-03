@@ -2,8 +2,16 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-const aptos = require("@aptos-labs/ts-sdk");
-const { NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
+const {
+  Account,
+  Aptos,
+  AptosConfig,
+  parseTypeTag,
+  NetworkToNetworkName,
+  Network,
+  AccountAddress,
+  U64,
+} = require("@aptos-labs/ts-sdk");
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
@@ -24,7 +32,7 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
 const balance = async (sdk, name, address) => {
   let balance = await sdk.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
 
-  let amount = Number(balance.data.coin.value);
+  let amount = Number(balance.coin.value);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
@@ -34,12 +42,12 @@ const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
   // Setup the client
-  const config = new aptos.AptosConfig({ network: APTOS_NETWORK });
-  const sdk = new aptos.Aptos(config);
+  const config = new AptosConfig({ network: APTOS_NETWORK });
+  const sdk = new Aptos(config);
 
   // Create two accounts
-  let alice = aptos.Account.generate({ scheme: 0 });
-  let bob = aptos.Account.generate({ scheme: 0 });
+  let alice = Account.generate({ scheme: 0 });
+  let bob = Account.generate({ scheme: 0 });
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress.toString()}`);
@@ -73,8 +81,8 @@ const example = async () => {
     sender: alice.accountAddress.toString(),
     data: {
       function: "0x1::coin::transfer",
-      typeArguments: [new aptos.TypeTagStruct(aptos.StructTag.fromString(APTOS_COIN))],
-      arguments: [aptos.AccountAddress.from(bob.accountAddress), new aptos.U64(TRANSFER_AMOUNT)],
+      typeArguments: [parseTypeTag(APTOS_COIN)],
+      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
     },
   });
 

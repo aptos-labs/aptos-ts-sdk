@@ -2,46 +2,46 @@
  * Example to submit a simple sponsored transaction where Alice transfers APT coin to Bob
  * with a sponsor account to pay for the gas fee
  */
-const aptos = require("@aptos-labs/ts-sdk");
-const { NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
+const { Account, Aptos, AptosConfig, NetworkToNetworkName, Network } = require("@aptos-labs/ts-sdk");
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 10;
+// Default to devnet, but allow for overriding
+const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
-(async () => {
+const example = async () => {
   console.log(
     "This example will create three accounts (Alice, Bob and Sponsor), fund Alice and Sponsor, transfer between Alice and Bob with sponsor to pay the gas fee.",
   );
-  const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
   // Setup the client
-  const config = new AptosConfig(APTOS_NETWORK);
-  const sdk = new aptos.Aptos(config);
+  const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
+  const aptos = new Aptos(aptosConfig);
 
   // Create three accounts
-  const alice = aptos.Account.generate();
-  const bob = aptos.Account.generate();
-  const sponsor = aptos.Account.generate();
+  const alice = Account.generate();
+  const bob = Account.generate();
+  const sponsor = Account.generate();
 
   // Variables to hold Alice and sponsor accounts address
-  const aliceAddres = alice.accountAddress.toString();
+  const aliceAddress = alice.accountAddress.toString();
   const bobAddress = bob.accountAddress.toString();
   const sponsorAddress = sponsor.accountAddress.toString();
 
   console.log("=== Addresses ===\n");
-  console.log(`Alice's address is: ${aliceAddres}`);
+  console.log(`Alice's address is: ${aliceAddress}`);
   console.log(`Bob's address is: ${bobAddress}`);
-  console.log(`sponsor's address is: ${sponsorAddress}`);
+  console.log(`Sponsor's address is: ${sponsorAddress}`);
 
   // Fund Alice and sponsor accounts
-  await sdk.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: ALICE_INITIAL_BALANCE });
-  await sdk.fundAccount({ accountAddress: sponsor.accountAddress.toString(), amount: SPONSOR_INITIAL_BALANCE });
+  await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: ALICE_INITIAL_BALANCE });
+  await aptos.fundAccount({ accountAddress: sponsor.accountAddress.toString(), amount: SPONSOR_INITIAL_BALANCE });
 
   // Show account balances
-  const aliceBalanceBefore = await sdk.getAccountCoinsData({ accountAddress: aliceAddres });
-  const sponsorBalanceBefore = await sdk.getAccountCoinsData({ accountAddress: sponsorAddress });
+  const aliceBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
+  const sponsorBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
 
   console.log("\n=== Balances ===\n");
   console.log(`Alice's balance is: ${aliceBalanceBefore[0].amount}`);
@@ -49,38 +49,42 @@ const TRANSFER_AMOUNT = 10;
   console.log(`Sponsor's balance is: ${sponsorBalanceBefore[0].amount}`);
 
   if (aliceBalanceBefore[0].amount !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
-  if (sponsorBalanceBefore[0].amount !== SPONSOR_INITIAL_BALANCE) throw new Error("Sponsor's balance is incorrect");
+  if (sponsorBalanceBefore[0].amount !== SPONSOR_INITIAL_BALANCE) throw new Error("Sponsors's balance is incorrect");
 
   // Generate a fee payer (aka sponsor) transaction
   // with Alice as the sender and sponsor as the fee payer
   console.log("\n=== Submitting Transaction ===\n");
-  const transaction = await sdk.generateTransaction({
-    sender: aliceAddres,
+  const transaction = await aptos.generateTransaction({
+    sender: aliceAddress,
     feePayerAddress: sponsorAddress,
     data: {
       function: "0x1::aptos_account::transfer",
-      arguments: [bob.accountAddress, new aptos.U64(TRANSFER_AMOUNT)],
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 
-  // Alice and sponsor to sign the transaction (order matters)
-  const senderSignature = sdk.signTransaction({ signer: alice, transaction });
-  const sponsorSignature = sdk.signTransaction({ signer: sponsor, transaction });
+  // Alice signs
+  const senderSignature = aptos.signTransaction({ signer: alice, transaction });
+
+  // Sponsor signs
+  const sponsorSignature = aptos.signTransaction({ signer: sponsor, transaction });
 
   // Submit the transaction to chain
-  const committedTxn = await sdk.submitTransaction({
+  const committedTxn = await aptos.submitTransaction({
     transaction,
     senderAuthenticator: senderSignature,
-    secondarySignerAuthenticators: { feePayerAuthenticator: sponsorSignature },
+    feePayerAuthenticator: sponsorSignature,
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  await sdk.waitForTransaction({ transactionHash: committedTxn.hash });
+  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  await sleep(500);
 
   console.log("\n=== Balances after transfer ===\n");
-  const aliceBalanceAfter = await sdk.getAccountCoinsData({ accountAddress: aliceAddres });
-  const bobBalanceAfter = await sdk.getAccountCoinsData({ accountAddress: bobAddress });
-  const sponsorBalanceAfter = await sdk.getAccountCoinsData({ accountAddress: sponsorAddress });
+  const aliceBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
+  const bobBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: bobAddress });
+  const sponsorBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
 
   // Bob should have the transfer amount
   if (bobBalanceAfter[0].amount !== TRANSFER_AMOUNT) throw new Error("Bob's balance after transfer is incorrect");
@@ -89,11 +93,18 @@ const TRANSFER_AMOUNT = 10;
   if (aliceBalanceAfter[0].amount !== ALICE_INITIAL_BALANCE - TRANSFER_AMOUNT)
     throw new Error("Alice's balance after transfer is incorrect");
 
-  // sponsor should have the initial balance minus gas
+  // Sponsor should have the initial balance minus gas
   if (sponsorBalanceAfter[0].amount >= SPONSOR_INITIAL_BALANCE)
     throw new Error("Sponsor's balance after transfer is incorrect");
 
   console.log(`Alice's final balance is: ${aliceBalanceAfter[0].amount}`);
   console.log(`Bob's balance is: ${bobBalanceAfter[0].amount}`);
-  console.log(`sponsor's balance is: ${sponsorBalanceAfter[0].amount}`);
-})();
+  console.log(`Sponsor's balance is: ${sponsorBalanceAfter[0].amount}`);
+};
+
+const sleep = async (timeMs) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, timeMs);
+  });
+
+example();
