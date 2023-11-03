@@ -82,8 +82,8 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] } as any);
-const None = (): MoveValue => ({ vec: [] } as any);
+const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;
+const None = (): MoveValue => ({ vec: [] }) as any;
 // != here is intentional, we want to check for null and undefined
 // eslint-disable-next-line eqeqeq
 const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());

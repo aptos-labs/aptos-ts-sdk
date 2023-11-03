@@ -122,7 +122,7 @@ export async function getChainTopUserTransactions(args: {
   return data.user_transactions;
 }
 
-export async function queryIndexer<T>(args: {
+export async function queryIndexer<T extends {}>(args: {
   aptosConfig: AptosConfig;
   query: GraphqlQuery;
   originMethod?: string;

@@ -60,7 +60,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
  * @param aptosConfig The config information for the SDK client instance
  * @returns the response or AptosApiError
  */
-export async function aptosRequest<Req, Res>(
+export async function aptosRequest<Req extends {}, Res extends {}>(
   options: AptosRequest,
   aptosConfig: AptosConfig,
 ): Promise<AptosResponse<Req, Res>> {

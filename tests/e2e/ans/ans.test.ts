@@ -20,38 +20,41 @@ describe("ANS", () => {
 
   const randomString = () => Math.random().toString().slice(2);
 
-  beforeAll(async () => {
-    const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-    const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+  beforeAll(
+    async () => {
+      const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
+      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
-    // Publish the contract, should be idempotent
+      // Publish the contract, should be idempotent
 
-    // Enable reverse lookup for the case of v1
-    await signAndSubmit(
-      contractAccount,
-      await generateTransaction({
-        aptosConfig: config,
-        sender: contractAccount.accountAddress.toString(),
-        data: {
-          function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
-          functionArguments: [],
-        },
-      }),
-    );
+      // Enable reverse lookup for the case of v1
+      await signAndSubmit(
+        contractAccount,
+        await generateTransaction({
+          aptosConfig: config,
+          sender: contractAccount.accountAddress.toString(),
+          data: {
+            function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
+            functionArguments: [],
+          },
+        }),
+      );
 
-    // Toggle router to v2
-    await signAndSubmit(
-      contractAccount,
-      await generateTransaction({
-        aptosConfig: config,
-        sender: contractAccount.accountAddress.toString(),
-        data: {
-          function: `${ANS_ADDRESS}::router::set_mode`,
-          functionArguments: [new U8(1)],
-        },
-      }),
-    );
-  }, 2 * 60 * 1000);
+      // Toggle router to v2
+      await signAndSubmit(
+        contractAccount,
+        await generateTransaction({
+          aptosConfig: config,
+          sender: contractAccount.accountAddress.toString(),
+          data: {
+            function: `${ANS_ADDRESS}::router::set_mode`,
+            functionArguments: [new U8(1)],
+          },
+        }),
+      );
+    },
+    2 * 60 * 1000,
+  );
 
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {

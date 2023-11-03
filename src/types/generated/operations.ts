@@ -65,7 +65,7 @@ export type CurrentTokenOwnershipFieldsFragment = {
 };
 
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
-  address?: Types.InputMaybe<Types.Scalars["String"]>;
+  address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type GetAccountCoinsCountQuery = {
@@ -74,8 +74,8 @@ export type GetAccountCoinsCountQuery = {
 
 export type GetAccountCoinsDataQueryVariables = Types.Exact<{
   where_condition: Types.CurrentFungibleAssetBalancesBoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<
     Array<Types.CurrentFungibleAssetBalancesOrderBy> | Types.CurrentFungibleAssetBalancesOrderBy
   >;
@@ -111,8 +111,8 @@ export type GetAccountCoinsDataQuery = {
 
 export type GetAccountCollectionsWithOwnedTokensQueryVariables = Types.Exact<{
   where_condition: Types.CurrentCollectionOwnershipV2ViewBoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<
     Array<Types.CurrentCollectionOwnershipV2ViewOrderBy> | Types.CurrentCollectionOwnershipV2ViewOrderBy
   >;
@@ -149,8 +149,8 @@ export type GetAccountCollectionsWithOwnedTokensQuery = {
 
 export type GetAccountOwnedObjectsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentObjectsBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentObjectsOrderBy> | Types.CurrentObjectsOrderBy>;
 }>;
 
@@ -168,8 +168,8 @@ export type GetAccountOwnedObjectsQuery = {
 
 export type GetAccountOwnedTokensQueryVariables = Types.Exact<{
   where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentTokenOwnershipsV2OrderBy> | Types.CurrentTokenOwnershipsV2OrderBy>;
 }>;
 
@@ -223,8 +223,8 @@ export type GetAccountOwnedTokensQuery = {
 
 export type GetAccountOwnedTokensByTokenDataQueryVariables = Types.Exact<{
   where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentTokenOwnershipsV2OrderBy> | Types.CurrentTokenOwnershipsV2OrderBy>;
 }>;
 
@@ -278,8 +278,8 @@ export type GetAccountOwnedTokensByTokenDataQuery = {
 
 export type GetAccountOwnedTokensFromCollectionQueryVariables = Types.Exact<{
   where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentTokenOwnershipsV2OrderBy> | Types.CurrentTokenOwnershipsV2OrderBy>;
 }>;
 
@@ -333,8 +333,8 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
 
 export type GetAccountTokensCountQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentTokenOwnershipsV2BoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetAccountTokensCountQuery = {
@@ -342,7 +342,7 @@ export type GetAccountTokensCountQuery = {
 };
 
 export type GetAccountTransactionsCountQueryVariables = Types.Exact<{
-  address?: Types.InputMaybe<Types.Scalars["String"]>;
+  address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type GetAccountTransactionsCountQuery = {
@@ -350,7 +350,7 @@ export type GetAccountTransactionsCountQuery = {
 };
 
 export type GetChainTopUserTransactionsQueryVariables = Types.Exact<{
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetChainTopUserTransactionsQuery = { user_transactions: Array<{ version: any }> };
@@ -380,8 +380,8 @@ export type GetCollectionDataQuery = {
 
 export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentFungibleAssetBalancesBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetCurrentFungibleAssetBalancesQuery = {
@@ -399,8 +399,8 @@ export type GetCurrentFungibleAssetBalancesQuery = {
 };
 
 export type GetDelegatedStakingActivitiesQueryVariables = Types.Exact<{
-  delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]>;
-  poolAddress?: Types.InputMaybe<Types.Scalars["String"]>;
+  delegatorAddress?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  poolAddress?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type GetDelegatedStakingActivitiesQuery = {
@@ -416,8 +416,8 @@ export type GetDelegatedStakingActivitiesQuery = {
 
 export type GetEventsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.EventsBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.EventsOrderBy> | Types.EventsOrderBy>;
 }>;
 
@@ -437,8 +437,8 @@ export type GetEventsQuery = {
 
 export type GetFungibleAssetActivitiesQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.FungibleAssetActivitiesBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetFungibleAssetActivitiesQuery = {
@@ -464,8 +464,8 @@ export type GetFungibleAssetActivitiesQuery = {
 
 export type GetFungibleAssetMetadataQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.FungibleAssetMetadataBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type GetFungibleAssetMetadataQuery = {
@@ -502,8 +502,8 @@ export type GetProcessorStatusQuery = {
 
 export type GetTokenActivityQueryVariables = Types.Exact<{
   where_condition: Types.TokenActivitiesV2BoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.TokenActivitiesV2OrderBy> | Types.TokenActivitiesV2OrderBy>;
 }>;
 
@@ -529,8 +529,8 @@ export type GetTokenActivityQuery = {
 
 export type GetCurrentTokenOwnershipQueryVariables = Types.Exact<{
   where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentTokenOwnershipsV2OrderBy> | Types.CurrentTokenOwnershipsV2OrderBy>;
 }>;
 
@@ -584,8 +584,8 @@ export type GetCurrentTokenOwnershipQuery = {
 
 export type GetTokenDataQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentTokenDatasV2BoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   order_by?: Types.InputMaybe<Array<Types.CurrentTokenDatasV2OrderBy> | Types.CurrentTokenDatasV2OrderBy>;
 }>;
 
