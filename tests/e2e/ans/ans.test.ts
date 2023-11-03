@@ -78,13 +78,29 @@ describe("ANS", () => {
   });
 
   describe("registerName", () => {
+    let alice: Account;
+    let bob: Account;
+    let domainName: string;
+
+    beforeEach(async () => {
+      domainName = randomString();
+
+      alice = Account.generate();
+      bob = Account.generate();
+      await Promise.all([
+        aptos.fundAccount({
+          accountAddress: alice.accountAddress.toString(),
+          amount: 500_000_000,
+        }),
+        aptos.fundAccount({
+          accountAddress: bob.accountAddress.toString(),
+          amount: 500_000_000,
+        }),
+      ]);
+    });
+
     test("can be called with a variety of parameters", async () => {
-      const alice = Account.generate();
-      await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
-        amount: 500_000_000,
-      });
-      const name = randomString();
+      const name = domainName;
 
       expect(
         await aptos.registerName({
@@ -115,12 +131,7 @@ describe("ANS", () => {
     });
 
     test("it mints a domain name and gives it to the sender", async () => {
-      const name = randomString();
-      const alice = Account.generate();
-      await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
-        amount: 500_000_000,
-      });
+      const name = domainName;
 
       await signAndSubmit(
         alice,
@@ -136,19 +147,7 @@ describe("ANS", () => {
     });
 
     test("it mints a domain name and gives it to the specified address", async () => {
-      const alice = Account.generate();
-      await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
-        amount: 500_000_000,
-      });
-
-      const bob = Account.generate();
-      await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
-        amount: 500_000_000,
-      });
-
-      const name = randomString();
+      const name = domainName;
 
       await signAndSubmit(
         alice,
