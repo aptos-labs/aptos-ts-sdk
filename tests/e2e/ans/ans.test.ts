@@ -227,4 +227,96 @@ describe("ANS", () => {
       expect(owner).toEqual(bob.accountAddress.toString());
     });
   });
+
+
+  describe("setPrimaryName and getPrimaryName", () => {
+    test("it returns null if no primary name is set", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      const res = await aptos.ans.getPrimaryName({ address: alice.accountAddress.toString() });
+
+      expect(res).toBeFalsy();
+    });
+
+    test("it sets and gets domain primary names", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      const domainName = randomString();
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: domainName,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.ans.setPrimaryName({
+          name: domainName,
+          sender: alice,
+        }),
+      );
+
+      const res = await aptos.ans.getPrimaryName({ address: alice.accountAddress.toString() });
+
+      expect(res).toBeTruthy();
+      expect(res?.subdomainName).toBeFalsy();
+      expect(res?.domainName).toEqual(domainName);
+    });
+
+    test("it sets and gets subdomain primary names", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress.toString(),
+        amount: 500_000_000,
+      });
+
+      const domainName = randomString();
+      const subdomainName = randomString();
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: domainName,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: `${subdomainName}.${domainName}`,
+          expiration: { policy: "subdomain:follow-domain" },
+          transferable: true,
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.ans.setPrimaryName({
+          name: `${subdomainName}.${domainName}`,
+          sender: alice,
+        }),
+      );
+
+      const res = await aptos.ans.getPrimaryName({ address: alice.accountAddress.toString() });
+
+      expect(res).toBeTruthy();
+      expect(res?.domainName).toEqual(domainName);
+      expect(res?.subdomainName).toEqual(subdomainName);
+    });
+  });
 });

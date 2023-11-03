@@ -1,9 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { RegisterNameParameters, getExpiration, getOwnerAddress, registerName } from "../internal/ans";
-import { InputSingleSignerTransaction } from "../transactions/types";
-import { MoveAddressType } from "../types";
+import { Account } from "../core";
+import {
+  RegisterNameParameters,
+  getExpiration,
+  getOwnerAddress,
+  registerName,
+  getPrimaryName,
+  setPrimaryName,
+} from "../internal/ans";
+import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
+import { HexInput, MoveAddressType } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -30,6 +38,35 @@ export class ANS {
    */
   async getOwnerAddress(args: { name: string }): Promise<MoveAddressType | undefined> {
     return getOwnerAddress({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Retrieve the primary name for an account address.
+   *
+   * @param args.address - A HexInput (address) of the account
+   *
+   * @returns null if no primary name is set
+   * and an object {domainName: string, subdomainName?: string} if a primary name is set
+   *
+   */
+  async getPrimaryName(args: { address: HexInput }): ReturnType<typeof getPrimaryName> {
+    return getPrimaryName({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Sets the primary name for the sender's account.
+   *
+   * @param args.sender - The sender account
+   * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
+   *
+   * @returns SingleSignerTransaction
+   */
+  async setPrimaryName(args: {
+    sender: Account;
+    name: string;
+    options?: InputGenerateTransactionOptions;
+  }): ReturnType<typeof setPrimaryName> {
+    return setPrimaryName({ aptosConfig: this.config, ...args });
   }
 
   /**
