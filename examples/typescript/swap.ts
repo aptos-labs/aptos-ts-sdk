@@ -230,8 +230,8 @@ const example = async () => {
   console.log("\n====== Create Fungible Asset -> (Dog and Cat coin) ======\n");
   await createFungibleAsset(aptos, admin);
   const assetTypes = await getAssetType(aptos, admin);
-  const dogCoinAddr = AccountAddress.fromHexInput(assetTypes.dog.toString());
-  const catCoinAddr = AccountAddress.fromHexInput(assetTypes.cat.toString());
+  const dogCoinAddr = AccountAddress.from(assetTypes.dog);
+  const catCoinAddr = AccountAddress.from(assetTypes.cat);
   console.log(`Cat FACoin asset type: ${catCoinAddr}`);
   console.log(`Dog FACoin asset type: ${dogCoinAddr}`);
 

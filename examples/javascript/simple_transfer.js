@@ -74,7 +74,7 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [new aptos.TypeTagStruct(aptos.StructTag.fromString(APTOS_COIN))],
-      arguments: [aptos.AccountAddress.fromHexInput(bob.accountAddress.toString()), new aptos.U64(TRANSFER_AMOUNT)],
+      arguments: [aptos.AccountAddress.from(bob.accountAddress), new aptos.U64(TRANSFER_AMOUNT)],
     },
   });
 

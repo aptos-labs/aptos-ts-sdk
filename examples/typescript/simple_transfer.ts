@@ -89,7 +89,7 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.fromHexInput(bob.accountAddress.toString()), new U64(TRANSFER_AMOUNT)],
+      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
     },
   });
 
