@@ -90,7 +90,7 @@ export function getArgNameMapping(abi: MoveModule, funcs: MoveFunction[], source
   return modulesWithFunctionSignatures;
 }
 
-export function getArgNames(abi: MoveModule, funcs: MoveFunction[], mapping: ModuleFunctionArgNameMap): Array<MoveFunctionWithArgumentNames> {
+export function getMoveFunctionsWithArgumentNames(abi: MoveModule, funcs: MoveFunction[], mapping: ModuleFunctionArgNameMap): Array<MoveFunctionWithArgumentNames> {
   return funcs.map(func => {
     let argNames = new Array<string>();
     if (abi.name in mapping && func.name in mapping[abi.name]) {
@@ -101,46 +101,3 @@ export function getArgNames(abi: MoveModule, funcs: MoveFunction[], mapping: Mod
     return { ...func, arg_names: argNames}
   });
 }
-
-
-// export function convertToMoveFunctionWithArgumentNames(moveFunction: MoveFunction, argumentNames: ArgumentNamesWithTypes[]): MoveFunctionWithArgumentNames {
-//   const moveFunctionWithArgumentNames = {
-//     ...moveFunction,
-//     arg_names: argumentNames.map(argument => argument.argumentName),
-//   };
-//   return moveFunctionWithArgumentNames;
-// }
-
-// export type ArgumentNamesWithTypes = {
-//   name: string,
-//   type: string
-// };
-
-// export type ABIFunctionsWithArgumentNames = {
-//   moduleName: string;
-//   functions: Array<ArgumentNamesWithTypes>;
-// }
-
-// // Given the move function names, we regex parse the argument names from the source code
-// export async function getArgumentNames(sourceCode: string, moveFunctions: Array<MoveFunction>): Promise<ArgumentNamesWithTypes[][]> {
-
-//   moveFunctions.forEach(moveFunction => {
-//     const functionName = moveFunction.name;
-//     const typeNames = moveFunction.params;
-//     const signature = extractSignature(functionName, sourceCode);
-//     const argumentNames = extractArguments(signature);
-//     // All entry and view function arguments follow something like this format:
-//     // [visibility] [entry] [fun] [functionName] (
-//     // [argumentName]: [argumentType],
-//     // [argumentName]: [argumentType],
-//     // ...
-//     // [argumentName]: [argumentType],
-//     // ): [returnType] {
-//   });
-//   return sourceCode.map((pkg) =>
-//     pkg.map(module => {
-//       const argumentNames = extractArguments(module);
-//       return argumentNames;
-//     })
-//   );
-// }

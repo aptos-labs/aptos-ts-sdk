@@ -5,14 +5,10 @@ import {
   AccountAddress,
   Aptos,
   Bool,
-  MoveFunction,
-  MoveModule,
-  MoveModuleBytecode,
   MoveOption,
   MoveString,
   MoveVector,
   TypeTag,
-  TypeTagStruct,
   U128,
   U16,
   U256,
@@ -22,9 +18,9 @@ import {
   parseTypeTag,
 } from "..";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { getArgNameMapping, getArgNames, getSourceCodeMap, sortByNameField } from "./package-metadata";
+import { getArgNameMapping, getMoveFunctionsWithArgumentNames, getSourceCodeMap, sortByNameField } from "./package-metadata";
 import { AbiFunctions, BCSClassAnnotated, BCSKinds, EntryFunctionArgumentSignature } from "./types";
-import { fetchModuleABIs, isAbiDefined, kindArrayToString, kindToSimpleTypeMap, sanitizeName, toBCSClassName, toPascalCase } from "./utils";
+import { fetchModuleABIs, isAbiDefined, kindArrayToString, kindToSimpleTypeMap, numberToLetter, sanitizeName, toBCSClassName, toPascalCase } from "./utils";
 
 const DEFAULT_ARGUMENT_BASE = "arg_";
 const TAB = "    ";
@@ -85,6 +81,8 @@ function metaclassBuilder(
   lines.push(`${TAB.repeat(1)}public readonly functionName = "${functionName}";`);
   if (functionArguments.length > 0) {
     lines.push(`${TAB.repeat(1)}public readonly args: ${argsType};`);
+  } else {
+    lines.push(`${TAB.repeat(1)}public readonly args = { };`);
   }
   lines.push("");
 
@@ -98,12 +96,8 @@ function metaclassBuilder(
       lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}, ${argComment}`);
     });
     lines.push(`${TAB.repeat(1)}) {`);
-  } else {
-    // lines.push(`${TAB.repeat(1)}constructor() {`);
-  }
 
-  // -------- Assign constructor fields to class fields -------- //
-  if (functionArguments.length > 0) {
+    // -------- Assign constructor fields to class fields -------- //
     lines.push(`${TAB.repeat(2)}super();`);
     lines.push(`${TAB.repeat(2)}this.args = {`);
     functionArguments.forEach((_, i) => {
@@ -112,6 +106,8 @@ function metaclassBuilder(
     });
     lines.push(`${TAB.repeat(2)}}`);
     lines.push(`${TAB.repeat(1)}}`);
+  } else {
+    lines.push(`${TAB.repeat(1)}constructor() { this.args = { }; }`);
   }
   lines.push("");
 
@@ -156,16 +152,6 @@ function createInputTypes(kindArray: Array<BCSKinds>): string {
     default:
       throw new Error(`Unknown kind: ${kind}`);
   }
-}
-
-function numberToLetter(num: number): string {
-  // Check if the number corresponds to the letters in the English alphabet
-  if (num < 1 || num > 26) {
-    throw new Error("Number out of range. Please provide a number between 1 and 26.");
-  }
-
-  // 64 is the ASCII code right before 'A'; therefore, adding the number gives the corresponding letter
-  return String.fromCharCode(64 + num);
 }
 
 /**
@@ -298,9 +284,9 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
     abiFunctions.push({
       moduleAddress: AccountAddress.fromHexInputRelaxed(abi.address),
       moduleName: abi.name,
-      publicEntryFunctions: getArgNames(abi, publicEntryFunctions, publicMapping),
-      privateEntryFunctions: getArgNames(abi, privateEntryFunctions, privateMapping),
-      viewFunctions: getArgNames(abi, viewFunctions, viewMapping),
+      publicEntryFunctions: getMoveFunctionsWithArgumentNames(abi, publicEntryFunctions, publicMapping),
+      privateEntryFunctions: getMoveFunctionsWithArgumentNames(abi, privateEntryFunctions, privateMapping),
+      viewFunctions: getMoveFunctionsWithArgumentNames(abi, viewFunctions, viewMapping),
     });
   });
 

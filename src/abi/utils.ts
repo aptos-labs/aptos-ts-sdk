@@ -151,3 +151,13 @@ export function toBCSClassName(typeTag: TypeTag): Array<BCSKinds> {
 
   throw new Error(`Unknown TypeTag: ${typeTag}`);
 }
+
+export function numberToLetter(num: number): string {
+  // Check if the number corresponds to the letters in the English alphabet
+  if (num < 1 || num > 26) {
+    throw new Error("Number out of range. Please provide a number between 1 and 26.");
+  }
+
+  // 64 is the ASCII code right before 'A'; therefore, adding the number gives the corresponding letter
+  return String.fromCharCode(64 + num);
+}
