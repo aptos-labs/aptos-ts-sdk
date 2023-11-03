@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { RegisterNameParameters, getOwnerAddress, registerName } from "../internal/ans";
+import { RegisterNameParameters, getExpiration, getOwnerAddress, registerName } from "../internal/ans";
 import { InputSingleSignerTransaction } from "../transactions/types";
 import { MoveAddressType } from "../types";
 import { AptosConfig } from "./aptosConfig";
@@ -33,7 +33,37 @@ export class ANS {
   }
 
   /**
-   * Registers a new domain or subdomain name
+   * Retrieve the expiration time of a domain name or subdomain name.
+   *
+   * @param args.domainName - A string of the domain name to retrieve
+   * @param args.subdomainName - A string of the subdomain name to retrieve
+   *
+   * @returns number as a unix timestamp in seconds.
+   */
+  async getExpiration(args: { domainName: string; subdomainName?: string }): ReturnType<typeof getExpiration> {
+    return getExpiration({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Registers a new domain name
+   *
+   * ```ts
+   * // Example of building the transaction if the domain expires in 30 days
+   * // Notes, `valueOf` gives us milliseconds.
+   * const expirationTime = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).valueOf()
+   *
+   * // Build the transaction
+   * const txn = await aptos.ans.registerSubdomain({
+   *   domainName,
+   *   subdomainName,
+   *   expirationPolicy: "independent",
+   *   expirationDateInMillisecondsSinceEpoch: expirationTime,
+   *   transferable: true,
+   *   sender: alice,
+   *   targetAddress: bob.accountAddress.toString(),
+   *   toAddress: bob.accountAddress.toString(),
+   * })
+   * ```
    *
    * @param args.sender - The sender account
    * @param args.name - A string or {domainName: string, subdomainName?: string} of the name to register. This
