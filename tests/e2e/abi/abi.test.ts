@@ -189,13 +189,40 @@ describe("abi test", () => {
     const responseVerify2 = await verifyAction2.submitAndWaitForResponse();
     console.log(responseVerify2);
 
-    const startNewRound = await RockPaperScissor.VerifyAction.submit(
-      tournamentManager,
-      TOURNAMENT_ADDRESS,
-      Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
-      Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
-      Network.LOCAL,
-    );
+    // const startNewRound = await RockPaperScissor.VerifyAction.submit(
+    //   tournamentManager,
+    //   TOURNAMENT_ADDRESS,
+    //   Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
+    //   Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
+    //   Network.LOCAL,
+    // );
+
+    // // only if the function signature is 1 signer
+    // async toTransactionBuilder(args: {
+    //   sender: HexInput | AccountAddress;
+    //   configOrNetwork: AptosConfig | Network;
+    // }): Promise<TransactionBuilder> {
+    //   const { sender, configOrNetwork } = args;
+    //   const transactionBuilder = await SingleSignerTransactionBuilder.create({
+    //     sender: toAccountAddress(sender),
+    //     payload: this.toPayload(),
+    //     configOrNetwork: configOrNetwork,
+    //   });
+    //   return transactionBuilder;
+    // }
+
+    // static async submit(
+    //   sender: Account | Signer,
+    //   arg_0: HexInput | AccountAddress,  // address
+    //   arg_1: Array<Uint8>,  // vector<u8>
+    //   arg_2: Array<Uint8>,  // vector<u8>
+    //   configOrNetwork: AptosConfig | Network,
+    // ): Promise<UserTransactionResponse> {
+    //   const payload = new VerifyAction(arg_0, arg_1, arg_2);
+    //   const transactionBuilder = await payload.toTransactionBuilder({ sender: sender.accountAddress, configOrNetwork });
+    //   const response = await transactionBuilder.signSubmitAndWaitForResponse({ signer: sender });
+    //   return response as UserTransactionResponse;
+    // }
 
 
   });

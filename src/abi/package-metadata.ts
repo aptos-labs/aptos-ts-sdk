@@ -2,26 +2,8 @@ import { Aptos, AptosConfig } from "../api";
 import { AccountAddress } from "../core";
 import { MoveFunction, MoveModule } from "../types";
 import { Network } from "../utils/apiEndpoints";
-import { MoveFunctionWithArgumentNames } from "./abi-gen";
-import { ArgumentNamesWithTypes, ModuleFunctionArgNameMap } from "./types";
+import { ArgumentNamesWithTypes, ModuleFunctionArgNameMap, ModuleMetadata, MoveFunctionWithArgumentNames, PackageMetadata } from "./types";
 import { transformCode } from "./utils";
-
-
-
-export type ModuleMetadata = {
-  name: string;
-  source: string;
-};
-
-export type PackageMetadata = {
-  name: string;
-  modules: ModuleMetadata[];
-};
-
-export type PackageSourceCode = {
-  name: string,
-  source: string,
-}
 
 export const sortByNameField = (objs: any[]): any[] => {
   // sort the abiFunctions by moduleName alphabetically
@@ -56,7 +38,7 @@ export async function getSourceCodeMap(accountAddress: AccountAddress, network: 
   let sourceCodeByModuleName: Record<string, string> = {};
 
   packageMetadata.forEach((pkg) =>
-    pkg.modules.forEach(module => {
+    pkg.modules.forEach((module: ModuleMetadata) => {
       const sourceCode = transformCode(module.source);
       sourceCodeByModuleName[module.name] = sourceCode;
     })
@@ -117,6 +99,7 @@ export function getArgNames(abi: MoveModule, funcs: MoveFunction[], mapping: Mod
     return { ...func, arg_names: argNames}
   });
 }
+
 
 // export function convertToMoveFunctionWithArgumentNames(moveFunction: MoveFunction, argumentNames: ArgumentNamesWithTypes[]): MoveFunctionWithArgumentNames {
 //   const moveFunctionWithArgumentNames = {

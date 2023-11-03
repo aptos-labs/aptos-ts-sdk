@@ -23,158 +23,8 @@ import {
 } from "..";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { getArgNameMapping, getArgNames, getSourceCodeMap, sortByNameField } from "./package-metadata";
-import { sanitizeName, toPascalCase } from "./utils";
-
-async function fetchModuleABIs(aptos: Aptos, accountAddress: AccountAddress) {
-  const moduleABIs = await aptos.getAccountModules({
-    accountAddress: accountAddress.toString(),
-  });
-  return moduleABIs;
-}
-
-function isAbiDefined(obj: MoveModuleBytecode): obj is { bytecode: string; abi: MoveModule } {
-  return obj.abi !== undefined;
-}
-
-export type MoveFunctionWithArgumentNames = MoveFunction & {
-  arg_names: Array<string>,
-}
-
-type AbiFunctions = {
-  moduleAddress: AccountAddress;
-  moduleName: string;
-  publicEntryFunctions: Array<MoveFunctionWithArgumentNames>;
-  privateEntryFunctions: Array<MoveFunctionWithArgumentNames>;
-  viewFunctions: Array<MoveFunctionWithArgumentNames>;
-};
-
-/**
- * Tracks information about the entry function argument
- * @kindArray - the type of each argument inwards, e.g. MoveOption<MoveVector<u64>>> would be [MoveOption, MoveVector, U64]
- * @kindString - the string representation of the kind, aka its type
- * @annotation - the original Move argument TypeTag string
- */
-type BCSClassAnnotated = {
-  kindArray: Array<Kind>;
-  kindString: string;
-  annotation: string;
-};
-
-type EntryFunctionArgumentSignature = {
-  signerArguments: Array<BCSClassAnnotated>;
-  functionArguments: Array<BCSClassAnnotated>;
-};
-
-const TypeClasses = {
-  Bool,
-  U8,
-  U16,
-  U32,
-  U64,
-  U128,
-  U256,
-  AccountAddress,
-  MoveString,
-  MoveVector,
-  MoveOption,
-  TypeTagStruct,
-  AccountAuthenticator,
-};
-type Kind = typeof TypeClasses[keyof typeof TypeClasses]["kind"] | "MoveObject";
-
-// TODO: Add an optional field to let users map the types to clearer names, so
-// they will see U8_number instead of `number` for example.
-// We could even let em name the types themselves? Since it's ultimately just a type alias.
-const kindToSimpleTypeMap: { [key in Kind]: string } = {
-  Bool: "boolean",
-  U8: "Uint8",
-  U16: "Uint16",
-  U32: "Uint32",
-  U64: "Uint64",
-  U128: "Uint128",
-  U256: "Uint256",
-  AccountAddress: "HexInput | AccountAddress",
-  MoveString: "string",
-  MoveVector: "Array",
-  MoveOption: "OneOrNone", // OneOrNone<T>
-  MoveObject: "HexInput | AccountAddress",
-  AccountAuthenticator: "AccountAuthenticator",
-};
-
-function kindArrayToString(kindArray: Array<Kind>): string {
-  if (kindArray.length === 0) {
-    return "";
-  }
-  if (kindArray.length === 1) {
-    return kindArray[0];
-  }
-  let kindString = kindArray[kindArray.length - 1];
-  for (let i = kindArray.length - 2; i >= 0; i -= 1) {
-    kindString = `${kindArray[i]}<${kindString}>`;
-  }
-  return kindString;
-}
-function toBCSClassName(typeTag: TypeTag): Array<Kind> {
-  if (typeTag.isVector()) {
-    return [MoveVector.kind, ...toBCSClassName(typeTag.value)];
-  }
-  if (typeTag.isStruct()) {
-    if (typeTag.isString()) {
-      return [MoveString.kind];
-    }
-    if (typeTag.isObject()) {
-      // Objects can only have 1 TypeTag
-      // when we return this, we will check if an AccountAddress kind is second to last,
-      // because that means it's an Object<T>, then we'll remove the T and add a comment explaining
-      // that T is of type: T
-      // NOTE: This means a true Object<T> as an entry function argument will not work
-      return ["MoveObject", ...toBCSClassName(typeTag.value.type_args[0])];
-    }
-    if (typeTag.isOption()) {
-      // Options can only have 1 TypeTag
-      return [MoveOption.kind, ...toBCSClassName(typeTag.value.type_args[0])];
-    }
-    // It must be a resource, otherwise the .move file would not compile
-    return [typeTag.toString()];
-  }
-  // as any because typeguards aren't working correctly...
-  if ((typeTag as any).isBool()) {
-    return [Bool.kind];
-  }
-  if ((typeTag as any).isU8()) {
-    return [U8.kind];
-  }
-  if ((typeTag as any).isU16()) {
-    return [U16.kind];
-  }
-  if ((typeTag as any).isU32()) {
-    return [U32.kind];
-  }
-  if ((typeTag as any).isU64()) {
-    return [U64.kind];
-  }
-  if ((typeTag as any).isU128()) {
-    return [U128.kind];
-  }
-  if ((typeTag as any).isU256()) {
-    return [U256.kind];
-  }
-  if ((typeTag as any).isAddress()) {
-    return [AccountAddress.kind];
-  }
-
-  if (typeTag.isReference()) {
-    if (typeTag.value.isSigner()) {
-      return [AccountAuthenticator.kind];
-    }
-    throw new Error(`Invalid reference argument: ${typeTag.toString()}`);
-  }
-  if (typeTag.isSigner()) {
-    return [AccountAuthenticator.kind];
-  }
-
-  throw new Error(`Unknown TypeTag: ${typeTag}`);
-}
+import { AbiFunctions, BCSClassAnnotated, BCSKinds, EntryFunctionArgumentSignature } from "./types";
+import { fetchModuleABIs, isAbiDefined, kindArrayToString, kindToSimpleTypeMap, sanitizeName, toBCSClassName, toPascalCase } from "./utils";
 
 const DEFAULT_ARGUMENT_BASE = "arg_";
 const TAB = "    ";
@@ -286,7 +136,7 @@ function metaclassBuilder(
   return lines.join("\n");
 }
 
-function createInputTypes(kindArray: Array<Kind>): string {
+function createInputTypes(kindArray: Array<BCSKinds>): string {
   const kind = kindArray[0];
   switch (kind) {
     case MoveVector.kind:
@@ -325,7 +175,7 @@ function numberToLetter(num: number): string {
  */
 function createInputTypeConverter(
   fieldName: string,
-  kindArray: Array<Kind>,
+  kindArray: Array<BCSKinds>,
   depth: number,
   replaceOptionWithVector = true,
 ): string {
@@ -336,10 +186,10 @@ function createInputTypeConverter(
     case MoveVector.kind:
     case MoveOption.kind: {
       // conditionally replace MoveOption with MoveVector for the constructor input types
-      const newKind = replaceOptionWithVector ? MoveVector.kind : kind;
+      const newBCSKinds = replaceOptionWithVector ? MoveVector.kind : kind;
       const innerNameFromDepth = `arg${numberToLetter(depth + 1)}`;
       return (
-        `new ${newKind}(${nameFromDepth}.map(${innerNameFromDepth} => ` +
+        `new ${newBCSKinds}(${nameFromDepth}.map(${innerNameFromDepth} => ` +
         `${createInputTypeConverter(innerNameFromDepth, kindArray.slice(1), depth + 1)})`
       );
     }
@@ -353,7 +203,7 @@ function createInputTypeConverter(
     case MoveString.kind:
       return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
     case AccountAddress.kind:
-      return `new ${kind}(addressFromAny(${nameFromDepth}))${R_PARENTHESIS.repeat(depth)}`;
+      return `new ${kind}(toAccountAddress(${nameFromDepth}))${R_PARENTHESIS.repeat(depth)}`;
     default:
       throw new Error(`Unknown kind: ${kind}`);
   }
@@ -393,13 +243,13 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
       // in the `toBCSClassName` function.
       let moveArgString = "";
       if (replaceOptionWithVector) {
-        const newKindArray = kindArray.map((kindElement) => {
+        const newBCSKindsArray = kindArray.map((kindElement) => {
           if (kindElement === MoveOption.kind) {
             return MoveVector.kind;
           }
           return kindElement;
         });
-        moveArgString = kindArrayToString(newKindArray);
+        moveArgString = kindArrayToString(newBCSKindsArray);
       } else {
         moveArgString = kindArrayToString(kindArray);
       }
@@ -437,8 +287,6 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
 
     const sourceCode = sourceCodeMap[abi.name];
 
-    // console.log(sourceCode);
-
     const publicEntryFunctions = exposedFunctions.filter((func) => func.is_entry);
     const privateEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility === "private");
     const viewFunctions = exposedFunctions.filter((func) => func.is_view);
@@ -455,14 +303,10 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
       viewFunctions: getArgNames(abi, viewFunctions, viewMapping),
     });
   });
-  
+
   abiFunctions = sortByNameField(abiFunctions);
 
-  // const argumentNames = await getArgumentNames(sourceCode, abiFunctions[0].);
-
   const moduleFunctions = abiFunctions.map((abiFunction) => {
-    // const sourceCodeForModule = allSourceCode.find((sourceCodes) => sourceCodes.find(code => code.name === abiFunction.moduleName));
-    // console.log(sourceCodeForModule);
     const moduleName = toPascalCase(abiFunction.moduleName);
     const sanitizedModuleName = sanitizeName(moduleName);
     if (abiFunction.publicEntryFunctions.length > 0) {
@@ -470,7 +314,7 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
       const functionStrings = abiFunction.publicEntryFunctions.map((func) => {
         try {
           const typeTags = func.params.map((param) => parseTypeTag(param));
-          return metaclassBuilder(abiFunction.moduleAddress, abiFunction.moduleName, func.name, `${toPascalCase(func.name)}`, typeTags, []);
+          return metaclassBuilder(abiFunction.moduleAddress, abiFunction.moduleName, func.name, `${toPascalCase(func.name)}`, typeTags, func.arg_names);
         } catch (e) {
           // do nothing
         }
@@ -480,11 +324,6 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
     }
     return "";
   });
-  // tags.push(parseTypeTag("vector<vector<vector<vector<u64>>>>"));
-  // tags.push(parseTypeTag("vector<vector<vector<vector<vector<u64>>>>>"));
-  // tags.push(parseTypeTag("0x1::option::Option<u8>"));
-  // tags.push(parseTypeTag("0x1::option::Option<vector<u8>>"));
-  // tags.push(parseTypeTag("0x1::option::Option<vector<0x1::option::Option<u64>>>"));
   return moduleFunctions;
 }
 
