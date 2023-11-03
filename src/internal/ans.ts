@@ -233,3 +233,52 @@ export async function getExpiration(args: {
     return undefined;
   }
 }
+
+export async function getPrimaryName(args: {
+  aptosConfig: AptosConfig;
+  address: HexInput;
+}): Promise<null | { domainName: MoveAddressType; subdomainName?: MoveAddressType }> {
+  const { aptosConfig, address } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+
+  const res = await view({
+    aptosConfig,
+    payload: {
+      function: `${routerAddress}::router::get_primary_name`,
+      functionArguments: [AccountAddress.fromRelaxed(address).toString()],
+    },
+  });
+
+  const domainName = unwrapOption<MoveAddressType>(res[1]);
+  const subdomainName = unwrapOption<MoveAddressType>(res[0]);
+
+  if (!domainName) return null;
+
+  return { domainName, subdomainName };
+}
+
+export async function setPrimaryName(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  name: string;
+  options?: InputGenerateTransactionOptions;
+}): Promise<InputSingleSignerTransaction> {
+  const { aptosConfig, sender, name, options } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+  const { domainName, subdomainName } = isValidANSName(name);
+
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress.toString(),
+    data: {
+      function: `${routerAddress}::router::set_primary_name`,
+      functionArguments: [
+        new MoveString(domainName),
+        new MoveOption(subdomainName ? new MoveString(subdomainName) : null),
+      ],
+    },
+    options,
+  });
+
+  return transaction as InputSingleSignerTransaction;
+}
