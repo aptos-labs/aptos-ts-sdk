@@ -97,7 +97,7 @@ export type AnyTransactionPayloadInstance =
 export type InputGenerateTransactionPayloadData = InputEntryFunctionData | InputScriptData | InputMultiSigData;
 
 export type InputGenerateTransactionPayloadDataWithRemoteABI =
-  | (InputScriptData & { aptosConfig?: undefined })
+  | InputScriptData
   | InputEntryFunctionDataWithRemoteABI
   | InputMultiSigDataWithRemoteABI;
 
@@ -152,8 +152,6 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
-  feePayerAddress?: undefined;
-  secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
 }
 
@@ -179,7 +177,6 @@ export interface InputGenerateMultiAgentRawTransactionArgs {
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   secondarySignerAddresses: AccountAddressInput[];
-  feePayerAddress?: undefined;
   options?: InputGenerateTransactionOptions;
 }
 
@@ -198,8 +195,6 @@ export type InputGenerateRawTransactionArgs =
  */
 export interface InputSingleSignerTransaction {
   rawTransaction: RawTransaction;
-  feePayerAddress?: undefined;
-  secondarySignerAddresses?: undefined;
 }
 
 /**
@@ -224,7 +219,6 @@ export interface InputFeePayerTransaction {
 export interface InputMultiAgentTransaction {
   rawTransaction: RawTransaction;
   secondarySignerAddresses: AccountAddress[];
-  feePayerAddress?: undefined;
 }
 
 /**
@@ -267,8 +261,6 @@ export type InputSimulateTransactionOptions = {
  */
 export interface InputGenerateSingleSignerRawTransactionData {
   sender: AccountAddressInput;
-  hasFeePayer?: undefined;
-  secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
 }
@@ -290,7 +282,6 @@ export interface InputGenerateFeePayerRawTransactionData {
 export interface InputGenerateMultiAgentRawTransactionData {
   sender: AccountAddressInput;
   secondarySignerAddresses: AccountAddressInput[];
-  hasFeePayer?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
 }

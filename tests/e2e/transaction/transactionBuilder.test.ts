@@ -225,8 +225,6 @@ describe("transaction builder", () => {
         payload,
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
-      expect(transaction.secondarySignerAddresses).toBeUndefined();
-      expect(transaction.feePayerAddress).toBeUndefined();
     });
 
     test("it returns a serialized raw transaction and secondary signers addresses", async () => {
@@ -251,7 +249,6 @@ describe("transaction builder", () => {
       expect(transaction.secondarySignerAddresses![0].data).toStrictEqual(
         secondarySignerAddress.accountAddress.toUint8Array(),
       );
-      expect(transaction.feePayerAddress).toBeUndefined();
     });
 
     test("it returns a serialized raw transaction and a fee payer address", async () => {

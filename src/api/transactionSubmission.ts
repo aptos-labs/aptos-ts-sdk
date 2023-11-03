@@ -99,7 +99,7 @@ export class TransactionSubmission {
    * ```
    * {
    *  rawTransaction: RawTransaction,
-   *  secondarySignerAddresses? : Array<AccountAddress>,
+   *  secondarySignerAddresses?: Array<AccountAddress>,
    *  feePayerAddress?: AccountAddress
    * }
    * ```
@@ -113,9 +113,14 @@ export class TransactionSubmission {
     asFeePayer?: boolean;
   }): AccountAuthenticator {
     const { signer, transaction, asFeePayer } = args;
-    if (asFeePayer) {
+
+    // Account can only sign as fee payer if it's a fee payer transaction
+    if ("feePayerAddress" in transaction && asFeePayer) {
       transaction.feePayerAddress = signer.accountAddress;
+    } else if (asFeePayer) {
+      throw new Error("Transaction being signed is not a Fee payer transaction, but `asFeePayer` is set to true");
     }
+
     return signTransaction({
       signer,
       transaction,
