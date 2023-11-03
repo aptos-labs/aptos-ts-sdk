@@ -30,12 +30,12 @@ const example = async () => {
   const sponsor = Account.generate();
 
   // Variables to hold Alice and sponsor accounts address
-  const aliceAddres = alice.accountAddress.toString();
+  const aliceAddress = alice.accountAddress.toString();
   const bobAddress = bob.accountAddress.toString();
   const sponsorAddress = sponsor.accountAddress.toString();
 
   console.log("=== Addresses ===\n");
-  console.log(`Alice's address is: ${aliceAddres}`);
+  console.log(`Alice's address is: ${aliceAddress}`);
   console.log(`Bob's address is: ${bobAddress}`);
   console.log(`Sponsor's address is: ${sponsorAddress}`);
 
@@ -44,7 +44,7 @@ const example = async () => {
   await aptos.fundAccount({ accountAddress: sponsor.accountAddress.toString(), amount: SPONSOR_INITIAL_BALANCE });
 
   // Show account balances
-  const aliceBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: aliceAddres });
+  const aliceBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
   const sponsorBalanceBefore = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
 
   console.log("\n=== Balances ===\n");
@@ -59,7 +59,7 @@ const example = async () => {
   // with Alice as the sender and sponsor as the fee payer
   console.log("\n=== Submitting Transaction ===\n");
   const transaction = await aptos.generateTransaction({
-    sender: aliceAddres,
+    sender: aliceAddress,
     feePayerAddress: sponsorAddress,
     data: {
       function: "0x1::aptos_account::transfer",
@@ -77,7 +77,7 @@ const example = async () => {
   const committedTxn = await aptos.submitTransaction({
     transaction,
     senderAuthenticator: senderSignature,
-    secondarySignerAuthenticators: { feePayerAuthenticator: sponsorSignature },
+    feePayerAuthenticator: sponsorSignature,
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
@@ -86,7 +86,7 @@ const example = async () => {
   await sleep(500);
 
   console.log("\n=== Balances after transfer ===\n");
-  const aliceBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: aliceAddres });
+  const aliceBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
   const bobBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: bobAddress });
   const sponsorBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
 
