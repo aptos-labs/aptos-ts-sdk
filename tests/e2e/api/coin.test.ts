@@ -66,8 +66,8 @@ describe("coin", () => {
       const response = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
 
       await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
-      const recipientCoins = await aptos.getAccountCoinsData({ accountAddress: recipient.accountAddress.toString() });
-      const senderCoinsAfter = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
+      const recipientCoins = await aptos.getAccountCoinsData({ accountAddress: recipient.accountAddress });
+      const senderCoinsAfter = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress });
 
       expect(recipientCoins[0].amount).toBe(10);
       expect(recipientCoins[0].asset_type).toBe("0x1::aptos_coin::AptosCoin");

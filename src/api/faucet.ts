@@ -3,7 +3,8 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { fundAccount } from "../internal/faucet";
-import { HexInput, WaitForTransactionOptions } from "../types";
+import { WaitForTransactionOptions } from "../types";
+import { AccountAddressInput } from "../core";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
@@ -25,7 +26,7 @@ export class Faucet {
    * @returns Transaction hash of the transaction that funded the account
    */
   async fundAccount(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     amount: number;
     options?: WaitForTransactionOptions;
   }): Promise<string> {

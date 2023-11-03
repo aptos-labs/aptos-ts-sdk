@@ -3,8 +3,9 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
-import { AnyNumber, GetEventsResponse, HexInput, MoveStructType, OrderBy, PaginationArgs } from "../types";
+import { AnyNumber, GetEventsResponse, MoveStructType, OrderBy, PaginationArgs } from "../types";
 import { EventsBoolExp } from "../types/generated/types";
+import { AccountAddressInput } from "../core";
 
 /**
  * A class to query all `Event` Aptos related queries
@@ -25,7 +26,7 @@ export class Event {
    * @returns Promise<GetEventsResponse>
    */
   async getAccountEventsByCreationNumber(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     creationNumber: AnyNumber;
   }): Promise<GetEventsResponse> {
     return getAccountEventsByCreationNumber({ aptosConfig: this.config, ...args });
@@ -40,7 +41,7 @@ export class Event {
    * @returns Promise<GetEventsResponse>
    */
   async getAccountEventsByEventType(args: {
-    accountAddress: HexInput;
+    accountAddress: AccountAddressInput;
     eventType: MoveStructType;
     options?: {
       pagination?: PaginationArgs;

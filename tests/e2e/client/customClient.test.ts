@@ -39,7 +39,7 @@ describe("custom client", () => {
       aptosConfig: config,
       path: "fund",
       body: {
-        address: AccountAddress.fromHexInput(account.accountAddress.toString()).toString(),
+        address: AccountAddress.from(account.accountAddress.toString()).toString(),
         amount: 100_000_000,
       },
       originMethod: "testFundAccount",

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { Account, PrivateKey } from "../core";
+import { Account, AccountAddressInput, PrivateKey } from "../core";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import {
   AnyRawTransaction,
@@ -49,7 +49,7 @@ export class TransactionSubmission {
   /**
    * Generates any transaction by passing in the required arguments
    *
-   * @param args.sender The transaction sender's account address as a HexInput
+   * @param args.sender The transaction sender's account address as a AccountAddressInput
    * @param args.data EntryFunctionData | ScriptData | MultiSigData
    * @param args.feePayerAddress optional. For a fee payer (aka sponsored) transaction
    * @param args.secondarySignerAddresses optional. For a multi-agent or fee payer (aka sponsored) transactions
@@ -177,7 +177,7 @@ export class TransactionSubmission {
    * @returns A SingleSignerTransaction that can be simulated or submitted to chain
    */
   async publishPackageTransaction(args: {
-    account: HexInput;
+    account: AccountAddressInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
     options?: InputGenerateTransactionOptions;

@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Deserializer } from "../../bcs/deserializer";
-import { AccountAddress, Hex, PublicKey } from "../../core";
+import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
@@ -77,7 +77,7 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { HexInput, SigningScheme } from "../../types";
+import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**
@@ -185,7 +185,7 @@ export function generateTransactionPayloadWithABI(
   if ("multisigAddress" in args) {
     let multisigAddress: AccountAddress;
     if (typeof args.multisigAddress === "string") {
-      multisigAddress = AccountAddress.fromString(args.multisigAddress);
+      multisigAddress = AccountAddress.from(args.multisigAddress);
     } else {
       multisigAddress = args.multisigAddress;
     }
@@ -215,7 +215,7 @@ function generateTransactionPayloadScript(args: InputScriptData) {
  */
 export async function generateRawTransaction(args: {
   aptosConfig: AptosConfig;
-  sender: HexInput;
+  sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
 }): Promise<RawTransaction> {
@@ -245,7 +245,7 @@ export async function generateRawTransaction(args: {
   };
 
   return new RawTransaction(
-    AccountAddress.fromHexInput(sender),
+    AccountAddress.fromRelaxed(sender),
     BigInt(sequenceNumber),
     payload,
     BigInt(maxGasAmount),
@@ -305,20 +305,18 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
 
   if (feePayerAddress) {
     const signers: Array<AccountAddress> = secondarySignerAddresses
-      ? secondarySignerAddresses.map((signer) => AccountAddress.fromHexInput(signer))
+      ? secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer))
       : [];
 
     return {
       rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
-      feePayerAddress: AccountAddress.fromHexInput(feePayerAddress),
+      feePayerAddress: AccountAddress.fromRelaxed(feePayerAddress),
     };
   }
 
   if (secondarySignerAddresses) {
-    const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) =>
-      AccountAddress.fromHexInput(signer),
-    );
+    const signers: Array<AccountAddress> = secondarySignerAddresses.map((signer) => AccountAddress.fromRelaxed(signer));
 
     return {
       rawTransaction: rawTxn,

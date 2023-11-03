@@ -9,18 +9,18 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Hex } from "../core";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, HexInput, OrderBy } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
 import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
 import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";
 import { queryIndexer } from "./general";
 
 export async function getNumberOfDelegators(args: {
   aptosConfig: AptosConfig;
-  poolAddress: HexInput;
+  poolAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, poolAddress } = args;
-  const address = Hex.fromHexInput(poolAddress).toString();
+  const address = AccountAddress.fromRelaxed(poolAddress).toStringLong();
   const query = {
     query: GetNumberOfDelegators,
     variables: { where_condition: { pool_address: { _eq: address } } },
@@ -52,15 +52,15 @@ export async function getNumberOfDelegatorsForAllPools(args: {
 
 export async function getDelegatedStakingActivities(args: {
   aptosConfig: AptosConfig;
-  delegatorAddress: HexInput;
-  poolAddress: HexInput;
+  delegatorAddress: AccountAddressInput;
+  poolAddress: AccountAddressInput;
 }): Promise<GetDelegatedStakingActivitiesResponse> {
   const { aptosConfig, delegatorAddress, poolAddress } = args;
   const query = {
     query: GetDelegatedStakingActivities,
     variables: {
-      delegatorAddress: Hex.fromHexInput(delegatorAddress).toString(),
-      poolAddress: Hex.fromHexInput(poolAddress).toString(),
+      delegatorAddress: AccountAddress.fromRelaxed(delegatorAddress).toStringLong(),
+      poolAddress: AccountAddress.fromRelaxed(poolAddress).toStringLong(),
     },
   };
   const data = await queryIndexer<GetDelegatedStakingActivitiesQuery>({ aptosConfig, query });

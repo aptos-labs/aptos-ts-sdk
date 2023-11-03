@@ -7,13 +7,12 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
-  HexInput,
   OrderBy,
   PaginationArgs,
   TokenStandard,
 } from "../types";
 import { AptosConfig } from "./aptosConfig";
-import { Account } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import {
   CreateCollectionOptions,
@@ -86,7 +85,7 @@ export class DigitalAsset {
    * @returns GetCollectionDataResponse response type
    */
   async getCollectionData(args: {
-    creatorAddress: HexInput;
+    creatorAddress: AccountAddressInput;
     collectionName: string;
     options?: {
       tokenStandard?: TokenStandard;
@@ -107,7 +106,7 @@ export class DigitalAsset {
    * @returns the collection id
    */
   async getCollectionId(args: {
-    creatorAddress: HexInput;
+    creatorAddress: AccountAddressInput;
     collectionName: string;
     options?: {
       tokenStandard?: TokenStandard;
@@ -144,7 +143,7 @@ export class DigitalAsset {
    * @param args.tokenAddress The address of the token
    * @returns GetTokenDataResponse containing relevant data to the token.
    */
-  async getTokenData(args: { tokenAddress: HexInput }): Promise<GetTokenDataResponse> {
+  async getTokenData(args: { tokenAddress: AccountAddressInput }): Promise<GetTokenDataResponse> {
     return getTokenData({ aptosConfig: this.config, ...args });
   }
 
@@ -154,7 +153,9 @@ export class DigitalAsset {
    * @param args.tokenAddress The address of the token
    * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the token.
    */
-  async getCurrentTokenOwnership(args: { tokenAddress: HexInput }): Promise<GetCurrentTokenOwnershipResponse> {
+  async getCurrentTokenOwnership(args: {
+    tokenAddress: AccountAddressInput;
+  }): Promise<GetCurrentTokenOwnershipResponse> {
     return getCurrentTokenOwnership({ aptosConfig: this.config, ...args });
   }
 
@@ -165,7 +166,7 @@ export class DigitalAsset {
    * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddresss.
    */
   async getOwnedTokens(args: {
-    ownerAddress: HexInput;
+    ownerAddress: AccountAddressInput;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetOwnedTokensResponse[0]>;
@@ -181,7 +182,7 @@ export class DigitalAsset {
    * @returns GetTokenActivityResponse containing relevant activity data to the token.
    */
   async getTokenActivity(args: {
-    tokenAddress: HexInput;
+    tokenAddress: AccountAddressInput;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetTokenActivityResponse[0]>;

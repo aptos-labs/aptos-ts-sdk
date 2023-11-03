@@ -137,6 +137,6 @@ export class AuthenticationKey extends Serializable {
    * @returns AccountAddress
    */
   derivedAddress(): AccountAddress {
-    return new AccountAddress({ data: this.data.toUint8Array() });
+    return new AccountAddress(this.data.toUint8Array());
   }
 }

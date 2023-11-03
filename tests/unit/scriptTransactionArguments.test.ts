@@ -86,7 +86,7 @@ describe("Tests for the script transaction argument class", () => {
     expect(deserializeAsScriptArg(new U128(5)) instanceof U128).toBe(true);
     expect(deserializeAsScriptArg(new U256(6)) instanceof U256).toBe(true);
     expect(deserializeAsScriptArg(new Bool(false)) instanceof Bool).toBe(true);
-    expect(deserializeAsScriptArg(new AccountAddress(AccountAddress.FOUR)) instanceof AccountAddress).toBe(true);
+    expect(deserializeAsScriptArg(AccountAddress.FOUR) instanceof AccountAddress).toBe(true);
     expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
     const deserializedVectorU8 = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
     expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);

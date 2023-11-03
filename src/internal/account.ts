@@ -10,10 +10,9 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
-import { AccountAddress } from "../core/accountAddress";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../core/account";
 import { PrivateKey } from "../core/crypto/asymmetricCrypto";
-import { Hex } from "../core/hex";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
@@ -22,7 +21,6 @@ import {
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  HexInput,
   LedgerVersion,
   MoveModuleBytecode,
   MoveResource,
@@ -57,26 +55,29 @@ import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { AnyPublicKey } from "../core/crypto/anyPublicKey";
 
-export async function getInfo(args: { aptosConfig: AptosConfig; accountAddress: HexInput }): Promise<AccountData> {
+export async function getInfo(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+}): Promise<AccountData> {
   const { aptosConfig, accountAddress } = args;
   const { data } = await getAptosFullNode<{}, AccountData>({
     aptosConfig,
     originMethod: "getInfo",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}`,
   });
   return data;
 }
 
 export async function getModules(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveModuleBytecode[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, MoveModuleBytecode[]>({
     aptosConfig,
     originMethod: "getModules",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/modules`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -95,7 +96,7 @@ export async function getModules(args: {
  */
 export async function getModule(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   moduleName: string;
   options?: LedgerVersion;
 }): Promise<MoveModuleBytecode> {
@@ -114,7 +115,7 @@ export async function getModule(args: {
 
 async function getModuleInner(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   moduleName: string;
   options?: LedgerVersion;
 }): Promise<MoveModuleBytecode> {
@@ -123,7 +124,7 @@ async function getModuleInner(args: {
   const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
     aptosConfig,
     originMethod: "getModule",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/module/${moduleName}`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/module/${moduleName}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data;
@@ -131,28 +132,28 @@ async function getModuleInner(args: {
 
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, TransactionResponse[]>({
     aptosConfig,
     originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/transactions`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
 }
 
 export async function getResources(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: PaginationArgs & LedgerVersion;
 }): Promise<MoveResource[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, MoveResource[]>({
     aptosConfig,
     originMethod: "getResources",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resources`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
       start: options?.offset,
@@ -163,7 +164,7 @@ export async function getResources(args: {
 
 export async function getResource<T extends {}>(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   resourceType: MoveStructType;
   options?: LedgerVersion;
 }): Promise<T> {
@@ -171,7 +172,7 @@ export async function getResource<T extends {}>(args: {
   const { data } = await getAptosFullNode<{}, MoveResource>({
     aptosConfig,
     originMethod: "getResource",
-    path: `accounts/${AccountAddress.fromHexInput(accountAddress).toString()}/resource/${resourceType}`,
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
   return data.data as T;
@@ -179,7 +180,7 @@ export async function getResource<T extends {}>(args: {
 
 export async function lookupOriginalAccountAddress(args: {
   aptosConfig: AptosConfig;
-  authenticationKey: HexInput;
+  authenticationKey: AccountAddressInput;
   options?: LedgerVersion;
 }): Promise<AccountAddress> {
   const { aptosConfig, authenticationKey, options } = args;
@@ -197,24 +198,26 @@ export async function lookupOriginalAccountAddress(args: {
     address_map: { handle },
   } = resource;
 
+  const authKeyAddress = AccountAddress.from(authenticationKey);
+
   // If the address is not found in the address map, which means its not rotated
   // then return the address as is
   try {
-    const originalAddress = await getTableItem({
+    const originalAddress = await getTableItem<string>({
       aptosConfig,
       handle,
       data: {
-        key: Hex.fromHexInput(authenticationKey).toString(),
+        key: authKeyAddress.toString(),
         key_type: "address",
         value_type: "address",
       },
       options,
     });
 
-    return AccountAddress.fromHexInput(originalAddress);
+    return AccountAddress.from(originalAddress);
   } catch (err) {
     if (err instanceof AptosApiError && err.data.error_code === "table_item_not_found") {
-      return AccountAddress.fromHexInput(authenticationKey);
+      return authKeyAddress;
     }
 
     throw err;
@@ -223,15 +226,15 @@ export async function lookupOriginalAccountAddress(args: {
 
 export async function getAccountTokensCount(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
-  const whereCondition: any = {
+  const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number } } = {
     owner_address: { _eq: address },
-    amount: { _gt: "0" },
+    amount: { _gt: 0 },
   };
 
   const graphqlQuery = {
@@ -252,7 +255,7 @@ export async function getAccountTokensCount(args: {
 
 export async function getAccountOwnedTokens(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: {
     tokenStandard?: TokenStandard;
     pagination?: PaginationArgs;
@@ -260,12 +263,13 @@ export async function getAccountOwnedTokens(args: {
   };
 }): Promise<GetAccountOwnedTokensQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
-  const whereCondition: any = {
-    owner_address: { _eq: address },
-    amount: { _gt: 0 },
-  };
+  const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
+    {
+      owner_address: { _eq: address },
+      amount: { _gt: 0 },
+    };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
@@ -292,8 +296,8 @@ export async function getAccountOwnedTokens(args: {
 
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
-  collectionAddress: HexInput;
+  accountAddress: AccountAddressInput;
+  collectionAddress: AccountAddressInput;
   options?: {
     tokenStandard?: TokenStandard;
     pagination?: PaginationArgs;
@@ -301,10 +305,15 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   };
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
   const { aptosConfig, accountAddress, collectionAddress, options } = args;
-  const ownerAddress = AccountAddress.fromHexInput(accountAddress).toString();
-  const collAddress = Hex.fromHexInput(collectionAddress).toString();
+  const ownerAddress = AccountAddress.from(accountAddress).toStringLong();
+  const collAddress = AccountAddress.from(collectionAddress).toStringLong();
 
-  const whereCondition: any = {
+  const whereCondition: {
+    owner_address: { _eq: string };
+    current_token_data: { collection_id: { _eq: string } };
+    amount: { _gt: number };
+    token_standard?: { _eq: string };
+  } = {
     owner_address: { _eq: ownerAddress },
     current_token_data: { collection_id: { _eq: collAddress } },
     amount: { _gt: 0 },
@@ -335,7 +344,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
 
 export async function getAccountCollectionsWithOwnedTokens(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: {
     tokenStandard?: TokenStandard;
     pagination?: PaginationArgs;
@@ -343,9 +352,13 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
   };
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
-  const whereCondition: any = {
+  const whereCondition: {
+    owner_address: { _eq: string };
+    amount: { _gt: number };
+    current_collection?: { token_standard: { _eq: string } };
+  } = {
     owner_address: { _eq: address },
     amount: { _gt: 0 },
   };
@@ -377,11 +390,11 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
 
 export async function getAccountTransactionsCount(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
 
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
   const graphqlQuery = {
     query: GetAccountTransactionsCount,
@@ -403,16 +416,16 @@ export async function getAccountTransactionsCount(args: {
 
 export async function getAccountCoinsData(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
   };
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
-  const whereCondition: any = {
+  const whereCondition: { owner_address: { _eq: string } } = {
     owner_address: { _eq: address },
   };
 
@@ -437,10 +450,10 @@ export async function getAccountCoinsData(args: {
 
 export async function getAccountCoinsCount(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
   const graphqlQuery = {
     query: GetAccountCoinsCount,
@@ -462,16 +475,16 @@ export async function getAccountCoinsCount(args: {
 
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
-  accountAddress: HexInput;
+  accountAddress: AccountAddressInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
   };
 }): Promise<GetAccountOwnedObjectsResponse> {
   const { aptosConfig, accountAddress, options } = args;
-  const address = AccountAddress.fromHexInput(accountAddress).toString();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
-  const whereCondition: any = {
+  const whereCondition: { owner_address: { _eq: string } } = {
     owner_address: { _eq: address },
   };
   const graphqlQuery = {
@@ -511,30 +524,30 @@ export async function deriveAccountFromPrivateKey(args: {
   if (privateKey instanceof Secp256k1PrivateKey) {
     // private key is secp256k1, therefore we know it for sure uses a single signer key
     const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    const address = authKey.derivedAddress();
     return Account.fromPrivateKeyAndAddress({ privateKey, address });
   }
 
   if (privateKey instanceof Ed25519PrivateKey) {
     // lookup single sender ed25519
-    const SingleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+    const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
       publicKey,
       scheme: SigningScheme.SingleKey,
     });
     const isSingleSenderTransactionAuthenticator = await isAccountExist({
-      authKey: SingleSenderTransactionAuthenticatorAuthKey,
+      authKey: singleSenderTransactionAuthenticatorAuthKey,
       aptosConfig,
     });
     if (isSingleSenderTransactionAuthenticator) {
-      const address = new AccountAddress({ data: SingleSenderTransactionAuthenticatorAuthKey.toUint8Array() });
+      const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
       return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
     }
     // lookup legacy ed25519
     const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
-      const address = new AccountAddress({ data: legacyAuthKey.toUint8Array() });
-      return Account.fromPrivateKeyAndAddress({ privateKey, address });
+      const address = legacyAuthKey.derivedAddress();
+      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
     }
   }
   // if we are here, it means we couldn't find an address with an
@@ -546,13 +559,13 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
   const { aptosConfig, authKey } = args;
   const accountAddress = await lookupOriginalAccountAddress({
     aptosConfig,
-    authenticationKey: authKey.toString(),
+    authenticationKey: authKey.derivedAddress(),
   });
 
   try {
     await getInfo({
       aptosConfig,
-      accountAddress: accountAddress.toString(),
+      accountAddress,
     });
     return true;
   } catch (error: any) {

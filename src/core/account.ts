@@ -142,13 +142,10 @@ export class Account {
           publicKey = privateKey.publicKey();
         }
     }
+    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
 
-    const address = new AccountAddress({
-      data: Account.authKey({
-        publicKey,
-      }).toUint8Array(),
-    });
-    return new Account({ privateKey, address, legacy: useLegacy });
+    const address = authKey.derivedAddress();
+    return new Account({ privateKey, address, legacy: args?.legacy });
   }
 
   /**
@@ -184,7 +181,7 @@ export class Account {
     }
 
     const authKey = AuthenticationKey.fromPublicKey({ publicKey });
-    const address = new AccountAddress({ data: authKey.toUint8Array() });
+    const address = authKey.derivedAddress();
     return new Account({ privateKey, address, legacy: useLegacy });
   }
 
@@ -250,10 +247,9 @@ export class Account {
    * @param args.publicKey PublicKey - public key of the account
    * @returns The authentication key for the associated account
    */
-  static authKey(args: { publicKey: PublicKey }): Hex {
+  static authKey(args: { publicKey: PublicKey }): AuthenticationKey {
     const { publicKey } = args;
-    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
-    return authKey.data;
+    return AuthenticationKey.fromPublicKey({ publicKey });
   }
 
   /**

@@ -288,7 +288,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
 
       return new TypeTagStruct(
         new StructTag(
-          AccountAddress.fromString(structParts[0]),
+          AccountAddress.fromStringRelaxed(structParts[0]),
           new Identifier(structParts[1]),
           new Identifier(structParts[2]),
           types,
