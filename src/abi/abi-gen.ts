@@ -76,7 +76,7 @@ function metaclassBuilder(
   //   lines.push(`let account${i}: AccountAuthenticator | undefined; // ${signerArgument.annotation}`);
   // });
 
-  const argsType = `${className}PayloadArgs`;
+  const argsType = `${className}BCSTypes`;
 
   // ---------- Declare class field types separately ---------- //
   if (functionArguments.length > 0) {
@@ -127,6 +127,7 @@ function metaclassBuilder(
   }
   lines.push("");
 
+  /*
   // -------- Create payload -------- //
   lines.push(
     entryFunctionCodeGen(
@@ -146,6 +147,7 @@ function metaclassBuilder(
     lines.push("// eslint-disable-next-line");
     lines.push("serialize(_serializer: Serializer): void { }");
   }
+  */
   lines.push("}");
   return lines.join("\n");
 }

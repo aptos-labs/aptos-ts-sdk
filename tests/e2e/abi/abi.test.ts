@@ -27,7 +27,7 @@ import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 jest.setTimeout(15000);
 
 describe("abi test", () => {
-  it.only("parses abis correctly", async () => {
+  it("parses abis correctly", async () => {
     const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
     const account = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
@@ -37,7 +37,7 @@ describe("abi test", () => {
     console.log(moduleABIs.join("\n\n"));
   });
 
-  it.only("parses tournament abis correctly", async () => {
+  it("parses tournament abis correctly", async () => {
     const accountAddress = AccountAddress.fromRelaxed(
       "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
     );
@@ -47,8 +47,8 @@ describe("abi test", () => {
     console.log(moduleABIs.join("\n\n"));
   });
 
-  it("parses 0x1 module abis correctly", async () => {
-    const accountAddress = AccountAddress.fromRelaxed("0x4");
+  it.only("parses 0x1 module abis correctly", async () => {
+    const accountAddress = AccountAddress.fromRelaxed("0x1");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console

@@ -9,7 +9,7 @@ import {
   ModuleId,
   TransactionPayloadEntryFunction,
 } from "../../../transactions";
-import { Serializable } from "../../serializer";
+import { Serializable, Serializer } from "../../serializer";
 
 export abstract class EntryFunctionPayloadBuilder extends Serializable {
   public abstract readonly moduleAddress: AccountAddress;
@@ -29,5 +29,9 @@ export abstract class EntryFunctionPayloadBuilder extends Serializable {
 
   argsToArray(): Array<EntryFunctionArgumentTypes> {
     return Object.keys(this.args).map((field) => this.args[field as keyof typeof this.args]);
+  }
+
+  serialize(serializer: Serializer): void {
+    this.toPayload().serialize(serializer);
   }
 }
