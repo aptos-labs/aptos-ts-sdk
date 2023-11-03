@@ -74,6 +74,10 @@ describe("ANS", () => {
       expect(() => isValidANSName("1")).toThrow();
       expect(() => isValidANSName("1.apt")).toThrow();
       expect(() => isValidANSName("bad.bad.bad")).toThrow();
+      expect(() => isValidANSName("-bad-")).toThrow();
+      expect(() => isValidANSName("-bad.apt")).toThrow();
+      expect(() => isValidANSName("bad-.apt")).toThrow();
+      expect(() => isValidANSName("b.a.d.apt")).toThrow();
     });
   });
 
