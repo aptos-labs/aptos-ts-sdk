@@ -14,7 +14,6 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { execSync } from "child_process";
 import { compilePackage } from "./utils";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -33,7 +32,7 @@ async function main() {
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");
-  compilePackage("facoin", "facoin/facoin.json", [{name: "FACoin", address: alice.accountAddress}]);
+  compilePackage("facoin", "facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
 
   // current working directory - the root folder of this repo
   const cwd = process.cwd();
