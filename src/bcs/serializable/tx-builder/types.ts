@@ -38,16 +38,19 @@ export type TransactionBuilderInfo = {
   transactionHash?: HexInput;
 };
 
-export type CreateTransactionBuilderArgs = {
+export type TransactionBuilderArgs = {
   sender: AccountAddress;
   payload: TransactionPayload;
   configOrNetwork: AptosConfig | Network;
   options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddress;
+  secondarySignerAddresses?: Array<AccountAddress>;
 };
 
-export type CreateTransactionBuilderWithFeePayerArgs = CreateTransactionBuilderArgs & {
-  feePayerAddress: AccountAddress;
-};
+export type TransactionBuilderWithSingleSignerArgs = Omit<TransactionBuilderArgs, "feePayerAddress" | "secondarySignerAddresses">;
+export type TransactionBuilderWithFeePayerArgs = TransactionBuilderArgs & { feePayerAddress: AccountAddress };
+export type TransactionBuilderWithSecondarySignersArgs = TransactionBuilderArgs & { secondarySignerAddresses: Array<AccountAddress> };
+export type TransactionBuilderWithFeePayerAndSecondarySignersArgs = TransactionBuilderWithFeePayerArgs & TransactionBuilderWithSecondarySignersArgs;
 
 export type SignFeePayerTransactionFunction = (
   sender: AccountAddress,

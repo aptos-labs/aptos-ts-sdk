@@ -3,43 +3,71 @@
 import { AptosConfig } from "../../../api";
 import { AccountAddress } from "../../../core";
 import { Signer } from "../../../core/signer";
+import { InputGenerateTransactionOptions, generateRawTransaction } from "../../../transactions";
 import { RawTransaction, RawTransactionWithData, TransactionPayload } from "../../../transactions/instances";
+import { HexInput } from "../../../types";
 import { Network } from "../../../utils/apiEndpoints";
 import { Deserializer } from "../../deserializer";
-import { TransactionBuilder } from "./transactionBuilder";
+import { getConfigOrNetwork } from "./helper";
+import { CreateWithSecondarySigners, TransactionBuilder } from "./transactionBuilder";
+import { TransactionBuilderArgs, TransactionBuilderInfo, TransactionBuilderWithFeePayerAndSecondarySignersArgs, TransactionBuilderWithSecondarySignersArgs } from "./types";
 
 /**
  * For Move entry functions with multiple &signers:
  * public entry fun(signer_1: &signer, signer_2: &signer, ..., signer_n: &signer);
  */
-export class MultiSignerTransactionBuilder extends TransactionBuilder {
-  public readonly rawTransaction: RawTransaction;
-  public readonly rawTransactionWithData: RawTransactionWithData;
-  public readonly sender: AccountAddress;
-  public readonly secondarySignerAddresses: Array<AccountAddress>; // specified at instantiation, since order matters
-  public readonly senderSigner?: Signer;
-  public readonly secondarySigners?: Array<Signer>;
+export class MultiSignerTransactionBuilder extends TransactionBuilder implements CreateWithSecondarySigners {
+  protected senderSigner?: Signer;
+  private secondarySignerAddresses: Array<AccountAddress>; // specified at instantiation, since order matters
+  private secondarySigners?: Array<Signer>;
+  private feePayerAddress: AccountAddress = AccountAddress.ZERO;
+  private feePayerSigner?: Signer;
+  private transactionHash?: HexInput;
 
-  private constructor(args: {
+  protected constructor(args: {
     rawTransaction: RawTransaction;
-    sender: AccountAddress;
-    secondarySignerAddresses: Array<AccountAddress>;
-    senderSigner?: Signer; // you can pass this now or collect it later
-    secondarySigners?: Array<Signer>; // you can pass this now or collect it later
+    aptosConfig: AptosConfig;
+    feePayerAddress?: AccountAddress;
+    secondarySignerAddresses: Array<AccountAddress>;,
   }) {
-    super({ ...args });
-    const { rawTransaction, sender, secondarySignerAddresses, senderSigner, secondarySigners } = args;
-    this.sender = sender;
-    this.rawTransaction = rawTransaction;
-    this.secondarySigners = secondarySigners;
-    this.rawTransactionWithData = deriveTransactionType({
-      rawTransaction: this.rawTransaction.bcsToBytes(),
-      secondarySignerAddresses: secondarySignerAddresses,
-    });
-    this.senderSigner = senderSigner;
+    super(args);
+    const { feePayerAddress, secondarySignerAddresses } = args;
+    this.feePayerAddress = feePayerAddress ?? AccountAddress.ZERO;
     this.secondarySignerAddresses = secondarySignerAddresses;
   }
-  // this.feePayerAddress = args.feePayerAddress;
+
+  getInfo(): TransactionBuilderInfo {
+    return {
+      rawTransaction: this.rawTransaction,
+      aptosConfig: this.aptosConfig,
+      sender: this.rawTransaction.sender,
+      payload: this.rawTransaction.payload as any, // TODO: Figure out why it makes you cast this
+      senderSigner: this.senderSigner,
+      feePayerAddress: this.feePayerAddress,
+      feePayerSigner: this.feePayerSigner,
+      secondarySignerAddresses: this.secondarySignerAddresses,
+      secondarySigners: this.secondarySigners,
+      transactionHash: this.transactionHash,
+    };
+  }
+
+  private static async generate(
+    args: TransactionBuilderArgs,
+  ): Promise<MultiSignerTransactionBuilder> {
+    const { sender, payload, configOrNetwork, options, feePayerAddress, secondarySignerAddresses } = args;
+    const aptosConfig = getConfigOrNetwork(configOrNetwork);
+    const rawTransaction = await generateRawTransaction({ sender: sender.data, payload: payload as any, aptosConfig, options });
+    return new MultiSignerTransactionBuilder({ rawTransaction, aptosConfig, feePayerAddress, secondarySignerAddresses });
+  }
+
+  static async createWithFeePayer(args: TransactionBuilderWithSecondarySignersArgs): Promise<MultiSignerTransactionBuilder> {
+    
+  }
+  static async createWithAnonymousFeePayer(args: TransactionBuilderWithFeePayerAndSecondarySignersArgs): Promise<MultiSignerTransactionBuilder> {
+    
+  }
+
+
 
   /**
    * Largely the same as @see generateRawTransaction, this function mainly serves to simplify the process by storing the raw transaction in the class fields.
@@ -64,7 +92,7 @@ export class MultiSignerTransactionBuilder extends TransactionBuilder {
     feePayerAddress?: AccountAddress;
     payload: TransactionPayload;
     aptosConfigOrNetwork: AptosConfig | Network;
-    options: GenerateTransactionOptions;
+    options: InputGenerateTransactionOptions;
   }): Promise<TransactionBuilder> {
     const { sender, payload, aptosConfigOrNetwork, options } = args;
     const aptosConfig = getConfigOrNetwork(aptosConfigOrNetwork);

@@ -5,6 +5,20 @@ import { Account } from "../../../core";
 import { Signer } from "../../../core/signer";
 import { RawTransaction } from "../../../transactions/instances";
 import { PendingTransactionResponse, UserTransactionResponse, WaitForTransactionOptions } from "../../../types";
+import { SignFeePayerTransactionFunction, TransactionBuilderArgs, TransactionBuilderInfo } from "./types";
+
+export interface CreateTransaction {
+  // generate(args: TransactionBuilderArgs): Promise<TransactionBuilder>;
+  // create(args: any): Promise<TransactionBuilder>;
+}
+
+export interface CreateWithFeePayer extends CreateTransaction {
+  // createWithExplicitFeePayer: (args: any) => Promise<TransactionBuilder>;
+}
+
+export interface CreateWithSecondarySigners extends CreateWithFeePayer {
+  // createWithSecondarySigners: (args: any) => Promise<TransactionBuilder>;
+}
 
 /**
  * This is more of a Director in terms of builder design patterns.
@@ -29,7 +43,6 @@ export abstract class TransactionBuilder {
   }
 
   abstract getInfo(): TransactionBuilderInfo;
-
   /**
    * If you possess the private key (or have an instance of an `Account`), you can sign the transaction with this function.
    *
@@ -61,7 +74,7 @@ export abstract class TransactionBuilder {
     waitForTransactionOptions?: WaitForTransactionOptions,
   ): Promise<UserTransactionResponse>;
   abstract signSubmitAndWaitForResponse(args: {
-    signer: Account;
+    signer: Account | Signer;
     waitForTransactionOptions?: WaitForTransactionOptions;
   }): Promise<UserTransactionResponse>;
   // abstract simulateTransaction(args: SimulateTransactionData): Promise<Array<UserTransactionResponse>>;

@@ -13,11 +13,14 @@ import {
   UserTransactionResponse,
   WaitForTransactionOptions,
 } from "../../../types";
-import { TransactionBuilder } from "./transactionBuilder";
+import { getConfigOrNetwork } from "./helper";
+import { CreateWithFeePayer, TransactionBuilder } from "./transactionBuilder";
+import { SignFeePayerTransactionFunction, TransactionBuilderArgs, TransactionBuilderInfo, TransactionBuilderWithFeePayerArgs, TransactionBuilderWithSingleSignerArgs } from "./types";
 
-export class SingleSignerTransactionBuilder extends TransactionBuilder {
+export class SingleSignerTransactionBuilder extends TransactionBuilder implements CreateWithFeePayer {
   protected senderSigner?: Signer;
-  // if fee payer is 0x0, then it's an anonymous fee payer transaction
+  // if fee payer is 0x0, then it's an anonymous fee payer 
+  private withFeePayer: boolean = false;
   private feePayerAddress: AccountAddress = AccountAddress.ZERO;
   private feePayerSigner?: Signer;
   private transactionHash?: HexInput;
@@ -27,11 +30,8 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
     aptosConfig: AptosConfig;
     feePayerAddress?: AccountAddress;
   }) {
-    const { rawTransaction, feePayerAddress, aptosConfig } = args;
-    super({
-      rawTransaction,
-      aptosConfig,
-    });
+    const { feePayerAddress } = args;
+    super(args);
     this.feePayerAddress = feePayerAddress ?? AccountAddress.ZERO;
   }
 
@@ -51,28 +51,28 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
   }
 
   private static async generate(
-    args: CreateTransactionBuilderArgs & { feePayerAddress?: AccountAddress },
+    args: TransactionBuilderArgs,
   ): Promise<SingleSignerTransactionBuilder> {
     const { sender, payload, configOrNetwork, options, feePayerAddress } = args;
     const aptosConfig = getConfigOrNetwork(configOrNetwork);
-    const rawTransaction = await generateRawTransaction({ sender: sender.data, payload, aptosConfig, options });
+    const rawTransaction = await generateRawTransaction({ sender: sender.data, payload: payload as any, aptosConfig, options });
     return new SingleSignerTransactionBuilder({ rawTransaction, aptosConfig, feePayerAddress });
   }
 
-  static async create(args: CreateTransactionBuilderArgs): Promise<SingleSignerTransactionBuilder> {
+  static async create(args: TransactionBuilderWithSingleSignerArgs): Promise<SingleSignerTransactionBuilder> {
     const builder = await SingleSignerTransactionBuilder.generate(args);
     return builder;
   }
 
   static async createWithExplicitFeePayer(
-    args: CreateTransactionBuilderWithFeePayerArgs,
+    args: TransactionBuilderWithFeePayerArgs,
   ): Promise<SingleSignerTransactionBuilder> {
     const builder = await SingleSignerTransactionBuilder.generate(args);
     return builder;
   }
 
   static async createWithAnonymousFeePayer(
-    args: CreateTransactionBuilderArgs,
+    args: TransactionBuilderWithSingleSignerArgs,
   ): Promise<SingleSignerTransactionBuilder> {
     const builder = await SingleSignerTransactionBuilder.generate(args);
     return builder;
@@ -84,7 +84,7 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
    */
   sign(signer: Account): void {
     // default to 0x0
-    let feePayerAddressToUse = this.feePayerAddress;
+    let feePayerAddressToUse = this.withFeePayer ? this.feePayerAddress : undefined;
     // unless the signer is the fee payer
     if (!signer.accountAddress.equals(this.rawTransaction.sender)) {
       // The fee payer must sign the transaction with themselves as the fee payer,
@@ -92,6 +92,10 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
       // It's possible the fee payer is 0x0, so we need to manually override that
       feePayerAddressToUse = signer.accountAddress;
     }
+    console.log(signer);
+    console.log(this.rawTransaction.sender);
+    console.log(this.rawTransaction.payload);
+    console.log(feePayerAddressToUse);
     const inferredSigner = Signer.fromAccount({
       account: signer,
       rawTransaction: this.rawTransaction,
@@ -104,9 +108,9 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
   // This one is less explicit, since it requires you get a `Signer` back from a wallet adapter (or an `AccountAuthenticator` that you create a
   // `Signer` with yourself)
   addSignature(signer: Signer): void {
-    if (signer.address == this.feePayerAddress || this.feePayerAddress == AccountAddress.ZERO) {
+    if (this.withFeePayer && (signer.accountAddress == this.feePayerAddress || this.feePayerAddress == AccountAddress.ZERO)) {
       this.feePayerSigner = signer;
-    } else if (signer.address == this.rawTransaction.sender) {
+    } else if (signer.accountAddress.equals(this.rawTransaction.sender)) {
       this.senderSigner = signer;
     } else {
       throw new Error("The signer address does not match either the sender or the fee payer address.");
@@ -120,19 +124,22 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
   }
 
   async submit(): Promise<PendingTransactionResponse> {
-    if (this.senderSigner === undefined || this.feePayerSigner === undefined) {
+    console.log(this.senderSigner);
+    console.log(this.withFeePayer);
+    console.log(this.feePayerSigner);
+    if (this.senderSigner === undefined || (this.withFeePayer && this.feePayerSigner === undefined)) {
       throw new Error("You must sign the transaction before submitting it.");
     }
+    const secondarySignerAuthenticators = this.withFeePayer ? { feePayerAuthenticator: this.feePayerSigner?.authenticator } : undefined;
     const response = await submitTransaction({
       aptosConfig: this.aptosConfig,
       transaction: {
         rawTransaction: this.rawTransaction.bcsToBytes(),
       },
       senderAuthenticator: this.senderSigner.authenticator,
-      secondarySignerAuthenticators: {
-        feePayerAuthenticator: this.feePayerSigner.authenticator,
-      },
+      secondarySignerAuthenticators,
     });
+    this.transactionHash = response.hash;
     return response as PendingTransactionResponse;
   }
 
@@ -157,11 +164,15 @@ export class SingleSignerTransactionBuilder extends TransactionBuilder {
   }
 
   async signSubmitAndWaitForResponse(args: {
-    signer: Account;
+    signer: Account | Signer;
     waitForTransactionOptions?: WaitForTransactionOptions;
   }): Promise<UserTransactionResponse> {
     const { signer, waitForTransactionOptions } = args;
-    this.sign(signer);
+    if (signer instanceof Account) {
+      this.sign(signer);
+    } else {
+      this.addSignature(signer);
+    }
     return this.submitAndWaitForResponse(waitForTransactionOptions);
   }
 }

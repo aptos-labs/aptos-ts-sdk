@@ -22,6 +22,7 @@ import {
   parseTypeTag,
 } from "..";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
+import { getArgNameMapping, getArgNames, getSourceCodeMap, sortByNameField } from "./package-metadata";
 import { sanitizeName, toPascalCase } from "./utils";
 
 async function fetchModuleABIs(aptos: Aptos, accountAddress: AccountAddress) {
@@ -35,12 +36,16 @@ function isAbiDefined(obj: MoveModuleBytecode): obj is { bytecode: string; abi: 
   return obj.abi !== undefined;
 }
 
+export type MoveFunctionWithArgumentNames = MoveFunction & {
+  arg_names: Array<string>,
+}
+
 type AbiFunctions = {
   moduleAddress: AccountAddress;
   moduleName: string;
-  publicEntryFunctions: Array<MoveFunction>;
-  privateEntryFunctions: Array<MoveFunction>;
-  viewFunctions: Array<MoveFunction>;
+  publicEntryFunctions: Array<MoveFunctionWithArgumentNames>;
+  privateEntryFunctions: Array<MoveFunctionWithArgumentNames>;
+  viewFunctions: Array<MoveFunctionWithArgumentNames>;
 };
 
 /**
@@ -176,7 +181,15 @@ const TAB = "    ";
 const R_PARENTHESIS = ")";
 
 // Note that the suppliedFieldNames includes the `&signer` and `signer` fields.
-function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedFieldNames?: Array<string>): string {
+function metaclassBuilder(
+  moduleAddress: AccountAddress,
+  moduleName: string,
+  functionName: string,
+  className: string,
+  typeTags: Array<TypeTag>,
+  suppliedFieldNames?: Array<string>
+): string {
+  const GENERIC_TYPE_TAGS = new Array<TypeTag>();
   const fieldNames = suppliedFieldNames ?? [];
 
   // Check if the user supplied field names
@@ -217,6 +230,9 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
   // ---------- Class fields ---------- //
   lines.push("");
   lines.push(`export class ${className} extends Serializable {`);
+  lines.push(`${TAB.repeat(1)}public readonly moduleAddress = AccountAddress.fromHexInputRelaxed("${moduleAddress.toString()}");`);
+  lines.push(`${TAB.repeat(1)}public readonly moduleName = "${moduleName}";`);
+  lines.push(`${TAB.repeat(1)}public readonly functionName = "${functionName}";`);
   if (functionArguments.length > 0) {
     lines.push(`${TAB.repeat(1)}public readonly args: ${argsType};`);
   }
@@ -229,7 +245,7 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     functionArguments.forEach((functionArgument, i) => {
       const inputType = createInputTypes(functionArgument.kindArray);
       const argComment = ` // ${functionArgument.annotation}`;
-      lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}; ${argComment}`);
+      lines.push(`${TAB.repeat(2)}${fieldNames[i]}: ${inputType}, ${argComment}`);
     });
     lines.push(`${TAB.repeat(1)}) {`);
   } else {
@@ -247,17 +263,21 @@ function metaclassBuilder(className: string, typeTags: Array<TypeTag>, suppliedF
     lines.push(`${TAB.repeat(2)}}`);
     lines.push(`${TAB.repeat(1)}}`);
   }
+  lines.push("");
+
+  // -------- Create payload -------- //
+  lines.push(entryFunctionCodeGen(
+    GENERIC_TYPE_TAGS.map((typeTag) => typeTag.toString()),
+    2,
+  ));
+  lines.push("");
+
+  // -------- Add the argsToArray function -------- //
+  lines.push(ARGS_TO_ARRAY_FUNCTION);
 
   // -------- Add the serialize function -------- //
-  const serializeFunction = `
-    serialize(serializer: Serializer): void {
-        Object.keys(this.args).forEach(field => {
-            const value = this.args[field as keyof typeof this.args];
-            serializer.serialize(value);
-        });
-    }`;
   if (functionArguments.length > 0) {
-    lines.push(serializeFunction);
+    lines.push(SERIALIZE_FUNCTION);
   } else {
     lines.push("// eslint-disable-next-line");
     lines.push("serialize(_serializer: Serializer): void { }");
@@ -311,7 +331,7 @@ function createInputTypeConverter(
 ): string {
   // replace MoveObject with AccountAddress for the constructor input types
   const kind = kindArray[0] === "MoveObject" ? AccountAddress.kind : kindArray[0];
-  const nameFromDepth = depth === 0 ? `args.${fieldName}` : `arg${numberToLetter(depth)}`;
+  const nameFromDepth = depth === 0 ? `${fieldName}` : `arg${numberToLetter(depth)}`;
   switch (kind) {
     case MoveVector.kind:
     case MoveOption.kind: {
@@ -397,6 +417,7 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
   };
 }
 
+
 // TODO: accept Uint8Array for vector<u8> arguments?
 //
 // TODO: Add support for view functions. It should be very straightforward, since they're
@@ -406,30 +427,42 @@ function getClassArgTypes(typeTags: Array<TypeTag>, replaceOptionWithVector = tr
 // TODO: Add support for remote ABI BCS serialization? You just would treat everything like a view function.
 export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): Promise<Array<string>> {
   const moduleABIs = await fetchModuleABIs(aptos, accountAddress);
+  const sourceCodeMap = await getSourceCodeMap(accountAddress, aptos.config.network);
 
-  const abiFunctions: AbiFunctions[] = [];
+  let abiFunctions: AbiFunctions[] = [];
 
   moduleABIs.filter(isAbiDefined).forEach((module) => {
     const { abi } = module;
     const exposedFunctions = abi.exposed_functions;
+
+    const sourceCode = sourceCodeMap[abi.name];
+
+    // console.log(sourceCode);
+
+    const publicEntryFunctions = exposedFunctions.filter((func) => func.is_entry);
+    const privateEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility === "private");
+    const viewFunctions = exposedFunctions.filter((func) => func.is_view);
+
+    const publicMapping = getArgNameMapping(abi, publicEntryFunctions, sourceCode);
+    const privateMapping = getArgNameMapping(abi, privateEntryFunctions, sourceCode);
+    const viewMapping = getArgNameMapping(abi, viewFunctions, sourceCode);
+
     abiFunctions.push({
       moduleAddress: AccountAddress.fromHexInputRelaxed(abi.address),
       moduleName: abi.name,
-      publicEntryFunctions: exposedFunctions.filter((func) => func.is_entry),
-      privateEntryFunctions: exposedFunctions.filter((func) => func.is_entry && func.visibility === "private"),
-      viewFunctions: exposedFunctions.filter((func) => func.is_view),
+      publicEntryFunctions: getArgNames(abi, publicEntryFunctions, publicMapping),
+      privateEntryFunctions: getArgNames(abi, privateEntryFunctions, privateMapping),
+      viewFunctions: getArgNames(abi, viewFunctions, viewMapping),
     });
   });
+  
+  abiFunctions = sortByNameField(abiFunctions);
 
-  // sort the abiFunctions by moduleName alphabetically
-  abiFunctions.sort((a, b) => {
-    if (a.moduleName < b.moduleName) {
-      return -1;
-    }
-    return a.moduleName > b.moduleName ? 1 : 0;
-  });
+  // const argumentNames = await getArgumentNames(sourceCode, abiFunctions[0].);
 
   const moduleFunctions = abiFunctions.map((abiFunction) => {
+    // const sourceCodeForModule = allSourceCode.find((sourceCodes) => sourceCodes.find(code => code.name === abiFunction.moduleName));
+    // console.log(sourceCodeForModule);
     const moduleName = toPascalCase(abiFunction.moduleName);
     const sanitizedModuleName = sanitizeName(moduleName);
     if (abiFunction.publicEntryFunctions.length > 0) {
@@ -437,7 +470,7 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
       const functionStrings = abiFunction.publicEntryFunctions.map((func) => {
         try {
           const typeTags = func.params.map((param) => parseTypeTag(param));
-          return metaclassBuilder(`${toPascalCase(func.name)}`, typeTags, []);
+          return metaclassBuilder(abiFunction.moduleAddress, abiFunction.moduleName, func.name, `${toPascalCase(func.name)}`, typeTags, []);
         } catch (e) {
           // do nothing
         }
@@ -460,3 +493,39 @@ export async function fetchABIs(aptos: Aptos, accountAddress: AccountAddress): P
 //
 // This would mean we have to include a `kind` in each BCS class instance that we can use as a string
 // type tag.
+
+
+const entryFunctionCodeGen = (
+  typeArgs: Array<string>,
+  tabs: number = 0,
+): string => {
+  const lines: Array<string> = [];
+  lines.push(`toPayload(): TransactionPayloadEntryFunction {`);
+  const tabbedLines: Array<string> = [];
+  tabbedLines.push(`const entryFunction = new EntryFunction(`);
+  tabbedLines.push(`  new ModuleId(this.moduleAddress, new Identifier(this.moduleName)),`);
+  tabbedLines.push(`  new Identifier(this.functionName),`);
+  tabbedLines.push(`  [${typeArgs.map(t => "parseTypeTag(" + t + ")").join(",")}],`);
+  tabbedLines.push(`  ${ARGS_TO_ARRAY_FUNCTION_CALL}`);
+  tabbedLines.push(`)`);
+  tabbedLines.push(`return new TransactionPayloadEntryFunction(entryFunction)`);
+  lines.push(...tabbedLines.map(line => TAB.repeat(tabs + 1) + line));
+  lines.push(`}`);
+  lines.map(line => TAB.repeat(tabs) + line);
+  return lines.join("\n");
+}
+
+const ARGS_TO_ARRAY_FUNCTION_NAME = `argsToArray`;
+const ARGS_TO_ARRAY_FUNCTION_CALL = `this.argsToArray()`;
+
+const ARGS_TO_ARRAY_FUNCTION = `${ARGS_TO_ARRAY_FUNCTION_NAME}(): Array<EntryFunctionArgumentTypes> {
+  return Object.keys(this.args).map(field => this.args[field as keyof typeof this.args]);
+}`
+
+const SERIALIZE_FUNCTION = `
+serialize(serializer: Serializer): void {
+    const args = this.argsToArray();
+    args.forEach(arg => {
+      serializer.serialize(arg);
+    });
+}`;

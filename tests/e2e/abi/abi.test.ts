@@ -1,12 +1,18 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network } from "../../../src";
+import { Account, AccountAddress, Aptos, AptosConfig, EntryFunction, Hex, Identifier, ModuleId, MoveString, MoveVector, Network, TransactionPayloadEntryFunction } from "../../../src";
 import { fetchABIs } from "../../../src/abi/abi-gen";
 import { FUND_AMOUNT } from "../../unit/helper";
-import { publishArgumentTestModule } from "../transaction/helper";
+import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import * as AptosFramework from "../../../src/abi/0x1";
+import { RockPaperScissor, TournamentManager } from "../../../src/abi/tournament";
+import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
 // import { TxArgsModule } from "../../../src/abi/example";
+import { sha3_256} from "js-sha3";
+import { getSourceCodeMap } from "../../../src/abi/package-metadata";
+
+jest.setTimeout(15000);
 
 describe("abi test", () => {
   it("parses abis correctly", async () => {
@@ -30,7 +36,7 @@ describe("abi test", () => {
   });
 
   it("parses 0x1 module abis correctly", async () => {
-    const accountAddress = AccountAddress.fromHexInputRelaxed("0x1");
+    const accountAddress = AccountAddress.fromHexInputRelaxed("0x4");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
@@ -60,8 +66,156 @@ describe("abi test", () => {
       arg_1: [1000n],
     });
 
+    const payload1 = new AptosFramework.AptosAccount.BatchTransferCoins({
+      arg_0: [Account.generate().accountAddress],
+      arg_1: [1000n],
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const batchTransferPayloadSerialized = batchTransferPayload.bcsToBytes();
+  });
+
+  it("tests rock paper scissors commands", async () => {
+    const tournamentManager = Account.generate();
+    const account1 = Account.generate();
+    const account2 = Account.generate();
+    const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
+    await fundAccounts(aptos, [tournamentManager,account1, account2]);
+    const TOURNAMENT_ADDRESS = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const TOURNAMENT_NAME = "Tournament";
+
+    const tournamentCreate = await SingleSignerTransactionBuilder.create({
+      sender: tournamentManager.accountAddress,
+      payload: new TournamentManager.InitializeTournament(
+        "Tournament",
+        2,
+        1,
+        10,
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    tournamentCreate.sign(tournamentManager);
+    const response = await tournamentCreate.submitAndWaitForResponse();
+    console.log(response);
+
+    const joinTournamentp1 = await SingleSignerTransactionBuilder.create({
+      sender: account1.accountAddress,
+      payload: new TournamentManager.JoinTournament(
+        TOURNAMENT_ADDRESS,
+        TOURNAMENT_NAME,
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    joinTournamentp1.sign(account1);
+    const responsep1 = await joinTournamentp1.submitAndWaitForResponse();
+    console.log(responsep1);
+
+    const joinTournamentp2 = await SingleSignerTransactionBuilder.create({
+      sender: account1.accountAddress,
+      payload: new TournamentManager.JoinTournament(
+        TOURNAMENT_ADDRESS,
+        TOURNAMENT_NAME,
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    joinTournamentp2.sign(account1);
+    const responsep2 = await joinTournamentp2.submitAndWaitForResponse();
+    console.log(responsep2);
+
+    const startTournament = await SingleSignerTransactionBuilder.create({
+      sender: tournamentManager.accountAddress,
+      payload: new TournamentManager.StartNewRound(
+        TOURNAMENT_ADDRESS,
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    startTournament.sign(tournamentManager);
+    const responseStart = await startTournament.submitAndWaitForResponse();
+    console.log(responseStart);
+
+    const commitAction1 = await SingleSignerTransactionBuilder.create({
+      sender: account1.accountAddress,
+      payload: new RockPaperScissor.CommitAction(
+        TOURNAMENT_ADDRESS,
+        Array.from(Hex.fromString(sha3_256("Rock" + "uuid1")).toUint8Array()),
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    commitAction1.sign(account1);
+    const responseCommit = await commitAction1.submitAndWaitForResponse();
+    console.log(responseCommit);
+
+    const commitAction2 = await SingleSignerTransactionBuilder.create({
+      sender: account2.accountAddress,
+      payload: new RockPaperScissor.CommitAction(
+        TOURNAMENT_ADDRESS,
+        Array.from(Hex.fromString(sha3_256("Paper" + "uuid2")).toUint8Array()),
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+    commitAction2.sign(account2);
+    const responseCommit2 = await commitAction2.submitAndWaitForResponse();
+    console.log(responseCommit2);
+
+    const verifyAction = await SingleSignerTransactionBuilder.create({
+      sender: account1.accountAddress,
+      payload: new RockPaperScissor.VerifyAction(
+        TOURNAMENT_ADDRESS,
+        Array.from(new MoveString("Rock").bcsToBytes().slice(1)),
+        Array.from(new MoveString("uuid1").bcsToBytes().slice(1)),
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+
+    verifyAction.sign(account1);
+    const responseVerify = await verifyAction.submitAndWaitForResponse();
+    console.log(responseVerify);
+
+    const verifyAction2 = await SingleSignerTransactionBuilder.create({
+      sender: account2.accountAddress,
+      payload: new RockPaperScissor.VerifyAction(
+        TOURNAMENT_ADDRESS,
+        Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
+        Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
+      ).toPayload(),
+      configOrNetwork: Network.LOCAL,
+    });
+    verifyAction2.sign(account2);
+    const responseVerify2 = await verifyAction2.submitAndWaitForResponse();
+    console.log(responseVerify2);
+
+    const startNewRound = await RockPaperScissor.VerifyAction.submit(
+      tournamentManager,
+      TOURNAMENT_ADDRESS,
+      Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
+      Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
+      Network.LOCAL,
+    );
+
+
+  });
+
+  it("gets package metadata", async() => {
+    const accountAddress = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const network = Network.LOCAL;
+    const r = await getSourceCodeMap(accountAddress, network);
+    // const parsed = r.map(p => p.map(m => m.source.replace(/\n/g, " ")));
+  });
+
+  it("gets argument names from package metadata regex", async() => {
+    const accountAddress = AccountAddress.fromHexInputRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451");
+    const network = Network.LOCAL;
+    const sourceCode = await getSourceCodeMap(accountAddress, network);
+    // sourceCode.forEach(pkg => {
+    //   pkg.forEach(module => {          
+
+    //   });
+    // });
   });
 
   // it("serializes from abis correctly", async () => {

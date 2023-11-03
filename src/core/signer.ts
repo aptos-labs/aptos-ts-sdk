@@ -36,11 +36,11 @@ export type SignTransactionFunction = (args: SignTransactionFunctionArgs) => Pro
  * @see SignedTransaction
  */
 export class Signer {
-  public readonly address: AccountAddress;
+  public readonly accountAddress: AccountAddress;
   public readonly authenticator: AccountAuthenticator;
 
   private constructor(args: { address: AccountAddress; authenticator: AccountAuthenticator }) {
-    this.address = args.address;
+    this.accountAddress = args.address;
     this.authenticator = args.authenticator;
   }
 
