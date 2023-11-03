@@ -127,13 +127,13 @@ describe("transaction simulation", () => {
       test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -145,13 +145,14 @@ describe("transaction simulation", () => {
       test("with entry function payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
           transaction: rawTxn,
@@ -162,14 +163,14 @@ describe("transaction simulation", () => {
       test("with multisig payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -182,8 +183,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
             functionArguments: [
@@ -195,6 +195,7 @@ describe("transaction simulation", () => {
             ],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -309,13 +310,13 @@ describe("transaction simulation", () => {
       test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -327,13 +328,14 @@ describe("transaction simulation", () => {
       test("with entry function payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
           transaction: rawTxn,
@@ -344,14 +346,14 @@ describe("transaction simulation", () => {
       test("with multisig payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -364,8 +366,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
             functionArguments: [
@@ -377,6 +378,7 @@ describe("transaction simulation", () => {
             ],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -491,13 +493,13 @@ describe("transaction simulation", () => {
       test("with script payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -509,13 +511,14 @@ describe("transaction simulation", () => {
       test("with entry function payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
           transaction: rawTxn,
@@ -526,14 +529,14 @@ describe("transaction simulation", () => {
       test("with multisig payload", async () => {
         const rawTxn = await aptos.generateTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -546,8 +549,7 @@ describe("transaction simulation", () => {
         const rawTxn = await aptos.generateTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-          feePayerAddress: feePayerAccount.accountAddress.toString(),
-          hasSponsor: false,
+          hasSponsor: true,
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
             functionArguments: [
@@ -559,6 +561,7 @@ describe("transaction simulation", () => {
             ],
           },
         });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.simulateTransaction({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -568,41 +571,6 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-
-      test(
-        "with entry function payload and optional fee payer",
-        async () => {
-          // Generate the transaction
-          const transaction = await aptos.generateTransaction({
-            sender: singleSignerED25519SenderAccount.accountAddress.toString(),
-            hasSponsor: true,
-            data: {
-              function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-              functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
-            },
-          });
-
-          // Sender signs the transaction
-          const senderAuthenticator = aptos.signTransaction({ signer: singleSignerED25519SenderAccount, transaction });
-
-          // Update fee payer address and sign the transaction
-          transaction.feePayerAddress = feePayerAccount.accountAddress;
-          const feePayerSignerAuthenticator = aptos.signTransaction({ signer: feePayerAccount, transaction });
-
-          // Submit the updated transaction, which includes the payer address
-          const response = await aptos.submitTransaction({
-            transaction,
-            senderAuthenticator,
-            secondarySignerAuthenticators: { feePayerAuthenticator: feePayerSignerAuthenticator },
-          });
-
-          await aptos.waitForTransaction({
-            transactionHash: response.hash,
-          });
-          expect(response.signature?.type).toBe("fee_payer_signature");
-        },
-        longTestTimeout,
-      );
     });
   });
 });

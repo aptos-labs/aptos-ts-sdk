@@ -76,11 +76,11 @@ export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, data, options, secondarySignerAddresses, hasSponsor } = args;
-  let { feePayerAddress } = args;
 
   // Upate feePayerAddress if it has sponsor
+  let feePayerAddress;
   if (hasSponsor === true) {
-    feePayerAddress = "0x0";
+    feePayerAddress = AccountAddress.ZERO.toString();
   }
 
   // Merge in aptosConfig for remote ABI on non-script payloads

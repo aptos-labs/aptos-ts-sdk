@@ -111,6 +111,32 @@ export class TransactionSubmission {
   }
 
   /**
+   * Sign a transaction that can later be submitted to chain, as a fee payer. The signer who signs the transaction
+   * will be the one who pays the gas
+   *
+   * @param args.signer The signer or fee payer
+   * @param args.transaction A raw transaction type (note that it holds the raw transaction as a bcs serialized data)
+   * ```
+   * {
+   *  rawTransaction: Uint8Array,
+   *  secondarySignerAddresses? : Array<AccountAddress>,
+   *  feePayerAddress?: AccountAddress
+   * }
+   * ```
+   *
+   * @return The signer AccountAuthenticator
+   */
+  /* eslint-disable class-methods-use-this */
+  signTransactionAsPayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+    const { signer, transaction } = args;
+    transaction.feePayerAddress = signer.accountAddress;
+    return signTransaction({
+      signer,
+      transaction,
+    });
+  }
+
+  /**
    * Simulates a transaction before singing it.
    *
    * @param args.signerPublicKey The signer public key

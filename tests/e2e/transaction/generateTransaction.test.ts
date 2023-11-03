@@ -1,4 +1,4 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, U64 } from "../../../src";
+import { AptosConfig, Network, Aptos, Account, Deserializer, U64, AccountAddress } from "../../../src";
 import {
   RawTransaction,
   TransactionPayloadScript,
@@ -114,14 +114,14 @@ describe("generate transaction", () => {
     test("with script payload", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        feePayerAddress: feePayerAccount.accountAddress.toString(),
+        hasSponsor: true,
         data: {
           bytecode: singleSignerScriptBytecode,
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
         },
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
-      expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
+      expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
@@ -132,7 +132,7 @@ describe("generate transaction", () => {
     test("with multi sig payload", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        feePayerAddress: feePayerAccount.accountAddress.toString(),
+        hasSponsor: true,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x1::aptos_account::transfer",
@@ -141,7 +141,7 @@ describe("generate transaction", () => {
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
-      expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
+      expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
@@ -151,7 +151,7 @@ describe("generate transaction", () => {
     test("with entry function transaction", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        feePayerAddress: feePayerAccount.accountAddress.toString(),
+        hasSponsor: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
@@ -159,7 +159,7 @@ describe("generate transaction", () => {
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses?.length).toBe(0);
-      expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
+      expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
@@ -170,7 +170,7 @@ describe("generate transaction", () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-        feePayerAddress: feePayerAccount.accountAddress.toString(),
+        hasSponsor: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
@@ -178,7 +178,7 @@ describe("generate transaction", () => {
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses![0]).toStrictEqual(secondarySignerAccount.accountAddress);
-      expect(transaction.feePayerAddress).toStrictEqual(feePayerAccount.accountAddress);
+      expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
