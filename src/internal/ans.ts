@@ -64,13 +64,13 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
 }
 
 export const LOCAL_ANS_ACCOUNT_PK =
-  (process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY as MoveAddressType) ||
+  (process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY as string) ||
   "0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221";
 export const LOCAL_ANS_ACCOUNT_ADDRESS =
-  (process.env.ANS_TEST_ACCOUNT_ADDRESS as MoveAddressType) ||
+  (process.env.ANS_TEST_ACCOUNT_ADDRESS as string) ||
   "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82";
 
-const NetworkToAnsContract: Record<Network, MoveAddressType | null> = {
+const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.TESTNET]: "0x5f8fd2347449685cf41d4db97926ec3a096eaf381332be4f1318ad4d16a8497c",
   [Network.MAINNET]: "0x867ed1f6bf916171b1de3ee92849b8978b7d1b9e0a8cc982a3d19d535dfd9c0c",
   [Network.LOCAL]: LOCAL_ANS_ACCOUNT_ADDRESS,
@@ -78,7 +78,7 @@ const NetworkToAnsContract: Record<Network, MoveAddressType | null> = {
   [Network.DEVNET]: null,
 };
 
-function getRouterAddress(aptosConfig: AptosConfig): MoveAddressType {
+function getRouterAddress(aptosConfig: AptosConfig): string {
   const address = NetworkToAnsContract[aptosConfig.network];
   if (!address) throw new Error(`The ANS contract is not deployed to ${aptosConfig.network}`);
   return address;
@@ -98,13 +98,8 @@ const unwrapOption = <T>(option: any): T | undefined => {
   return undefined;
 };
 
-export async function getOwnerAddress({
-  aptosConfig,
-  name,
-}: {
-  aptosConfig: AptosConfig;
-  name: string;
-}): Promise<MoveAddressType | undefined> {
+export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: string }): Promise<string | undefined> {
+  const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -118,9 +113,7 @@ export async function getOwnerAddress({
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  // We ideally want fromString or fromHexInput but the view function currently
-  // truncates leading 0s
-  return owner ? AccountAddress.fromHexInputRelaxed(owner).toString() : undefined;
+  return owner;
 }
 
 export interface RegisterNameParameters {
@@ -137,15 +130,8 @@ export interface RegisterNameParameters {
   options?: InputGenerateTransactionOptions;
 }
 
-export async function registerName({
-  aptosConfig,
-  sender,
-  name,
-  expiration,
-  toAddress,
-  targetAddress,
-  options,
-}: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
+export async function registerName(args: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
+  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -177,8 +163,8 @@ export async function registerName({
         functionArguments: [
           new MoveString(domainName),
           new U64(registrationDuration),
-          new MoveOption(targetAddress ? AccountAddress.fromHexInput(targetAddress) : null),
-          new MoveOption(toAddress ? AccountAddress.fromHexInput(toAddress) : null),
+          new MoveOption(targetAddress ? AccountAddress.from(targetAddress) : null),
+          new MoveOption(toAddress ? AccountAddress.from(toAddress) : null),
         ],
       },
       options,
