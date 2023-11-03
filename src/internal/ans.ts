@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveOption, MoveString, U64 } from "../bcs";
+import { Bool, MoveOption, MoveString, U64, U8 } from "../bcs";
 import { Account, AccountAddress } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { HexInput, MoveAddressType, MoveValue } from "../types";
@@ -129,7 +129,7 @@ export interface RegisterNameParameters {
 }
 
 export async function registerName(args: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
-  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options } = args;
+  const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
@@ -171,5 +171,65 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     return transaction as InputSingleSignerTransaction;
   }
 
-  throw new Error(`Policy ${expiration.policy} is not supported yet`);
+  // We are a subdomain
+  if (!subdomainName) {
+    throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
+  }
+
+  let tldExpiration = await getExpiration({ aptosConfig, domainName });
+  if (!tldExpiration) {
+    throw new Error("The domain does not exist");
+  }
+  // The contract gives us seconds, but JS expects milliseconds
+  tldExpiration *= 1000;
+
+  const expirationDateInMillisecondsSinceEpoch =
+    expiration.policy === "subdomain:independent" ? expiration.expirationDate.valueOf() : tldExpiration;
+
+  if (expirationDateInMillisecondsSinceEpoch > tldExpiration) {
+    throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
+  }
+
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress.toString(),
+    data: {
+      function: `${routerAddress}::router::register_subdomain`,
+      functionArguments: [
+        new MoveString(domainName),
+        new MoveString(subdomainName),
+        new U64(Math.round(expirationDateInMillisecondsSinceEpoch / 1000)),
+        new U8(expiration.policy === "subdomain:follow-domain" ? 1 : 0),
+        new Bool(!!transferable),
+        new MoveOption(targetAddress ? AccountAddress.fromRelaxed(targetAddress) : null),
+        new MoveOption(toAddress ? AccountAddress.fromRelaxed(toAddress) : null),
+      ],
+    },
+    options,
+  });
+
+  return transaction as InputSingleSignerTransaction;
+}
+
+export async function getExpiration(args: {
+  aptosConfig: AptosConfig;
+  domainName: string;
+  subdomainName?: string;
+}): Promise<number | undefined> {
+  const { aptosConfig, domainName, subdomainName } = args;
+  const routerAddress = getRouterAddress(aptosConfig);
+
+  try {
+    const res = await view({
+      aptosConfig,
+      payload: {
+        function: `${routerAddress}::router::get_expiration`,
+        functionArguments: [domainName, Option(subdomainName)],
+      },
+    });
+
+    return res[0] as number;
+  } catch (e) {
+    return undefined;
+  }
 }

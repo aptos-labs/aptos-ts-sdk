@@ -88,9 +88,11 @@ describe("ANS", () => {
     let alice: Account;
     let bob: Account;
     let domainName: string;
+    let subdomainName: string;
 
     beforeEach(async () => {
       domainName = randomString();
+      subdomainName = randomString();
 
       alice = Account.generate();
       bob = Account.generate();
@@ -168,6 +170,60 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.getOwnerAddress({ name });
+      expect(owner).toEqual(bob.accountAddress.toString());
+    });
+
+    test("it mints a subdomain name and gives it to the sender", async () => {
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: domainName,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.ans.registerName({
+          name: `${subdomainName}.${domainName}`,
+          expiration: { policy: "subdomain:follow-domain" },
+          transferable: true,
+          sender: alice,
+        }),
+      );
+
+      const owner = await aptos.ans.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
+      expect(owner).toEqual(alice.accountAddress.toString());
+    });
+
+    test("it mints a subdomain name and gives it to the specified address", async () => {
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: domainName,
+          expiration: { policy: "domain", years: 1 },
+          sender: alice,
+        }),
+      );
+
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name: `${subdomainName}.${domainName}`,
+          expiration: {
+            policy: "subdomain:independent",
+            // Expire the subdomain two seconds before the TLD expires
+            expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000),
+          },
+          transferable: true,
+          sender: alice,
+          targetAddress: bob.accountAddress.toString(),
+          toAddress: bob.accountAddress.toString(),
+        }),
+      );
+
+      const owner = await aptos.ans.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
       expect(owner).toEqual(bob.accountAddress.toString());
     });
   });
