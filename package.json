@@ -10,14 +10,21 @@
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
   },
   "homepage": "https://aptos-labs.github.io/aptos-ts-sdk/",
-  "main": "dist/cjs/index.js",
+  "main": "dist/common/index.js",
   "module": "dist/esm/index.mjs",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/types/index.d.ts"
-    }
+      "source": "./src/index.ts",
+      "require": {
+        "types": "./dist/common/index.d.ts",
+        "default": "./dist/common/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
@@ -25,7 +32,8 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "pnpm build:clean && pnpm run _build:types && pnpm _build:esm && pnpm _build:cjs && pnpm _build:browser",
+    "build": "tsup",
+    "build:old": "pnpm build:clean && pnpm run _build:types && pnpm _build:esm && pnpm _build:cjs && pnpm _build:browser",
     "_build:browser": "tsup src/index.ts --platform browser --format iife --global-name aptosSDK --minify --out-dir dist/browser",
     "_build:esm": "tsup src/index.ts --platform node --format esm --dts --out-dir dist/esm",
     "_build:cjs": "tsup src/index.ts --platform node --format cjs --dts --out-dir dist/cjs",
@@ -72,7 +80,7 @@
     "ts-jest": "28.0.8",
     "ts-loader": "9.3.1",
     "ts-node": "10.9.1",
-    "tsup": "6.2.3",
+    "tsup": "7.2.0",
     "typedoc": "^0.23.20",
     "typescript": "4.8.2"
   },
