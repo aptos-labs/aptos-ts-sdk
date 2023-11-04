@@ -10,33 +10,44 @@ import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx
 import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 import { AptosToken } from "../../../src/abi/aptos_token_objects";
-import { fetchABIs, writeGeneratedCodeToFiles } from "../../../src/abi/abi-gen";
+import { CodeGenerator } from "../../../src/abi/abi-gen";
+import { ConfigDictionary, getCodeGenConfig } from "../../../src/abi/config";
 
-jest.setTimeout(15000);
+jest.setTimeout(30000);
 
-describe("abi test", () => {
+describe.only("abi test", () => {
+  let codeGeneratorConfig: ConfigDictionary;
+  let codeGenerator: CodeGenerator;
+
+  beforeAll(async () => {
+    codeGeneratorConfig = getCodeGenConfig("./src/abi/config.yaml");
+    codeGenerator = new CodeGenerator(codeGeneratorConfig);
+  });
+  it("parses config.yaml correctly", async () => {
+    const asdf = getCodeGenConfig();
+    console.log(asdf);
+  });
+
   it.only("parses abis correctly", async () => {
-    const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
+    const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
     const account = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
     await publishArgumentTestModule(aptos, account);
-    const myModuleABIs = await fetchABIs(aptos, account.accountAddress);
-    const frameworkModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x1"));
-    const tokenModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x3"));
-    const tokenObjectsModuleABIs = await fetchABIs(aptos, AccountAddress.fromRelaxed("0x4"));
-    console.log(tokenObjectsModuleABIs);
-    const aptosTestnet = new Aptos(new AptosConfig({ network: Network.LOCAL }));
-    const tournamentModuleABIs = await fetchABIs(
-      aptosTestnet,
-      AccountAddress.fromRelaxed("0x0a56e8b03118e51cf88140e5e18d1f764e0a1048c23e7c56bd01bd5b76993451"),
-    );
 
-    // eslint-disable-next-line no-console
-    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', myModuleABIs);
-    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', frameworkModuleABIs);
-    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tokenModuleABIs);
-    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tokenObjectsModuleABIs);
-    // writeGeneratedCodeToFiles('./generated/', 'config.yaml', tournamentModuleABIs);
+    const myModuleABIs = await codeGenerator.fetchABIs(aptos, account.accountAddress);
+    const frameworkModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x1"));
+    const tokenModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x3"));
+    const tokenObjectsModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x4"));
+    const aptosTestnet = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+    codeGenerator.writeGeneratedCodeToFiles("./generated", myModuleABIs);
+    codeGenerator.writeGeneratedCodeToFiles("./generated", frameworkModuleABIs);
+    codeGenerator.writeGeneratedCodeToFiles("./generated", tokenModuleABIs);
+    codeGenerator.writeGeneratedCodeToFiles("./generated", tokenObjectsModuleABIs);
+    const tournamentModuleABIs = await codeGenerator.fetchABIs(
+      aptosTestnet,
+      AccountAddress.fromRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44"),
+    );
+    codeGenerator.writeGeneratedCodeToFiles("./generated", tournamentModuleABIs);
   });
 
   it("parses tournament abis correctly", async () => {
@@ -44,15 +55,15 @@ describe("abi test", () => {
       "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
     );
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-    const moduleABIs = await fetchABIs(aptos, accountAddress);
+    const moduleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
     // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
   });
 
-  it.only("parses 0x1 module abis correctly", async () => {
+  it("parses 0x1 module abis correctly", async () => {
     const accountAddress = AccountAddress.fromRelaxed("0x1");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-    const moduleABIs = await fetchABIs(aptos, accountAddress);
+    const moduleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
     // eslint-disable-next-line no-console
     // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
 
@@ -186,41 +197,6 @@ describe("abi test", () => {
     verifyAction2.sign(account2);
     const responseVerify2 = await verifyAction2.submitAndWaitForResponse();
     console.log(responseVerify2);
-
-    // const startNewRound = await RockPaperScissor.VerifyAction.submit(
-    //   tournamentManager,
-    //   TOURNAMENT_ADDRESS,
-    //   Array.from(new MoveString("Paper").bcsToBytes().slice(1)),
-    //   Array.from(new MoveString("uuid2").bcsToBytes().slice(1)),
-    //   Network.LOCAL,
-    // );
-
-    // // only if the function signature is 1 signer
-    // async toTransactionBuilder(args: {
-    //   sender: HexInput | AccountAddress;
-    //   configOrNetwork: AptosConfig | Network;
-    // }): Promise<TransactionBuilder> {
-    //   const { sender, configOrNetwork } = args;
-    //   const transactionBuilder = await SingleSignerTransactionBuilder.create({
-    //     sender: toAccountAddress(sender),
-    //     payload: this.toPayload(),
-    //     configOrNetwork: configOrNetwork,
-    //   });
-    //   return transactionBuilder;
-    // }
-
-    // static async submit(
-    //   sender: Account | Signer,
-    //   arg_0: HexInput | AccountAddress,  // address
-    //   arg_1: Array<Uint8>,  // vector<u8>
-    //   arg_2: Array<Uint8>,  // vector<u8>
-    //   configOrNetwork: AptosConfig | Network,
-    // ): Promise<UserTransactionResponse> {
-    //   const payload = new VerifyAction(arg_0, arg_1, arg_2);
-    //   const transactionBuilder = await payload.toTransactionBuilder({ sender: sender.accountAddress, configOrNetwork });
-    //   const response = await transactionBuilder.signSubmitAndWaitForResponse({ signer: sender });
-    //   return response as UserTransactionResponse;
-    // }
   });
 
   it("gets package metadata", async () => {

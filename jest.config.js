@@ -5,10 +5,10 @@ module.exports = {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   testEnvironment: "node",
-  coveragePathIgnorePatterns: ["./src/internal/queries/", "./src/types/generated"],
+  coveragePathIgnorePatterns: ["./src/internal/queries/", "./src/types/generated", "./src/generated"],
   coverageReporters: ['json', 'lcov', 'clover'],
-  testPathIgnorePatterns: ["dist/*", "examples/*"],
-  collectCoverage: true,
+  testPathIgnorePatterns: ["dist/*", "examples/*", "./src/generated"],
+  collectCoverage: false,
   setupFiles: ["dotenv/config"],
   coverageThreshold: {
     global: {

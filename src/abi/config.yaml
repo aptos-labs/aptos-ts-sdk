@@ -1,0 +1,11 @@
+namedAddresses:
+  0x1: aptos_framework
+  0x3: aptos_token
+  0x4: aptos_token_objects
+
+structArgs: false
+outputPath: "."
+functionComments: true
+expandedStructs: false
+replaceNamedAddresses: true
+
