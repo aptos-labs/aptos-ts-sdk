@@ -20,6 +20,7 @@ import {
   SimpleEntryFunctionArgumentTypes,
   Ed25519PrivateKey,
   UserTransactionResponse,
+  parseTypeTag,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -37,6 +38,7 @@ import {
   publishArgumentTestModule,
   PUBLISHER_ACCOUNT_PK,
   MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
+  PUBLISHER_ACCOUNT_ADDRESS,
 } from "./helper";
 
 jest.setTimeout(10000);
@@ -51,7 +53,10 @@ jest.setTimeout(10000);
 describe("various transaction arguments", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const senderAccount = Account.fromPrivateKey({ privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK) });
+  const senderAccount = Account.fromPrivateKey({
+    privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
+    legacy: false,
+  });
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
   const moduleObjects: Array<AccountAddress> = [];
@@ -195,6 +200,56 @@ describe("various transaction arguments", () => {
       "expected_string",
       moduleObjects[0].toString(),
     ];
+  });
+
+  describe("type tags", () => {
+    it("successfully submits a transaction with 31 complex type tags", async () => {
+      const response = await rawTransactionHelper(
+        aptos,
+        senderAccount,
+        "type_tags",
+        [
+          parseTypeTag("bool"),
+          parseTypeTag("u8"),
+          parseTypeTag("u16"),
+          parseTypeTag("u32"),
+          parseTypeTag("u64"),
+          parseTypeTag("u128"),
+          parseTypeTag("u256"),
+          parseTypeTag("address"),
+          parseTypeTag("0x1::string::String"),
+          parseTypeTag(`0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>`),
+          parseTypeTag("vector<bool>"),
+          parseTypeTag("vector<u8>"),
+          parseTypeTag("vector<u16>"),
+          parseTypeTag("vector<u32>"),
+          parseTypeTag("vector<u64>"),
+          parseTypeTag("vector<u128>"),
+          parseTypeTag("vector<u256>"),
+          parseTypeTag("vector<address>"),
+          parseTypeTag("vector<0x1::string::String>"),
+          parseTypeTag(`vector<0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>>`),
+          parseTypeTag("0x1::option::Option<bool>"),
+          parseTypeTag("0x1::option::Option<u8>"),
+          parseTypeTag("0x1::option::Option<u16>"),
+          parseTypeTag("0x1::option::Option<u32>"),
+          parseTypeTag("0x1::option::Option<u64>"),
+          parseTypeTag("0x1::option::Option<u128>"),
+          parseTypeTag("0x1::option::Option<u256>"),
+          parseTypeTag("0x1::option::Option<address>"),
+          parseTypeTag("0x1::option::Option<0x1::string::String>"),
+          parseTypeTag(
+            `0x1::option::Option<0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>>`,
+          ),
+          parseTypeTag(
+            // eslint-disable-next-line max-len
+            `vector<vector<0x1::option::Option<vector<0x1::option::Option<0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>>>>>>`,
+          ),
+        ],
+        [],
+      );
+      expect(response.success).toBe(true);
+    });
   });
 
   describe("single signer entry fns, all arguments except `&signer`, both public and private entry functions", () => {
@@ -457,9 +512,7 @@ describe("various transaction arguments", () => {
       const transactionResponse = await aptos.submitTransaction({
         transaction: rawTransaction,
         senderAuthenticator,
-        secondarySignerAuthenticators: {
-          additionalSignersAuthenticators: secondaryAuthenticators,
-        },
+        additionalSignersAuthenticators: secondaryAuthenticators,
       });
       const response = (await aptos.waitForTransaction({
         transactionHash: transactionResponse.hash,

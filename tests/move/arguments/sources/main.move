@@ -88,38 +88,47 @@ module transaction_arguments::tx_args_module {
         );
     }
 
-    public entry fun type_tags<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29>() {
+    public entry fun type_tags_for_args<T0: drop, T1: drop, T2: drop, T3: drop, T4: key>(
+        _a: T0,
+        _b: T1,
+        _c: T2,
+        _d: T3,
+        _e: Object<T4>,
+    ) { }
+
+    public entry fun type_tags<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30>() {
         assert!(
-            type_info::type_of<T0>() == type_info::type_of<bool>() &&
-            type_info::type_of<T1>() == type_info::type_of<u8>() &&
-            type_info::type_of<T2>() == type_info::type_of<u16>() &&
-            type_info::type_of<T3>() == type_info::type_of<u32>() &&
-            type_info::type_of<T4>() == type_info::type_of<u64>() &&
-            type_info::type_of<T5>() == type_info::type_of<u128>() &&
-            type_info::type_of<T6>() == type_info::type_of<u256>() &&
-            type_info::type_of<T7>() == type_info::type_of<address>() &&
-            type_info::type_of<T8>() == type_info::type_of<String>() &&
-            type_info::type_of<T9>() == type_info::type_of<Object<EmptyResource>>() &&
-            type_info::type_of<T10>() == type_info::type_of<vector<bool>>() &&
-            type_info::type_of<T11>() == type_info::type_of<vector<u8>>() &&
-            type_info::type_of<T12>() == type_info::type_of<vector<u16>>() &&
-            type_info::type_of<T13>() == type_info::type_of<vector<u32>>() &&
-            type_info::type_of<T14>() == type_info::type_of<vector<u64>>() &&
-            type_info::type_of<T15>() == type_info::type_of<vector<u128>>() &&
-            type_info::type_of<T16>() == type_info::type_of<vector<u256>>() &&
-            type_info::type_of<T17>() == type_info::type_of<vector<address>>() &&   
-            type_info::type_of<T18>() == type_info::type_of<vector<String>>() &&
-            type_info::type_of<T19>() == type_info::type_of<vector<Object<EmptyResource>>>() &&
-            type_info::type_of<T20>() == type_info::type_of<Option<bool>>() &&
-            type_info::type_of<T21>() == type_info::type_of<Option<u8>>() &&
-            type_info::type_of<T22>() == type_info::type_of<Option<u16>>() &&
-            type_info::type_of<T23>() == type_info::type_of<Option<u32>>() &&
-            type_info::type_of<T24>() == type_info::type_of<Option<u64>>() &&
-            type_info::type_of<T25>() == type_info::type_of<Option<u128>>() &&
-            type_info::type_of<T26>() == type_info::type_of<Option<u256>>() &&
-            type_info::type_of<T27>() == type_info::type_of<Option<address>>() &&
-            type_info::type_of<T28>() == type_info::type_of<Option<String>>() &&
-            type_info::type_of<T29>() == type_info::type_of<Option<Object<EmptyResource>>>(),
+            type_info::type_name<T0>() == type_info::type_name<bool>() &&
+            type_info::type_name<T1>() == type_info::type_name<u8>() &&
+            type_info::type_name<T2>() == type_info::type_name<u16>() &&
+            type_info::type_name<T3>() == type_info::type_name<u32>() &&
+            type_info::type_name<T4>() == type_info::type_name<u64>() &&
+            type_info::type_name<T5>() == type_info::type_name<u128>() &&
+            type_info::type_name<T6>() == type_info::type_name<u256>() &&
+            type_info::type_name<T7>() == type_info::type_name<address>() &&
+            type_info::type_name<T8>() == type_info::type_name<String>() &&
+            type_info::type_name<T9>() == type_info::type_name<Object<EmptyResource>>() &&
+            type_info::type_name<T10>() == type_info::type_name<vector<bool>>() &&
+            type_info::type_name<T11>() == type_info::type_name<vector<u8>>() &&
+            type_info::type_name<T12>() == type_info::type_name<vector<u16>>() &&
+            type_info::type_name<T13>() == type_info::type_name<vector<u32>>() &&
+            type_info::type_name<T14>() == type_info::type_name<vector<u64>>() &&
+            type_info::type_name<T15>() == type_info::type_name<vector<u128>>() &&
+            type_info::type_name<T16>() == type_info::type_name<vector<u256>>() &&
+            type_info::type_name<T17>() == type_info::type_name<vector<address>>() &&   
+            type_info::type_name<T18>() == type_info::type_name<vector<String>>() &&
+            type_info::type_name<T19>() == type_info::type_name<vector<Object<EmptyResource>>>() &&
+            type_info::type_name<T20>() == type_info::type_name<Option<bool>>() &&
+            type_info::type_name<T21>() == type_info::type_name<Option<u8>>() &&
+            type_info::type_name<T22>() == type_info::type_name<Option<u16>>() &&
+            type_info::type_name<T23>() == type_info::type_name<Option<u32>>() &&
+            type_info::type_name<T24>() == type_info::type_name<Option<u64>>() &&
+            type_info::type_name<T25>() == type_info::type_name<Option<u128>>() &&
+            type_info::type_name<T26>() == type_info::type_name<Option<u256>>() &&
+            type_info::type_name<T27>() == type_info::type_name<Option<address>>() &&
+            type_info::type_name<T28>() == type_info::type_name<Option<String>>() &&
+            type_info::type_name<T29>() == type_info::type_name<Option<Object<EmptyResource>>>() &&
+            type_info::type_name<T30>() == type_info::type_name<vector<vector<Option<vector<Option<Object<EmptyResource>>>>>>>(),
             0
         );
     }
@@ -751,6 +760,43 @@ module transaction_arguments::tx_args_module {
             deeply_nested_2_comparison,
             deeply_nested_3_comparison,
             deeply_nested_4_comparison,
+        );
+
+        // instead of passing the type tags, we pass the type names we parse in ts
+        // otherwise it'd be redundant...
+        // 0xbeefcafe taken from dev-addresses
+        assert!(string::utf8(b"bool") == type_info::type_name<bool>() &&
+            string::utf8(b"u8") == type_info::type_name<u8>() &&
+            string::utf8(b"u16") == type_info::type_name<u16>() &&
+            string::utf8(b"u32") == type_info::type_name<u32>() &&
+            string::utf8(b"u64") == type_info::type_name<u64>() &&
+            string::utf8(b"u128") == type_info::type_name<u128>() &&
+            string::utf8(b"u256") == type_info::type_name<u256>() &&
+            string::utf8(b"address") == type_info::type_name<address>() &&
+            string::utf8(b"0x1::string::String") == type_info::type_name<String>() &&
+            string::utf8(b"0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>") == type_info::type_name<Object<EmptyResource>>() &&
+            string::utf8(b"vector<bool>") == type_info::type_name<vector<bool>>() &&
+            string::utf8(b"vector<u8>") == type_info::type_name<vector<u8>>() &&
+            string::utf8(b"vector<u16>") == type_info::type_name<vector<u16>>() &&
+            string::utf8(b"vector<u32>") == type_info::type_name<vector<u32>>() &&
+            string::utf8(b"vector<u64>") == type_info::type_name<vector<u64>>() &&
+            string::utf8(b"vector<u128>") == type_info::type_name<vector<u128>>() &&
+            string::utf8(b"vector<u256>") == type_info::type_name<vector<u256>>() &&
+            string::utf8(b"vector<address>") == type_info::type_name<vector<address>>() &&   
+            string::utf8(b"vector<0x1::string::String>") == type_info::type_name<vector<String>>() &&
+            string::utf8(b"vector<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>") == type_info::type_name<vector<Object<EmptyResource>>>() &&
+            string::utf8(b"0x1::option::Option<bool>") == type_info::type_name<Option<bool>>() &&
+            string::utf8(b"0x1::option::Option<u8>") == type_info::type_name<Option<u8>>() &&
+            string::utf8(b"0x1::option::Option<u16>") == type_info::type_name<Option<u16>>() &&
+            string::utf8(b"0x1::option::Option<u32>") == type_info::type_name<Option<u32>>() &&
+            string::utf8(b"0x1::option::Option<u64>") == type_info::type_name<Option<u64>>() &&
+            string::utf8(b"0x1::option::Option<u128>") == type_info::type_name<Option<u128>>() &&
+            string::utf8(b"0x1::option::Option<u256>") == type_info::type_name<Option<u256>>() &&
+            string::utf8(b"0x1::option::Option<address>") == type_info::type_name<Option<address>>() &&
+            string::utf8(b"0x1::option::Option<0x1::string::String>") == type_info::type_name<Option<String>>() &&
+            string::utf8(b"0x1::option::Option<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>") == type_info::type_name<Option<Object<EmptyResource>>>() &&
+            string::utf8(b"vector<vector<0x1::option::Option<vector<0x1::option::Option<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>>>>>") == type_info::type_name<vector<vector<Option<vector<Option<Object<EmptyResource>>>>>>>(),
+            0,
         );
     }
 
