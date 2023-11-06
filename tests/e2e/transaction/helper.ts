@@ -54,7 +54,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   const transaction = await aptos.generateTransaction({
     sender: firstAccount.accountAddress.toString(),
     data: {
-      function: `0x${1}::aptos_account::batch_transfer`,
+      function: "0x1::aptos_account::batch_transfer",
       functionArguments: [
         new MoveVector(addressesRemaining),
         MoveVector.U64(addressesRemaining.map(() => amountToSend)),
