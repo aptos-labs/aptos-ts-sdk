@@ -38,15 +38,19 @@ export async function publishPackage(
   })) as UserTransactionResponse;
 }
 
+// Instead of funding each account individually, we fund one twice, then send coins from it to the rest
+// This results in 2 fund requests and 1 transaction instead of N fund requests. For running tests,
+// this saves 10-15 seconds each run.
 export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   // Fund first account
   const firstAccount = accounts[0];
+  // Fund the first account twice to make sure it has enough coins to send to the rest
   await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-  // Fund again because these txns can be expensive
   await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+  // Get the addresses for `accounts[1..n]`
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
-  // Send APT to the rest
+  // Send coins from `account[0]` to `account[1..n]`
   const transaction = await aptos.generateTransaction({
     sender: firstAccount.accountAddress.toString(),
     data: {
