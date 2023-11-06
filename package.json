@@ -32,12 +32,7 @@
   ],
   "scripts": {
     "build:clean": "rm -rf dist",
-    "build": "tsup",
-    "build:old": "pnpm build:clean && pnpm run _build:types && pnpm _build:esm && pnpm _build:cjs && pnpm _build:browser",
-    "_build:browser": "tsup src/index.ts --platform browser --format iife --global-name aptosSDK --minify --out-dir dist/browser",
-    "_build:esm": "tsup src/index.ts --platform node --format esm --dts --out-dir dist/esm",
-    "_build:cjs": "tsup src/index.ts --platform node --format cjs --dts --out-dir dist/cjs",
-    "_build:types": "tsup src/types/index.ts --dts --out-dir dist/types",
+    "build": "pnpm build:clean && tsup",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' '.eslintrc.js'",
     "fmt": "pnpm _fmt --write",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'",
