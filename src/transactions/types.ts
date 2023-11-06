@@ -106,7 +106,7 @@ export type InputGenerateTransactionPayloadDataWithRemoteABI =
  */
 export type InputEntryFunctionData = {
   function: MoveStructType;
-  typeArguments?: Array<TypeTag>;
+  typeArguments?: Array<TypeTag | string>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 };
 
