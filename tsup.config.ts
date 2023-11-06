@@ -1,4 +1,3 @@
-import path from "path";
 import { defineConfig } from "tsup";
 import type { Options, Format } from "tsup";
 
@@ -6,8 +5,8 @@ import type { Options, Format } from "tsup";
 type MandatoryOptions = Options & {
   outDir: string;
   platform: string;
-  format: Format | Format[]
-}
+  format: Format | Format[];
+};
 
 // Default config, used as a base template
 const DEFAULT_CONFIG: Options = {
@@ -20,6 +19,13 @@ const DEFAULT_CONFIG: Options = {
   sourcemap: true,
   splitting: true,
   target: "es2020",
+  env: {
+    APTOS_NETWORK: process.env.APTOS_NETWORK ?? "Devnet",
+    ANS_TEST_ACCOUNT_PRIVATE_KEY:
+      process.env.ANS_TEST_ACCOUNT_PRIVATE_KEY ?? "0x37368b46ce665362562c6d1d4ec01a08c8644c488690df5a17e13ba163e20221",
+    ANS_TEST_ACCOUNT_ADDRESS:
+      process.env.ANS_TEST_ACCOUNT_ADDRESS ?? "0x585fc9f0f0c54183b039ffc770ca282ebd87307916c215a3e692f2f8e4305e82",
+  },
 };
 
 // Browser config, uses iife
@@ -30,7 +36,7 @@ const IIFE_CONFIG: MandatoryOptions = {
   outDir: "dist/browser",
   platform: "browser",
   splitting: false,
-}
+};
 
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
@@ -38,17 +44,16 @@ const COMMON_CONFIG: MandatoryOptions = {
   format: "cjs",
   outDir: "dist/common",
   platform: "node",
-}
+};
 
 // ESM config
 const ESM_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
   bundle: false,
-  format: "esm",
   entry: ["src/**/*.ts"],
+  format: "esm",
   outDir: "dist/esm",
   platform: "node",
-  sourcemap: false
-}
+};
 
-export default defineConfig([IIFE_CONFIG, COMMON_CONFIG, ESM_CONFIG])
+export default defineConfig([IIFE_CONFIG, COMMON_CONFIG, ESM_CONFIG]);
