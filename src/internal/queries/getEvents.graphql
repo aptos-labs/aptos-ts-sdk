@@ -8,5 +8,6 @@ query getEvents($where_condition: events_bool_exp, $offset: Int, $limit: Int, $o
     transaction_block_height
     transaction_version
     type
+    indexed_type
   }
 }
