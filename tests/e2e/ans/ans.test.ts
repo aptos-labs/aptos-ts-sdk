@@ -160,6 +160,14 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           sender: alice,
+          expiration: { policy: "domain" },
+        }),
+      ).toBeTruthy();
+
+      expect(
+        await aptos.registerName({
+          name,
+          sender: alice,
           expiration: { policy: "domain", years: 1 },
         }),
       ).toBeTruthy();
@@ -169,7 +177,7 @@ describe("ANS", () => {
           sender: alice,
           name,
           // Force the year to be absent
-          expiration: { policy: "domain" } as any,
+          expiration: { policy: "domain", years: 0 } as any,
         }),
       ).rejects.toThrow();
 
@@ -191,7 +199,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -207,7 +215,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
           targetAddress: bob.accountAddress.toString(),
           toAddress: bob.accountAddress.toString(),
@@ -223,7 +231,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name: domainName,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -247,7 +255,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name: domainName,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -304,7 +312,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
           targetAddress: alice.accountAddress.toString(),
           toAddress: alice.accountAddress.toString(),
@@ -333,7 +341,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name: domainName,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -394,10 +402,7 @@ describe("ANS", () => {
     test("it sets and gets domain primary names", async () => {
       const name = domainName;
 
-      await signAndSubmit(
-        alice,
-        await aptos.registerName({ name, expiration: { policy: "domain", years: 1 }, sender: alice }),
-      );
+      await signAndSubmit(alice, await aptos.registerName({ name, expiration: { policy: "domain" }, sender: alice }));
 
       await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
 
@@ -412,7 +417,7 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({ name: tld, expiration: { policy: "domain", years: 1 }, sender: alice }),
+        await aptos.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice }),
       );
 
       await signAndSubmit(
@@ -460,7 +465,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -471,7 +476,7 @@ describe("ANS", () => {
       const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
-      await signAndSubmit(alice, await aptos.renewDomain({ name, years: 1, sender: alice }));
+      await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
 
       // We expect the renewed expiration time to be one year from tomorrow
       const expectedExpirationDate = newExpirationDate + 365 * 24 * 60 * 60;
@@ -489,7 +494,7 @@ describe("ANS", () => {
         alice,
         await aptos.registerName({
           name: tld,
-          expiration: { policy: "domain", years: 1 },
+          expiration: { policy: "domain" },
           sender: alice,
         }),
       );
@@ -503,7 +508,7 @@ describe("ANS", () => {
         }),
       );
 
-      expect(aptos.renewDomain({ name, years: 1, sender: alice })).rejects.toThrow();
+      expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
     });
   });
 });
