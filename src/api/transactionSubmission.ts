@@ -95,6 +95,7 @@ export class TransactionSubmission {
    *
    * @param args.signer The signer account to sign the transaction
    * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
+   * @param args.asFeePayer optional. If the signer is also the fee payer
    * ```
    * {
    *  rawTransaction: RawTransaction,
@@ -106,8 +107,19 @@ export class TransactionSubmission {
    * @return The signer AccountAuthenticator
    */
   /* eslint-disable class-methods-use-this */
-  signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-    return signTransaction({ ...args });
+  signTransaction(args: {
+    signer: Account;
+    transaction: AnyRawTransaction;
+    asFeePayer?: boolean;
+  }): AccountAuthenticator {
+    const { signer, transaction, asFeePayer } = args;
+    if (asFeePayer) {
+      transaction.feePayerAddress = signer.accountAddress;
+    }
+    return signTransaction({
+      signer,
+      transaction,
+    });
   }
 
   /**
