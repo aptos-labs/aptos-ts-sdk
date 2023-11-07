@@ -4628,6 +4628,7 @@ export type Events = {
   creation_number: Scalars["bigint"];
   data: Scalars["jsonb"];
   event_index: Scalars["bigint"];
+  indexed_type: Scalars["String"];
   sequence_number: Scalars["bigint"];
   transaction_block_height: Scalars["bigint"];
   transaction_version: Scalars["bigint"];
@@ -4648,6 +4649,7 @@ export type EventsBoolExp = {
   creation_number?: InputMaybe<BigintComparisonExp>;
   data?: InputMaybe<JsonbComparisonExp>;
   event_index?: InputMaybe<BigintComparisonExp>;
+  indexed_type?: InputMaybe<StringComparisonExp>;
   sequence_number?: InputMaybe<BigintComparisonExp>;
   transaction_block_height?: InputMaybe<BigintComparisonExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
@@ -4660,6 +4662,7 @@ export type EventsOrderBy = {
   creation_number?: InputMaybe<OrderBy>;
   data?: InputMaybe<OrderBy>;
   event_index?: InputMaybe<OrderBy>;
+  indexed_type?: InputMaybe<OrderBy>;
   sequence_number?: InputMaybe<OrderBy>;
   transaction_block_height?: InputMaybe<OrderBy>;
   transaction_version?: InputMaybe<OrderBy>;
@@ -4676,6 +4679,8 @@ export enum EventsSelectColumn {
   Data = "data",
   /** column name */
   EventIndex = "event_index",
+  /** column name */
+  IndexedType = "indexed_type",
   /** column name */
   SequenceNumber = "sequence_number",
   /** column name */
@@ -4700,6 +4705,7 @@ export type EventsStreamCursorValueInput = {
   creation_number?: InputMaybe<Scalars["bigint"]>;
   data?: InputMaybe<Scalars["jsonb"]>;
   event_index?: InputMaybe<Scalars["bigint"]>;
+  indexed_type?: InputMaybe<Scalars["String"]>;
   sequence_number?: InputMaybe<Scalars["bigint"]>;
   transaction_block_height?: InputMaybe<Scalars["bigint"]>;
   transaction_version?: InputMaybe<Scalars["bigint"]>;

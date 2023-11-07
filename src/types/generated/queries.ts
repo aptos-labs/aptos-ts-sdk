@@ -2,6 +2,25 @@ import * as Types from "./operations";
 
 import { GraphQLClient } from "graphql-request";
 import * as Dom from "graphql-request/dist/types.dom";
+export const TokenActivitiesFieldsFragmentDoc = `
+    fragment TokenActivitiesFields on token_activities_v2 {
+  after_value
+  before_value
+  entry_function_id_str
+  event_account_address
+  event_index
+  from_address
+  is_fungible_v2
+  property_version_v1
+  to_address
+  token_amount
+  token_data_id
+  token_standard
+  transaction_timestamp
+  transaction_version
+  type
+}
+    `;
 export const CurrentTokenOwnershipFieldsFragmentDoc = `
     fragment CurrentTokenOwnershipFields on current_token_ownerships_v2 {
   token_standard
@@ -47,25 +66,6 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
       uri
     }
   }
-}
-    `;
-export const TokenActivitiesFieldsFragmentDoc = `
-    fragment TokenActivitiesFields on token_activities_v2 {
-  after_value
-  before_value
-  entry_function_id_str
-  event_account_address
-  event_index
-  from_address
-  is_fungible_v2
-  property_version_v1
-  to_address
-  token_amount
-  token_data_id
-  token_standard
-  transaction_timestamp
-  transaction_version
-  type
 }
     `;
 export const GetAccountCoinsCount = `
@@ -300,6 +300,7 @@ export const GetEvents = `
     transaction_block_height
     transaction_version
     type
+    indexed_type
   }
 }
     `;

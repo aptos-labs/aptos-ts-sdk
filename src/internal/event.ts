@@ -46,7 +46,7 @@ export async function getAccountEventsByEventType(args: {
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },
-    type: { _eq: eventType },
+    indexed_type: { _eq: eventType },
   };
 
   const customOptions = {

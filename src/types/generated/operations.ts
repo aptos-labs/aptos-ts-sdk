@@ -1,5 +1,23 @@
 import * as Types from "./types";
 
+export type TokenActivitiesFieldsFragment = {
+  after_value?: string | null;
+  before_value?: string | null;
+  entry_function_id_str?: string | null;
+  event_account_address: string;
+  event_index: any;
+  from_address?: string | null;
+  is_fungible_v2?: boolean | null;
+  property_version_v1: any;
+  to_address?: string | null;
+  token_amount: any;
+  token_data_id: string;
+  token_standard: string;
+  transaction_timestamp: any;
+  transaction_version: any;
+  type: string;
+};
+
 export type CurrentTokenOwnershipFieldsFragment = {
   token_standard: string;
   token_properties_mutated_v1?: any | null;
@@ -44,24 +62,6 @@ export type CurrentTokenOwnershipFieldsFragment = {
       uri: string;
     } | null;
   } | null;
-};
-
-export type TokenActivitiesFieldsFragment = {
-  after_value?: string | null;
-  before_value?: string | null;
-  entry_function_id_str?: string | null;
-  event_account_address: string;
-  event_index: any;
-  from_address?: string | null;
-  is_fungible_v2?: boolean | null;
-  property_version_v1: any;
-  to_address?: string | null;
-  token_amount: any;
-  token_data_id: string;
-  token_standard: string;
-  transaction_timestamp: any;
-  transaction_version: any;
-  type: string;
 };
 
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
@@ -431,6 +431,7 @@ export type GetEventsQuery = {
     transaction_block_height: any;
     transaction_version: any;
     type: string;
+    indexed_type: string;
   }>;
 };
 
