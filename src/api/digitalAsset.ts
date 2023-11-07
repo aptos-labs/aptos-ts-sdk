@@ -11,7 +11,6 @@ import {
   PaginationArgs,
   TokenStandard,
 } from "../types";
-import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
@@ -25,17 +24,13 @@ import {
   getTokenData,
   mintTokenTransaction,
 } from "../internal/digitalAsset";
+import { Api } from "./api";
+import { ProcessorType } from "../utils/const";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.
  */
-export class DigitalAsset {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
-
+export class DigitalAsset extends Api {
   /**
    * Creates a new collection within the specified account
    *
@@ -81,16 +76,22 @@ export class DigitalAsset {
    *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard the token standard to query
    * @returns GetCollectionDataResponse response type
    */
   async getCollectionData(args: {
     creatorAddress: AccountAddressInput;
     collectionName: string;
+    minimumLedgerVersion?: string;
     options?: {
       tokenStandard?: TokenStandard;
     };
   }): Promise<GetCollectionDataResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getCollectionData({ aptosConfig: this.config, ...args });
   }
 
@@ -102,16 +103,22 @@ export class DigitalAsset {
    *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard the token standard to query
    * @returns the collection id
    */
   async getCollectionId(args: {
     creatorAddress: AccountAddressInput;
     collectionName: string;
+    minimumLedgerVersion?: string;
     options?: {
       tokenStandard?: TokenStandard;
     };
   }): Promise<string> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getCollectionId({ aptosConfig: this.config, ...args });
   }
 
@@ -141,9 +148,17 @@ export class DigitalAsset {
    * Gets token data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetTokenDataResponse containing relevant data to the token.
    */
-  async getTokenData(args: { tokenAddress: AccountAddressInput }): Promise<GetTokenDataResponse> {
+  async getTokenData(args: {
+    tokenAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
+  }): Promise<GetTokenDataResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getTokenData({ aptosConfig: this.config, ...args });
   }
 
@@ -151,11 +166,17 @@ export class DigitalAsset {
    * Gets token ownership data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the token.
    */
   async getCurrentTokenOwnership(args: {
     tokenAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
   }): Promise<GetCurrentTokenOwnershipResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getCurrentTokenOwnership({ aptosConfig: this.config, ...args });
   }
 
@@ -163,15 +184,21 @@ export class DigitalAsset {
    * Gets the tokens that the given address owns.
    *
    * @param args.ownerAddress The address of the owner
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddresss.
    */
   async getOwnedTokens(args: {
     ownerAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetOwnedTokensResponse[0]>;
     };
   }): Promise<GetOwnedTokensResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getOwnedTokens({ aptosConfig: this.config, ...args });
   }
 
@@ -179,15 +206,21 @@ export class DigitalAsset {
    * Gets the activity data given the address of a token.
    *
    * @param args.tokenAddress The address of the token
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetTokenActivityResponse containing relevant activity data to the token.
    */
   async getTokenActivity(args: {
     tokenAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetTokenActivityResponse[0]>;
     };
   }): Promise<GetTokenActivityResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_PROCESSOR,
+    });
     return getTokenActivity({ aptosConfig: this.config, ...args });
   }
 }

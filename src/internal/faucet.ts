@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFaucet } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { WaitForTransactionOptions } from "../types";
+import { FinalTransactionResponse, WaitForTransactionOptions } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";
 
@@ -20,7 +20,7 @@ export async function fundAccount(args: {
   accountAddress: AccountAddressInput;
   amount: number;
   options?: WaitForTransactionOptions;
-}): Promise<string> {
+}): Promise<FinalTransactionResponse> {
   const { aptosConfig, accountAddress, amount, options } = args;
   const timeout = options?.timeoutSecs || DEFAULT_TXN_TIMEOUT_SEC;
   const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
@@ -35,15 +35,14 @@ export async function fundAccount(args: {
 
   const txnHash = data.txn_hashes[0];
 
-  await waitForTransaction({
+  const res = await waitForTransaction({
     aptosConfig,
     transactionHash: txnHash,
     options: {
       timeoutSecs: timeout,
       checkSuccess: options?.checkSuccess,
-      indexerVersionCheck: options?.indexerVersionCheck,
     },
   });
 
-  return txnHash;
+  return res;
 }

@@ -1,22 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
+import { Api } from "./api";
 
 /**
  * A class to handle all `Coin` operations
  */
-export class Coin {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
-
+export class Coin extends Api {
   /**
    * Generate a transfer coin transaction that can be simulated and/or signed and submitted
    *

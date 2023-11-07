@@ -1,21 +1,15 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
 import { fundAccount } from "../internal/faucet";
-import { WaitForTransactionOptions } from "../types";
+import { FinalTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
+import { Api } from "./api";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
  */
-export class Faucet {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
-
+export class Faucet extends Api {
   /**
    * This creates an account if it does not exist and mints the specified amount of
    * coins into that account
@@ -29,7 +23,13 @@ export class Faucet {
     accountAddress: AccountAddressInput;
     amount: number;
     options?: WaitForTransactionOptions;
-  }): Promise<string> {
-    return fundAccount({ aptosConfig: this.config, ...args });
+  }): Promise<FinalTransactionResponse> {
+    const fundTxn = fundAccount({ aptosConfig: this.config, ...args });
+
+    if (args.options?.waitForIndexer !== false) {
+      await this.waitForIndexer({ minimumLedgerVersion: (await fundTxn).version });
+    }
+
+    return fundTxn;
   }
 }

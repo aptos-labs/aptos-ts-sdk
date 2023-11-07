@@ -158,7 +158,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress,
       });
@@ -169,12 +169,12 @@ describe("account api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
-      const response = await aptos.fundAccount({
+      const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress,
       });
@@ -186,12 +186,12 @@ describe("account api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
-      const response = await aptos.fundAccount({
+      const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress,
       });
@@ -317,11 +317,12 @@ describe("account api", () => {
 
       // Rotate the key
       const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
         authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
+        minimumLedgerVersion: response.version,
       });
 
       // Check if the lookup account address is the same as the original account address

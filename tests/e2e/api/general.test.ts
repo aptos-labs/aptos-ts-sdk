@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData } from "../../../src";
+import { ProcessorType } from "../../../src/utils/const";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
@@ -210,5 +211,13 @@ describe("general api", () => {
 
       await expect(() => aptos.view<[string]>({ payload })).rejects.toThrow("VMError");
     });
+  });
+
+  test("it should get the processor statuses", async () => {
+    const config = new AptosConfig({ network: Network.LOCAL });
+    const aptos = new Aptos(config);
+
+    const processor = await aptos.getProcessorStatus(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
+    expect(processor.processor).toEqual(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR.valueOf());
   });
 });

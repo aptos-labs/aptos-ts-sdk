@@ -26,11 +26,15 @@ describe("Collection", () => {
       name: collectionName,
       uri: collectionUri,
     });
-    const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
 
-    await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+    const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
 
-    const data = await aptos.getCollectionData({ collectionName, creatorAddress });
+    const data = await aptos.getCollectionData({
+      collectionName,
+      creatorAddress,
+      minimumLedgerVersion: response.version,
+    });
 
     expect(data.collection_name).toEqual(collectionName);
     expect(data.creator_address).toEqual(creatorAddress);

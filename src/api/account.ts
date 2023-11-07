@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
 import { AccountAddress, PrivateKey, Account as AccountModule, AccountAddressInput } from "../core";
 import {
   AccountData,
@@ -37,17 +36,13 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
+import { Api } from "./api";
+import { ProcessorType } from "../utils/const";
 
 /**
  * A class to query all `Account` related queries on Aptos.
  */
-export class Account {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
-
+export class Account extends Api {
   /**
    * Queries the current state for an Aptos account given its account address
    *
@@ -186,13 +181,19 @@ export class Account {
    * This handles both if the account's authentication key has been rotated or not.
    *
    * @param args.authenticationKey The authentication key
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    * @returns Promise<AccountAddress> The accountAddress associated with the authentication key
    */
   async lookupOriginalAccountAddress(args: {
     authenticationKey: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: LedgerVersion;
   }): Promise<AccountAddress> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -200,9 +201,17 @@ export class Account {
    * Queries the current count of tokens owned by an account
    *
    * @param args.accountAddress The account address
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current count of tokens owned by the account
    */
-  async getAccountTokensCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
+  async getAccountTokensCount(args: {
+    accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
+  }): Promise<number> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountTokensCount({
       aptosConfig: this.config,
       ...args,
@@ -216,6 +225,7 @@ export class Account {
    * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
    * @param args.accountAddress The account address we want to get the tokens for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
    * @param args.options.pagination.offset The number token to start returning results from
    * @param args.options.pagination.limit The number of results to return
@@ -224,12 +234,17 @@ export class Account {
    */
   async getAccountOwnedTokens(args: {
     accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensQueryResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountOwnedTokens({
       aptosConfig: this.config,
       ...args,
@@ -244,6 +259,7 @@ export class Account {
    *
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.collectionAddress The address of the collection being queried
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
    * @param args.options.pagination.offset The number token to start returning results from
    * @param args.options.pagination.limit The number of results to return
@@ -253,12 +269,17 @@ export class Account {
   async getAccountOwnedTokensFromCollectionAddress(args: {
     accountAddress: AccountAddressInput;
     collectionAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountOwnedTokensFromCollectionAddress({
       aptosConfig: this.config,
       ...args,
@@ -272,6 +293,7 @@ export class Account {
    * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
    * @param args.accountAddress The account address we want to get the collections for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
    * @param args.options.pagination.offset The number collection to start returning results from
    * @param args.options.pagination.limit The number of results to return
@@ -280,12 +302,17 @@ export class Account {
    */
   async getAccountCollectionsWithOwnedTokens(args: {
     accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
     };
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountCollectionsWithOwnedTokens({
       aptosConfig: this.config,
       ...args,
@@ -296,9 +323,17 @@ export class Account {
    * Queries the current count of transactions submitted by an account
    *
    * @param args.accountAddress The account address we want to get the total count for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current count of transactions made by an account
    */
-  async getAccountTransactionsCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
+  async getAccountTransactionsCount(args: {
+    accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
+  }): Promise<number> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountTransactionsCount({
       aptosConfig: this.config,
       ...args,
@@ -309,6 +344,7 @@ export class Account {
    * Queries an account's coins data
    *
    * @param args.accountAddress The account address we want to get the coins data for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.pagination.offset The number coin to start returning results from
    * @param args.options.pagination.limit The number of results to return
    * @param args.options.orderBy The order to sort the coins by
@@ -316,11 +352,16 @@ export class Account {
    */
   async getAccountCoinsData(args: {
     accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
     };
   }): Promise<GetAccountCoinsDataResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountCoinsData({
       aptosConfig: this.config,
       ...args,
@@ -331,9 +372,17 @@ export class Account {
    * Queries the current count of an account's coins aggregated
    *
    * @param args.accountAddress The account address we want to get the total count for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current count of the aggregated count of all account's coins
    */
-  async getAccountCoinsCount(args: { accountAddress: AccountAddressInput }): Promise<number> {
+  async getAccountCoinsCount(args: {
+    accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
+  }): Promise<number> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountCoinsCount({ aptosConfig: this.config, ...args });
   }
 
@@ -341,6 +390,7 @@ export class Account {
    * Queries an account's owned objects
    *
    * @param args.accountAddress The account address we want to get the objects for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.pagination.offset The number coin to start returning results from
    * @param args.options.pagination.limit The number of results to return
    * @param args.options.orderBy The order to sort the coins by
@@ -348,11 +398,16 @@ export class Account {
    */
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: string;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
     };
   }): Promise<GetAccountOwnedObjectsResponse> {
+    await this.waitForIndexer({
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+    });
     return getAccountOwnedObjects({
       aptosConfig: this.config,
       ...args,

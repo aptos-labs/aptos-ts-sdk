@@ -278,8 +278,10 @@ export enum TransactionResponseType {
   StateCheckpoint = "state_checkpoint_transaction",
 }
 
-export type TransactionResponse =
-  | PendingTransactionResponse
+export type TransactionResponse = PendingTransactionResponse | FinalTransactionResponse;
+
+// Note: This excludes PendingTransactionResponse
+export type FinalTransactionResponse =
   | UserTransactionResponse
   | GenesisTransactionResponse
   | BlockMetadataTransactionResponse
@@ -1003,7 +1005,7 @@ export enum DeriveScheme {
 export type WaitForTransactionOptions = {
   timeoutSecs?: number;
   checkSuccess?: boolean;
-  indexerVersionCheck?: boolean;
+  waitForIndexer?: boolean;
 };
 
 /**

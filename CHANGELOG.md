@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
+- [`Added`] Added `waitForIndexer` function to wait for indexer to sync up with full node. All query functions now accepts a new optional param `minimumLedgerVersion` to wait for indexer to sync up with the target processor.
 
 Breaking:
 - Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
@@ -43,6 +44,7 @@ Breaking:
 ## 0.0.6 (2023-11-14)
 
 - [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`
+- [`Breaking`] Update and changed the flow of Fee payer transaction to be "Optional Fee Payer". A fee payer is now required to sign the transaction `asFeePayer`
 - Respect max gas amount value when generating a transaction
 - Added a clearer error message for when the typeTagParser encounters a possible generic TypeTag but generics are disallowed
 - Update all dependencies to the latest version
