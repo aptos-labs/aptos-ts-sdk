@@ -451,7 +451,7 @@ describe("ANS", () => {
       subdomainName = randomString();
     });
 
-    xtest("can renew a v2 name that is eligible for renewal", async () => {
+    test("can renew a v2 name that is eligible for renewal", async () => {
       const name = domainName;
 
       await changeRouterMode(1);
@@ -465,12 +465,18 @@ describe("ANS", () => {
         }),
       );
 
+      let res = await aptos.getExpiration({ name });
+
       // Change the expiration date of the name to be tomorrow
-      await changeExpirationDate(1, new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf(), name);
+      const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
+      await changeExpirationDate(1, newExpirationDate, name);
 
       await signAndSubmit(alice, await aptos.renewDomain({ name, years: 1, sender: alice }));
 
-      expect(await aptos.getExpiration({ name })).not.toThrow();
+      // We expect the renewed expiration time to be one year from tomorrow
+      const expectedExpirationDate = newExpirationDate + 365 * 24 * 60 * 60;
+      res = await aptos.getExpiration({ name });
+      expect(res?.toString()).toBe(expectedExpirationDate.toString());
     });
 
     test("throws an error for subdomain renewals", async () => {
