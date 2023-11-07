@@ -267,7 +267,7 @@ export type InputSimulateTransactionOptions = {
  */
 export interface InputGenerateSingleSignerRawTransactionData {
   sender: AccountAddressInput;
-  hasSponsor?: undefined | false;
+  hasFeePayer?: undefined;
   secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
@@ -278,7 +278,7 @@ export interface InputGenerateSingleSignerRawTransactionData {
  */
 export interface InputGenerateFeePayerRawTransactionData {
   sender: AccountAddressInput;
-  hasSponsor: true;
+  hasFeePayer: true;
   secondarySignerAddresses?: AccountAddressInput[];
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
@@ -290,7 +290,7 @@ export interface InputGenerateFeePayerRawTransactionData {
 export interface InputGenerateMultiAgentRawTransactionData {
   sender: AccountAddressInput;
   secondarySignerAddresses: AccountAddressInput[];
-  hasSponsor?: undefined | false;
+  hasFeePayer?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
 }

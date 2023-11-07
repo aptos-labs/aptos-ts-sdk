@@ -116,11 +116,11 @@ export const rawTransactionMultiAgentHelper = async (
   secondarySignerAccounts: Array<Account>,
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
-  const hasSponsor = feePayerAccount !== undefined;
+  const hasFeePayer = feePayerAccount !== undefined ? true : undefined;
 
   const transactionData: InputGenerateTransactionData = {
     sender: senderAccount.accountAddress.toString(),
-    hasSponsor,
+    hasFeePayer,
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
@@ -145,9 +145,10 @@ export const rawTransactionMultiAgentHelper = async (
 
   let feePayerAuthenticator;
   if (feePayerAccount !== undefined) {
-    feePayerAuthenticator = aptos.signTransactionAsPayer({
+    feePayerAuthenticator = aptos.signTransaction({
       signer: feePayerAccount,
       transaction: generatedTransaction,
+      asFeePayer: true,
     });
   }
 

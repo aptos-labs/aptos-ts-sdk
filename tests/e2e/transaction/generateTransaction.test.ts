@@ -114,7 +114,7 @@ describe("generate transaction", () => {
     test("with script payload", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        hasSponsor: true,
+        hasFeePayer: true,
         data: {
           bytecode: singleSignerScriptBytecode,
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
@@ -132,7 +132,7 @@ describe("generate transaction", () => {
     test("with multi sig payload", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        hasSponsor: true,
+        hasFeePayer: true,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x1::aptos_account::transfer",
@@ -151,7 +151,7 @@ describe("generate transaction", () => {
     test("with entry function transaction", async () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
-        hasSponsor: true,
+        hasFeePayer: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
@@ -170,7 +170,7 @@ describe("generate transaction", () => {
       const transaction = await aptos.generateTransaction({
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-        hasSponsor: true,
+        hasFeePayer: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],

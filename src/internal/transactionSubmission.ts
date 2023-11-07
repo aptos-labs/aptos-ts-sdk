@@ -75,11 +75,11 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, data, options, secondarySignerAddresses, hasSponsor } = args;
+  const { aptosConfig, sender, data, options, secondarySignerAddresses, hasFeePayer } = args;
 
   // Upate feePayerAddress if it has sponsor
   let feePayerAddress;
-  if (hasSponsor === true) {
+  if (hasFeePayer === true) {
     feePayerAddress = AccountAddress.ZERO.toString();
   }
 
