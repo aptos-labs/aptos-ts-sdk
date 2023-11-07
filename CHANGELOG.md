@@ -5,6 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 - [`Breaking`] Update and changed the flow of Fee payer transaction to be "Optional Fee Payer". A fee payer is now required to sign the transaction `asFeePayer`
 
+- `getAccountEventsByEventType` query uses new `indexed_type` indexed field to avoid rate limit
+
 ## 0.0.4 (2023-11-03)
 
 - [`Breaking`] Changed all instances of `AccountAddress.fromHexInput` to `AccountAddress.from` to accept AccountAddress as well
