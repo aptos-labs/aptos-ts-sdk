@@ -10,9 +10,9 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Bool, MoveOption, MoveString, U64, U8 } from "../bcs";
-import { Account, AccountAddress } from "../core";
+import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
-import { HexInput, MoveAddressType, MoveValue } from "../types";
+import { MoveAddressType, MoveValue } from "../types";
 import { Network } from "../utils/apiEndpoints";
 import { view } from "./general";
 import { generateTransaction } from "./transactionSubmission";
@@ -119,12 +119,12 @@ export interface RegisterNameParameters {
   sender: Account;
   name: string;
   expiration:
-    | { policy: "domain"; years: 1 }
+    | { policy: "domain"; years?: 1 }
     | { policy: "subdomain:follow-domain" }
     | { policy: "subdomain:independent"; expirationDate: Date };
   transferable?: boolean;
-  toAddress?: HexInput;
-  targetAddress?: HexInput;
+  toAddress?: AccountAddressInput;
+  targetAddress?: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }
 
@@ -147,11 +147,12 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
   }
 
   if (expiration.policy === "domain") {
-    if (expiration.years !== 1) {
+    const years = expiration.years ?? 1;
+    if (years !== 1) {
       throw new Error("For now, names can only be registered for 1 year at a time");
     }
 
-    const registrationDuration = expiration.years * 31536000;
+    const registrationDuration = years * 31536000;
 
     const transaction = await generateTransaction({
       aptosConfig,
@@ -233,7 +234,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
 
 export async function getPrimaryName(args: {
   aptosConfig: AptosConfig;
-  address: HexInput;
+  address: AccountAddressInput;
 }): Promise<string | undefined> {
   const { aptosConfig, address } = args;
   const routerAddress = getRouterAddress(aptosConfig);
@@ -304,7 +305,7 @@ export async function setTargetAddress(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   name: string;
-  address: HexInput;
+  address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }): Promise<InputSingleSignerTransaction> {
   const { aptosConfig, sender, name, address, options } = args;
@@ -347,10 +348,10 @@ export async function renewDomain(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   name: string;
-  years: 1;
+  years?: 1;
   options?: InputGenerateTransactionOptions;
 }): Promise<InputSingleSignerTransaction> {
-  const { aptosConfig, sender, name, years, options } = args;
+  const { aptosConfig, sender, name, years = 1, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const renewalDuration = years * 31536000;
   const { domainName, subdomainName } = isValidANSName(name);

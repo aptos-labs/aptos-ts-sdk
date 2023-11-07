@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
   getExpiration,
@@ -14,7 +14,7 @@ import {
   renewDomain,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
-import { HexInput, MoveAddressType } from "../types";
+import { MoveAddressType } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -50,7 +50,7 @@ export class ANS {
    *
    * @returns number as a unix timestamp in seconds.
    */
-  async getExpiration(args: { name: string }): ReturnType<typeof getExpiration> {
+  async getExpiration(args: { name: string }): Promise<number | undefined> {
     return getExpiration({ aptosConfig: this.config, ...args });
   }
 
@@ -61,7 +61,7 @@ export class ANS {
    *
    * @returns MoveAddressType if the name has a target, undefined otherwise
    */
-  async getTargetAddress(args: { name: string }): ReturnType<typeof getTargetAddress> {
+  async getTargetAddress(args: { name: string }): Promise<MoveAddressType | undefined> {
     return getTargetAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -69,14 +69,14 @@ export class ANS {
    * Sets the target address for a domain name or subdomain name.
    *
    * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
-   * @param args.address - A HexInput of the address to set the domain or subdomain to
+   * @param args.address - A AccountAddressInput of the address to set the domain or subdomain to
    *
    * @returns SingleSignerTransaction
    */
   async setTargetAddress(args: {
     sender: Account;
     name: string;
-    address: HexInput;
+    address: AccountAddressInput;
   }): Promise<InputSingleSignerTransaction> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
   }
@@ -84,11 +84,11 @@ export class ANS {
   /**
    * Retrieve the primary name for an account address.
    *
-   * @param args.address - A HexInput (address) of the account
+   * @param args.address - A AccountAddressInput (address) of the account
    *
    * @returns a string if the account has a primary name, undefined otherwise
    */
-  async getPrimaryName(args: { address: HexInput }): ReturnType<typeof getPrimaryName> {
+  async getPrimaryName(args: { address: AccountAddressInput }): Promise<string | undefined> {
     return getPrimaryName({ aptosConfig: this.config, ...args });
   }
 
@@ -158,7 +158,7 @@ export class ANS {
    *
    * @returns SingleSignerTransaction
    */
-  async renewDomain(args: { sender: Account; name: string; years: 1 }): Promise<InputSingleSignerTransaction> {
+  async renewDomain(args: { sender: Account; name: string; years?: 1 }): Promise<InputSingleSignerTransaction> {
     return renewDomain({ aptosConfig: this.config, ...args });
   }
 }
