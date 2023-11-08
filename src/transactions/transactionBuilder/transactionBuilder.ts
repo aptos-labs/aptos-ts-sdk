@@ -139,10 +139,6 @@ export function generateTransactionPayloadWithABI(
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadData,
   functionAbi: EntryFunctionABI,
-): AnyTransactionPayloadInstance;
-export function generateTransactionPayloadWithABI(
-  args: InputGenerateTransactionPayloadData,
-  functionAbi: EntryFunctionABI,
 ): AnyTransactionPayloadInstance {
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);

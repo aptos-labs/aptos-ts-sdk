@@ -161,12 +161,14 @@ export interface PaginationArgs {
 /**
  * A configuration object we can pass with the request to the server.
  *
- * @param TOKEN - an auth token to send with the request
+ * @param AUTH_TOKEN - an auth token to send with a faucet request
+ * @param API_KEY - api key generated from developer portal {@link https://developers.aptoslabs.com/manage/api-keys}}
  * @param HEADERS - extra headers we want to send with the request
  * @param WITH_CREDENTIALS - whether to carry cookies. By default, it is set to true and cookies will be sent
  */
 export type ClientConfig = {
-  TOKEN?: string;
+  AUTH_TOKEN?: string;
+  API_KEY?: string;
   HEADERS?: Record<string, string | number | boolean>;
   WITH_CREDENTIALS?: boolean;
 };

@@ -32,8 +32,11 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
     "content-type": contentType ?? MimeType.JSON,
   };
 
-  if (overrides?.TOKEN) {
-    headers.Authorization = `Bearer ${overrides?.TOKEN}`;
+  // TODO - auth token is being used only for faucet, it breaks full node requests.
+  // Find a more sophisticated way than that but without the need to add the
+  // auth_token on every `aptos.fundAccount()` call
+  if (overrides?.AUTH_TOKEN && url.includes("faucet")) {
+    headers.Authorization = `Bearer ${overrides?.AUTH_TOKEN}`;
   }
 
   /*
@@ -98,8 +101,7 @@ export async function aptosRequest<Req, Res>(
 
   // If it is the shape of an AptosApiError, convert it properly
   if ("message" in response.data && "error_code" in response.data) {
-    const data = response.data as { message: string; error_code: string; vm_error_code?: string };
-    errorMessage = JSON.stringify(data);
+    errorMessage = JSON.stringify(response.data);
   } else if (result.status in errors) {
     // If it's not an API type, it must come form infra, these are prehandled
     errorMessage = errors[result.status];

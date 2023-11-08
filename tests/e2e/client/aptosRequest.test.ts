@@ -65,7 +65,7 @@ describe("aptos request", () => {
 
   describe("token", () => {
     test(
-      "when token is set",
+      "should not set auth_token for full node requests",
       async () => {
         try {
           const response = await aptosRequest(
@@ -73,12 +73,12 @@ describe("aptos request", () => {
               url: `${NetworkToNodeAPI[config.network]}`,
               method: "GET",
               path: "accounts/0x1",
-              overrides: { TOKEN: "my-token" },
+              overrides: { AUTH_TOKEN: "my-token" },
               originMethod: "test when token is set",
             },
             config,
           );
-          expect(response.config.headers).toHaveProperty("authorization", "Bearer my-token");
+          expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
         } catch (error: any) {
           // should not get here
           expect(true).toBe(false);
