@@ -7,4 +7,4 @@ export * from "./client";
 export * from "./core";
 export * from "./transactions";
 export * from "./types";
-export * from "./utils/apiEndpoints";
+export * from "./utils";

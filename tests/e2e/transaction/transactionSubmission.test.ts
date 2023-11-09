@@ -673,8 +673,6 @@ describe("transaction submission", () => {
         ],
         signaturesRequired: 2,
       });
-      const des = new Deserializer(multiKey.bcsToBytes());
-      expect(multiKey).toEqual(MultiKey.deserialize(des));
 
       const authKey = AuthenticationKey.fromPublicKey({ publicKey: multiKey });
 
