@@ -74,7 +74,7 @@ export async function fetchEntryFunctionAbi(
 
   // Remove the signer arguments
   const first = findFirstNonSignerArg(functionAbi);
-  const params = [];
+  const params: TypeTag[] = [];
   for (let i = first; i < functionAbi.params.length; i += 1) {
     params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
   }
