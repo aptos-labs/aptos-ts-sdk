@@ -56,3 +56,8 @@ runs:
         timeout_minutes: 25
         # This runs all of the examples
         command: pnpm test
+
+    - name: Print local testnet logs on failure
+      shell: bash
+      if: failure()
+      run: cat ${{ runner.temp }}/local-testnet-logs.txt
