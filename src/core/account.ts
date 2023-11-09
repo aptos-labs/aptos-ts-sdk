@@ -25,11 +25,14 @@ import { AnyPublicKey } from "./crypto/anyPublicKey";
  * `SingleSender` supports `ED25519` and `Secp256k1`, and `MultiSender` supports
  * `MultiED25519`.
  *
- * In TypeScript SDK, we support all of these options
- * @generate default to generate Unified keys, with an optional `legacy` boolean argument
- * that lets you generate new keys conforming to the Legacy authentication.
+ * In TypeScript SDK, we support all of these options:
+ *
+ * @generate default to generate Legacy Ed25519 keys, with an optional `legacy` boolean argument
+ * that lets you generate new keys conforming to the Unified authentication.
+ *
  * @fromPrivateKey derives an account by a provided private key and address, with an optional
- * `legacy` boolean argument that lets you generate new keys conforming to the Legacy authentication.
+ * `legacy` boolean argument that lets you generate new keys conforming to the Unified authentication.
+ *
  * @fromDerivationPath derives an account with bip44 path and mnemonics,
  *
  */

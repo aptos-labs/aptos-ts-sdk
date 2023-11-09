@@ -3,9 +3,13 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
-- [`Breaking`] Update and changed the flow of Fee payer transaction to be "Optional Fee Payer". A fee payer is now required to sign the transaction `asFeePayer`
 
+## 0.0.5 (2023-11-09)
+
+- [`Breaking`] Update and changed the flow of Fee payer transaction to be "Optional Fee Payer". A fee payer is now required to sign the transaction `asFeePayer`
 - `getAccountEventsByEventType` query uses new `indexed_type` indexed field to avoid rate limit
+- [`Breaking`] Rename `TOKEN` to `AUTH_TOKEN` for better visibility
+- Set the `AUTH_TOKEN` only for faucet queries
 
 ## 0.0.4 (2023-11-03)
 
