@@ -204,6 +204,31 @@ describe("transaction builder", () => {
       expect(rawTxn instanceof RawTransaction).toBeTruthy();
       expect(rawTxn.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
+
+    test("it uses the correct max gas amount value", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress.toString(), amount: FUND_AMOUNT });
+      const bob = Account.generate();
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+        functionArguments: [new U64(1), bob.accountAddress],
+      });
+      const rawTxnWithCustomMaxGasAmount = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress.toString(),
+        payload,
+        options: { maxGasAmount: 20 },
+      });
+      expect(rawTxnWithCustomMaxGasAmount.max_gas_amount).toBe(20n);
+
+      const rawTxnWithDefaultMaxGasAmount = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress.toString(),
+        payload,
+      });
+      expect(rawTxnWithDefaultMaxGasAmount.max_gas_amount).toBe(200000n);
+    });
   });
   describe("generate transaction", () => {
     test("it returns a serialized raw transaction", async () => {
