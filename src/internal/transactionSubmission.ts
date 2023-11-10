@@ -77,7 +77,13 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, data, options } = args;
+  const { aptosConfig, sender, data, options, secondarySignerAddresses, withFeePayer } = args;
+
+  // Upate feePayerAddress if it has sponsor
+  let feePayerAddress;
+  if (withFeePayer === true) {
+    feePayerAddress = AccountAddress.ZERO.toString();
+  }
 
   // Merge in aptosConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
@@ -102,7 +108,7 @@ export async function generateTransaction(
 
   if (isFeePayerTransactionInput(args)) {
     const { secondarySignerAddresses } = args;
-    const feePayerAddress = args.hasFeePayer ? AccountAddress.ZERO : undefined;
+    const feePayerAddress = args.withFeePayer ? AccountAddress.ZERO : undefined;
     const payload = await generateTransactionPayload(generateTransactionPayloadData);
     return buildTransaction({
       aptosConfig,

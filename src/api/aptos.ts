@@ -13,6 +13,10 @@ import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
+import { Generate } from "./transactionSubmission/generate";
+import { Sign } from "./transactionSubmission/sign";
+import { Simulate } from "./transactionSubmission/simulate";
+import { Submit } from "./transactionSubmission/submit";
 
 /**
  * This class is the main entry point into Aptos's
@@ -46,6 +50,14 @@ export class Aptos {
 
   readonly transactionSubmission: TransactionSubmission;
 
+  readonly generate: Generate;
+
+  readonly sign: Sign;
+
+  readonly simulate: Simulate;
+
+  readonly submit: Submit;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -59,6 +71,10 @@ export class Aptos {
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
+    this.generate = new Generate(this.config);
+    this.sign = new Sign(this.config);
+    this.simulate = new Simulate(this.config);
+    this.submit = new Submit(this.config);
   }
 }
 
@@ -72,8 +88,7 @@ export interface Aptos
     General,
     Staking,
     Transaction,
-    ANS,
-    TransactionSubmission {}
+    ANS {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -106,4 +121,8 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
-applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
+//applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
+applyMixin(Aptos, Generate, "generate");
+applyMixin(Aptos, Sign, "sign");
+applyMixin(Aptos, Simulate, "simulate");
+applyMixin(Aptos, Submit, "submit");
