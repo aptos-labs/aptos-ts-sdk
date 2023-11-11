@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`
 - Respect max gas amount value when generating a transaction
-- Added a clearer error message for when the typeTagParser encounters a possible generic TypeTag but generics are disabled
+- Added a clearer error message for when the typeTagParser encounters a possible generic TypeTag but generics are disallowed
 
 ## 0.0.5 (2023-11-09)
 
