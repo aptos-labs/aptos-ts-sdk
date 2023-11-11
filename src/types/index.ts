@@ -893,7 +893,7 @@ export type Block = {
 /**
  * The data needed to generate a View Request payload
  */
-export type ViewRequestData = {
+export type InputViewRequestData = {
   function: MoveStructType;
   typeArguments?: Array<MoveStructType>;
   functionArguments?: Array<MoveValue>;

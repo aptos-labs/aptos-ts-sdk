@@ -21,7 +21,7 @@ import {
   LedgerVersion,
   MoveValue,
   TableItemRequest,
-  ViewRequestData,
+  InputViewRequestData,
 } from "../types";
 
 /**
@@ -133,7 +133,7 @@ export class General {
    *
    * @returns an array of Move values
    */
-  async view(args: { payload: ViewRequestData; options?: LedgerVersion }): Promise<Array<MoveValue>> {
+  async view(args: { payload: InputViewRequestData; options?: LedgerVersion }): Promise<Array<MoveValue>> {
     return view({ aptosConfig: this.config, ...args });
   }
 
