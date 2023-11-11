@@ -21,7 +21,7 @@ import {
   MoveValue,
   TableItemRequest,
   ViewRequest,
-  ViewRequestData,
+  InputViewRequestData,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -85,7 +85,7 @@ export async function getTableItem<T>(args: {
 
 export async function view(args: {
   aptosConfig: AptosConfig;
-  payload: ViewRequestData;
+  payload: InputViewRequestData;
   options?: LedgerVersion;
 }): Promise<MoveValue[]> {
   const { aptosConfig, payload, options } = args;

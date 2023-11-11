@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, GraphqlQuery, ViewRequestData } from "../../../src";
+import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData } from "../../../src";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
@@ -38,7 +38,7 @@ describe("general api", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
-    const payload: ViewRequestData = {
+    const payload: InputViewRequestData = {
       function: "0x1::chain_id::get",
     };
 
