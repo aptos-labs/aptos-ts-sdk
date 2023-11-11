@@ -51,7 +51,7 @@ describe("TypeTagParser", () => {
     typeTagParserError("&address", TypeTagParserErrorType.InvalidTypeTag);
 
     // Standalone generic (with allow generics off)
-    typeTagParserError("T1", TypeTagParserErrorType.InvalidTypeTag);
+    typeTagParserError("T1", TypeTagParserErrorType.InvalidButPossiblyGeneric);
 
     // Not enough colons
     typeTagParserError("0x1:tag::Tag", TypeTagParserErrorType.UnexpectedStructFormat);
