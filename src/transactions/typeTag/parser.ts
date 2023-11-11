@@ -54,7 +54,7 @@ type TypeTagState = {
 
 export enum TypeTagParserErrorType {
   InvalidTypeTag = "unknown type",
-  InvalidButPossiblyGeneric = "unknown type. Did you mean to enable generics?",
+  InvalidButPossiblyGeneric = "unknown type. Did you mean to allow generics?",
   UnexpectedTypeArgumentClose = "unexpected '>'",
   UnexpectedWhitespaceCharacter = "unexpected whitespace character",
   UnexpectedComma = "unexpected ','",
