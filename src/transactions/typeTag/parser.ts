@@ -54,7 +54,7 @@ type TypeTagState = {
 
 export enum TypeTagParserErrorType {
   InvalidTypeTag = "unknown type",
-  InvalidButPossiblyGeneric = "unknown type. Did you mean to allow generics?",
+  UnexpectedGenericType = "unexpected generic type",
   UnexpectedTypeArgumentClose = "unexpected '>'",
   UnexpectedWhitespaceCharacter = "unexpected whitespace character",
   UnexpectedComma = "unexpected ','",
@@ -274,7 +274,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
       if (!str.match(/.*:.*/)) {
         if (isGeneric(str)) {
-          throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidButPossiblyGeneric);
+          throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedGenericType);
         }
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);
       }
