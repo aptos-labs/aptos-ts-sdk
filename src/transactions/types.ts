@@ -15,7 +15,7 @@ import {
   TransactionPayloadMultisig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveStructType } from "../types";
+import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId } from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 
@@ -105,7 +105,7 @@ export type InputGenerateTransactionPayloadDataWithRemoteABI =
  * The data needed to generate an Entry Function payload
  */
 export type InputEntryFunctionData = {
-  function: MoveStructType;
+  function: MoveFunctionId;
   typeArguments?: Array<TypeTag | string>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 };
