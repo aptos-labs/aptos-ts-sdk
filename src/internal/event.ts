@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructType, OrderBy } from "../types";
+import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructId, OrderBy } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
 import { EventsBoolExp } from "../types/generated/types";
@@ -35,7 +35,7 @@ export async function getAccountEventsByCreationNumber(args: {
 export async function getAccountEventsByEventType(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  eventType: MoveStructType;
+  eventType: MoveStructId;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetEventsResponse[0]>;

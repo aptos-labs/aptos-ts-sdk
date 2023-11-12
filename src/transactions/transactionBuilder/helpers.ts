@@ -10,7 +10,7 @@ import {
 } from "../types";
 import { Bool, FixedBytes, MoveString, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
-import { MoveFunction, MoveStructType } from "../../types";
+import { MoveFunction, MoveFunctionId } from "../../types";
 
 export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
   return typeof arg === "boolean";
@@ -91,7 +91,7 @@ export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
   return index;
 }
 
-export function getFunctionParts(functionArg: MoveStructType) {
+export function getFunctionParts(functionArg: MoveFunctionId) {
   const funcNameParts = functionArg.split("::");
   if (funcNameParts.length !== 3) {
     throw new Error(`Invalid function ${functionArg}`);

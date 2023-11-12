@@ -252,7 +252,7 @@ export type GasEstimation = {
 };
 
 export type MoveResource = {
-  type: MoveStructType;
+  type: MoveStructId;
   data: {};
 };
 
@@ -521,7 +521,7 @@ export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPa
 
 export type EntryFunctionPayloadResponse = {
   type: string;
-  function: MoveStructType;
+  function: MoveFunctionId;
   /**
    * Type arguments of the function
    */
@@ -686,7 +686,13 @@ export type MoveOptionType = MoveType | null | undefined;
 /**
  * This is the format for a fully qualified struct, resource, or entry function in Move.
  */
-export type MoveStructType = `${string}::${string}::${string}`;
+export type MoveStructId = `${string}::${string}::${string}`;
+// These are the same, unfortunately, it reads really strangely to take a StructId for a Function and there wasn't a
+// good middle ground name.
+export type MoveFunctionId = MoveStructId;
+
+// TODO: Add support for looking up ABI to add proper typing
+export type MoveStructType = {};
 
 export type MoveType =
   | boolean
@@ -736,7 +742,7 @@ export type MoveValue =
   | MoveUint256Type
   | MoveAddressType
   | MoveObjectType
-  | MoveStructType
+  | MoveStructId
   | MoveOptionType
   | Array<MoveValue>;
 
@@ -894,8 +900,8 @@ export type Block = {
  * The data needed to generate a View Request payload
  */
 export type InputViewRequestData = {
-  function: MoveStructType;
-  typeArguments?: Array<MoveStructType>;
+  function: MoveFunctionId;
+  typeArguments?: Array<MoveStructId>;
   functionArguments?: Array<MoveValue>;
 };
 
@@ -904,14 +910,14 @@ export type InputViewRequestData = {
 /**
  * View request for the Move view function API
  *
- * `type MoveStructType = ${string}::${string}::${string}`;
+ * `type MoveFunctionId = ${string}::${string}::${string}`;
  */
 export type ViewRequest = {
-  function: MoveStructType;
+  function: MoveFunctionId;
   /**
    * Type arguments of the function
    */
-  type_arguments: Array<MoveStructType>;
+  typeArguments: Array<MoveStructId>;
   /**
    * Arguments of the function
    */

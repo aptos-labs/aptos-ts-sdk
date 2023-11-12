@@ -5,7 +5,7 @@ import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { InputSingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
-import { AnyNumber, MoveStructType } from "../types";
+import { AnyNumber, MoveStructId } from "../types";
 
 /**
  * A class to handle all `Coin` operations
@@ -31,7 +31,7 @@ export class Coin {
     sender: Account;
     recipient: AccountAddressInput;
     amount: AnyNumber;
-    coinType?: MoveStructType;
+    coinType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
   }): Promise<InputSingleSignerTransaction> {
     return transferCoinTransaction({ aptosConfig: this.config, ...args });
