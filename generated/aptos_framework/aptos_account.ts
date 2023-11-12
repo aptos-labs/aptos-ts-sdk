@@ -159,15 +159,15 @@ export namespace AptosAccount {
       }
     }
     export type TransferPayloadMoveArguments = {
-      recipients: AccountAddress;
-      amounts: U64;
+      to: AccountAddress;
+      amount: U64;
     };
 
     /**
      *  public fun transfer<>(
      *     source: &signer,
-     *     recipients: address,
-     *     amounts: u64,
+     *     to: address,
+     *     amount: u64,
      *   )
      **/
     export class Transfer extends EntryFunctionPayloadBuilder {
@@ -179,28 +179,28 @@ export namespace AptosAccount {
 
       constructor(
         source: Account, // &signer
-        recipients: AccountAddressInput, // address
-        amounts: Uint64, // u64
+        to: AccountAddressInput, // address
+        amount: Uint64, // u64
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          recipients: AccountAddress.fromRelaxed(recipients),
-          amounts: new U64(amounts),
+          to: AccountAddress.fromRelaxed(to),
+          amount: new U64(amount),
         };
       }
     }
     export type TransferCoinsPayloadMoveArguments = {
-      recipients: AccountAddress;
-      amounts: U64;
+      to: AccountAddress;
+      amount: U64;
       typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun transfer_coins<>(
      *     from: &signer,
-     *     recipients: address,
-     *     amounts: u64,
+     *     to: address,
+     *     amount: u64,
      *   )
      **/
     export class TransferCoins extends EntryFunctionPayloadBuilder {
@@ -212,15 +212,15 @@ export namespace AptosAccount {
 
       constructor(
         from: Account, // &signer
-        recipients: AccountAddressInput, // address
-        amounts: Uint64, // u64
+        to: AccountAddressInput, // address
+        amount: Uint64, // u64
         typeTags: Array<TypeTagInput>, //
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          recipients: AccountAddress.fromRelaxed(recipients),
-          amounts: new U64(amounts),
+          to: AccountAddress.fromRelaxed(to),
+          amount: new U64(amount),
           typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
@@ -228,12 +228,12 @@ export namespace AptosAccount {
   }
   export namespace ViewFunctions {
     export type CanReceiveDirectCoinTransfersPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
+      account: AccountAddressInput;
     };
 
     /**
      *  public fun can_receive_direct_coin_transfers<>(
-     *     arg_0: address,
+     *     account: address,
      *   )
      **/
     export class CanReceiveDirectCoinTransfers extends ViewFunctionPayloadBuilder {
@@ -244,11 +244,11 @@ export namespace AptosAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        account: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          account: AccountAddress.fromRelaxed(account),
         };
       }
     }

@@ -146,12 +146,12 @@ export namespace DelegationPool {
       }
     }
     export type EnablePartialGovernanceVotingPayloadMoveArguments = {
-      arg_0: AccountAddress;
+      pool_address: AccountAddress;
     };
 
     /**
      *  public fun enable_partial_governance_voting<>(
-     *     arg_0: address,
+     *     pool_address: address,
      *   )
      **/
     export class EnablePartialGovernanceVoting extends EntryFunctionPayloadBuilder {
@@ -162,12 +162,12 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        pool_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          pool_address: AccountAddress.fromRelaxed(pool_address),
         };
       }
     }
@@ -264,13 +264,13 @@ export namespace DelegationPool {
       }
     }
     export type SetDelegatedVoterPayloadMoveArguments = {
-      arg_1: AccountAddress;
+      new_voter: AccountAddress;
     };
 
     /**
      *  public fun set_delegated_voter<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
+     *     owner: &signer,
+     *     new_voter: address,
      *   )
      **/
     export class SetDelegatedVoter extends EntryFunctionPayloadBuilder {
@@ -281,13 +281,13 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
+        owner: Account, // &signer
+        new_voter: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          new_voter: AccountAddress.fromRelaxed(new_voter),
         };
       }
     }
@@ -320,12 +320,12 @@ export namespace DelegationPool {
       }
     }
     export type SynchronizeDelegationPoolPayloadMoveArguments = {
-      arg_0: AccountAddress;
+      pool_address: AccountAddress;
     };
 
     /**
      *  public fun synchronize_delegation_pool<>(
-     *     arg_0: address,
+     *     pool_address: address,
      *   )
      **/
     export class SynchronizeDelegationPool extends EntryFunctionPayloadBuilder {
@@ -336,12 +336,12 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        pool_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          pool_address: AccountAddress.fromRelaxed(pool_address),
         };
       }
     }
@@ -452,12 +452,12 @@ export namespace DelegationPool {
   }
   export namespace ViewFunctions {
     export type BeneficiaryForOperatorPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
+      operator: AccountAddressInput;
     };
 
     /**
      *  public fun beneficiary_for_operator<>(
-     *     arg_0: address,
+     *     operator: address,
      *   )
      **/
     export class BeneficiaryForOperator extends ViewFunctionPayloadBuilder {
@@ -468,11 +468,11 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        operator: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          operator: AccountAddress.fromRelaxed(operator),
         };
       }
     }
@@ -755,14 +755,14 @@ export namespace DelegationPool {
       }
     }
     export type GetStakePayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: AccountAddressInput;
+      pool_address: AccountAddressInput;
+      delegator_address: AccountAddressInput;
     };
 
     /**
      *  public fun get_stake<>(
-     *     arg_0: address,
-     *     arg_1: address,
+     *     pool_address: address,
+     *     delegator_address: address,
      *   )
      **/
     export class GetStake extends ViewFunctionPayloadBuilder {
@@ -773,13 +773,13 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput, // address
+        pool_address: AccountAddressInput, // address
+        delegator_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+          delegator_address: AccountAddress.fromRelaxed(delegator_address),
         };
       }
     }

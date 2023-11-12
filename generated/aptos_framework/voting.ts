@@ -267,15 +267,15 @@ export namespace Voting {
       }
     }
     export type GetProposalStatePayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: Uint64;
+      voting_forum_address: AccountAddressInput;
+      proposal_id: Uint64;
       typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun get_proposal_state<>(
-     *     arg_0: address,
-     *     arg_1: u64,
+     *     voting_forum_address: address,
+     *     proposal_id: u64,
      *   )
      **/
     export class GetProposalState extends ViewFunctionPayloadBuilder {
@@ -286,14 +286,14 @@ export namespace Voting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: Uint64, // u64
+        voting_forum_address: AccountAddressInput, // address
+        proposal_id: Uint64, // u64
         typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: arg_1,
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
+          proposal_id: proposal_id,
           typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
@@ -395,14 +395,15 @@ export namespace Voting {
       }
     }
     export type IsMultiStepProposalInExecutionPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: Uint64;
+      voting_forum_address: AccountAddressInput;
+      proposal_id: Uint64;
+      typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun is_multi_step_proposal_in_execution<>(
-     *     arg_0: address,
-     *     arg_1: u64,
+     *     voting_forum_address: address,
+     *     proposal_id: u64,
      *   )
      **/
     export class IsMultiStepProposalInExecution extends ViewFunctionPayloadBuilder {
@@ -413,13 +414,15 @@ export namespace Voting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: Uint64, // u64
+        voting_forum_address: AccountAddressInput, // address
+        proposal_id: Uint64, // u64
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: arg_1,
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
+          proposal_id: proposal_id,
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }

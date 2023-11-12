@@ -83,16 +83,15 @@ export namespace AptosCoin {
       }
     }
     export type MintPayloadMoveArguments = {
-      arg_1: AccountAddress;
-      arg_2: U64;
-      typeTags: Array<TypeTag>;
+      dst_addr: AccountAddress;
+      amount: U64;
     };
 
     /**
      *  public fun mint<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
-     *     arg_2: u64,
+     *     account: &signer,
+     *     dst_addr: address,
+     *     amount: u64,
      *   )
      **/
     export class Mint extends EntryFunctionPayloadBuilder {
@@ -103,17 +102,15 @@ export namespace AptosCoin {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
-        arg_2: Uint64, // u64
-        typeTags: Array<TypeTagInput>, //
+        account: Account, // &signer
+        dst_addr: AccountAddressInput, // address
+        amount: Uint64, // u64
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: new U64(arg_2),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+          dst_addr: AccountAddress.fromRelaxed(dst_addr),
+          amount: new U64(amount),
         };
       }
     }

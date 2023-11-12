@@ -371,7 +371,7 @@ export class CodeGenerator {
         // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
         if (kindArray[kindArray.length - 1] === "GenericType") {
           const genericType = `T${genericsWithAbilities.length}`;
-          const constraints = `: ${genericTypeParams[genericsWithAbilities.length].constraints.join(" + ")}`;
+          const constraints = `: ${genericTypeParams[genericsWithAbilities.length]?.constraints.join(" + ")}`;
           // 2, because that's the length of ": ". We don't add it if there are no constraints
           const genericTypeWithConstraints = constraints.length > 2 ? `${genericType}${constraints}` : genericType;
           // Check if the second to last kind is an AccountAddress, because that's *always* an Object
@@ -518,11 +518,11 @@ export class CodeGenerator {
                     );
                   } else {
                     const typeTags = func.params.map((param) => parseTypeTag(param, { allowGenerics: true }));
-                    console.log(func.genericTypes);
-                    console.log(typeTags.map((typeTag) => typeTag.toString()));
-                    console.log(abiFunction.moduleAddress.toString());
-                    console.log(abiFunction.moduleName);
-                    console.log(func.name);
+                    // console.log(func.genericTypes);
+                    // console.log(typeTags.map((typeTag) => typeTag.toString()));
+                    // console.log(abiFunction.moduleAddress.toString());
+                    // console.log(abiFunction.moduleName);
+                    // console.log(func.name);
                     console.error(e);
                   }
                 }

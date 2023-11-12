@@ -66,7 +66,7 @@ export type FunctionSignatureWithTypeTags = {
 
 export function extractSignature(functionName: string, sourceCode: string): FunctionSignatureWithTypeTags {
   // find the function signature in the source code
-  const regex = new RegExp(`${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, "m");
+  const regex = new RegExp(`fun ${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, "m");
   const match = sourceCode.match(regex);
   let genericTypeTags = null;
   if (match) {
@@ -79,17 +79,14 @@ export function extractSignature(functionName: string, sourceCode: string): Func
 }
 
 export function extractArguments(functionSignature: string): ArgumentNamesWithTypes[] {
-  // parsing argument names
-  const regex = /([\w_\d]+):\s*(&?[\w_\d]+)/g;
-  let match;
-  const argumentsList = [];
-
-  while ((match = regex.exec(functionSignature)) !== null) {
-    argumentsList.push({
-      argName: match[1],
-      typeTag: match[2],
-    });
-  }
+  const args = functionSignature.split(',');
+  const argumentsList = args.map((arg) => {
+    const [argName, typeTag] = arg.split(':').map((arg) => arg.trim());
+    if (argName && typeTag) {
+      return { argName, typeTag };
+    }
+    return null;
+  }).filter((arg) => arg !== null) as ArgumentNamesWithTypes[];
 
   return argumentsList;
 }

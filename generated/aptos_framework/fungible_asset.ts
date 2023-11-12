@@ -36,7 +36,47 @@ import {
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace FungibleAsset {
-  export namespace EntryFunctions {}
+  export namespace EntryFunctions {
+    export type TransferPayloadMoveArguments = {
+      from: MoveObject;
+      to: MoveObject;
+      amount: U64;
+      typeTags: Array<TypeTag>;
+    };
+
+    /**
+     *  public fun transfer<T0: key, T1: undefined>(
+     *     sender: &signer,
+     *     from: Object<T0>,
+     *     to: Object<T1>,
+     *     amount: u64,
+     *   )
+     **/
+    export class Transfer extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "fungible_asset";
+      public readonly functionName = "transfer";
+      public readonly args: TransferPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; // T0: key, T1: undefined
+
+      constructor(
+        sender: Account, // &signer
+        from: ObjectAddress, // Object<T0>
+        to: ObjectAddress, // Object<T1>
+        amount: Uint64, // u64
+        typeTags: Array<TypeTagInput>, // T0: key, T1: undefined
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          from: AccountAddress.fromRelaxed(from),
+          to: AccountAddress.fromRelaxed(to),
+          amount: new U64(amount),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+        };
+      }
+    }
+  }
   export namespace ViewFunctions {
     export type BalancePayloadMoveArguments = {
       store: ObjectAddress;

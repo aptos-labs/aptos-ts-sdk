@@ -68,7 +68,41 @@ export namespace Object {
         };
       }
     }
+    export type TransferPayloadMoveArguments = {
+      object: MoveObject;
+      to: AccountAddress;
+      typeTags: Array<TypeTag>;
+    };
 
+    /**
+     *  public fun transfer<T0: key>(
+     *     owner: &signer,
+     *     object: Object<T0>,
+     *     to: address,
+     *   )
+     **/
+    export class Transfer extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "object";
+      public readonly functionName = "transfer";
+      public readonly args: TransferPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+
+      constructor(
+        owner: Account, // &signer
+        object: ObjectAddress, // Object<T0>
+        to: AccountAddressInput, // address
+        typeTags: Array<TypeTagInput>, // T0: key
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          object: AccountAddress.fromRelaxed(object),
+          to: AccountAddress.fromRelaxed(to),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+        };
+      }
+    }
     export type TransferCallPayloadMoveArguments = {
       object: AccountAddress;
       to: AccountAddress;

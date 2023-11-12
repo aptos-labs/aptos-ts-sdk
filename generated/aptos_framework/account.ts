@@ -120,7 +120,7 @@ export namespace Account {
 
     /**
      *  public fun revoke_any_rotation_capability<>(
-     *     arg_0: &signer,
+     *     account: &signer,
      *   )
      **/
     export class RevokeAnyRotationCapability extends EntryFunctionPayloadBuilder {
@@ -138,7 +138,7 @@ export namespace Account {
 
     /**
      *  public fun revoke_any_signer_capability<>(
-     *     arg_0: &signer,
+     *     account: &signer,
      *   )
      **/
     export class RevokeAnySignerCapability extends EntryFunctionPayloadBuilder {

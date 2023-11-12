@@ -38,17 +38,18 @@ import {
 export namespace PrimaryFungibleStore {
   export namespace EntryFunctions {
     export type TransferPayloadMoveArguments = {
-      arg_1: MoveObject;
-      arg_2: AccountAddress;
-      arg_3: U64;
+      metadata: MoveObject;
+      recipient: AccountAddress;
+      amount: U64;
+      typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun transfer<T0: key>(
-     *     arg_0: &signer,
-     *     arg_1: Object<T0>,
-     *     arg_2: address,
-     *     arg_3: u64,
+     *     sender: &signer,
+     *     metadata: Object<T0>,
+     *     recipient: address,
+     *     amount: u64,
      *   )
      **/
     export class Transfer extends EntryFunctionPayloadBuilder {
@@ -59,17 +60,19 @@ export namespace PrimaryFungibleStore {
       public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: ObjectAddress, // Object<T0>
-        arg_2: AccountAddressInput, // address
-        arg_3: Uint64, // u64
+        sender: Account, // &signer
+        metadata: ObjectAddress, // Object<T0>
+        recipient: AccountAddressInput, // address
+        amount: Uint64, // u64
+        typeTags: Array<TypeTagInput>, // T0: key
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: AccountAddress.fromRelaxed(arg_2),
-          arg_3: new U64(arg_3),
+          metadata: AccountAddress.fromRelaxed(metadata),
+          recipient: AccountAddress.fromRelaxed(recipient),
+          amount: new U64(amount),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -140,14 +143,15 @@ export namespace PrimaryFungibleStore {
       }
     }
     export type PrimaryStorePayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: ObjectAddress;
+      owner: AccountAddressInput;
+      metadata: ObjectAddress;
+      typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun primary_store<T0: key>(
-     *     arg_0: address,
-     *     arg_1: Object<T0>,
+     *     owner: address,
+     *     metadata: Object<T0>,
      *   )
      **/
     export class PrimaryStore extends ViewFunctionPayloadBuilder {
@@ -158,13 +162,15 @@ export namespace PrimaryFungibleStore {
       public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: ObjectAddress, // Object<T0>
+        owner: AccountAddressInput, // address
+        metadata: ObjectAddress, // Object<T0>
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          owner: AccountAddress.fromRelaxed(owner),
+          metadata: AccountAddress.fromRelaxed(metadata),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -201,14 +207,14 @@ export namespace PrimaryFungibleStore {
       }
     }
     export type PrimaryStoreExistsPayloadMoveArguments = {
-      owner: AccountAddressInput;
+      account: AccountAddressInput;
       metadata: ObjectAddress;
       typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun primary_store_exists<T0: key>(
-     *     owner: address,
+     *     account: address,
      *     metadata: Object<T0>,
      *   )
      **/
@@ -220,13 +226,13 @@ export namespace PrimaryFungibleStore {
       public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
       constructor(
-        owner: AccountAddressInput, // address
+        account: AccountAddressInput, // address
         metadata: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
-          owner: AccountAddress.fromRelaxed(owner),
+          account: AccountAddress.fromRelaxed(account),
           metadata: AccountAddress.fromRelaxed(metadata),
           typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };

@@ -38,13 +38,13 @@ import {
 export namespace Stake {
   export namespace EntryFunctions {
     export type AddStakePayloadMoveArguments = {
-      arg_1: U64;
+      amount: U64;
     };
 
     /**
      *  public fun add_stake<>(
-     *     arg_0: &signer,
-     *     arg_1: u64,
+     *     owner: &signer,
+     *     amount: u64,
      *   )
      **/
     export class AddStake extends EntryFunctionPayloadBuilder {
@@ -55,13 +55,13 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Uint64, // u64
+        owner: Account, // &signer
+        amount: Uint64, // u64
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new U64(arg_1),
+          amount: new U64(amount),
         };
       }
     }
@@ -160,13 +160,13 @@ export namespace Stake {
       }
     }
     export type JoinValidatorSetPayloadMoveArguments = {
-      arg_1: AccountAddress;
+      pool_address: AccountAddress;
     };
 
     /**
      *  public fun join_validator_set<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
+     *     operator: &signer,
+     *     pool_address: address,
      *   )
      **/
     export class JoinValidatorSet extends EntryFunctionPayloadBuilder {
@@ -177,13 +177,13 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
+        operator: Account, // &signer
+        pool_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          pool_address: AccountAddress.fromRelaxed(pool_address),
         };
       }
     }
@@ -280,13 +280,13 @@ export namespace Stake {
       }
     }
     export type SetDelegatedVoterPayloadMoveArguments = {
-      arg_1: AccountAddress;
+      new_voter: AccountAddress;
     };
 
     /**
      *  public fun set_delegated_voter<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
+     *     owner: &signer,
+     *     new_voter: address,
      *   )
      **/
     export class SetDelegatedVoter extends EntryFunctionPayloadBuilder {
@@ -297,24 +297,24 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
+        owner: Account, // &signer
+        new_voter: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          new_voter: AccountAddress.fromRelaxed(new_voter),
         };
       }
     }
     export type SetOperatorPayloadMoveArguments = {
-      arg_1: AccountAddress;
+      new_operator: AccountAddress;
     };
 
     /**
      *  public fun set_operator<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
+     *     owner: &signer,
+     *     new_operator: address,
      *   )
      **/
     export class SetOperator extends EntryFunctionPayloadBuilder {
@@ -325,13 +325,13 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
+        owner: Account, // &signer
+        new_operator: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          new_operator: AccountAddress.fromRelaxed(new_operator),
         };
       }
     }
@@ -400,14 +400,13 @@ export namespace Stake {
       }
     }
     export type WithdrawPayloadMoveArguments = {
-      arg_1: U64;
-      typeTags: Array<TypeTag>;
+      withdraw_amount: U64;
     };
 
     /**
      *  public fun withdraw<>(
-     *     arg_0: &signer,
-     *     arg_1: u64,
+     *     owner: &signer,
+     *     withdraw_amount: u64,
      *   )
      **/
     export class Withdraw extends EntryFunctionPayloadBuilder {
@@ -418,15 +417,13 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Uint64, // u64
-        typeTags: Array<TypeTagInput>, //
+        owner: Account, // &signer
+        withdraw_amount: Uint64, // u64
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new U64(arg_1),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+          withdraw_amount: new U64(withdraw_amount),
         };
       }
     }
@@ -683,12 +680,12 @@ export namespace Stake {
       }
     }
     export type StakePoolExistsPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
+      addr: AccountAddressInput;
     };
 
     /**
      *  public fun stake_pool_exists<>(
-     *     arg_0: address,
+     *     addr: address,
      *   )
      **/
     export class StakePoolExists extends ViewFunctionPayloadBuilder {
@@ -699,11 +696,11 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          addr: AccountAddress.fromRelaxed(addr),
         };
       }
     }

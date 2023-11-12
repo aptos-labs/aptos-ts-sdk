@@ -138,13 +138,13 @@ export namespace Coin {
       }
     }
     export type IsAccountRegisteredPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
+      account_addr: AccountAddressInput;
       typeTags: Array<TypeTag>;
     };
 
     /**
      *  public fun is_account_registered<>(
-     *     arg_0: address,
+     *     account_addr: address,
      *   )
      **/
     export class IsAccountRegistered extends ViewFunctionPayloadBuilder {
@@ -155,12 +155,12 @@ export namespace Coin {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        account_addr: AccountAddressInput, // address
         typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          account_addr: AccountAddress.fromRelaxed(account_addr),
           typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }

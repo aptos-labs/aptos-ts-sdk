@@ -104,21 +104,21 @@ export namespace AptosGovernance {
       }
     }
     export type CreateProposalV2PayloadMoveArguments = {
-      arg_1: AccountAddress;
-      arg_2: MoveVector<U8>;
-      arg_3: MoveVector<U8>;
-      arg_4: MoveVector<U8>;
-      arg_5: Bool;
+      stake_pool: AccountAddress;
+      execution_hash: MoveVector<U8>;
+      metadata_location: MoveVector<U8>;
+      metadata_hash: MoveVector<U8>;
+      is_multi_step_proposal: Bool;
     };
 
     /**
      *  public fun create_proposal_v2<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
-     *     arg_2: vector<u8>,
-     *     arg_3: vector<u8>,
-     *     arg_4: vector<u8>,
-     *     arg_5: bool,
+     *     proposer: &signer,
+     *     stake_pool: address,
+     *     execution_hash: vector<u8>,
+     *     metadata_location: vector<u8>,
+     *     metadata_hash: vector<u8>,
+     *     is_multi_step_proposal: bool,
      *   )
      **/
     export class CreateProposalV2 extends EntryFunctionPayloadBuilder {
@@ -129,21 +129,21 @@ export namespace AptosGovernance {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
-        arg_2: HexInput, // vector<u8>
-        arg_3: HexInput, // vector<u8>
-        arg_4: HexInput, // vector<u8>
-        arg_5: boolean, // bool
+        proposer: Account, // &signer
+        stake_pool: AccountAddressInput, // address
+        execution_hash: HexInput, // vector<u8>
+        metadata_location: HexInput, // vector<u8>
+        metadata_hash: HexInput, // vector<u8>
+        is_multi_step_proposal: boolean, // bool
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: MoveVector.U8(arg_2),
-          arg_3: MoveVector.U8(arg_3),
-          arg_4: MoveVector.U8(arg_4),
-          arg_5: new Bool(arg_5),
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          execution_hash: MoveVector.U8(execution_hash),
+          metadata_location: MoveVector.U8(metadata_location),
+          metadata_hash: MoveVector.U8(metadata_hash),
+          is_multi_step_proposal: new Bool(is_multi_step_proposal),
         };
       }
     }
@@ -305,12 +305,12 @@ export namespace AptosGovernance {
       }
     }
     export type GetVotingPowerPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
+      pool_address: AccountAddressInput;
     };
 
     /**
      *  public fun get_voting_power<>(
-     *     arg_0: address,
+     *     pool_address: address,
      *   )
      **/
     export class GetVotingPower extends ViewFunctionPayloadBuilder {
@@ -321,11 +321,11 @@ export namespace AptosGovernance {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          pool_address: AccountAddress.fromRelaxed(pool_address),
         };
       }
     }

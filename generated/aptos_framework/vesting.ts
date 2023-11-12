@@ -66,12 +66,12 @@ export namespace Vesting {
       }
     }
     export type DistributePayloadMoveArguments = {
-      arg_0: AccountAddress;
+      contract_address: AccountAddress;
     };
 
     /**
      *  public fun distribute<>(
-     *     arg_0: address,
+     *     contract_address: address,
      *   )
      **/
     export class Distribute extends EntryFunctionPayloadBuilder {
@@ -82,12 +82,12 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        contract_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          contract_address: AccountAddress.fromRelaxed(contract_address),
         };
       }
     }
@@ -338,12 +338,12 @@ export namespace Vesting {
       }
     }
     export type UnlockRewardsPayloadMoveArguments = {
-      arg_0: AccountAddress;
+      contract_address: AccountAddress;
     };
 
     /**
      *  public fun unlock_rewards<>(
-     *     arg_0: address,
+     *     contract_address: address,
      *   )
      **/
     export class UnlockRewards extends EntryFunctionPayloadBuilder {
@@ -354,12 +354,12 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        contract_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          contract_address: AccountAddress.fromRelaxed(contract_address),
         };
       }
     }
@@ -522,12 +522,12 @@ export namespace Vesting {
       }
     }
     export type VestPayloadMoveArguments = {
-      arg_0: AccountAddress;
+      contract_address: AccountAddress;
     };
 
     /**
      *  public fun vest<>(
-     *     arg_0: address,
+     *     contract_address: address,
      *   )
      **/
     export class Vest extends EntryFunctionPayloadBuilder {
@@ -538,12 +538,12 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
+        contract_address: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
+          contract_address: AccountAddress.fromRelaxed(contract_address),
         };
       }
     }
@@ -575,6 +575,35 @@ export namespace Vesting {
     }
   }
   export namespace ViewFunctions {
+    export type AccumulatedRewardsPayloadMoveArguments = {
+      vesting_contract_address: AccountAddressInput;
+      shareholder_or_beneficiary: AccountAddressInput;
+    };
+
+    /**
+     *  public fun accumulated_rewards<>(
+     *     vesting_contract_address: address,
+     *     shareholder_or_beneficiary: address,
+     *   )
+     **/
+    export class AccumulatedRewards extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "vesting";
+      public readonly functionName = "accumulated_rewards";
+      public readonly args: AccumulatedRewardsPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        vesting_contract_address: AccountAddressInput, // address
+        shareholder_or_beneficiary: AccountAddressInput, // address
+      ) {
+        super();
+        this.args = {
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+          shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary),
+        };
+      }
+    }
     export type BeneficiaryPayloadMoveArguments = {
       vesting_contract_address: AccountAddressInput;
       shareholder: AccountAddressInput;
@@ -705,14 +734,14 @@ export namespace Vesting {
       }
     }
     export type ShareholderPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: AccountAddressInput;
+      vesting_contract_address: AccountAddressInput;
+      shareholder_or_beneficiary: AccountAddressInput;
     };
 
     /**
      *  public fun shareholder<>(
-     *     arg_0: address,
-     *     arg_1: address,
+     *     vesting_contract_address: address,
+     *     shareholder_or_beneficiary: address,
      *   )
      **/
     export class Shareholder extends ViewFunctionPayloadBuilder {
@@ -723,13 +752,13 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput, // address
+        vesting_contract_address: AccountAddressInput, // address
+        shareholder_or_beneficiary: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+          shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary),
         };
       }
     }

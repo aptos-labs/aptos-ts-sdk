@@ -70,17 +70,17 @@ export namespace MultisigAccount {
       }
     }
     export type CreatePayloadMoveArguments = {
-      arg_1: U64;
-      arg_2: MoveVector<MoveString>;
-      arg_3: MoveVector<MoveVector<U8>>;
+      num_signatures_required: U64;
+      metadata_keys: MoveVector<MoveString>;
+      metadata_values: MoveVector<MoveVector<U8>>;
     };
 
     /**
      *  public fun create<>(
-     *     arg_0: &signer,
-     *     arg_1: u64,
-     *     arg_2: vector<0x1::string::String>,
-     *     arg_3: vector<vector<u8>>,
+     *     owner: &signer,
+     *     num_signatures_required: u64,
+     *     metadata_keys: vector<0x1::string::String>,
+     *     metadata_values: vector<vector<u8>>,
      *   )
      **/
     export class Create extends EntryFunctionPayloadBuilder {
@@ -91,17 +91,17 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Uint64, // u64
-        arg_2: Array<string>, // vector<0x1::string::String>
-        arg_3: Array<HexInput>, // vector<vector<u8>>
+        owner: Account, // &signer
+        num_signatures_required: Uint64, // u64
+        metadata_keys: Array<string>, // vector<0x1::string::String>
+        metadata_values: Array<HexInput>, // vector<vector<u8>>
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new U64(arg_1),
-          arg_2: new MoveVector(arg_2.map((argA) => new MoveString(argA))),
-          arg_3: new MoveVector(arg_3.map((argA) => MoveVector.U8(argA))),
+          num_signatures_required: new U64(num_signatures_required),
+          metadata_keys: new MoveVector(metadata_keys.map((argA) => new MoveString(argA))),
+          metadata_values: new MoveVector(metadata_values.map((argA) => MoveVector.U8(argA))),
         };
       }
     }
@@ -278,19 +278,19 @@ export namespace MultisigAccount {
       }
     }
     export type CreateWithOwnersPayloadMoveArguments = {
-      arg_1: MoveVector<AccountAddress>;
-      arg_2: U64;
-      arg_3: MoveVector<MoveString>;
-      arg_4: MoveVector<MoveVector<U8>>;
+      additional_owners: MoveVector<AccountAddress>;
+      num_signatures_required: U64;
+      metadata_keys: MoveVector<MoveString>;
+      metadata_values: MoveVector<MoveVector<U8>>;
     };
 
     /**
      *  public fun create_with_owners<>(
-     *     arg_0: &signer,
-     *     arg_1: vector<address>,
-     *     arg_2: u64,
-     *     arg_3: vector<0x1::string::String>,
-     *     arg_4: vector<vector<u8>>,
+     *     owner: &signer,
+     *     additional_owners: vector<address>,
+     *     num_signatures_required: u64,
+     *     metadata_keys: vector<0x1::string::String>,
+     *     metadata_values: vector<vector<u8>>,
      *   )
      **/
     export class CreateWithOwners extends EntryFunctionPayloadBuilder {
@@ -301,19 +301,19 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Array<AccountAddressInput>, // vector<address>
-        arg_2: Uint64, // u64
-        arg_3: Array<string>, // vector<0x1::string::String>
-        arg_4: Array<HexInput>, // vector<vector<u8>>
+        owner: Account, // &signer
+        additional_owners: Array<AccountAddressInput>, // vector<address>
+        num_signatures_required: Uint64, // u64
+        metadata_keys: Array<string>, // vector<0x1::string::String>
+        metadata_values: Array<HexInput>, // vector<vector<u8>>
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new MoveVector(arg_1.map((argA) => AccountAddress.fromRelaxed(argA))),
-          arg_2: new U64(arg_2),
-          arg_3: new MoveVector(arg_3.map((argA) => new MoveString(argA))),
-          arg_4: new MoveVector(arg_4.map((argA) => MoveVector.U8(argA))),
+          additional_owners: new MoveVector(additional_owners.map((argA) => AccountAddress.fromRelaxed(argA))),
+          num_signatures_required: new U64(num_signatures_required),
+          metadata_keys: new MoveVector(metadata_keys.map((argA) => new MoveString(argA))),
+          metadata_values: new MoveVector(metadata_values.map((argA) => MoveVector.U8(argA))),
         };
       }
     }
@@ -358,13 +358,13 @@ export namespace MultisigAccount {
       }
     }
     export type ExecuteRejectedTransactionPayloadMoveArguments = {
-      arg_1: AccountAddress;
+      multisig_account: AccountAddress;
     };
 
     /**
      *  public fun execute_rejected_transaction<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
+     *     owner: &signer,
+     *     multisig_account: address,
      *   )
      **/
     export class ExecuteRejectedTransaction extends EntryFunctionPayloadBuilder {
@@ -375,13 +375,13 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
+        owner: Account, // &signer
+        multisig_account: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          multisig_account: AccountAddress.fromRelaxed(multisig_account),
         };
       }
     }
@@ -418,17 +418,17 @@ export namespace MultisigAccount {
       }
     }
     export type VoteTransanctionPayloadMoveArguments = {
-      arg_1: AccountAddress;
-      arg_2: U64;
-      arg_3: Bool;
+      multisig_account: AccountAddress;
+      sequence_number: U64;
+      approved: Bool;
     };
 
     /**
      *  public fun vote_transanction<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
-     *     arg_2: u64,
-     *     arg_3: bool,
+     *     owner: &signer,
+     *     multisig_account: address,
+     *     sequence_number: u64,
+     *     approved: bool,
      *   )
      **/
     export class VoteTransanction extends EntryFunctionPayloadBuilder {
@@ -439,17 +439,17 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
-        arg_2: Uint64, // u64
-        arg_3: boolean, // bool
+        owner: Account, // &signer
+        multisig_account: AccountAddressInput, // address
+        sequence_number: Uint64, // u64
+        approved: boolean, // bool
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: new U64(arg_2),
-          arg_3: new Bool(arg_3),
+          multisig_account: AccountAddress.fromRelaxed(multisig_account),
+          sequence_number: new U64(sequence_number),
+          approved: new Bool(approved),
         };
       }
     }
@@ -482,13 +482,13 @@ export namespace MultisigAccount {
       }
     }
     export type AddOwnersPayloadMoveArguments = {
-      arg_1: MoveVector<AccountAddress>;
+      new_owners: MoveVector<AccountAddress>;
     };
 
     /**
      *  private fun add_owners<>(
-     *     arg_0: &signer,
-     *     arg_1: vector<address>,
+     *     multisig_account: &signer,
+     *     new_owners: vector<address>,
      *   )
      **/
     export class AddOwners extends EntryFunctionPayloadBuilder {
@@ -499,13 +499,13 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Array<AccountAddressInput>, // vector<address>
+        multisig_account: Account, // &signer
+        new_owners: Array<AccountAddressInput>, // vector<address>
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new MoveVector(arg_1.map((argA) => AccountAddress.fromRelaxed(argA))),
+          new_owners: new MoveVector(new_owners.map((argA) => AccountAddress.fromRelaxed(argA))),
         };
       }
     }
@@ -570,13 +570,13 @@ export namespace MultisigAccount {
       }
     }
     export type RemoveOwnersPayloadMoveArguments = {
-      arg_1: MoveVector<AccountAddress>;
+      owners_to_remove: MoveVector<AccountAddress>;
     };
 
     /**
      *  private fun remove_owners<>(
-     *     arg_0: &signer,
-     *     arg_1: vector<address>,
+     *     multisig_account: &signer,
+     *     owners_to_remove: vector<address>,
      *   )
      **/
     export class RemoveOwners extends EntryFunctionPayloadBuilder {
@@ -587,13 +587,13 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: Array<AccountAddressInput>, // vector<address>
+        multisig_account: Account, // &signer
+        owners_to_remove: Array<AccountAddressInput>, // vector<address>
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: new MoveVector(arg_1.map((argA) => AccountAddress.fromRelaxed(argA))),
+          owners_to_remove: new MoveVector(owners_to_remove.map((argA) => AccountAddress.fromRelaxed(argA))),
         };
       }
     }
@@ -726,6 +726,34 @@ export namespace MultisigAccount {
         this.args = {
           keys: new MoveVector(keys.map((argA) => new MoveString(argA))),
           values: new MoveVector(values.map((argA) => MoveVector.U8(argA))),
+        };
+      }
+    }
+    export type UpdateSignaturesRequiredPayloadMoveArguments = {
+      new_num_signatures_required: U64;
+    };
+
+    /**
+     *  private fun update_signatures_required<>(
+     *     multisig_account: &signer,
+     *     new_num_signatures_required: u64,
+     *   )
+     **/
+    export class UpdateSignaturesRequired extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "multisig_account";
+      public readonly functionName = "update_signatures_required";
+      public readonly args: UpdateSignaturesRequiredPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        multisig_account: Account, // &signer
+        new_num_signatures_required: Uint64, // u64
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          new_num_signatures_required: new U64(new_num_signatures_required),
         };
       }
     }
@@ -1023,16 +1051,16 @@ export namespace MultisigAccount {
       }
     }
     export type VotePayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: Uint64;
-      arg_2: AccountAddressInput;
+      multisig_account: AccountAddressInput;
+      sequence_number: Uint64;
+      owner: AccountAddressInput;
     };
 
     /**
      *  public fun vote<>(
-     *     arg_0: address,
-     *     arg_1: u64,
-     *     arg_2: address,
+     *     multisig_account: address,
+     *     sequence_number: u64,
+     *     owner: address,
      *   )
      **/
     export class Vote extends ViewFunctionPayloadBuilder {
@@ -1043,15 +1071,15 @@ export namespace MultisigAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: Uint64, // u64
-        arg_2: AccountAddressInput, // address
+        multisig_account: AccountAddressInput, // address
+        sequence_number: Uint64, // u64
+        owner: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: arg_1,
-          arg_2: AccountAddress.fromRelaxed(arg_2),
+          multisig_account: AccountAddress.fromRelaxed(multisig_account),
+          sequence_number: sequence_number,
+          owner: AccountAddress.fromRelaxed(owner),
         };
       }
     }

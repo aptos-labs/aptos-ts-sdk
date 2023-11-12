@@ -70,23 +70,25 @@ export namespace StakingContract {
       }
     }
     export type CreateStakingContractPayloadMoveArguments = {
-      arg_1: AccountAddress;
-      arg_2: AccountAddress;
-      arg_3: U64;
-      arg_4: U64;
-      arg_5: MoveVector<U8>;
+      operator: AccountAddress;
+      voter: AccountAddress;
+      amount: U64;
+      commission_percentage: U64;
+      // Optional seed used when creating the staking contract account.
+      contract_creation_seed: MoveVector<U8>;
     };
 
     /**
-     *  public fun create_staking_contract<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
-     *     arg_2: address,
-     *     arg_3: u64,
-     *     arg_4: u64,
-     *     arg_5: vector<u8>,
-     *   )
-     **/
+*  public fun create_staking_contract<>(
+*     staker: &signer,
+*     operator: address,
+*     voter: address,
+*     amount: u64,
+*     commission_percentage: u64,
+*     // Optional seed used when creating the staking contract account.
+        contract_creation_seed: vector<u8>,
+*   )
+**/
     export class CreateStakingContract extends EntryFunctionPayloadBuilder {
       public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
       public readonly moduleName = "staking_contract";
@@ -95,33 +97,38 @@ export namespace StakingContract {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
-        arg_2: AccountAddressInput, // address
-        arg_3: Uint64, // u64
-        arg_4: Uint64, // u64
-        arg_5: HexInput, // vector<u8>
+        staker: Account, // &signer
+        operator: AccountAddressInput, // address
+        voter: AccountAddressInput, // address
+        amount: Uint64, // u64
+        commission_percentage: Uint64, // u64
+        // Optional seed used when creating the staking contract account.
+        contract_creation_seed: HexInput, // vector<u8>
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: AccountAddress.fromRelaxed(arg_2),
-          arg_3: new U64(arg_3),
-          arg_4: new U64(arg_4),
-          arg_5: MoveVector.U8(arg_5),
+          operator: AccountAddress.fromRelaxed(operator),
+          voter: AccountAddress.fromRelaxed(voter),
+          amount: new U64(amount),
+          commission_percentage: new U64(commission_percentage),
+          // Optional seed used when creating the staking contract account.
+          contract_creation_seed: MoveVector.U8(
+            // Optional seed used when creating the staking contract account.
+            contract_creation_seed,
+          ),
         };
       }
     }
     export type DistributePayloadMoveArguments = {
-      arg_0: AccountAddress;
-      arg_1: AccountAddress;
+      staker: AccountAddress;
+      operator: AccountAddress;
     };
 
     /**
      *  public fun distribute<>(
-     *     arg_0: address,
-     *     arg_1: address,
+     *     staker: address,
+     *     operator: address,
      *   )
      **/
     export class Distribute extends EntryFunctionPayloadBuilder {
@@ -132,14 +139,14 @@ export namespace StakingContract {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput, // address
+        staker: AccountAddressInput, // address
+        operator: AccountAddressInput, // address
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          staker: AccountAddress.fromRelaxed(staker),
+          operator: AccountAddress.fromRelaxed(operator),
         };
       }
     }
@@ -232,17 +239,17 @@ export namespace StakingContract {
       }
     }
     export type SwitchOperatorPayloadMoveArguments = {
-      arg_1: AccountAddress;
-      arg_2: AccountAddress;
-      arg_3: U64;
+      old_operator: AccountAddress;
+      new_operator: AccountAddress;
+      new_commission_percentage: U64;
     };
 
     /**
      *  public fun switch_operator<>(
-     *     arg_0: &signer,
-     *     arg_1: address,
-     *     arg_2: address,
-     *     arg_3: u64,
+     *     staker: &signer,
+     *     old_operator: address,
+     *     new_operator: address,
+     *     new_commission_percentage: u64,
      *   )
      **/
     export class SwitchOperator extends EntryFunctionPayloadBuilder {
@@ -253,17 +260,17 @@ export namespace StakingContract {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: Account, // &signer
-        arg_1: AccountAddressInput, // address
-        arg_2: AccountAddressInput, // address
-        arg_3: Uint64, // u64
+        staker: Account, // &signer
+        old_operator: AccountAddressInput, // address
+        new_operator: AccountAddressInput, // address
+        new_commission_percentage: Uint64, // u64
         feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          arg_1: AccountAddress.fromRelaxed(arg_1),
-          arg_2: AccountAddress.fromRelaxed(arg_2),
-          arg_3: new U64(arg_3),
+          old_operator: AccountAddress.fromRelaxed(old_operator),
+          new_operator: AccountAddress.fromRelaxed(new_operator),
+          new_commission_percentage: new U64(new_commission_percentage),
         };
       }
     }
@@ -629,14 +636,14 @@ export namespace StakingContract {
       }
     }
     export type StakingContractExistsPayloadMoveArguments = {
-      arg_0: AccountAddressInput;
-      arg_1: AccountAddressInput;
+      staker: AccountAddressInput;
+      operator: AccountAddressInput;
     };
 
     /**
      *  public fun staking_contract_exists<>(
-     *     arg_0: address,
-     *     arg_1: address,
+     *     staker: address,
+     *     operator: address,
      *   )
      **/
     export class StakingContractExists extends ViewFunctionPayloadBuilder {
@@ -647,13 +654,13 @@ export namespace StakingContract {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput, // address
+        staker: AccountAddressInput, // address
+        operator: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          arg_0: AccountAddress.fromRelaxed(arg_0),
-          arg_1: AccountAddress.fromRelaxed(arg_1),
+          staker: AccountAddress.fromRelaxed(staker),
+          operator: AccountAddress.fromRelaxed(operator),
         };
       }
     }
