@@ -63,13 +63,12 @@ export class AddProperty extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     key: string, // String
     type: string, // String
     value: HexInput, // vector<u8>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -104,12 +103,11 @@ export class AddTypedProperty extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     key: string, // String
     value: EntryFunctionArgumentTypes, // T1
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -139,10 +137,9 @@ export class Burn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -197,7 +194,7 @@ export class CreateCollection extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     description: string, // String
     max_supply: Uint64, // u64
     name: string, // String
@@ -213,7 +210,6 @@ export class CreateCollection extends EntryFunctionPayloadBuilder {
     tokens_freezable_by_creator: boolean, // bool
     royalty_numerator: Uint64, // u64
     royalty_denominator: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -254,10 +250,9 @@ export class FreezeTransfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -296,7 +291,7 @@ export class Mint extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     collection: string, // String
     description: string, // String
     name: string, // String
@@ -304,7 +299,6 @@ export class Mint extends EntryFunctionPayloadBuilder {
     property_keys: Array<string>, // vector<String>
     property_types: Array<string>, // vector<String>
     property_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -350,7 +344,7 @@ export class MintSoulBound extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     collection: string, // String
     description: string, // String
     name: string, // String
@@ -359,7 +353,6 @@ export class MintSoulBound extends EntryFunctionPayloadBuilder {
     property_types: Array<string>, // vector<String>
     property_values: Array<HexInput>, // vector<vector<u8>>
     soul_bound_to: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -395,11 +388,10 @@ export class RemoveProperty extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     key: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -430,11 +422,10 @@ export class SetCollectionDescription extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     collection: ObjectAddress, // Object<T0>
     description: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -465,11 +456,10 @@ export class SetCollectionUri extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     collection: ObjectAddress, // Object<T0>
     uri: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -500,11 +490,10 @@ export class SetDescription extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     description: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -535,11 +524,10 @@ export class SetName extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     name: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -570,11 +558,10 @@ export class SetUri extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     uri: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -603,10 +590,9 @@ export class UnfreezeTransfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -640,13 +626,12 @@ export class UpdateProperty extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     key: string, // String
     type: string, // String
     value: HexInput, // vector<u8>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -681,12 +666,11 @@ export class UpdateTypedProperty extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     token: ObjectAddress, // Object<T0>
     key: string, // String
     value: EntryFunctionArgumentTypes, // T1
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -722,13 +706,12 @@ export class SetCollectionRoyaltiesCall extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     collection: ObjectAddress, // Object<T0>
     royalty_numerator: Uint64, // u64
     royalty_denominator: Uint64, // u64
     payee_address: AccountAddressInput, // address
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -764,7 +747,7 @@ export class ArePropertiesMutable extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -792,7 +775,7 @@ export class IsBurnable extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -820,7 +803,7 @@ export class IsFreezableByCreator extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -848,7 +831,7 @@ export class IsMutableDescription extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -876,7 +859,7 @@ export class IsMutableName extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -904,7 +887,7 @@ export class IsMutableUri extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

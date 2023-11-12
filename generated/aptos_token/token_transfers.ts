@@ -64,13 +64,12 @@ export class CancelOfferScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    sender: Account, // signer
+    // sender: signer,
     receiver: AccountAddressInput, // address
     creator: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -108,13 +107,12 @@ export class ClaimScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    receiver: Account, // signer
+    // receiver: signer,
     sender: AccountAddressInput, // address
     creator: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -154,14 +152,13 @@ export class OfferScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    sender: Account, // signer
+    // sender: signer,
     receiver: AccountAddressInput, // address
     creator: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

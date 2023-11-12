@@ -58,10 +58,9 @@ export class BatchTransfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    source: Account, // &signer
+    // source: &signer,
     recipients: Array<AccountAddressInput>, // vector<address>
     amounts: Array<Uint64>, // vector<u64>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -91,11 +90,10 @@ export class BatchTransferCoins extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    from: Account, // &signer
+    // from: &signer,
     recipients: Array<AccountAddressInput>, // vector<address>
     amounts: Array<Uint64>, // vector<u64>
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -123,7 +121,6 @@ export class CreateAccount extends EntryFunctionPayloadBuilder {
 
   constructor(
     auth_key: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -149,9 +146,8 @@ export class SetAllowDirectCoinTransfers extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     allow: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -179,10 +175,9 @@ export class Transfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    source: Account, // &signer
+    // source: &signer,
     to: AccountAddressInput, // address
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -212,11 +207,10 @@ export class TransferCoins extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    from: Account, // &signer
+    // from: &signer,
     to: AccountAddressInput, // address
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -228,7 +222,7 @@ export class TransferCoins extends EntryFunctionPayloadBuilder {
 }
 
 export type CanReceiveDirectCoinTransfersPayloadMoveArguments = {
-  account: AccountAddressInput;
+  account: string;
 };
 
 /**
@@ -248,7 +242,7 @@ export class CanReceiveDirectCoinTransfers extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account: AccountAddress.fromRelaxed(account),
+      account: AccountAddress.fromRelaxed(account).toString(),
     };
   }
 }

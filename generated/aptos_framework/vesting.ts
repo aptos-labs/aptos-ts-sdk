@@ -56,9 +56,8 @@ export class AdminWithdraw extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -84,7 +83,6 @@ export class Distribute extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -110,7 +108,6 @@ export class DistributeMany extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_addresses: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -138,10 +135,9 @@ export class ResetBeneficiary extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     contract_address: AccountAddressInput, // address
     shareholder: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -168,9 +164,8 @@ export class ResetLockup extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -200,44 +195,15 @@ export class SetBeneficiary extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     shareholder: AccountAddressInput, // address
     new_beneficiary: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
       contract_address: AccountAddress.fromRelaxed(contract_address),
       shareholder: AccountAddress.fromRelaxed(shareholder),
-      new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
-    };
-  }
-}
-export type SetBeneficiaryForOperatorPayloadMoveArguments = {
-  new_beneficiary: AccountAddress;
-};
-
-/**
- *  public fun set_beneficiary_for_operator<>(
- *     operator: &signer,
- *     new_beneficiary: address,
- *   )
- **/
-export class SetBeneficiaryForOperator extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "vesting";
-  public readonly functionName = "set_beneficiary_for_operator";
-  public readonly args: SetBeneficiaryForOperatorPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    operator: Account, // &signer
-    new_beneficiary: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
-  ) {
-    super();
-    this.args = {
       new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
     };
   }
@@ -262,10 +228,9 @@ export class SetBeneficiaryResetter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     beneficiary_resetter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -296,11 +261,10 @@ export class SetManagementRole extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     role: string, // String
     role_holder: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -328,9 +292,8 @@ export class TerminateVestingContract extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -356,7 +319,6 @@ export class UnlockRewards extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -382,7 +344,6 @@ export class UnlockRewardsMany extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_addresses: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -410,10 +371,9 @@ export class UpdateCommissionPercentage extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     new_commission_percentage: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -444,11 +404,10 @@ export class UpdateOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
     commission_percentage: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -478,10 +437,9 @@ export class UpdateOperatorWithSameCommission extends EntryFunctionPayloadBuilde
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -510,10 +468,9 @@ export class UpdateVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    admin: Account, // &signer
+    // admin: &signer,
     contract_address: AccountAddressInput, // address
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -540,7 +497,6 @@ export class Vest extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -566,7 +522,6 @@ export class VestMany extends EntryFunctionPayloadBuilder {
 
   constructor(
     contract_addresses: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -576,8 +531,8 @@ export class VestMany extends EntryFunctionPayloadBuilder {
 }
 
 export type AccumulatedRewardsPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
-  shareholder_or_beneficiary: AccountAddressInput;
+  vesting_contract_address: string;
+  shareholder_or_beneficiary: string;
 };
 
 /**
@@ -599,14 +554,14 @@ export class AccumulatedRewards extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
-      shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
+      shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary).toString(),
     };
   }
 }
 export type BeneficiaryPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
-  shareholder: AccountAddressInput;
+  vesting_contract_address: string;
+  shareholder: string;
 };
 
 /**
@@ -628,13 +583,13 @@ export class Beneficiary extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
-      shareholder: AccountAddress.fromRelaxed(shareholder),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
+      shareholder: AccountAddress.fromRelaxed(shareholder).toString(),
     };
   }
 }
 export type OperatorPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -654,12 +609,12 @@ export class Operator extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type OperatorCommissionPercentagePayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -679,12 +634,12 @@ export class OperatorCommissionPercentage extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type PeriodDurationSecsPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -704,12 +659,12 @@ export class PeriodDurationSecs extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type RemainingGrantPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -729,13 +684,13 @@ export class RemainingGrant extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type ShareholderPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
-  shareholder_or_beneficiary: AccountAddressInput;
+  vesting_contract_address: string;
+  shareholder_or_beneficiary: string;
 };
 
 /**
@@ -757,13 +712,13 @@ export class Shareholder extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
-      shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
+      shareholder_or_beneficiary: AccountAddress.fromRelaxed(shareholder_or_beneficiary).toString(),
     };
   }
 }
 export type ShareholdersPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -783,12 +738,12 @@ export class Shareholders extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type StakePoolAddressPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -808,12 +763,12 @@ export class StakePoolAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type TotalAccumulatedRewardsPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -833,12 +788,12 @@ export class TotalAccumulatedRewards extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type VestingContractsPayloadMoveArguments = {
-  admin: AccountAddressInput;
+  admin: string;
 };
 
 /**
@@ -858,12 +813,12 @@ export class VestingContracts extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      admin: AccountAddress.fromRelaxed(admin),
+      admin: AccountAddress.fromRelaxed(admin).toString(),
     };
   }
 }
 export type VestingSchedulePayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -883,12 +838,12 @@ export class VestingSchedule extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type VestingStartSecsPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -908,12 +863,12 @@ export class VestingStartSecs extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }
 export type VoterPayloadMoveArguments = {
-  vesting_contract_address: AccountAddressInput;
+  vesting_contract_address: string;
 };
 
 /**
@@ -933,7 +888,7 @@ export class Voter extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
+      vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address).toString(),
     };
   }
 }

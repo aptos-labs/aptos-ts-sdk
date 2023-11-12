@@ -60,10 +60,9 @@ export class CommitAction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    player: Account, // &signer
+    // player: &signer,
     player_obj: ObjectAddress, // Object<Token>
     action_hash: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -92,9 +91,8 @@ export class CreateGame extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    room_obj: Account, // &signer
+    // room_obj: &signer,
     tokens: Array<ObjectAddress>, // vector<Object<Token>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -126,11 +124,10 @@ export class VerifyAction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    player: Account, // &signer
+    // player: &signer,
     player_obj: ObjectAddress, // Object<Token>
     action: HexInput, // vector<u8>
     hash_addition: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -142,7 +139,7 @@ export class VerifyAction extends EntryFunctionPayloadBuilder {
 }
 
 export type GameStatusPayloadMoveArguments = {
-  player_address: AccountAddressInput;
+  player_address: string;
 };
 
 /**
@@ -164,13 +161,13 @@ export class GameStatus extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      player_address: AccountAddress.fromRelaxed(player_address),
+      player_address: AccountAddress.fromRelaxed(player_address).toString(),
     };
   }
 }
 export type GetGameAddressPayloadMoveArguments = {
-  creator_address: AccountAddressInput;
-  seed: Uint8Array;
+  creator_address: string;
+  seed: HexInput;
 };
 
 /**
@@ -194,13 +191,13 @@ export class GetGameAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      creator_address: AccountAddress.fromRelaxed(creator_address),
-      seed: Hex.fromHexInput(seed).toUint8Array(),
+      creator_address: AccountAddress.fromRelaxed(creator_address).toString(),
+      seed: Hex.fromHexInput(seed).toString(),
     };
   }
 }
 export type GetGameAddressForPlayerPayloadMoveArguments = {
-  player_address: AccountAddressInput;
+  player_address: string;
 };
 
 /**
@@ -222,7 +219,7 @@ export class GetGameAddressForPlayer extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      player_address: AccountAddress.fromRelaxed(player_address),
+      player_address: AccountAddress.fromRelaxed(player_address).toString(),
     };
   }
 }
@@ -249,12 +246,12 @@ export class GetPlayerRpsState extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      player_token: AccountAddress.fromRelaxed(player_token),
+      player_token: AccountAddress.fromRelaxed(player_token).toString(),
     };
   }
 }
 export type GetResultsPayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -276,12 +273,12 @@ export class GetResults extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type GetResultsAsPlayersPayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -303,12 +300,12 @@ export class GetResultsAsPlayers extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type GetResultsForcePayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -330,12 +327,12 @@ export class GetResultsForce extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type IsGameCommittedPayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -357,12 +354,12 @@ export class IsGameCommitted extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type IsGameCompletePayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -384,39 +381,12 @@ export class IsGameComplete extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
-    };
-  }
-}
-export type IsGameCompleteByPlayerPayloadMoveArguments = {
-  player_token_address: AccountAddressInput;
-};
-
-/**
- *  public fun is_game_complete_by_player<>(
- *     player_token_address: address,
- *   )
- **/
-export class IsGameCompleteByPlayer extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
-  );
-  public readonly moduleName = "rock_paper_scissor";
-  public readonly functionName = "is_game_complete_by_player";
-  public readonly args: IsGameCompleteByPlayerPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    player_token_address: AccountAddressInput, // address
-  ) {
-    super();
-    this.args = {
-      player_token_address: AccountAddress.fromRelaxed(player_token_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type PlayerExistsPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -438,12 +408,12 @@ export class PlayerExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
 export type ViewGamePayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -465,7 +435,7 @@ export class ViewGame extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }

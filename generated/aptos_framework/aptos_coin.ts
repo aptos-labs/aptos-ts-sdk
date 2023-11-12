@@ -73,9 +73,8 @@ export class DelegateMintCapability extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // signer
+    // account: signer,
     to: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -103,10 +102,9 @@ export class Mint extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     dst_addr: AccountAddressInput, // address
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

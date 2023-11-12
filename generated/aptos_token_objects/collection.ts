@@ -61,7 +61,7 @@ export class Count extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      collection: AccountAddress.fromRelaxed(collection),
+      collection: AccountAddress.fromRelaxed(collection).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -89,7 +89,7 @@ export class Creator extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      collection: AccountAddress.fromRelaxed(collection),
+      collection: AccountAddress.fromRelaxed(collection).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -117,7 +117,7 @@ export class Description extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      collection: AccountAddress.fromRelaxed(collection),
+      collection: AccountAddress.fromRelaxed(collection).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -145,7 +145,7 @@ export class Name extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      collection: AccountAddress.fromRelaxed(collection),
+      collection: AccountAddress.fromRelaxed(collection).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -173,7 +173,7 @@ export class Uri extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      collection: AccountAddress.fromRelaxed(collection),
+      collection: AccountAddress.fromRelaxed(collection).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

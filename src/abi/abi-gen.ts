@@ -105,7 +105,13 @@ export class CodeGenerator {
       }
       // otherwise, ensure that the array lengths match
     } else if (fieldNames.length !== typeTags.length) {
-      console.log(moduleAddress.toString(), moduleName, functionName, fieldNames, typeTags.map(t => t.toString()));
+      console.log(
+        moduleAddress.toString(),
+        moduleName,
+        functionName,
+        fieldNames,
+        typeTags.map((t) => t.toString()),
+      );
       throw new Error(`fieldNames.length (${fieldNames.length}) !== typeTags.length (${typeTags.length})`);
     }
 
@@ -227,49 +233,44 @@ export class CodeGenerator {
     return lines.join("\n");
   }
 
-
   // TODO: Split this by view function class args vs view function inputs
   createClassArgTypes(kindArray: BCSKindsWithGeneric, forViewFunctionClassArgs?: boolean): string {
     const kind = kindArray[0];
     switch (kind) {
       case MoveVector.kind:
         if (kindArray.length === 2 && kindArray[1] === U8.kind) {
-          // if it's for input, store the class arg type as Uint8Array
-          if (forViewFunctionClassArgs) {
-            return "Uint8Array";
-          }
-          // otherwise, it's the input, meaning we want to accept HexInput
           return "HexInput";
         }
       case MoveOption.kind:
         // for both MoveVector and MoveOption, we'll recursively call this function
         if (forViewFunctionClassArgs) {
           // for view functions, we've already forced the user to use Option
-          return `${kindToSimpleTypeMap[MoveVector.kind]}<${this.createClassArgTypes(kindArray.slice(1), forViewFunctionClassArgs)}>`;
+          return `${kindToSimpleTypeMap[MoveVector.kind]}<${this.createClassArgTypes(
+            kindArray.slice(1),
+            forViewFunctionClassArgs,
+          )}>`;
         }
         return `${kindToSimpleTypeMap[kind]}<${this.createClassArgTypes(kindArray.slice(1))}>`;
       case Bool.kind:
       case U8.kind:
       case U16.kind:
       case U32.kind:
-      case AccountAddress.kind:
       case MoveString.kind:
       case "MoveObject":
         return `${kindToSimpleTypeMap[kind]}`;
       case U64.kind:
       case U128.kind:
       case U256.kind:
+      case AccountAddress.kind:
         if (forViewFunctionClassArgs) {
           return "string";
         }
         return `${kindToSimpleTypeMap[kind]}`;
+      case "GenericType":
+        return "InputTypes";
+      case "EntryFunctionArgumentTypes":
+        return "EntryFunctionArgumentTypes";
       default:
-        if (kind === "GenericType") {
-          return "InputTypes";
-        }
-        if (kind === "EntryFunctionArgumentTypes") {
-          return "EntryFunctionArgumentTypes";
-        }
         throw new Error(`Unknown kind: ${kind}`);
     }
   }
@@ -286,7 +287,7 @@ export class CodeGenerator {
       case MoveVector.kind:
         // if we're at the innermost type and it's a vector<u8>, we'll use the MoveVector.U8(hex: HexInput) factory method
         if (kindArray.length === 2 && kindArray[1] === U8.kind) {
-          return `Hex.fromHexInput(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}.toUint8Array()`;
+          return `Hex.fromHexInput(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}.toString()`;
         }
       case MoveOption.kind: {
         const innerNameFromDepth = `arg${numberToLetter(depth + 1)}`;
@@ -296,7 +297,7 @@ export class CodeGenerator {
         );
       }
       case AccountAddress.kind:
-        return `${kind}.fromRelaxed(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
+        return `${kind}.fromRelaxed(${nameFromDepth}).toString()${R_PARENTHESIS.repeat(depth)}`;
       case Bool.kind:
       case U8.kind:
       case U16.kind:
@@ -307,10 +308,9 @@ export class CodeGenerator {
       case U128.kind:
       case U256.kind:
         return `BigInt(${nameFromDepth}).toString()${R_PARENTHESIS.repeat(depth)}`;
+      case "GenericType":
+        return "InputTypes";
       default:
-        if (kind === "GenericType") {
-          return "InputTypes";
-        }
         throw new Error(`Unknown kind: ${kind}`);
     }
   }
@@ -356,13 +356,10 @@ export class CodeGenerator {
       case U256.kind:
       case MoveString.kind:
         return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
+      case "GenericType":
+      case "EntryFunctionArgumentTypes":
+        return fieldName;
       default:
-        if (kind === "GenericType") {
-          return fieldName;
-        }
-        if (kind === "EntryFunctionArgumentTypes") {
-          return fieldName;
-        }
         throw new Error(`Unknown kind: ${kind}`);
     }
   }
@@ -377,7 +374,13 @@ export class CodeGenerator {
     const genericsWithAbilities = new Array<string>();
     typeTags.forEach((typeTag, i) => {
       const kindArray = toBCSClassName(typeTag);
-      let annotation = this.config.expandedStructs ? typeTag.toString() : truncatedTypeTagString({ typeTag, namedAddresses: this.config.namedAddresses, namedTypeTags: this.config.namedTypeTags });
+      let annotation = this.config.expandedStructs
+        ? typeTag.toString()
+        : truncatedTypeTagString({
+            typeTag,
+            namedAddresses: this.config.namedAddresses,
+            namedTypeTags: this.config.namedTypeTags,
+          });
 
       // TODO: Change this to Account? Or something else, not sure. But AccountAuthenticator doesn't make sense in the new flow anymore.
       // Check if it's an AccountAuthenticator, which indicates it's a signer argument
@@ -420,7 +423,6 @@ export class CodeGenerator {
             kindArray.pop();
           }
         }
-
 
         let moveArgString = "";
         if (kindArray[kindArray.length - 1] == "GenericType") {
@@ -579,9 +581,9 @@ export class CodeGenerator {
 
         if (numPublicFunctions + numPrivateFunctions + numViewFunctions > 0) {
           // let code = `${namespaceString}`;
-          let code = '';
-          code += (numPublicFunctions + numPrivateFunctions > 0) ? entryFunctionsCode : '';
-          code += (numViewFunctions > 0) ? viewFunctionsCode : '';
+          let code = "";
+          code += numPublicFunctions + numPrivateFunctions > 0 ? entryFunctionsCode : "";
+          code += numViewFunctions > 0 ? viewFunctionsCode : "";
           // code += `}`;
           generatedCode[abi.name] = {
             address: abi.address,

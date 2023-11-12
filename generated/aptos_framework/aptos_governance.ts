@@ -56,7 +56,6 @@ export class AddApprovedScriptHashScript extends EntryFunctionPayloadBuilder {
 
   constructor(
     proposal_id: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -88,12 +87,11 @@ export class CreateProposal extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    proposer: Account, // &signer
+    // proposer: &signer,
     stake_pool: AccountAddressInput, // address
     execution_hash: HexInput, // vector<u8>
     metadata_location: HexInput, // vector<u8>
     metadata_hash: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -130,13 +128,12 @@ export class CreateProposalV2 extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    proposer: Account, // &signer
+    // proposer: &signer,
     stake_pool: AccountAddressInput, // address
     execution_hash: HexInput, // vector<u8>
     metadata_location: HexInput, // vector<u8>
     metadata_hash: HexInput, // vector<u8>
     is_multi_step_proposal: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -172,12 +169,11 @@ export class PartialVote extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    voter: Account, // &signer
+    // voter: &signer,
     stake_pool: AccountAddressInput, // address
     proposal_id: Uint64, // u64
     voting_power: Uint64, // u64
     should_pass: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -210,11 +206,10 @@ export class Vote extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    voter: Account, // &signer
+    // voter: &signer,
     stake_pool: AccountAddressInput, // address
     proposal_id: Uint64, // u64
     should_pass: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -242,7 +237,7 @@ export class GetMinVotingThreshold extends ViewFunctionPayloadBuilder {
   }
 }
 export type GetRemainingVotingPowerPayloadMoveArguments = {
-  stake_pool: AccountAddressInput;
+  stake_pool: string;
   proposal_id: string;
 };
 
@@ -265,7 +260,7 @@ export class GetRemainingVotingPower extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      stake_pool: AccountAddress.fromRelaxed(stake_pool),
+      stake_pool: AccountAddress.fromRelaxed(stake_pool).toString(),
       proposal_id: BigInt(proposal_id).toString(),
     };
   }
@@ -305,7 +300,7 @@ export class GetVotingDurationSecs extends ViewFunctionPayloadBuilder {
   }
 }
 export type GetVotingPowerPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -325,12 +320,12 @@ export class GetVotingPower extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type HasEntirelyVotedPayloadMoveArguments = {
-  stake_pool: AccountAddressInput;
+  stake_pool: string;
   proposal_id: string;
 };
 
@@ -353,7 +348,7 @@ export class HasEntirelyVoted extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      stake_pool: AccountAddress.fromRelaxed(stake_pool),
+      stake_pool: AccountAddress.fromRelaxed(stake_pool).toString(),
       proposal_id: BigInt(proposal_id).toString(),
     };
   }

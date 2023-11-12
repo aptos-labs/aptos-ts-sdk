@@ -39,7 +39,7 @@ import {
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type ViewPlayerProfilePayloadMoveArguments = {
-  player_profile_address: AccountAddressInput;
+  player_profile_address: string;
 };
 
 /**
@@ -61,7 +61,7 @@ export class ViewPlayerProfile extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      player_profile_address: AccountAddress.fromRelaxed(player_profile_address),
+      player_profile_address: AccountAddress.fromRelaxed(player_profile_address).toString(),
     };
   }
 }

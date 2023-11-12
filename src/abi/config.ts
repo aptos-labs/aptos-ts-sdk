@@ -21,7 +21,7 @@ export type ConfigDictionary = {
   entryFunctionsNamespace?: string;
   viewFunctionsNamespace?: string;
   separateViewAndEntryFunctionsByNamespace?: boolean;
-}
+};
 
 export function getCodeGenConfig(configFilePath = "./src/abi/config.yaml"): ConfigDictionary {
   if (!fs.existsSync(configFilePath)) {

@@ -135,9 +135,6 @@ export abstract class ViewFunctionPayloadBuilder {
       if (val instanceof BigInt || typeof val === "bigint") {
         return val.toString();
       }
-      console.log(val);
-      console.log(typeof val);
-      console.log(val.prototype);
       return val;
     });
   }

@@ -66,14 +66,13 @@ export type FunctionSignatureWithTypeTags = {
 
 export function removeComments(code: string): string {
   // Remove single-line comments (anything from '//' to the end of the line)
-  const noSingleLineComments = code.replace(/\/\/.*$/gm, '');
+  const noSingleLineComments = code.replace(/\/\/.*$/gm, "");
 
   // Remove multi-line comments (anything between '/*' and '*/')
-  const noComments = noSingleLineComments.replace(/\/\*[\s\S]*?\*\//gm, '');
+  const noComments = noSingleLineComments.replace(/\/\*[\s\S]*?\*\//gm, "");
 
   return noComments;
 }
-
 
 export function extractSignature(functionName: string, sourceCode: string): FunctionSignatureWithTypeTags {
   sourceCode = removeComments(sourceCode);
@@ -91,14 +90,18 @@ export function extractSignature(functionName: string, sourceCode: string): Func
 }
 
 export function extractArguments(functionSignature: string): ArgumentNamesWithTypes[] {
-  const args = functionSignature.split(',');
-  const argumentsList = args.map((arg) => {
-    const [argName, typeTag] = arg.split(':').map((arg) => arg.trim());
-    if (argName && typeTag) {
-      return { argName, typeTag };
-    }
-    return null;
-  }).filter((arg) => arg !== null && (!(arg.argName.includes("//") || arg.typeTag.includes("//")))) as ArgumentNamesWithTypes[];
+  const args = functionSignature.split(",");
+  const argumentsList = args
+    .map((arg) => {
+      const [argName, typeTag] = arg.split(":").map((arg) => arg.trim());
+      if (argName && typeTag) {
+        return { argName, typeTag };
+      }
+      return null;
+    })
+    .filter(
+      (arg) => arg !== null && !(arg.argName.includes("//") || arg.typeTag.includes("//")),
+    ) as ArgumentNamesWithTypes[];
 
   return argumentsList;
 }

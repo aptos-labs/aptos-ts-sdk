@@ -39,7 +39,7 @@ import {
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type GetCurrentRoundTypePayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -61,7 +61,7 @@ export class GetCurrentRoundType extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }

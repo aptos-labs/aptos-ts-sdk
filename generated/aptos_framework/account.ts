@@ -62,12 +62,11 @@ export class OfferRotationCapability extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     rotation_capability_sig_bytes: HexInput, // vector<u8>
     account_scheme: Uint8, // u8
     account_public_key_bytes: HexInput, // vector<u8>
     recipient_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -102,12 +101,11 @@ export class OfferSignerCapability extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     signer_capability_sig_bytes: HexInput, // vector<u8>
     account_scheme: Uint8, // u8
     account_public_key_bytes: HexInput, // vector<u8>
     recipient_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -172,9 +170,8 @@ export class RevokeRotationCapability extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     to_be_revoked_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -200,9 +197,8 @@ export class RevokeSignerCapability extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     to_be_revoked_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -238,14 +234,13 @@ export class RotateAuthenticationKey extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     from_scheme: Uint8, // u8
     from_public_key_bytes: HexInput, // vector<u8>
     to_scheme: Uint8, // u8
     to_public_key_bytes: HexInput, // vector<u8>
     cap_rotate_key: HexInput, // vector<u8>
     cap_update_table: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -282,12 +277,11 @@ export class RotateAuthenticationKeyWithRotationCapability extends EntryFunction
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    delegate_signer: Account, // &signer
+    // delegate_signer: &signer,
     rotation_cap_offerer_address: AccountAddressInput, // address
     new_scheme: Uint8, // u8
     new_public_key_bytes: HexInput, // vector<u8>
     cap_update_table: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -300,7 +294,7 @@ export class RotateAuthenticationKeyWithRotationCapability extends EntryFunction
 }
 
 export type ExistsAtPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -320,12 +314,12 @@ export class ExistsAt extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
 export type GetAuthenticationKeyPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -345,12 +339,12 @@ export class GetAuthenticationKey extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
 export type GetGuidNextCreationNumPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -370,12 +364,12 @@ export class GetGuidNextCreationNum extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
 export type GetRotationCapabilityOfferForPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
 };
 
 /**
@@ -395,12 +389,12 @@ export class GetRotationCapabilityOfferFor extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
     };
   }
 }
 export type GetSequenceNumberPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -420,12 +414,12 @@ export class GetSequenceNumber extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
 export type GetSignerCapabilityOfferForPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
 };
 
 /**
@@ -445,12 +439,12 @@ export class GetSignerCapabilityOfferFor extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
     };
   }
 }
 export type IsRotationCapabilityOfferedPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
 };
 
 /**
@@ -470,12 +464,12 @@ export class IsRotationCapabilityOffered extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
     };
   }
 }
 export type IsSignerCapabilityOfferedPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
 };
 
 /**
@@ -495,7 +489,7 @@ export class IsSignerCapabilityOffered extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
     };
   }
 }

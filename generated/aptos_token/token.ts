@@ -64,13 +64,12 @@ export class Burn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     creators_address: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -108,13 +107,12 @@ export class BurnByCreator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     owner: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -152,13 +150,12 @@ export class CreateCollectionScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    creator: Account, // &signer
+    // creator: &signer,
     name: string, // String
     description: string, // String
     uri: string, // String
     maximum: Uint64, // u64
     mutate_setting: Array<boolean>, // vector<bool>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -212,7 +209,7 @@ export class CreateTokenScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     collection: string, // String
     name: string, // String
     description: string, // String
@@ -226,7 +223,6 @@ export class CreateTokenScript extends EntryFunctionPayloadBuilder {
     property_keys: Array<string>, // vector<String>
     property_values: Array<HexInput>, // vector<vector<u8>>
     property_types: Array<string>, // vector<String>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -273,14 +269,13 @@ export class DirectTransferScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    sender: Account, // &signer
-    receiver: Account, // &signer
+    // sender: &signer,
+    // receiver: &signer,
     creators_address: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     property_version: Uint64, // u64
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -334,12 +329,11 @@ export class MintScript extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     token_data_address: AccountAddressInput, // address
     collection: string, // String
     name: string, // String
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -384,7 +378,7 @@ export class MutateTokenProperties extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     token_owner: AccountAddressInput, // address
     creator: AccountAddressInput, // address
     collection_name: string, // String
@@ -394,7 +388,6 @@ export class MutateTokenProperties extends EntryFunctionPayloadBuilder {
     keys: Array<string>, // vector<String>
     values: Array<HexInput>, // vector<vector<u8>>
     types: Array<string>, // vector<String>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -428,9 +421,8 @@ export class OptInDirectTransfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     opt_in: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -466,14 +458,13 @@ export class TransferWithOptIn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    from: Account, // &signer
+    // from: &signer,
     creator: AccountAddressInput, // address
     collection_name: string, // String
     token_name: string, // String
     token_property_version: Uint64, // u64
     to: AccountAddressInput, // address
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -488,7 +479,7 @@ export class TransferWithOptIn extends EntryFunctionPayloadBuilder {
 }
 
 export type GetCollectionMutabilityConfigPayloadMoveArguments = {
-  creator: AccountAddressInput;
+  creator: string;
   collection_name: string;
 };
 
@@ -511,7 +502,7 @@ export class GetCollectionMutabilityConfig extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      creator: AccountAddress.fromRelaxed(creator),
+      creator: AccountAddress.fromRelaxed(creator).toString(),
       collection_name: collection_name,
     };
   }

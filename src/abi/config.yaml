@@ -14,7 +14,7 @@ functionComments: true
 expandedStructs: false
 replaceNamedAddresses: true
 payloadBCSTypesFilename: "bcsPayloadTypes"
-includeAccountParams: true # set this to `true` if you have access to all the private keys. `false` if you're doing dapp development
+includeAccountParams: false # set this to `true` if you have access to all the private keys. `false` if you're doing dapp development
 separateViewAndEntryFunctionsByNamespace: false
 viewFunctionsNamespace: "ViewFunctions"
 entryFunctionsNamespace: "EntryFunctions"

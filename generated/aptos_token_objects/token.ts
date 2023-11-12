@@ -61,7 +61,7 @@ export class CollectionName extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -89,7 +89,7 @@ export class CollectionObject extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -117,7 +117,7 @@ export class Creator extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -145,35 +145,7 @@ export class Description extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
-      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-    };
-  }
-}
-export type IndexPayloadMoveArguments = {
-  token: ObjectAddress;
-  typeTags: Array<TypeTag>;
-};
-
-/**
- *  public fun index<T0: key>(
- *     token: Object<T0>,
- *   )
- **/
-export class Index extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x4");
-  public readonly moduleName = "token";
-  public readonly functionName = "index";
-  public readonly args: IndexPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; // T0: key
-
-  constructor(
-    token: ObjectAddress, // Object<T0>
-    typeTags: Array<TypeTagInput>, // T0: key
-  ) {
-    super();
-    this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -201,7 +173,7 @@ export class Name extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -229,7 +201,7 @@ export class Royalty extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -257,7 +229,7 @@ export class Uri extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token: AccountAddress.fromRelaxed(token),
+      token: AccountAddress.fromRelaxed(token).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

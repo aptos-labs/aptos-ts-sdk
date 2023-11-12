@@ -58,10 +58,9 @@ export class AddStake extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -96,13 +95,12 @@ export class CreateStakingContract extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
     voter: AccountAddressInput, // address
     amount: Uint64, // u64
     commission_percentage: Uint64, // u64
     contract_creation_seed: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -135,7 +133,6 @@ export class Distribute extends EntryFunctionPayloadBuilder {
   constructor(
     staker: AccountAddressInput, // address
     operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -164,10 +161,9 @@ export class RequestCommission extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     staker: AccountAddressInput, // address
     operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -194,41 +190,12 @@ export class ResetLockup extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
       operator: AccountAddress.fromRelaxed(operator),
-    };
-  }
-}
-export type SetBeneficiaryForOperatorPayloadMoveArguments = {
-  new_beneficiary: AccountAddress;
-};
-
-/**
- *  public fun set_beneficiary_for_operator<>(
- *     operator: &signer,
- *     new_beneficiary: address,
- *   )
- **/
-export class SetBeneficiaryForOperator extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "staking_contract";
-  public readonly functionName = "set_beneficiary_for_operator";
-  public readonly args: SetBeneficiaryForOperatorPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    operator: Account, // &signer
-    new_beneficiary: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
-  ) {
-    super();
-    this.args = {
-      new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
     };
   }
 }
@@ -254,11 +221,10 @@ export class SwitchOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     old_operator: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
     new_commission_percentage: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -288,10 +254,9 @@ export class SwitchOperatorWithSameCommission extends EntryFunctionPayloadBuilde
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     old_operator: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -318,9 +283,8 @@ export class UnlockRewards extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -348,10 +312,9 @@ export class UnlockStake extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -380,10 +343,9 @@ export class UpdateCommision extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
     new_commission_percentage: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -412,10 +374,9 @@ export class UpdateVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    staker: Account, // &signer
+    // staker: &signer,
     operator: AccountAddressInput, // address
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -425,34 +386,9 @@ export class UpdateVoter extends EntryFunctionPayloadBuilder {
   }
 }
 
-export type BeneficiaryForOperatorPayloadMoveArguments = {
-  operator: AccountAddressInput;
-};
-
-/**
- *  public fun beneficiary_for_operator<>(
- *     operator: address,
- *   )
- **/
-export class BeneficiaryForOperator extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "staking_contract";
-  public readonly functionName = "beneficiary_for_operator";
-  public readonly args: BeneficiaryForOperatorPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    operator: AccountAddressInput, // address
-  ) {
-    super();
-    this.args = {
-      operator: AccountAddress.fromRelaxed(operator),
-    };
-  }
-}
 export type CommissionPercentagePayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -474,15 +410,15 @@ export class CommissionPercentage extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }
 export type GetExpectedStakePoolAddressPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
-  contract_creation_seed: Uint8Array;
+  staker: string;
+  operator: string;
+  contract_creation_seed: HexInput;
 };
 
 /**
@@ -506,15 +442,15 @@ export class GetExpectedStakePoolAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
-      contract_creation_seed: Hex.fromHexInput(contract_creation_seed).toUint8Array(),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
+      contract_creation_seed: Hex.fromHexInput(contract_creation_seed).toString(),
     };
   }
 }
 export type LastRecordedPrincipalPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -536,14 +472,14 @@ export class LastRecordedPrincipal extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }
 export type PendingDistributionCountsPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -565,14 +501,14 @@ export class PendingDistributionCounts extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }
 export type StakePoolAddressPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -594,14 +530,14 @@ export class StakePoolAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }
 export type StakingContractAmountsPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -623,14 +559,14 @@ export class StakingContractAmounts extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }
 export type StakingContractExistsPayloadMoveArguments = {
-  staker: AccountAddressInput;
-  operator: AccountAddressInput;
+  staker: string;
+  operator: string;
 };
 
 /**
@@ -652,8 +588,8 @@ export class StakingContractExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      staker: AccountAddress.fromRelaxed(staker),
-      operator: AccountAddress.fromRelaxed(operator),
+      staker: AccountAddress.fromRelaxed(staker).toString(),
+      operator: AccountAddress.fromRelaxed(operator).toString(),
     };
   }
 }

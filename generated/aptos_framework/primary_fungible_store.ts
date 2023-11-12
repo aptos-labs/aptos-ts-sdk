@@ -61,12 +61,11 @@ export class Transfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    sender: Account, // &signer
+    // sender: &signer,
     metadata: ObjectAddress, // Object<T0>
     recipient: AccountAddressInput, // address
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -79,7 +78,7 @@ export class Transfer extends EntryFunctionPayloadBuilder {
 }
 
 export type BalancePayloadMoveArguments = {
-  account: AccountAddressInput;
+  account: string;
   metadata: ObjectAddress;
   typeTags: Array<TypeTag>;
 };
@@ -104,14 +103,14 @@ export class Balance extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account: AccountAddress.fromRelaxed(account),
-      metadata: AccountAddress.fromRelaxed(metadata),
+      account: AccountAddress.fromRelaxed(account).toString(),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
 }
 export type IsFrozenPayloadMoveArguments = {
-  account: AccountAddressInput;
+  account: string;
   metadata: ObjectAddress;
   typeTags: Array<TypeTag>;
 };
@@ -136,14 +135,14 @@ export class IsFrozen extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account: AccountAddress.fromRelaxed(account),
-      metadata: AccountAddress.fromRelaxed(metadata),
+      account: AccountAddress.fromRelaxed(account).toString(),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
 }
 export type PrimaryStorePayloadMoveArguments = {
-  owner: AccountAddressInput;
+  owner: string;
   metadata: ObjectAddress;
   typeTags: Array<TypeTag>;
 };
@@ -168,14 +167,14 @@ export class PrimaryStore extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      owner: AccountAddress.fromRelaxed(owner),
-      metadata: AccountAddress.fromRelaxed(metadata),
+      owner: AccountAddress.fromRelaxed(owner).toString(),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
 }
 export type PrimaryStoreAddressPayloadMoveArguments = {
-  owner: AccountAddressInput;
+  owner: string;
   metadata: ObjectAddress;
   typeTags: Array<TypeTag>;
 };
@@ -200,14 +199,14 @@ export class PrimaryStoreAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      owner: AccountAddress.fromRelaxed(owner),
-      metadata: AccountAddress.fromRelaxed(metadata),
+      owner: AccountAddress.fromRelaxed(owner).toString(),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
 }
 export type PrimaryStoreExistsPayloadMoveArguments = {
-  account: AccountAddressInput;
+  account: string;
   metadata: ObjectAddress;
   typeTags: Array<TypeTag>;
 };
@@ -232,8 +231,8 @@ export class PrimaryStoreExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account: AccountAddress.fromRelaxed(account),
-      metadata: AccountAddress.fromRelaxed(metadata),
+      account: AccountAddress.fromRelaxed(account).toString(),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

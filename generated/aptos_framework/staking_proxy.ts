@@ -58,10 +58,9 @@ export class SetOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     old_operator: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -88,9 +87,8 @@ export class SetStakePoolOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -116,9 +114,8 @@ export class SetStakePoolVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -146,10 +143,9 @@ export class SetStakingContractOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     old_operator: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -178,10 +174,9 @@ export class SetStakingContractVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     operator: AccountAddressInput, // address
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -210,10 +205,9 @@ export class SetVestingContractOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     old_operator: AccountAddressInput, // address
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -242,10 +236,9 @@ export class SetVestingContractVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     operator: AccountAddressInput, // address
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -274,10 +267,9 @@ export class SetVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     operator: AccountAddressInput, // address
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

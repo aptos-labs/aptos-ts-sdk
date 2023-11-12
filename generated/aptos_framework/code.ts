@@ -58,10 +58,9 @@ export class PublishPackageTxn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     metadata_serialized: HexInput, // vector<u8>
     code: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

@@ -61,12 +61,11 @@ export class Transfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key, T1: undefined
 
   constructor(
-    sender: Account, // &signer
+    // sender: &signer,
     from: ObjectAddress, // Object<T0>
     to: ObjectAddress, // Object<T0>
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, // T0: key, T1: undefined
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -101,7 +100,7 @@ export class Balance extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      store: AccountAddress.fromRelaxed(store),
+      store: AccountAddress.fromRelaxed(store).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -129,7 +128,7 @@ export class Decimals extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      metadata: AccountAddress.fromRelaxed(metadata),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -157,7 +156,7 @@ export class IsFrozen extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      store: AccountAddress.fromRelaxed(store),
+      store: AccountAddress.fromRelaxed(store).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -185,7 +184,7 @@ export class Maximum extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      metadata: AccountAddress.fromRelaxed(metadata),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -213,13 +212,13 @@ export class Name extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      metadata: AccountAddress.fromRelaxed(metadata),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
 }
 export type StoreExistsPayloadMoveArguments = {
-  store: AccountAddressInput;
+  store: string;
 };
 
 /**
@@ -239,7 +238,7 @@ export class StoreExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      store: AccountAddress.fromRelaxed(store),
+      store: AccountAddress.fromRelaxed(store).toString(),
     };
   }
 }
@@ -266,7 +265,7 @@ export class StoreMetadata extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      store: AccountAddress.fromRelaxed(store),
+      store: AccountAddress.fromRelaxed(store).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -294,7 +293,7 @@ export class Supply extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      metadata: AccountAddress.fromRelaxed(metadata),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -322,7 +321,7 @@ export class Symbol extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      metadata: AccountAddress.fromRelaxed(metadata),
+      metadata: AccountAddress.fromRelaxed(metadata).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

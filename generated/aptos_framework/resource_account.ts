@@ -58,10 +58,9 @@ export class CreateResourceAccount extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    origin: Account, // &signer
+    // origin: &signer,
     seed: HexInput, // vector<u8>
     optional_auth_key: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -92,11 +91,10 @@ export class CreateResourceAccountAndFund extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    origin: Account, // &signer
+    // origin: &signer,
     seed: HexInput, // vector<u8>
     optional_auth_key: HexInput, // vector<u8>
     fund_amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -128,11 +126,10 @@ export class CreateResourceAccountAndPublishPackage extends EntryFunctionPayload
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    origin: Account, // &signer
+    // origin: &signer,
     seed: HexInput, // vector<u8>
     metadata_serialized: HexInput, // vector<u8>
     code: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

@@ -64,12 +64,11 @@ export class InitializeTournament extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    tournament_creator: Account, // &signer
+    // tournament_creator: &signer,
     tournament_name: string, // String
     max_players: Uint64, // u64
     num_winners: Uint64, // u64
     time_between_rounds_secs: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -102,10 +101,9 @@ export class JoinTournament extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    player: Account, // &signer
+    // player: &signer,
     tournament_address: AccountAddressInput, // address
     player_name: string, // String
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -137,11 +135,10 @@ export class StartNewRound extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    tournament_creator: Account, // &signer
+    // tournament_creator: &signer,
     tournament_address: AccountAddressInput, // address
     game_params: Array<string>, // vector<String>
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -171,7 +168,7 @@ export class GetCollectionConfig extends ViewFunctionPayloadBuilder {
   }
 }
 export type GetCurrentRoundTypePayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -193,12 +190,12 @@ export class GetCurrentRoundType extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type GetMaxPlayersPayloadMoveArguments = {
-  tournament_director_addr: AccountAddressInput;
+  tournament_director_addr: string;
 };
 
 /**
@@ -220,12 +217,12 @@ export class GetMaxPlayers extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr),
+      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr).toString(),
     };
   }
 }
 export type GetNumPlayerJoinedPayloadMoveArguments = {
-  tournament_director_addr: AccountAddressInput;
+  tournament_director_addr: string;
 };
 
 /**
@@ -247,12 +244,12 @@ export class GetNumPlayerJoined extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr),
+      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr).toString(),
     };
   }
 }
 export type GetNumWinnersPayloadMoveArguments = {
-  tournament_director_addr: AccountAddressInput;
+  tournament_director_addr: string;
 };
 
 /**
@@ -274,12 +271,12 @@ export class GetNumWinners extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr),
+      tournament_director_addr: AccountAddress.fromRelaxed(tournament_director_addr).toString(),
     };
   }
 }
 export type GetTournamentStatePayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -301,7 +298,7 @@ export class GetTournamentState extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }

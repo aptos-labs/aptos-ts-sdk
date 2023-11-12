@@ -57,10 +57,9 @@ export class Burn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -94,13 +93,12 @@ export class Initialize extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     name: HexInput, // vector<u8>
     symbol: HexInput, // vector<u8>
     decimals: Uint8, // u8
     monitor_supply: boolean, // bool
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -133,11 +131,10 @@ export class Mint extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     dst_addr: AccountAddressInput, // address
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

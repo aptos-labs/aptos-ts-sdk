@@ -59,11 +59,10 @@ export class Transfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    from: Account, // &signer
+    // from: &signer,
     to: AccountAddressInput, // address
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -93,7 +92,7 @@ export class UpgradeSupply extends EntryFunctionPayloadBuilder {
 }
 
 export type BalancePayloadMoveArguments = {
-  owner: AccountAddressInput;
+  owner: string;
   typeTags: Array<TypeTag>;
 };
 
@@ -115,7 +114,7 @@ export class Balance extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      owner: AccountAddress.fromRelaxed(owner),
+      owner: AccountAddress.fromRelaxed(owner).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -138,7 +137,7 @@ export class Decimals extends ViewFunctionPayloadBuilder {
   }
 }
 export type IsAccountRegisteredPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
   typeTags: Array<TypeTag>;
 };
 
@@ -160,7 +159,7 @@ export class IsAccountRegistered extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }
@@ -183,7 +182,7 @@ export class IsCoinInitialized extends ViewFunctionPayloadBuilder {
   }
 }
 export type IsCoinStoreFrozenPayloadMoveArguments = {
-  account_addr: AccountAddressInput;
+  account_addr: string;
   typeTags: Array<TypeTag>;
 };
 
@@ -205,7 +204,7 @@ export class IsCoinStoreFrozen extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      account_addr: AccountAddress.fromRelaxed(account_addr),
+      account_addr: AccountAddress.fromRelaxed(account_addr).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

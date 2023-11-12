@@ -39,7 +39,7 @@ import {
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type GetCurrentPlayerObjectsIndexingPayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -61,12 +61,12 @@ export class GetCurrentPlayerObjectsIndexing extends ViewFunctionPayloadBuilder 
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type GetNumCurrentPlayerAlivePayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -88,12 +88,12 @@ export class GetNumCurrentPlayerAlive extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type GetNumPlayersLeftPayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -115,12 +115,12 @@ export class GetNumPlayersLeft extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type GetNumRoomsPayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -142,12 +142,12 @@ export class GetNumRooms extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type GetPlayersByRoomPayloadMoveArguments = {
-  room_addr: AccountAddressInput;
+  room_addr: string;
 };
 
 /**
@@ -169,12 +169,12 @@ export class GetPlayersByRoom extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      room_addr: AccountAddress.fromRelaxed(room_addr),
+      room_addr: AccountAddress.fromRelaxed(room_addr).toString(),
     };
   }
 }
 export type GetRoomsPayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -196,12 +196,12 @@ export class GetRooms extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type LobbyExistsPayloadMoveArguments = {
-  tournament_addr: AccountAddressInput;
+  tournament_addr: string;
 };
 
 /**
@@ -223,12 +223,12 @@ export class LobbyExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr).toString(),
     };
   }
 }
 export type RoomExistsPayloadMoveArguments = {
-  room_addr: AccountAddressInput;
+  room_addr: string;
 };
 
 /**
@@ -250,7 +250,7 @@ export class RoomExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      room_addr: AccountAddress.fromRelaxed(room_addr),
+      room_addr: AccountAddress.fromRelaxed(room_addr).toString(),
     };
   }
 }

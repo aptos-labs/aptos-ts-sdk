@@ -120,7 +120,7 @@ export class PublicArguments extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    _account_1: Account, // &signer
+    // _account_1: &signer,
     arg_bool: boolean, // bool
     arg_u8: Uint8, // u8
     arg_u16: Uint16, // u16
@@ -153,7 +153,6 @@ export class PublicArguments extends EntryFunctionPayloadBuilder {
     option_address: Option<AccountAddressInput>, // Option<address>
     option_string: Option<string>, // Option<String>
     option_object: Option<ObjectAddress>, // Option<Object<args_test_suite::tx_args_module::EmptyResource>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -280,11 +279,11 @@ export class PublicArgumentsMultipleSigners extends EntryFunctionPayloadBuilder 
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account_1: Account, // &signer
-    account_2: Account, // signer
-    account_3: Account, // &signer
-    account_4: Account, // signer
-    account_5: Account, // &signer
+    // account_1: &signer,
+    // account_2: signer,
+    // account_3: &signer,
+    // account_4: signer,
+    // account_5: &signer,
     signer_addresses: Array<AccountAddressInput>, // vector<address>
     arg_bool: boolean, // bool
     arg_u8: Uint8, // u8
@@ -318,7 +317,6 @@ export class PublicArgumentsMultipleSigners extends EntryFunctionPayloadBuilder 
     option_address: Option<AccountAddressInput>, // Option<address>
     option_string: Option<string>, // Option<String>
     option_object: Option<ObjectAddress>, // Option<Object<args_test_suite::tx_args_module::EmptyResource>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -411,7 +409,6 @@ export class TypeTagsForArgs extends EntryFunctionPayloadBuilder {
     _d: EntryFunctionArgumentTypes, // T3
     _e: ObjectAddress, // Object<T4>
     typeTags: Array<TypeTagInput>, // T0: drop
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -453,7 +450,6 @@ export class ComplexArguments extends EntryFunctionPayloadBuilder {
     deeply_nested_2: Array<Array<string>>, // vector<vector<String>>
     deeply_nested_3: Array<Option<Array<string>>>, // vector<Option<vector<String>>>
     deeply_nested_4: Array<Array<Option<Array<string>>>>, // vector<vector<Option<vector<String>>>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -561,7 +557,7 @@ export class PrivateArguments extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account_1: Account, // &signer
+    // account_1: &signer,
     arg_bool: boolean, // bool
     arg_u8: Uint8, // u8
     arg_u16: Uint16, // u16
@@ -594,7 +590,6 @@ export class PrivateArguments extends EntryFunctionPayloadBuilder {
     option_address: Option<AccountAddressInput>, // Option<address>
     option_string: Option<string>, // Option<String>
     option_object: Option<ObjectAddress>, // Option<Object<args_test_suite::tx_args_module::EmptyResource>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -721,11 +716,11 @@ export class PrivateArgumentsMultipleSigners extends EntryFunctionPayloadBuilder
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account_1: Account, // &signer
-    account_2: Account, // signer
-    account_3: Account, // &signer
-    account_4: Account, // signer
-    account_5: Account, // &signer
+    // account_1: &signer,
+    // account_2: signer,
+    // account_3: &signer,
+    // account_4: signer,
+    // account_5: &signer,
     signer_addresses: Array<AccountAddressInput>, // vector<address>
     arg_bool: boolean, // bool
     arg_u8: Uint8, // u8
@@ -759,7 +754,6 @@ export class PrivateArgumentsMultipleSigners extends EntryFunctionPayloadBuilder
     option_address: Option<AccountAddressInput>, // Option<address>
     option_string: Option<string>, // Option<String>
     option_object: Option<ObjectAddress>, // Option<Object<args_test_suite::tx_args_module::EmptyResource>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -864,18 +858,18 @@ export type ViewAllArgumentsPayloadMoveArguments = {
   arg_u64: string;
   arg_u128: string;
   arg_u256: string;
-  arg_address: AccountAddressInput;
+  arg_address: string;
   arg_string: string;
   arg_object: ObjectAddress;
-  vector_empty: Uint8Array;
+  vector_empty: HexInput;
   vector_bool: Array<boolean>;
-  vector_u8: Uint8Array;
+  vector_u8: HexInput;
   vector_u16: Array<Uint16>;
   vector_u32: Array<Uint32>;
   vector_u64: Array<string>;
   vector_u128: Array<string>;
   vector_u256: Array<string>;
-  vector_address: Array<AccountAddressInput>;
+  vector_address: Array<string>;
   vector_string: Array<string>;
   vector_object: Array<ObjectAddress>;
   option_empty: Array<Uint8>;
@@ -886,7 +880,7 @@ export type ViewAllArgumentsPayloadMoveArguments = {
   option_u64: Array<string>;
   option_u128: Array<string>;
   option_u256: Array<string>;
-  option_address: Array<AccountAddressInput>;
+  option_address: Array<string>;
   option_string: Array<string>;
   option_object: Array<ObjectAddress>;
 };
@@ -979,20 +973,20 @@ export class ViewAllArguments extends ViewFunctionPayloadBuilder {
       arg_u64: BigInt(arg_u64).toString(),
       arg_u128: BigInt(arg_u128).toString(),
       arg_u256: BigInt(arg_u256).toString(),
-      arg_address: AccountAddress.fromRelaxed(arg_address),
+      arg_address: AccountAddress.fromRelaxed(arg_address).toString(),
       arg_string: arg_string,
-      arg_object: AccountAddress.fromRelaxed(arg_object),
-      vector_empty: Hex.fromHexInput(vector_empty).toUint8Array(),
+      arg_object: AccountAddress.fromRelaxed(arg_object).toString(),
+      vector_empty: Hex.fromHexInput(vector_empty).toString(),
       vector_bool: vector_bool.map((argA) => argA),
-      vector_u8: Hex.fromHexInput(vector_u8).toUint8Array(),
+      vector_u8: Hex.fromHexInput(vector_u8).toString(),
       vector_u16: vector_u16.map((argA) => argA),
       vector_u32: vector_u32.map((argA) => argA),
       vector_u64: vector_u64.map((argA) => BigInt(argA).toString()),
       vector_u128: vector_u128.map((argA) => BigInt(argA).toString()),
       vector_u256: vector_u256.map((argA) => BigInt(argA).toString()),
-      vector_address: vector_address.map((argA) => AccountAddress.fromRelaxed(argA)),
+      vector_address: vector_address.map((argA) => AccountAddress.fromRelaxed(argA).toString()),
       vector_string: vector_string.map((argA) => argA),
-      vector_object: vector_object.map((argA) => AccountAddress.fromRelaxed(argA)),
+      vector_object: vector_object.map((argA) => AccountAddress.fromRelaxed(argA).toString()),
       option_empty: option_empty.map((argA) => argA),
       option_bool: option_bool.map((argA) => argA),
       option_u8: option_u8.map((argA) => argA),
@@ -1001,9 +995,9 @@ export class ViewAllArguments extends ViewFunctionPayloadBuilder {
       option_u64: option_u64.map((argA) => BigInt(argA).toString()),
       option_u128: option_u128.map((argA) => BigInt(argA).toString()),
       option_u256: option_u256.map((argA) => BigInt(argA).toString()),
-      option_address: option_address.map((argA) => AccountAddress.fromRelaxed(argA)),
+      option_address: option_address.map((argA) => AccountAddress.fromRelaxed(argA).toString()),
       option_string: option_string.map((argA) => argA),
-      option_object: option_object.map((argA) => AccountAddress.fromRelaxed(argA)),
+      option_object: option_object.map((argA) => AccountAddress.fromRelaxed(argA).toString()),
     };
   }
 }

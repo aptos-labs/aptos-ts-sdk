@@ -58,10 +58,9 @@ export class ApproveTransaction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
     sequence_number: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -92,11 +91,10 @@ export class Create extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     num_signatures_required: Uint64, // u64
     metadata_keys: Array<string>, // vector<String>
     metadata_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -126,10 +124,9 @@ export class CreateTransaction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
     payload: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -158,10 +155,9 @@ export class CreateTransactionWithHash extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
     payload_hash: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -209,7 +205,6 @@ export class CreateWithExistingAccount extends EntryFunctionPayloadBuilder {
     create_multisig_account_signed_message: HexInput, // vector<u8>
     metadata_keys: Array<string>, // vector<String>
     metadata_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -263,7 +258,6 @@ export class CreateWithExistingAccountAndRevokeAuthKey extends EntryFunctionPayl
     create_multisig_account_signed_message: HexInput, // vector<u8>
     metadata_keys: Array<string>, // vector<String>
     metadata_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -302,12 +296,11 @@ export class CreateWithOwners extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     additional_owners: Array<AccountAddressInput>, // vector<address>
     num_signatures_required: Uint64, // u64
     metadata_keys: Array<string>, // vector<String>
     metadata_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -342,12 +335,11 @@ export class CreateWithOwnersThenRemoveBootstrapper extends EntryFunctionPayload
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    bootstrapper: Account, // &signer
+    // bootstrapper: &signer,
     owners: Array<AccountAddressInput>, // vector<address>
     num_signatures_required: Uint64, // u64
     metadata_keys: Array<string>, // vector<String>
     metadata_values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -376,9 +368,8 @@ export class ExecuteRejectedTransaction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -406,10 +397,9 @@ export class RejectTransaction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
     sequence_number: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -440,11 +430,10 @@ export class VoteTransanction extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     multisig_account: AccountAddressInput, // address
     sequence_number: Uint64, // u64
     approved: boolean, // bool
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -472,9 +461,8 @@ export class AddOwner extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     new_owner: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -500,9 +488,8 @@ export class AddOwners extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     new_owners: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -530,10 +517,9 @@ export class AddOwnersAndUpdateSignaturesRequired extends EntryFunctionPayloadBu
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     new_owners: Array<AccountAddressInput>, // vector<address>
     new_num_signatures_required: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -560,9 +546,8 @@ export class RemoveOwner extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     owner_to_remove: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -588,9 +573,8 @@ export class RemoveOwners extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     owners_to_remove: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -618,10 +602,9 @@ export class SwapOwner extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     to_swap_in: AccountAddressInput, // address
     to_swap_out: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -650,10 +633,9 @@ export class SwapOwners extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     to_swap_in: Array<AccountAddressInput>, // vector<address>
     to_swap_out: Array<AccountAddressInput>, // vector<address>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -684,11 +666,10 @@ export class SwapOwnersAndUpdateSignaturesRequired extends EntryFunctionPayloadB
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     new_owners: Array<AccountAddressInput>, // vector<address>
     owners_to_remove: Array<AccountAddressInput>, // vector<address>
     new_num_signatures_required: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -718,10 +699,9 @@ export class UpdateMetadata extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     keys: Array<string>, // vector<String>
     values: Array<HexInput>, // vector<vector<u8>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -748,9 +728,8 @@ export class UpdateSignaturesRequired extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    multisig_account: Account, // &signer
+    // multisig_account: &signer,
     new_num_signatures_required: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -760,7 +739,7 @@ export class UpdateSignaturesRequired extends EntryFunctionPayloadBuilder {
 }
 
 export type CanBeExecutedPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
   sequence_number: string;
 };
 
@@ -783,13 +762,13 @@ export class CanBeExecuted extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
       sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
 export type CanBeRejectedPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
   sequence_number: string;
 };
 
@@ -812,13 +791,13 @@ export class CanBeRejected extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
       sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
 export type GetNextMultisigAccountAddressPayloadMoveArguments = {
-  creator: AccountAddressInput;
+  creator: string;
 };
 
 /**
@@ -838,13 +817,13 @@ export class GetNextMultisigAccountAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      creator: AccountAddress.fromRelaxed(creator),
+      creator: AccountAddress.fromRelaxed(creator).toString(),
     };
   }
 }
 export type GetNextTransactionPayloadPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
-  provided_payload: Uint8Array;
+  multisig_account: string;
+  provided_payload: HexInput;
 };
 
 /**
@@ -866,13 +845,13 @@ export class GetNextTransactionPayload extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
-      provided_payload: Hex.fromHexInput(provided_payload).toUint8Array(),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
+      provided_payload: Hex.fromHexInput(provided_payload).toString(),
     };
   }
 }
 export type GetPendingTransactionsPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -892,12 +871,12 @@ export class GetPendingTransactions extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type GetTransactionPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
   sequence_number: string;
 };
 
@@ -920,13 +899,13 @@ export class GetTransaction extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
       sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
 export type LastResolvedSequenceNumberPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -946,12 +925,12 @@ export class LastResolvedSequenceNumber extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type MetadataPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -971,12 +950,12 @@ export class Metadata extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type NextSequenceNumberPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -996,12 +975,12 @@ export class NextSequenceNumber extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type NumSignaturesRequiredPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -1021,12 +1000,12 @@ export class NumSignaturesRequired extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type OwnersPayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
 };
 
 /**
@@ -1046,14 +1025,14 @@ export class Owners extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
     };
   }
 }
 export type VotePayloadMoveArguments = {
-  multisig_account: AccountAddressInput;
+  multisig_account: string;
   sequence_number: string;
-  owner: AccountAddressInput;
+  owner: string;
 };
 
 /**
@@ -1077,9 +1056,9 @@ export class Vote extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      multisig_account: AccountAddress.fromRelaxed(multisig_account),
+      multisig_account: AccountAddress.fromRelaxed(multisig_account).toString(),
       sequence_number: BigInt(sequence_number).toString(),
-      owner: AccountAddress.fromRelaxed(owner),
+      owner: AccountAddress.fromRelaxed(owner).toString(),
     };
   }
 }

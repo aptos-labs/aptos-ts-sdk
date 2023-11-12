@@ -69,7 +69,7 @@ export class ListTokenForSwap extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    _token_owner: Account, // &signer
+    // _token_owner: &signer,
     _creators_address: AccountAddressInput, // address
     _collection: string, // String
     _name: string, // String
@@ -78,7 +78,6 @@ export class ListTokenForSwap extends EntryFunctionPayloadBuilder {
     _min_coin_per_token: Uint64, // u64
     _locked_until_secs: Uint64, // u64
     typeTags: Array<TypeTagInput>, //
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {

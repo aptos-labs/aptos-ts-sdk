@@ -79,7 +79,7 @@ export class GetLastRecordedRound extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token_obj: AccountAddress.fromRelaxed(token_obj),
+      token_obj: AccountAddress.fromRelaxed(token_obj).toString(),
     };
   }
 }
@@ -106,7 +106,7 @@ export class GetRoomAddress extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      token_obj: AccountAddress.fromRelaxed(token_obj),
+      token_obj: AccountAddress.fromRelaxed(token_obj).toString(),
     };
   }
 }

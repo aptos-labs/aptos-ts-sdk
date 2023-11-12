@@ -100,7 +100,11 @@ export function truncateAddressForFileName(address: AccountAddress) {
   return `Module_0x${addressString.slice(2, 8)}` as const;
 }
 
-export function truncatedTypeTagString(args: { typeTag: TypeTag, namedAddresses?: Dictionary<string>, namedTypeTags?: Dictionary<string> }): string {
+export function truncatedTypeTagString(args: {
+  typeTag: TypeTag;
+  namedAddresses?: Dictionary<string>;
+  namedTypeTags?: Dictionary<string>;
+}): string {
   const { typeTag } = args;
   const namedAddresses = args.namedAddresses ?? {};
   const namedTypeTags = args.namedTypeTags ?? {};
@@ -110,10 +114,14 @@ export function truncatedTypeTagString(args: { typeTag: TypeTag, namedAddresses?
   }
   if (typeTag.isStruct()) {
     if (typeTag.isOption()) {
-      return `Option<${typeTag.value.typeArgs.map(typeTag => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags })).join(", ")}>`;
+      return `Option<${typeTag.value.typeArgs
+        .map((typeTag) => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags }))
+        .join(", ")}>`;
     }
     if (typeTag.isObject()) {
-      return `Object<${typeTag.value.typeArgs.map(typeTag => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags })).join(", ")}>`;
+      return `Object<${typeTag.value.typeArgs
+        .map((typeTag) => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags }))
+        .join(", ")}>`;
     }
     if (typeTag.isString()) {
       return `String`;
@@ -123,7 +131,9 @@ export function truncatedTypeTagString(args: { typeTag: TypeTag, namedAddresses?
       return namedTypeTags[typeTag.toString()];
     }
     if (typeTag.value.address.toString() in namedAddresses) {
-      return `${namedAddresses[typeTag.value.address.toString()]}::${typeTag.value.moduleName.identifier}::${typeTag.value.name.identifier}`;
+      return `${namedAddresses[typeTag.value.address.toString()]}::${typeTag.value.moduleName.identifier}::${
+        typeTag.value.name.identifier
+      }`;
     }
   }
   return typeTag.toString();

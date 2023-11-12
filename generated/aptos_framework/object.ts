@@ -57,10 +57,9 @@ export class Burn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     object: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -90,11 +89,10 @@ export class Transfer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     object: ObjectAddress, // Object<T0>
     to: AccountAddressInput, // address
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -124,10 +122,9 @@ export class TransferCall extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     object: AccountAddressInput, // address
     to: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -157,11 +154,10 @@ export class TransferToObject extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key, T1: key
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     object: ObjectAddress, // Object<T0>
     to: ObjectAddress, // Object<T1>
     typeTags: Array<TypeTagInput>, // T0: key, T1: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -190,10 +186,9 @@ export class Unburn extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    original_owner: Account, // &signer
+    // original_owner: &signer,
     object: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -226,7 +221,7 @@ export class IsBurnt extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      object: AccountAddress.fromRelaxed(object),
+      object: AccountAddress.fromRelaxed(object).toString(),
       typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
   }

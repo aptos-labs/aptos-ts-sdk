@@ -60,10 +60,9 @@ export class CreateGame extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    room: Account, // &signer
+    // room: &signer,
     args: Array<string>, // vector<String>
     player_tokens: Array<ObjectAddress>, // vector<Object<Token>>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -94,10 +93,9 @@ export class RevealAnswer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    game_creator: Account, // &signer
+    // game_creator: &signer,
     game_address: AccountAddressInput, // address
     revealed_answer: string, // String
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -128,10 +126,9 @@ export class Answer extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    user: Account, // &signer
+    // user: &signer,
     player_obj: ObjectAddress, // Object<Token>
     submitted_answer: string, // String
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -142,7 +139,7 @@ export class Answer extends EntryFunctionPayloadBuilder {
 }
 
 export type GetResultsPayloadMoveArguments = {
-  game_address: AccountAddressInput;
+  game_address: string;
 };
 
 /**
@@ -164,12 +161,12 @@ export class GetResults extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
 export type IsGamePayloadMoveArguments = {
-  game_addr: AccountAddressInput;
+  game_addr: string;
 };
 
 /**
@@ -191,12 +188,12 @@ export class IsGame extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_addr: AccountAddress.fromRelaxed(game_addr),
+      game_addr: AccountAddress.fromRelaxed(game_addr).toString(),
     };
   }
 }
 export type IsTriviaPayloadMoveArguments = {
-  trivia_addr: AccountAddressInput;
+  trivia_addr: string;
 };
 
 /**
@@ -218,12 +215,12 @@ export class IsTrivia extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      trivia_addr: AccountAddress.fromRelaxed(trivia_addr),
+      trivia_addr: AccountAddress.fromRelaxed(trivia_addr).toString(),
     };
   }
 }
 export type ViewGamePayloadMoveArguments = {
-  game_addr: AccountAddressInput;
+  game_addr: string;
 };
 
 /**
@@ -245,12 +242,12 @@ export class ViewGame extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      game_addr: AccountAddress.fromRelaxed(game_addr),
+      game_addr: AccountAddress.fromRelaxed(game_addr).toString(),
     };
   }
 }
 export type ViewPlayerAndTriviaPayloadMoveArguments = {
-  trivia_player_addr: AccountAddressInput;
+  trivia_player_addr: string;
 };
 
 /**
@@ -272,12 +269,12 @@ export class ViewPlayerAndTrivia extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      trivia_player_addr: AccountAddress.fromRelaxed(trivia_player_addr),
+      trivia_player_addr: AccountAddress.fromRelaxed(trivia_player_addr).toString(),
     };
   }
 }
 export type ViewRevealedAnswerPayloadMoveArguments = {
-  trivia_addr: AccountAddressInput;
+  trivia_addr: string;
 };
 
 /**
@@ -299,12 +296,12 @@ export class ViewRevealedAnswer extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      trivia_addr: AccountAddress.fromRelaxed(trivia_addr),
+      trivia_addr: AccountAddress.fromRelaxed(trivia_addr).toString(),
     };
   }
 }
 export type ViewTriviaPayloadMoveArguments = {
-  trivia_addr: AccountAddressInput;
+  trivia_addr: string;
 };
 
 /**
@@ -326,12 +323,12 @@ export class ViewTrivia extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      trivia_addr: AccountAddress.fromRelaxed(trivia_addr),
+      trivia_addr: AccountAddress.fromRelaxed(trivia_addr).toString(),
     };
   }
 }
 export type ViewTriviaPlayerPayloadMoveArguments = {
-  trivia_player_addr: AccountAddressInput;
+  trivia_player_addr: string;
 };
 
 /**
@@ -353,7 +350,7 @@ export class ViewTriviaPlayer extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      trivia_player_addr: AccountAddress.fromRelaxed(trivia_player_addr),
+      trivia_player_addr: AccountAddress.fromRelaxed(trivia_player_addr).toString(),
     };
   }
 }

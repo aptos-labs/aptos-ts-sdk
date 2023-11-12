@@ -56,9 +56,8 @@ export class AddStake extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -106,11 +105,10 @@ export class InitializeStakeOwner extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     initial_stake_amount: Uint64, // u64
     operator: AccountAddressInput, // address
     voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -144,12 +142,11 @@ export class InitializeValidator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    account: Account, // &signer
+    // account: &signer,
     consensus_pubkey: HexInput, // vector<u8>
     proof_of_possession: HexInput, // vector<u8>
     network_addresses: HexInput, // vector<u8>
     fullnode_addresses: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -178,9 +175,8 @@ export class JoinValidatorSet extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    operator: Account, // &signer
+    // operator: &signer,
     pool_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -206,9 +202,8 @@ export class LeaveValidatorSet extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    operator: Account, // &signer
+    // operator: &signer,
     pool_address: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -234,9 +229,8 @@ export class ReactivateStake extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -266,11 +260,10 @@ export class RotateConsensusKey extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    operator: Account, // &signer
+    // operator: &signer,
     pool_address: AccountAddressInput, // address
     new_consensus_pubkey: HexInput, // vector<u8>
     proof_of_possession: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -298,9 +291,8 @@ export class SetDelegatedVoter extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     new_voter: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -326,9 +318,8 @@ export class SetOperator extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     new_operator: AccountAddressInput, // address
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -354,9 +345,8 @@ export class Unlock extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -386,11 +376,10 @@ export class UpdateNetworkAndFullnodeAddresses extends EntryFunctionPayloadBuild
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    operator: Account, // &signer
+    // operator: &signer,
     pool_address: AccountAddressInput, // address
     new_network_addresses: HexInput, // vector<u8>
     new_fullnode_addresses: HexInput, // vector<u8>
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -418,9 +407,8 @@ export class Withdraw extends EntryFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; //
 
   constructor(
-    owner: Account, // &signer
+    // owner: &signer,
     withdraw_amount: Uint64, // u64
-    feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
     super();
     this.args = {
@@ -455,7 +443,7 @@ export class GetCurrentEpochProposalCounts extends ViewFunctionPayloadBuilder {
   }
 }
 export type GetCurrentEpochVotingPowerPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -475,12 +463,12 @@ export class GetCurrentEpochVotingPower extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetDelegatedVoterPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -500,12 +488,12 @@ export class GetDelegatedVoter extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetLockupSecsPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -525,12 +513,12 @@ export class GetLockupSecs extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetOperatorPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -550,12 +538,12 @@ export class GetOperator extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetRemainingLockupSecsPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -575,12 +563,12 @@ export class GetRemainingLockupSecs extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetStakePayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -600,12 +588,12 @@ export class GetStake extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetValidatorConfigPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -625,12 +613,12 @@ export class GetValidatorConfig extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetValidatorIndexPayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -650,12 +638,12 @@ export class GetValidatorIndex extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type GetValidatorStatePayloadMoveArguments = {
-  pool_address: AccountAddressInput;
+  pool_address: string;
 };
 
 /**
@@ -675,12 +663,12 @@ export class GetValidatorState extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      pool_address: AccountAddress.fromRelaxed(pool_address).toString(),
     };
   }
 }
 export type StakePoolExistsPayloadMoveArguments = {
-  addr: AccountAddressInput;
+  addr: string;
 };
 
 /**
@@ -700,7 +688,7 @@ export class StakePoolExists extends ViewFunctionPayloadBuilder {
   ) {
     super();
     this.args = {
-      addr: AccountAddress.fromRelaxed(addr),
+      addr: AccountAddress.fromRelaxed(addr).toString(),
     };
   }
 }
