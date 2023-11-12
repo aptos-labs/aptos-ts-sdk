@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,

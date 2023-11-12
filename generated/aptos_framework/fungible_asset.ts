@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,15 +32,15 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type TransferPayloadMoveArguments = {
-  from: MoveObject<EntryFunctionArgumentTypes>;
-  to: MoveObject<EntryFunctionArgumentTypes>;
+  from: MoveObject;
+  to: MoveObject;
   amount: U64;
   typeTags: Array<TypeTag>;
 };
@@ -45,8 +48,8 @@ export type TransferPayloadMoveArguments = {
 /**
  *  public fun transfer<T0: key, T1: undefined>(
  *     sender: &signer,
- *     from: Object<T0><T0>,
- *     to: Object<T0><T1>,
+ *     from: Object<T0>,
+ *     to: Object<T0>,
  *     amount: u64,
  *   )
  **/
@@ -59,8 +62,8 @@ export class Transfer extends EntryFunctionPayloadBuilder {
 
   constructor(
     sender: Account, // &signer
-    from: ObjectAddress, // Object<T0><T0>
-    to: ObjectAddress, // Object<T0><T1>
+    from: ObjectAddress, // Object<T0>
+    to: ObjectAddress, // Object<T0>
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, // T0: key, T1: undefined
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -82,7 +85,7 @@ export type BalancePayloadMoveArguments = {
 
 /**
  *  public fun balance<T0: key>(
- *     store: Object<T0><T0>,
+ *     store: Object<T0>,
  *   )
  **/
 export class Balance extends ViewFunctionPayloadBuilder {
@@ -93,7 +96,7 @@ export class Balance extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    store: ObjectAddress, // Object<T0><T0>
+    store: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -110,7 +113,7 @@ export type DecimalsPayloadMoveArguments = {
 
 /**
  *  public fun decimals<T0: key>(
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Decimals extends ViewFunctionPayloadBuilder {
@@ -121,7 +124,7 @@ export class Decimals extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -138,7 +141,7 @@ export type IsFrozenPayloadMoveArguments = {
 
 /**
  *  public fun is_frozen<T0: key>(
- *     store: Object<T0><T0>,
+ *     store: Object<T0>,
  *   )
  **/
 export class IsFrozen extends ViewFunctionPayloadBuilder {
@@ -149,7 +152,7 @@ export class IsFrozen extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    store: ObjectAddress, // Object<T0><T0>
+    store: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -166,7 +169,7 @@ export type MaximumPayloadMoveArguments = {
 
 /**
  *  public fun maximum<T0: key>(
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Maximum extends ViewFunctionPayloadBuilder {
@@ -177,7 +180,7 @@ export class Maximum extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -194,7 +197,7 @@ export type NamePayloadMoveArguments = {
 
 /**
  *  public fun name<T0: key>(
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Name extends ViewFunctionPayloadBuilder {
@@ -205,7 +208,7 @@ export class Name extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -247,7 +250,7 @@ export type StoreMetadataPayloadMoveArguments = {
 
 /**
  *  public fun store_metadata<T0: key>(
- *     store: Object<T0><T0>,
+ *     store: Object<T0>,
  *   )
  **/
 export class StoreMetadata extends ViewFunctionPayloadBuilder {
@@ -258,7 +261,7 @@ export class StoreMetadata extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    store: ObjectAddress, // Object<T0><T0>
+    store: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -275,7 +278,7 @@ export type SupplyPayloadMoveArguments = {
 
 /**
  *  public fun supply<T0: key>(
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Supply extends ViewFunctionPayloadBuilder {
@@ -286,7 +289,7 @@ export class Supply extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -303,7 +306,7 @@ export type SymbolPayloadMoveArguments = {
 
 /**
  *  public fun symbol<T0: key>(
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Symbol extends ViewFunctionPayloadBuilder {
@@ -314,7 +317,7 @@ export class Symbol extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();

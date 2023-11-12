@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,14 +32,14 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type TransferPayloadMoveArguments = {
-  metadata: MoveObject<EntryFunctionArgumentTypes>;
+  metadata: MoveObject;
   recipient: AccountAddress;
   amount: U64;
   typeTags: Array<TypeTag>;
@@ -45,7 +48,7 @@ export type TransferPayloadMoveArguments = {
 /**
  *  public fun transfer<T0: key>(
  *     sender: &signer,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *     recipient: address,
  *     amount: u64,
  *   )
@@ -59,7 +62,7 @@ export class Transfer extends EntryFunctionPayloadBuilder {
 
   constructor(
     sender: Account, // &signer
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     recipient: AccountAddressInput, // address
     amount: Uint64, // u64
     typeTags: Array<TypeTagInput>, // T0: key
@@ -84,7 +87,7 @@ export type BalancePayloadMoveArguments = {
 /**
  *  public fun balance<T0: key>(
  *     account: address,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class Balance extends ViewFunctionPayloadBuilder {
@@ -96,7 +99,7 @@ export class Balance extends ViewFunctionPayloadBuilder {
 
   constructor(
     account: AccountAddressInput, // address
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -116,7 +119,7 @@ export type IsFrozenPayloadMoveArguments = {
 /**
  *  public fun is_frozen<T0: key>(
  *     account: address,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class IsFrozen extends ViewFunctionPayloadBuilder {
@@ -128,7 +131,7 @@ export class IsFrozen extends ViewFunctionPayloadBuilder {
 
   constructor(
     account: AccountAddressInput, // address
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -148,7 +151,7 @@ export type PrimaryStorePayloadMoveArguments = {
 /**
  *  public fun primary_store<T0: key>(
  *     owner: address,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class PrimaryStore extends ViewFunctionPayloadBuilder {
@@ -160,7 +163,7 @@ export class PrimaryStore extends ViewFunctionPayloadBuilder {
 
   constructor(
     owner: AccountAddressInput, // address
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -180,7 +183,7 @@ export type PrimaryStoreAddressPayloadMoveArguments = {
 /**
  *  public fun primary_store_address<T0: key>(
  *     owner: address,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class PrimaryStoreAddress extends ViewFunctionPayloadBuilder {
@@ -192,7 +195,7 @@ export class PrimaryStoreAddress extends ViewFunctionPayloadBuilder {
 
   constructor(
     owner: AccountAddressInput, // address
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -212,7 +215,7 @@ export type PrimaryStoreExistsPayloadMoveArguments = {
 /**
  *  public fun primary_store_exists<T0: key>(
  *     account: address,
- *     metadata: Object<T0><T0>,
+ *     metadata: Object<T0>,
  *   )
  **/
 export class PrimaryStoreExists extends ViewFunctionPayloadBuilder {
@@ -224,7 +227,7 @@ export class PrimaryStoreExists extends ViewFunctionPayloadBuilder {
 
   constructor(
     account: AccountAddressInput, // address
-    metadata: ObjectAddress, // Object<T0><T0>
+    metadata: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();

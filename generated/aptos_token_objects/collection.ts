@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -42,7 +45,7 @@ export type CountPayloadMoveArguments = {
 
 /**
  *  public fun count<T0: key>(
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *   )
  **/
 export class Count extends ViewFunctionPayloadBuilder {
@@ -53,7 +56,7 @@ export class Count extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -70,7 +73,7 @@ export type CreatorPayloadMoveArguments = {
 
 /**
  *  public fun creator<T0: key>(
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *   )
  **/
 export class Creator extends ViewFunctionPayloadBuilder {
@@ -81,7 +84,7 @@ export class Creator extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -98,7 +101,7 @@ export type DescriptionPayloadMoveArguments = {
 
 /**
  *  public fun description<T0: key>(
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *   )
  **/
 export class Description extends ViewFunctionPayloadBuilder {
@@ -109,7 +112,7 @@ export class Description extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -126,7 +129,7 @@ export type NamePayloadMoveArguments = {
 
 /**
  *  public fun name<T0: key>(
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *   )
  **/
 export class Name extends ViewFunctionPayloadBuilder {
@@ -137,7 +140,7 @@ export class Name extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -154,7 +157,7 @@ export type UriPayloadMoveArguments = {
 
 /**
  *  public fun uri<T0: key>(
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *   )
  **/
 export class Uri extends ViewFunctionPayloadBuilder {
@@ -165,7 +168,7 @@ export class Uri extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();

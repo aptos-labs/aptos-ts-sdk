@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -233,6 +236,34 @@ export class ReactivateStake extends EntryFunctionPayloadBuilder {
     };
   }
 }
+export type SetBeneficiaryForOperatorPayloadMoveArguments = {
+  new_beneficiary: AccountAddress;
+};
+
+/**
+ *  public fun set_beneficiary_for_operator<>(
+ *     operator: &signer,
+ *     new_beneficiary: address,
+ *   )
+ **/
+export class SetBeneficiaryForOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "delegation_pool";
+  public readonly functionName = "set_beneficiary_for_operator";
+  public readonly args: SetBeneficiaryForOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    operator: Account, // &signer
+    new_beneficiary: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
+    };
+  }
+}
 export type SetDelegatedVoterPayloadMoveArguments = {
   new_voter: AccountAddress;
 };
@@ -420,6 +451,31 @@ export class Withdraw extends EntryFunctionPayloadBuilder {
   }
 }
 
+export type BeneficiaryForOperatorPayloadMoveArguments = {
+  operator: AccountAddressInput;
+};
+
+/**
+ *  public fun beneficiary_for_operator<>(
+ *     operator: address,
+ *   )
+ **/
+export class BeneficiaryForOperator extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "delegation_pool";
+  public readonly functionName = "beneficiary_for_operator";
+  public readonly args: BeneficiaryForOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    operator: AccountAddressInput, // address
+  ) {
+    super();
+    this.args = {
+      operator: AccountAddress.fromRelaxed(operator),
+    };
+  }
+}
 export type CalculateAndUpdateDelegatorVoterPayloadMoveArguments = {
   pool_address: AccountAddressInput;
   delegator_address: AccountAddressInput;
@@ -452,7 +508,7 @@ export class CalculateAndUpdateDelegatorVoter extends ViewFunctionPayloadBuilder
 export type CalculateAndUpdateRemainingVotingPowerPayloadMoveArguments = {
   pool_address: AccountAddressInput;
   voter_address: AccountAddressInput;
-  proposal_id: Uint64;
+  proposal_id: string;
 };
 
 /**
@@ -478,7 +534,7 @@ export class CalculateAndUpdateRemainingVotingPower extends ViewFunctionPayloadB
     this.args = {
       pool_address: AccountAddress.fromRelaxed(pool_address),
       voter_address: AccountAddress.fromRelaxed(voter_address),
-      proposal_id: proposal_id,
+      proposal_id: BigInt(proposal_id).toString(),
     };
   }
 }
@@ -563,7 +619,7 @@ export class DelegationPoolExists extends ViewFunctionPayloadBuilder {
 }
 export type GetAddStakeFeePayloadMoveArguments = {
   pool_address: AccountAddressInput;
-  amount: Uint64;
+  amount: string;
 };
 
 /**
@@ -586,7 +642,7 @@ export class GetAddStakeFee extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       pool_address: AccountAddress.fromRelaxed(pool_address),
-      amount: amount,
+      amount: BigInt(amount).toString(),
     };
   }
 }
@@ -617,7 +673,7 @@ export class GetDelegationPoolStake extends ViewFunctionPayloadBuilder {
 }
 export type GetExpectedStakePoolAddressPayloadMoveArguments = {
   owner: AccountAddressInput;
-  delegation_pool_creation_seed: HexInput;
+  delegation_pool_creation_seed: Uint8Array;
 };
 
 /**

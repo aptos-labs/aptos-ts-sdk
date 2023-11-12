@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,21 +32,21 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type BurnPayloadMoveArguments = {
-  object: MoveObject<EntryFunctionArgumentTypes>;
+  object: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun burn<T0: key>(
  *     owner: &signer,
- *     object: Object<T0><T0>,
+ *     object: Object<T0>,
  *   )
  **/
 export class Burn extends EntryFunctionPayloadBuilder {
@@ -55,7 +58,7 @@ export class Burn extends EntryFunctionPayloadBuilder {
 
   constructor(
     owner: Account, // &signer
-    object: ObjectAddress, // Object<T0><T0>
+    object: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -67,7 +70,7 @@ export class Burn extends EntryFunctionPayloadBuilder {
   }
 }
 export type TransferPayloadMoveArguments = {
-  object: MoveObject<EntryFunctionArgumentTypes>;
+  object: MoveObject;
   to: AccountAddress;
   typeTags: Array<TypeTag>;
 };
@@ -75,7 +78,7 @@ export type TransferPayloadMoveArguments = {
 /**
  *  public fun transfer<T0: key>(
  *     owner: &signer,
- *     object: Object<T0><T0>,
+ *     object: Object<T0>,
  *     to: address,
  *   )
  **/
@@ -88,7 +91,7 @@ export class Transfer extends EntryFunctionPayloadBuilder {
 
   constructor(
     owner: Account, // &signer
-    object: ObjectAddress, // Object<T0><T0>
+    object: ObjectAddress, // Object<T0>
     to: AccountAddressInput, // address
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -134,16 +137,16 @@ export class TransferCall extends EntryFunctionPayloadBuilder {
   }
 }
 export type TransferToObjectPayloadMoveArguments = {
-  object: MoveObject<EntryFunctionArgumentTypes>;
-  to: MoveObject<EntryFunctionArgumentTypes>;
+  object: MoveObject;
+  to: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun transfer_to_object<T0: key, T1: key>(
  *     owner: &signer,
- *     object: Object<T0><T0>,
- *     to: Object<T1><T1>,
+ *     object: Object<T0>,
+ *     to: Object<T1>,
  *   )
  **/
 export class TransferToObject extends EntryFunctionPayloadBuilder {
@@ -155,8 +158,8 @@ export class TransferToObject extends EntryFunctionPayloadBuilder {
 
   constructor(
     owner: Account, // &signer
-    object: ObjectAddress, // Object<T0><T0>
-    to: ObjectAddress, // Object<T1><T1>
+    object: ObjectAddress, // Object<T0>
+    to: ObjectAddress, // Object<T1>
     typeTags: Array<TypeTagInput>, // T0: key, T1: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -169,14 +172,14 @@ export class TransferToObject extends EntryFunctionPayloadBuilder {
   }
 }
 export type UnburnPayloadMoveArguments = {
-  object: MoveObject<EntryFunctionArgumentTypes>;
+  object: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun unburn<T0: key>(
  *     original_owner: &signer,
- *     object: Object<T0><T0>,
+ *     object: Object<T0>,
  *   )
  **/
 export class Unburn extends EntryFunctionPayloadBuilder {
@@ -188,7 +191,7 @@ export class Unburn extends EntryFunctionPayloadBuilder {
 
   constructor(
     original_owner: Account, // &signer
-    object: ObjectAddress, // Object<T0><T0>
+    object: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -207,7 +210,7 @@ export type IsBurntPayloadMoveArguments = {
 
 /**
  *  public fun is_burnt<T0: key>(
- *     object: Object<T0><T0>,
+ *     object: Object<T0>,
  *   )
  **/
 export class IsBurnt extends ViewFunctionPayloadBuilder {
@@ -218,7 +221,7 @@ export class IsBurnt extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    object: ObjectAddress, // Object<T0><T0>
+    object: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();

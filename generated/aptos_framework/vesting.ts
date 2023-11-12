@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -207,6 +210,34 @@ export class SetBeneficiary extends EntryFunctionPayloadBuilder {
     this.args = {
       contract_address: AccountAddress.fromRelaxed(contract_address),
       shareholder: AccountAddress.fromRelaxed(shareholder),
+      new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
+    };
+  }
+}
+export type SetBeneficiaryForOperatorPayloadMoveArguments = {
+  new_beneficiary: AccountAddress;
+};
+
+/**
+ *  public fun set_beneficiary_for_operator<>(
+ *     operator: &signer,
+ *     new_beneficiary: address,
+ *   )
+ **/
+export class SetBeneficiaryForOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "vesting";
+  public readonly functionName = "set_beneficiary_for_operator";
+  public readonly args: SetBeneficiaryForOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    operator: Account, // &signer
+    new_beneficiary: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
       new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
     };
   }

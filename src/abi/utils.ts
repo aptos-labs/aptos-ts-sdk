@@ -74,7 +74,7 @@ export const kindToSimpleTypeMap: { [key in BCSKinds]: string } = {
   AccountAddress: "AccountAddressInput",
   MoveString: "string",
   MoveVector: "Array",
-  MoveOption: "OneOrNone", // OneOrNone<T>
+  MoveOption: "Option", // OneOrNone<T>
   MoveObject: "ObjectAddress",
   AccountAuthenticator: "AccountAuthenticator",
   GenericType: "GenericType",

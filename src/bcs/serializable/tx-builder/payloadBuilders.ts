@@ -19,7 +19,7 @@ import {
   LedgerVersion,
   MoveValue,
   UserTransactionResponse,
-  ViewRequestData,
+  InputViewRequestData,
   WaitForTransactionOptions,
 } from "../../../types";
 import { Serializable, Serializer } from "../../serializer";
@@ -90,7 +90,7 @@ export abstract class ViewFunctionPayloadBuilder {
   public abstract readonly args: any;
   public abstract readonly typeArgs: Array<TypeTag>;
 
-  toPayload(): ViewRequestData {
+  toPayload(): InputViewRequestData {
     return {
       function: `${this.moduleAddress.toString()}::${this.moduleName}::${this.functionName}`,
       typeArguments: this.typeArgs.map((type) => type.toString() as `0x${string}::${string}::${string}`),
@@ -132,9 +132,12 @@ export abstract class ViewFunctionPayloadBuilder {
       if (val instanceof AccountAddress) {
         return val.toString();
       }
-      if (typeof val === "bigint") {
+      if (val instanceof BigInt || typeof val === "bigint") {
         return val.toString();
       }
+      console.log(val);
+      console.log(typeof val);
+      console.log(val.prototype);
       return val;
     });
   }

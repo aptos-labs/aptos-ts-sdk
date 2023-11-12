@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,14 +32,14 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export type AddPropertyPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   key: MoveString;
   type: MoveString;
   value: MoveVector<U8>;
@@ -46,7 +49,7 @@ export type AddPropertyPayloadMoveArguments = {
 /**
  *  public fun add_property<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     key: String,
  *     type: String,
  *     value: vector<u8>,
@@ -61,7 +64,7 @@ export class AddProperty extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     key: string, // String
     type: string, // String
     value: HexInput, // vector<u8>
@@ -78,16 +81,54 @@ export class AddProperty extends EntryFunctionPayloadBuilder {
     };
   }
 }
+export type AddTypedPropertyPayloadMoveArguments = {
+  token: MoveObject;
+  key: MoveString;
+  value: EntryFunctionArgumentTypes;
+  typeTags: Array<TypeTag>;
+};
 
+/**
+ *  public fun add_typed_property<T0: key>(
+ *     creator: &signer,
+ *     token: Object<T0>,
+ *     key: String,
+ *     value: T1,
+ *   )
+ **/
+export class AddTypedProperty extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x4");
+  public readonly moduleName = "aptos_token";
+  public readonly functionName = "add_typed_property";
+  public readonly args: AddTypedPropertyPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
+
+  constructor(
+    creator: Account, // &signer
+    token: ObjectAddress, // Object<T0>
+    key: string, // String
+    value: EntryFunctionArgumentTypes, // T1
+    typeTags: Array<TypeTagInput>, // T0: key
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      token: AccountAddress.fromRelaxed(token),
+      key: new MoveString(key),
+      value: value,
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+    };
+  }
+}
 export type BurnPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun burn<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Burn extends EntryFunctionPayloadBuilder {
@@ -99,7 +140,7 @@ export class Burn extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -195,14 +236,14 @@ export class CreateCollection extends EntryFunctionPayloadBuilder {
   }
 }
 export type FreezeTransferPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun freeze_transfer<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class FreezeTransfer extends EntryFunctionPayloadBuilder {
@@ -214,7 +255,7 @@ export class FreezeTransfer extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -334,7 +375,7 @@ export class MintSoulBound extends EntryFunctionPayloadBuilder {
   }
 }
 export type RemovePropertyPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   key: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -342,7 +383,7 @@ export type RemovePropertyPayloadMoveArguments = {
 /**
  *  public fun remove_property<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     key: String,
  *   )
  **/
@@ -355,7 +396,7 @@ export class RemoveProperty extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     key: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -369,7 +410,7 @@ export class RemoveProperty extends EntryFunctionPayloadBuilder {
   }
 }
 export type SetCollectionDescriptionPayloadMoveArguments = {
-  collection: MoveObject<EntryFunctionArgumentTypes>;
+  collection: MoveObject;
   description: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -377,7 +418,7 @@ export type SetCollectionDescriptionPayloadMoveArguments = {
 /**
  *  public fun set_collection_description<T0: key>(
  *     creator: &signer,
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *     description: String,
  *   )
  **/
@@ -390,7 +431,7 @@ export class SetCollectionDescription extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     description: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -404,7 +445,7 @@ export class SetCollectionDescription extends EntryFunctionPayloadBuilder {
   }
 }
 export type SetCollectionUriPayloadMoveArguments = {
-  collection: MoveObject<EntryFunctionArgumentTypes>;
+  collection: MoveObject;
   uri: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -412,7 +453,7 @@ export type SetCollectionUriPayloadMoveArguments = {
 /**
  *  public fun set_collection_uri<T0: key>(
  *     creator: &signer,
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *     uri: String,
  *   )
  **/
@@ -425,7 +466,7 @@ export class SetCollectionUri extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     uri: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -439,7 +480,7 @@ export class SetCollectionUri extends EntryFunctionPayloadBuilder {
   }
 }
 export type SetDescriptionPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   description: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -447,7 +488,7 @@ export type SetDescriptionPayloadMoveArguments = {
 /**
  *  public fun set_description<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     description: String,
  *   )
  **/
@@ -460,7 +501,7 @@ export class SetDescription extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     description: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -474,7 +515,7 @@ export class SetDescription extends EntryFunctionPayloadBuilder {
   }
 }
 export type SetNamePayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   name: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -482,7 +523,7 @@ export type SetNamePayloadMoveArguments = {
 /**
  *  public fun set_name<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     name: String,
  *   )
  **/
@@ -495,7 +536,7 @@ export class SetName extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     name: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -509,7 +550,7 @@ export class SetName extends EntryFunctionPayloadBuilder {
   }
 }
 export type SetUriPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   uri: MoveString;
   typeTags: Array<TypeTag>;
 };
@@ -517,7 +558,7 @@ export type SetUriPayloadMoveArguments = {
 /**
  *  public fun set_uri<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     uri: String,
  *   )
  **/
@@ -530,7 +571,7 @@ export class SetUri extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     uri: string, // String
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
@@ -544,14 +585,14 @@ export class SetUri extends EntryFunctionPayloadBuilder {
   }
 }
 export type UnfreezeTransferPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   typeTags: Array<TypeTag>;
 };
 
 /**
  *  public fun unfreeze_transfer<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class UnfreezeTransfer extends EntryFunctionPayloadBuilder {
@@ -563,7 +604,7 @@ export class UnfreezeTransfer extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
     feePayer?: Account, // optional fee payer account to sponsor the transaction
   ) {
@@ -575,7 +616,7 @@ export class UnfreezeTransfer extends EntryFunctionPayloadBuilder {
   }
 }
 export type UpdatePropertyPayloadMoveArguments = {
-  token: MoveObject<EntryFunctionArgumentTypes>;
+  token: MoveObject;
   key: MoveString;
   type: MoveString;
   value: MoveVector<U8>;
@@ -585,7 +626,7 @@ export type UpdatePropertyPayloadMoveArguments = {
 /**
  *  public fun update_property<T0: key>(
  *     creator: &signer,
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *     key: String,
  *     type: String,
  *     value: vector<u8>,
@@ -600,7 +641,7 @@ export class UpdateProperty extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     key: string, // String
     type: string, // String
     value: HexInput, // vector<u8>
@@ -617,9 +658,47 @@ export class UpdateProperty extends EntryFunctionPayloadBuilder {
     };
   }
 }
+export type UpdateTypedPropertyPayloadMoveArguments = {
+  token: MoveObject;
+  key: MoveString;
+  value: EntryFunctionArgumentTypes;
+  typeTags: Array<TypeTag>;
+};
 
+/**
+ *  public fun update_typed_property<T0: key>(
+ *     creator: &signer,
+ *     token: Object<T0>,
+ *     key: String,
+ *     value: T1,
+ *   )
+ **/
+export class UpdateTypedProperty extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x4");
+  public readonly moduleName = "aptos_token";
+  public readonly functionName = "update_typed_property";
+  public readonly args: UpdateTypedPropertyPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
+
+  constructor(
+    creator: Account, // &signer
+    token: ObjectAddress, // Object<T0>
+    key: string, // String
+    value: EntryFunctionArgumentTypes, // T1
+    typeTags: Array<TypeTagInput>, // T0: key
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      token: AccountAddress.fromRelaxed(token),
+      key: new MoveString(key),
+      value: value,
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+    };
+  }
+}
 export type SetCollectionRoyaltiesCallPayloadMoveArguments = {
-  collection: MoveObject<EntryFunctionArgumentTypes>;
+  collection: MoveObject;
   royalty_numerator: U64;
   royalty_denominator: U64;
   payee_address: AccountAddress;
@@ -629,7 +708,7 @@ export type SetCollectionRoyaltiesCallPayloadMoveArguments = {
 /**
  *  private fun set_collection_royalties_call<T0: key>(
  *     creator: &signer,
- *     collection: Object<T0><T0>,
+ *     collection: Object<T0>,
  *     royalty_numerator: u64,
  *     royalty_denominator: u64,
  *     payee_address: address,
@@ -644,7 +723,7 @@ export class SetCollectionRoyaltiesCall extends EntryFunctionPayloadBuilder {
 
   constructor(
     creator: Account, // &signer
-    collection: ObjectAddress, // Object<T0><T0>
+    collection: ObjectAddress, // Object<T0>
     royalty_numerator: Uint64, // u64
     royalty_denominator: Uint64, // u64
     payee_address: AccountAddressInput, // address
@@ -669,7 +748,7 @@ export type ArePropertiesMutablePayloadMoveArguments = {
 
 /**
  *  public fun are_properties_mutable<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class ArePropertiesMutable extends ViewFunctionPayloadBuilder {
@@ -680,7 +759,7 @@ export class ArePropertiesMutable extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -697,7 +776,7 @@ export type IsBurnablePayloadMoveArguments = {
 
 /**
  *  public fun is_burnable<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class IsBurnable extends ViewFunctionPayloadBuilder {
@@ -708,7 +787,7 @@ export class IsBurnable extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -725,7 +804,7 @@ export type IsFreezableByCreatorPayloadMoveArguments = {
 
 /**
  *  public fun is_freezable_by_creator<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class IsFreezableByCreator extends ViewFunctionPayloadBuilder {
@@ -736,7 +815,7 @@ export class IsFreezableByCreator extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -753,7 +832,7 @@ export type IsMutableDescriptionPayloadMoveArguments = {
 
 /**
  *  public fun is_mutable_description<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class IsMutableDescription extends ViewFunctionPayloadBuilder {
@@ -764,7 +843,7 @@ export class IsMutableDescription extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -781,7 +860,7 @@ export type IsMutableNamePayloadMoveArguments = {
 
 /**
  *  public fun is_mutable_name<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class IsMutableName extends ViewFunctionPayloadBuilder {
@@ -792,7 +871,7 @@ export class IsMutableName extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -809,7 +888,7 @@ export type IsMutableUriPayloadMoveArguments = {
 
 /**
  *  public fun is_mutable_uri<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class IsMutableUri extends ViewFunctionPayloadBuilder {
@@ -820,7 +899,7 @@ export class IsMutableUri extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();

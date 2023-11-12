@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -758,7 +761,7 @@ export class UpdateSignaturesRequired extends EntryFunctionPayloadBuilder {
 
 export type CanBeExecutedPayloadMoveArguments = {
   multisig_account: AccountAddressInput;
-  sequence_number: Uint64;
+  sequence_number: string;
 };
 
 /**
@@ -781,13 +784,13 @@ export class CanBeExecuted extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       multisig_account: AccountAddress.fromRelaxed(multisig_account),
-      sequence_number: sequence_number,
+      sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
 export type CanBeRejectedPayloadMoveArguments = {
   multisig_account: AccountAddressInput;
-  sequence_number: Uint64;
+  sequence_number: string;
 };
 
 /**
@@ -810,7 +813,7 @@ export class CanBeRejected extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       multisig_account: AccountAddress.fromRelaxed(multisig_account),
-      sequence_number: sequence_number,
+      sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
@@ -841,7 +844,7 @@ export class GetNextMultisigAccountAddress extends ViewFunctionPayloadBuilder {
 }
 export type GetNextTransactionPayloadPayloadMoveArguments = {
   multisig_account: AccountAddressInput;
-  provided_payload: HexInput;
+  provided_payload: Uint8Array;
 };
 
 /**
@@ -895,7 +898,7 @@ export class GetPendingTransactions extends ViewFunctionPayloadBuilder {
 }
 export type GetTransactionPayloadMoveArguments = {
   multisig_account: AccountAddressInput;
-  sequence_number: Uint64;
+  sequence_number: string;
 };
 
 /**
@@ -918,7 +921,7 @@ export class GetTransaction extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       multisig_account: AccountAddress.fromRelaxed(multisig_account),
-      sequence_number: sequence_number,
+      sequence_number: BigInt(sequence_number).toString(),
     };
   }
 }
@@ -1049,7 +1052,7 @@ export class Owners extends ViewFunctionPayloadBuilder {
 }
 export type VotePayloadMoveArguments = {
   multisig_account: AccountAddressInput;
-  sequence_number: Uint64;
+  sequence_number: string;
   owner: AccountAddressInput;
 };
 
@@ -1075,7 +1078,7 @@ export class Vote extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       multisig_account: AccountAddress.fromRelaxed(multisig_account),
-      sequence_number: sequence_number,
+      sequence_number: BigInt(sequence_number).toString(),
       owner: AccountAddress.fromRelaxed(owner),
     };
   }

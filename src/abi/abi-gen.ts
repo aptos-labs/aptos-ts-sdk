@@ -63,9 +63,10 @@ const BOILERPLATE_IMPORTS = `
 ${BOILERPLATE_COPYRIGHT}
 
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account } from "../../src";
+import { EntryFunctionArgumentTypes, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { ${kindToSimpleTypeMap.MoveOption}, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 `;
@@ -125,7 +126,7 @@ export class CodeGenerator {
       lines.push(`export type ${argsType} = {`);
       functionArguments.forEach((functionArgument, i) => {
         if (viewFunction) {
-          const viewFunctionInputTypeConverter = this.createInputTypes(functionArgument.kindArray);
+          const viewFunctionInputTypeConverter = this.createClassArgTypes(functionArgument.kindArray, viewFunction);
           lines.push(`${fieldNames[i]}: ${viewFunctionInputTypeConverter};`);
         } else {
           lines.push(`${fieldNames[i]}: ${functionArgument.kindString};`);
@@ -178,7 +179,7 @@ export class CodeGenerator {
         }
       });
       functionArguments.forEach((functionArgument, i) => {
-        const inputType = this.createInputTypes(functionArgument.kindArray);
+        const inputType = this.createClassArgTypes(functionArgument.kindArray);
         const argComment = ` // ${functionArgument.annotation}`;
         lines.push(`${fieldNames[i]}: ${inputType}, ${argComment}`);
       });
@@ -226,30 +227,48 @@ export class CodeGenerator {
     return lines.join("\n");
   }
 
-  createInputTypes(kindArray: BCSKindsWithGeneric, numGenericsEncountered: number = 0): string {
+
+  // TODO: Split this by view function class args vs view function inputs
+  createClassArgTypes(kindArray: BCSKindsWithGeneric, forViewFunctionClassArgs?: boolean): string {
     const kind = kindArray[0];
     switch (kind) {
       case MoveVector.kind:
         if (kindArray.length === 2 && kindArray[1] === U8.kind) {
+          // if it's for input, store the class arg type as Uint8Array
+          if (forViewFunctionClassArgs) {
+            return "Uint8Array";
+          }
+          // otherwise, it's the input, meaning we want to accept HexInput
           return "HexInput";
         }
       case MoveOption.kind:
         // for both MoveVector and MoveOption, we'll recursively call this function
-        return `${kindToSimpleTypeMap[kind]}<${this.createInputTypes(kindArray.slice(1))}>`;
+        if (forViewFunctionClassArgs) {
+          // for view functions, we've already forced the user to use Option
+          return `${kindToSimpleTypeMap[MoveVector.kind]}<${this.createClassArgTypes(kindArray.slice(1), forViewFunctionClassArgs)}>`;
+        }
+        return `${kindToSimpleTypeMap[kind]}<${this.createClassArgTypes(kindArray.slice(1))}>`;
       case Bool.kind:
       case U8.kind:
       case U16.kind:
       case U32.kind:
-      case U64.kind:
-      case U128.kind:
-      case U256.kind:
       case AccountAddress.kind:
       case MoveString.kind:
       case "MoveObject":
         return `${kindToSimpleTypeMap[kind]}`;
+      case U64.kind:
+      case U128.kind:
+      case U256.kind:
+        if (forViewFunctionClassArgs) {
+          return "string";
+        }
+        return `${kindToSimpleTypeMap[kind]}`;
       default:
         if (kind === "GenericType") {
           return "InputTypes";
+        }
+        if (kind === "EntryFunctionArgumentTypes") {
+          return "EntryFunctionArgumentTypes";
         }
         throw new Error(`Unknown kind: ${kind}`);
     }
@@ -282,11 +301,12 @@ export class CodeGenerator {
       case U8.kind:
       case U16.kind:
       case U32.kind:
+      case MoveString.kind:
+        return `${nameFromDepth}${R_PARENTHESIS.repeat(depth)}`;
       case U64.kind:
       case U128.kind:
       case U256.kind:
-      case MoveString.kind:
-        return `${nameFromDepth}${R_PARENTHESIS.repeat(depth)}`;
+        return `BigInt(${nameFromDepth}).toString()${R_PARENTHESIS.repeat(depth)}`;
       default:
         if (kind === "GenericType") {
           return "InputTypes";
@@ -338,7 +358,10 @@ export class CodeGenerator {
         return `new ${kind}(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
       default:
         if (kind === "GenericType") {
-          return "InputTypes";
+          return fieldName;
+        }
+        if (kind === "EntryFunctionArgumentTypes") {
+          return fieldName;
         }
         throw new Error(`Unknown kind: ${kind}`);
     }
@@ -379,7 +402,8 @@ export class CodeGenerator {
             // if (kindArray[kindArray.length - 2] === AccountAddress.kind) {
             if (kindArray[kindArray.length - 2] === "MoveObject") {
               genericsWithAbilities.push(genericTypeWithConstraints);
-              annotation += `<${genericType}>`;
+              // annotation += `<${genericType}>`;
+              kindArray.pop();
             } else {
               genericsWithAbilities.push(genericTypeWithConstraints);
               // The second to last kind is not an Object, so we'll add it to the functionArguments array

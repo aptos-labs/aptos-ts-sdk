@@ -16,7 +16,8 @@ import {
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../bcs";
 import { AccountAuthenticator, TypeTag, TypeTagStruct } from "../transactions";
 
-export type OneOrNone<T> = [T] | [];
+// If you change the "SimpleMapToKind" list of keys you need to change this name here.
+export type Option<T> = [T] | [];
 
 export type AbiFunctions = {
   moduleAddress: AccountAddress;

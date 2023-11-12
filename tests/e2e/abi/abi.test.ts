@@ -10,6 +10,8 @@ import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 import { CodeGenerator } from "../../../src/abi/abi-gen";
 import { ConfigDictionary, getCodeGenConfig } from "../../../src/abi/config";
 import { AptosFramework, AptosTokenObjects, AptosToken, Tournament } from "../../../generated/";
+import { ViewAllArguments } from "../../../generated/args_test_suite/tx_args_module";
+import { TxArgsModule } from "../../../generated/args_test_suite";
 
 jest.setTimeout(30000);
 
@@ -36,7 +38,7 @@ describe.only("abi test", () => {
     expect(truncatedTypeTagString({ typeTag: typeTag3 })).toEqual("vector<Option<Object<0x4::token::Token>>>");
   });
 
-  it.only("truncates type tag string correctly based on replaced typetags and named addresses", async () => {
+  it("truncates type tag string correctly based on replaced typetags and named addresses", async () => {
     const codeGeneratorConfig = getCodeGenConfig("./src/abi/config.yaml");
     const namedAddresses = codeGeneratorConfig.namedAddresses!;
     const namedTypeTags = codeGeneratorConfig.namedTypeTags!;
@@ -56,6 +58,61 @@ describe.only("abi test", () => {
     // try to trick it and replace named address
     const typeTag4 = parseTypeTag("vector<0x1::option::Option<0x1::object::Object<0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766::token::Token>>>");
     expect(truncatedTypeTagString({ typeTag: typeTag4, namedAddresses, namedTypeTags })).toEqual("vector<Option<Object<tournament::token::Token>>>");
+  });
+
+  it.only("calls things correctly", async () => {
+    const aptosLocal = new Aptos(new AptosConfig({ network: Network.LOCAL }));
+    const account = Account.fromPrivateKey({
+      privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
+      legacy: false,
+    });
+    await fundAccounts(aptosLocal, [account]);
+    await publishArgumentTestModule(aptosLocal, account);
+    await codeGenerator.generateCodeForModules(aptosLocal, [
+      AccountAddress.ONE,
+      AccountAddress.THREE,
+      AccountAddress.FOUR,
+      AccountAddress.fromRelaxed("0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"),
+      account.accountAddress,
+    ]);
+
+    // const viewPayload = new TxArgsModule.ViewAllArguments(
+    //   true,
+    //   0,
+    //   1,
+    //   2,
+    //   3n,
+    //   4n,
+    //   5, //?
+    //   account.accountAddress,
+    //   "9",
+    //   account.accountAddress,
+    //   new Uint8Array([1, 2, 3, 4]),
+    //   [true, true, false, true, false, false],
+    //   new Uint8Array([1, 2, 3, 4, 5]),
+    //   [1, 2, 3, 4, 5, 6],
+    //   [1, 2, 3, 4, 5, 6, 7],
+    //   [100, 121, 131],
+    //   [100, 121, 131],
+    //   [100, 121, 131],
+    //   [account.accountAddress, account.accountAddress, account.accountAddress],
+    //   ["okay", "one", "two"],
+    //   [account.accountAddress, account.accountAddress, account.accountAddress],
+    //   [],
+    //   [true],
+    //   [1],
+    //   [2],
+    //   [3],
+    //   [4],
+    //   [5],
+    //   [6],
+    //   [account.accountAddress],
+    //   ["string option"],
+    //   [account.accountAddress],
+    // );
+    // const response = await viewPayload.submit({ aptos: aptosLocal });
+    // console.log(response);
+
   });
 
   it("parses abis correctly", async () => {

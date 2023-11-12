@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -167,7 +170,7 @@ export class GameStatus extends ViewFunctionPayloadBuilder {
 }
 export type GetGameAddressPayloadMoveArguments = {
   creator_address: AccountAddressInput;
-  seed: HexInput;
+  seed: Uint8Array;
 };
 
 /**
@@ -382,6 +385,33 @@ export class IsGameComplete extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       game_address: AccountAddress.fromRelaxed(game_address),
+    };
+  }
+}
+export type IsGameCompleteByPlayerPayloadMoveArguments = {
+  player_token_address: AccountAddressInput;
+};
+
+/**
+ *  public fun is_game_complete_by_player<>(
+ *     player_token_address: address,
+ *   )
+ **/
+export class IsGameCompleteByPlayer extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed(
+    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+  );
+  public readonly moduleName = "rock_paper_scissor";
+  public readonly functionName = "is_game_complete_by_player";
+  public readonly args: IsGameCompleteByPlayerPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    player_token_address: AccountAddressInput, // address
+  ) {
+    super();
+    this.args = {
+      player_token_address: AccountAddress.fromRelaxed(player_token_address),
     };
   }
 }

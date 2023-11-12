@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -240,7 +243,7 @@ export class GetMinVotingThreshold extends ViewFunctionPayloadBuilder {
 }
 export type GetRemainingVotingPowerPayloadMoveArguments = {
   stake_pool: AccountAddressInput;
-  proposal_id: Uint64;
+  proposal_id: string;
 };
 
 /**
@@ -263,7 +266,7 @@ export class GetRemainingVotingPower extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       stake_pool: AccountAddress.fromRelaxed(stake_pool),
-      proposal_id: proposal_id,
+      proposal_id: BigInt(proposal_id).toString(),
     };
   }
 }
@@ -328,7 +331,7 @@ export class GetVotingPower extends ViewFunctionPayloadBuilder {
 }
 export type HasEntirelyVotedPayloadMoveArguments = {
   stake_pool: AccountAddressInput;
-  proposal_id: Uint64;
+  proposal_id: string;
 };
 
 /**
@@ -351,7 +354,7 @@ export class HasEntirelyVoted extends ViewFunctionPayloadBuilder {
     super();
     this.args = {
       stake_pool: AccountAddress.fromRelaxed(stake_pool),
-      proposal_id: proposal_id,
+      proposal_id: BigInt(proposal_id).toString(),
     };
   }
 }

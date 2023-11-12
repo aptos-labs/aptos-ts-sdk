@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -198,6 +201,34 @@ export class ResetLockup extends EntryFunctionPayloadBuilder {
     super();
     this.args = {
       operator: AccountAddress.fromRelaxed(operator),
+    };
+  }
+}
+export type SetBeneficiaryForOperatorPayloadMoveArguments = {
+  new_beneficiary: AccountAddress;
+};
+
+/**
+ *  public fun set_beneficiary_for_operator<>(
+ *     operator: &signer,
+ *     new_beneficiary: address,
+ *   )
+ **/
+export class SetBeneficiaryForOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_contract";
+  public readonly functionName = "set_beneficiary_for_operator";
+  public readonly args: SetBeneficiaryForOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    operator: Account, // &signer
+    new_beneficiary: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      new_beneficiary: AccountAddress.fromRelaxed(new_beneficiary),
     };
   }
 }
@@ -394,6 +425,31 @@ export class UpdateVoter extends EntryFunctionPayloadBuilder {
   }
 }
 
+export type BeneficiaryForOperatorPayloadMoveArguments = {
+  operator: AccountAddressInput;
+};
+
+/**
+ *  public fun beneficiary_for_operator<>(
+ *     operator: address,
+ *   )
+ **/
+export class BeneficiaryForOperator extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_contract";
+  public readonly functionName = "beneficiary_for_operator";
+  public readonly args: BeneficiaryForOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    operator: AccountAddressInput, // address
+  ) {
+    super();
+    this.args = {
+      operator: AccountAddress.fromRelaxed(operator),
+    };
+  }
+}
 export type CommissionPercentagePayloadMoveArguments = {
   staker: AccountAddressInput;
   operator: AccountAddressInput;
@@ -426,7 +482,7 @@ export class CommissionPercentage extends ViewFunctionPayloadBuilder {
 export type GetExpectedStakePoolAddressPayloadMoveArguments = {
   staker: AccountAddressInput;
   operator: AccountAddressInput;
-  contract_creation_seed: HexInput;
+  contract_creation_seed: Uint8Array;
 };
 
 /**

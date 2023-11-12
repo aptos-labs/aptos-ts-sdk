@@ -16,6 +16,9 @@ import {
   U8,
   Bool,
   Account,
+} from "../../src";
+import {
+  EntryFunctionArgumentTypes,
   InputTypes,
   AccountAddressInput,
   Hex,
@@ -29,7 +32,7 @@ import {
   parseTypeTag,
 } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
 import {
   ViewFunctionPayloadBuilder,
   EntryFunctionPayloadBuilder,
@@ -42,7 +45,7 @@ export type CollectionNamePayloadMoveArguments = {
 
 /**
  *  public fun collection_name<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class CollectionName extends ViewFunctionPayloadBuilder {
@@ -53,7 +56,7 @@ export class CollectionName extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -70,7 +73,7 @@ export type CollectionObjectPayloadMoveArguments = {
 
 /**
  *  public fun collection_object<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class CollectionObject extends ViewFunctionPayloadBuilder {
@@ -81,7 +84,7 @@ export class CollectionObject extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -98,7 +101,7 @@ export type CreatorPayloadMoveArguments = {
 
 /**
  *  public fun creator<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Creator extends ViewFunctionPayloadBuilder {
@@ -109,7 +112,7 @@ export class Creator extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -126,7 +129,7 @@ export type DescriptionPayloadMoveArguments = {
 
 /**
  *  public fun description<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Description extends ViewFunctionPayloadBuilder {
@@ -137,7 +140,35 @@ export class Description extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      token: AccountAddress.fromRelaxed(token),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
+    };
+  }
+}
+export type IndexPayloadMoveArguments = {
+  token: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
+
+/**
+ *  public fun index<T0: key>(
+ *     token: Object<T0>,
+ *   )
+ **/
+export class Index extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x4");
+  public readonly moduleName = "token";
+  public readonly functionName = "index";
+  public readonly args: IndexPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
+
+  constructor(
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -154,7 +185,7 @@ export type NamePayloadMoveArguments = {
 
 /**
  *  public fun name<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Name extends ViewFunctionPayloadBuilder {
@@ -165,7 +196,7 @@ export class Name extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -182,7 +213,7 @@ export type RoyaltyPayloadMoveArguments = {
 
 /**
  *  public fun royalty<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Royalty extends ViewFunctionPayloadBuilder {
@@ -193,7 +224,7 @@ export class Royalty extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
@@ -210,7 +241,7 @@ export type UriPayloadMoveArguments = {
 
 /**
  *  public fun uri<T0: key>(
- *     token: Object<T0><T0>,
+ *     token: Object<T0>,
  *   )
  **/
 export class Uri extends ViewFunctionPayloadBuilder {
@@ -221,7 +252,7 @@ export class Uri extends ViewFunctionPayloadBuilder {
   public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
   constructor(
-    token: ObjectAddress, // Object<T0><T0>
+    token: ObjectAddress, // Object<T0>
     typeTags: Array<TypeTagInput>, // T0: key
   ) {
     super();
