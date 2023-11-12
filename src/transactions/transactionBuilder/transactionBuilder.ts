@@ -232,7 +232,7 @@ export async function generateRawTransaction(args: {
   );
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
-    maxGasAmount: BigInt(DEFAULT_MAX_GAS_AMOUNT),
+    maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
     gasUnitPrice: BigInt(gasEstimate),
     expireTimestamp: BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
     ...options,
