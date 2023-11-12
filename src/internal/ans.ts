@@ -76,10 +76,11 @@ const NetworkToAnsContract: Record<Network, string | null> = {
   [Network.DEVNET]: null,
 };
 
-function getRouterAddress(aptosConfig: AptosConfig): string {
+function getRouterAddress(aptosConfig: AptosConfig): `0x${string}` {
   const address = NetworkToAnsContract[aptosConfig.network];
   if (!address) throw new Error(`The ANS contract is not deployed to ${aptosConfig.network}`);
-  return address;
+  const normalized = AccountAddress.fromRelaxed(address);
+  return normalized.toString();
 }
 
 const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;

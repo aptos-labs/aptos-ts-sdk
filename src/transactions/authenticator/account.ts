@@ -12,6 +12,7 @@ import { MultiKey } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
+  public static readonly kind = "AccountAuthenticator";
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): AccountAuthenticator {

@@ -15,6 +15,8 @@ import { TransactionArgument } from "../../transactions/instances/transactionArg
 import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types";
 
 export class Bool extends Serializable implements TransactionArgument {
+  public static readonly kind = "Bool";
+
   public readonly value: boolean;
 
   constructor(value: boolean) {
@@ -43,6 +45,8 @@ export class Bool extends Serializable implements TransactionArgument {
 }
 
 export class U8 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U8";
+
   public readonly value: Uint8;
 
   constructor(value: Uint8) {
@@ -71,6 +75,8 @@ export class U8 extends Serializable implements TransactionArgument {
 }
 
 export class U16 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U16";
+
   public readonly value: Uint16;
 
   constructor(value: Uint16) {
@@ -99,6 +105,8 @@ export class U16 extends Serializable implements TransactionArgument {
 }
 
 export class U32 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U32";
+
   public readonly value: Uint32;
 
   constructor(value: Uint32) {
@@ -127,6 +135,8 @@ export class U32 extends Serializable implements TransactionArgument {
 }
 
 export class U64 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U64";
+
   public readonly value: bigint;
 
   constructor(value: AnyNumber) {
@@ -155,6 +165,8 @@ export class U64 extends Serializable implements TransactionArgument {
 }
 
 export class U128 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U128";
+
   public readonly value: bigint;
 
   constructor(value: AnyNumber) {
@@ -183,6 +195,8 @@ export class U128 extends Serializable implements TransactionArgument {
 }
 
 export class U256 extends Serializable implements TransactionArgument {
+  public static readonly kind = "U256";
+
   public readonly value: bigint;
 
   constructor(value: AnyNumber) {

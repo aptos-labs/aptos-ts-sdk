@@ -119,9 +119,9 @@ export enum AnySignatureVariant {
 export type Uint8 = number;
 export type Uint16 = number;
 export type Uint32 = number;
-export type Uint64 = bigint;
-export type Uint128 = bigint;
-export type Uint256 = bigint;
+export type Uint64 = number | bigint;
+export type Uint128 = number | bigint;
+export type Uint256 = number | bigint;
 export type AnyNumber = number | bigint;
 
 /**
@@ -686,7 +686,7 @@ export type MoveOptionType = MoveType | null | undefined;
 /**
  * This is the format for a fully qualified struct, resource, or entry function in Move.
  */
-export type MoveStructType = `${string}::${string}::${string}`;
+export type MoveStructType = `0x${string}::${string}::${string}`;
 
 export type MoveType =
   | boolean
