@@ -267,15 +267,15 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
       return new TypeTagVector(types[0]);
     default:
-      if (allowGenerics && isGeneric(str)) {
-        return new TypeTagGeneric(Number(str.split("T")[1]));
+      if (isGeneric(str)) {
+        if (allowGenerics) {
+          return new TypeTagGeneric(Number(str.split("T")[1]));
+        }
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedGenericType);
       }
 
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
       if (!str.match(/.*:.*/)) {
-        if (isGeneric(str)) {
-          throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedGenericType);
-        }
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);
       }
 
