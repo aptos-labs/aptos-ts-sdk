@@ -214,7 +214,7 @@ describe.only("abi test", () => {
     // TODO: Add support for smart `submit` with feepayer and multiagent
     const response = await testPayload.submit({ signer: account1, aptos: aptos });
     console.log(response);
-});
+  });
 
   it("parses tournament abis correctly", async () => {
     const accountAddress = AccountAddress.fromRelaxed(
@@ -436,5 +436,4 @@ describe.only("abi test", () => {
       "vector<Option<Object<tournament::token::Token>>>",
     );
   });
-
 });
