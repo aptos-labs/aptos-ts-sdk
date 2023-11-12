@@ -51,15 +51,13 @@ import {
 } from "../../src/abi/utils";
 import fs from "fs";
 import { ConfigDictionary } from "./config";
-import * as prettier from "prettier";
+// import { format } from "prettier";
 import { sleep } from "../utils/helpers";
 
 const DEFAULT_ARGUMENT_BASE = "arg_";
 const R_PARENTHESIS = ")";
 
-const BOILERPLATE_COPYRIGHT = `` +
-`// Copyright © Aptos Foundation\n` +
-`// SPDX-License-Identifier: Apache-2.0\n`;
+const BOILERPLATE_COPYRIGHT = `` + `// Copyright © Aptos Foundation\n` + `// SPDX-License-Identifier: Apache-2.0\n`;
 
 const BOILERPLATE_IMPORTS = `
 ${BOILERPLATE_COPYRIGHT}
@@ -81,7 +79,20 @@ export class CodeGenerator {
 
   // Note that the suppliedFieldNames includes the `&signer` and `signer` fields.
   metaclassBuilder(args: codeGeneratorOptions): string {
-    const { moduleAddress, moduleName, functionName, className, typeTags, genericTypeTags, viewFunction, displaySignerArgsAsComments, suppliedFieldNames, visibility, genericTypeParams, documentation } = args;
+    const {
+      moduleAddress,
+      moduleName,
+      functionName,
+      className,
+      typeTags,
+      genericTypeTags,
+      viewFunction,
+      displaySignerArgsAsComments,
+      suppliedFieldNames,
+      visibility,
+      genericTypeParams,
+      documentation,
+    } = args;
     const GENERIC_TYPE_TAGS = new Array<TypeTag>();
     const fieldNames = suppliedFieldNames ?? [];
 
@@ -93,17 +104,21 @@ export class CodeGenerator {
       }
       // otherwise, ensure that the array lengths match
     } else if (fieldNames.length !== typeTags.length) {
+      console.log(moduleAddress.toString(), moduleName, functionName, fieldNames, typeTags.map(t => t.toString()));
       throw new Error(`fieldNames.length (${fieldNames.length}) !== typeTags.length (${typeTags.length})`);
     }
 
     // --------------- Handle signers --------------- //
     // Get the array of annotated BCS class names, their string representation, and original TypeTag string
-    const { signerArguments, functionArguments, genericsWithAbilities } = this.getClassArgTypes(typeTags, genericTypeParams);
+    const { signerArguments, functionArguments, genericsWithAbilities } = this.getClassArgTypes(
+      typeTags,
+      genericTypeParams,
+    );
     const lines: Array<string> = [];
 
     const argsType = `${className}PayloadMoveArguments`;
     const signerArgumentNames = suppliedFieldNames ? suppliedFieldNames.splice(0, signerArguments.length) : [];
-    const joinedGenericsWithAbilities = genericsWithAbilities.join(', ');
+    const joinedGenericsWithAbilities = genericsWithAbilities.join(", ");
 
     // ---------- Declare class field types separately ---------- //
     if (functionArguments.length > 0) {
@@ -183,10 +198,18 @@ export class CodeGenerator {
         // Although we can use them eventually when view functions accepts BCS inputs
         if (viewFunction) {
           // lines.push(`${fieldNames[i]}: ${functionArguments[i].kindArray},`);
-          const viewFunctionInputTypeConverter = this.transformViewFunctionInputTypes(fieldNames[i], functionArguments[i].kindArray, 0);
+          const viewFunctionInputTypeConverter = this.transformViewFunctionInputTypes(
+            fieldNames[i],
+            functionArguments[i].kindArray,
+            0,
+          );
           lines.push(`${fieldNames[i]}: ${viewFunctionInputTypeConverter},`);
         } else {
-          const entryFunctionInputTypeConverter = this.transformEntryFunctionInputTypes(fieldNames[i], functionArguments[i].kindArray, 0);
+          const entryFunctionInputTypeConverter = this.transformEntryFunctionInputTypes(
+            fieldNames[i],
+            functionArguments[i].kindArray,
+            0,
+          );
           lines.push(`${fieldNames[i]}: ${entryFunctionInputTypeConverter},`);
         }
       });
@@ -234,13 +257,9 @@ export class CodeGenerator {
 
   /**
    * The transformer function for converting the constructor input types to the view function JSON types.
-   * 
+   *
    */
-  transformViewFunctionInputTypes(
-    fieldName: string,
-    kindArray: BCSKindsWithGeneric,
-    depth: number,
-  ): string {
+  transformViewFunctionInputTypes(fieldName: string, kindArray: BCSKindsWithGeneric, depth: number): string {
     // replace MoveObject with AccountAddress for the constructor input types
     const kind = kindArray[0] === "MoveObject" ? AccountAddress.kind : kindArray[0];
     const nameFromDepth = depth === 0 ? `${fieldName}` : `arg${numberToLetter(depth)}`;
@@ -275,7 +294,6 @@ export class CodeGenerator {
         throw new Error(`Unknown kind: ${kind}`);
     }
   }
-
 
   /**
    * The transformer function for converting the constructor input types to the class field types
@@ -326,7 +344,11 @@ export class CodeGenerator {
     }
   }
 
-  getClassArgTypes(typeTags: Array<TypeTag>, genericTypeParams: Array<MoveFunctionGenericTypeParam>, replaceOptionWithVector = true): EntryFunctionArgumentSignature {
+  getClassArgTypes(
+    typeTags: Array<TypeTag>,
+    genericTypeParams: Array<MoveFunctionGenericTypeParam>,
+    replaceOptionWithVector = true,
+  ): EntryFunctionArgumentSignature {
     const signerArguments = new Array<BCSClassAnnotated>();
     const functionArguments = new Array<BCSClassAnnotated>();
     const genericsWithAbilities = new Array<string>();
@@ -349,7 +371,7 @@ export class CodeGenerator {
         // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
         if (kindArray[kindArray.length - 1] === "GenericType") {
           const genericType = `T${genericsWithAbilities.length}`;
-          const constraints = `: ${genericTypeParams[genericsWithAbilities.length].constraints.join(' + ')}`;
+          const constraints = `: ${genericTypeParams[genericsWithAbilities.length].constraints.join(" + ")}`;
           // 2, because that's the length of ": ". We don't add it if there are no constraints
           const genericTypeWithConstraints = constraints.length > 2 ? `${genericType}${constraints}` : genericType;
           // Check if the second to last kind is an AccountAddress, because that's *always* an Object
@@ -368,7 +390,6 @@ export class CodeGenerator {
             //   kindString: kindArrayToString(kindArray),
             //   annotation,
             // });
-
           }
         }
 
@@ -377,7 +398,7 @@ export class CodeGenerator {
           kindArray[kindArray.length - 1] = "EntryFunctionArgumentTypes";
           moveArgString = kindArrayToString(kindArray);
         }
-        
+
         // Replacing the Option with a Vector is useful for the constructor input types since
         // ultimately it's the same serialization, and we can restrict the number of elements
         // with the input type at compile time.
@@ -424,141 +445,163 @@ export class CodeGenerator {
     let abiFunctions: AbiFunctions[] = [];
     let generatedCode: ABIGeneratedCodeMap = {};
 
-    await Promise.all(moduleABIs.filter(isAbiDefined).map(async (module) => {
-      const { abi } = module;
-      const exposedFunctions = abi.exposed_functions;
-      const sourceCode = sourceCodeMap[abi.name];
+    await Promise.all(
+      moduleABIs.filter(isAbiDefined).map(async (module) => {
+        const { abi } = module;
+        const exposedFunctions = abi.exposed_functions;
+        const sourceCode = sourceCodeMap[abi.name];
 
-      const publicEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility !== "private");
-      const privateEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility === "private");
-      const viewFunctions = exposedFunctions.filter((func) => func.is_view);
+        const publicEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility !== "private");
+        const privateEntryFunctions = exposedFunctions.filter((func) => func.is_entry && func.visibility === "private");
+        const viewFunctions = exposedFunctions.filter((func) => func.is_view);
 
-      const publicMapping = getArgNameMapping(abi, publicEntryFunctions, sourceCode);
-      const privateMapping = getArgNameMapping(abi, privateEntryFunctions, sourceCode);
-      const viewMapping = getArgNameMapping(abi, viewFunctions, sourceCode);
+        const publicMapping = getArgNameMapping(abi, publicEntryFunctions, sourceCode);
+        const privateMapping = getArgNameMapping(abi, privateEntryFunctions, sourceCode);
+        const viewMapping = getArgNameMapping(abi, viewFunctions, sourceCode);
 
-      const abiFunction = {
-        moduleAddress: AccountAddress.fromRelaxed(abi.address),
-        moduleName: abi.name,
-        publicEntryFunctions: getMoveFunctionsWithArgumentNames(abi, publicEntryFunctions, publicMapping),
-        privateEntryFunctions: getMoveFunctionsWithArgumentNames(abi, privateEntryFunctions, privateMapping),
-        viewFunctions: getMoveFunctionsWithArgumentNames(abi, viewFunctions, viewMapping),
-      };
-
-      // TODO: fix private functions printing twice?
-
-      abiFunctions.push(abiFunction);
-      const moduleName = toPascalCase(abiFunction.moduleName);
-      // TODO: Remove this? We may not need it now that we are using namespaces only.
-      // const sanitizedModuleName = sanitizeName(moduleName);
-
-      // count the number of typeTags in the ABI
-      // then populate the typeTags array with the correct number of generic type tags
-      // and hard code them 1 by 1 into the generated code
-      // you can also use this to count/match generics to a type `T` in Object<T>
-
-      const functionsWithAnyVisibility = [abiFunction.publicEntryFunctions, abiFunction.privateEntryFunctions, abiFunction.viewFunctions];
-      const codeForFunctionsWithAnyVisibility: Array<Array<string | undefined>> = [[], [], []];
-      functionsWithAnyVisibility.forEach((functions, i) => {
-        if (functions.length > 0) {
-          codeForFunctionsWithAnyVisibility[i].push(...functions.map((func) => {
-            try {
-              const typeTags = func.params.map((param) => parseTypeTag(param, { allowGenerics: true }));
-              const generatedClassesCode = this.metaclassBuilder({
-                moduleAddress: abiFunction.moduleAddress,
-                moduleName: abiFunction.moduleName,
-                functionName: func.name,
-                className: `${toPascalCase(func.name)}`,
-                typeTags: typeTags,
-                genericTypeTags: func.genericTypes,
-                viewFunction: func.is_view,
-                displaySignerArgsAsComments: true,
-                suppliedFieldNames: func.argNames,
-                visibility: func.visibility as "public" | "private",
-                genericTypeParams: func.generic_type_params,
-                documentation: {
-                  fullStructNames: false,
-                  displayFunctionSignature: true,
-                }
-              });
-              return generatedClassesCode;
-            } catch (e) {
-              if (func.params.find((param) => param.startsWith("&0x"))) {
-                console.warn(`Ignoring deprecated parameter ${func.params.find((param) => param.startsWith("&0x"))} in function ${func.name}`);
-              } else {
-                const typeTags = func.params.map((param) => parseTypeTag(param, { allowGenerics: true }));
-                console.log(func.genericTypes);
-                console.log(typeTags.map((typeTag) => typeTag.toString()));
-                console.log(abiFunction.moduleAddress.toString());
-                console.log(abiFunction.moduleName);
-                console.log(func.name);
-                console.error(e)
-              }
-            }
-          }));
-        }
-      });
-      const publicFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[0];
-      const privateFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[1];
-      const viewFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[2];
-
-      const publicFunctionsCodeString = `\n${publicFunctionsCode.join("\n")}`;
-      const privateFunctionsCodeString = `\n${privateFunctionsCode.join("\n")}\n`;
-      const viewFunctionsCodeString = `\n${viewFunctionsCode.join("\n")}\n`;
-
-      const namespaceString = `export namespace ${moduleName} {\n`;
-      const entryFunctionsNamespace = `export namespace EntryFunctions {\n${publicFunctionsCodeString}${privateFunctionsCodeString}}`;
-      const viewFunctionsNamespace = `export namespace ViewFunctions {\n${viewFunctionsCodeString}}`;
-      
-      if (publicFunctionsCode.length + privateFunctionsCode.length + viewFunctionsCode.length > 0) {
-        let code = `${namespaceString}`;
-        code += entryFunctionsNamespace;
-        code += viewFunctionsNamespace;
-        code += `}`;
-        generatedCode[abi.name] = {
-          address: abi.address,
-          name: abi.name,
-          code: await prettier.format(code, { parser: "typescript" }),
+        const abiFunction = {
+          moduleAddress: AccountAddress.fromRelaxed(abi.address),
+          moduleName: abi.name,
+          publicEntryFunctions: getMoveFunctionsWithArgumentNames(abi, publicEntryFunctions, publicMapping),
+          privateEntryFunctions: getMoveFunctionsWithArgumentNames(abi, privateEntryFunctions, privateMapping),
+          viewFunctions: getMoveFunctionsWithArgumentNames(abi, viewFunctions, viewMapping),
         };
-      }
-    }));
+
+        // TODO: fix private functions printing twice?
+
+        abiFunctions.push(abiFunction);
+        const moduleName = toPascalCase(abiFunction.moduleName);
+        // TODO: Remove this? We may not need it now that we are using namespaces only.
+        // const sanitizedModuleName = sanitizeName(moduleName);
+
+        // count the number of typeTags in the ABI
+        // then populate the typeTags array with the correct number of generic type tags
+        // and hard code them 1 by 1 into the generated code
+        // you can also use this to count/match generics to a type `T` in Object<T>
+
+        const functionsWithAnyVisibility = [
+          abiFunction.publicEntryFunctions,
+          abiFunction.privateEntryFunctions,
+          abiFunction.viewFunctions,
+        ];
+        const codeForFunctionsWithAnyVisibility: Array<Array<string | undefined>> = [[], [], []];
+        functionsWithAnyVisibility.forEach((functions, i) => {
+          if (functions.length > 0) {
+            codeForFunctionsWithAnyVisibility[i].push(
+              ...functions.map((func) => {
+                try {
+                  const typeTags = func.params.map((param) => parseTypeTag(param, { allowGenerics: true }));
+                  const generatedClassesCode = this.metaclassBuilder({
+                    moduleAddress: abiFunction.moduleAddress,
+                    moduleName: abiFunction.moduleName,
+                    functionName: func.name,
+                    className: `${toPascalCase(func.name)}`,
+                    typeTags: typeTags,
+                    genericTypeTags: func.genericTypes,
+                    viewFunction: func.is_view,
+                    displaySignerArgsAsComments: true,
+                    suppliedFieldNames: func.argNames,
+                    visibility: func.visibility as "public" | "private",
+                    genericTypeParams: func.generic_type_params,
+                    documentation: {
+                      fullStructNames: false,
+                      displayFunctionSignature: true,
+                    },
+                  });
+                  return generatedClassesCode;
+                } catch (e) {
+                  if (func.params.find((param) => param.startsWith("&0x"))) {
+                    console.warn(
+                      `Ignoring deprecated parameter ${func.params.find((param) =>
+                        param.startsWith("&0x"),
+                      )} in function ${func.name}`,
+                    );
+                  } else {
+                    const typeTags = func.params.map((param) => parseTypeTag(param, { allowGenerics: true }));
+                    console.log(func.genericTypes);
+                    console.log(typeTags.map((typeTag) => typeTag.toString()));
+                    console.log(abiFunction.moduleAddress.toString());
+                    console.log(abiFunction.moduleName);
+                    console.log(func.name);
+                    console.error(e);
+                  }
+                }
+              }),
+            );
+          }
+        });
+        const publicFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[0];
+        const privateFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[1];
+        const viewFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[2];
+
+        const publicFunctionsCodeString = `\n${publicFunctionsCode.join("\n")}`;
+        const privateFunctionsCodeString = `\n${privateFunctionsCode.join("\n")}\n`;
+        const viewFunctionsCodeString = `\n${viewFunctionsCode.join("\n")}\n`;
+
+        const namespaceString = `export namespace ${moduleName} {\n`;
+        const entryFunctionsNamespace = `export namespace EntryFunctions {\n${publicFunctionsCodeString}${privateFunctionsCodeString}}`;
+        const viewFunctionsNamespace = `export namespace ViewFunctions {\n${viewFunctionsCodeString}}`;
+
+        if (publicFunctionsCode.length + privateFunctionsCode.length + viewFunctionsCode.length > 0) {
+          let code = `${namespaceString}`;
+          code += entryFunctionsNamespace;
+          code += viewFunctionsNamespace;
+          code += `}`;
+          generatedCode[abi.name] = {
+            address: abi.address,
+            name: abi.name,
+            // code: await format(code, { parser: "typescript" }),
+            code: code,
+          };
+        }
+      }),
+    );
 
     return generatedCode;
   }
 
   async generateCodeForModules(aptos: Aptos, moduleAddresses: Array<AccountAddress>): Promise<void> {
     const baseDirectory = this.config.outputPath ?? ".";
-    const generatedIndexFile: Array<string> = [ BOILERPLATE_COPYRIGHT ];
-    await Promise.all(moduleAddresses.map(async (address) => {
-      const generatedCode = await this.fetchABIs(aptos, address);
-      const namedAddresses = this.config.namedAddresses ?? {};
-      const addressString = address.toString();
-      const namedAddress = addressString in namedAddresses ? namedAddresses[addressString] : addressString;
-      this.writeGeneratedCodeToFiles(namedAddress, baseDirectory, generatedCode);
-      const fileNamedAddress = namedAddress.startsWith('0x') ? truncateAddressForFileName(address) : toPascalCase(namedAddress);
-      generatedIndexFile.push(`export * as ${fileNamedAddress} from "./${namedAddress}";`);
-      generatedIndexFile.push("\n");
-      const filePath = `${baseDirectory}/index.ts`;
-      // Read from `index.ts` and check if the namedAddress is already in the file
-      // If it is, don't add it again
-      const newExport = `export * as ${fileNamedAddress} from "./${namedAddress}";\n`;
-      if (fs.existsSync(filePath)) {
-        const fileContents = fs.readFileSync(filePath, "utf8");
-        if (fileContents.includes(newExport)) {
-          // pass
+    const generatedIndexFile: Array<string> = [BOILERPLATE_COPYRIGHT];
+    await Promise.all(
+      moduleAddresses.map(async (address) => {
+        const generatedCode = await this.fetchABIs(aptos, address);
+        const namedAddresses = this.config.namedAddresses ?? {};
+        const addressString = address.toString();
+        const namedAddress = addressString in namedAddresses ? namedAddresses[addressString] : addressString;
+        this.writeGeneratedCodeToFiles(namedAddress, baseDirectory, generatedCode);
+        const fileNamedAddress = namedAddress.startsWith("0x")
+          ? truncateAddressForFileName(address)
+          : toPascalCase(namedAddress);
+        generatedIndexFile.push(`export * as ${fileNamedAddress} from "./${namedAddress}";`);
+        generatedIndexFile.push("\n");
+        const filePath = `${baseDirectory}/index.ts`;
+        // Read from `index.ts` and check if the namedAddress is already in the file
+        // If it is, don't add it again
+        const newExport = `export * as ${fileNamedAddress} from "./${namedAddress}";\n`;
+        if (fs.existsSync(filePath)) {
+          const fileContents = fs.readFileSync(filePath, "utf8");
+          if (fileContents.includes(newExport)) {
+            // pass
+          } else {
+            const newFileContents = fileContents + newExport;
+            fs.writeFileSync(filePath, newFileContents);
+          }
         } else {
-          const newFileContents = fileContents + newExport;
-          fs.writeFileSync(filePath, newFileContents);
+          fs.writeFileSync(filePath, generatedIndexFile.join("\n"));
         }
-      } else {
-        fs.writeFileSync(filePath, generatedIndexFile.join("\n"));
-      }
-    }));
+      }),
+    );
   }
 
-  writeGeneratedCodeToFiles(namedAddress: string, baseDirectory: string, codeMap: ABIGeneratedCodeMap, skipEmptyModules = true) {
-    const perAddressIndexFile: Array<string> = [ BOILERPLATE_COPYRIGHT ];
-    
+  writeGeneratedCodeToFiles(
+    namedAddress: string,
+    baseDirectory: string,
+    codeMap: ABIGeneratedCodeMap,
+    skipEmptyModules = true,
+  ) {
+    const perAddressIndexFile: Array<string> = [BOILERPLATE_COPYRIGHT];
+
     Object.keys(codeMap).forEach(async (moduleName, i) => {
       if (skipEmptyModules && (!codeMap[moduleName] || codeMap[moduleName].code.length === 0)) {
         console.debug(`Skipping empty module ${module}`);

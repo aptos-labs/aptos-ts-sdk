@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace AptosToken {
   export namespace EntryFunctions {
@@ -44,7 +68,7 @@ export namespace AptosToken {
         type: string, // String
         value: HexInput, // vector<u8>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -52,9 +76,7 @@ export namespace AptosToken {
           key: new MoveString(key),
           type: new MoveString(type),
           value: MoveVector.U8(value),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -81,14 +103,12 @@ export namespace AptosToken {
         creator: Account, // &signer
         token: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -154,7 +174,7 @@ export namespace AptosToken {
         tokens_freezable_by_creator: boolean, // bool
         royalty_numerator: Uint64, // u64
         royalty_denominator: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -198,14 +218,12 @@ export namespace AptosToken {
         creator: Account, // &signer
         token: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -247,7 +265,7 @@ export namespace AptosToken {
         property_keys: Array<string>, // vector<0x1::string::String>
         property_types: Array<string>, // vector<0x1::string::String>
         property_values: Array<HexInput>, // vector<vector<u8>>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -255,15 +273,9 @@ export namespace AptosToken {
           description: new MoveString(description),
           name: new MoveString(name),
           uri: new MoveString(uri),
-          property_keys: new MoveVector(
-            property_keys.map((argA) => new MoveString(argA))
-          ),
-          property_types: new MoveVector(
-            property_types.map((argA) => new MoveString(argA))
-          ),
-          property_values: new MoveVector(
-            property_values.map((argA) => MoveVector.U8(argA))
-          ),
+          property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
+          property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
+          property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
         };
       }
     }
@@ -308,7 +320,7 @@ export namespace AptosToken {
         property_types: Array<string>, // vector<0x1::string::String>
         property_values: Array<HexInput>, // vector<vector<u8>>
         soul_bound_to: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -316,15 +328,9 @@ export namespace AptosToken {
           description: new MoveString(description),
           name: new MoveString(name),
           uri: new MoveString(uri),
-          property_keys: new MoveVector(
-            property_keys.map((argA) => new MoveString(argA))
-          ),
-          property_types: new MoveVector(
-            property_types.map((argA) => new MoveString(argA))
-          ),
-          property_values: new MoveVector(
-            property_values.map((argA) => MoveVector.U8(argA))
-          ),
+          property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
+          property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
+          property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
           soul_bound_to: AccountAddress.fromRelaxed(soul_bound_to),
         };
       }
@@ -354,15 +360,13 @@ export namespace AptosToken {
         token: ObjectAddress, // Object<T0>
         key: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
           key: new MoveString(key),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -391,15 +395,13 @@ export namespace AptosToken {
         collection: ObjectAddress, // Object<T0>
         description: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           collection: AccountAddress.fromRelaxed(collection),
           description: new MoveString(description),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -428,15 +430,13 @@ export namespace AptosToken {
         collection: ObjectAddress, // Object<T0>
         uri: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           collection: AccountAddress.fromRelaxed(collection),
           uri: new MoveString(uri),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -465,15 +465,13 @@ export namespace AptosToken {
         token: ObjectAddress, // Object<T0>
         description: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
           description: new MoveString(description),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -502,15 +500,13 @@ export namespace AptosToken {
         token: ObjectAddress, // Object<T0>
         name: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
           name: new MoveString(name),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -539,15 +535,13 @@ export namespace AptosToken {
         token: ObjectAddress, // Object<T0>
         uri: string, // String
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
           uri: new MoveString(uri),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -573,14 +567,12 @@ export namespace AptosToken {
         creator: Account, // &signer
         token: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -615,7 +607,7 @@ export namespace AptosToken {
         type: string, // String
         value: HexInput, // vector<u8>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -623,9 +615,7 @@ export namespace AptosToken {
           key: new MoveString(key),
           type: new MoveString(type),
           value: MoveVector.U8(value),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -661,7 +651,7 @@ export namespace AptosToken {
         royalty_denominator: Uint64, // u64
         payee_address: AccountAddressInput, // address
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -669,9 +659,7 @@ export namespace AptosToken {
           royalty_numerator: new U64(royalty_numerator),
           royalty_denominator: new U64(royalty_denominator),
           payee_address: AccountAddress.fromRelaxed(payee_address),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -696,14 +684,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -726,14 +712,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -756,14 +740,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -786,14 +768,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -816,14 +796,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -846,14 +824,12 @@ export namespace AptosToken {
 
       constructor(
         token: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           token: AccountAddress.fromRelaxed(token),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }

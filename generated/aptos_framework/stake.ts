@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Stake {
   export namespace EntryFunctions {
@@ -33,7 +57,7 @@ export namespace Stake {
       constructor(
         arg_0: Account, // &signer
         arg_1: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -85,7 +109,7 @@ export namespace Stake {
         initial_stake_amount: Uint64, // u64
         operator: AccountAddressInput, // address
         voter: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -124,7 +148,7 @@ export namespace Stake {
         proof_of_possession: HexInput, // vector<u8>
         network_addresses: HexInput, // vector<u8>
         fullnode_addresses: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -155,7 +179,7 @@ export namespace Stake {
       constructor(
         arg_0: Account, // &signer
         arg_1: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -183,7 +207,7 @@ export namespace Stake {
       constructor(
         operator: Account, // &signer
         pool_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -211,7 +235,7 @@ export namespace Stake {
       constructor(
         owner: Account, // &signer
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -245,7 +269,7 @@ export namespace Stake {
         pool_address: AccountAddressInput, // address
         new_consensus_pubkey: HexInput, // vector<u8>
         proof_of_possession: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -275,7 +299,7 @@ export namespace Stake {
       constructor(
         arg_0: Account, // &signer
         arg_1: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -303,7 +327,7 @@ export namespace Stake {
       constructor(
         arg_0: Account, // &signer
         arg_1: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -331,7 +355,7 @@ export namespace Stake {
       constructor(
         owner: Account, // &signer
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -365,7 +389,7 @@ export namespace Stake {
         pool_address: AccountAddressInput, // address
         new_network_addresses: HexInput, // vector<u8>
         new_fullnode_addresses: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -397,14 +421,12 @@ export namespace Stake {
         arg_0: Account, // &signer
         arg_1: Uint64, // u64
         typeTags: Array<TypeTagInput>, //
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           arg_1: new U64(arg_1),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -427,7 +449,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        validator_index: Uint64 // u64
+        validator_index: Uint64, // u64
       ) {
         super();
         this.args = {
@@ -452,7 +474,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -477,7 +499,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -502,7 +524,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -527,7 +549,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -552,7 +574,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -577,7 +599,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -602,7 +624,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -627,7 +649,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -652,7 +674,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -677,7 +699,7 @@ export namespace Stake {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput // address
+        arg_0: AccountAddressInput, // address
       ) {
         super();
         this.args = {

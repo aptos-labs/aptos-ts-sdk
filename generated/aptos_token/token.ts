@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Token {
   export namespace EntryFunctions {
@@ -45,7 +69,7 @@ export namespace Token {
         name: string, // String
         property_version: Uint64, // u64
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -89,7 +113,7 @@ export namespace Token {
         name: string, // String
         property_version: Uint64, // u64
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -133,7 +157,7 @@ export namespace Token {
         uri: string, // String
         maximum: Uint64, // u64
         mutate_setting: Array<boolean>, // vector<bool>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -141,9 +165,7 @@ export namespace Token {
           description: new MoveString(description),
           uri: new MoveString(uri),
           maximum: new U64(maximum),
-          mutate_setting: new MoveVector(
-            mutate_setting.map((argA) => new Bool(argA))
-          ),
+          mutate_setting: new MoveVector(mutate_setting.map((argA) => new Bool(argA))),
         };
       }
     }
@@ -203,7 +225,7 @@ export namespace Token {
         property_keys: Array<string>, // vector<0x1::string::String>
         property_values: Array<HexInput>, // vector<vector<u8>>
         property_types: Array<string>, // vector<0x1::string::String>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -213,23 +235,13 @@ export namespace Token {
           balance: new U64(balance),
           maximum: new U64(maximum),
           uri: new MoveString(uri),
-          royalty_payee_address: AccountAddress.fromRelaxed(
-            royalty_payee_address
-          ),
+          royalty_payee_address: AccountAddress.fromRelaxed(royalty_payee_address),
           royalty_points_denominator: new U64(royalty_points_denominator),
           royalty_points_numerator: new U64(royalty_points_numerator),
-          mutate_setting: new MoveVector(
-            mutate_setting.map((argA) => new Bool(argA))
-          ),
-          property_keys: new MoveVector(
-            property_keys.map((argA) => new MoveString(argA))
-          ),
-          property_values: new MoveVector(
-            property_values.map((argA) => MoveVector.U8(argA))
-          ),
-          property_types: new MoveVector(
-            property_types.map((argA) => new MoveString(argA))
-          ),
+          mutate_setting: new MoveVector(mutate_setting.map((argA) => new Bool(argA))),
+          property_keys: new MoveVector(property_keys.map((argA) => new MoveString(argA))),
+          property_values: new MoveVector(property_values.map((argA) => MoveVector.U8(argA))),
+          property_types: new MoveVector(property_types.map((argA) => new MoveString(argA))),
         };
       }
     }
@@ -267,7 +279,7 @@ export namespace Token {
         name: string, // String
         property_version: Uint64, // u64
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -326,7 +338,7 @@ export namespace Token {
         collection: string, // String
         name: string, // String
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -381,7 +393,7 @@ export namespace Token {
         keys: Array<string>, // vector<0x1::string::String>
         values: Array<HexInput>, // vector<vector<u8>>
         types: Array<string>, // vector<0x1::string::String>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -417,7 +429,7 @@ export namespace Token {
       constructor(
         account: Account, // &signer
         opt_in: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -460,7 +472,7 @@ export namespace Token {
         token_property_version: Uint64, // u64
         to: AccountAddressInput, // address
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -495,7 +507,7 @@ export namespace Token {
 
       constructor(
         creator: AccountAddressInput, // address
-        collection_name: string // String
+        collection_name: string, // String
       ) {
         super();
         this.args = {

@@ -43,6 +43,7 @@
     "test": "pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",
+    "abi-test": "pnpm jest tests/e2e/abi && prettier 'generated/**/*.ts' --write",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh"
   },

@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace DelegationPool {
   export namespace EntryFunctions {
@@ -36,7 +60,7 @@ export namespace DelegationPool {
         delegator: Account, // &signer
         pool_address: AccountAddressInput, // address
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -77,7 +101,7 @@ export namespace DelegationPool {
         metadata_location: HexInput, // vector<u8>
         metadata_hash: HexInput, // vector<u8>
         is_multi_step_proposal: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -112,7 +136,7 @@ export namespace DelegationPool {
         delegator: Account, // &signer
         pool_address: AccountAddressInput, // address
         new_voter: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -139,7 +163,7 @@ export namespace DelegationPool {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -170,16 +194,12 @@ export namespace DelegationPool {
         owner: Account, // &signer
         operator_commission_percentage: Uint64, // u64
         delegation_pool_creation_seed: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          operator_commission_percentage: new U64(
-            operator_commission_percentage
-          ),
-          delegation_pool_creation_seed: MoveVector.U8(
-            delegation_pool_creation_seed
-          ),
+          operator_commission_percentage: new U64(operator_commission_percentage),
+          delegation_pool_creation_seed: MoveVector.U8(delegation_pool_creation_seed),
         };
       }
     }
@@ -206,7 +226,7 @@ export namespace DelegationPool {
         delegator: Account, // &signer
         pool_address: AccountAddressInput, // address
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -235,7 +255,7 @@ export namespace DelegationPool {
       constructor(
         operator: Account, // &signer
         new_beneficiary: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -263,7 +283,7 @@ export namespace DelegationPool {
       constructor(
         arg_0: Account, // &signer
         arg_1: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -291,7 +311,7 @@ export namespace DelegationPool {
       constructor(
         owner: Account, // &signer
         new_operator: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -317,7 +337,7 @@ export namespace DelegationPool {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -348,7 +368,7 @@ export namespace DelegationPool {
         delegator: Account, // &signer
         pool_address: AccountAddressInput, // address
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -386,7 +406,7 @@ export namespace DelegationPool {
         proposal_id: Uint64, // u64
         voting_power: Uint64, // u64
         should_pass: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -420,7 +440,7 @@ export namespace DelegationPool {
         delegator: Account, // &signer
         pool_address: AccountAddressInput, // address
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -448,7 +468,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput // address
+        arg_0: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -476,7 +496,7 @@ export namespace DelegationPool {
 
       constructor(
         pool_address: AccountAddressInput, // address
-        delegator_address: AccountAddressInput // address
+        delegator_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -501,15 +521,14 @@ export namespace DelegationPool {
     export class CalculateAndUpdateRemainingVotingPower extends ViewFunctionPayloadBuilder {
       public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
       public readonly moduleName = "delegation_pool";
-      public readonly functionName =
-        "calculate_and_update_remaining_voting_power";
+      public readonly functionName = "calculate_and_update_remaining_voting_power";
       public readonly args: CalculateAndUpdateRemainingVotingPowerPayloadMoveArguments;
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
         pool_address: AccountAddressInput, // address
         voter_address: AccountAddressInput, // address
-        proposal_id: Uint64 // u64
+        proposal_id: Uint64, // u64
       ) {
         super();
         this.args = {
@@ -533,14 +552,13 @@ export namespace DelegationPool {
     export class CalculateAndUpdateVoterTotalVotingPower extends ViewFunctionPayloadBuilder {
       public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
       public readonly moduleName = "delegation_pool";
-      public readonly functionName =
-        "calculate_and_update_voter_total_voting_power";
+      public readonly functionName = "calculate_and_update_voter_total_voting_power";
       public readonly args: CalculateAndUpdateVoterTotalVotingPowerPayloadMoveArguments;
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
         pool_address: AccountAddressInput, // address
-        voter: AccountAddressInput // address
+        voter: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -566,7 +584,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -591,7 +609,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -619,7 +637,7 @@ export namespace DelegationPool {
 
       constructor(
         pool_address: AccountAddressInput, // address
-        amount: Uint64 // u64
+        amount: Uint64, // u64
       ) {
         super();
         this.args = {
@@ -645,7 +663,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -673,14 +691,12 @@ export namespace DelegationPool {
 
       constructor(
         owner: AccountAddressInput, // address
-        delegation_pool_creation_seed: HexInput // vector<u8>
+        delegation_pool_creation_seed: HexInput, // vector<u8>
       ) {
         super();
         this.args = {
           owner: AccountAddress.fromRelaxed(owner),
-          delegation_pool_creation_seed: Hex.fromHexInput(
-            delegation_pool_creation_seed
-          ),
+          delegation_pool_creation_seed: Hex.fromHexInput(delegation_pool_creation_seed),
         };
       }
     }
@@ -701,7 +717,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        owner: AccountAddressInput // address
+        owner: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -729,7 +745,7 @@ export namespace DelegationPool {
 
       constructor(
         pool_address: AccountAddressInput, // address
-        delegator_address: AccountAddressInput // address
+        delegator_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -758,7 +774,7 @@ export namespace DelegationPool {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput // address
+        arg_1: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -784,7 +800,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -809,7 +825,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -834,7 +850,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -859,7 +875,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -884,7 +900,7 @@ export namespace DelegationPool {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        pool_address: AccountAddressInput // address
+        pool_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {

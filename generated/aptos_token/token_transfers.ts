@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace TokenTransfers {
   export namespace EntryFunctions {
@@ -45,7 +69,7 @@ export namespace TokenTransfers {
         collection: string, // String
         name: string, // String
         property_version: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -89,7 +113,7 @@ export namespace TokenTransfers {
         collection: string, // String
         name: string, // String
         property_version: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -136,7 +160,7 @@ export namespace TokenTransfers {
         name: string, // String
         property_version: Uint64, // u64
         amount: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {

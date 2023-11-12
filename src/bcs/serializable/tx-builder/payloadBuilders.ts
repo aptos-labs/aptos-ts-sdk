@@ -15,7 +15,13 @@ import {
   TypeTag,
   buildTransaction,
 } from "../../../transactions";
-import { LedgerVersion, MoveValue, UserTransactionResponse, ViewRequestData, WaitForTransactionOptions } from "../../../types";
+import {
+  LedgerVersion,
+  MoveValue,
+  UserTransactionResponse,
+  ViewRequestData,
+  WaitForTransactionOptions,
+} from "../../../types";
 import { Serializable, Serializer } from "../../serializer";
 
 export abstract class EntryFunctionPayloadBuilder extends Serializable {
@@ -31,19 +37,23 @@ export abstract class EntryFunctionPayloadBuilder extends Serializable {
       new Identifier(this.functionName),
       this.typeArgs,
       this.argsToArray(),
-      );
+    );
     const entryFunctionPayload = new TransactionPayloadEntryFunction(entryFunction);
-      if (multisigAddress) {
-        const multisigPayload = new MultisigTransactionPayload(entryFunction);
-        return new TransactionPayloadMultisig(new MultiSig(multisigAddress, multisigPayload));
-      }
+    if (multisigAddress) {
+      const multisigPayload = new MultisigTransactionPayload(entryFunction);
+      return new TransactionPayloadMultisig(new MultiSig(multisigAddress, multisigPayload));
+    }
     return entryFunctionPayload;
   }
 
   // You can only submit a regular transaction with this function.
   // if you wish to submit this payload as a multisig transaction for `multisig_account.move`, please use the `submitMultisig` function.
   // TODO: Add `submitMultisig` function
-  async submit(args: { signer: Account, aptos: Aptos, options?: WaitForTransactionOptions }): Promise<UserTransactionResponse> {
+  async submit(args: {
+    signer: Account;
+    aptos: Aptos;
+    options?: WaitForTransactionOptions;
+  }): Promise<UserTransactionResponse> {
     const { signer, aptos, options } = args;
     const rawTransaction = await buildTransaction({
       aptosConfig: aptos.config,
@@ -85,7 +95,7 @@ export abstract class ViewFunctionPayloadBuilder {
       function: `${this.moduleAddress.toString()}::${this.moduleName}::${this.functionName}`,
       typeArguments: this.typeArgs.map((type) => type.toString() as `0x${string}::${string}::${string}`),
       functionArguments: this.argsToArray(),
-    }
+    };
   }
 
   // TODO: Add support for typed responses, so you know what the view function is returning.
@@ -95,7 +105,7 @@ export abstract class ViewFunctionPayloadBuilder {
   // struct MyViewRequest {
   //    field_1: u64,
   //    field_2: bool,
-  //    field_3: MyOtherStruct, 
+  //    field_3: MyOtherStruct,
   // }
   //      would be:
   // struct MyViewResponse {
@@ -103,13 +113,13 @@ export abstract class ViewFunctionPayloadBuilder {
   //    field_2: bool,
   //    field_3: MoveValue,
   // }
-  async submit(args: {aptos: Aptos, options?: LedgerVersion}): Promise<MoveValue> {
+  async submit(args: { aptos: Aptos; options?: LedgerVersion }): Promise<MoveValue> {
     const { aptos, options } = args;
     const viewRequest = await aptos.view({
       payload: this.toPayload(),
       options,
     });
-    // TODO: Fix/inspect why view requests always return an array with the first value as the response data 
+    // TODO: Fix/inspect why view requests always return an array with the first value as the response data
     return viewRequest[0];
   }
 
@@ -129,4 +139,3 @@ export abstract class ViewFunctionPayloadBuilder {
     });
   }
 }
-

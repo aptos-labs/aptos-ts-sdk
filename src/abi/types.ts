@@ -2,7 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountAddress, AccountAddressInput } from "../core";
-import { MoveAbility, MoveFunction, MoveFunctionGenericTypeParam, Uint128, Uint16, Uint256, Uint32, Uint64, Uint8 } from "../types";
+import {
+  MoveAbility,
+  MoveFunction,
+  MoveFunctionGenericTypeParam,
+  Uint128,
+  Uint16,
+  Uint256,
+  Uint32,
+  Uint64,
+  Uint8,
+} from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../bcs";
 import { AccountAuthenticator, TypeTag, TypeTagStruct } from "../transactions";
 
@@ -17,9 +27,9 @@ export type AbiFunctions = {
 };
 
 export type ArgumentNamesWithTypesAndGenericTypes = {
-  genericTypes: string | null,
-  argumentNamesWithTypes: Array<ArgumentNamesWithTypes>,
-}
+  genericTypes: string | null;
+  argumentNamesWithTypes: Array<ArgumentNamesWithTypes>;
+};
 
 export type ArgumentNamesWithTypes = {
   argName: string;
@@ -28,12 +38,27 @@ export type ArgumentNamesWithTypes = {
 
 export type ModuleFunctionArgNameMap = Record<string, Record<string, ArgumentNamesWithTypesAndGenericTypes>>;
 
-export type BCSKinds = typeof BCSClassesTypes[keyof typeof BCSClassesTypes]["kind"] | "MoveObject" | "GenericType" | "EntryFunctionArgumentTypes";
+export type BCSKinds =
+  | (typeof BCSClassesTypes)[keyof typeof BCSClassesTypes]["kind"]
+  | "MoveObject"
+  | "GenericType"
+  | "EntryFunctionArgumentTypes";
 
 export type GenericKind = `T${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ""}`;
 
 export type ObjectAddress = AccountAddressInput;
-export type InputTypes = boolean | Uint8 | Uint16 | Uint32 | Uint64 | Uint128 | Uint256 | AccountAddressInput | string | ObjectAddress | Array<InputTypes>;
+export type InputTypes =
+  | boolean
+  | Uint8
+  | Uint16
+  | Uint32
+  | Uint64
+  | Uint128
+  | Uint256
+  | AccountAddressInput
+  | string
+  | ObjectAddress
+  | Array<InputTypes>;
 export type TypeTagInput = string | TypeTag;
 
 export type MoveFunctionWithArgumentNamesAndGenericTypes = MoveFunction & {
@@ -103,19 +128,19 @@ export type ABIGeneratedCodeMap = Record<string, ABIGeneratedCode>;
 export type MoveObject = AccountAddress;
 
 export type codeGeneratorOptions = {
-  moduleAddress: AccountAddress,
-  moduleName: string,
-  functionName: string,
-  className: string,
-  typeTags: Array<TypeTag>,
-  genericTypeTags: string | null, // as a string, not parsed yet
-  genericTypeParams: Array<MoveFunctionGenericTypeParam>,
-  viewFunction?: boolean,
-  displaySignerArgsAsComments?: boolean,
-  suppliedFieldNames?: Array<string>,
-  visibility?: "public" | "private",
+  moduleAddress: AccountAddress;
+  moduleName: string;
+  functionName: string;
+  className: string;
+  typeTags: Array<TypeTag>;
+  genericTypeTags: string | null; // as a string, not parsed yet
+  genericTypeParams: Array<MoveFunctionGenericTypeParam>;
+  viewFunction?: boolean;
+  displaySignerArgsAsComments?: boolean;
+  suppliedFieldNames?: Array<string>;
+  visibility?: "public" | "private";
   documentation?: {
-    displayFunctionSignature?: boolean,
-    fullStructNames?: boolean,
-  }
-}
+    displayFunctionSignature?: boolean;
+    fullStructNames?: boolean;
+  };
+};

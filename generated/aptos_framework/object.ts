@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Object {
   export namespace EntryFunctions {
@@ -35,14 +59,12 @@ export namespace Object {
         owner: Account, // &signer
         object: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           object: AccountAddress.fromRelaxed(object),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -70,7 +92,7 @@ export namespace Object {
         owner: Account, // &signer
         object: AccountAddressInput, // address
         to: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -104,15 +126,13 @@ export namespace Object {
         object: ObjectAddress, // Object<T0>
         to: ObjectAddress, // Object<T1>
         typeTags: Array<TypeTagInput>, // T0: key, T1: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           object: AccountAddress.fromRelaxed(object),
           to: AccountAddress.fromRelaxed(to),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -138,14 +158,12 @@ export namespace Object {
         original_owner: Account, // &signer
         object: ObjectAddress, // Object<T0>
         typeTags: Array<TypeTagInput>, // T0: key
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           object: AccountAddress.fromRelaxed(object),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -170,14 +188,12 @@ export namespace Object {
 
       constructor(
         object: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           object: AccountAddress.fromRelaxed(object),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }

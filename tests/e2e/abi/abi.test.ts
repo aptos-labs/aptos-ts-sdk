@@ -1,10 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, Aptos, AptosConfig, Hex, MoveString, Network } from "../../../src";
+import { Account, AccountAddress, Aptos, AptosConfig, Ed25519PrivateKey, Hex, MoveString, Network } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
-import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
-import { RockPaperScissor, TournamentManager } from "../../../src/abi/tournament";
+import { PUBLISHER_ACCOUNT_PK, fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
 import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
@@ -30,7 +29,10 @@ describe.only("abi test", () => {
   it.only("parses abis correctly", async () => {
     const aptosDevnet = new Aptos(new AptosConfig({ network: Network.DEVNET }));
     const aptosTestnet = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-    const account = Account.generate();
+    const account = Account.fromPrivateKey({
+      privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
+      legacy: false,
+    });
     await aptosDevnet.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
     await publishArgumentTestModule(aptosDevnet, account);
 
@@ -71,7 +73,7 @@ describe.only("abi test", () => {
     const accountAddress = AccountAddress.fromRelaxed("0x1");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
-    
+
     // eslint-disable-next-line no-console
     // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
 
@@ -103,7 +105,7 @@ describe.only("abi test", () => {
     // const batchTransferPayloadSerialized = batchTransferPayload.bcsToBytes();
   });
 
-  it("tests rock paper scissors commands", async () => {
+  /*  it("tests rock paper scissors commands", async () => {
     const tournamentManager = Account.generate();
     const account1 = Account.generate();
     const account2 = Account.generate();
@@ -206,6 +208,7 @@ describe.only("abi test", () => {
     const responseVerify2 = await verifyAction2.submitAndWaitForResponse();
     console.log(responseVerify2);
   });
+  */
 
   it("gets package metadata", async () => {
     const accountAddress = AccountAddress.fromRelaxed(

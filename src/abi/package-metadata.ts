@@ -60,9 +60,9 @@ export async function getSourceCodeMap(
 }
 
 export type FunctionSignatureWithTypeTags = {
-  genericTypeTags: string | null,
-  functionSignature: string | null,
-}
+  genericTypeTags: string | null;
+  functionSignature: string | null;
+};
 
 export function extractSignature(functionName: string, sourceCode: string): FunctionSignatureWithTypeTags {
   // find the function signature in the source code
@@ -75,7 +75,7 @@ export function extractSignature(functionName: string, sourceCode: string): Func
   return {
     genericTypeTags: genericTypeTags,
     functionSignature: match ? match[2].trim() : null,
-  }
+  };
 }
 
 export function extractArguments(functionSignature: string): ArgumentNamesWithTypes[] {
@@ -113,7 +113,7 @@ export function getArgNameMapping(
       modulesWithFunctionSignatures[abi.name][func.name] = {
         genericTypes: genericTypeTags,
         argumentNamesWithTypes: args,
-      }
+      };
     }
   });
 

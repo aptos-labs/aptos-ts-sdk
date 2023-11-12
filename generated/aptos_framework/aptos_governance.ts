@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace AptosGovernance {
   export namespace EntryFunctions {
@@ -31,7 +55,7 @@ export namespace AptosGovernance {
 
       constructor(
         proposal_id: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -68,7 +92,7 @@ export namespace AptosGovernance {
         execution_hash: HexInput, // vector<u8>
         metadata_location: HexInput, // vector<u8>
         metadata_hash: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -111,7 +135,7 @@ export namespace AptosGovernance {
         arg_3: HexInput, // vector<u8>
         arg_4: HexInput, // vector<u8>
         arg_5: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -152,7 +176,7 @@ export namespace AptosGovernance {
         proposal_id: Uint64, // u64
         voting_power: Uint64, // u64
         should_pass: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -189,7 +213,7 @@ export namespace AptosGovernance {
         stake_pool: AccountAddressInput, // address
         proposal_id: Uint64, // u64
         should_pass: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -237,7 +261,7 @@ export namespace AptosGovernance {
 
       constructor(
         stake_pool: AccountAddressInput, // address
-        proposal_id: Uint64 // u64
+        proposal_id: Uint64, // u64
       ) {
         super();
         this.args = {
@@ -297,7 +321,7 @@ export namespace AptosGovernance {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput // address
+        arg_0: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -325,7 +349,7 @@ export namespace AptosGovernance {
 
       constructor(
         stake_pool: AccountAddressInput, // address
-        proposal_id: Uint64 // u64
+        proposal_id: Uint64, // u64
       ) {
         super();
         this.args = {

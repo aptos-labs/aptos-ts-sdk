@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace PrimaryFungibleStore {
   export namespace EntryFunctions {
@@ -39,7 +63,7 @@ export namespace PrimaryFungibleStore {
         arg_1: ObjectAddress, // Object<T0>
         arg_2: AccountAddressInput, // address
         arg_3: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -73,15 +97,13 @@ export namespace PrimaryFungibleStore {
       constructor(
         account: AccountAddressInput, // address
         metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           account: AccountAddress.fromRelaxed(account),
           metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -107,15 +129,13 @@ export namespace PrimaryFungibleStore {
       constructor(
         account: AccountAddressInput, // address
         metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           account: AccountAddress.fromRelaxed(account),
           metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -139,7 +159,7 @@ export namespace PrimaryFungibleStore {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        arg_1: ObjectAddress // Object<T0>
+        arg_1: ObjectAddress, // Object<T0>
       ) {
         super();
         this.args = {
@@ -170,15 +190,13 @@ export namespace PrimaryFungibleStore {
       constructor(
         owner: AccountAddressInput, // address
         metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           owner: AccountAddress.fromRelaxed(owner),
           metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -204,15 +222,13 @@ export namespace PrimaryFungibleStore {
       constructor(
         owner: AccountAddressInput, // address
         metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput> // T0: key
+        typeTags: Array<TypeTagInput>, // T0: key
       ) {
         super();
         this.args = {
           owner: AccountAddress.fromRelaxed(owner),
           metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }

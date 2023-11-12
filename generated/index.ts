@@ -3,4 +3,5 @@
 
 export * as AptosTokenObjects from "./aptos_token_objects";
 
-export * as AptosToken from "./aptos_token";export * as AptosFramework from "./aptos_framework";
+export * as AptosToken from "./aptos_token";
+export * as AptosFramework from "./aptos_framework";

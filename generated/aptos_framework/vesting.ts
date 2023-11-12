@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Vesting {
   export namespace EntryFunctions {
@@ -33,7 +57,7 @@ export namespace Vesting {
       constructor(
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -59,7 +83,7 @@ export namespace Vesting {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -85,13 +109,11 @@ export namespace Vesting {
 
       constructor(
         contract_addresses: Array<AccountAddressInput>, // vector<address>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          contract_addresses: new MoveVector(
-            contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))
-          ),
+          contract_addresses: new MoveVector(contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))),
         };
       }
     }
@@ -118,7 +140,7 @@ export namespace Vesting {
         account: Account, // &signer
         contract_address: AccountAddressInput, // address
         shareholder: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -147,7 +169,7 @@ export namespace Vesting {
       constructor(
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -181,7 +203,7 @@ export namespace Vesting {
         contract_address: AccountAddressInput, // address
         shareholder: AccountAddressInput, // address
         new_beneficiary: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -211,7 +233,7 @@ export namespace Vesting {
       constructor(
         operator: Account, // &signer
         new_beneficiary: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -242,13 +264,12 @@ export namespace Vesting {
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
         beneficiary_resetter: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           contract_address: AccountAddress.fromRelaxed(contract_address),
-          beneficiary_resetter:
-            AccountAddress.fromRelaxed(beneficiary_resetter),
+          beneficiary_resetter: AccountAddress.fromRelaxed(beneficiary_resetter),
         };
       }
     }
@@ -278,7 +299,7 @@ export namespace Vesting {
         contract_address: AccountAddressInput, // address
         role: string, // String
         role_holder: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -308,7 +329,7 @@ export namespace Vesting {
       constructor(
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -334,7 +355,7 @@ export namespace Vesting {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -360,13 +381,11 @@ export namespace Vesting {
 
       constructor(
         contract_addresses: Array<AccountAddressInput>, // vector<address>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          contract_addresses: new MoveVector(
-            contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))
-          ),
+          contract_addresses: new MoveVector(contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))),
         };
       }
     }
@@ -393,7 +412,7 @@ export namespace Vesting {
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
         new_commission_percentage: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -428,7 +447,7 @@ export namespace Vesting {
         contract_address: AccountAddressInput, // address
         new_operator: AccountAddressInput, // address
         commission_percentage: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -461,7 +480,7 @@ export namespace Vesting {
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
         new_operator: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -493,7 +512,7 @@ export namespace Vesting {
         admin: Account, // &signer
         contract_address: AccountAddressInput, // address
         new_voter: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -520,7 +539,7 @@ export namespace Vesting {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -546,13 +565,11 @@ export namespace Vesting {
 
       constructor(
         contract_addresses: Array<AccountAddressInput>, // vector<address>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          contract_addresses: new MoveVector(
-            contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))
-          ),
+          contract_addresses: new MoveVector(contract_addresses.map((argA) => AccountAddress.fromRelaxed(argA))),
         };
       }
     }
@@ -578,13 +595,11 @@ export namespace Vesting {
 
       constructor(
         vesting_contract_address: AccountAddressInput, // address
-        shareholder: AccountAddressInput // address
+        shareholder: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
           shareholder: AccountAddress.fromRelaxed(shareholder),
         };
       }
@@ -606,13 +621,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -633,13 +646,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -660,13 +671,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -687,13 +696,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -717,7 +724,7 @@ export namespace Vesting {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        arg_1: AccountAddressInput // address
+        arg_1: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -743,13 +750,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -770,13 +775,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -797,13 +800,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -824,7 +825,7 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        admin: AccountAddressInput // address
+        admin: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -849,13 +850,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -876,13 +875,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }
@@ -903,13 +900,11 @@ export namespace Vesting {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        vesting_contract_address: AccountAddressInput // address
+        vesting_contract_address: AccountAddressInput, // address
       ) {
         super();
         this.args = {
-          vesting_contract_address: AccountAddress.fromRelaxed(
-            vesting_contract_address
-          ),
+          vesting_contract_address: AccountAddress.fromRelaxed(vesting_contract_address),
         };
       }
     }

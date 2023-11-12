@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Voting {
   export namespace EntryFunctions {}
@@ -36,16 +60,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -71,16 +92,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -106,16 +124,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -141,16 +156,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -176,16 +188,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -211,16 +220,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -249,17 +255,14 @@ export namespace Voting {
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
         metadata_key: string, // String
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
           metadata_key: metadata_key,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -285,15 +288,13 @@ export namespace Voting {
       constructor(
         arg_0: AccountAddressInput, // address
         arg_1: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
           arg_0: AccountAddress.fromRelaxed(arg_0),
           arg_1: arg_1,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -319,16 +320,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -354,16 +352,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -389,16 +384,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -422,7 +414,7 @@ export namespace Voting {
 
       constructor(
         arg_0: AccountAddressInput, // address
-        arg_1: Uint64 // u64
+        arg_1: Uint64, // u64
       ) {
         super();
         this.args = {
@@ -453,16 +445,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -488,16 +477,13 @@ export namespace Voting {
       constructor(
         voting_forum_address: AccountAddressInput, // address
         proposal_id: Uint64, // u64
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
           proposal_id: proposal_id,
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -520,15 +506,12 @@ export namespace Voting {
 
       constructor(
         voting_forum_address: AccountAddressInput, // address
-        typeTags: Array<TypeTagInput> //
+        typeTags: Array<TypeTagInput>, //
       ) {
         super();
         this.args = {
-          voting_forum_address:
-            AccountAddress.fromRelaxed(voting_forum_address),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          voting_forum_address: AccountAddress.fromRelaxed(voting_forum_address),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }

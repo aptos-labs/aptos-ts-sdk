@@ -24,4 +24,3 @@ export * as MultisigAccount from "./multisig_account";
 export * as ResourceAccount from "./resource_account";
 export * as StakingContract from "./staking_contract";
 export * as PrimaryFungibleStore from "./primary_fungible_store";
-

@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace Account {
   export namespace EntryFunctions {
@@ -42,13 +66,11 @@ export namespace Account {
         account_scheme: Uint8, // u8
         account_public_key_bytes: HexInput, // vector<u8>
         recipient_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          rotation_capability_sig_bytes: MoveVector.U8(
-            rotation_capability_sig_bytes
-          ),
+          rotation_capability_sig_bytes: MoveVector.U8(rotation_capability_sig_bytes),
           account_scheme: new U8(account_scheme),
           account_public_key_bytes: MoveVector.U8(account_public_key_bytes),
           recipient_address: AccountAddress.fromRelaxed(recipient_address),
@@ -84,13 +106,11 @@ export namespace Account {
         account_scheme: Uint8, // u8
         account_public_key_bytes: HexInput, // vector<u8>
         recipient_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          signer_capability_sig_bytes: MoveVector.U8(
-            signer_capability_sig_bytes
-          ),
+          signer_capability_sig_bytes: MoveVector.U8(signer_capability_sig_bytes),
           account_scheme: new U8(account_scheme),
           account_public_key_bytes: MoveVector.U8(account_public_key_bytes),
           recipient_address: AccountAddress.fromRelaxed(recipient_address),
@@ -153,13 +173,11 @@ export namespace Account {
       constructor(
         account: Account, // &signer
         to_be_revoked_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          to_be_revoked_address: AccountAddress.fromRelaxed(
-            to_be_revoked_address
-          ),
+          to_be_revoked_address: AccountAddress.fromRelaxed(to_be_revoked_address),
         };
       }
     }
@@ -183,13 +201,11 @@ export namespace Account {
       constructor(
         account: Account, // &signer
         to_be_revoked_address: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          to_be_revoked_address: AccountAddress.fromRelaxed(
-            to_be_revoked_address
-          ),
+          to_be_revoked_address: AccountAddress.fromRelaxed(to_be_revoked_address),
         };
       }
     }
@@ -228,7 +244,7 @@ export namespace Account {
         to_public_key_bytes: HexInput, // vector<u8>
         cap_rotate_key: HexInput, // vector<u8>
         cap_update_table: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -241,13 +257,12 @@ export namespace Account {
         };
       }
     }
-    export type RotateAuthenticationKeyWithRotationCapabilityPayloadMoveArguments =
-      {
-        rotation_cap_offerer_address: AccountAddress;
-        new_scheme: U8;
-        new_public_key_bytes: MoveVector<U8>;
-        cap_update_table: MoveVector<U8>;
-      };
+    export type RotateAuthenticationKeyWithRotationCapabilityPayloadMoveArguments = {
+      rotation_cap_offerer_address: AccountAddress;
+      new_scheme: U8;
+      new_public_key_bytes: MoveVector<U8>;
+      cap_update_table: MoveVector<U8>;
+    };
 
     /**
      *  public fun rotate_authentication_key_with_rotation_capability<>(
@@ -261,8 +276,7 @@ export namespace Account {
     export class RotateAuthenticationKeyWithRotationCapability extends EntryFunctionPayloadBuilder {
       public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
       public readonly moduleName = "account";
-      public readonly functionName =
-        "rotate_authentication_key_with_rotation_capability";
+      public readonly functionName = "rotate_authentication_key_with_rotation_capability";
       public readonly args: RotateAuthenticationKeyWithRotationCapabilityPayloadMoveArguments;
       public readonly typeArgs: Array<TypeTag> = []; //
 
@@ -272,13 +286,11 @@ export namespace Account {
         new_scheme: Uint8, // u8
         new_public_key_bytes: HexInput, // vector<u8>
         cap_update_table: HexInput, // vector<u8>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          rotation_cap_offerer_address: AccountAddress.fromRelaxed(
-            rotation_cap_offerer_address
-          ),
+          rotation_cap_offerer_address: AccountAddress.fromRelaxed(rotation_cap_offerer_address),
           new_scheme: new U8(new_scheme),
           new_public_key_bytes: MoveVector.U8(new_public_key_bytes),
           cap_update_table: MoveVector.U8(cap_update_table),
@@ -304,7 +316,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -329,7 +341,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -354,7 +366,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -379,7 +391,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        account_addr: AccountAddressInput // address
+        account_addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -404,7 +416,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        addr: AccountAddressInput // address
+        addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -429,7 +441,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        account_addr: AccountAddressInput // address
+        account_addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -454,7 +466,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        account_addr: AccountAddressInput // address
+        account_addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {
@@ -479,7 +491,7 @@ export namespace Account {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        account_addr: AccountAddressInput // address
+        account_addr: AccountAddressInput, // address
       ) {
         super();
         this.args = {

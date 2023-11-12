@@ -1,15 +1,39 @@
-
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 /* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
+import {
+  AccountAddress,
+  AccountAuthenticator,
+  MoveString,
+  MoveVector,
+  TypeTag,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  Bool,
+  Account,
+  InputTypes,
+  AccountAddressInput,
+  Hex,
+  HexInput,
+  Uint8,
+  Uint16,
+  Uint32,
+  Uint64,
+  Uint128,
+  Uint256,
+  parseTypeTag,
+} from "../../src";
 import { addressBytes } from "../../src/abi/utils";
 import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-
+import {
+  ViewFunctionPayloadBuilder,
+  EntryFunctionPayloadBuilder,
+} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
 export namespace AptosAccount {
   export namespace EntryFunctions {
@@ -36,13 +60,11 @@ export namespace AptosAccount {
         source: Account, // &signer
         recipients: Array<AccountAddressInput>, // vector<address>
         amounts: Array<Uint64>, // vector<u64>
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          recipients: new MoveVector(
-            recipients.map((argA) => AccountAddress.fromRelaxed(argA))
-          ),
+          recipients: new MoveVector(recipients.map((argA) => AccountAddress.fromRelaxed(argA))),
           amounts: new MoveVector(amounts.map((argA) => new U64(argA))),
         };
       }
@@ -72,17 +94,13 @@ export namespace AptosAccount {
         recipients: Array<AccountAddressInput>, // vector<address>
         amounts: Array<Uint64>, // vector<u64>
         typeTags: Array<TypeTagInput>, //
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
-          recipients: new MoveVector(
-            recipients.map((argA) => AccountAddress.fromRelaxed(argA))
-          ),
+          recipients: new MoveVector(recipients.map((argA) => AccountAddress.fromRelaxed(argA))),
           amounts: new MoveVector(amounts.map((argA) => new U64(argA))),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -104,7 +122,7 @@ export namespace AptosAccount {
 
       constructor(
         auth_key: AccountAddressInput, // address
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -132,7 +150,7 @@ export namespace AptosAccount {
       constructor(
         account: Account, // &signer
         allow: boolean, // bool
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -163,7 +181,7 @@ export namespace AptosAccount {
         source: Account, // &signer
         recipients: AccountAddressInput, // address
         amounts: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
@@ -197,15 +215,13 @@ export namespace AptosAccount {
         recipients: AccountAddressInput, // address
         amounts: Uint64, // u64
         typeTags: Array<TypeTagInput>, //
-        feePayer?: Account // optional fee payer account to sponsor the transaction
+        feePayer?: Account, // optional fee payer account to sponsor the transaction
       ) {
         super();
         this.args = {
           recipients: AccountAddress.fromRelaxed(recipients),
           amounts: new U64(amounts),
-          typeTags: typeTags.map((typeTag) =>
-            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
-          ),
+          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
         };
       }
     }
@@ -228,7 +244,7 @@ export namespace AptosAccount {
       public readonly typeArgs: Array<TypeTag> = []; //
 
       constructor(
-        arg_0: AccountAddressInput // address
+        arg_0: AccountAddressInput, // address
       ) {
         super();
         this.args = {
