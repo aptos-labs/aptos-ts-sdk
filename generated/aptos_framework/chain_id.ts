@@ -11,36 +11,24 @@ import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../s
 
 
 
-export namespace Version {
-  export namespace EntryFunctions {
-    export type SetVersionPayloadMoveArguments = {
-      major: U64;
-    };
-
+export namespace ChainId {
+  export namespace EntryFunctions {}
+  export namespace ViewFunctions {
     /**
-     *  public fun set_version<>(
-     *     account: &signer,
-     *     major: u64,
+     *  public fun get<>(
      *   )
      **/
-    export class SetVersion extends EntryFunctionPayloadBuilder {
+    export class Get extends ViewFunctionPayloadBuilder {
       public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "version";
-      public readonly functionName = "set_version";
-      public readonly args: SetVersionPayloadMoveArguments;
+      public readonly moduleName = "chain_id";
+      public readonly functionName = "get";
+      public readonly args = {};
       public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor(
-        account: Account, // &signer
-        major: Uint64, // u64
-        feePayer?: Account // optional fee payer account to sponsor the transaction
-      ) {
+      constructor() {
         super();
-        this.args = {
-          major: new U64(major),
-        };
+        this.args = {};
       }
     }
   }
-  export namespace ViewFunctions {}
 }

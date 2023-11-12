@@ -6,7 +6,7 @@ import {
   ArgumentNamesWithTypes,
   ModuleFunctionArgNameMap,
   ModuleMetadata,
-  MoveFunctionWithArgumentNames,
+  MoveFunctionWithArgumentNamesAndGenericTypes,
   PackageMetadata,
 } from "./types";
 import { transformCode } from "./utils";
@@ -59,11 +59,23 @@ export async function getSourceCodeMap(
   return sourceCodeByModuleName;
 }
 
-export function extractSignature(functionName: string, sourceCode: string) {
+export type FunctionSignatureWithTypeTags = {
+  genericTypeTags: string | null,
+  functionSignature: string | null,
+}
+
+export function extractSignature(functionName: string, sourceCode: string): FunctionSignatureWithTypeTags {
   // find the function signature in the source code
   const regex = new RegExp(`${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, "m");
   const match = sourceCode.match(regex);
-  return match ? match[2].trim() : null;
+  let genericTypeTags = null;
+  if (match) {
+    genericTypeTags = match[1] ? match[1].slice(1, -1) : null;
+  }
+  return {
+    genericTypeTags: genericTypeTags,
+    functionSignature: match ? match[2].trim() : null,
+  }
 }
 
 export function extractArguments(functionSignature: string): ArgumentNamesWithTypes[] {
@@ -90,7 +102,7 @@ export function getArgNameMapping(
   let modulesWithFunctionSignatures: ModuleFunctionArgNameMap = {};
 
   funcs.map((func) => {
-    const functionSignature = extractSignature(func.name, sourceCode);
+    const { genericTypeTags, functionSignature } = extractSignature(func.name, sourceCode);
     if (functionSignature === null) {
       throw new Error(`Could not find function signature for ${func.name}`);
     } else {
@@ -98,7 +110,10 @@ export function getArgNameMapping(
       if (!modulesWithFunctionSignatures[abi.name]) {
         modulesWithFunctionSignatures[abi.name] = {};
       }
-      modulesWithFunctionSignatures[abi.name][func.name] = args;
+      modulesWithFunctionSignatures[abi.name][func.name] = {
+        genericTypes: genericTypeTags,
+        argumentNamesWithTypes: args,
+      }
     }
   });
 
@@ -109,14 +124,17 @@ export function getMoveFunctionsWithArgumentNames(
   abi: MoveModule,
   funcs: MoveFunction[],
   mapping: ModuleFunctionArgNameMap,
-): Array<MoveFunctionWithArgumentNames> {
+): Array<MoveFunctionWithArgumentNamesAndGenericTypes> {
   return funcs.map((func) => {
     let argNames = new Array<string>();
+    let genericTypes = null;
     if (abi.name in mapping && func.name in mapping[abi.name]) {
-      argNames = mapping[abi.name][func.name].map((arg: ArgumentNamesWithTypes) => arg.argName);
+      genericTypes = mapping[abi.name][func.name].genericTypes;
+      argNames = mapping[abi.name][func.name].argumentNamesWithTypes.map((arg: ArgumentNamesWithTypes) => arg.argName);
     } else {
+      genericTypes = null;
       argNames = [];
     }
-    return { ...func, arg_names: argNames };
+    return { ...func, genericTypes, argNames: argNames };
   });
 }

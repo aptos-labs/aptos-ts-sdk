@@ -4,12 +4,10 @@
 import { Account, AccountAddress, Aptos, AptosConfig, Hex, MoveString, Network } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { fundAccounts, publishArgumentTestModule } from "../transaction/helper";
-import * as AptosFramework from "../../../src/abi/0x1";
 import { RockPaperScissor, TournamentManager } from "../../../src/abi/tournament";
 import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
 import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
-import { AptosToken } from "../../../src/abi/aptos_token_objects";
 import { CodeGenerator } from "../../../src/abi/abi-gen";
 import { ConfigDictionary, getCodeGenConfig } from "../../../src/abi/config";
 
@@ -23,39 +21,48 @@ describe.only("abi test", () => {
     codeGeneratorConfig = getCodeGenConfig("./src/abi/config.yaml");
     codeGenerator = new CodeGenerator(codeGeneratorConfig);
   });
+
   it("parses config.yaml correctly", async () => {
     const asdf = getCodeGenConfig();
     console.log(asdf);
   });
 
   it.only("parses abis correctly", async () => {
-    const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
-    const account = Account.generate();
-    await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
-    await publishArgumentTestModule(aptos, account);
-
-    const myModuleABIs = await codeGenerator.fetchABIs(aptos, account.accountAddress);
-    const frameworkModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x1"));
-    const tokenModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x3"));
-    const tokenObjectsModuleABIs = await codeGenerator.fetchABIs(aptos, AccountAddress.fromRelaxed("0x4"));
+    const aptosDevnet = new Aptos(new AptosConfig({ network: Network.DEVNET }));
     const aptosTestnet = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-    codeGenerator.writeGeneratedCodeToFiles("./generated", myModuleABIs);
-    codeGenerator.writeGeneratedCodeToFiles("./generated", frameworkModuleABIs);
-    codeGenerator.writeGeneratedCodeToFiles("./generated", tokenModuleABIs);
-    codeGenerator.writeGeneratedCodeToFiles("./generated", tokenObjectsModuleABIs);
-    const tournamentModuleABIs = await codeGenerator.fetchABIs(
-      aptosTestnet,
-      AccountAddress.fromRelaxed("0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44"),
-    );
-    codeGenerator.writeGeneratedCodeToFiles("./generated", tournamentModuleABIs);
+    const account = Account.generate();
+    await aptosDevnet.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
+    await publishArgumentTestModule(aptosDevnet, account);
+
+    await codeGenerator.generateCodeForModules(aptosDevnet, [
+      AccountAddress.ONE,
+      // AccountAddress.THREE,
+      // AccountAddress.FOUR,
+    ]);
+
+    // const myModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, account.accountAddress);
+    // const frameworkModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, AccountAddress.fromRelaxed("0x1"));
+    // const tokenModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, AccountAddress.fromRelaxed("0x3"));
+    // const tokenObjectsModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, AccountAddress.fromRelaxed("0x4"));
+    // codeGenerator.writeGeneratedCodeToFiles("./generated", myModuleABIs);
+    // codeGenerator.writeGeneratedCodeToFiles("./generated", frameworkModuleABIs);
+    // codeGenerator.writeGeneratedCodeToFiles("./generated", tokenModuleABIs);
+    // codeGenerator.writeGeneratedCodeToFiles("./generated", tokenObjectsModuleABIs);
+    // const tournamentModuleABIs = await codeGenerator.fetchABIs(
+    //   aptosTestnet,
+    //   AccountAddress.fromRelaxed("0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"),
+    // );
+    // codeGenerator.writeGeneratedCodeToFiles("./generated", tournamentModuleABIs);
   });
 
   it("parses tournament abis correctly", async () => {
     const accountAddress = AccountAddress.fromRelaxed(
-      "0xa7693d83e4436fbac2f7fd478d468aec6386466a9506e6696751c99cb7b4cd44",
+      "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
     );
-    const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
-    const moduleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
+    const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
+    const tournamentModuleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
+    codeGenerator.writeGeneratedCodeToFiles("tournament", "./generated", tournamentModuleABIs);
+
     // eslint-disable-next-line no-console
     // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
   });
@@ -64,6 +71,7 @@ describe.only("abi test", () => {
     const accountAddress = AccountAddress.fromRelaxed("0x1");
     const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const moduleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
+    
     // eslint-disable-next-line no-console
     // writeGeneratedCodeToFiles('./generated/', 'config.yaml', moduleABIs);
 

@@ -2,114 +2,153 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, AccountAddressInput, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../../src";
+
+/* eslint-disable max-len */
+import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject } from "../../src/abi/types";
-import { EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilder";
+import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+
 
 
 export namespace TokenTransfers {
-// let sender: AccountAuthenticator | undefined; // signer
-export type CancelOfferScriptPayloadBCSArguments = {
-  receiver: AccountAddress;
-  creator: AccountAddress;
-  collection: MoveString;
-  name: MoveString;
-  property_version: U64;
-};
-
-export class CancelOfferScript extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
-  public readonly moduleName = "token_transfers";
-  public readonly functionName = "cancel_offer_script";
-  public readonly args: CancelOfferScriptPayloadBCSArguments;
-
-  constructor(
-    receiver: AccountAddressInput, // address
-    creator: AccountAddressInput, // address
-    collection: string, // 0x1::string::String
-    name: string, // 0x1::string::String
-    property_version: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      receiver: AccountAddress.fromRelaxed(receiver),
-      creator: AccountAddress.fromRelaxed(creator),
-      collection: new MoveString(collection),
-      name: new MoveString(name),
-      property_version: new U64(property_version),
+  export namespace EntryFunctions {
+    export type CancelOfferScriptPayloadMoveArguments = {
+      receiver: AccountAddress;
+      creator: AccountAddress;
+      collection: MoveString;
+      name: MoveString;
+      property_version: U64;
     };
-  }
-}
 
-// let receiver: AccountAuthenticator | undefined; // signer
-export type ClaimScriptPayloadBCSArguments = {
-  sender: AccountAddress;
-  creator: AccountAddress;
-  collection: MoveString;
-  name: MoveString;
-  property_version: U64;
-};
+    /**
+     *  public fun cancel_offer_script<>(
+     *     sender: signer,
+     *     receiver: address,
+     *     creator: address,
+     *     collection: String,
+     *     name: String,
+     *     property_version: u64,
+     *   )
+     **/
+    export class CancelOfferScript extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
+      public readonly moduleName = "token_transfers";
+      public readonly functionName = "cancel_offer_script";
+      public readonly args: CancelOfferScriptPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class ClaimScript extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
-  public readonly moduleName = "token_transfers";
-  public readonly functionName = "claim_script";
-  public readonly args: ClaimScriptPayloadBCSArguments;
-
-  constructor(
-    sender: AccountAddressInput, // address
-    creator: AccountAddressInput, // address
-    collection: string, // 0x1::string::String
-    name: string, // 0x1::string::String
-    property_version: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      sender: AccountAddress.fromRelaxed(sender),
-      creator: AccountAddress.fromRelaxed(creator),
-      collection: new MoveString(collection),
-      name: new MoveString(name),
-      property_version: new U64(property_version),
+      constructor(
+        sender: Account, // signer
+        receiver: AccountAddressInput, // address
+        creator: AccountAddressInput, // address
+        collection: string, // String
+        name: string, // String
+        property_version: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          receiver: AccountAddress.fromRelaxed(receiver),
+          creator: AccountAddress.fromRelaxed(creator),
+          collection: new MoveString(collection),
+          name: new MoveString(name),
+          property_version: new U64(property_version),
+        };
+      }
+    }
+    export type ClaimScriptPayloadMoveArguments = {
+      sender: AccountAddress;
+      creator: AccountAddress;
+      collection: MoveString;
+      name: MoveString;
+      property_version: U64;
     };
-  }
-}
 
-// let sender: AccountAuthenticator | undefined; // signer
-export type OfferScriptPayloadBCSArguments = {
-  receiver: AccountAddress;
-  creator: AccountAddress;
-  collection: MoveString;
-  name: MoveString;
-  property_version: U64;
-  amount: U64;
-};
+    /**
+     *  public fun claim_script<>(
+     *     receiver: signer,
+     *     sender: address,
+     *     creator: address,
+     *     collection: String,
+     *     name: String,
+     *     property_version: u64,
+     *   )
+     **/
+    export class ClaimScript extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
+      public readonly moduleName = "token_transfers";
+      public readonly functionName = "claim_script";
+      public readonly args: ClaimScriptPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class OfferScript extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
-  public readonly moduleName = "token_transfers";
-  public readonly functionName = "offer_script";
-  public readonly args: OfferScriptPayloadBCSArguments;
-
-  constructor(
-    receiver: AccountAddressInput, // address
-    creator: AccountAddressInput, // address
-    collection: string, // 0x1::string::String
-    name: string, // 0x1::string::String
-    property_version: Uint64, // u64
-    amount: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      receiver: AccountAddress.fromRelaxed(receiver),
-      creator: AccountAddress.fromRelaxed(creator),
-      collection: new MoveString(collection),
-      name: new MoveString(name),
-      property_version: new U64(property_version),
-      amount: new U64(amount),
+      constructor(
+        receiver: Account, // signer
+        sender: AccountAddressInput, // address
+        creator: AccountAddressInput, // address
+        collection: string, // String
+        name: string, // String
+        property_version: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          sender: AccountAddress.fromRelaxed(sender),
+          creator: AccountAddress.fromRelaxed(creator),
+          collection: new MoveString(collection),
+          name: new MoveString(name),
+          property_version: new U64(property_version),
+        };
+      }
+    }
+    export type OfferScriptPayloadMoveArguments = {
+      receiver: AccountAddress;
+      creator: AccountAddress;
+      collection: MoveString;
+      name: MoveString;
+      property_version: U64;
+      amount: U64;
     };
+
+    /**
+     *  public fun offer_script<>(
+     *     sender: signer,
+     *     receiver: address,
+     *     creator: address,
+     *     collection: String,
+     *     name: String,
+     *     property_version: u64,
+     *     amount: u64,
+     *   )
+     **/
+    export class OfferScript extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x3");
+      public readonly moduleName = "token_transfers";
+      public readonly functionName = "offer_script";
+      public readonly args: OfferScriptPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        sender: Account, // signer
+        receiver: AccountAddressInput, // address
+        creator: AccountAddressInput, // address
+        collection: string, // String
+        name: string, // String
+        property_version: Uint64, // u64
+        amount: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          receiver: AccountAddress.fromRelaxed(receiver),
+          creator: AccountAddress.fromRelaxed(creator),
+          collection: new MoveString(collection),
+          name: new MoveString(name),
+          property_version: new U64(property_version),
+          amount: new U64(amount),
+        };
+      }
+    }
   }
-}
-
-
+  export namespace ViewFunctions {}
 }

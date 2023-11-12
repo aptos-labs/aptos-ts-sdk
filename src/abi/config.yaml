@@ -4,8 +4,9 @@ namedAddresses:
   0x4: aptos_token_objects
 
 structArgs: false
-outputPath: "."
+outputPath: "./generated/"
 functionComments: true
 expandedStructs: false
 replaceNamedAddresses: true
-
+payloadBCSTypesFilename: "bcsPayloadTypes"
+includeAccountParams: true # set this to `true` if you have access to all the private keys. `false` if you're doing dapp development

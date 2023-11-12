@@ -2,152 +2,337 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, AccountAddressInput, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../../src";
+
+/* eslint-disable max-len */
+import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject } from "../../src/abi/types";
-import { EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilder";
+import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+
 
 
 export namespace AptosGovernance {
-export type AddApprovedScriptHashScriptPayloadBCSArguments = {
-  proposal_id: U64;
-};
-
-export class AddApprovedScriptHashScript extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "aptos_governance";
-  public readonly functionName = "add_approved_script_hash_script";
-  public readonly args: AddApprovedScriptHashScriptPayloadBCSArguments;
-
-  constructor(
-    proposal_id: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      proposal_id: new U64(proposal_id),
+  export namespace EntryFunctions {
+    export type AddApprovedScriptHashScriptPayloadMoveArguments = {
+      proposal_id: U64;
     };
-  }
-}
 
-// let proposer: AccountAuthenticator | undefined; // &signer
-export type CreateProposalPayloadBCSArguments = {
-  stake_pool: AccountAddress;
-  execution_hash: MoveVector<U8>;
-  metadata_location: MoveVector<U8>;
-  metadata_hash: MoveVector<U8>;
-};
+    /**
+     *  public fun add_approved_script_hash_script<>(
+     *     proposal_id: u64,
+     *   )
+     **/
+    export class AddApprovedScriptHashScript extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "add_approved_script_hash_script";
+      public readonly args: AddApprovedScriptHashScriptPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class CreateProposal extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "aptos_governance";
-  public readonly functionName = "create_proposal";
-  public readonly args: CreateProposalPayloadBCSArguments;
-
-  constructor(
-    stake_pool: AccountAddressInput, // address
-    execution_hash: HexInput, // vector<u8>
-    metadata_location: HexInput, // vector<u8>
-    metadata_hash: HexInput // vector<u8>
-  ) {
-    super();
-    this.args = {
-      stake_pool: AccountAddress.fromRelaxed(stake_pool),
-      execution_hash: MoveVector.U8(execution_hash),
-      metadata_location: MoveVector.U8(metadata_location),
-      metadata_hash: MoveVector.U8(metadata_hash),
+      constructor(
+        proposal_id: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          proposal_id: new U64(proposal_id),
+        };
+      }
+    }
+    export type CreateProposalPayloadMoveArguments = {
+      stake_pool: AccountAddress;
+      execution_hash: MoveVector<U8>;
+      metadata_location: MoveVector<U8>;
+      metadata_hash: MoveVector<U8>;
     };
-  }
-}
 
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type CreateProposalV2PayloadBCSArguments = {
-  arg_1: AccountAddress;
-  arg_2: MoveVector<U8>;
-  arg_3: MoveVector<U8>;
-  arg_4: MoveVector<U8>;
-  arg_5: Bool;
-};
+    /**
+     *  public fun create_proposal<>(
+     *     proposer: &signer,
+     *     stake_pool: address,
+     *     execution_hash: vector<u8>,
+     *     metadata_location: vector<u8>,
+     *     metadata_hash: vector<u8>,
+     *   )
+     **/
+    export class CreateProposal extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "create_proposal";
+      public readonly args: CreateProposalPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class CreateProposalV2 extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "aptos_governance";
-  public readonly functionName = "create_proposal_v2";
-  public readonly args: CreateProposalV2PayloadBCSArguments;
-
-  constructor(
-    arg_1: AccountAddressInput, // address
-    arg_2: HexInput, // vector<u8>
-    arg_3: HexInput, // vector<u8>
-    arg_4: HexInput, // vector<u8>
-    arg_5: boolean // bool
-  ) {
-    super();
-    this.args = {
-      arg_1: AccountAddress.fromRelaxed(arg_1),
-      arg_2: MoveVector.U8(arg_2),
-      arg_3: MoveVector.U8(arg_3),
-      arg_4: MoveVector.U8(arg_4),
-      arg_5: new Bool(arg_5),
+      constructor(
+        proposer: Account, // &signer
+        stake_pool: AccountAddressInput, // address
+        execution_hash: HexInput, // vector<u8>
+        metadata_location: HexInput, // vector<u8>
+        metadata_hash: HexInput, // vector<u8>
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          execution_hash: MoveVector.U8(execution_hash),
+          metadata_location: MoveVector.U8(metadata_location),
+          metadata_hash: MoveVector.U8(metadata_hash),
+        };
+      }
+    }
+    export type CreateProposalV2PayloadMoveArguments = {
+      arg_1: AccountAddress;
+      arg_2: MoveVector<U8>;
+      arg_3: MoveVector<U8>;
+      arg_4: MoveVector<U8>;
+      arg_5: Bool;
     };
-  }
-}
 
-// let voter: AccountAuthenticator | undefined; // &signer
-export type PartialVotePayloadBCSArguments = {
-  stake_pool: AccountAddress;
-  proposal_id: U64;
-  voting_power: U64;
-  should_pass: Bool;
-};
+    /**
+     *  public fun create_proposal_v2<>(
+     *     arg_0: &signer,
+     *     arg_1: address,
+     *     arg_2: vector<u8>,
+     *     arg_3: vector<u8>,
+     *     arg_4: vector<u8>,
+     *     arg_5: bool,
+     *   )
+     **/
+    export class CreateProposalV2 extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "create_proposal_v2";
+      public readonly args: CreateProposalV2PayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class PartialVote extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "aptos_governance";
-  public readonly functionName = "partial_vote";
-  public readonly args: PartialVotePayloadBCSArguments;
-
-  constructor(
-    stake_pool: AccountAddressInput, // address
-    proposal_id: Uint64, // u64
-    voting_power: Uint64, // u64
-    should_pass: boolean // bool
-  ) {
-    super();
-    this.args = {
-      stake_pool: AccountAddress.fromRelaxed(stake_pool),
-      proposal_id: new U64(proposal_id),
-      voting_power: new U64(voting_power),
-      should_pass: new Bool(should_pass),
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: AccountAddressInput, // address
+        arg_2: HexInput, // vector<u8>
+        arg_3: HexInput, // vector<u8>
+        arg_4: HexInput, // vector<u8>
+        arg_5: boolean, // bool
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: AccountAddress.fromRelaxed(arg_1),
+          arg_2: MoveVector.U8(arg_2),
+          arg_3: MoveVector.U8(arg_3),
+          arg_4: MoveVector.U8(arg_4),
+          arg_5: new Bool(arg_5),
+        };
+      }
+    }
+    export type PartialVotePayloadMoveArguments = {
+      stake_pool: AccountAddress;
+      proposal_id: U64;
+      voting_power: U64;
+      should_pass: Bool;
     };
-  }
-}
 
-// let voter: AccountAuthenticator | undefined; // &signer
-export type VotePayloadBCSArguments = {
-  stake_pool: AccountAddress;
-  proposal_id: U64;
-  should_pass: Bool;
-};
+    /**
+     *  public fun partial_vote<>(
+     *     voter: &signer,
+     *     stake_pool: address,
+     *     proposal_id: u64,
+     *     voting_power: u64,
+     *     should_pass: bool,
+     *   )
+     **/
+    export class PartialVote extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "partial_vote";
+      public readonly args: PartialVotePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class Vote extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "aptos_governance";
-  public readonly functionName = "vote";
-  public readonly args: VotePayloadBCSArguments;
-
-  constructor(
-    stake_pool: AccountAddressInput, // address
-    proposal_id: Uint64, // u64
-    should_pass: boolean // bool
-  ) {
-    super();
-    this.args = {
-      stake_pool: AccountAddress.fromRelaxed(stake_pool),
-      proposal_id: new U64(proposal_id),
-      should_pass: new Bool(should_pass),
+      constructor(
+        voter: Account, // &signer
+        stake_pool: AccountAddressInput, // address
+        proposal_id: Uint64, // u64
+        voting_power: Uint64, // u64
+        should_pass: boolean, // bool
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          proposal_id: new U64(proposal_id),
+          voting_power: new U64(voting_power),
+          should_pass: new Bool(should_pass),
+        };
+      }
+    }
+    export type VotePayloadMoveArguments = {
+      stake_pool: AccountAddress;
+      proposal_id: U64;
+      should_pass: Bool;
     };
+
+    /**
+     *  public fun vote<>(
+     *     voter: &signer,
+     *     stake_pool: address,
+     *     proposal_id: u64,
+     *     should_pass: bool,
+     *   )
+     **/
+    export class Vote extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "vote";
+      public readonly args: VotePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        voter: Account, // &signer
+        stake_pool: AccountAddressInput, // address
+        proposal_id: Uint64, // u64
+        should_pass: boolean, // bool
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          proposal_id: new U64(proposal_id),
+          should_pass: new Bool(should_pass),
+        };
+      }
+    }
   }
-}
+  export namespace ViewFunctions {
+    /**
+     *  public fun get_min_voting_threshold<>(
+     *   )
+     **/
+    export class GetMinVotingThreshold extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "get_min_voting_threshold";
+      public readonly args = {};
+      public readonly typeArgs: Array<TypeTag> = []; //
 
+      constructor() {
+        super();
+        this.args = {};
+      }
+    }
+    export type GetRemainingVotingPowerPayloadMoveArguments = {
+      stake_pool: AccountAddressInput;
+      proposal_id: Uint64;
+    };
 
+    /**
+     *  public fun get_remaining_voting_power<>(
+     *     stake_pool: address,
+     *     proposal_id: u64,
+     *   )
+     **/
+    export class GetRemainingVotingPower extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "get_remaining_voting_power";
+      public readonly args: GetRemainingVotingPowerPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        stake_pool: AccountAddressInput, // address
+        proposal_id: Uint64 // u64
+      ) {
+        super();
+        this.args = {
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          proposal_id: proposal_id,
+        };
+      }
+    }
+
+    /**
+     *  public fun get_required_proposer_stake<>(
+     *   )
+     **/
+    export class GetRequiredProposerStake extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "get_required_proposer_stake";
+      public readonly args = {};
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor() {
+        super();
+        this.args = {};
+      }
+    }
+
+    /**
+     *  public fun get_voting_duration_secs<>(
+     *   )
+     **/
+    export class GetVotingDurationSecs extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "get_voting_duration_secs";
+      public readonly args = {};
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor() {
+        super();
+        this.args = {};
+      }
+    }
+    export type GetVotingPowerPayloadMoveArguments = {
+      arg_0: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_voting_power<>(
+     *     arg_0: address,
+     *   )
+     **/
+    export class GetVotingPower extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "get_voting_power";
+      public readonly args: GetVotingPowerPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        arg_0: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          arg_0: AccountAddress.fromRelaxed(arg_0),
+        };
+      }
+    }
+    export type HasEntirelyVotedPayloadMoveArguments = {
+      stake_pool: AccountAddressInput;
+      proposal_id: Uint64;
+    };
+
+    /**
+     *  public fun has_entirely_voted<>(
+     *     stake_pool: address,
+     *     proposal_id: u64,
+     *   )
+     **/
+    export class HasEntirelyVoted extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "aptos_governance";
+      public readonly functionName = "has_entirely_voted";
+      public readonly args: HasEntirelyVotedPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        stake_pool: AccountAddressInput, // address
+        proposal_id: Uint64 // u64
+      ) {
+        super();
+        this.args = {
+          stake_pool: AccountAddress.fromRelaxed(stake_pool),
+          proposal_id: proposal_id,
+        };
+      }
+    }
+  }
 }

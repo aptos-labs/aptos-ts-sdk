@@ -2,305 +2,688 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, AccountAddressInput, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../../src";
+
+/* eslint-disable max-len */
+import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
 import { addressBytes } from "../../src/abi/utils";
-import { OneOrNone, MoveObject } from "../../src/abi/types";
-import { EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilder";
+import { OneOrNone, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+
 
 
 export namespace Stake {
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type AddStakePayloadBCSArguments = {
-  arg_1: U64;
-};
-
-export class AddStake extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "add_stake";
-  public readonly args: AddStakePayloadBCSArguments;
-
-  constructor(
-    arg_1: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      arg_1: new U64(arg_1),
+  export namespace EntryFunctions {
+    export type AddStakePayloadMoveArguments = {
+      arg_1: U64;
     };
-  }
-}
 
-// let owner: AccountAuthenticator | undefined; // &signer
+    /**
+     *  public fun add_stake<>(
+     *     arg_0: &signer,
+     *     arg_1: u64,
+     *   )
+     **/
+    export class AddStake extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "add_stake";
+      public readonly args: AddStakePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class IncreaseLockup extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "increase_lockup";
-  public readonly args = {};
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: new U64(arg_1),
+        };
+      }
+    }
 
-  constructor() {
-    super();
-    this.args = {};
-  }
-}
+    /**
+     *  public fun increase_lockup<>(
+     *     owner: &signer,
+     *   )
+     **/
+    export class IncreaseLockup extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "increase_lockup";
+      public readonly args = {};
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-// let owner: AccountAuthenticator | undefined; // &signer
-export type InitializeStakeOwnerPayloadBCSArguments = {
-  initial_stake_amount: U64;
-  operator: AccountAddress;
-  voter: AccountAddress;
-};
-
-export class InitializeStakeOwner extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "initialize_stake_owner";
-  public readonly args: InitializeStakeOwnerPayloadBCSArguments;
-
-  constructor(
-    initial_stake_amount: Uint64, // u64
-    operator: AccountAddressInput, // address
-    voter: AccountAddressInput // address
-  ) {
-    super();
-    this.args = {
-      initial_stake_amount: new U64(initial_stake_amount),
-      operator: AccountAddress.fromRelaxed(operator),
-      voter: AccountAddress.fromRelaxed(voter),
+      constructor() {
+        super();
+        this.args = {};
+      }
+    }
+    export type InitializeStakeOwnerPayloadMoveArguments = {
+      initial_stake_amount: U64;
+      operator: AccountAddress;
+      voter: AccountAddress;
     };
-  }
-}
 
-// let account: AccountAuthenticator | undefined; // &signer
-export type InitializeValidatorPayloadBCSArguments = {
-  consensus_pubkey: MoveVector<U8>;
-  proof_of_possession: MoveVector<U8>;
-  network_addresses: MoveVector<U8>;
-  fullnode_addresses: MoveVector<U8>;
-};
+    /**
+     *  public fun initialize_stake_owner<>(
+     *     owner: &signer,
+     *     initial_stake_amount: u64,
+     *     operator: address,
+     *     voter: address,
+     *   )
+     **/
+    export class InitializeStakeOwner extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "initialize_stake_owner";
+      public readonly args: InitializeStakeOwnerPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class InitializeValidator extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "initialize_validator";
-  public readonly args: InitializeValidatorPayloadBCSArguments;
-
-  constructor(
-    consensus_pubkey: HexInput, // vector<u8>
-    proof_of_possession: HexInput, // vector<u8>
-    network_addresses: HexInput, // vector<u8>
-    fullnode_addresses: HexInput // vector<u8>
-  ) {
-    super();
-    this.args = {
-      consensus_pubkey: MoveVector.U8(consensus_pubkey),
-      proof_of_possession: MoveVector.U8(proof_of_possession),
-      network_addresses: MoveVector.U8(network_addresses),
-      fullnode_addresses: MoveVector.U8(fullnode_addresses),
+      constructor(
+        owner: Account, // &signer
+        initial_stake_amount: Uint64, // u64
+        operator: AccountAddressInput, // address
+        voter: AccountAddressInput, // address
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          initial_stake_amount: new U64(initial_stake_amount),
+          operator: AccountAddress.fromRelaxed(operator),
+          voter: AccountAddress.fromRelaxed(voter),
+        };
+      }
+    }
+    export type InitializeValidatorPayloadMoveArguments = {
+      consensus_pubkey: MoveVector<U8>;
+      proof_of_possession: MoveVector<U8>;
+      network_addresses: MoveVector<U8>;
+      fullnode_addresses: MoveVector<U8>;
     };
-  }
-}
 
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type JoinValidatorSetPayloadBCSArguments = {
-  arg_1: AccountAddress;
-};
+    /**
+     *  public fun initialize_validator<>(
+     *     account: &signer,
+     *     consensus_pubkey: vector<u8>,
+     *     proof_of_possession: vector<u8>,
+     *     network_addresses: vector<u8>,
+     *     fullnode_addresses: vector<u8>,
+     *   )
+     **/
+    export class InitializeValidator extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "initialize_validator";
+      public readonly args: InitializeValidatorPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class JoinValidatorSet extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "join_validator_set";
-  public readonly args: JoinValidatorSetPayloadBCSArguments;
-
-  constructor(
-    arg_1: AccountAddressInput // address
-  ) {
-    super();
-    this.args = {
-      arg_1: AccountAddress.fromRelaxed(arg_1),
+      constructor(
+        account: Account, // &signer
+        consensus_pubkey: HexInput, // vector<u8>
+        proof_of_possession: HexInput, // vector<u8>
+        network_addresses: HexInput, // vector<u8>
+        fullnode_addresses: HexInput, // vector<u8>
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          consensus_pubkey: MoveVector.U8(consensus_pubkey),
+          proof_of_possession: MoveVector.U8(proof_of_possession),
+          network_addresses: MoveVector.U8(network_addresses),
+          fullnode_addresses: MoveVector.U8(fullnode_addresses),
+        };
+      }
+    }
+    export type JoinValidatorSetPayloadMoveArguments = {
+      arg_1: AccountAddress;
     };
-  }
-}
 
-// let operator: AccountAuthenticator | undefined; // &signer
-export type LeaveValidatorSetPayloadBCSArguments = {
-  pool_address: AccountAddress;
-};
+    /**
+     *  public fun join_validator_set<>(
+     *     arg_0: &signer,
+     *     arg_1: address,
+     *   )
+     **/
+    export class JoinValidatorSet extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "join_validator_set";
+      public readonly args: JoinValidatorSetPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class LeaveValidatorSet extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "leave_validator_set";
-  public readonly args: LeaveValidatorSetPayloadBCSArguments;
-
-  constructor(
-    pool_address: AccountAddressInput // address
-  ) {
-    super();
-    this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: AccountAddressInput, // address
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: AccountAddress.fromRelaxed(arg_1),
+        };
+      }
+    }
+    export type LeaveValidatorSetPayloadMoveArguments = {
+      pool_address: AccountAddress;
     };
-  }
-}
 
-// let owner: AccountAuthenticator | undefined; // &signer
-export type ReactivateStakePayloadBCSArguments = {
-  amount: U64;
-};
+    /**
+     *  public fun leave_validator_set<>(
+     *     operator: &signer,
+     *     pool_address: address,
+     *   )
+     **/
+    export class LeaveValidatorSet extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "leave_validator_set";
+      public readonly args: LeaveValidatorSetPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class ReactivateStake extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "reactivate_stake";
-  public readonly args: ReactivateStakePayloadBCSArguments;
-
-  constructor(
-    amount: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      amount: new U64(amount),
+      constructor(
+        operator: Account, // &signer
+        pool_address: AccountAddressInput, // address
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type ReactivateStakePayloadMoveArguments = {
+      amount: U64;
     };
-  }
-}
 
-// let operator: AccountAuthenticator | undefined; // &signer
-export type RotateConsensusKeyPayloadBCSArguments = {
-  pool_address: AccountAddress;
-  new_consensus_pubkey: MoveVector<U8>;
-  proof_of_possession: MoveVector<U8>;
-};
+    /**
+     *  public fun reactivate_stake<>(
+     *     owner: &signer,
+     *     amount: u64,
+     *   )
+     **/
+    export class ReactivateStake extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "reactivate_stake";
+      public readonly args: ReactivateStakePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class RotateConsensusKey extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "rotate_consensus_key";
-  public readonly args: RotateConsensusKeyPayloadBCSArguments;
-
-  constructor(
-    pool_address: AccountAddressInput, // address
-    new_consensus_pubkey: HexInput, // vector<u8>
-    proof_of_possession: HexInput // vector<u8>
-  ) {
-    super();
-    this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
-      new_consensus_pubkey: MoveVector.U8(new_consensus_pubkey),
-      proof_of_possession: MoveVector.U8(proof_of_possession),
+      constructor(
+        owner: Account, // &signer
+        amount: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          amount: new U64(amount),
+        };
+      }
+    }
+    export type RotateConsensusKeyPayloadMoveArguments = {
+      pool_address: AccountAddress;
+      new_consensus_pubkey: MoveVector<U8>;
+      proof_of_possession: MoveVector<U8>;
     };
-  }
-}
 
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type SetDelegatedVoterPayloadBCSArguments = {
-  arg_1: AccountAddress;
-};
+    /**
+     *  public fun rotate_consensus_key<>(
+     *     operator: &signer,
+     *     pool_address: address,
+     *     new_consensus_pubkey: vector<u8>,
+     *     proof_of_possession: vector<u8>,
+     *   )
+     **/
+    export class RotateConsensusKey extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "rotate_consensus_key";
+      public readonly args: RotateConsensusKeyPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class SetDelegatedVoter extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "set_delegated_voter";
-  public readonly args: SetDelegatedVoterPayloadBCSArguments;
-
-  constructor(
-    arg_1: AccountAddressInput // address
-  ) {
-    super();
-    this.args = {
-      arg_1: AccountAddress.fromRelaxed(arg_1),
+      constructor(
+        operator: Account, // &signer
+        pool_address: AccountAddressInput, // address
+        new_consensus_pubkey: HexInput, // vector<u8>
+        proof_of_possession: HexInput, // vector<u8>
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+          new_consensus_pubkey: MoveVector.U8(new_consensus_pubkey),
+          proof_of_possession: MoveVector.U8(proof_of_possession),
+        };
+      }
+    }
+    export type SetDelegatedVoterPayloadMoveArguments = {
+      arg_1: AccountAddress;
     };
-  }
-}
 
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type SetOperatorPayloadBCSArguments = {
-  arg_1: AccountAddress;
-};
+    /**
+     *  public fun set_delegated_voter<>(
+     *     arg_0: &signer,
+     *     arg_1: address,
+     *   )
+     **/
+    export class SetDelegatedVoter extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "set_delegated_voter";
+      public readonly args: SetDelegatedVoterPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class SetOperator extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "set_operator";
-  public readonly args: SetOperatorPayloadBCSArguments;
-
-  constructor(
-    arg_1: AccountAddressInput // address
-  ) {
-    super();
-    this.args = {
-      arg_1: AccountAddress.fromRelaxed(arg_1),
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: AccountAddressInput, // address
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: AccountAddress.fromRelaxed(arg_1),
+        };
+      }
+    }
+    export type SetOperatorPayloadMoveArguments = {
+      arg_1: AccountAddress;
     };
-  }
-}
 
-// let owner: AccountAuthenticator | undefined; // &signer
-export type UnlockPayloadBCSArguments = {
-  amount: U64;
-};
+    /**
+     *  public fun set_operator<>(
+     *     arg_0: &signer,
+     *     arg_1: address,
+     *   )
+     **/
+    export class SetOperator extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "set_operator";
+      public readonly args: SetOperatorPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class Unlock extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "unlock";
-  public readonly args: UnlockPayloadBCSArguments;
-
-  constructor(
-    amount: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      amount: new U64(amount),
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: AccountAddressInput, // address
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: AccountAddress.fromRelaxed(arg_1),
+        };
+      }
+    }
+    export type UnlockPayloadMoveArguments = {
+      amount: U64;
     };
-  }
-}
 
-// let operator: AccountAuthenticator | undefined; // &signer
-export type UpdateNetworkAndFullnodeAddressesPayloadBCSArguments = {
-  pool_address: AccountAddress;
-  new_network_addresses: MoveVector<U8>;
-  new_fullnode_addresses: MoveVector<U8>;
-};
+    /**
+     *  public fun unlock<>(
+     *     owner: &signer,
+     *     amount: u64,
+     *   )
+     **/
+    export class Unlock extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "unlock";
+      public readonly args: UnlockPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class UpdateNetworkAndFullnodeAddresses extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "update_network_and_fullnode_addresses";
-  public readonly args: UpdateNetworkAndFullnodeAddressesPayloadBCSArguments;
-
-  constructor(
-    pool_address: AccountAddressInput, // address
-    new_network_addresses: HexInput, // vector<u8>
-    new_fullnode_addresses: HexInput // vector<u8>
-  ) {
-    super();
-    this.args = {
-      pool_address: AccountAddress.fromRelaxed(pool_address),
-      new_network_addresses: MoveVector.U8(new_network_addresses),
-      new_fullnode_addresses: MoveVector.U8(new_fullnode_addresses),
+      constructor(
+        owner: Account, // &signer
+        amount: Uint64, // u64
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          amount: new U64(amount),
+        };
+      }
+    }
+    export type UpdateNetworkAndFullnodeAddressesPayloadMoveArguments = {
+      pool_address: AccountAddress;
+      new_network_addresses: MoveVector<U8>;
+      new_fullnode_addresses: MoveVector<U8>;
     };
-  }
-}
 
-// let arg_0: AccountAuthenticator | undefined; // &signer
-export type WithdrawPayloadBCSArguments = {
-  arg_1: U64;
-};
+    /**
+     *  public fun update_network_and_fullnode_addresses<>(
+     *     operator: &signer,
+     *     pool_address: address,
+     *     new_network_addresses: vector<u8>,
+     *     new_fullnode_addresses: vector<u8>,
+     *   )
+     **/
+    export class UpdateNetworkAndFullnodeAddresses extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "update_network_and_fullnode_addresses";
+      public readonly args: UpdateNetworkAndFullnodeAddressesPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
-export class Withdraw extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "stake";
-  public readonly functionName = "withdraw";
-  public readonly args: WithdrawPayloadBCSArguments;
-
-  constructor(
-    arg_1: Uint64 // u64
-  ) {
-    super();
-    this.args = {
-      arg_1: new U64(arg_1),
+      constructor(
+        operator: Account, // &signer
+        pool_address: AccountAddressInput, // address
+        new_network_addresses: HexInput, // vector<u8>
+        new_fullnode_addresses: HexInput, // vector<u8>
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+          new_network_addresses: MoveVector.U8(new_network_addresses),
+          new_fullnode_addresses: MoveVector.U8(new_fullnode_addresses),
+        };
+      }
+    }
+    export type WithdrawPayloadMoveArguments = {
+      arg_1: U64;
+      typeTags: Array<TypeTag>;
     };
+
+    /**
+     *  public fun withdraw<>(
+     *     arg_0: &signer,
+     *     arg_1: u64,
+     *   )
+     **/
+    export class Withdraw extends EntryFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "withdraw";
+      public readonly args: WithdrawPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        arg_0: Account, // &signer
+        arg_1: Uint64, // u64
+        typeTags: Array<TypeTagInput>, //
+        feePayer?: Account // optional fee payer account to sponsor the transaction
+      ) {
+        super();
+        this.args = {
+          arg_1: new U64(arg_1),
+          typeTags: typeTags.map((typeTag) =>
+            typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag
+          ),
+        };
+      }
+    }
   }
-}
+  export namespace ViewFunctions {
+    export type GetCurrentEpochProposalCountsPayloadMoveArguments = {
+      validator_index: Uint64;
+    };
 
+    /**
+     *  public fun get_current_epoch_proposal_counts<>(
+     *     validator_index: u64,
+     *   )
+     **/
+    export class GetCurrentEpochProposalCounts extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_current_epoch_proposal_counts";
+      public readonly args: GetCurrentEpochProposalCountsPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
 
+      constructor(
+        validator_index: Uint64 // u64
+      ) {
+        super();
+        this.args = {
+          validator_index: validator_index,
+        };
+      }
+    }
+    export type GetCurrentEpochVotingPowerPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_current_epoch_voting_power<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetCurrentEpochVotingPower extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_current_epoch_voting_power";
+      public readonly args: GetCurrentEpochVotingPowerPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetDelegatedVoterPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_delegated_voter<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetDelegatedVoter extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_delegated_voter";
+      public readonly args: GetDelegatedVoterPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetLockupSecsPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_lockup_secs<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetLockupSecs extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_lockup_secs";
+      public readonly args: GetLockupSecsPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetOperatorPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_operator<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetOperator extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_operator";
+      public readonly args: GetOperatorPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetRemainingLockupSecsPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_remaining_lockup_secs<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetRemainingLockupSecs extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_remaining_lockup_secs";
+      public readonly args: GetRemainingLockupSecsPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetStakePayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_stake<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetStake extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_stake";
+      public readonly args: GetStakePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetValidatorConfigPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_validator_config<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetValidatorConfig extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_validator_config";
+      public readonly args: GetValidatorConfigPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetValidatorIndexPayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_validator_index<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetValidatorIndex extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_validator_index";
+      public readonly args: GetValidatorIndexPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type GetValidatorStatePayloadMoveArguments = {
+      pool_address: AccountAddressInput;
+    };
+
+    /**
+     *  public fun get_validator_state<>(
+     *     pool_address: address,
+     *   )
+     **/
+    export class GetValidatorState extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "get_validator_state";
+      public readonly args: GetValidatorStatePayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        pool_address: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          pool_address: AccountAddress.fromRelaxed(pool_address),
+        };
+      }
+    }
+    export type StakePoolExistsPayloadMoveArguments = {
+      arg_0: AccountAddressInput;
+    };
+
+    /**
+     *  public fun stake_pool_exists<>(
+     *     arg_0: address,
+     *   )
+     **/
+    export class StakePoolExists extends ViewFunctionPayloadBuilder {
+      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+      public readonly moduleName = "stake";
+      public readonly functionName = "stake_pool_exists";
+      public readonly args: StakePoolExistsPayloadMoveArguments;
+      public readonly typeArgs: Array<TypeTag> = []; //
+
+      constructor(
+        arg_0: AccountAddressInput // address
+      ) {
+        super();
+        this.args = {
+          arg_0: AccountAddress.fromRelaxed(arg_0),
+        };
+      }
+    }
+  }
 }

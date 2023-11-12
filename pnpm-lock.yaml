@@ -61,8 +61,16 @@ devDependencies:
     specifier: ^6.0.1
     version: 6.0.1(graphql-request@6.1.0)(graphql-tag@2.12.6)(graphql@16.8.1)
   '@graphql-codegen/typescript-operations':
+<<<<<<< HEAD
     specifier: ^4.0.1
     version: 4.0.1(graphql@16.8.1)
+=======
+    specifier: ^2.5.3
+    version: 2.5.3(graphql@16.8.1)
+  '@types/eslint':
+    specifier: ^8.44.6
+    version: 8.44.6
+>>>>>>> 9258856 (Committing because I forgot to during the day...)
   '@types/jest':
     specifier: ^29.5.7
     version: 29.5.8
@@ -2355,6 +2363,13 @@ packages:
     dependencies:
       '@types/eslint': 8.44.6
       '@types/estree': 1.0.1
+    dev: true
+
+  /@types/eslint@8.44.6:
+    resolution: {integrity: sha512-P6bY56TVmX8y9J87jHNgQh43h6VVU+6H7oN7hgvivV81K2XY8qJZ5vqPy/HdUoVIelii2kChYVzQanlswPWVFw==}
+    dependencies:
+      '@types/estree': 1.0.1
+      '@types/json-schema': 7.0.12
     dev: true
 
   /@types/eslint@8.44.6:

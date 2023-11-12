@@ -8,3 +8,4 @@ export * from "./core";
 export * from "./transactions";
 export * from "./types";
 export * from "./utils";
+export * from "./abi";
