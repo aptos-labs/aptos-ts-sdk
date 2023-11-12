@@ -64,7 +64,19 @@ export type FunctionSignatureWithTypeTags = {
   functionSignature: string | null;
 };
 
+export function removeComments(code: string): string {
+  // Remove single-line comments (anything from '//' to the end of the line)
+  const noSingleLineComments = code.replace(/\/\/.*$/gm, '');
+
+  // Remove multi-line comments (anything between '/*' and '*/')
+  const noComments = noSingleLineComments.replace(/\/\*[\s\S]*?\*\//gm, '');
+
+  return noComments;
+}
+
+
 export function extractSignature(functionName: string, sourceCode: string): FunctionSignatureWithTypeTags {
+  sourceCode = removeComments(sourceCode);
   // find the function signature in the source code
   const regex = new RegExp(`fun ${functionName}(<.*>)?\\s*\\(([^)]*)\\)`, "m");
   const match = sourceCode.match(regex);
@@ -86,7 +98,7 @@ export function extractArguments(functionSignature: string): ArgumentNamesWithTy
       return { argName, typeTag };
     }
     return null;
-  }).filter((arg) => arg !== null) as ArgumentNamesWithTypes[];
+  }).filter((arg) => arg !== null && (!(arg.argName.includes("//") || arg.typeTag.includes("//")))) as ArgumentNamesWithTypes[];
 
   return argumentsList;
 }

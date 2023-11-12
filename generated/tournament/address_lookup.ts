@@ -35,19 +35,30 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
+export type GetNamedAddressPayloadMoveArguments = {
+  name: string;
+};
+
 /**
- *  public fun get<>(
+ *  public fun get_named_address<>(
+ *     name: String,
  *   )
  **/
-export class Get extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "chain_id";
-  public readonly functionName = "get";
-  public readonly args = {};
+export class GetNamedAddress extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed(
+    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+  );
+  public readonly moduleName = "address_lookup";
+  public readonly functionName = "get_named_address";
+  public readonly args: GetNamedAddressPayloadMoveArguments;
   public readonly typeArgs: Array<TypeTag> = []; //
 
-  constructor() {
+  constructor(
+    name: string, // String
+  ) {
     super();
-    this.args = {};
+    this.args = {
+      name: name,
+    };
   }
 }

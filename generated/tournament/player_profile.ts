@@ -35,19 +35,30 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
+export type ViewPlayerProfilePayloadMoveArguments = {
+  player_profile_address: AccountAddressInput;
+};
+
 /**
- *  public fun get<>(
+ *  public fun view_player_profile<>(
+ *     player_profile_address: address,
  *   )
  **/
-export class Get extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "chain_id";
-  public readonly functionName = "get";
-  public readonly args = {};
+export class ViewPlayerProfile extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed(
+    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+  );
+  public readonly moduleName = "player_profile";
+  public readonly functionName = "view_player_profile";
+  public readonly args: ViewPlayerProfilePayloadMoveArguments;
   public readonly typeArgs: Array<TypeTag> = []; //
 
-  constructor() {
+  constructor(
+    player_profile_address: AccountAddressInput, // address
+  ) {
     super();
-    this.args = {};
+    this.args = {
+      player_profile_address: AccountAddress.fromRelaxed(player_profile_address),
+    };
   }
 }

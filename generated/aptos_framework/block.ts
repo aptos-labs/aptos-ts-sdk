@@ -35,41 +35,36 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace Block {
-  export namespace EntryFunctions {}
-  export namespace ViewFunctions {
-    /**
-     *  public fun get_current_block_height<>(
-     *   )
-     **/
-    export class GetCurrentBlockHeight extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "block";
-      public readonly functionName = "get_current_block_height";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun get_current_block_height<>(
+ *   )
+ **/
+export class GetCurrentBlockHeight extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "block";
+  public readonly functionName = "get_current_block_height";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
+  }
+}
 
-    /**
-     *  public fun get_epoch_interval_secs<>(
-     *   )
-     **/
-    export class GetEpochIntervalSecs extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "block";
-      public readonly functionName = "get_epoch_interval_secs";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun get_epoch_interval_secs<>(
+ *   )
+ **/
+export class GetEpochIntervalSecs extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "block";
+  public readonly functionName = "get_epoch_interval_secs";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
   }
 }

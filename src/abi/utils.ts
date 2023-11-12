@@ -8,6 +8,7 @@ import { MoveModule, MoveModuleBytecode } from "../types";
 import pako from "pako";
 import { Aptos } from "../api";
 import { BCSKinds, GenericKind } from "./types";
+import { Dictionary } from "./config";
 
 export function toPascalCase(input: string): string {
   return input
@@ -94,21 +95,35 @@ export function kindArrayToString(kindArray: Array<BCSKinds>): string {
   return kindString;
 }
 
-export function truncateAddressForFileName(address: AccountAddress): `0x${string}__${string}` {
+export function truncateAddressForFileName(address: AccountAddress) {
   const addressString = address.toString();
-  return `0x${addressString.slice(2, 6)}__${addressString.slice(-4)}`;
+  return `Module_0x${addressString.slice(2, 8)}` as const;
 }
 
-export function truncateStruct(typeTag: TypeTag): string {
+export function truncatedTypeTagString(args: { typeTag: TypeTag, namedAddresses?: Dictionary<string>, namedTypeTags?: Dictionary<string> }): string {
+  const { typeTag } = args;
+  const namedAddresses = args.namedAddresses ?? {};
+  const namedTypeTags = args.namedTypeTags ?? {};
+
+  if (typeTag.isVector()) {
+    return `vector<${truncatedTypeTagString({ typeTag: typeTag.value, namedAddresses, namedTypeTags })}>`;
+  }
   if (typeTag.isStruct()) {
     if (typeTag.isOption()) {
-      return "Option";
+      return `Option<${typeTag.value.typeArgs.map(typeTag => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags })).join(", ")}>`;
     }
     if (typeTag.isObject()) {
-      return "Object";
+      return `Object<${typeTag.value.typeArgs.map(typeTag => truncatedTypeTagString({ typeTag, namedAddresses, namedTypeTags })).join(", ")}>`;
     }
     if (typeTag.isString()) {
-      return "String";
+      return `String`;
+    }
+    // TODO: also replace named addresses?
+    if (typeTag.toString() in namedTypeTags) {
+      return namedTypeTags[typeTag.toString()];
+    }
+    if (typeTag.value.address.toString() in namedAddresses) {
+      return `${namedAddresses[typeTag.value.address.toString()]}::${typeTag.value.moduleName.identifier}::${typeTag.value.name.identifier}`;
     }
   }
   return typeTag.toString();

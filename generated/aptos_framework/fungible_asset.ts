@@ -35,297 +35,292 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace FungibleAsset {
-  export namespace EntryFunctions {
-    export type TransferPayloadMoveArguments = {
-      from: MoveObject;
-      to: MoveObject;
-      amount: U64;
-      typeTags: Array<TypeTag>;
+export type TransferPayloadMoveArguments = {
+  from: MoveObject<EntryFunctionArgumentTypes>;
+  to: MoveObject<EntryFunctionArgumentTypes>;
+  amount: U64;
+  typeTags: Array<TypeTag>;
+};
+
+/**
+ *  public fun transfer<T0: key, T1: undefined>(
+ *     sender: &signer,
+ *     from: Object<T0><T0>,
+ *     to: Object<T0><T1>,
+ *     amount: u64,
+ *   )
+ **/
+export class Transfer extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "transfer";
+  public readonly args: TransferPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key, T1: undefined
+
+  constructor(
+    sender: Account, // &signer
+    from: ObjectAddress, // Object<T0><T0>
+    to: ObjectAddress, // Object<T0><T1>
+    amount: Uint64, // u64
+    typeTags: Array<TypeTagInput>, // T0: key, T1: undefined
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      from: AccountAddress.fromRelaxed(from),
+      to: AccountAddress.fromRelaxed(to),
+      amount: new U64(amount),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
-
-    /**
-     *  public fun transfer<T0: key, T1: undefined>(
-     *     sender: &signer,
-     *     from: Object<T0>,
-     *     to: Object<T1>,
-     *     amount: u64,
-     *   )
-     **/
-    export class Transfer extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "transfer";
-      public readonly args: TransferPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key, T1: undefined
-
-      constructor(
-        sender: Account, // &signer
-        from: ObjectAddress, // Object<T0>
-        to: ObjectAddress, // Object<T1>
-        amount: Uint64, // u64
-        typeTags: Array<TypeTagInput>, // T0: key, T1: undefined
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          from: AccountAddress.fromRelaxed(from),
-          to: AccountAddress.fromRelaxed(to),
-          amount: new U64(amount),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
   }
-  export namespace ViewFunctions {
-    export type BalancePayloadMoveArguments = {
-      store: ObjectAddress;
-      typeTags: Array<TypeTag>;
+}
+
+export type BalancePayloadMoveArguments = {
+  store: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
+
+/**
+ *  public fun balance<T0: key>(
+ *     store: Object<T0><T0>,
+ *   )
+ **/
+export class Balance extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "balance";
+  public readonly args: BalancePayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
+
+  constructor(
+    store: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      store: AccountAddress.fromRelaxed(store),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type DecimalsPayloadMoveArguments = {
+  metadata: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun balance<T0: key>(
-     *     store: Object<T0>,
-     *   )
-     **/
-    export class Balance extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "balance";
-      public readonly args: BalancePayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun decimals<T0: key>(
+ *     metadata: Object<T0><T0>,
+ *   )
+ **/
+export class Decimals extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "decimals";
+  public readonly args: DecimalsPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        store: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          store: AccountAddress.fromRelaxed(store),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type DecimalsPayloadMoveArguments = {
-      metadata: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    metadata: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      metadata: AccountAddress.fromRelaxed(metadata),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type IsFrozenPayloadMoveArguments = {
+  store: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun decimals<T0: key>(
-     *     metadata: Object<T0>,
-     *   )
-     **/
-    export class Decimals extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "decimals";
-      public readonly args: DecimalsPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun is_frozen<T0: key>(
+ *     store: Object<T0><T0>,
+ *   )
+ **/
+export class IsFrozen extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "is_frozen";
+  public readonly args: IsFrozenPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type IsFrozenPayloadMoveArguments = {
-      store: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    store: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      store: AccountAddress.fromRelaxed(store),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type MaximumPayloadMoveArguments = {
+  metadata: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun is_frozen<T0: key>(
-     *     store: Object<T0>,
-     *   )
-     **/
-    export class IsFrozen extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "is_frozen";
-      public readonly args: IsFrozenPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun maximum<T0: key>(
+ *     metadata: Object<T0><T0>,
+ *   )
+ **/
+export class Maximum extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "maximum";
+  public readonly args: MaximumPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        store: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          store: AccountAddress.fromRelaxed(store),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type MaximumPayloadMoveArguments = {
-      metadata: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    metadata: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      metadata: AccountAddress.fromRelaxed(metadata),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type NamePayloadMoveArguments = {
+  metadata: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun maximum<T0: key>(
-     *     metadata: Object<T0>,
-     *   )
-     **/
-    export class Maximum extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "maximum";
-      public readonly args: MaximumPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun name<T0: key>(
+ *     metadata: Object<T0><T0>,
+ *   )
+ **/
+export class Name extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "name";
+  public readonly args: NamePayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type NamePayloadMoveArguments = {
-      metadata: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    metadata: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      metadata: AccountAddress.fromRelaxed(metadata),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type StoreExistsPayloadMoveArguments = {
+  store: AccountAddressInput;
+};
 
-    /**
-     *  public fun name<T0: key>(
-     *     metadata: Object<T0>,
-     *   )
-     **/
-    export class Name extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "name";
-      public readonly args: NamePayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun store_exists<>(
+ *     store: address,
+ *   )
+ **/
+export class StoreExists extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "store_exists";
+  public readonly args: StoreExistsPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor(
-        metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type StoreExistsPayloadMoveArguments = {
-      store: AccountAddressInput;
+  constructor(
+    store: AccountAddressInput, // address
+  ) {
+    super();
+    this.args = {
+      store: AccountAddress.fromRelaxed(store),
     };
+  }
+}
+export type StoreMetadataPayloadMoveArguments = {
+  store: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun store_exists<>(
-     *     store: address,
-     *   )
-     **/
-    export class StoreExists extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "store_exists";
-      public readonly args: StoreExistsPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun store_metadata<T0: key>(
+ *     store: Object<T0><T0>,
+ *   )
+ **/
+export class StoreMetadata extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "store_metadata";
+  public readonly args: StoreMetadataPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        store: AccountAddressInput, // address
-      ) {
-        super();
-        this.args = {
-          store: AccountAddress.fromRelaxed(store),
-        };
-      }
-    }
-    export type StoreMetadataPayloadMoveArguments = {
-      store: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    store: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      store: AccountAddress.fromRelaxed(store),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type SupplyPayloadMoveArguments = {
+  metadata: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun store_metadata<T0: key>(
-     *     store: Object<T0>,
-     *   )
-     **/
-    export class StoreMetadata extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "store_metadata";
-      public readonly args: StoreMetadataPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun supply<T0: key>(
+ *     metadata: Object<T0><T0>,
+ *   )
+ **/
+export class Supply extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "supply";
+  public readonly args: SupplyPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        store: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          store: AccountAddress.fromRelaxed(store),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type SupplyPayloadMoveArguments = {
-      metadata: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    metadata: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      metadata: AccountAddress.fromRelaxed(metadata),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+  }
+}
+export type SymbolPayloadMoveArguments = {
+  metadata: ObjectAddress;
+  typeTags: Array<TypeTag>;
+};
 
-    /**
-     *  public fun supply<T0: key>(
-     *     metadata: Object<T0>,
-     *   )
-     **/
-    export class Supply extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "supply";
-      public readonly args: SupplyPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
+/**
+ *  public fun symbol<T0: key>(
+ *     metadata: Object<T0><T0>,
+ *   )
+ **/
+export class Symbol extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "fungible_asset";
+  public readonly functionName = "symbol";
+  public readonly args: SymbolPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; // T0: key
 
-      constructor(
-        metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
-    export type SymbolPayloadMoveArguments = {
-      metadata: ObjectAddress;
-      typeTags: Array<TypeTag>;
+  constructor(
+    metadata: ObjectAddress, // Object<T0><T0>
+    typeTags: Array<TypeTagInput>, // T0: key
+  ) {
+    super();
+    this.args = {
+      metadata: AccountAddress.fromRelaxed(metadata),
+      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
-
-    /**
-     *  public fun symbol<T0: key>(
-     *     metadata: Object<T0>,
-     *   )
-     **/
-    export class Symbol extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "fungible_asset";
-      public readonly functionName = "symbol";
-      public readonly args: SymbolPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; // T0: key
-
-      constructor(
-        metadata: ObjectAddress, // Object<T0>
-        typeTags: Array<TypeTagInput>, // T0: key
-      ) {
-        super();
-        this.args = {
-          metadata: AccountAddress.fromRelaxed(metadata),
-          typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
-        };
-      }
-    }
   }
 }

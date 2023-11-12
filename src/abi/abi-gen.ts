@@ -47,7 +47,7 @@ import {
   toBCSClassName,
   toPascalCase,
   truncateAddressForFileName,
-  truncateStruct,
+  truncatedTypeTagString,
 } from "../../src/abi/utils";
 import fs from "fs";
 import { ConfigDictionary } from "./config";
@@ -267,7 +267,7 @@ export class CodeGenerator {
       case MoveVector.kind:
         // if we're at the innermost type and it's a vector<u8>, we'll use the MoveVector.U8(hex: HexInput) factory method
         if (kindArray.length === 2 && kindArray[1] === U8.kind) {
-          return `Hex.fromHexInput(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}`;
+          return `Hex.fromHexInput(${nameFromDepth})${R_PARENTHESIS.repeat(depth)}.toUint8Array()`;
         }
       case MoveOption.kind: {
         const innerNameFromDepth = `arg${numberToLetter(depth + 1)}`;
@@ -354,7 +354,7 @@ export class CodeGenerator {
     const genericsWithAbilities = new Array<string>();
     typeTags.forEach((typeTag, i) => {
       const kindArray = toBCSClassName(typeTag);
-      let annotation = this.config.expandedStructs ? typeTag.toString() : truncateStruct(typeTag);
+      let annotation = this.config.expandedStructs ? typeTag.toString() : truncatedTypeTagString({ typeTag, namedAddresses: this.config.namedAddresses, namedTypeTags: this.config.namedTypeTags });
 
       // TODO: Change this to Account? Or something else, not sure. But AccountAuthenticator doesn't make sense in the new flow anymore.
       // Check if it's an AccountAuthenticator, which indicates it's a signer argument
@@ -369,29 +369,34 @@ export class CodeGenerator {
       } else {
         // Check if the TypeTag is actually an Object type
         // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
-        if (kindArray[kindArray.length - 1] === "GenericType") {
-          const genericType = `T${genericsWithAbilities.length}`;
-          const constraints = `: ${genericTypeParams[genericsWithAbilities.length]?.constraints.join(" + ")}`;
-          // 2, because that's the length of ": ". We don't add it if there are no constraints
-          const genericTypeWithConstraints = constraints.length > 2 ? `${genericType}${constraints}` : genericType;
-          // Check if the second to last kind is an AccountAddress, because that's *always* an Object
-          // if (kindArray[kindArray.length - 2] === AccountAddress.kind) {
-          if (kindArray[kindArray.length - 2] === "MoveObject") {
-            // Remove the second to last kind, because it's an Object
-            genericsWithAbilities.push(genericTypeWithConstraints);
+        if (kindArray.length > 1) {
+          if (kindArray[kindArray.length - 1] === "GenericType") {
+            const genericType = `T${genericsWithAbilities.length}`;
+            const constraints = `: ${genericTypeParams[genericsWithAbilities.length]?.constraints.join(" + ")}`;
+            // 2, because that's the length of ": ". We don't add it if there are no constraints
+            const genericTypeWithConstraints = constraints.length > 2 ? `${genericType}${constraints}` : genericType;
+            // Check if the second to last kind is an AccountAddress, because that's *always* an Object
+            // if (kindArray[kindArray.length - 2] === AccountAddress.kind) {
+            if (kindArray[kindArray.length - 2] === "MoveObject") {
+              genericsWithAbilities.push(genericTypeWithConstraints);
+              annotation += `<${genericType}>`;
+            } else {
+              genericsWithAbilities.push(genericTypeWithConstraints);
+              // The second to last kind is not an Object, so we'll add it to the functionArguments array
+              // this is a generically typed argument, meaning (as of right now, 11-2023), it's a normal
+              // BCS argument            // functionArguments.push({
+              //   kindArray,
+              //   kindString: kindArrayToString(kindArray),
+              //   annotation,
+              // });
+            }
+          } else if (kindArray[kindArray.length - 2] === "MoveObject") {
+            // it's an Object<T> where T is not generic: aka Object<Token> or something
+            // so we'll remove the second to last kind, since it's an Object
             kindArray.pop();
-            annotation += `<${genericType}>`;
-          } else {
-            genericsWithAbilities.push(genericTypeWithConstraints);
-            // The second to last kind is not an Object, so we'll add it to the functionArguments array
-            // this is a generically typed argument, meaning (as of right now, 11-2023), it's a normal
-            // BCS argument            // functionArguments.push({
-            //   kindArray,
-            //   kindString: kindArrayToString(kindArray),
-            //   annotation,
-            // });
           }
         }
+
 
         let moveArgString = "";
         if (kindArray[kindArray.length - 1] == "GenericType") {
@@ -530,23 +535,30 @@ export class CodeGenerator {
             );
           }
         });
-        const publicFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[0];
-        const privateFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[1];
-        const viewFunctionsCode: Array<string | undefined> = codeForFunctionsWithAnyVisibility[2];
 
-        const publicFunctionsCodeString = `\n${publicFunctionsCode.join("\n")}`;
-        const privateFunctionsCodeString = `\n${privateFunctionsCode.join("\n")}\n`;
-        const viewFunctionsCodeString = `\n${viewFunctionsCode.join("\n")}\n`;
+        const numPublicFunctions = abiFunction.publicEntryFunctions.length;
+        const numPrivateFunctions = abiFunction.privateEntryFunctions.length;
+        const numViewFunctions = abiFunction.viewFunctions.length;
 
-        const namespaceString = `export namespace ${moduleName} {\n`;
-        const entryFunctionsNamespace = `export namespace EntryFunctions {\n${publicFunctionsCodeString}${privateFunctionsCodeString}}`;
-        const viewFunctionsNamespace = `export namespace ViewFunctions {\n${viewFunctionsCodeString}}`;
+        const publicFunctionsCodeString = `\n${codeForFunctionsWithAnyVisibility[0].join("\n")}`;
+        const privateFunctionsCodeString = `\n${codeForFunctionsWithAnyVisibility[1].join("\n")}\n`;
+        const viewFunctionsCodeString = `\n${codeForFunctionsWithAnyVisibility[2].join("\n")}\n`;
 
-        if (publicFunctionsCode.length + privateFunctionsCode.length + viewFunctionsCode.length > 0) {
-          let code = `${namespaceString}`;
-          code += entryFunctionsNamespace;
-          code += viewFunctionsNamespace;
-          code += `}`;
+        // const namespaceString = `export namespace ${moduleName} {\n`;
+
+        let entryFunctionsCode = `\n${publicFunctionsCodeString}${privateFunctionsCodeString}`;
+        let viewFunctionsCode = `\n${viewFunctionsCodeString}`;
+        if (this.config.separateViewAndEntryFunctionsByNamespace) {
+          entryFunctionsCode = `export namespace ${this.config.entryFunctionsNamespace} { ${entryFunctionsCode} }`;
+          viewFunctionsCode = `export namespace ${this.config.viewFunctionsNamespace} { ${viewFunctionsCode} }`;
+        }
+
+        if (numPublicFunctions + numPrivateFunctions + numViewFunctions > 0) {
+          // let code = `${namespaceString}`;
+          let code = '';
+          code += (numPublicFunctions + numPrivateFunctions > 0) ? entryFunctionsCode : '';
+          code += (numViewFunctions > 0) ? viewFunctionsCode : '';
+          // code += `}`;
           generatedCode[abi.name] = {
             address: abi.address,
             name: abi.name,

@@ -35,19 +35,30 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
+export type GetCurrentRoundTypePayloadMoveArguments = {
+  tournament_addr: AccountAddressInput;
+};
+
 /**
- *  public fun get<>(
+ *  public fun get_current_round_type<>(
+ *     tournament_addr: address,
  *   )
  **/
-export class Get extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-  public readonly moduleName = "chain_id";
-  public readonly functionName = "get";
-  public readonly args = {};
+export class GetCurrentRoundType extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed(
+    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+  );
+  public readonly moduleName = "help";
+  public readonly functionName = "get_current_round_type";
+  public readonly args: GetCurrentRoundTypePayloadMoveArguments;
   public readonly typeArgs: Array<TypeTag> = []; //
 
-  constructor() {
+  constructor(
+    tournament_addr: AccountAddressInput, // address
+  ) {
     super();
-    this.args = {};
+    this.args = {
+      tournament_addr: AccountAddress.fromRelaxed(tournament_addr),
+    };
   }
 }

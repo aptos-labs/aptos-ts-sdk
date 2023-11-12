@@ -35,256 +35,251 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace StakingProxy {
-  export namespace EntryFunctions {
-    export type SetOperatorPayloadMoveArguments = {
-      old_operator: AccountAddress;
-      new_operator: AccountAddress;
+export type SetOperatorPayloadMoveArguments = {
+  old_operator: AccountAddress;
+  new_operator: AccountAddress;
+};
+
+/**
+ *  public fun set_operator<>(
+ *     owner: &signer,
+ *     old_operator: address,
+ *     new_operator: address,
+ *   )
+ **/
+export class SetOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_operator";
+  public readonly args: SetOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    old_operator: AccountAddressInput, // address
+    new_operator: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      old_operator: AccountAddress.fromRelaxed(old_operator),
+      new_operator: AccountAddress.fromRelaxed(new_operator),
     };
-
-    /**
-     *  public fun set_operator<>(
-     *     owner: &signer,
-     *     old_operator: address,
-     *     new_operator: address,
-     *   )
-     **/
-    export class SetOperator extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_operator";
-      public readonly args: SetOperatorPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        old_operator: AccountAddressInput, // address
-        new_operator: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          old_operator: AccountAddress.fromRelaxed(old_operator),
-          new_operator: AccountAddress.fromRelaxed(new_operator),
-        };
-      }
-    }
-    export type SetStakePoolOperatorPayloadMoveArguments = {
-      new_operator: AccountAddress;
-    };
-
-    /**
-     *  public fun set_stake_pool_operator<>(
-     *     owner: &signer,
-     *     new_operator: address,
-     *   )
-     **/
-    export class SetStakePoolOperator extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_stake_pool_operator";
-      public readonly args: SetStakePoolOperatorPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        new_operator: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          new_operator: AccountAddress.fromRelaxed(new_operator),
-        };
-      }
-    }
-    export type SetStakePoolVoterPayloadMoveArguments = {
-      new_voter: AccountAddress;
-    };
-
-    /**
-     *  public fun set_stake_pool_voter<>(
-     *     owner: &signer,
-     *     new_voter: address,
-     *   )
-     **/
-    export class SetStakePoolVoter extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_stake_pool_voter";
-      public readonly args: SetStakePoolVoterPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        new_voter: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          new_voter: AccountAddress.fromRelaxed(new_voter),
-        };
-      }
-    }
-    export type SetStakingContractOperatorPayloadMoveArguments = {
-      old_operator: AccountAddress;
-      new_operator: AccountAddress;
-    };
-
-    /**
-     *  public fun set_staking_contract_operator<>(
-     *     owner: &signer,
-     *     old_operator: address,
-     *     new_operator: address,
-     *   )
-     **/
-    export class SetStakingContractOperator extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_staking_contract_operator";
-      public readonly args: SetStakingContractOperatorPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        old_operator: AccountAddressInput, // address
-        new_operator: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          old_operator: AccountAddress.fromRelaxed(old_operator),
-          new_operator: AccountAddress.fromRelaxed(new_operator),
-        };
-      }
-    }
-    export type SetStakingContractVoterPayloadMoveArguments = {
-      operator: AccountAddress;
-      new_voter: AccountAddress;
-    };
-
-    /**
-     *  public fun set_staking_contract_voter<>(
-     *     owner: &signer,
-     *     operator: address,
-     *     new_voter: address,
-     *   )
-     **/
-    export class SetStakingContractVoter extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_staking_contract_voter";
-      public readonly args: SetStakingContractVoterPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        operator: AccountAddressInput, // address
-        new_voter: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          operator: AccountAddress.fromRelaxed(operator),
-          new_voter: AccountAddress.fromRelaxed(new_voter),
-        };
-      }
-    }
-    export type SetVestingContractOperatorPayloadMoveArguments = {
-      old_operator: AccountAddress;
-      new_operator: AccountAddress;
-    };
-
-    /**
-     *  public fun set_vesting_contract_operator<>(
-     *     owner: &signer,
-     *     old_operator: address,
-     *     new_operator: address,
-     *   )
-     **/
-    export class SetVestingContractOperator extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_vesting_contract_operator";
-      public readonly args: SetVestingContractOperatorPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        old_operator: AccountAddressInput, // address
-        new_operator: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          old_operator: AccountAddress.fromRelaxed(old_operator),
-          new_operator: AccountAddress.fromRelaxed(new_operator),
-        };
-      }
-    }
-    export type SetVestingContractVoterPayloadMoveArguments = {
-      operator: AccountAddress;
-      new_voter: AccountAddress;
-    };
-
-    /**
-     *  public fun set_vesting_contract_voter<>(
-     *     owner: &signer,
-     *     operator: address,
-     *     new_voter: address,
-     *   )
-     **/
-    export class SetVestingContractVoter extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_vesting_contract_voter";
-      public readonly args: SetVestingContractVoterPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        operator: AccountAddressInput, // address
-        new_voter: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          operator: AccountAddress.fromRelaxed(operator),
-          new_voter: AccountAddress.fromRelaxed(new_voter),
-        };
-      }
-    }
-    export type SetVoterPayloadMoveArguments = {
-      operator: AccountAddress;
-      new_voter: AccountAddress;
-    };
-
-    /**
-     *  public fun set_voter<>(
-     *     owner: &signer,
-     *     operator: address,
-     *     new_voter: address,
-     *   )
-     **/
-    export class SetVoter extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "staking_proxy";
-      public readonly functionName = "set_voter";
-      public readonly args: SetVoterPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        owner: Account, // &signer
-        operator: AccountAddressInput, // address
-        new_voter: AccountAddressInput, // address
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          operator: AccountAddress.fromRelaxed(operator),
-          new_voter: AccountAddress.fromRelaxed(new_voter),
-        };
-      }
-    }
   }
-  export namespace ViewFunctions {}
+}
+export type SetStakePoolOperatorPayloadMoveArguments = {
+  new_operator: AccountAddress;
+};
+
+/**
+ *  public fun set_stake_pool_operator<>(
+ *     owner: &signer,
+ *     new_operator: address,
+ *   )
+ **/
+export class SetStakePoolOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_stake_pool_operator";
+  public readonly args: SetStakePoolOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    new_operator: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      new_operator: AccountAddress.fromRelaxed(new_operator),
+    };
+  }
+}
+export type SetStakePoolVoterPayloadMoveArguments = {
+  new_voter: AccountAddress;
+};
+
+/**
+ *  public fun set_stake_pool_voter<>(
+ *     owner: &signer,
+ *     new_voter: address,
+ *   )
+ **/
+export class SetStakePoolVoter extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_stake_pool_voter";
+  public readonly args: SetStakePoolVoterPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    new_voter: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      new_voter: AccountAddress.fromRelaxed(new_voter),
+    };
+  }
+}
+export type SetStakingContractOperatorPayloadMoveArguments = {
+  old_operator: AccountAddress;
+  new_operator: AccountAddress;
+};
+
+/**
+ *  public fun set_staking_contract_operator<>(
+ *     owner: &signer,
+ *     old_operator: address,
+ *     new_operator: address,
+ *   )
+ **/
+export class SetStakingContractOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_staking_contract_operator";
+  public readonly args: SetStakingContractOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    old_operator: AccountAddressInput, // address
+    new_operator: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      old_operator: AccountAddress.fromRelaxed(old_operator),
+      new_operator: AccountAddress.fromRelaxed(new_operator),
+    };
+  }
+}
+export type SetStakingContractVoterPayloadMoveArguments = {
+  operator: AccountAddress;
+  new_voter: AccountAddress;
+};
+
+/**
+ *  public fun set_staking_contract_voter<>(
+ *     owner: &signer,
+ *     operator: address,
+ *     new_voter: address,
+ *   )
+ **/
+export class SetStakingContractVoter extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_staking_contract_voter";
+  public readonly args: SetStakingContractVoterPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    operator: AccountAddressInput, // address
+    new_voter: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      operator: AccountAddress.fromRelaxed(operator),
+      new_voter: AccountAddress.fromRelaxed(new_voter),
+    };
+  }
+}
+export type SetVestingContractOperatorPayloadMoveArguments = {
+  old_operator: AccountAddress;
+  new_operator: AccountAddress;
+};
+
+/**
+ *  public fun set_vesting_contract_operator<>(
+ *     owner: &signer,
+ *     old_operator: address,
+ *     new_operator: address,
+ *   )
+ **/
+export class SetVestingContractOperator extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_vesting_contract_operator";
+  public readonly args: SetVestingContractOperatorPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    old_operator: AccountAddressInput, // address
+    new_operator: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      old_operator: AccountAddress.fromRelaxed(old_operator),
+      new_operator: AccountAddress.fromRelaxed(new_operator),
+    };
+  }
+}
+export type SetVestingContractVoterPayloadMoveArguments = {
+  operator: AccountAddress;
+  new_voter: AccountAddress;
+};
+
+/**
+ *  public fun set_vesting_contract_voter<>(
+ *     owner: &signer,
+ *     operator: address,
+ *     new_voter: address,
+ *   )
+ **/
+export class SetVestingContractVoter extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_vesting_contract_voter";
+  public readonly args: SetVestingContractVoterPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    operator: AccountAddressInput, // address
+    new_voter: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      operator: AccountAddress.fromRelaxed(operator),
+      new_voter: AccountAddress.fromRelaxed(new_voter),
+    };
+  }
+}
+export type SetVoterPayloadMoveArguments = {
+  operator: AccountAddress;
+  new_voter: AccountAddress;
+};
+
+/**
+ *  public fun set_voter<>(
+ *     owner: &signer,
+ *     operator: address,
+ *     new_voter: address,
+ *   )
+ **/
+export class SetVoter extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "staking_proxy";
+  public readonly functionName = "set_voter";
+  public readonly args: SetVoterPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    owner: Account, // &signer
+    operator: AccountAddressInput, // address
+    new_voter: AccountAddressInput, // address
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      operator: AccountAddress.fromRelaxed(operator),
+      new_voter: AccountAddress.fromRelaxed(new_voter),
+    };
+  }
 }

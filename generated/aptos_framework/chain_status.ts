@@ -35,41 +35,36 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace ChainStatus {
-  export namespace EntryFunctions {}
-  export namespace ViewFunctions {
-    /**
-     *  public fun is_genesis<>(
-     *   )
-     **/
-    export class IsGenesis extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "chain_status";
-      public readonly functionName = "is_genesis";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun is_genesis<>(
+ *   )
+ **/
+export class IsGenesis extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "chain_status";
+  public readonly functionName = "is_genesis";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
+  }
+}
 
-    /**
-     *  public fun is_operating<>(
-     *   )
-     **/
-    export class IsOperating extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "chain_status";
-      public readonly functionName = "is_operating";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun is_operating<>(
+ *   )
+ **/
+export class IsOperating extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "chain_status";
+  public readonly functionName = "is_operating";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
   }
 }

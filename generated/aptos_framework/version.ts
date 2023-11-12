@@ -35,36 +35,31 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace Version {
-  export namespace EntryFunctions {
-    export type SetVersionPayloadMoveArguments = {
-      major: U64;
+export type SetVersionPayloadMoveArguments = {
+  major: U64;
+};
+
+/**
+ *  public fun set_version<>(
+ *     account: &signer,
+ *     major: u64,
+ *   )
+ **/
+export class SetVersion extends EntryFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "version";
+  public readonly functionName = "set_version";
+  public readonly args: SetVersionPayloadMoveArguments;
+  public readonly typeArgs: Array<TypeTag> = []; //
+
+  constructor(
+    account: Account, // &signer
+    major: Uint64, // u64
+    feePayer?: Account, // optional fee payer account to sponsor the transaction
+  ) {
+    super();
+    this.args = {
+      major: new U64(major),
     };
-
-    /**
-     *  public fun set_version<>(
-     *     account: &signer,
-     *     major: u64,
-     *   )
-     **/
-    export class SetVersion extends EntryFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "version";
-      public readonly functionName = "set_version";
-      public readonly args: SetVersionPayloadMoveArguments;
-      public readonly typeArgs: Array<TypeTag> = []; //
-
-      constructor(
-        account: Account, // &signer
-        major: Uint64, // u64
-        feePayer?: Account, // optional fee payer account to sponsor the transaction
-      ) {
-        super();
-        this.args = {
-          major: new U64(major),
-        };
-      }
-    }
   }
-  export namespace ViewFunctions {}
 }

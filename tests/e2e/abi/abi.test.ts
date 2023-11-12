@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, Aptos, AptosConfig, Ed25519PrivateKey, Hex, MoveString, Network } from "../../../src";
+import { Account, AccountAddress, Aptos, AptosConfig, Ed25519PrivateKey, Hex, MoveString, Network, parseTypeTag, truncatedTypeTagString } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { PUBLISHER_ACCOUNT_PK, fundAccounts, publishArgumentTestModule } from "../transaction/helper";
 import { SingleSignerTransactionBuilder } from "../../../src/bcs/serializable/tx-builder/singleSignerTransactionBuilder";
@@ -9,6 +9,7 @@ import { sha3_256 } from "js-sha3";
 import { getSourceCodeMap } from "../../../src/abi/package-metadata";
 import { CodeGenerator } from "../../../src/abi/abi-gen";
 import { ConfigDictionary, getCodeGenConfig } from "../../../src/abi/config";
+import { AptosFramework, AptosTokenObjects, AptosToken, Tournament } from "../../../generated/";
 
 jest.setTimeout(30000);
 
@@ -26,7 +27,38 @@ describe.only("abi test", () => {
     console.log(asdf);
   });
 
-  it.only("parses abis correctly", async () => {
+  it("truncates type tag string correctly", async () => {
+    const typeTag1 = parseTypeTag("vector<0x1::object::Object<0x4::token::Token>>");
+    const typeTag2 = parseTypeTag("vector<0x1::string::String>");
+    const typeTag3 = parseTypeTag("vector<0x1::option::Option<0x1::object::Object<0x4::token::Token>>>");
+    expect(truncatedTypeTagString({ typeTag: typeTag1 })).toEqual("vector<Object<0x4::token::Token>>");
+    expect(truncatedTypeTagString({ typeTag: typeTag2 })).toEqual("vector<String>");
+    expect(truncatedTypeTagString({ typeTag: typeTag3 })).toEqual("vector<Option<Object<0x4::token::Token>>>");
+  });
+
+  it.only("truncates type tag string correctly based on replaced typetags and named addresses", async () => {
+    const codeGeneratorConfig = getCodeGenConfig("./src/abi/config.yaml");
+    const namedAddresses = codeGeneratorConfig.namedAddresses!;
+    const namedTypeTags = codeGeneratorConfig.namedTypeTags!;
+    // ensure we have the replacement here
+    namedTypeTags[parseTypeTag("0x4::token::Token").toString()] = "Token";
+    
+    const typeTag1 = parseTypeTag("vector<0x1::object::Object<0x4::token::Token>>");
+    const typeTag2 = parseTypeTag("vector<0x1::string::String>");
+    const typeTag3 = parseTypeTag("vector<0x1::option::Option<0x1::object::Object<0x4::token::Token>>>");
+    expect(truncatedTypeTagString({ typeTag: typeTag1, namedAddresses, namedTypeTags })).toEqual("vector<Object<Token>>");
+    expect(truncatedTypeTagString({ typeTag: typeTag2, namedAddresses, namedTypeTags })).toEqual("vector<String>");
+    expect(truncatedTypeTagString({ typeTag: typeTag3, namedAddresses, namedTypeTags })).toEqual("vector<Option<Object<Token>>>");
+    namedTypeTags[parseTypeTag("0x4::token::Token").toString()] = "Cowabunga";
+    expect(truncatedTypeTagString({ typeTag: typeTag3, namedAddresses, namedTypeTags })).toEqual("vector<Option<Object<Cowabunga>>>");
+    
+    namedAddresses["0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"] = "tournament";
+    // try to trick it and replace named address
+    const typeTag4 = parseTypeTag("vector<0x1::option::Option<0x1::object::Object<0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766::token::Token>>>");
+    expect(truncatedTypeTagString({ typeTag: typeTag4, namedAddresses, namedTypeTags })).toEqual("vector<Option<Object<tournament::token::Token>>>");
+  });
+
+  it("parses abis correctly", async () => {
     const aptosDevnet = new Aptos(new AptosConfig({ network: Network.DEVNET }));
     const aptosTestnet = new Aptos(new AptosConfig({ network: Network.TESTNET }));
     const account = Account.fromPrivateKey({
@@ -36,11 +68,13 @@ describe.only("abi test", () => {
     await aptosDevnet.fundAccount({ accountAddress: account.accountAddress.toString(), amount: FUND_AMOUNT });
     await publishArgumentTestModule(aptosDevnet, account);
 
-    await codeGenerator.generateCodeForModules(aptosDevnet, [
+    await codeGenerator.generateCodeForModules(aptosTestnet, [
       AccountAddress.ONE,
-      // AccountAddress.THREE,
-      // AccountAddress.FOUR,
+      AccountAddress.THREE,
+      AccountAddress.FOUR,
+      AccountAddress.fromRelaxed("0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"),
     ]);
+    // new Tournament.Lobby.GetRooms.
 
     // const myModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, account.accountAddress);
     // const frameworkModuleABIs = await codeGenerator.fetchABIs(aptosDevnet, AccountAddress.fromRelaxed("0x1"));

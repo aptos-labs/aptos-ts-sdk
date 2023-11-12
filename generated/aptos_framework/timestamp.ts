@@ -35,41 +35,36 @@ import {
   EntryFunctionPayloadBuilder,
 } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
 
-export namespace Timestamp {
-  export namespace EntryFunctions {}
-  export namespace ViewFunctions {
-    /**
-     *  public fun now_microseconds<>(
-     *   )
-     **/
-    export class NowMicroseconds extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "timestamp";
-      public readonly functionName = "now_microseconds";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun now_microseconds<>(
+ *   )
+ **/
+export class NowMicroseconds extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "timestamp";
+  public readonly functionName = "now_microseconds";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
+  }
+}
 
-    /**
-     *  public fun now_seconds<>(
-     *   )
-     **/
-    export class NowSeconds extends ViewFunctionPayloadBuilder {
-      public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
-      public readonly moduleName = "timestamp";
-      public readonly functionName = "now_seconds";
-      public readonly args = {};
-      public readonly typeArgs: Array<TypeTag> = []; //
+/**
+ *  public fun now_seconds<>(
+ *   )
+ **/
+export class NowSeconds extends ViewFunctionPayloadBuilder {
+  public readonly moduleAddress = AccountAddress.fromRelaxed("0x1");
+  public readonly moduleName = "timestamp";
+  public readonly functionName = "now_seconds";
+  public readonly args = {};
+  public readonly typeArgs: Array<TypeTag> = []; //
 
-      constructor() {
-        super();
-        this.args = {};
-      }
-    }
+  constructor() {
+    super();
+    this.args = {};
   }
 }

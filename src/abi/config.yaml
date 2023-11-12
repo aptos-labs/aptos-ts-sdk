@@ -1,7 +1,11 @@
 namedAddresses:
-  0x1: aptos_framework
-  0x3: aptos_token
-  0x4: aptos_token_objects
+  "0x1": aptos_framework
+  "0x3": aptos_token
+  "0x4": aptos_token_objects
+  "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766": tournament
+namedTypeTags:
+  "0x4::token::Token": "Token"
+  "0x4::collection::Collection": "Collection"
 
 structArgs: false
 outputPath: "./generated/"
@@ -10,3 +14,6 @@ expandedStructs: false
 replaceNamedAddresses: true
 payloadBCSTypesFilename: "bcsPayloadTypes"
 includeAccountParams: true # set this to `true` if you have access to all the private keys. `false` if you're doing dapp development
+separateViewAndEntryFunctionsByNamespace: false
+viewFunctionsNamespace: "ViewFunctions"
+entryFunctionsNamespace: "EntryFunctions"
