@@ -1,0 +1,29 @@
+{
+  "name": "ts-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/simple_transfer.ts",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm _build:esm",
+    "_build:esm": "tsup simple_transfer.ts simple_sponsored_transaction.ts --platform node --format esm --dts --out-dir dist",
+    "simple_transfer": "ts-node --esm dist/simple_transfer.js",
+    "simple_sponsored_transaction": "ts-node --esm dist/simple_sponsored_transaction.js",
+    "test": "run-s build simple_transfer simple_sponsored_transaction"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "npm-run-all": "latest",
+    "@aptos-labs/ts-sdk": "link:../..",
+    "superagent": "^8.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "ts-node": "latest",
+    "typescript": "latest",
+    "tsup": "latest"
+  }
+}

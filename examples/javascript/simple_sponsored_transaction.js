@@ -56,7 +56,7 @@ const example = async () => {
   console.log("\n=== Submitting Transaction ===\n");
   const transaction = await aptos.generateTransaction({
     sender: aliceAddress,
-    feePayerAddress: sponsorAddress,
+    hasFeePayer: true,
     data: {
       function: "0x1::aptos_account::transfer",
       functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
@@ -67,7 +67,7 @@ const example = async () => {
   const senderSignature = aptos.signTransaction({ signer: alice, transaction });
 
   // Sponsor signs
-  const sponsorSignature = aptos.signTransaction({ signer: sponsor, transaction });
+  const sponsorSignature = aptos.signTransaction({ signer: sponsor, transaction, asFeePayer: true });
 
   // Submit the transaction to chain
   const committedTxn = await aptos.submitTransaction({
