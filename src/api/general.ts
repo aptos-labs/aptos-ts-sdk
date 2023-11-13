@@ -133,8 +133,8 @@ export class General {
    *
    * @returns an array of Move values
    */
-  async view(args: { payload: InputViewRequestData; options?: LedgerVersion }): Promise<Array<MoveValue>> {
-    return view({ aptosConfig: this.config, ...args });
+  async view<T extends Array<MoveValue>>(args: { payload: InputViewRequestData; options?: LedgerVersion }): Promise<T> {
+    return view<T>({ aptosConfig: this.config, ...args });
   }
 
   /**
