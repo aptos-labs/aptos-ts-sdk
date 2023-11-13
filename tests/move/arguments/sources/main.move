@@ -537,6 +537,70 @@ module transaction_arguments::tx_args_module {
     }
 
     #[view]
+    public fun view_complex_outputs(): (
+        vector<vector<u8>>,
+        vector<vector<Object<EmptyResource>>>,
+        vector<Option<vector<Object<EmptyResource>>>>,
+        vector<vector<Option<vector<Object<EmptyResource>>>>>,
+    ) acquires SetupData {
+        let deeply_nested_1_comparison = vector<vector<u8>> [ EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8 ];
+        let deeply_nested_2_comparison = vector<vector<Object<EmptyResource>>> [ get_test_objects_vector(), get_test_objects_vector(), get_test_objects_vector() ];
+        let option_vector = option::some(get_test_objects_vector());
+        let deeply_nested_3_comparison = vector<Option<vector<Object<EmptyResource>>>> [ option_vector, option_vector, option_vector ];
+        let deeply_nested_4_comparison = vector<vector<Option<vector<Object<EmptyResource>>>>> [ deeply_nested_3_comparison, deeply_nested_3_comparison, deeply_nested_3_comparison ];
+        (
+            deeply_nested_1_comparison,
+            deeply_nested_2_comparison,
+            deeply_nested_3_comparison,
+            deeply_nested_4_comparison,
+        )
+    }
+
+    #[view]
+    public fun view_complex_arguments(
+        deeply_nested_1: vector<vector<u8>>,
+        deeply_nested_2: vector<vector<Object<EmptyResource>>>,
+        deeply_nested_3: vector<Option<vector<Object<EmptyResource>>>>,
+        deeply_nested_4: vector<vector<Option<vector<Object<EmptyResource>>>>>,
+    ): (
+        vector<vector<u8>>,
+        vector<vector<Object<EmptyResource>>>,
+        vector<Option<vector<Object<EmptyResource>>>>,
+        vector<vector<Option<vector<Object<EmptyResource>>>>>,
+    ) acquires SetupData {
+        let deeply_nested_1_comparison = vector<vector<u8>> [ EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8 ];
+        let deeply_nested_2_comparison = vector<vector<Object<EmptyResource>>> [ get_test_objects_vector(), get_test_objects_vector(), get_test_objects_vector() ];
+        let option_vector = option::some(get_test_objects_vector());
+        let deeply_nested_3_comparison = vector<Option<vector<Object<EmptyResource>>>> [ option_vector, option_vector, option_vector ];
+        let deeply_nested_4_comparison = vector<vector<Option<vector<Object<EmptyResource>>>>> [ deeply_nested_3_comparison, deeply_nested_3_comparison, deeply_nested_3_comparison ];
+        assert_deep_equality(deeply_nested_1, deeply_nested_1_comparison, 0);
+        assert_deep_equality(deeply_nested_2, deeply_nested_2_comparison, 1);
+
+        vector::zip(deeply_nested_3, deeply_nested_3_comparison, |a, b| {
+            assert_options_equal(a, b, 2);
+            let option_vec1 = option::extract(&mut a);
+            let option_vec2 = option::extract(&mut b);
+            assert_vectors_equal(option_vec1, option_vec2, 2);
+        });
+
+        vector::zip(deeply_nested_4, deeply_nested_4_comparison, |a, b| {
+            vector::zip(a, b, |aa, bb| {
+                assert_options_equal(aa, bb, 3);
+                let option_vec1 = option::extract(&mut aa);
+                let option_vec2 = option::extract(&mut bb);
+                assert_vectors_equal(option_vec1, option_vec2, 3);
+            });
+        });
+
+        (
+            deeply_nested_1,
+            deeply_nested_2,
+            deeply_nested_3,
+            deeply_nested_4,
+        )
+    }
+
+    #[view]
     public fun get_expected_vector_string(): vector<String> {
         vector::map(EXPECTED_VECTOR_STRING, |s| {
             string::utf8(s)
@@ -760,6 +824,25 @@ module transaction_arguments::tx_args_module {
             deeply_nested_2_comparison,
             deeply_nested_3_comparison,
             deeply_nested_4_comparison,
+        );
+
+        let deeply_nested_1_comparison_for_view = vector<vector<u8>> [ EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8, EXPECTED_VECTOR_U8 ];
+        let deeply_nested_2_comparison_for_view = vector<vector<Object<EmptyResource>>> [ get_test_objects_vector(), get_test_objects_vector(), get_test_objects_vector() ];
+        let option_vector = option::some(get_test_objects_vector());
+        let deeply_nested_3_comparison_for_view = vector<Option<vector<Object<EmptyResource>>>> [ option_vector, option_vector, option_vector ];
+        let deeply_nested_4_comparison_for_view = vector<vector<Option<vector<Object<EmptyResource>>>>> [ deeply_nested_3_comparison_for_view, deeply_nested_3_comparison_for_view, deeply_nested_3_comparison_for_view ];
+        let (ret_value_1, ret_value_2, ret_value_3, ret_value_4) = view_complex_arguments(
+            deeply_nested_1_comparison_for_view,
+            deeply_nested_2_comparison_for_view,
+            deeply_nested_3_comparison_for_view,
+            deeply_nested_4_comparison_for_view,
+        );
+        assert!(
+            ret_value_1 == deeply_nested_1_comparison_for_view &&
+            ret_value_2 == deeply_nested_2_comparison_for_view &&
+            ret_value_3 == deeply_nested_3_comparison_for_view &&
+            ret_value_4 == deeply_nested_4_comparison_for_view,
+            0
         );
 
         // instead of passing the type tags, we pass the type names we parse in ts
