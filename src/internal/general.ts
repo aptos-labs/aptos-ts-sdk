@@ -83,11 +83,11 @@ export async function getTableItem<T>(args: {
   return response.data as T;
 }
 
-export async function view(args: {
+export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   aptosConfig: AptosConfig;
   payload: InputViewRequestData;
   options?: LedgerVersion;
-}): Promise<MoveValue[]> {
+}): Promise<T> {
   const { aptosConfig, payload, options } = args;
   const { data } = await postAptosFullNode<ViewRequest, MoveValue[]>({
     aptosConfig,
@@ -100,7 +100,8 @@ export async function view(args: {
       arguments: payload.functionArguments ?? [],
     },
   });
-  return data;
+
+  return data as T;
 }
 
 export async function getChainTopUserTransactions(args: {

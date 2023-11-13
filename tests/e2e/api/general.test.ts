@@ -34,19 +34,6 @@ describe("general api", () => {
     expect(blockData.block_height).toBe(blockVersion.toString());
   });
 
-  test("it fetches view function data", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
-
-    const payload: InputViewRequestData = {
-      function: "0x1::chain_id::get",
-    };
-
-    const chainId = await aptos.view({ payload });
-
-    expect(chainId[0]).toBe(4);
-  });
-
   test("it fetches table item data", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
@@ -107,5 +94,121 @@ describe("general api", () => {
 
     const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 3 });
     expect(topUserTransactions.length).toEqual(3);
+  });
+  describe("View functions", () => {
+    test("it fetches view function data", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::chain_id::get",
+      };
+
+      const chainId = (await aptos.view({ payload }))[0];
+
+      expect(chainId).toEqual(4);
+    });
+
+    test("it fetches view function with a type", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::chain_id::get",
+      };
+
+      const chainId = (await aptos.view<[number]>({ payload }))[0];
+
+      expect(chainId).toEqual(4);
+    });
+
+    test("it fetches view function with bool", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::account::exists_at",
+        functionArguments: ["0x1"],
+      };
+
+      const exists = (await aptos.view<[boolean]>({ payload }))[0];
+
+      expect(exists).toBe(true);
+
+      const payload2: InputViewRequestData = {
+        function: "0x1::account::exists_at",
+        functionArguments: ["0x12345"],
+      };
+
+      const exists2 = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
+
+      expect(exists2).toBe(false);
+    });
+
+    test("it fetches view function with address input and different output types", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::account::get_sequence_number",
+        functionArguments: ["0x1"],
+      };
+
+      const sequenceNumber = (await aptos.view<[string]>({ payload }))[0];
+
+      expect(BigInt(sequenceNumber)).toEqual(BigInt(0));
+
+      const payload2: InputViewRequestData = {
+        function: "0x1::account::get_authentication_key",
+        functionArguments: ["0x1"],
+      };
+
+      const authKey = (await aptos.view<[string]>({ payload: payload2 }))[0];
+
+      expect(authKey).toEqual("0x0000000000000000000000000000000000000000000000000000000000000001");
+    });
+
+    test("it fetches view functions with generics", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::coin::symbol",
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+      };
+
+      const symbol = (await aptos.view<[string]>({ payload }))[0];
+      expect(symbol).toEqual("APT");
+
+      const payload2: InputViewRequestData = {
+        function: "0x1::coin::is_account_registered",
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: ["0x1"],
+      };
+
+      const isRegistered = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
+      expect(isRegistered).toEqual(false);
+
+      const payload3: InputViewRequestData = {
+        function: "0x1::coin::supply",
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: [],
+      };
+
+      const supply = (await aptos.view<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
+      expect(BigInt(supply)).toBeGreaterThan(BigInt(0));
+    });
+
+    test("view functions that fail in the VM fail here", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      const payload: InputViewRequestData = {
+        function: "0x1::account::get_sequence_number",
+        functionArguments: ["0x123456"],
+      };
+
+      await expect(() => aptos.view<[string]>({ payload })).rejects.toThrow("VMError");
+    });
   });
 });
