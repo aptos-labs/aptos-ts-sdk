@@ -77,6 +77,7 @@ export class ANS {
     sender: Account;
     name: string;
     address: AccountAddressInput;
+    options?: InputGenerateTransactionOptions;
   }): Promise<InputSingleSignerTransaction> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
   }
@@ -158,7 +159,12 @@ export class ANS {
    *
    * @returns SingleSignerTransaction
    */
-  async renewDomain(args: { sender: Account; name: string; years?: 1 }): Promise<InputSingleSignerTransaction> {
+  async renewDomain(args: {
+    sender: Account;
+    name: string;
+    years?: 1;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<InputSingleSignerTransaction> {
     return renewDomain({ aptosConfig: this.config, ...args });
   }
 }

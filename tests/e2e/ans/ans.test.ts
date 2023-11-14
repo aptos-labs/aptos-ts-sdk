@@ -29,77 +29,80 @@ describe("ANS", () => {
 
   const randomString = () => Math.random().toString().slice(2);
 
-  beforeAll(async () => {
-    const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-    const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+  beforeAll(
+    async () => {
+      const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
+      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
-    // Publish the contract, should be idempotent
+      // Publish the contract, should be idempotent
 
-    // Enable reverse lookup for the case of v1
-    await signAndSubmit(
-      contractAccount,
-      await generateTransaction({
-        aptosConfig: config,
-        sender: contractAccount.accountAddress.toString(),
-        data: {
-          function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
-          functionArguments: [],
-        },
-      }),
-    );
-
-    // Toggle router to v2
-    await signAndSubmit(
-      contractAccount,
-      await generateTransaction({
-        aptosConfig: config,
-        sender: contractAccount.accountAddress.toString(),
-        data: {
-          function: `${ANS_ADDRESS}::router::set_mode`,
-          functionArguments: [new U8(1)],
-        },
-      }),
-    );
-
-    changeExpirationDate = async (
-      tokenMode: 0 | 1,
-      expirationDate: number,
-      domainName: string,
-      subdomainName?: string,
-    ) => {
-      const domain = new MoveString(domainName);
-      const subdomain = new MoveOption(subdomainName ? new MoveString(subdomainName) : null);
-      const expiration = new U64(expirationDate);
-
-      return signAndSubmit(
+      // Enable reverse lookup for the case of v1
+      await signAndSubmit(
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
           sender: contractAccount.accountAddress.toString(),
           data: {
-            function:
-              tokenMode === 0
-                ? `${ANS_ADDRESS}::domain::force_set_expiration`
-                : `${ANS_ADDRESS}::v2_1_domains::force_set_name_expiration`,
-            functionArguments: tokenMode === 0 ? [subdomain, domain, expiration] : [domain, subdomain, expiration],
+            function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
+            functionArguments: [],
           },
         }),
       );
-    };
 
-    changeRouterMode = async (mode: 0 | 1) =>
-      signAndSubmit(
+      // Toggle router to v2
+      await signAndSubmit(
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
           sender: contractAccount.accountAddress.toString(),
           data: {
             function: `${ANS_ADDRESS}::router::set_mode`,
-            functionArguments: [new U8(mode)],
+            functionArguments: [new U8(1)],
           },
         }),
       );
-  }, 2 * 60 * 1000);
+
+      changeExpirationDate = async (
+        tokenMode: 0 | 1,
+        expirationDate: number,
+        domainName: string,
+        subdomainName?: string,
+      ) => {
+        const domain = new MoveString(domainName);
+        const subdomain = new MoveOption(subdomainName ? new MoveString(subdomainName) : null);
+        const expiration = new U64(expirationDate);
+
+        return signAndSubmit(
+          contractAccount,
+          await generateTransaction({
+            aptosConfig: config,
+            sender: contractAccount.accountAddress.toString(),
+            data: {
+              function:
+                tokenMode === 0
+                  ? `${ANS_ADDRESS}::domain::force_set_expiration`
+                  : `${ANS_ADDRESS}::v2_1_domains::force_set_name_expiration`,
+              functionArguments: tokenMode === 0 ? [subdomain, domain, expiration] : [domain, subdomain, expiration],
+            },
+          }),
+        );
+      };
+
+      changeRouterMode = async (mode: 0 | 1) =>
+        signAndSubmit(
+          contractAccount,
+          await generateTransaction({
+            aptosConfig: config,
+            sender: contractAccount.accountAddress.toString(),
+            data: {
+              function: `${ANS_ADDRESS}::router::set_mode`,
+              functionArguments: [new U8(mode)],
+            },
+          }),
+        );
+    },
+    2 * 60 * 1000,
+  );
 
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {
