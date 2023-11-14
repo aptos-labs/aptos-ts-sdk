@@ -9,7 +9,6 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Bool, MoveOption, MoveString, U64, U8 } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { MoveAddressType, MoveValue } from "../types";
@@ -82,8 +81,8 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;
-const None = (): MoveValue => ({ vec: [] }) as any;
+const Some = <T>(value: T): MoveValue => ({ vec: [value] } as any);
+const None = (): MoveValue => ({ vec: [] } as any);
 // != here is intentional, we want to check for null and undefined
 // eslint-disable-next-line eqeqeq
 const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
@@ -152,19 +151,15 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
       throw new Error("For now, names can only be registered for 1 year at a time");
     }
 
-    const registrationDuration = years * 31536000;
+    const secondsInYear = 31536000;
+    const registrationDuration = years * secondsInYear;
 
     const transaction = await generateTransaction({
       aptosConfig,
       sender: sender.accountAddress.toString(),
       data: {
         function: `${routerAddress}::router::register_domain`,
-        functionArguments: [
-          new MoveString(domainName),
-          new U64(registrationDuration),
-          new MoveOption(targetAddress ? AccountAddress.from(targetAddress) : null),
-          new MoveOption(toAddress ? AccountAddress.from(toAddress) : null),
-        ],
+        functionArguments: [domainName, registrationDuration, targetAddress, toAddress],
       },
       options,
     });
@@ -197,13 +192,13 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     data: {
       function: `${routerAddress}::router::register_subdomain`,
       functionArguments: [
-        new MoveString(domainName),
-        new MoveString(subdomainName),
-        new U64(Math.round(expirationDateInMillisecondsSinceEpoch / 1000)),
-        new U8(expiration.policy === "subdomain:follow-domain" ? 1 : 0),
-        new Bool(!!transferable),
-        new MoveOption(targetAddress ? AccountAddress.fromRelaxed(targetAddress) : null),
-        new MoveOption(toAddress ? AccountAddress.fromRelaxed(toAddress) : null),
+        domainName,
+        subdomainName,
+        Math.round(expirationDateInMillisecondsSinceEpoch / 1000),
+        expiration.policy === "subdomain:follow-domain" ? 1 : 0,
+        !!transferable,
+        targetAddress,
+        toAddress,
       ],
     },
     options,
@@ -270,10 +265,7 @@ export async function setPrimaryName(args: {
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::set_primary_name`,
-      functionArguments: [
-        new MoveString(domainName),
-        new MoveOption(subdomainName ? new MoveString(subdomainName) : null),
-      ],
+      functionArguments: [domainName, subdomainName],
     },
     options,
   });
@@ -317,11 +309,7 @@ export async function setTargetAddress(args: {
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::set_target_addr`,
-      functionArguments: [
-        new MoveString(domainName),
-        new MoveOption(subdomainName ? new MoveString(subdomainName) : null),
-        AccountAddress.fromRelaxed(address),
-      ],
+      functionArguments: [domainName, subdomainName, address],
     },
     options,
   });
@@ -329,6 +317,17 @@ export async function setTargetAddress(args: {
   return transaction as InputSingleSignerTransaction;
 }
 
+/**
+ * This function returns the grace period in seconds that is set by the ANS
+ * contract. The grace period allows for names to be past expiration for a
+ * certain amount of time before they are released to the public. The names will
+ * not function as normal, but the owner can renew without others taking
+ * ownership of the name. At the time of writing, the contract specified 30
+ * days.
+ *
+ * @param args.aptosConfig an AptosConfig object
+ * @returns
+ */
 export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }): Promise<number> {
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
@@ -369,7 +368,7 @@ export async function renewDomain(args: {
     sender: sender.accountAddress.toString(),
     data: {
       function: `${routerAddress}::router::renew_domain`,
-      functionArguments: [new MoveString(domainName), new U64(renewalDuration)],
+      functionArguments: [domainName, renewalDuration],
     },
     options,
   });
