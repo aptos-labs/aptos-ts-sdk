@@ -21,6 +21,7 @@ export type ConfigDictionary = {
   entryFunctionsNamespace?: string;
   viewFunctionsNamespace?: string;
   separateViewAndEntryFunctionsByNamespace?: boolean;
+  sdkPath?: string;
 };
 
 export function getCodeGenConfig(configFilePath = "./src/abi/config.yaml"): ConfigDictionary {
@@ -38,15 +39,6 @@ export function getCodeGenConfig(configFilePath = "./src/abi/config.yaml"): Conf
       namedAddresses[`${key}` as any] = address;
     });
   }
-  // const replaceTypeTags = config.replaceTypeTags;
-  // if (replaceTypeTags !== undefined) {
-  //   Object.keys(replaceTypeTags).forEach((key) => {
-  //     const replacedTypeTags = replaceTypeTags[key as any];
-  //     delete replaceTypeTags[key as any];
-  //     replaceTypeTags[`${key}` as any] = replacedTypeTags;
-  //   });
-  // }
   config.namedAddresses = namedAddresses;
-  // config.replaceTypeTags = replaceTypeTags;
   return config;
 }

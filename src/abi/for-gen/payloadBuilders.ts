@@ -1,9 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos } from "../../../api";
-import { Account, AccountAddress } from "../../../core";
 import {
+  Aptos,
+  Account,
+  AccountAddress,
   EntryFunction,
   EntryFunctionArgumentTypes,
   Identifier,
@@ -14,15 +15,14 @@ import {
   TransactionPayloadMultisig,
   TypeTag,
   buildTransaction,
-} from "../../../transactions";
-import {
   LedgerVersion,
   MoveValue,
   UserTransactionResponse,
   InputViewRequestData,
   WaitForTransactionOptions,
-} from "../../../types";
-import { Serializable, Serializer } from "../../serializer";
+  Serializable,
+  Serializer,
+} from "../../";
 
 export abstract class EntryFunctionPayloadBuilder extends Serializable {
   public abstract readonly moduleAddress: AccountAddress;
@@ -74,10 +74,7 @@ export abstract class EntryFunctionPayloadBuilder extends Serializable {
   }
 
   argsToArray(): Array<EntryFunctionArgumentTypes> {
-    // TODO: Fix this hack
-    return Object.keys(this.args)
-      .filter((field) => field !== "typeTags")
-      .map((field) => this.args[field as keyof typeof this.args]);
+    return Object.keys(this.args).map((field) => this.args[field as keyof typeof this.args]);
   }
 
   serialize(serializer: Serializer): void {

@@ -19,7 +19,6 @@ import {
 } from "../../src";
 import {
   EntryFunctionArgumentTypes,
-  InputTypes,
   AccountAddressInput,
   Hex,
   HexInput,
@@ -31,22 +30,18 @@ import {
   Uint256,
   parseTypeTag,
 } from "../../src";
-import { addressBytes } from "../../src/abi/utils";
-import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import {
-  ViewFunctionPayloadBuilder,
-  EntryFunctionPayloadBuilder,
-} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type CommitActionPayloadMoveArguments = {
-  player_obj: MoveObject;
+  game_address: AccountAddress;
   action_hash: MoveVector<U8>;
 };
 
 /**
- *  public fun commit_action<>(
+ *  public fun commit_action(
  *     player: &signer,
- *     player_obj: Object<Token>,
+ *     game_address: address,
  *     action_hash: vector<u8>,
  *   )
  **/
@@ -57,59 +52,30 @@ export class CommitAction extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "commit_action";
   public readonly args: CommitActionPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // player: &signer,
-    player_obj: ObjectAddress, // Object<Token>
+    game_address: AccountAddressInput, // address
     action_hash: HexInput, // vector<u8>
   ) {
     super();
     this.args = {
-      player_obj: AccountAddress.fromRelaxed(player_obj),
+      game_address: AccountAddress.fromRelaxed(game_address),
       action_hash: MoveVector.U8(action_hash),
     };
   }
 }
-export type CreateGamePayloadMoveArguments = {
-  tokens: MoveVector<MoveObject>;
-};
-
-/**
- *  public fun create_game<>(
- *     room_obj: &signer,
- *     tokens: vector<Object<Token>>,
- *   )
- **/
-export class CreateGame extends EntryFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
-  );
-  public readonly moduleName = "rock_paper_scissor";
-  public readonly functionName = "create_game";
-  public readonly args: CreateGamePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    // room_obj: &signer,
-    tokens: Array<ObjectAddress>, // vector<Object<Token>>
-  ) {
-    super();
-    this.args = {
-      tokens: new MoveVector(tokens.map((argA) => AccountAddress.fromRelaxed(argA))),
-    };
-  }
-}
 export type VerifyActionPayloadMoveArguments = {
-  player_obj: MoveObject;
+  game_address: AccountAddress;
   action: MoveVector<U8>;
   hash_addition: MoveVector<U8>;
 };
 
 /**
- *  public fun verify_action<>(
+ *  public fun verify_action(
  *     player: &signer,
- *     player_obj: Object<Token>,
+ *     game_address: address,
  *     action: vector<u8>,
  *     hash_addition: vector<u8>,
  *   )
@@ -121,17 +87,17 @@ export class VerifyAction extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "verify_action";
   public readonly args: VerifyActionPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // player: &signer,
-    player_obj: ObjectAddress, // Object<Token>
+    game_address: AccountAddressInput, // address
     action: HexInput, // vector<u8>
     hash_addition: HexInput, // vector<u8>
   ) {
     super();
     this.args = {
-      player_obj: AccountAddress.fromRelaxed(player_obj),
+      game_address: AccountAddress.fromRelaxed(game_address),
       action: MoveVector.U8(action),
       hash_addition: MoveVector.U8(hash_addition),
     };
@@ -140,11 +106,13 @@ export class VerifyAction extends EntryFunctionPayloadBuilder {
 
 export type GameStatusPayloadMoveArguments = {
   player_address: string;
+  game_address: string;
 };
 
 /**
- *  public fun game_status<>(
+ *  public fun game_status(
  *     player_address: address,
+ *     game_address: address,
  *   )
  **/
 export class GameStatus extends ViewFunctionPayloadBuilder {
@@ -154,14 +122,16 @@ export class GameStatus extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "game_status";
   public readonly args: GameStatusPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     player_address: AccountAddressInput, // address
+    game_address: AccountAddressInput, // address
   ) {
     super();
     this.args = {
       player_address: AccountAddress.fromRelaxed(player_address).toString(),
+      game_address: AccountAddress.fromRelaxed(game_address).toString(),
     };
   }
 }
@@ -171,7 +141,7 @@ export type GetGameAddressPayloadMoveArguments = {
 };
 
 /**
- *  public fun get_game_address<>(
+ *  public fun get_game_address(
  *     creator_address: address,
  *     seed: vector<u8>,
  *   )
@@ -183,7 +153,7 @@ export class GetGameAddress extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "get_game_address";
   public readonly args: GetGameAddressPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     creator_address: AccountAddressInput, // address
@@ -196,40 +166,13 @@ export class GetGameAddress extends ViewFunctionPayloadBuilder {
     };
   }
 }
-export type GetGameAddressForPlayerPayloadMoveArguments = {
-  player_address: string;
-};
-
-/**
- *  public fun get_game_address_for_player<>(
- *     player_address: address,
- *   )
- **/
-export class GetGameAddressForPlayer extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
-  );
-  public readonly moduleName = "rock_paper_scissor";
-  public readonly functionName = "get_game_address_for_player";
-  public readonly args: GetGameAddressForPlayerPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    player_address: AccountAddressInput, // address
-  ) {
-    super();
-    this.args = {
-      player_address: AccountAddress.fromRelaxed(player_address).toString(),
-    };
-  }
-}
 export type GetPlayerRpsStatePayloadMoveArguments = {
-  player_token: ObjectAddress;
+  room_address: string;
 };
 
 /**
- *  public fun get_player_rps_state<>(
- *     player_token: Object<Token>,
+ *  public fun get_player_rps_state(
+ *     room_address: address,
  *   )
  **/
 export class GetPlayerRpsState extends ViewFunctionPayloadBuilder {
@@ -239,14 +182,14 @@ export class GetPlayerRpsState extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "get_player_rps_state";
   public readonly args: GetPlayerRpsStatePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
-    player_token: ObjectAddress, // Object<Token>
+    room_address: AccountAddressInput, // address
   ) {
     super();
     this.args = {
-      player_token: AccountAddress.fromRelaxed(player_token).toString(),
+      room_address: AccountAddress.fromRelaxed(room_address).toString(),
     };
   }
 }
@@ -255,7 +198,7 @@ export type GetResultsPayloadMoveArguments = {
 };
 
 /**
- *  public fun get_results<>(
+ *  public fun get_results(
  *     game_address: address,
  *   )
  **/
@@ -266,7 +209,7 @@ export class GetResults extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "get_results";
   public readonly args: GetResultsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     game_address: AccountAddressInput, // address
@@ -282,7 +225,7 @@ export type GetResultsAsPlayersPayloadMoveArguments = {
 };
 
 /**
- *  public fun get_results_as_players<>(
+ *  public fun get_results_as_players(
  *     game_address: address,
  *   )
  **/
@@ -293,7 +236,7 @@ export class GetResultsAsPlayers extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "get_results_as_players";
   public readonly args: GetResultsAsPlayersPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     game_address: AccountAddressInput, // address
@@ -309,7 +252,7 @@ export type GetResultsForcePayloadMoveArguments = {
 };
 
 /**
- *  public fun get_results_force<>(
+ *  public fun get_results_force(
  *     game_address: address,
  *   )
  **/
@@ -320,7 +263,7 @@ export class GetResultsForce extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "get_results_force";
   public readonly args: GetResultsForcePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     game_address: AccountAddressInput, // address
@@ -336,7 +279,7 @@ export type IsGameCommittedPayloadMoveArguments = {
 };
 
 /**
- *  public fun is_game_committed<>(
+ *  public fun is_game_committed(
  *     game_address: address,
  *   )
  **/
@@ -347,7 +290,7 @@ export class IsGameCommitted extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "is_game_committed";
   public readonly args: IsGameCommittedPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     game_address: AccountAddressInput, // address
@@ -363,7 +306,7 @@ export type IsGameCompletePayloadMoveArguments = {
 };
 
 /**
- *  public fun is_game_complete<>(
+ *  public fun is_game_complete(
  *     game_address: address,
  *   )
  **/
@@ -374,7 +317,7 @@ export class IsGameComplete extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "is_game_complete";
   public readonly args: IsGameCompletePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     game_address: AccountAddressInput, // address
@@ -385,40 +328,13 @@ export class IsGameComplete extends ViewFunctionPayloadBuilder {
     };
   }
 }
-export type PlayerExistsPayloadMoveArguments = {
-  addr: string;
-};
-
-/**
- *  public fun player_exists<>(
- *     addr: address,
- *   )
- **/
-export class PlayerExists extends ViewFunctionPayloadBuilder {
-  public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
-  );
-  public readonly moduleName = "rock_paper_scissor";
-  public readonly functionName = "player_exists";
-  public readonly args: PlayerExistsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
-
-  constructor(
-    addr: AccountAddressInput, // address
-  ) {
-    super();
-    this.args = {
-      addr: AccountAddress.fromRelaxed(addr).toString(),
-    };
-  }
-}
 export type ViewGamePayloadMoveArguments = {
-  game_address: string;
+  room_address: string;
 };
 
 /**
- *  public fun view_game<>(
- *     game_address: address,
+ *  public fun view_game(
+ *     room_address: address,
  *   )
  **/
 export class ViewGame extends ViewFunctionPayloadBuilder {
@@ -428,14 +344,14 @@ export class ViewGame extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "rock_paper_scissor";
   public readonly functionName = "view_game";
   public readonly args: ViewGamePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
-    game_address: AccountAddressInput, // address
+    room_address: AccountAddressInput, // address
   ) {
     super();
     this.args = {
-      game_address: AccountAddress.fromRelaxed(game_address).toString(),
+      room_address: AccountAddress.fromRelaxed(room_address).toString(),
     };
   }
 }

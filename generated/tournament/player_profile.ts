@@ -19,7 +19,6 @@ import {
 } from "../../src";
 import {
   EntryFunctionArgumentTypes,
-  InputTypes,
   AccountAddressInput,
   Hex,
   HexInput,
@@ -31,19 +30,15 @@ import {
   Uint256,
   parseTypeTag,
 } from "../../src";
-import { addressBytes } from "../../src/abi/utils";
-import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import {
-  ViewFunctionPayloadBuilder,
-  EntryFunctionPayloadBuilder,
-} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type ViewPlayerProfilePayloadMoveArguments = {
   player_profile_address: string;
 };
 
 /**
- *  public fun view_player_profile<>(
+ *  public fun view_player_profile(
  *     player_profile_address: address,
  *   )
  **/
@@ -54,7 +49,7 @@ export class ViewPlayerProfile extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "player_profile";
   public readonly functionName = "view_player_profile";
   public readonly args: ViewPlayerProfilePayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     player_profile_address: AccountAddressInput, // address

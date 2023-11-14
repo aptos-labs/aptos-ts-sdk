@@ -19,7 +19,6 @@ import {
 } from "../../src";
 import {
   EntryFunctionArgumentTypes,
-  InputTypes,
   AccountAddressInput,
   Hex,
   HexInput,
@@ -31,12 +30,8 @@ import {
   Uint256,
   parseTypeTag,
 } from "../../src";
-import { addressBytes } from "../../src/abi/utils";
-import { Option, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import {
-  ViewFunctionPayloadBuilder,
-  EntryFunctionPayloadBuilder,
-} from "../../src/bcs/serializable/tx-builder/payloadBuilders";
+import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type PublicArgumentsPayloadMoveArguments = {
   arg_bool: Bool;
@@ -74,7 +69,7 @@ export type PublicArgumentsPayloadMoveArguments = {
 };
 
 /**
- *  public fun public_arguments<>(
+ *  public fun public_arguments(
  *     _account_1: &signer,
  *     arg_bool: bool,
  *     arg_u8: u8,
@@ -117,7 +112,7 @@ export class PublicArguments extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "public_arguments";
   public readonly args: PublicArgumentsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // _account_1: &signer,
@@ -228,7 +223,7 @@ export type PublicArgumentsMultipleSignersPayloadMoveArguments = {
 };
 
 /**
- *  public fun public_arguments_multiple_signers<>(
+ *  public fun public_arguments_multiple_signers(
  *     account_1: &signer,
  *     account_2: signer,
  *     account_3: &signer,
@@ -276,7 +271,7 @@ export class PublicArgumentsMultipleSigners extends EntryFunctionPayloadBuilder 
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "public_arguments_multiple_signers";
   public readonly args: PublicArgumentsMultipleSignersPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // account_1: &signer,
@@ -358,7 +353,7 @@ export class PublicArgumentsMultipleSigners extends EntryFunctionPayloadBuilder 
 }
 
 /**
- *  public fun type_tags<>(
+ *  public fun type_tags(
  *   )
  **/
 export class TypeTags extends EntryFunctionPayloadBuilder {
@@ -368,7 +363,7 @@ export class TypeTags extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "type_tags";
   public readonly args = {};
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor() {
     super();
@@ -381,7 +376,6 @@ export type TypeTagsForArgsPayloadMoveArguments = {
   _c: EntryFunctionArgumentTypes;
   _d: EntryFunctionArgumentTypes;
   _e: MoveObject;
-  typeTags: Array<TypeTag>;
 };
 
 /**
@@ -400,7 +394,7 @@ export class TypeTagsForArgs extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "type_tags_for_args";
   public readonly args: TypeTagsForArgsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; // T0: drop
+  public readonly typeTags: Array<TypeTag> = []; // T0: drop
 
   constructor(
     _a: EntryFunctionArgumentTypes, // T0
@@ -417,8 +411,8 @@ export class TypeTagsForArgs extends EntryFunctionPayloadBuilder {
       _c: _c,
       _d: _d,
       _e: AccountAddress.fromRelaxed(_e),
-      typeTags: typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag)),
     };
+    this.typeTags = typeTags.map((typeTag) => (typeof typeTag === "string" ? parseTypeTag(typeTag) : typeTag));
   }
 }
 export type ComplexArgumentsPayloadMoveArguments = {
@@ -429,7 +423,7 @@ export type ComplexArgumentsPayloadMoveArguments = {
 };
 
 /**
- *  private fun complex_arguments<>(
+ *  private fun complex_arguments(
  *     deeply_nested_1: vector<vector<u8>>,
  *     deeply_nested_2: vector<vector<String>>,
  *     deeply_nested_3: vector<Option<vector<String>>>,
@@ -443,7 +437,7 @@ export class ComplexArguments extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "complex_arguments";
   public readonly args: ComplexArgumentsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     deeply_nested_1: Array<HexInput>, // vector<vector<u8>>
@@ -511,7 +505,7 @@ export type PrivateArgumentsPayloadMoveArguments = {
 };
 
 /**
- *  private fun private_arguments<>(
+ *  private fun private_arguments(
  *     account_1: &signer,
  *     arg_bool: bool,
  *     arg_u8: u8,
@@ -554,7 +548,7 @@ export class PrivateArguments extends EntryFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "private_arguments";
   public readonly args: PrivateArgumentsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // account_1: &signer,
@@ -665,7 +659,7 @@ export type PrivateArgumentsMultipleSignersPayloadMoveArguments = {
 };
 
 /**
- *  private fun private_arguments_multiple_signers<>(
+ *  private fun private_arguments_multiple_signers(
  *     account_1: &signer,
  *     account_2: signer,
  *     account_3: &signer,
@@ -713,7 +707,7 @@ export class PrivateArgumentsMultipleSigners extends EntryFunctionPayloadBuilder
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "private_arguments_multiple_signers";
   public readonly args: PrivateArgumentsMultipleSignersPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     // account_1: &signer,
@@ -795,7 +789,7 @@ export class PrivateArgumentsMultipleSigners extends EntryFunctionPayloadBuilder
 }
 
 /**
- *  public fun get_expected_vector_string<>(
+ *  public fun get_expected_vector_string(
  *   )
  **/
 export class GetExpectedVectorString extends ViewFunctionPayloadBuilder {
@@ -805,7 +799,7 @@ export class GetExpectedVectorString extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "get_expected_vector_string";
   public readonly args = {};
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor() {
     super();
@@ -814,7 +808,7 @@ export class GetExpectedVectorString extends ViewFunctionPayloadBuilder {
 }
 
 /**
- *  public fun get_test_object_addresses<>(
+ *  public fun get_test_object_addresses(
  *   )
  **/
 export class GetTestObjectAddresses extends ViewFunctionPayloadBuilder {
@@ -824,7 +818,7 @@ export class GetTestObjectAddresses extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "get_test_object_addresses";
   public readonly args = {};
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor() {
     super();
@@ -833,7 +827,7 @@ export class GetTestObjectAddresses extends ViewFunctionPayloadBuilder {
 }
 
 /**
- *  public fun get_test_objects<>(
+ *  public fun get_test_objects(
  *   )
  **/
 export class GetTestObjects extends ViewFunctionPayloadBuilder {
@@ -843,7 +837,7 @@ export class GetTestObjects extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "get_test_objects";
   public readonly args = {};
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor() {
     super();
@@ -886,7 +880,7 @@ export type ViewAllArgumentsPayloadMoveArguments = {
 };
 
 /**
- *  public fun view_all_arguments<>(
+ *  public fun view_all_arguments(
  *     arg_bool: bool,
  *     arg_u8: u8,
  *     arg_u16: u16,
@@ -928,7 +922,7 @@ export class ViewAllArguments extends ViewFunctionPayloadBuilder {
   public readonly moduleName = "tx_args_module";
   public readonly functionName = "view_all_arguments";
   public readonly args: ViewAllArgumentsPayloadMoveArguments;
-  public readonly typeArgs: Array<TypeTag> = []; //
+  public readonly typeTags: Array<TypeTag> = [];
 
   constructor(
     arg_bool: boolean, // bool

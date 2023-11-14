@@ -33,13 +33,6 @@ export function sanitizeName(name: string): string {
   return name;
 }
 
-export function addressBytes(input: AccountAddressInput): Uint8Array {
-  if (input instanceof AccountAddress) {
-    return input.data;
-  }
-  return AccountAddress.fromRelaxed(input).data;
-}
-
 /**
  * Convert a module source code in gzipped hex string to plain text
  * @param source module source code in gzipped hex string
@@ -139,6 +132,67 @@ export function truncatedTypeTagString(args: {
   return typeTag.toString();
 }
 
+export function toTypeTagArray(typeTag: TypeTag): Array<TypeTag> {
+  if (typeTag.isVector()) {
+    return [typeTag, ...toTypeTagArray(typeTag.value)];
+  }
+  if (typeTag.isStruct()) {
+    if (typeTag.isString()) {
+      return [typeTag];
+    }
+    if (typeTag.isObject()) {
+      // Objects can only have 1 TypeTag
+      return [typeTag, ...toTypeTagArray(typeTag.value.typeArgs[0])];
+    }
+    if (typeTag.isOption()) {
+      // Options can only have 1 TypeTag
+      return [typeTag, ...toTypeTagArray(typeTag.value.typeArgs[0])];
+    }
+    // It must be a resource, otherwise the .move file would not compile
+    return [typeTag];
+  }
+  // as any because typeguards aren't working correctly...
+  if ((typeTag as any).isBool()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU8()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU16()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU32()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU64()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU128()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isU256()) {
+    return [typeTag];
+  }
+  if ((typeTag as any).isAddress()) {
+    return [typeTag];
+  }
+  if (typeTag.isGeneric()) {
+    return [typeTag];
+  }
+
+  if (typeTag.isReference()) {
+    if (typeTag.value.isSigner()) {
+      return [typeTag];
+    }
+    throw new Error(`Invalid reference argument: ${typeTag.toString()}`);
+  }
+  if (typeTag.isSigner()) {
+    return [typeTag];
+  }
+
+  throw new Error(`Unknown TypeTag: ${typeTag}`);
+}
+
 // TODO: Add positional types for generics with support for primitives, not just MoveObject<T> where T is thrown away
 export function toBCSClassName(typeTag: TypeTag): Array<BCSKinds> {
   if (typeTag.isVector()) {
@@ -213,4 +267,20 @@ export function numberToLetter(num: number): string {
 
   // 64 is the ASCII code right before 'A'; therefore, adding the number gives the corresponding letter
   return String.fromCharCode(64 + num);
+}
+
+export function copyCode(readPath: string, writePath: string, sdkPath = "@aptos-labs/ts-sdk") {
+  const fs = require("fs");
+  if (fs.existsSync(readPath)) {
+    const contents = fs.readFileSync(readPath, "utf8");
+    // TODO: uhh fix this later, replacing both ../ and .. versions of the import
+    const newContents = contents
+      .replace(`from "../..";`, `from "${sdkPath}";`)
+      .replace(`from "../../";`, `from "${sdkPath}";`);
+
+    if (fs.existsSync(writePath)) {
+      fs.rmSync(writePath);
+    }
+    fs.writeFileSync(writePath, newContents, "utf8");
+  }
 }

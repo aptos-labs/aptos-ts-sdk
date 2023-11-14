@@ -46,30 +46,24 @@ import {
   sanitizeName,
   toBCSClassName,
   toPascalCase,
+  toTypeTagArray,
   truncateAddressForFileName,
   truncatedTypeTagString,
+  copyCode,
 } from "../../src/abi/utils";
 import fs from "fs";
 import { ConfigDictionary } from "./config";
 // import { format } from "prettier";
 import { sleep } from "../utils/helpers";
-
-const DEFAULT_ARGUMENT_BASE = "arg_";
-const R_PARENTHESIS = ")";
-
-const BOILERPLATE_COPYRIGHT = `` + `// Copyright © Aptos Foundation\n` + `// SPDX-License-Identifier: Apache-2.0\n`;
-
-const BOILERPLATE_IMPORTS = `
-${BOILERPLATE_COPYRIGHT}
-
-/* eslint-disable max-len */
-import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account } from "../../src";
-import { EntryFunctionArgumentTypes, InputTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "../../src";
-import { addressBytes } from "../../src/abi/utils";
-import { ${kindToSimpleTypeMap.MoveOption}, MoveObject, ObjectAddress, TypeTagInput } from "../../src/abi/types";
-import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../../src/bcs/serializable/tx-builder/payloadBuilders";
-
-`;
+import {
+  DEFAULT_ARGUMENT_BASE,
+  R_PARENTHESIS,
+  FOR_GENERATION_DIRECTORY,
+  PAYLOAD_BUILDERS_FILE_NAME,
+  ABI_TYPES_FILE_NAME,
+  getBoilerplateImports,
+  BOILERPLATE_COPYRIGHT,
+} from "./for-gen/string-gen";
 
 export class CodeGenerator {
   public readonly config: ConfigDictionary;
@@ -116,6 +110,7 @@ export class CodeGenerator {
     }
 
     // --------------- Handle signers --------------- //
+    // console.log(genericTypeTags);
     // Get the array of annotated BCS class names, their string representation, and original TypeTag string
     const { signerArguments, functionArguments, genericsWithAbilities } = this.getClassArgTypes(
       typeTags,
@@ -138,17 +133,18 @@ export class CodeGenerator {
           lines.push(`${fieldNames[i]}: ${functionArgument.kindString};`);
         }
       });
-      if (genericTypeTags) {
-        lines.push(`typeTags: Array<TypeTag>;`);
-      }
       lines.push("}");
     }
     lines.push("");
 
     // ---------- Documentation --------- //
+    const atleastOneGeneric = genericsWithAbilities.length > 0;
+    const leftCaret = atleastOneGeneric ? "<" : "";
+    const rightCaret = atleastOneGeneric ? ">" : "";
+
     if (documentation?.displayFunctionSignature) {
       lines.push("/**");
-      lines.push(`*  ${visibility} fun ${functionName}<${joinedGenericsWithAbilities}>(`);
+      lines.push(`*  ${visibility} fun ${functionName}${leftCaret}${joinedGenericsWithAbilities}${rightCaret}(`);
       signerArguments.forEach((signerArgument, i) => {
         lines.push(`*     ${signerArgumentNames[i]}: ${signerArgument.annotation},`);
       });
@@ -170,7 +166,9 @@ export class CodeGenerator {
     } else {
       lines.push(`public readonly args = { };`);
     }
-    lines.push(`public readonly typeArgs: Array<TypeTag> = []; // ${joinedGenericsWithAbilities}`);
+    lines.push(
+      `public readonly typeTags: Array<TypeTag> = []; ${atleastOneGeneric ? "//" : ""} ${joinedGenericsWithAbilities}`,
+    );
     lines.push("");
 
     // -------- Constructor input types -------- //
@@ -190,7 +188,7 @@ export class CodeGenerator {
         lines.push(`${fieldNames[i]}: ${inputType}, ${argComment}`);
       });
       if (genericTypeTags) {
-        lines.push(`typeTags: Array<TypeTagInput>, // ${joinedGenericsWithAbilities}`);
+        lines.push(`typeTags: Array<TypeTagInput>, ${atleastOneGeneric ? "//" : ""} ${joinedGenericsWithAbilities}`);
       }
       if (this.config.includeAccountParams && !viewFunction) {
         lines.push("feePayer?: Account, // optional fee payer account to sponsor the transaction");
@@ -220,10 +218,12 @@ export class CodeGenerator {
           lines.push(`${fieldNames[i]}: ${entryFunctionInputTypeConverter},`);
         }
       });
-      if (genericTypeTags) {
-        lines.push(`typeTags: typeTags.map(typeTag => typeof typeTag === 'string' ? parseTypeTag(typeTag) : typeTag),`);
-      }
       lines.push(`}`);
+      if (genericTypeTags) {
+        lines.push(
+          `this.typeTags = typeTags.map(typeTag => typeof typeTag === 'string' ? parseTypeTag(typeTag) : typeTag);`,
+        );
+      }
       lines.push(`}`);
     } else {
       lines.push(`constructor() { super(); this.args = { }; }`);
@@ -374,6 +374,7 @@ export class CodeGenerator {
     const genericsWithAbilities = new Array<string>();
     typeTags.forEach((typeTag, i) => {
       const kindArray = toBCSClassName(typeTag);
+      const expandedTypeTags = toTypeTagArray(typeTag);
       let annotation = this.config.expandedStructs
         ? typeTag.toString()
         : truncatedTypeTagString({
@@ -393,6 +394,32 @@ export class CodeGenerator {
         });
         // It's a non-signer entry function argument, so we'll add it to the functionArguments array
       } else {
+        /*
+        // TODO: Fix this. It does not work if there is a mixture of named generics that aren't used in args + typeTags for args
+        // just use flattened typeTags with toTypeTagArray, this BCSKinds stuff is awful, idk why I did it initially
+
+        // Check if the TypeTag is actually an Object type
+        // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
+        const genericType = `T${genericsWithAbilities.length}`;
+        const constraints = `: ${genericTypeParams[genericsWithAbilities.length]?.constraints.join(" + ") ?? ""}`;
+        // 2, because that's the length of ": ". We don't add it if there are no constraints
+        const genericTypeWithConstraints = constraints.length > 2 ? `${genericType}${constraints}` : genericType;
+        // console.log(genericTypeWithConstraints);
+        console.log(kindArray);
+        console.log(expandedTypeTags.map((typeTag) => typeTag.toString()));
+        const secondToLast = expandedTypeTags[expandedTypeTags.length - 2];
+        if (secondToLast?.isStruct() && secondToLast?.isObject()) {
+          const objectType = secondToLast.value;
+          if (parseTypeTag(`${objectType.address}::${objectType.moduleName}::${objectType.name}`).isGeneric()) {
+            genericsWithAbilities.push(genericTypeWithConstraints);
+          } else {
+            
+          }
+          annotation += `<${genericType}>`;
+          kindArray.pop();
+        }
+        */
+
         // Check if the TypeTag is actually an Object type
         // Object<T> must have at least 2 types, so if the length is 1, it's not an Object
         if (kindArray.length > 1) {
@@ -515,6 +542,10 @@ export class CodeGenerator {
           abiFunction.privateEntryFunctions,
           abiFunction.viewFunctions,
         ];
+        if (moduleName === "tournament_manager") {
+          console.log(abiFunction.publicEntryFunctions);
+          console.log(abiFunction.privateEntryFunctions);
+        }
         const codeForFunctionsWithAnyVisibility: Array<Array<string | undefined>> = [[], [], []];
         functionsWithAnyVisibility.forEach((functions, i) => {
           if (functions.length > 0) {
@@ -600,6 +631,7 @@ export class CodeGenerator {
 
   async generateCodeForModules(aptos: Aptos, moduleAddresses: Array<AccountAddress>): Promise<void> {
     const baseDirectory = this.config.outputPath ?? ".";
+    console.log(baseDirectory);
     const generatedIndexFile: Array<string> = [BOILERPLATE_COPYRIGHT];
     await Promise.all(
       moduleAddresses.map(async (address) => {
@@ -630,6 +662,17 @@ export class CodeGenerator {
         }
       }),
     );
+    const sdkPath = "../../";
+    copyCode(
+      `./src/abi/${FOR_GENERATION_DIRECTORY}/${PAYLOAD_BUILDERS_FILE_NAME}.ts`,
+      baseDirectory + `${PAYLOAD_BUILDERS_FILE_NAME}.ts`,
+      sdkPath,
+    );
+    copyCode(
+      `./src/abi/${FOR_GENERATION_DIRECTORY}/${ABI_TYPES_FILE_NAME}.ts`,
+      baseDirectory + `${ABI_TYPES_FILE_NAME}.ts`,
+      sdkPath,
+    );
   }
 
   writeGeneratedCodeToFiles(
@@ -653,7 +696,7 @@ export class CodeGenerator {
       }
       const fileName = `${name}.ts`;
       const filePath = `${directory}/${fileName}`;
-      const contents = BOILERPLATE_IMPORTS + "\n\n" + code;
+      const contents = getBoilerplateImports(this.config.sdkPath) + "\n\n" + code;
 
       perAddressIndexFile.push(`export * as ${toPascalCase(name)} from "./${name}";`);
       if (i === Object.keys(codeMap).length - 1) {

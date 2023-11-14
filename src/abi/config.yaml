@@ -18,3 +18,4 @@ includeAccountParams: false # set this to `true` if you have access to all the p
 separateViewAndEntryFunctionsByNamespace: false
 viewFunctionsNamespace: "ViewFunctions"
 entryFunctionsNamespace: "EntryFunctions"
+sdkPath: "../../src"
