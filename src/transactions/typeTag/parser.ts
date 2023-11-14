@@ -29,6 +29,10 @@ function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
 }
 
+function isGeneric(str: string) {
+  return !!str.match(/^T[0-9]+$/);
+}
+
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
   for (; i < tagStr.length; i += 1) {
@@ -50,6 +54,7 @@ type TypeTagState = {
 
 export enum TypeTagParserErrorType {
   InvalidTypeTag = "unknown type",
+  UnexpectedGenericType = "unexpected generic type",
   UnexpectedTypeArgumentClose = "unexpected '>'",
   UnexpectedWhitespaceCharacter = "unexpected whitespace character",
   UnexpectedComma = "unexpected ','",
@@ -262,8 +267,11 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
       return new TypeTagVector(types[0]);
     default:
-      if (allowGenerics && str.match(/^T[0-9]+$/)) {
-        return new TypeTagGeneric(Number(str.split("T")[1]));
+      if (isGeneric(str)) {
+        if (allowGenerics) {
+          return new TypeTagGeneric(Number(str.split("T")[1]));
+        }
+        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedGenericType);
       }
 
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
