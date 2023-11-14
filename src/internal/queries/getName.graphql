@@ -1,0 +1,6 @@
+#import "./AnsTokenFragment";
+query getName($domain: String, $subdomain: String) {
+  current_aptos_names(where: { domain: { _eq: $domain }, subdomain: { _eq: $subdomain } }) {
+    ...AnsTokenFragment
+  }
+}

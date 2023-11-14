@@ -518,4 +518,60 @@ describe("ANS", () => {
       expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
     });
   });
+
+  describe("can get names", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    // This account has two long living domain names, each with one subdomain.
+    const ACCOUNT_ADDRESS_1 = "0x24f92ae64dfcf44b2bbb3a4621515e86ad88d53d6b87f6dfe978b535621cefd4";
+    const DOMAIN = "8923ulahsdjfaiu";
+
+    test("returns all the names for an account", async () => {
+      const res = await testnet.ans.getNames({ query: "owner", ownerAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(4);
+    });
+
+    test("returns only the domains for an account", async () => {
+      const res = await testnet.ans.getNames({ query: "owner:domains", ownerAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // None of our results should have a subdomain
+      expect(res.find((name) => Boolean(name.subdomain))).toBeFalsy();
+    });
+
+    test("returns only the subdomains for an account", async () => {
+      const res = await testnet.ans.getNames({ query: "owner:subdomains", ownerAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+
+    test("returns only the subdomains names for a domain", async () => {
+      const res = await testnet.ans.getNames({ query: "domain:subdomains", domain: DOMAIN });
+      expect(res.length).toBe(1);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+  });
+
+  describe("query an individual name", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    const domain = "8923ulahsdjfaiu";
+
+    test("returns domains subdomains", async () => {
+      const res1 = await testnet.ans.getName({ name: `not-a-name-${randomString()}` });
+      expect(res1).toBeFalsy();
+
+      const res2 = await testnet.ans.getName({ name: domain });
+      expect(res2).toBeTruthy();
+    });
+  });
 });

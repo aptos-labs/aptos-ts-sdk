@@ -1,0 +1,11 @@
+#import "./AnsTokenFragment";
+query getDomainSubdomains($domain: String, $offset: Int, $limit: Int) {
+  current_aptos_names(
+    limit: $limit
+    where: { domain: { _eq: $domain }, subdomain: { _neq: "" } }
+    order_by: [{ is_primary: desc }, { expiration_timestamp: asc }]
+    offset: $offset
+  ) {
+    ...AnsTokenFragment
+  }
+}

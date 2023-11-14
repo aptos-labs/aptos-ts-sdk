@@ -18,6 +18,16 @@ export type TokenActivitiesFieldsFragment = {
   type: string;
 };
 
+export type AnsTokenFragmentFragment = {
+  domain?: string | null;
+  expiration_timestamp?: any | null;
+  registered_address?: string | null;
+  subdomain?: string | null;
+  token_standard?: string | null;
+  is_primary?: boolean | null;
+  owner_address?: string | null;
+};
+
 export type CurrentTokenOwnershipFieldsFragment = {
   token_standard: string;
   token_properties_mutated_v1?: any | null;
@@ -144,6 +154,44 @@ export type GetAccountCollectionsWithOwnedTokensQuery = {
       total_minted_v2?: any | null;
       uri: string;
     } | null;
+  }>;
+};
+
+export type GetAccountDomainsQueryVariables = Types.Exact<{
+  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+}>;
+
+export type GetAccountDomainsQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
+  }>;
+};
+
+export type GetAccountNamesQueryVariables = Types.Exact<{
+  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+}>;
+
+export type GetAccountNamesQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
   }>;
 };
 
@@ -331,6 +379,25 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
   }>;
 };
 
+export type GetAccountSubdomainsQueryVariables = Types.Exact<{
+  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+}>;
+
+export type GetAccountSubdomainsQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
+  }>;
+};
+
 export type GetAccountTokensCountQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentTokenOwnershipsV2BoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -414,6 +481,24 @@ export type GetDelegatedStakingActivitiesQuery = {
   }>;
 };
 
+export type GetDomainSubdomainsQueryVariables = Types.Exact<{
+  domain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+}>;
+
+export type GetDomainSubdomainsQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
+  }>;
+};
+
 export type GetEventsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.EventsBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -482,6 +567,23 @@ export type GetFungibleAssetMetadataQuery = {
     name: string;
     symbol: string;
     token_standard: string;
+  }>;
+};
+
+export type GetNameQueryVariables = Types.Exact<{
+  domain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  subdomain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+}>;
+
+export type GetNameQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
   }>;
 };
 

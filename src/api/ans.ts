@@ -12,6 +12,10 @@ import {
   getTargetAddress,
   setTargetAddress,
   renewDomain,
+  ANSName,
+  getName,
+  getNames,
+  GetNamesArgs,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { MoveAddressType } from "../types";
@@ -166,5 +170,52 @@ export class ANS {
     options?: InputGenerateTransactionOptions;
   }): Promise<InputSingleSignerTransaction> {
     return renewDomain({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches a single name from the indexer
+   * @param args.name - A string of the name to retrieve, e.g. "test.aptos.apt"
+   * or "test.apt" or "test". Can be inclusive or exclusive of the .apt suffix.
+   * Can be a subdomain.
+   *
+   * @returns A promise of an ANSName or undefined
+   */
+  async getName(args: { name: string }): Promise<ANSName | undefined> {
+    return getName({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches multiple names from the indexer. Can be used to fetch names owned
+   * by an address or subdomains of a domain.
+   *
+   * ```ts
+   * // Fetch all names owned by alice
+   * aptos.getNames({ query: 'owner', ownerAddress: alice.address });
+   *
+   * // Fetch all top level domains (excluding subdomains) owned by alice
+   * aptos.getNames({ query: 'owner:domains', ownerAddress: alice.address });
+   *
+   * // Fetch all subdomain (excluding top level domains) owned by alice
+   * aptos.getNames({ query: 'owner:subdomains', ownerAddress: alice.address });
+   *
+   * // Fetch all subdomain under a domain name: 'petra.apt'
+   * aptos.getNames({ query: 'domain:subdomains', domain: 'petra' });
+   *```
+   *
+   * @param args
+   * @param args.query - A string of the query to retrieve names. Can be one of:
+   * - 'owner': Fetch all names owned by an address
+   * - 'owner:domains': Fetch all top level domains (excluding subdomains) owned by an address
+   * - 'owner:subdomains': Fetch all subdomain (excluding top level domains) owned by an address
+   * - 'domain:subdomains': Fetch all subdomain under a domain name
+   * @param args.ownerAddress - A MoveAddressType of the address to retrieve names for. Required if query is 'owner'
+   * @param args.domain - A string of the domain name to retrieve subdomains for. Required if query is 'domain:subdomains'
+   * @param args.page - A number of the page to retrieve. Defaults to 0.
+   * @param args.pageSize - A number of the page size to retrieve. Defaults to 20.
+   *
+   * @returns a promise of an array of ANSName
+   */
+  async getNames(args: GetNamesArgs): Promise<ANSName[]> {
+    return getNames({ aptosConfig: this.config, ...args });
   }
 }
