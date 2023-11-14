@@ -159,30 +159,6 @@ export const GetAccountCollectionsWithOwnedTokens = `
   }
 }
     `;
-export const GetAccountDomains = `
-    query getAccountDomains($owner_address: String, $expiration_gte: timestamp, $offset: Int, $limit: Int) {
-  current_aptos_names(
-    limit: $limit
-    where: {owner_address: {_eq: $owner_address}, subdomain: {_eq: ""}, expiration_timestamp: {_gte: $expiration_gte}}
-    order_by: [{is_primary: desc}, {expiration_timestamp: asc}]
-    offset: $offset
-  ) {
-    ...AnsTokenFragment
-  }
-}
-    ${AnsTokenFragmentFragmentDoc}`;
-export const GetAccountNames = `
-    query getAccountNames($owner_address: String, $expiration_gte: timestamp, $offset: Int, $limit: Int) {
-  current_aptos_names(
-    limit: $limit
-    where: {owner_address: {_eq: $owner_address}, expiration_timestamp: {_gte: $expiration_gte}}
-    order_by: [{is_primary: desc}, {expiration_timestamp: asc}]
-    offset: $offset
-  ) {
-    ...AnsTokenFragment
-  }
-}
-    ${AnsTokenFragmentFragmentDoc}`;
 export const GetAccountOwnedObjects = `
     query getAccountOwnedObjects($where_condition: current_objects_bool_exp, $offset: Int, $limit: Int, $order_by: [current_objects_order_by!]) {
   current_objects(
@@ -237,18 +213,6 @@ export const GetAccountOwnedTokensFromCollection = `
   }
 }
     ${CurrentTokenOwnershipFieldsFragmentDoc}`;
-export const GetAccountSubdomains = `
-    query getAccountSubdomains($owner_address: String, $expiration_gte: timestamp, $offset: Int, $limit: Int) {
-  current_aptos_names(
-    limit: $limit
-    where: {owner_address: {_eq: $owner_address}, subdomain: {_neq: ""}, expiration_timestamp: {_gte: $expiration_gte}}
-    order_by: [{is_primary: desc}, {expiration_timestamp: asc}]
-    offset: $offset
-  ) {
-    ...AnsTokenFragment
-  }
-}
-    ${AnsTokenFragmentFragmentDoc}`;
 export const GetAccountTokensCount = `
     query getAccountTokensCount($where_condition: current_token_ownerships_v2_bool_exp, $offset: Int, $limit: Int) {
   current_token_ownerships_v2_aggregate(
@@ -331,18 +295,6 @@ export const GetDelegatedStakingActivities = `
   }
 }
     `;
-export const GetDomainSubdomains = `
-    query getDomainSubdomains($domain: String, $offset: Int, $limit: Int) {
-  current_aptos_names(
-    limit: $limit
-    where: {domain: {_eq: $domain}, subdomain: {_neq: ""}}
-    order_by: [{is_primary: desc}, {expiration_timestamp: asc}]
-    offset: $offset
-  ) {
-    ...AnsTokenFragment
-  }
-}
-    ${AnsTokenFragmentFragmentDoc}`;
 export const GetEvents = `
     query getEvents($where_condition: events_bool_exp, $offset: Int, $limit: Int, $order_by: [events_order_by!]) {
   events(
@@ -407,10 +359,13 @@ export const GetFungibleAssetMetadata = `
   }
 }
     `;
-export const GetName = `
-    query getName($domain: String, $subdomain: String) {
+export const GetNames = `
+    query getNames($offset: Int, $limit: Int, $where_condition: current_aptos_names_bool_exp, $order_by: [current_aptos_names_order_by!]) {
   current_aptos_names(
-    where: {domain: {_eq: $domain}, subdomain: {_eq: $subdomain}}
+    limit: $limit
+    where: $where_condition
+    order_by: $order_by
+    offset: $offset
   ) {
     ...AnsTokenFragment
   }
@@ -551,34 +506,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-    getAccountDomains(
-      variables?: Types.GetAccountDomainsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetAccountDomainsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountDomainsQuery>(GetAccountDomains, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountDomains",
-        "query",
-      );
-    },
-    getAccountNames(
-      variables?: Types.GetAccountNamesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetAccountNamesQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountNamesQuery>(GetAccountNames, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountNames",
-        "query",
-      );
-    },
     getAccountOwnedObjects(
       variables?: Types.GetAccountOwnedObjectsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -633,20 +560,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "getAccountOwnedTokensFromCollection",
-        "query",
-      );
-    },
-    getAccountSubdomains(
-      variables?: Types.GetAccountSubdomainsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetAccountSubdomainsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountSubdomainsQuery>(GetAccountSubdomains, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountSubdomains",
         "query",
       );
     },
@@ -734,20 +647,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-    getDomainSubdomains(
-      variables?: Types.GetDomainSubdomainsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetDomainSubdomainsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetDomainSubdomainsQuery>(GetDomainSubdomains, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getDomainSubdomains",
-        "query",
-      );
-    },
     getEvents(
       variables?: Types.GetEventsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -787,14 +686,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         "query",
       );
     },
-    getName(
-      variables?: Types.GetNameQueryVariables,
+    getNames(
+      variables?: Types.GetNamesQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetNameQuery> {
+    ): Promise<Types.GetNamesQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<Types.GetNameQuery>(GetName, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
-        "getName",
+          client.request<Types.GetNamesQuery>(GetNames, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
+        "getNames",
         "query",
       );
     },

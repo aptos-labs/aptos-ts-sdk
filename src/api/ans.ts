@@ -12,13 +12,12 @@ import {
   getTargetAddress,
   setTargetAddress,
   renewDomain,
-  ANSName,
   getName,
   getNames,
   GetNamesArgs,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
-import { MoveAddressType } from "../types";
+import { GetANSNameResponse, MoveAddressType } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -32,11 +31,12 @@ export class ANS {
   }
 
   /**
-   * Retrieve the owner address of a domain name or subdomain name.
+   * Retrieve the owner address of a domain name or subdomain name from the contract.
    *
    * ```ts
-   * getOwnerAddress({name: "test.aptos"})
    * // Will return the owner address of "test.aptos.apt" or undefined
+   * const owner = await aptos.getOwnerAddress({name: "test.aptos"})
+   * // owner = 0x123...
    * ```
    *
    * @param args.name - A string of the name to retrieve
@@ -48,7 +48,13 @@ export class ANS {
   }
 
   /**
-   * Retrieve the expiration time of a domain name or subdomain name.
+   * Retrieve the expiration time of a domain name or subdomain name from the contract.
+   *
+   * ```ts
+   * // Will return the expiration of "test.aptos.apt" or undefined
+   * const exp = await aptos.getExpiration({name: "test.aptos"})
+   * // new Date(exp) would give you the date in question: 2021-01-01T00:00:00.000Z
+   * ```
    *
    * @param args.name - A string of the name to retrieve
    *
@@ -59,7 +65,14 @@ export class ANS {
   }
 
   /**
-   * Retrieve the expiration time of a domain name or subdomain name.
+   * Retrieve the target address of a domain or subdomain name. This is the
+   * address the name points to for use on chain. Note, the target address can
+   * point to addresses that are not the owner of the name
+   *
+   * ```ts
+   * const targetAddr = await aptos.getTargetAddress({name: "test.aptos"})
+   * // targetAddr = 0x123...
+   * ```
    *
    * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
    *
@@ -70,9 +83,17 @@ export class ANS {
   }
 
   /**
-   * Sets the target address for a domain name or subdomain name.
+   * Sets the target address of a domain or subdomain name. This is the
+   * address the name points to for use on chain. Note, the target address can
+   * point to addresses that are not the owner of the name
    *
-   * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
+   * ```ts
+   * await aptos.setTargetAddress({sender: alice, name: "test.aptos", address: bob.accountAddress.toString})
+   * const address = await aptos.getTargetAddress({name: "test.aptos"})
+   * // address = bob.accountAddress.toString()
+   * ```
+   *
+   * @param args.name - A string of the name: test.aptos.apt, test.apt, test, test.aptos, etc.
    * @param args.address - A AccountAddressInput of the address to set the domain or subdomain to
    *
    * @returns SingleSignerTransaction
@@ -87,7 +108,14 @@ export class ANS {
   }
 
   /**
-   * Retrieve the primary name for an account address.
+   * Retrieve the primary name for an account. An account can have
+   * multiple names that target it, but only a single name that is primary. An
+   * account also may not have a primary name.
+   *
+   * ```ts
+   * const name = await aptos.getPrimaryName({address: alice.accountAddress.toString()})
+   * // name = test.aptos
+   * ```
    *
    * @param args.address - A AccountAddressInput (address) of the account
    *
@@ -98,10 +126,18 @@ export class ANS {
   }
 
   /**
-   * Sets the primary name for the sender's account.
+   * Sets the primary name for the sender. An account can have
+   * multiple names that target it, but only a single name that is primary. An
+   * account also may not have a primary name.
+   *
+   * ```ts
+   * await aptos.setPrimaryName({sender: alice, name: "test.aptos"})
+   * const primaryName = await aptos.getPrimaryName({address: alice.accountAddress.toString()})
+   * // primaryName = test.aptos
+   * ```
    *
    * @param args.sender - The sender account
-   * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
+   * @param args.name - A string of the name: test, test.apt, test.aptos, test.aptos.apt, etc.
    *
    * @returns SingleSignerTransaction
    */
@@ -121,7 +157,7 @@ export class ANS {
    * // and belongs to the sender alice.
    *  const txn = aptos.registerName({
    *    sender: alice,
-   *    name: "abc.def.apt",
+   *    name: "test.aptos.apt",
    *    expiration: {
    *      policy: "subdomain:independent",
    *      expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -131,7 +167,7 @@ export class ANS {
    *
    * @param args.sender - The sender account
    * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .apt suffix.
-   * Examples include: "xyz", "xyz.apt", "xyz.kyc.apt", etc.
+   * Examples include: "test", "test.apt", "test.aptos.apt", etc.
    * @param args.expiration  - An object with the expiration policy of the name.
    * @param args.expiration.policy - 'domain' | 'subdomain:follow-domain' | 'subdomain:independent'
    * - domain: Years is required and the name will expire after the given number of years.
@@ -155,6 +191,11 @@ export class ANS {
    * Renews a domain name
    *
    * Note: If a domain name was minted with V1 of the contract, it will automatically be upgraded to V2 via this transaction.
+   *
+   * ```ts
+   * await aptos.renewDomain({sender: alice, name: "test"})
+   * // test.apt will be renewed for one year
+   * ```
    *
    * @param args.sender - The sender account
    * @param args.name - A string of the domain the subdomain will be under. The signer must be the domain owner.
@@ -180,7 +221,7 @@ export class ANS {
    *
    * @returns A promise of an ANSName or undefined
    */
-  async getName(args: { name: string }): Promise<ANSName | undefined> {
+  async getName(args: { name: string }): Promise<GetANSNameResponse[0] | undefined> {
     return getName({ aptosConfig: this.config, ...args });
   }
 
@@ -215,7 +256,7 @@ export class ANS {
    *
    * @returns a promise of an array of ANSName
    */
-  async getNames(args: GetNamesArgs): Promise<ANSName[]> {
+  async getNames(args: GetNamesArgs): Promise<GetANSNameResponse> {
     return getNames({ aptosConfig: this.config, ...args });
   }
 }

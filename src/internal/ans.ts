@@ -11,15 +11,10 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
-import { HexInput, MoveAddressType, MoveValue } from "../types";
-import { GetAccountDomainsQuery, GetNameQuery } from "../types/generated/operations";
-import {
-  GetAccountDomains,
-  GetAccountNames,
-  GetAccountSubdomains,
-  GetDomainSubdomains,
-  GetName,
-} from "../types/generated/queries";
+import { GetANSNameResponse, MoveAddressType, MoveValue, OrderBy, PaginationArgs } from "../types";
+import { GetNamesQuery } from "../types/generated/operations";
+import { GetNames } from "../types/generated/queries";
+import { CurrentAptosNamesBoolExp } from "../types/generated/types";
 import { Network } from "../utils/apiEndpoints";
 import { queryIndexer, view } from "./general";
 import { generateTransaction } from "./transactionSubmission";
@@ -340,120 +335,116 @@ export async function setTargetAddress(args: {
   return transaction as InputSingleSignerTransaction;
 }
 
-export interface ANSName {
-  domain: string;
-  subdomain?: string;
-  expiration_timestamp: string;
-  token_standard: "v1" | "v2";
-  is_primary: boolean;
-  owner_address: HexInput;
-  registered_address?: HexInput;
-}
-
-export async function getName(args: { aptosConfig: AptosConfig; name: string }): Promise<ANSName | undefined> {
+export async function getName(args: {
+  aptosConfig: AptosConfig;
+  name: string;
+}): Promise<GetANSNameResponse[0] | undefined> {
   const { aptosConfig, name } = args;
   const { domainName, subdomainName = "" } = isValidANSName(name);
 
-  const graphqlQuery = {
-    query: GetName,
-    variables: {
-      domain: domainName,
-      subdomain: subdomainName,
-    },
+  const where: CurrentAptosNamesBoolExp = {
+    domain: { _eq: domainName },
+    subdomain: { _eq: subdomainName },
   };
 
-  const data = await queryIndexer<GetNameQuery>({
+  const data = await queryIndexer<GetNamesQuery>({
     aptosConfig,
-    query: graphqlQuery,
+    query: {
+      query: GetNames,
+      variables: {
+        where_condition: where,
+        limit: 1,
+      },
+    },
     originMethod: "getName",
   });
 
-  return data.current_aptos_names[0] as ANSName | undefined;
+  return data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
 }
 
-type GetNamesBaseArgs = { aptosConfig: AptosConfig };
-export type GetNamesArgs = { page?: number; pageSize?: number } & (
+export type GetNamesArgs = {
+  options?: {
+    pagination?: PaginationArgs;
+    orderBy?: OrderBy<GetANSNameResponse[0]>;
+    where?: CurrentAptosNamesBoolExp;
+  };
+} & (
   | { query: "owner"; ownerAddress: AccountAddressInput }
   | { query: "owner:domains"; ownerAddress: AccountAddressInput }
   | { query: "owner:subdomains"; ownerAddress: AccountAddressInput }
   | { query: "domain:subdomains"; domain: string }
 );
 
-export async function getNames(args: GetNamesBaseArgs & GetNamesArgs): Promise<ANSName[]> {
+export async function getNames(args: { aptosConfig: AptosConfig } & GetNamesArgs): Promise<GetANSNameResponse> {
   if (!args.query) throw new Error("Must provide a query type");
-  const { aptosConfig, query, page = 0, pageSize = 20 } = args;
 
-  if (args.query === "owner" || args.query === "owner:domains" || args.query === "owner:subdomains") {
-    const { ownerAddress } = args;
-    const address = AccountAddress.fromRelaxed(ownerAddress).toString();
+  const { aptosConfig, query, options } = args;
 
-    // Only return names that are not expired and within the grace window
-    const gracePeriodInSeconds = await getGracePeriodInSeconds({ aptosConfig });
-    const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
-    const now = () => new Date();
-    const cutoff = new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
+  /**
+   * Names that are past expiration but within the grace period should be
+   * included in this query. Names that expire outside the range of the grace
+   * period should be excluded. We calculate this by fetching the grace
+   * period from the chain, subtract it from the current date, and fetch all
+   * names that expire after this new date.
+   */
+  const gracePeriodInSeconds = await getGracePeriodInSeconds({ aptosConfig });
+  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
+  const now = () => new Date();
+  const cutoff = new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
 
-    let gqlQuery;
-    let gqlQueryName;
-    switch (query) {
-      case "owner":
-        gqlQuery = GetAccountNames;
-        gqlQueryName = "getAccountNames";
-        break;
-      case "owner:domains":
-        gqlQuery = GetAccountDomains;
-        gqlQueryName = "getAccountDomains";
-        break;
-      case "owner:subdomains":
-        gqlQuery = GetAccountSubdomains;
-        gqlQueryName = "getAccountSubdomains";
-        break;
-      default:
-        throw new Error(`Invalid query type: ${query}`);
-    }
+  let where: CurrentAptosNamesBoolExp;
+  switch (query) {
+    case "owner":
+      where = {
+        owner_address: { _eq: args.ownerAddress.toString() },
+        expiration_timestamp: { _gte: cutoff },
+      };
+      break;
 
-    const graphqlQuery = {
-      query: gqlQuery,
-      variables: {
-        limit: pageSize,
-        offset: page * pageSize,
-        owner_address: address,
-        expiration_gte: cutoff,
-      },
-    };
+    case "owner:domains":
+      where = {
+        owner_address: { _eq: args.ownerAddress.toString() },
+        expiration_timestamp: { _gte: cutoff },
+        subdomain: { _eq: "" },
+      };
+      break;
 
-    const data = await queryIndexer<GetAccountDomainsQuery>({
-      aptosConfig,
-      query: graphqlQuery,
-      originMethod: gqlQueryName,
-    });
+    case "owner:subdomains":
+      where = {
+        owner_address: { _eq: args.ownerAddress.toString() },
+        expiration_timestamp: { _gte: cutoff },
+        subdomain: { _neq: "" },
+      };
+      break;
 
-    return data.current_aptos_names as ANSName[];
+    case "domain:subdomains":
+      where = {
+        domain: { _eq: args.domain },
+        subdomain: { _neq: "" },
+        // Note: Subdomains have a different expiration policy than domains, no
+        // need to filter on expiration_timestamp
+      };
+      break;
+
+    default:
+      throw new Error(`Invalid query type: ${query}`);
   }
 
-  if (args.query === "domain:subdomains") {
-    if (!args.domain) throw new Error("Must provide a domain");
-    const { domainName } = isValidANSName(args.domain);
-
-    const graphqlQuery = {
-      query: GetDomainSubdomains,
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getNames",
+    query: {
+      query: GetNames,
       variables: {
-        limit: pageSize,
-        offset: page * pageSize,
-        domain: domainName,
+        limit: options?.pagination?.limit,
+        offset: options?.pagination?.offset,
+        order_by: options?.orderBy,
+        where_condition: { ...where, ...(args.options?.where ?? {}) },
       },
-    };
+    },
+  });
 
-    const data = await queryIndexer<GetAccountDomainsQuery>({
-      aptosConfig,
-      query: graphqlQuery,
-      originMethod: "getDomainSubdomains",
-    });
-
-    return data.current_aptos_names as ANSName[];
-  }
-
-  throw new Error(`Invalid query type: ${query}`);
+  return data.current_aptos_names;
 }
 
 /**

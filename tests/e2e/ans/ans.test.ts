@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -555,6 +555,30 @@ describe("ANS", () => {
       // All our results should have a subdomain
       expect(res.find((name) => !name.subdomain)).toBeFalsy();
     });
+
+    test("accommodates where, pagination, and ordering", async () => {
+      let res: GetANSNameResponse;
+
+      res = await testnet.ans.getNames({
+        query: "owner",
+        ownerAddress: ACCOUNT_ADDRESS_1,
+        options: { pagination: { limit: 1 } },
+      });
+      expect(res.length).toBe(1);
+
+      res = await testnet.ans.getNames({
+        query: "owner",
+        ownerAddress: ACCOUNT_ADDRESS_1,
+        options: {
+          where: {
+            domain: { _eq: DOMAIN },
+          },
+        },
+      });
+      expect(res[0].domain).toBe(DOMAIN);
+    });
+
+    // TODO: When we have local testnet, test order here
   });
 
   describe("query an individual name", () => {

@@ -157,44 +157,6 @@ export type GetAccountCollectionsWithOwnedTokensQuery = {
   }>;
 };
 
-export type GetAccountDomainsQueryVariables = Types.Exact<{
-  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-}>;
-
-export type GetAccountDomainsQuery = {
-  current_aptos_names: Array<{
-    domain?: string | null;
-    expiration_timestamp?: any | null;
-    registered_address?: string | null;
-    subdomain?: string | null;
-    token_standard?: string | null;
-    is_primary?: boolean | null;
-    owner_address?: string | null;
-  }>;
-};
-
-export type GetAccountNamesQueryVariables = Types.Exact<{
-  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-}>;
-
-export type GetAccountNamesQuery = {
-  current_aptos_names: Array<{
-    domain?: string | null;
-    expiration_timestamp?: any | null;
-    registered_address?: string | null;
-    subdomain?: string | null;
-    token_standard?: string | null;
-    is_primary?: boolean | null;
-    owner_address?: string | null;
-  }>;
-};
-
 export type GetAccountOwnedObjectsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentObjectsBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -379,25 +341,6 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
   }>;
 };
 
-export type GetAccountSubdomainsQueryVariables = Types.Exact<{
-  owner_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  expiration_gte?: Types.InputMaybe<Types.Scalars["timestamp"]["input"]>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-}>;
-
-export type GetAccountSubdomainsQuery = {
-  current_aptos_names: Array<{
-    domain?: string | null;
-    expiration_timestamp?: any | null;
-    registered_address?: string | null;
-    subdomain?: string | null;
-    token_standard?: string | null;
-    is_primary?: boolean | null;
-    owner_address?: string | null;
-  }>;
-};
-
 export type GetAccountTokensCountQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.CurrentTokenOwnershipsV2BoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -481,24 +424,6 @@ export type GetDelegatedStakingActivitiesQuery = {
   }>;
 };
 
-export type GetDomainSubdomainsQueryVariables = Types.Exact<{
-  domain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-}>;
-
-export type GetDomainSubdomainsQuery = {
-  current_aptos_names: Array<{
-    domain?: string | null;
-    expiration_timestamp?: any | null;
-    registered_address?: string | null;
-    subdomain?: string | null;
-    token_standard?: string | null;
-    is_primary?: boolean | null;
-    owner_address?: string | null;
-  }>;
-};
-
 export type GetEventsQueryVariables = Types.Exact<{
   where_condition?: Types.InputMaybe<Types.EventsBoolExp>;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -570,12 +495,14 @@ export type GetFungibleAssetMetadataQuery = {
   }>;
 };
 
-export type GetNameQueryVariables = Types.Exact<{
-  domain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  subdomain?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+export type GetNamesQueryVariables = Types.Exact<{
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  where_condition?: Types.InputMaybe<Types.CurrentAptosNamesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentAptosNamesOrderBy> | Types.CurrentAptosNamesOrderBy>;
 }>;
 
-export type GetNameQuery = {
+export type GetNamesQuery = {
   current_aptos_names: Array<{
     domain?: string | null;
     expiration_timestamp?: any | null;
