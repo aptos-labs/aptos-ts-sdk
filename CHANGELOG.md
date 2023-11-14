@@ -4,9 +4,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 0.0.6 (2023-11-14)
+
 - [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`
 - Respect max gas amount value when generating a transaction
 - Added a clearer error message for when the typeTagParser encounters a possible generic TypeTag but generics are disallowed
+- Update all dependencies to the latest version
+- Added ability for providing own output types for view functions
 
 ## 0.0.5 (2023-11-09)
 
