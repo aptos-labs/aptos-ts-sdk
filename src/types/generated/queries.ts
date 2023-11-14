@@ -1,7 +1,7 @@
 import * as Types from "./operations";
 
 import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import * as Dom from "graphql-request/dist/types.dom";
 export const TokenActivitiesFieldsFragmentDoc = `
     fragment TokenActivitiesFields on token_activities_v2 {
   after_value
@@ -442,7 +442,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
   return {
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountCoinsCountQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -456,7 +456,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountCoinsData(
       variables: Types.GetAccountCoinsDataQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountCoinsDataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -470,7 +470,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountCollectionsWithOwnedTokens(
       variables: Types.GetAccountCollectionsWithOwnedTokensQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountCollectionsWithOwnedTokensQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -485,7 +485,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountOwnedObjects(
       variables?: Types.GetAccountOwnedObjectsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountOwnedObjectsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -499,7 +499,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountOwnedTokens(
       variables: Types.GetAccountOwnedTokensQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountOwnedTokensQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -513,7 +513,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountOwnedTokensByTokenData(
       variables: Types.GetAccountOwnedTokensByTokenDataQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountOwnedTokensByTokenDataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -527,7 +527,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountOwnedTokensFromCollection(
       variables: Types.GetAccountOwnedTokensFromCollectionQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountOwnedTokensFromCollectionQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -542,7 +542,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountTokensCount(
       variables?: Types.GetAccountTokensCountQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountTokensCountQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -556,7 +556,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getAccountTransactionsCount(
       variables?: Types.GetAccountTransactionsCountQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetAccountTransactionsCountQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -570,7 +570,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getChainTopUserTransactions(
       variables?: Types.GetChainTopUserTransactionsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetChainTopUserTransactionsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -584,7 +584,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getCollectionData(
       variables: Types.GetCollectionDataQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetCollectionDataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -598,7 +598,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getCurrentFungibleAssetBalances(
       variables?: Types.GetCurrentFungibleAssetBalancesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetCurrentFungibleAssetBalancesQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -612,7 +612,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getDelegatedStakingActivities(
       variables?: Types.GetDelegatedStakingActivitiesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetDelegatedStakingActivitiesQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -626,7 +626,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getEvents(
       variables?: Types.GetEventsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetEventsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -637,7 +637,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getFungibleAssetActivities(
       variables?: Types.GetFungibleAssetActivitiesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetFungibleAssetActivitiesQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -651,7 +651,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getFungibleAssetMetadata(
       variables?: Types.GetFungibleAssetMetadataQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetFungibleAssetMetadataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -665,7 +665,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getNumberOfDelegators(
       variables: Types.GetNumberOfDelegatorsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetNumberOfDelegatorsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -679,7 +679,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getProcessorStatus(
       variables?: Types.GetProcessorStatusQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetProcessorStatusQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -693,7 +693,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getTokenActivity(
       variables: Types.GetTokenActivityQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetTokenActivityQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -707,7 +707,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getCurrentTokenOwnership(
       variables: Types.GetCurrentTokenOwnershipQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetCurrentTokenOwnershipQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -721,7 +721,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     getTokenData(
       variables?: Types.GetTokenDataQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: Dom.RequestInit["headers"],
     ): Promise<Types.GetTokenDataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
