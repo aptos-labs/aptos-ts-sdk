@@ -9,7 +9,7 @@ namedTypeTags:
   "0x4::collection::Collection": "Collection"
 
 structArgs: false
-outputPath: "./generated/"
+outputPath: "/Users/dev/tournament/ts/generated/"
 functionComments: true
 expandedStructs: false
 replaceNamedAddresses: true
@@ -18,4 +18,4 @@ includeAccountParams: false # set this to `true` if you have access to all the p
 separateViewAndEntryFunctionsByNamespace: false
 viewFunctionsNamespace: "ViewFunctions"
 entryFunctionsNamespace: "EntryFunctions"
-sdkPath: "../../src"
+sdkPath: "@aptos-labs/ts-sdk"

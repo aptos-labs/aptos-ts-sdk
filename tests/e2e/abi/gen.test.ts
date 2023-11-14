@@ -35,10 +35,10 @@ describe.only("abi test", () => {
     await fundAccounts(aptosLocal, [account]);
     await publishArgumentTestModule(aptosLocal, account);
     await codeGenerator.generateCodeForModules(aptosLocal, [
-      // AccountAddress.ONE,
-      // AccountAddress.THREE,
-      // AccountAddress.FOUR,
-      // AccountAddress.fromRelaxed("0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"),
+      AccountAddress.ONE,
+      AccountAddress.THREE,
+      AccountAddress.FOUR,
+      AccountAddress.fromRelaxed("0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766"),
       account.accountAddress,
     ]);
   });

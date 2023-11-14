@@ -631,7 +631,9 @@ export class CodeGenerator {
 
   async generateCodeForModules(aptos: Aptos, moduleAddresses: Array<AccountAddress>): Promise<void> {
     const baseDirectory = this.config.outputPath ?? ".";
-    console.log(baseDirectory);
+    if (!fs.existsSync(baseDirectory)) {
+      fs.mkdirSync(baseDirectory);
+    }
     const generatedIndexFile: Array<string> = [BOILERPLATE_COPYRIGHT];
     await Promise.all(
       moduleAddresses.map(async (address) => {
@@ -662,16 +664,15 @@ export class CodeGenerator {
         }
       }),
     );
-    const sdkPath = "../../";
     copyCode(
       `./src/abi/${FOR_GENERATION_DIRECTORY}/${PAYLOAD_BUILDERS_FILE_NAME}.ts`,
       baseDirectory + `${PAYLOAD_BUILDERS_FILE_NAME}.ts`,
-      sdkPath,
+      this.config.sdkPath,
     );
     copyCode(
       `./src/abi/${FOR_GENERATION_DIRECTORY}/${ABI_TYPES_FILE_NAME}.ts`,
       baseDirectory + `${ABI_TYPES_FILE_NAME}.ts`,
-      sdkPath,
+      this.config.sdkPath,
     );
   }
 

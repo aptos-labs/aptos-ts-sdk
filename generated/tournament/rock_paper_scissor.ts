@@ -16,7 +16,7 @@ import {
   U8,
   Bool,
   Account,
-} from "../../src";
+} from "@aptos-labs/ts-sdk";
 import {
   EntryFunctionArgumentTypes,
   AccountAddressInput,
@@ -29,7 +29,7 @@ import {
   Uint128,
   Uint256,
   parseTypeTag,
-} from "../../src";
+} from "@aptos-labs/ts-sdk";
 import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
 import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
