@@ -251,8 +251,8 @@ export class ANS {
    * - 'domain:subdomains': Fetch all subdomain under a domain name
    * @param args.ownerAddress - A MoveAddressType of the address to retrieve names for. Required if query is 'owner'
    * @param args.domain - A string of the domain name to retrieve subdomains for. Required if query is 'domain:subdomains'
-   * @param args.page - A number of the page to retrieve. Defaults to 0.
-   * @param args.pageSize - A number of the page size to retrieve. Defaults to 20.
+   * @param args.page - Optional, A number of the page to retrieve.
+   * @param args.pageSize - Optional, A number of the page size to retrieve.
    *
    * @returns a promise of an array of ANSName
    */
