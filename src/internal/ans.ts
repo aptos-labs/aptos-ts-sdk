@@ -253,11 +253,26 @@ export async function getPrimaryName(args: {
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: Account;
-  name: string;
+  name: string | null;
   options?: InputGenerateTransactionOptions;
 }): Promise<InputSingleSignerTransaction> {
   const { aptosConfig, sender, name, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
+
+  if (!name) {
+    const transaction = await generateTransaction({
+      aptosConfig,
+      sender: sender.accountAddress.toString(),
+      data: {
+        function: `${routerAddress}::router::clear_primary_name`,
+        functionArguments: [],
+      },
+      options,
+    });
+
+    return transaction as InputSingleSignerTransaction;
+  }
+
   const { domainName, subdomainName } = isValidANSName(name);
 
   const transaction = await generateTransaction({

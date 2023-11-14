@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, MoveString, MoveOption, U64 } from "../../../src";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -63,16 +63,16 @@ describe("ANS", () => {
       );
 
       changeExpirationDate = async (
+        // What version of the ANS sdk the name is. Depending on the version, we
+        // hit different contracts to change the expiration date.
+        // 0 = ANS v1 token
+        // 1 = ANS v2 token
         tokenMode: 0 | 1,
         expirationDate: number,
         domainName: string,
         subdomainName?: string,
-      ) => {
-        const domain = new MoveString(domainName);
-        const subdomain = new MoveOption(subdomainName ? new MoveString(subdomainName) : null);
-        const expiration = new U64(expirationDate);
-
-        return signAndSubmit(
+      ) =>
+        signAndSubmit(
           contractAccount,
           await generateTransaction({
             aptosConfig: config,
@@ -82,12 +82,16 @@ describe("ANS", () => {
                 tokenMode === 0
                   ? `${ANS_ADDRESS}::domain::force_set_expiration`
                   : `${ANS_ADDRESS}::v2_1_domains::force_set_name_expiration`,
-              functionArguments: tokenMode === 0 ? [subdomain, domain, expiration] : [domain, subdomain, expiration],
+              functionArguments:
+                tokenMode === 0
+                  ? [subdomainName, domainName, expirationDate]
+                  : [domainName, subdomainName, expirationDate],
             },
           }),
         );
-      };
 
+      // 0 = Points the router to ANS v1
+      // 1 = Points the router to ANS v2
       changeRouterMode = async (mode: 0 | 1) =>
         signAndSubmit(
           contractAccount,
@@ -96,7 +100,7 @@ describe("ANS", () => {
             sender: contractAccount.accountAddress.toString(),
             data: {
               function: `${ANS_ADDRESS}::router::set_mode`,
-              functionArguments: [new U8(mode)],
+              functionArguments: [mode],
             },
           }),
         );

@@ -103,7 +103,7 @@ export class ANS {
    */
   async setPrimaryName(args: {
     sender: Account;
-    name: string;
+    name: string | null;
     options?: InputGenerateTransactionOptions;
   }): Promise<InputSingleSignerTransaction> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
