@@ -43,13 +43,12 @@ describe.only("abi test", () => {
     ]);
   });
 
-  it("parses tournament abis correctly", async () => {
+  it.only("parses tournament abis correctly", async () => {
     const accountAddress = AccountAddress.fromRelaxed(
-      "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+      "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
     );
-    const aptos = new Aptos(new AptosConfig({ network: Network.LOCAL }));
-    const tournamentModuleABIs = await codeGenerator.fetchABIs(aptos, accountAddress);
-    codeGenerator.writeGeneratedCodeToFiles("tournament", "./generated", tournamentModuleABIs);
+    const aptos = new Aptos(new AptosConfig({ network: Network.TESTNET }));
+    await codeGenerator.generateCodeForModules(aptos, [accountAddress]);
   });
 
   it("parses config.yaml correctly", async () => {

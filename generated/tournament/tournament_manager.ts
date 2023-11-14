@@ -17,20 +17,20 @@ import {
   Bool,
   Account,
 } from "@aptos-labs/ts-sdk";
+import { EntryFunctionArgumentTypes, AccountAddressInput, Hex, HexInput, parseTypeTag } from "@aptos-labs/ts-sdk";
 import {
-  EntryFunctionArgumentTypes,
-  AccountAddressInput,
-  Hex,
-  HexInput,
+  InputTypes,
+  Option,
+  MoveObject,
+  ObjectAddress,
+  TypeTagInput,
   Uint8,
   Uint16,
   Uint32,
   Uint64,
   Uint128,
   Uint256,
-  parseTypeTag,
-} from "@aptos-labs/ts-sdk";
-import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+} from "../types";
 import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type EndTournamentPayloadMoveArguments = {
@@ -45,7 +45,7 @@ export type EndTournamentPayloadMoveArguments = {
  **/
 export class EndTournament extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "end_tournament";
@@ -80,7 +80,7 @@ export type InitializeTournamentPayloadMoveArguments = {
  **/
 export class InitializeTournament extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "initialize_tournament";
@@ -117,7 +117,7 @@ export type JoinTournamentPayloadMoveArguments = {
  **/
 export class JoinTournament extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "join_tournament";
@@ -148,7 +148,7 @@ export type SetTournamentJoinablePayloadMoveArguments = {
  **/
 export class SetTournamentJoinable extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "set_tournament_joinable";
@@ -177,7 +177,7 @@ export type SetTournamentNotJoinablePayloadMoveArguments = {
  **/
 export class SetTournamentNotJoinable extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "set_tournament_not_joinable";
@@ -206,7 +206,7 @@ export type GetCurrentGameModulePayloadMoveArguments = {
  **/
 export class GetCurrentGameModule extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_current_game_module";
@@ -233,7 +233,7 @@ export type GetMaxNumWinnersPayloadMoveArguments = {
  **/
 export class GetMaxNumWinners extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_max_num_winners";
@@ -260,7 +260,7 @@ export type GetMaxPlayersPayloadMoveArguments = {
  **/
 export class GetMaxPlayers extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_max_players";
@@ -287,7 +287,7 @@ export type GetNumPlayerJoinedPayloadMoveArguments = {
  **/
 export class GetNumPlayerJoined extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_num_player_joined";
@@ -314,7 +314,7 @@ export type GetRoundAddressPayloadMoveArguments = {
  **/
 export class GetRoundAddress extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_round_address";
@@ -341,7 +341,7 @@ export type GetTournamentStatePayloadMoveArguments = {
  **/
 export class GetTournamentState extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "tournament_manager";
   public readonly functionName = "get_tournament_state";

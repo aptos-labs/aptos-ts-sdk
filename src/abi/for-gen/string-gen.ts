@@ -23,12 +23,12 @@ export const getBoilerplateImports = (sdkPath?: string): string => {
     import { AccountAddress, AccountAuthenticator, MoveString, MoveVector, TypeTag, U128, U16, U256, U32, U64, U8, Bool, Account } from "${
       sdkPath ?? DEFAULT_SDK_PATH
     }";
-    import { EntryFunctionArgumentTypes, AccountAddressInput, Hex, HexInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, parseTypeTag } from "${
+    import { EntryFunctionArgumentTypes, AccountAddressInput, Hex, HexInput, parseTypeTag } from "${
       sdkPath ?? DEFAULT_SDK_PATH
     }";
     import { InputTypes, ${
       kindToSimpleTypeMap.MoveOption
-    }, MoveObject, ObjectAddress, TypeTagInput, } from ${ABI_TYPES_FILE};
+    }, MoveObject, ObjectAddress, TypeTagInput, Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from ${ABI_TYPES_FILE};
     import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from ${ABI_PAYLOAD_BUILDER_FILE};
     
     `;

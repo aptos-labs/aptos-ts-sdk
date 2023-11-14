@@ -17,20 +17,20 @@ import {
   Bool,
   Account,
 } from "@aptos-labs/ts-sdk";
+import { EntryFunctionArgumentTypes, AccountAddressInput, Hex, HexInput, parseTypeTag } from "@aptos-labs/ts-sdk";
 import {
-  EntryFunctionArgumentTypes,
-  AccountAddressInput,
-  Hex,
-  HexInput,
+  InputTypes,
+  Option,
+  MoveObject,
+  ObjectAddress,
+  TypeTagInput,
   Uint8,
   Uint16,
   Uint32,
   Uint64,
   Uint128,
   Uint256,
-  parseTypeTag,
-} from "@aptos-labs/ts-sdk";
-import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+} from "../types";
 import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type AddPlayersToGamePayloadMoveArguments = {
@@ -47,7 +47,7 @@ export type AddPlayersToGamePayloadMoveArguments = {
  **/
 export class AddPlayersToGame extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "aptos_tournament";
   public readonly functionName = "add_players_to_game";
@@ -78,7 +78,7 @@ export type SetAdminSignerPayloadMoveArguments = {
  **/
 export class SetAdminSigner extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "aptos_tournament";
   public readonly functionName = "set_admin_signer";
@@ -107,7 +107,7 @@ export type StartNewRoundPayloadMoveArguments = {
  **/
 export class StartNewRound extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "aptos_tournament";
   public readonly functionName = "start_new_round";

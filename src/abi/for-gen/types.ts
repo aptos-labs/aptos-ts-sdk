@@ -1,11 +1,19 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, AccountAddressInput, Uint128, Uint16, Uint256, Uint32, Uint64, Uint8, TypeTag } from "../../";
+import { AccountAddress, AccountAddressInput, TypeTag } from "../../";
 
 export type Option<T> = [T] | [];
 
 export type ObjectAddress = AccountAddressInput;
+
+export type Uint8 = number;
+export type Uint16 = number;
+export type Uint32 = number;
+export type Uint64 = number | bigint;
+export type Uint128 = number | bigint;
+export type Uint256 = number | bigint;
+export type AnyNumber = number | bigint;
 
 export type InputTypes =
   | boolean

@@ -3,6 +3,7 @@ namedAddresses:
   "0x3": aptos_token
   "0x4": aptos_token_objects
   "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766": tournament
+  "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18": tournament
   "0x2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c": args_test_suite
 namedTypeTags:
   "0x4::token::Token": "Token"

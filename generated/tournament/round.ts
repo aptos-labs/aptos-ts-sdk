@@ -17,20 +17,20 @@ import {
   Bool,
   Account,
 } from "@aptos-labs/ts-sdk";
+import { EntryFunctionArgumentTypes, AccountAddressInput, Hex, HexInput, parseTypeTag } from "@aptos-labs/ts-sdk";
 import {
-  EntryFunctionArgumentTypes,
-  AccountAddressInput,
-  Hex,
-  HexInput,
+  InputTypes,
+  Option,
+  MoveObject,
+  ObjectAddress,
+  TypeTagInput,
   Uint8,
   Uint16,
   Uint32,
   Uint64,
   Uint128,
   Uint256,
-  parseTypeTag,
-} from "@aptos-labs/ts-sdk";
-import { InputTypes, Option, MoveObject, ObjectAddress, TypeTagInput } from "../types";
+} from "../types";
 import { ViewFunctionPayloadBuilder, EntryFunctionPayloadBuilder } from "../payloadBuilders";
 
 export type EndMatchmakingPayloadMoveArguments = {
@@ -45,7 +45,7 @@ export type EndMatchmakingPayloadMoveArguments = {
  **/
 export class EndMatchmaking extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "end_matchmaking";
@@ -76,7 +76,7 @@ export type EndPlayPayloadMoveArguments = {
  **/
 export class EndPlay extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "end_play";
@@ -107,7 +107,7 @@ export type StartPlayPayloadMoveArguments = {
  **/
 export class StartPlay extends EntryFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "start_play";
@@ -138,7 +138,7 @@ export type CanPlayerJoinPayloadMoveArguments = {
  **/
 export class CanPlayerJoin extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "can_player_join";
@@ -167,7 +167,7 @@ export type IsPlayAllowedPayloadMoveArguments = {
  **/
 export class IsPlayAllowed extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "is_play_allowed";
@@ -196,7 +196,7 @@ export type RoundIsPausedPayloadMoveArguments = {
  **/
 export class RoundIsPaused extends ViewFunctionPayloadBuilder {
   public readonly moduleAddress = AccountAddress.fromRelaxed(
-    "0x4b272129fdeabadae2d61453a1e2693de7758215a3653463e9adffddd3d3a766",
+    "0x74007b85705153d40b88f994876fd2f7e12204f79527b44f71e69a9d34644f18",
   );
   public readonly moduleName = "round";
   public readonly functionName = "round_is_paused";
