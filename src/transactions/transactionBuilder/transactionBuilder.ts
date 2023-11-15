@@ -76,6 +76,8 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber, SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { WebAuthnSignature } from "../../core/crypto/webauthn";
+import { P256PublicKey } from "../../core/crypto/p256";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -453,6 +455,29 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
 }
 
 /**
+ * Creates the and returns the Authenticator for passkey signed transactions.
+ *
+ * @param args.publicKey The public key of the passkey credential.
+ * @param args.signature The P256signature which is the signed challenge.
+ * @param args.authenticatorData The AuthenticatorData of the assertion.
+ * @param args.clientDataJSON The clientDataJSON of the assertion.
+ *
+ * @return The signer AccountAuthenticator
+ */
+export function getAuthenticatorForWebAuthn(args: {
+  publicKey: HexInput;
+  signature: HexInput;
+  authenticatorData: HexInput;
+  clientDataJSON: HexInput;
+}): AccountAuthenticator {
+  const { publicKey, signature, authenticatorData, clientDataJSON } = args;
+  const p256PublicKey = new P256PublicKey(publicKey);
+  const webAuthnSignature = new WebAuthnSignature(signature, authenticatorData, clientDataJSON);
+
+  return new AccountAuthenticatorSingleKey(new AnyPublicKey(p256PublicKey), new AnySignature(webAuthnSignature));
+}
+
+/**
  * Prepare a transaction to be submitted to chain
  *
  * @param args.transaction A aptos transaction type
@@ -494,6 +519,7 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
       senderAuthenticator instanceof AccountAuthenticatorMultiKey) &&
     transactionToSubmit instanceof RawTransaction
   ) {
+    console.log("single sender");
     const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
     return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
   }
