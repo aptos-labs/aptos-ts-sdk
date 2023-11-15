@@ -70,7 +70,7 @@ describe("transaction submission", () => {
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -125,13 +125,7 @@ describe("transaction submission", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-              functionArguments: [
-                new U64(100),
-                new U64(200),
-                receiverAccounts[0].accountAddress,
-                receiverAccounts[1].accountAddress,
-                new U64(50),
-              ],
+              functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
             },
           });
 
@@ -187,7 +181,7 @@ describe("transaction submission", () => {
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
           withFeePayer: true,
         });
@@ -215,13 +209,7 @@ describe("transaction submission", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-            functionArguments: [
-              new U64(100),
-              new U64(200),
-              receiverAccounts[0].accountAddress,
-              receiverAccounts[1].accountAddress,
-              new U64(50),
-            ],
+            functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
           },
           withFeePayer: true,
         });
@@ -273,7 +261,7 @@ describe("transaction submission", () => {
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -328,13 +316,7 @@ describe("transaction submission", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-              functionArguments: [
-                new U64(100),
-                new U64(200),
-                receiverAccounts[0].accountAddress,
-                receiverAccounts[1].accountAddress,
-                new U64(50),
-              ],
+              functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
             },
           });
 
@@ -390,7 +372,7 @@ describe("transaction submission", () => {
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
           withFeePayer: true,
         });
@@ -418,13 +400,7 @@ describe("transaction submission", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-            functionArguments: [
-              new U64(100),
-              new U64(200),
-              receiverAccounts[0].accountAddress,
-              receiverAccounts[1].accountAddress,
-              new U64(50),
-            ],
+            functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
           },
           withFeePayer: true,
         });
@@ -476,7 +452,7 @@ describe("transaction submission", () => {
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -530,13 +506,7 @@ describe("transaction submission", () => {
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
               function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-              functionArguments: [
-                new U64(100),
-                new U64(200),
-                receiverAccounts[0].accountAddress,
-                receiverAccounts[1].accountAddress,
-                new U64(50),
-              ],
+              functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
             },
           });
 
@@ -591,7 +561,7 @@ describe("transaction submission", () => {
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
           withFeePayer: true,
         });
@@ -619,13 +589,7 @@ describe("transaction submission", () => {
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::two_by_two`,
-            functionArguments: [
-              new U64(100),
-              new U64(200),
-              receiverAccounts[0].accountAddress,
-              receiverAccounts[1].accountAddress,
-              new U64(50),
-            ],
+            functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
           },
           withFeePayer: true,
         });
@@ -673,7 +637,7 @@ describe("transaction submission", () => {
         sender: multiKeyAccountAddress.toString(),
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
-          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          functionArguments: [1, receiverAccounts[0].accountAddress],
         },
       });
       // create a bitmap where singleSignerED25519SenderAccount and singleSignerSecp256k1Account
@@ -751,7 +715,7 @@ describe("transaction submission", () => {
         sender: legacyED25519SenderAccount.accountAddress.toString(),
         data: {
           function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          functionArguments: [1, receiverAccounts[0].accountAddress],
         },
         withFeePayer: true,
       });
@@ -771,7 +735,7 @@ describe("transaction submission", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          functionArguments: [1, receiverAccounts[0].accountAddress],
         },
         withFeePayer: true,
       });

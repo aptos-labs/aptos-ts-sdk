@@ -40,7 +40,7 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
@@ -55,7 +55,7 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
@@ -90,7 +90,7 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
@@ -127,7 +127,7 @@ describe("generate transaction", () => {
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,
       });
@@ -145,7 +145,7 @@ describe("generate transaction", () => {
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,
       });
@@ -164,7 +164,7 @@ describe("generate transaction", () => {
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
           function: "0x1::aptos_account::transfer",
-          functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
         },
         withFeePayer: true,
       });
