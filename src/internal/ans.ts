@@ -362,84 +362,137 @@ export async function getName(args: {
   return data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
 }
 
-export type GetNamesArgs = {
+
+
+interface QueryNamesOptions {
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetANSNameResponse[0]>;
     where?: CurrentAptosNamesBoolExp;
   };
-} & (
-  | { query: "owner"; ownerAddress: AccountAddressInput }
-  | { query: "owner:domains"; ownerAddress: AccountAddressInput }
-  | { query: "owner:subdomains"; ownerAddress: AccountAddressInput }
-  | { query: "domain:subdomains"; domain: string }
-);
+}
 
-export async function getNames(args: { aptosConfig: AptosConfig } & GetNamesArgs): Promise<GetANSNameResponse> {
-  if (!args.query) throw new Error("Must provide a query type");
+export interface GetAccountNamesArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
 
-  const { aptosConfig, query, options } = args;
+export async function getAccountNames(
+  args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
 
-  /**
-   * Names that are past expiration but within the grace period should be
-   * included in this query. Names that expire outside the range of the grace
-   * period should be excluded. We calculate this by fetching the grace
-   * period from the chain, subtract it from the current date, and fetch all
-   * names that expire after this new date.
-   */
-  const gracePeriodInSeconds = await getGracePeriodInSeconds({ aptosConfig });
-  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
-  const now = () => new Date();
-  const cutoff = new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
-
-  let where: CurrentAptosNamesBoolExp;
-  switch (query) {
-    case "owner":
-      where = {
-        owner_address: { _eq: args.ownerAddress.toString() },
-        expiration_timestamp: { _gte: cutoff },
-      };
-      break;
-
-    case "owner:domains":
-      where = {
-        owner_address: { _eq: args.ownerAddress.toString() },
-        expiration_timestamp: { _gte: cutoff },
-        subdomain: { _eq: "" },
-      };
-      break;
-
-    case "owner:subdomains":
-      where = {
-        owner_address: { _eq: args.ownerAddress.toString() },
-        expiration_timestamp: { _gte: cutoff },
-        subdomain: { _neq: "" },
-      };
-      break;
-
-    case "domain:subdomains":
-      where = {
-        domain: { _eq: args.domain },
-        subdomain: { _neq: "" },
-        // Note: Subdomains have a different expiration policy than domains, no
-        // need to filter on expiration_timestamp
-      };
-      break;
-
-    default:
-      throw new Error(`Invalid query type: ${query}`);
-  }
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
 
   const data = await queryIndexer<GetNamesQuery>({
     aptosConfig,
-    originMethod: "getNames",
+    originMethod: "getAccountNames",
     query: {
       query: GetNames,
       variables: {
         limit: options?.pagination?.limit,
         offset: options?.pagination?.offset,
         order_by: options?.orderBy,
-        where_condition: { ...where, ...(args.options?.where ?? {}) },
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names;
+}
+
+export interface GetAccountDomainsArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
+
+export async function getAccountDomains(
+  args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
+
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getAccountDomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.pagination?.limit,
+        offset: options?.pagination?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+          subdomain: { _eq: "" },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names;
+}
+
+export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
+
+export async function getAccountSubdomains(
+  args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
+
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getAccountSubdomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.pagination?.limit,
+        offset: options?.pagination?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+          subdomain: { _neq: "" },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names;
+}
+
+export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
+  domain: string;
+}
+
+export async function getDomainSubdomains(
+  args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, domain } = args;
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getDomainSubdomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.pagination?.limit,
+        offset: options?.pagination?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          domain: { _eq: domain },
+          subdomain: { _neq: "" },
+        },
       },
     },
   });
@@ -448,17 +501,17 @@ export async function getNames(args: { aptosConfig: AptosConfig } & GetNamesArgs
 }
 
 /**
- * This function returns the grace period in seconds that is set by the ANS
- * contract. The grace period allows for names to be past expiration for a
- * certain amount of time before they are released to the public. The names will
- * not function as normal, but the owner can renew without others taking
- * ownership of the name. At the time of writing, the contract specified 30
- * days.
+ * This function returns the expiration date in which a name is fully expired as
+ * defined by the contract.  The grace period allows for names to be past
+ * expiration for a certain amount of time before they are released to the
+ * public. The names will not function as normal, but the owner can renew
+ * without others taking ownership of the name. At the time of writing, the
+ * contract specified 30 days.
  *
  * @param args.aptosConfig an AptosConfig object
  * @returns
  */
-export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }): Promise<number> {
+async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
@@ -470,7 +523,10 @@ export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }
     },
   });
 
-  return res[0] as number;
+  const gracePeriodInSeconds = res[0] as number;
+  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
+  const now = () => new Date();
+  return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
 }
 
 export async function renewDomain(args: {

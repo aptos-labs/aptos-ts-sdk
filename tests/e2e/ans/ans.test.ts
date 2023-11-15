@@ -531,26 +531,26 @@ describe("ANS", () => {
     const DOMAIN = "8923ulahsdjfaiu";
 
     test("returns all the names for an account", async () => {
-      const res = await testnet.ans.getNames({ query: "owner", ownerAddress: ACCOUNT_ADDRESS_1 });
+      const res = await testnet.ans.getAccountNames({ accountAddress: ACCOUNT_ADDRESS_1 });
       expect(res.length).toBe(4);
     });
 
     test("returns only the domains for an account", async () => {
-      const res = await testnet.ans.getNames({ query: "owner:domains", ownerAddress: ACCOUNT_ADDRESS_1 });
+      const res = await testnet.ans.getAccountDomains({ accountAddress: ACCOUNT_ADDRESS_1 });
       expect(res.length).toBe(2);
       // None of our results should have a subdomain
       expect(res.find((name) => Boolean(name.subdomain))).toBeFalsy();
     });
 
     test("returns only the subdomains for an account", async () => {
-      const res = await testnet.ans.getNames({ query: "owner:subdomains", ownerAddress: ACCOUNT_ADDRESS_1 });
+      const res = await testnet.ans.getAccountSubdomains({ accountAddress: ACCOUNT_ADDRESS_1 });
       expect(res.length).toBe(2);
       // All our results should have a subdomain
       expect(res.find((name) => !name.subdomain)).toBeFalsy();
     });
 
     test("returns only the subdomains names for a domain", async () => {
-      const res = await testnet.ans.getNames({ query: "domain:subdomains", domain: DOMAIN });
+      const res = await testnet.ans.getDomainSubdomains({ domain: DOMAIN });
       expect(res.length).toBe(1);
       // All our results should have a subdomain
       expect(res.find((name) => !name.subdomain)).toBeFalsy();
@@ -559,16 +559,14 @@ describe("ANS", () => {
     test("accommodates where, pagination, and ordering", async () => {
       let res: GetANSNameResponse;
 
-      res = await testnet.ans.getNames({
-        query: "owner",
-        ownerAddress: ACCOUNT_ADDRESS_1,
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
         options: { pagination: { limit: 1 } },
       });
       expect(res.length).toBe(1);
 
-      res = await testnet.ans.getNames({
-        query: "owner",
-        ownerAddress: ACCOUNT_ADDRESS_1,
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
         options: {
           where: {
             domain: { _eq: DOMAIN },

@@ -13,8 +13,14 @@ import {
   setTargetAddress,
   renewDomain,
   getName,
-  getNames,
-  GetNamesArgs,
+  getAccountDomains,
+  GetAccountDomainsArgs,
+  GetAccountSubdomainsArgs,
+  getAccountSubdomains,
+  getAccountNames,
+  GetAccountNamesArgs,
+  getDomainSubdomains,
+  GetDomainSubdomainsArgs,
 } from "../internal/ans";
 import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType } from "../types";
@@ -226,37 +232,66 @@ export class ANS {
   }
 
   /**
-   * Fetches multiple names from the indexer. Can be used to fetch names owned
-   * by an address or subdomains of a domain.
-   *
-   * ```ts
-   * // Fetch all names owned by alice
-   * aptos.getNames({ query: 'owner', ownerAddress: alice.address });
-   *
-   * // Fetch all top level domains (excluding subdomains) owned by alice
-   * aptos.getNames({ query: 'owner:domains', ownerAddress: alice.address });
-   *
-   * // Fetch all subdomain (excluding top level domains) owned by alice
-   * aptos.getNames({ query: 'owner:subdomains', ownerAddress: alice.address });
-   *
-   * // Fetch all subdomain under a domain name: 'petra.apt'
-   * aptos.getNames({ query: 'domain:subdomains', domain: 'petra' });
-   *```
+   * Fetches all  names for an account (both top level domains and subdomains)
    *
    * @param args
-   * @param args.query - A string of the query to retrieve names. Can be one of:
-   * - 'owner': Fetch all names owned by an address
-   * - 'owner:domains': Fetch all top level domains (excluding subdomains) owned by an address
-   * - 'owner:subdomains': Fetch all subdomain (excluding top level domains) owned by an address
-   * - 'domain:subdomains': Fetch all subdomain under a domain name
-   * @param args.ownerAddress - A MoveAddressType of the address to retrieve names for. Required if query is 'owner'
-   * @param args.domain - A string of the domain name to retrieve subdomains for. Required if query is 'domain:subdomains'
-   * @param args.page - Optional, A number of the page to retrieve.
-   * @param args.pageSize - Optional, A number of the page size to retrieve.
+   * @param args.accountAddress - A AccountAddressInput of the address to retrieve names for.
+   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
+   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.orderBy - The order to sort the names by
+   * @param args.options.where - Additional filters to apply to the query
    *
    * @returns a promise of an array of ANSName
    */
-  async getNames(args: GetNamesArgs): Promise<GetANSNameResponse> {
-    return getNames({ aptosConfig: this.config, ...args });
+  async getAccountNames(args: GetAccountNamesArgs): Promise<GetANSNameResponse> {
+    return getAccountNames({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches all top level domain names for an account
+   *
+   * @param args
+   * @param args.accountAddress - A AccountAddressInput of the address to retrieve domain names for.
+   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
+   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.orderBy - The order to sort the names by
+   * @param args.options.where - Additional filters to apply to the query
+   *
+   * @returns a promise of an array of ANSName
+   */
+  async getAccountDomains(args: GetAccountDomainsArgs): Promise<GetANSNameResponse> {
+    return getAccountDomains({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches all subdomains names for an account
+   *
+   * @param args
+   * @param args.accountAddress - A AccountAddressInput of the address to retrieve subdomains names for.
+   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
+   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.orderBy - The order to sort the names by
+   * @param args.options.where - Additional filters to apply to the query
+   *
+   * @returns a promise of an array of ANSName
+   */
+  async getAccountSubdomains(args: GetAccountSubdomainsArgs): Promise<GetANSNameResponse> {
+    return getAccountSubdomains({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Fetches all subdomains names for a given domain. Note, this will not return the domain itself.
+   *
+   * @param args
+   * @param args.domain - A string of the domain name: eg. "test.apt" or "test" (without the suffix of .apt)
+   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
+   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.orderBy - The order to sort the names by
+   * @param args.options.where - Additional filters to apply to the query
+   *
+   * @returns a promise of an array of ANSName
+   */
+  async getDomainSubdomains(args: GetDomainSubdomainsArgs): Promise<GetANSNameResponse> {
+    return getDomainSubdomains({ aptosConfig: this.config, ...args });
   }
 }
