@@ -573,4 +573,45 @@ describe("transaction simulation", () => {
       });
     });
   });
+  describe("validate fee payer data on transaction simulation", () => {
+    test("it throws when trying to simluate a fee payer transaction without the feePayerPublicKey", async () => {
+      const rawTxn = await aptos.build.transaction({
+        sender: singleSignerSecp256k1Account.accountAddress.toString(),
+        data: {
+          bytecode: singleSignerScriptBytecode,
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+        },
+        withFeePayer: true,
+      });
+      rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+      await expect(
+        aptos.simulate.transaction({
+          signerPublicKey: singleSignerSecp256k1Account.publicKey,
+          transaction: rawTxn,
+        }),
+      ).rejects.toThrow();
+    });
+
+    test("it throws when trying to simluate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
+      const rawTxn = await aptos.build.multiAgentTransaction({
+        sender: singleSignerSecp256k1Account.accountAddress.toString(),
+        secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
+        data: {
+          bytecode: singleSignerScriptBytecode,
+          functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
+        },
+        withFeePayer: true,
+      });
+      rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+      await expect(
+        aptos.simulate.multiAgentTransaction({
+          signerPublicKey: singleSignerSecp256k1Account.publicKey,
+          transaction: rawTxn,
+          secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
+        }),
+      ).rejects.toThrow();
+    });
+  });
 });

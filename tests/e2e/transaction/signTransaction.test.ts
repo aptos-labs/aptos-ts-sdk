@@ -194,5 +194,22 @@ describe("sign transaction", () => {
         expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
       });
     });
+    describe("validate fee payer data on sign transaction", () => {
+      test("it fails to sign transaction as fee payer if transaction is not a fee payer transaction", async () => {
+        const transaction = await aptos.build.transaction({
+          sender: legacyED25519SenderAccount.accountAddress.toString(),
+          data: {
+            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          },
+        });
+        expect(() =>
+          aptos.sign.transactionAsFeePayer({
+            transaction,
+            signer: legacyED25519SenderAccount,
+          }),
+        ).toThrow();
+      });
+    });
   });
 });

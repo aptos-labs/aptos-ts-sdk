@@ -745,4 +745,46 @@ describe("transaction submission", () => {
       expect(accountModules[0].bytecode).toEqual(`0x${byteCode}`);
     });
   });
+  describe("validate fee payer data on transaction submission", () => {
+    test("it throws when trying to simluate a fee payer transaction without the feePayerAuthenticator", async () => {
+      const transaction = await aptos.build.transaction({
+        sender: legacyED25519SenderAccount.accountAddress.toString(),
+        data: {
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+        },
+        withFeePayer: true,
+      });
+      const senderAuthenticator = aptos.sign.transaction({ signer: legacyED25519SenderAccount, transaction });
+
+      await expect(
+        aptos.submit.transaction({
+          transaction,
+          senderAuthenticator,
+        }),
+      ).rejects.toThrow();
+    });
+
+    test("it throws when trying to simluate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
+      const transaction = await aptos.build.multiAgentTransaction({
+        sender: legacyED25519SenderAccount.accountAddress.toString(),
+        secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
+        data: {
+          function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+        },
+        withFeePayer: true,
+      });
+      const senderAuthenticator = aptos.sign.transaction({ signer: legacyED25519SenderAccount, transaction });
+      const secondarySignerAuthenticator = aptos.sign.transaction({ signer: secondarySignerAccount, transaction });
+
+      await expect(
+        aptos.submit.multiAgentTransaction({
+          transaction,
+          senderAuthenticator,
+          additionalSignersAuthenticators: [secondarySignerAuthenticator],
+        }),
+      ).rejects.toThrow();
+    });
+  });
 });

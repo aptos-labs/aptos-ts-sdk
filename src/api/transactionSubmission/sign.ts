@@ -27,9 +27,9 @@ export class Sign {
   transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
 
-    // if "feePayerAddress" is not in "transaction" it means
+    // if transaction doesnt hold a "feePayerAddress" prop it means
     // this is not a fee payer transaction
-    if (!("feePayerAddress" in transaction)) {
+    if (!transaction.feePayerAddress) {
       throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
     }
 

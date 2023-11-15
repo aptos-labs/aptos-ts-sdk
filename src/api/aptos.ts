@@ -13,7 +13,7 @@ import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
-import { Build } from "./transactionSubmission/generate";
+import { Build } from "./transactionSubmission/build";
 import { Sign } from "./transactionSubmission/sign";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
