@@ -99,16 +99,21 @@ Using transaction submission api
 ```ts
 const alice: Account = Account.generate();
 const bobAddress = "0xb0b";
-const transaction = await aptos.generateTransaction({
+const transaction = await aptos.build.transaction({
   sender: alice.accountAddress.toString(),
   data: {
     function: "0x1::coin::transfer",
-    type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
-    arguments: [AccountAddress.fromHexInput(bobAddress), new U64(100)],
+    type_arguments: ["0x1::aptos_coin::AptosCoin"],
+    arguments: [bobAddress, 100],
   },
 });
 
-let committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+// using sign and submit separately
+const senderAuthenticator = aptos.sign.transaction({ signer: alice, transaction });
+const committedTransaction = await aptos.submit.transaction({ transaction, senderAuthenticator });
+
+// using signAndSubmit combined
+const committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
 
 Using built in `transferCoinTransaction`
