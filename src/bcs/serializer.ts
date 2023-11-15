@@ -113,6 +113,18 @@ export class Serializer {
   }
 
   /**
+   * Serializes a vector of array of bytes.
+   *
+   * BCS layout for "vector bytes": vector_length | bytes_length | bytes | bytes_length | bytes...
+   */
+  serializeVectorBytes(values: Array<Uint8Array>) {
+    this.serializeU32AsUleb128(values.length);
+    values.forEach((item) => {
+      this.serializeBytes(item);
+    });
+  }
+
+  /**
    * Serializes an array of bytes with known length. Therefore, length doesn't need to be
    * serialized to help deserialization.
    *

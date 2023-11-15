@@ -13,6 +13,7 @@ import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
+import { PasskeysBrowser } from "./passkeysBrowser";
 
 /**
  * This class is the main entry point into Aptos's
@@ -40,6 +41,8 @@ export class Aptos {
 
   readonly general: General;
 
+  readonly passkeysBrowser: PasskeysBrowser;
+
   readonly staking: Staking;
 
   readonly transaction: Transaction;
@@ -56,6 +59,7 @@ export class Aptos {
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
+    this.passkeysBrowser = new PasskeysBrowser(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
@@ -70,6 +74,7 @@ export interface Aptos
     Faucet,
     FungibleAsset,
     General,
+    PasskeysBrowser,
     Staking,
     Transaction,
     ANS,
@@ -104,6 +109,7 @@ applyMixin(Aptos, Event, "event");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
+applyMixin(Aptos, PasskeysBrowser, "passkeysBrowser");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
