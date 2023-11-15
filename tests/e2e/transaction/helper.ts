@@ -11,6 +11,7 @@ import {
   InputGenerateTransactionData,
   SimpleEntryFunctionArgumentTypes,
   MoveVector,
+  AnyRawTransaction,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -25,11 +26,11 @@ export async function publishPackage(
     metadataBytes,
     moduleBytecode: codeBytes,
   });
-  const signedTxn = await aptos.signTransaction({
+  const signedTxn = await aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const txnHash = await aptos.submitTransaction({
+  const txnHash = await aptos.submit.transaction({
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
@@ -51,7 +52,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send coins from `account[0]` to `account[1..n]`
-  const transaction = await aptos.generateTransaction({
+  const transaction = await aptos.generate.transaction({
     sender: firstAccount.accountAddress.toString(),
     data: {
       function: "0x1::aptos_account::batch_transfer",
@@ -61,11 +62,11 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
       ],
     },
   });
-  const signedTxn = await aptos.signTransaction({
+  const signedTxn = await aptos.sign.transaction({
     signer: firstAccount,
     transaction,
   });
-  const transactionResponse = await aptos.submitTransaction({
+  const transactionResponse = await aptos.submit.transaction({
     transaction,
     senderAuthenticator: signedTxn,
   });
@@ -84,7 +85,7 @@ export async function rawTransactionHelper(
   typeArgs: TypeTag[],
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
-  const rawTransaction = await aptos.generateTransaction({
+  const rawTransaction = await aptos.generate.transaction({
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
@@ -92,11 +93,11 @@ export async function rawTransactionHelper(
       functionArguments: args,
     },
   });
-  const senderAuthenticator = await aptos.signTransaction({
+  const senderAuthenticator = await aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const transactionResponse = await aptos.submitTransaction({
+  const transactionResponse = await aptos.submit.transaction({
     transaction: rawTransaction,
     senderAuthenticator,
   });
@@ -117,6 +118,7 @@ export const rawTransactionMultiAgentHelper = async (
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
   let transactionData: InputGenerateTransactionData;
+  let generatedTransaction: AnyRawTransaction;
   // Fee payer
   if (feePayerAccount) {
     transactionData = {
@@ -127,8 +129,8 @@ export const rawTransactionMultiAgentHelper = async (
         functionArguments: args,
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
-      hasFeePayer: true,
     };
+    generatedTransaction = await aptos.generate.multiAgentTransactionWithFeePayer(transactionData);
   } else if (secondarySignerAccounts) {
     transactionData = {
       sender: senderAccount.accountAddress.toString(),
@@ -139,6 +141,7 @@ export const rawTransactionMultiAgentHelper = async (
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
     };
+    generatedTransaction = await aptos.generate.multiAgentTransaction(transactionData);
   } else {
     transactionData = {
       sender: senderAccount.accountAddress.toString(),
@@ -148,37 +151,41 @@ export const rawTransactionMultiAgentHelper = async (
         functionArguments: args,
       },
     };
+    generatedTransaction = await aptos.generate.transaction(transactionData);
   }
 
-  const generatedTransaction = await aptos.generateTransaction(transactionData);
-
-  const senderAuthenticator = aptos.signTransaction({
+  const senderAuthenticator = aptos.sign.transaction({
     signer: senderAccount,
     transaction: generatedTransaction,
   });
 
   const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-    aptos.signTransaction({
+    aptos.sign.transaction({
       signer: account,
       transaction: generatedTransaction,
     }),
   );
 
   let feePayerAuthenticator;
+  let transactionResponse;
   if (feePayerAccount !== undefined) {
-    feePayerAuthenticator = aptos.signTransaction({
+    feePayerAuthenticator = aptos.sign.transactionAsFeePayer({
       signer: feePayerAccount,
       transaction: generatedTransaction,
-      asFeePayer: true,
+    });
+    transactionResponse = await aptos.submit.multiAgentTransactionWithFeePayer({
+      transaction: generatedTransaction,
+      senderAuthenticator,
+      additionalSignersAuthenticators: secondaryAuthenticators,
+      feePayerAuthenticator,
+    });
+  } else {
+    transactionResponse = await aptos.submit.multiAgentTransaction({
+      transaction: generatedTransaction,
+      senderAuthenticator,
+      additionalSignersAuthenticators: secondaryAuthenticators,
     });
   }
-
-  const transactionResponse = await aptos.submitTransaction({
-    transaction: generatedTransaction,
-    senderAuthenticator,
-    additionalSignersAuthenticators: secondaryAuthenticators,
-    feePayerAuthenticator,
-  });
 
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,

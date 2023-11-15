@@ -8,7 +8,7 @@ import { UserTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
 
 /**
- * A class to handle all `Coin` operations
+ * A class to handle all `Simulate` transaction operations
  */
 export class Simulate {
   readonly config: AptosConfig;
@@ -17,7 +17,7 @@ export class Simulate {
     this.config = config;
   }
 
-  singleSignerTransaction(args: {
+  transaction(args: {
     signerPublicKey: PublicKey;
     transaction: AnyRawTransaction;
     options?: InputSimulateTransactionOptions;
@@ -25,7 +25,7 @@ export class Simulate {
     return simulateTransaction({ aptosConfig: this.config, ...args });
   }
 
-  singleSignerWithfeePayerTransaction(args: {
+  transactionWithFeePayer(args: {
     signerPublicKey: PublicKey;
     transaction: AnyRawTransaction;
     feePayerPublicKey: PublicKey;
@@ -43,7 +43,7 @@ export class Simulate {
     return simulateTransaction({ aptosConfig: this.config, ...args });
   }
 
-  multiAgentWithfeePayerTransaction(args: {
+  multiAgentTransactionWithFeePayer(args: {
     signerPublicKey: PublicKey;
     transaction: AnyRawTransaction;
     secondarySignersPublicKeys: Array<PublicKey>;

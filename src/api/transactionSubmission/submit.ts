@@ -1,14 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey } from "../../core";
-import { simulateTransaction, submitTransaction } from "../../internal/transactionSubmission";
-import { AccountAuthenticator, AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
-import { PendingTransactionResponse, UserTransactionResponse } from "../../types";
+import { submitTransaction } from "../../internal/transactionSubmission";
+import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
+import { PendingTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
 
 /**
- * A class to handle all `Coin` operations
+ * A class to handle all `Submit` transaction operations
  */
 export class Submit {
   readonly config: AptosConfig;
@@ -17,14 +16,14 @@ export class Submit {
     this.config = config;
   }
 
-  singleSignerTransaction(args: {
+  transaction(args: {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
   }): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
-  singleSignerWithfeePayerTransaction(args: {
+  transactionWithFeePayer(args: {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator: AccountAuthenticator;
@@ -40,7 +39,7 @@ export class Submit {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
-  multiAgentWithfeePayerTransaction(args: {
+  multiAgentTransactionWithFeePayer(args: {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator: AccountAuthenticator;

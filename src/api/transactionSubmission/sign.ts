@@ -7,7 +7,7 @@ import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
 
 /**
- * A class to handle all `Coin` operations
+ * A class to handle all `Sign` transaction operations
  */
 export class Sign {
   readonly config: AptosConfig;
@@ -16,17 +16,26 @@ export class Sign {
     this.config = config;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   transaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-    const { signer, transaction } = args;
     return signTransaction({
-      signer,
-      transaction,
+      ...args,
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
+
+    // if "feePayerAddress" is not in "transaction" it means
+    // this is not a fee payer transaction
+    if (!("feePayerAddress" in transaction)) {
+      throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
+    }
+
+    // Set the feePayerAddress to the signer account address
     transaction.feePayerAddress = signer.accountAddress;
+
     return signTransaction({
       signer,
       transaction,

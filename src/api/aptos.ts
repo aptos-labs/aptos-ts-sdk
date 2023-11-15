@@ -88,7 +88,8 @@ export interface Aptos
     General,
     Staking,
     Transaction,
-    ANS {}
+    ANS,
+    TransactionSubmission {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -121,7 +122,7 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
-//applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
+applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
 applyMixin(Aptos, Generate, "generate");
 applyMixin(Aptos, Sign, "sign");
 applyMixin(Aptos, Simulate, "simulate");

@@ -193,7 +193,7 @@ export type InputGenerateRawTransactionArgs =
  *
  * @param rawTransaction a bcs serialized raw transaction
  */
-export interface InputSingleSignerTransaction {
+export interface SingleSignerTransaction {
   rawTransaction: RawTransaction;
 }
 
@@ -204,7 +204,7 @@ export interface InputSingleSignerTransaction {
  * @param secondarySignerAddresses optional. secondary signer addresses for multi-agent transaction
  * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
  */
-export interface InputFeePayerTransaction {
+export interface FeePayerTransaction {
   rawTransaction: RawTransaction;
   feePayerAddress: AccountAddress;
   secondarySignerAddresses?: AccountAddress[];
@@ -216,7 +216,7 @@ export interface InputFeePayerTransaction {
  * @param rawTransaction a bcs serialized raw transaction
  * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
  */
-export interface InputMultiAgentTransaction {
+export interface MultiAgentTransaction {
   rawTransaction: RawTransaction;
   secondarySignerAddresses: AccountAddress[];
 }
@@ -224,7 +224,7 @@ export interface InputMultiAgentTransaction {
 /**
  * Unified type that holds all the return interfaces when generating different transaction types
  */
-export type AnyRawTransaction = InputSingleSignerTransaction | InputFeePayerTransaction | InputMultiAgentTransaction;
+export type AnyRawTransaction = SingleSignerTransaction | FeePayerTransaction | MultiAgentTransaction;
 
 // TRANSACTION SIMULATION TYPES //
 
@@ -261,10 +261,10 @@ export type InputSimulateTransactionOptions = {
  */
 export interface InputGenerateSingleSignerRawTransactionData {
   sender: AccountAddressInput;
-  withFeePayer?: boolean;
-  secondarySignerAddresses?: undefined;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
+  secondarySignerAddresses?: undefined;
+  withFeePayer?: undefined;
 }
 
 /**
@@ -284,9 +284,9 @@ export interface InputGenerateFeePayerRawTransactionData {
 export interface InputGenerateMultiAgentRawTransactionData {
   sender: AccountAddressInput;
   secondarySignerAddresses: AccountAddressInput[];
-  withFeePayer?: boolean;
   options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
+  withFeePayer?: undefined;
 }
 
 /**
@@ -294,6 +294,7 @@ export interface InputGenerateMultiAgentRawTransactionData {
  */
 export type InputGenerateTransactionData =
   | InputGenerateMultiAgentRawTransactionData
+  | InputGenerateFeePayerRawTransactionData
   | InputGenerateSingleSignerRawTransactionData;
 
 /**

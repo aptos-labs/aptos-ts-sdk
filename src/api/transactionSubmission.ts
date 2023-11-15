@@ -3,154 +3,15 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput, PrivateKey } from "../core";
-import { AccountAuthenticator } from "../transactions/authenticator/account";
-import {
-  AnyRawTransaction,
-  InputFeePayerTransaction,
-  InputGenerateMultiAgentRawTransactionData,
-  InputGenerateTransactionData,
-  InputGenerateFeePayerRawTransactionData,
-  InputGenerateSingleSignerRawTransactionData,
-  InputMultiAgentTransaction,
-  InputSingleSignerTransaction,
-  InputSimulateTransactionData,
-  InputGenerateTransactionOptions,
-  InputSubmitTransactionData,
-} from "../transactions/types";
-import { UserTransactionResponse, PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
-import {
-  generateTransaction,
-  publicPackageTransaction,
-  rotateAuthKey,
-  signAndSubmitTransaction,
-  signTransaction,
-  simulateTransaction,
-  submitTransaction,
-} from "../internal/transactionSubmission";
+import { AnyRawTransaction, SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
+import { PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
+import { publicPackageTransaction, rotateAuthKey, signAndSubmitTransaction } from "../internal/transactionSubmission";
 
 export class TransactionSubmission {
   readonly config: AptosConfig;
 
   constructor(config: AptosConfig) {
     this.config = config;
-  }
-
-  /**
-   * We are defining function signatures, each with its specific input and output.
-   * These are the possible function signature for `generateTransaction` function.
-   * When we call `generateTransaction` function with the relevant type properties,
-   * Typescript can infer the return type based on the appropriate function overload.
-   */
-  async generateTransaction(args: InputGenerateSingleSignerRawTransactionData): Promise<InputSingleSignerTransaction>;
-  async generateTransaction(args: InputGenerateFeePayerRawTransactionData): Promise<InputFeePayerTransaction>;
-  async generateTransaction(args: InputGenerateMultiAgentRawTransactionData): Promise<InputMultiAgentTransaction>;
-  async generateTransaction(args: InputGenerateTransactionData): Promise<AnyRawTransaction>;
-
-  /**
-   * Generates any transaction by passing in the required arguments
-   *
-   * @param args.sender The transaction sender's account address as a AccountAddressInput
-   * @param args.data EntryFunctionData | ScriptData | MultiSigData
-   * @param args.feePayerAddress optional. For a fee payer (aka sponsored) transaction
-   * @param args.secondarySignerAddresses optional. For a multi-agent or fee payer (aka sponsored) transactions
-   * @param args.options optional. GenerateTransactionOptions type
-   *
-   * @example
-   * For a single signer entry function
-   * move function name, move function type arguments, move function arguments
-   * `
-   * data: {
-   *  function: "0x1::aptos_account::transfer",
-   *  typeArguments: []
-   *  functionArguments: [receiverAddress,10]
-   * }
-   * `
-   *
-   * @example
-   * For a single signer script function
-   * module bytecode, move function type arguments, move function arguments
-   * ```
-   * data: {
-   *  bytecode: "0x001234567",
-   *  typeArguments: [],
-   *  functionArguments: [receiverAddress,10]
-   * }
-   * ```
-   *
-   * @return An instance of a RawTransaction, plus optional secondary/fee payer addresses
-   * ```
-   * {
-   *  rawTransaction: RawTransaction,
-   *  secondarySignerAddresses? : Array<AccountAddress>,
-   *  feePayerAddress?: AccountAddress
-   * }
-   * ```
-   */
-  async generateTransaction(args: InputGenerateTransactionData): Promise<AnyRawTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * Sign a transaction that can later be submitted to chain
-   *
-   * @param args.signer The signer account to sign the transaction
-   * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
-   * @param args.asFeePayer optional. If the signer is also the fee payer
-   * ```
-   * {
-   *  rawTransaction: RawTransaction,
-   *  secondarySignerAddresses?: Array<AccountAddress>,
-   *  feePayerAddress?: AccountAddress
-   * }
-   * ```
-   *
-   * @return The signer AccountAuthenticator
-   */
-  /* eslint-disable class-methods-use-this */
-  signTransaction(args: {
-    signer: Account;
-    transaction: AnyRawTransaction;
-    asFeePayer?: boolean;
-  }): AccountAuthenticator {
-    const { signer, transaction, asFeePayer } = args;
-
-    // Account can only sign as fee payer if it's a fee payer transaction
-    if ("feePayerAddress" in transaction && asFeePayer) {
-      transaction.feePayerAddress = signer.accountAddress;
-    } else if (asFeePayer) {
-      throw new Error("Transaction being signed is not a Fee payer transaction, but `asFeePayer` is set to true");
-    }
-
-    return signTransaction({
-      signer,
-      transaction,
-    });
-  }
-
-  /**
-   * Simulates a transaction before singing it.
-   *
-   * @param args.signerPublicKey The signer public key
-   * @param args.transaction The raw transaction to simulate
-   * @param args.secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
-   * @param args.feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction
-   * @param args.options optional. A config to simulate the transaction with
-   */
-  async simulateTransaction(args: InputSimulateTransactionData): Promise<Array<UserTransactionResponse>> {
-    return simulateTransaction({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * Submit transaction to chain
-   *
-   * @param args.transaction A aptos transaction type
-   * @param args.senderAuthenticator The account authenticator of the transaction sender
-   * @param args.secondarySignerAuthenticators optional. For when the transaction is a multi signers transaction
-   *
-   * @return PendingTransactionResponse
-   */
-  async submitTransaction(args: InputSubmitTransactionData): Promise<PendingTransactionResponse> {
-    return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -198,7 +59,7 @@ export class TransactionSubmission {
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
     options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
+  }): Promise<SingleSignerTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
   }
 

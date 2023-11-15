@@ -21,7 +21,7 @@ describe("generate transaction", () => {
 
   describe("single signer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -35,7 +35,7 @@ describe("generate transaction", () => {
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
     test("with multi sig payload", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
@@ -51,7 +51,7 @@ describe("generate transaction", () => {
     });
 
     test("it generates an entry function transaction", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
@@ -68,7 +68,7 @@ describe("generate transaction", () => {
 
   describe("multi agent transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.multiAgentTransaction({
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
@@ -85,7 +85,7 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.multiAgentTransaction({
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
         data: {
@@ -104,9 +104,8 @@ describe("generate transaction", () => {
 
   describe("fee payer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transactionWithFeePayer({
         sender: senderAccount.accountAddress.toString(),
-        hasFeePayer: true,
         data: {
           bytecode: singleSignerScriptBytecode,
           functionArguments: [new U64(1), recieverAccounts[0].accountAddress],
@@ -122,9 +121,8 @@ describe("generate transaction", () => {
     });
 
     test("with multi sig payload", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transactionWithFeePayer({
         sender: senderAccount.accountAddress.toString(),
-        hasFeePayer: true,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
           function: "0x1::aptos_account::transfer",
@@ -141,9 +139,8 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.transactionWithFeePayer({
         sender: senderAccount.accountAddress.toString(),
-        hasFeePayer: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],
@@ -159,10 +156,9 @@ describe("generate transaction", () => {
     });
 
     test("as a multi agent", async () => {
-      const transaction = await aptos.generateTransaction({
+      const transaction = await aptos.generate.multiAgentTransactionWithFeePayer({
         sender: senderAccount.accountAddress.toString(),
         secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
-        hasFeePayer: true,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, new U64(1)],

@@ -22,8 +22,8 @@ import {
   getDomainSubdomains,
   GetDomainSubdomainsArgs,
 } from "../internal/ans";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType } from "../types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -109,7 +109,7 @@ export class ANS {
     name: string;
     address: AccountAddressInput;
     options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
+  }): Promise<SingleSignerTransaction> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -151,7 +151,7 @@ export class ANS {
     sender: Account;
     name: string | null;
     options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
+  }): Promise<SingleSignerTransaction> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
   }
 
@@ -187,9 +187,9 @@ export class ANS {
    * @param args.toAddress optional - The address to send the domain name to. If not provided,
    * the transaction will be sent to the router.
    *
-   * @returns InputSingleSignerTransaction
+   * @returns SingleSignerTransaction
    */
-  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<InputSingleSignerTransaction> {
+  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SingleSignerTransaction> {
     return registerName({ aptosConfig: this.config, ...args });
   }
 
@@ -215,7 +215,7 @@ export class ANS {
     name: string;
     years?: 1;
     options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
+  }): Promise<SingleSignerTransaction> {
     return renewDomain({ aptosConfig: this.config, ...args });
   }
 

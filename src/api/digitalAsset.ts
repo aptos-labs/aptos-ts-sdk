@@ -13,7 +13,7 @@ import {
 } from "../types";
 import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
   CreateCollectionOptions,
   createCollectionTransaction,
@@ -69,7 +69,7 @@ export class DigitalAsset {
       uri: string;
       options?: InputGenerateTransactionOptions;
     } & CreateCollectionOptions,
-  ): Promise<InputSingleSignerTransaction> {
+  ): Promise<SingleSignerTransaction> {
     return createCollectionTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -133,7 +133,7 @@ export class DigitalAsset {
     name: string;
     uri: string;
     options?: InputGenerateTransactionOptions;
-  }): Promise<InputSingleSignerTransaction> {
+  }): Promise<SingleSignerTransaction> {
     return mintTokenTransaction({ aptosConfig: this.config, ...args });
   }
 

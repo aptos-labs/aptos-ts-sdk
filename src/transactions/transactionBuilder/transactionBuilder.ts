@@ -61,10 +61,10 @@ import {
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
-  InputSingleSignerTransaction,
+  SingleSignerTransaction,
   InputGenerateTransactionOptions,
-  InputFeePayerTransaction,
-  InputMultiAgentTransaction,
+  FeePayerTransaction,
+  MultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
   InputGenerateTransactionPayloadData,
@@ -93,9 +93,6 @@ export async function generateTransactionPayload(
 export async function generateTransactionPayload(
   args: InputMultiSigDataWithRemoteABI,
 ): Promise<TransactionPayloadMultisig>;
-export async function generateTransactionPayload(
-  args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<AnyTransactionPayloadInstance>;
 
 /**
  * Builds a transaction payload based on the data argument and returns
@@ -257,13 +254,9 @@ export async function generateRawTransaction(args: {
  */
 export async function buildTransaction(
   args: InputGenerateSingleSignerRawTransactionArgs,
-): Promise<InputSingleSignerTransaction>;
-export async function buildTransaction(
-  args: InputGenerateFeePayerRawTransactionArgs,
-): Promise<InputFeePayerTransaction>;
-export async function buildTransaction(
-  args: InputGenerateMultiAgentRawTransactionArgs,
-): Promise<InputMultiAgentTransaction>;
+): Promise<SingleSignerTransaction>;
+export async function buildTransaction(args: InputGenerateFeePayerRawTransactionArgs): Promise<FeePayerTransaction>;
+export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction>;
 /**
  * Generates a transaction based on the provided arguments
@@ -304,8 +297,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     return {
       rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
-      feePayerAddress:
-        args?.feePayerAddress !== undefined ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
+      feePayerAddress: args.feePayerAddress ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
     };
   }
 
