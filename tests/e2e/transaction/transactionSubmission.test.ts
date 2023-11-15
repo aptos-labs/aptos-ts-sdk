@@ -46,7 +46,7 @@ describe("transaction submission", () => {
   describe("Single Sender ED25519", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -66,7 +66,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
@@ -86,7 +86,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.multiAgentTransaction({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -120,7 +120,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.generate.multiAgentTransaction({
+          const transaction = await aptos.build.multiAgentTransaction({
             sender: singleSignerED25519SenderAccount.accountAddress.toString(),
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
@@ -155,12 +155,13 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
 
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerED25519SenderAccount, transaction });
@@ -169,7 +170,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -182,12 +183,13 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerED25519SenderAccount, transaction });
         const feePayerSignerAuthenticator = aptos.sign.transactionAsFeePayer({
@@ -195,7 +197,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -208,7 +210,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.generate.multiAgentTransactionWithFeePayer({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -221,6 +223,7 @@ describe("transaction submission", () => {
               new U64(50),
             ],
           },
+          withFeePayer: true,
         });
 
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerED25519SenderAccount, transaction });
@@ -230,7 +233,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.multiAgentTransactionWithFeePayer({
+        const response = await aptos.submit.multiAgentTransaction({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
@@ -248,7 +251,7 @@ describe("transaction submission", () => {
   describe("Single Sender Secp256k1", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -266,7 +269,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
@@ -286,7 +289,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.multiAgentTransaction({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -320,7 +323,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.generate.multiAgentTransaction({
+          const transaction = await aptos.build.multiAgentTransaction({
             sender: singleSignerSecp256k1Account.accountAddress.toString(),
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
@@ -355,12 +358,13 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
 
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerSecp256k1Account, transaction });
@@ -369,7 +373,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -382,12 +386,13 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerSecp256k1Account, transaction });
         const feePayerSignerAuthenticator = aptos.sign.transactionAsFeePayer({
@@ -395,7 +400,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -408,7 +413,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.generate.multiAgentTransactionWithFeePayer({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -421,6 +426,7 @@ describe("transaction submission", () => {
               new U64(50),
             ],
           },
+          withFeePayer: true,
         });
 
         const senderAuthenticator = aptos.sign.transaction({ signer: singleSignerSecp256k1Account, transaction });
@@ -430,7 +436,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.multiAgentTransactionWithFeePayer({
+        const response = await aptos.submit.multiAgentTransaction({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
@@ -448,7 +454,7 @@ describe("transaction submission", () => {
   describe("Legacy ED25519", () => {
     describe("single signer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
@@ -466,7 +472,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("ed25519_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transaction({
+        const transaction = await aptos.build.transaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
@@ -486,7 +492,7 @@ describe("transaction submission", () => {
     });
     describe("multi agent", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.multiAgentTransaction({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -519,7 +525,7 @@ describe("transaction submission", () => {
       test(
         "with entry function payload",
         async () => {
-          const transaction = await aptos.generate.multiAgentTransaction({
+          const transaction = await aptos.build.multiAgentTransaction({
             sender: legacyED25519SenderAccount.accountAddress.toString(),
             secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
             data: {
@@ -554,12 +560,13 @@ describe("transaction submission", () => {
     });
     describe("fee payer", () => {
       test("with script payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
         const senderAuthenticator = aptos.sign.transaction({ signer: legacyED25519SenderAccount, transaction });
         const feePayerSignerAuthenticator = aptos.sign.transactionAsFeePayer({
@@ -567,7 +574,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -580,12 +587,13 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with entry function payload", async () => {
-        const transaction = await aptos.generate.transactionWithFeePayer({
+        const transaction = await aptos.build.transaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
           },
+          withFeePayer: true,
         });
         const senderAuthenticator = aptos.sign.transaction({ signer: legacyED25519SenderAccount, transaction });
         const feePayerSignerAuthenticator = aptos.sign.transactionAsFeePayer({
@@ -593,7 +601,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.transactionWithFeePayer({
+        const response = await aptos.submit.transaction({
           transaction,
           senderAuthenticator,
           feePayerAuthenticator: feePayerSignerAuthenticator,
@@ -606,7 +614,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
       test("with multi agent transaction", async () => {
-        const transaction = await aptos.generate.multiAgentTransactionWithFeePayer({
+        const transaction = await aptos.build.multiAgentTransaction({
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           secondarySignerAddresses: [secondarySignerAccount.accountAddress.toString()],
           data: {
@@ -619,6 +627,7 @@ describe("transaction submission", () => {
               new U64(50),
             ],
           },
+          withFeePayer: true,
         });
 
         const senderAuthenticator = aptos.sign.transaction({ signer: legacyED25519SenderAccount, transaction });
@@ -628,7 +637,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        const response = await aptos.submit.multiAgentTransactionWithFeePayer({
+        const response = await aptos.submit.multiAgentTransaction({
           transaction,
           senderAuthenticator,
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
@@ -660,7 +669,7 @@ describe("transaction submission", () => {
 
       await aptos.fundAccount({ accountAddress: multiKeyAccountAddress.toString(), amount: 100_000_000 });
 
-      const transaction = await aptos.generate.transaction({
+      const transaction = await aptos.build.transaction({
         sender: multiKeyAccountAddress.toString(),
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,

@@ -480,7 +480,7 @@ describe("various transaction arguments", () => {
 
   describe("script transactions", () => {
     it("successfully submits a script transaction with all argument types", async () => {
-      const rawTransaction = await aptos.generate.multiAgentTransaction({
+      const rawTransaction = await aptos.build.multiAgentTransaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,

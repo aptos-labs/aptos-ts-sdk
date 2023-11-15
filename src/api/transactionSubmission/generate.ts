@@ -7,15 +7,14 @@ import {
   InputGenerateTransactionPayloadData,
   InputGenerateTransactionOptions,
   SingleSignerTransaction,
-  FeePayerTransaction,
   MultiAgentTransaction,
 } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
 
 /**
- * A class to handle all `Generate` transaction operations
+ * A class to handle all `Build` transaction operations
  */
-export class Generate {
+export class Build {
   readonly config: AptosConfig;
 
   constructor(config: AptosConfig) {
@@ -26,16 +25,9 @@ export class Generate {
     sender: AccountAddressInput;
     data: InputGenerateTransactionPayloadData;
     options?: InputGenerateTransactionOptions;
+    withFeePayer?: boolean;
   }): Promise<SingleSignerTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
-  }
-
-  async transactionWithFeePayer(args: {
-    sender: AccountAddressInput;
-    data: InputGenerateTransactionPayloadData;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<FeePayerTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args, withFeePayer: true });
   }
 
   async multiAgentTransaction(args: {
@@ -43,16 +35,8 @@ export class Generate {
     data: InputGenerateTransactionPayloadData;
     secondarySignerAddresses: AccountAddressInput[];
     options?: InputGenerateTransactionOptions;
+    withFeePayer?: boolean;
   }): Promise<MultiAgentTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
-  }
-
-  async multiAgentTransactionWithFeePayer(args: {
-    sender: AccountAddressInput;
-    data: InputGenerateTransactionPayloadData;
-    secondarySignerAddresses: AccountAddressInput[];
-    options?: InputGenerateTransactionOptions;
-  }): Promise<FeePayerTransaction> {
-    return generateTransaction({ aptosConfig: this.config, ...args, withFeePayer: true });
   }
 }

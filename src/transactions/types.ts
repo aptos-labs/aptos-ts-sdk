@@ -153,19 +153,7 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
-}
-
-/**
- * Interface of the arguments to generate a fee payer transaction.
- * Used to provide to `generateTransaction()` method in the transaction builder flow
- */
-export interface InputGenerateFeePayerRawTransactionArgs {
-  aptosConfig: AptosConfig;
-  sender: AccountAddressInput;
-  payload: AnyTransactionPayloadInstance;
-  feePayerAddress: AccountAddressInput;
-  secondarySignerAddresses?: AccountAddressInput[];
-  options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddressInput;
 }
 
 /**
@@ -178,6 +166,7 @@ export interface InputGenerateMultiAgentRawTransactionArgs {
   payload: AnyTransactionPayloadInstance;
   secondarySignerAddresses: AccountAddressInput[];
   options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddressInput;
 }
 
 /**
@@ -185,7 +174,6 @@ export interface InputGenerateMultiAgentRawTransactionArgs {
  */
 export type InputGenerateRawTransactionArgs =
   | InputGenerateSingleSignerRawTransactionArgs
-  | InputGenerateFeePayerRawTransactionArgs
   | InputGenerateMultiAgentRawTransactionArgs;
 
 /**
@@ -195,19 +183,8 @@ export type InputGenerateRawTransactionArgs =
  */
 export interface SingleSignerTransaction {
   rawTransaction: RawTransaction;
-}
-
-/**
- * Interface that holds the return data when generating a fee payer transaction
- *
- * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses optional. secondary signer addresses for multi-agent transaction
- * @param feePayerAddress fee payer address for a fee payer transaction (aka Sponsored Transaction)
- */
-export interface FeePayerTransaction {
-  rawTransaction: RawTransaction;
-  feePayerAddress: AccountAddress;
-  secondarySignerAddresses?: AccountAddress[];
+  feePayerAddress?: AccountAddress;
+  secondarySignerAddresses?: undefined;
 }
 
 /**
@@ -219,12 +196,13 @@ export interface FeePayerTransaction {
 export interface MultiAgentTransaction {
   rawTransaction: RawTransaction;
   secondarySignerAddresses: AccountAddress[];
+  feePayerAddress?: AccountAddress;
 }
 
 /**
  * Unified type that holds all the return interfaces when generating different transaction types
  */
-export type AnyRawTransaction = SingleSignerTransaction | FeePayerTransaction | MultiAgentTransaction;
+export type AnyRawTransaction = SingleSignerTransaction | MultiAgentTransaction;
 
 // TRANSACTION SIMULATION TYPES //
 
@@ -261,21 +239,10 @@ export type InputSimulateTransactionOptions = {
  */
 export interface InputGenerateSingleSignerRawTransactionData {
   sender: AccountAddressInput;
-  options?: InputGenerateTransactionOptions;
   data: InputGenerateTransactionPayloadData;
+  options?: InputGenerateTransactionOptions;
+  withFeePayer?: boolean;
   secondarySignerAddresses?: undefined;
-  withFeePayer?: undefined;
-}
-
-/**
- * Interface that holds the user data input when generating a fee payer transaction
- */
-export interface InputGenerateFeePayerRawTransactionData {
-  sender: AccountAddressInput;
-  withFeePayer: true;
-  secondarySignerAddresses?: AccountAddressInput[];
-  options?: InputGenerateTransactionOptions;
-  data: InputGenerateTransactionPayloadData;
 }
 
 /**
@@ -283,19 +250,18 @@ export interface InputGenerateFeePayerRawTransactionData {
  */
 export interface InputGenerateMultiAgentRawTransactionData {
   sender: AccountAddressInput;
+  data: InputGenerateTransactionPayloadData;
   secondarySignerAddresses: AccountAddressInput[];
   options?: InputGenerateTransactionOptions;
-  data: InputGenerateTransactionPayloadData;
-  withFeePayer?: undefined;
+  withFeePayer?: boolean;
 }
 
 /**
  * Unified type that holds all the user data input interfaces when generating different transaction types
  */
 export type InputGenerateTransactionData =
-  | InputGenerateMultiAgentRawTransactionData
-  | InputGenerateFeePayerRawTransactionData
-  | InputGenerateSingleSignerRawTransactionData;
+  | InputGenerateSingleSignerRawTransactionData
+  | InputGenerateMultiAgentRawTransactionData;
 
 /**
  * Interface that holds the user data input when submitting a transaction

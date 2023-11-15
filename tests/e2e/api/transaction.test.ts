@@ -20,7 +20,7 @@ describe("transaction api", () => {
     const senderAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
     const bob = Account.generate();
-    const rawTxn = await aptos.generate.transaction({
+    const rawTxn = await aptos.build.transaction({
       sender: senderAccount.accountAddress.toString(),
       data: {
         function: "0x1::aptos_account::transfer",
@@ -45,7 +45,7 @@ describe("transaction api", () => {
       const senderAccount = Account.generate();
       await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const rawTxn = await aptos.generate.transaction({
+      const rawTxn = await aptos.build.transaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",

@@ -28,10 +28,8 @@ import {
   SingleSignerTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
-  InputGenerateFeePayerRawTransactionData,
   InputGenerateMultiAgentRawTransactionData,
   InputGenerateSingleSignerRawTransactionData,
-  FeePayerTransaction,
   MultiAgentTransaction,
   AnyTransactionPayloadInstance,
 } from "../transactions/types";
@@ -47,9 +45,6 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateSingleSignerRawTransactionData,
 ): Promise<SingleSignerTransaction>;
-export async function generateTransaction(
-  args: { aptosConfig: AptosConfig } & InputGenerateFeePayerRawTransactionData,
-): Promise<FeePayerTransaction>;
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateMultiAgentRawTransactionData,
 ): Promise<MultiAgentTransaction>;
@@ -123,17 +118,11 @@ export async function generateTransaction(
     payload = await generateTransactionPayload(generateTransactionPayloadData);
   }
 
+  let feePayerAddress;
   if (isFeePayerTransactionInput(args)) {
-    const { secondarySignerAddresses } = args;
-    return buildTransaction({
-      aptosConfig,
-      sender,
-      payload,
-      options,
-      secondarySignerAddresses,
-      feePayerAddress: AccountAddress.ZERO.toString(),
-    });
+    feePayerAddress = AccountAddress.ZERO.toString();
   }
+
   if (isMultiAgentTransactionInput(args)) {
     const { secondarySignerAddresses } = args;
     return buildTransaction({
@@ -142,6 +131,7 @@ export async function generateTransaction(
       payload,
       options,
       secondarySignerAddresses,
+      feePayerAddress,
     });
   }
 
@@ -150,14 +140,17 @@ export async function generateTransaction(
     sender,
     payload,
     options,
+    feePayerAddress,
   });
 }
 
 function isFeePayerTransactionInput(data: InputGenerateTransactionData): boolean {
-  return "withFeePayer" in data;
+  return data.withFeePayer === true;
 }
 
-function isMultiAgentTransactionInput(data: InputGenerateTransactionData): boolean {
+function isMultiAgentTransactionInput(
+  data: InputGenerateTransactionData,
+): data is InputGenerateMultiAgentRawTransactionData {
   return "secondarySignerAddresses" in data;
 }
 

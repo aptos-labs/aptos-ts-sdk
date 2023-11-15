@@ -127,7 +127,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      const rawTxn = await aptos.generate.transaction({
+      const rawTxn = await aptos.build.transaction({
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",

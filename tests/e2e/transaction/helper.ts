@@ -52,7 +52,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send coins from `account[0]` to `account[1..n]`
-  const transaction = await aptos.generate.transaction({
+  const transaction = await aptos.build.transaction({
     sender: firstAccount.accountAddress.toString(),
     data: {
       function: "0x1::aptos_account::batch_transfer",
@@ -85,7 +85,7 @@ export async function rawTransactionHelper(
   typeArgs: TypeTag[],
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
-  const rawTransaction = await aptos.generate.transaction({
+  const rawTransaction = await aptos.build.transaction({
     sender: senderAccount.accountAddress.toString(),
     data: {
       function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
@@ -129,8 +129,9 @@ export const rawTransactionMultiAgentHelper = async (
         functionArguments: args,
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
+      withFeePayer: true,
     };
-    generatedTransaction = await aptos.generate.multiAgentTransactionWithFeePayer(transactionData);
+    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else if (secondarySignerAccounts) {
     transactionData = {
       sender: senderAccount.accountAddress.toString(),
@@ -141,7 +142,7 @@ export const rawTransactionMultiAgentHelper = async (
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
     };
-    generatedTransaction = await aptos.generate.multiAgentTransaction(transactionData);
+    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else {
     transactionData = {
       sender: senderAccount.accountAddress.toString(),
@@ -151,7 +152,7 @@ export const rawTransactionMultiAgentHelper = async (
         functionArguments: args,
       },
     };
-    generatedTransaction = await aptos.generate.transaction(transactionData);
+    generatedTransaction = await aptos.build.transaction(transactionData);
   }
 
   const senderAuthenticator = aptos.sign.transaction({
@@ -173,7 +174,7 @@ export const rawTransactionMultiAgentHelper = async (
       signer: feePayerAccount,
       transaction: generatedTransaction,
     });
-    transactionResponse = await aptos.submit.multiAgentTransactionWithFeePayer({
+    transactionResponse = await aptos.submit.multiAgentTransaction({
       transaction: generatedTransaction,
       senderAuthenticator,
       additionalSignersAuthenticators: secondaryAuthenticators,

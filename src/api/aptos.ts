@@ -13,7 +13,7 @@ import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
-import { Generate } from "./transactionSubmission/generate";
+import { Build } from "./transactionSubmission/generate";
 import { Sign } from "./transactionSubmission/sign";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
@@ -50,7 +50,7 @@ export class Aptos {
 
   readonly transactionSubmission: TransactionSubmission;
 
-  readonly generate: Generate;
+  readonly build: Build;
 
   readonly sign: Sign;
 
@@ -71,7 +71,7 @@ export class Aptos {
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
-    this.generate = new Generate(this.config);
+    this.build = new Build(this.config);
     this.sign = new Sign(this.config);
     this.simulate = new Simulate(this.config);
     this.submit = new Submit(this.config);
@@ -123,7 +123,7 @@ applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
-applyMixin(Aptos, Generate, "generate");
+applyMixin(Aptos, Build, "build");
 applyMixin(Aptos, Sign, "sign");
 applyMixin(Aptos, Simulate, "simulate");
 applyMixin(Aptos, Submit, "submit");
