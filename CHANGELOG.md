@@ -20,6 +20,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
     - getAccountSubdomains
     - getDomainSubdomains
 
+- [`Breaking`] Refactor transaction builder flow
+  - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
+  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
+  - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
+  - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
+  - Return `InputMultiAgentTransaction` type changed to `MultiAgentTransaction` type
+
 ## 0.0.6 (2023-11-14)
 
 - [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`

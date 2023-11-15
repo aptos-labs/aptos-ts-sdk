@@ -20,18 +20,18 @@ describe("transaction api", () => {
     const senderAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
     const bob = Account.generate();
-    const rawTxn = await aptos.generateTransaction({
+    const rawTxn = await aptos.build.transaction({
       sender: senderAccount.accountAddress.toString(),
       data: {
         function: "0x1::aptos_account::transfer",
         functionArguments: [bob.accountAddress, new U64(10)],
       },
     });
-    const authenticator = aptos.signTransaction({
+    const authenticator = aptos.sign.transaction({
       signer: senderAccount,
       transaction: rawTxn,
     });
-    const response = await aptos.submitTransaction({
+    const response = await aptos.submit.transaction({
       transaction: rawTxn,
       senderAuthenticator: authenticator,
     });
@@ -45,18 +45,18 @@ describe("transaction api", () => {
       const senderAccount = Account.generate();
       await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
+      const rawTxn = await aptos.build.transaction({
         sender: senderAccount.accountAddress.toString(),
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.signTransaction({
+      const authenticator = aptos.sign.transaction({
         signer: senderAccount,
         transaction: rawTxn,
       });
-      const response = await aptos.submitTransaction({
+      const response = await aptos.submit.transaction({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });

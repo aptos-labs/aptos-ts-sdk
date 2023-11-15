@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, MoveValue, OrderBy, PaginationArgs } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
@@ -130,7 +130,7 @@ export interface RegisterNameParameters {
   options?: InputGenerateTransactionOptions;
 }
 
-export async function registerName(args: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
+export async function registerName(args: RegisterNameParameters): Promise<SingleSignerTransaction> {
   const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -167,7 +167,7 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
       options,
     });
 
-    return transaction as InputSingleSignerTransaction;
+    return transaction as SingleSignerTransaction;
   }
 
   // We are a subdomain
@@ -207,7 +207,7 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }
 
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
@@ -258,7 +258,7 @@ export async function setPrimaryName(args: {
   sender: Account;
   name: string | null;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
@@ -273,7 +273,7 @@ export async function setPrimaryName(args: {
       options,
     });
 
-    return transaction as InputSingleSignerTransaction;
+    return transaction as SingleSignerTransaction;
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
@@ -288,7 +288,7 @@ export async function setPrimaryName(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }
 
 export async function getTargetAddress(args: {
@@ -317,7 +317,7 @@ export async function setTargetAddress(args: {
   name: string;
   address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, address, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -332,7 +332,7 @@ export async function setTargetAddress(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }
 
 export async function getName(args: {
@@ -533,7 +533,7 @@ export async function renewDomain(args: {
   name: string;
   years?: 1;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, years = 1, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const renewalDuration = years * 31536000;
@@ -557,5 +557,5 @@ export async function renewDomain(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }

@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
   AnyNumber,
   GetCollectionDataResponse,
@@ -55,7 +55,7 @@ export async function mintTokenTransaction(args: {
   name: string;
   uri: string;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -74,7 +74,7 @@ export async function mintTokenTransaction(args: {
     },
     options,
   });
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }
 
 export async function getTokenData(args: {
@@ -219,7 +219,7 @@ export async function createCollectionTransaction(
     uri: string;
     options?: InputGenerateTransactionOptions;
   } & CreateCollectionOptions,
-): Promise<InputSingleSignerTransaction> {
+): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -247,7 +247,7 @@ export async function createCollectionTransaction(
     },
     options,
   });
-  return transaction as InputSingleSignerTransaction;
+  return transaction as SingleSignerTransaction;
 }
 
 export async function getCollectionData(args: {

@@ -293,7 +293,7 @@ describe("transaction builder", () => {
         feePayerAddress: feePayer.accountAddress.toString(),
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
-      expect(transaction.secondarySignerAddresses?.length).toBe(0);
+      expect(transaction.secondarySignerAddresses).toBe(undefined);
       expect(transaction.feePayerAddress).not.toBeUndefined();
       expect(transaction.feePayerAddress?.data).toStrictEqual(feePayer.accountAddress.toUint8Array());
     });

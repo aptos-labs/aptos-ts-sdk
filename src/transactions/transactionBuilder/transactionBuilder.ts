@@ -8,7 +8,6 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { Deserializer } from "../../bcs/deserializer";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
@@ -57,14 +56,12 @@ import {
   AnyRawTransactionInstance,
   EntryFunctionArgumentTypes,
   EntryFunctionABI,
-  InputGenerateFeePayerRawTransactionArgs,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
-  InputSingleSignerTransaction,
+  SingleSignerTransaction,
   InputGenerateTransactionOptions,
-  InputFeePayerTransaction,
-  InputMultiAgentTransaction,
+  MultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
   InputGenerateTransactionPayloadData,
@@ -93,9 +90,6 @@ export async function generateTransactionPayload(
 export async function generateTransactionPayload(
   args: InputMultiSigDataWithRemoteABI,
 ): Promise<TransactionPayloadMultisig>;
-export async function generateTransactionPayload(
-  args: InputGenerateTransactionPayloadDataWithRemoteABI,
-): Promise<AnyTransactionPayloadInstance>;
 
 /**
  * Builds a transaction payload based on the data argument and returns
@@ -257,14 +251,9 @@ export async function generateRawTransaction(args: {
  */
 export async function buildTransaction(
   args: InputGenerateSingleSignerRawTransactionArgs,
-): Promise<InputSingleSignerTransaction>;
-export async function buildTransaction(
-  args: InputGenerateFeePayerRawTransactionArgs,
-): Promise<InputFeePayerTransaction>;
-export async function buildTransaction(
-  args: InputGenerateMultiAgentRawTransactionArgs,
-): Promise<InputMultiAgentTransaction>;
-export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction>;
+): Promise<SingleSignerTransaction>;
+export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
+
 /**
  * Generates a transaction based on the provided arguments
  *
@@ -297,18 +286,7 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     options,
   });
 
-  if ("feePayerAddress" in args) {
-    const signers: Array<AccountAddress> =
-      args.secondarySignerAddresses?.map((signer) => AccountAddress.fromRelaxed(signer)) ?? [];
-
-    return {
-      rawTransaction: rawTxn,
-      secondarySignerAddresses: signers,
-      feePayerAddress:
-        args?.feePayerAddress !== undefined ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
-    };
-  }
-
+  // if multi agent transaction
   if ("secondarySignerAddresses" in args) {
     const signers: Array<AccountAddress> =
       args.secondarySignerAddresses?.map((signer) => AccountAddress.fromRelaxed(signer)) ?? [];
@@ -316,10 +294,14 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     return {
       rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
+      feePayerAddress: args.feePayerAddress ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
     };
   }
   // return the raw transaction
-  return { rawTransaction: rawTxn };
+  return {
+    rawTransaction: rawTxn,
+    feePayerAddress: args.feePayerAddress ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
+  };
 }
 
 /**
@@ -336,25 +318,21 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
 export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
 
-  const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
-  const deserializedTransaction = RawTransaction.deserialize(deserializer);
-
   const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
+
   // fee payer transaction
-  if ("feePayerAddress" in transaction) {
+  if (transaction.feePayerAddress) {
     const transactionToSign = new FeePayerRawTransaction(
-      deserializedTransaction,
+      transaction.rawTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
-
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
     if (secondarySignersPublicKeys) {
       secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
         getAuthenticatorForSimulation(publicKey),
       );
     }
-
     const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey!);
 
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
@@ -370,9 +348,9 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   }
 
   // multi agent transaction
-  if ("secondarySignerAddresses" in transaction) {
+  if (transaction.secondarySignerAddresses) {
     const transactionToSign = new MultiAgentRawTransaction(
-      deserializedTransaction,
+      transaction.rawTransaction,
       transaction.secondarySignerAddresses,
     );
 
@@ -391,7 +369,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
     return new SignedTransaction(transactionToSign.raw_txn, transactionAuthenticator).bcsToBytes();
   }
 
-  // raw transaction
+  // single signer raw transaction
   let transactionAuthenticator;
   if (accountAuthenticator instanceof AccountAuthenticatorEd25519) {
     transactionAuthenticator = new TransactionAuthenticatorEd25519(
@@ -403,7 +381,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   } else {
     throw new Error("Invalid public key");
   }
-  return new SignedTransaction(deserializedTransaction, transactionAuthenticator).bcsToBytes();
+  return new SignedTransaction(transaction.rawTransaction, transactionAuthenticator).bcsToBytes();
 }
 
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
@@ -418,7 +396,6 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   }
 
   // legacy code
-  // TODO add support to legacy multied25519
   return new AccountAuthenticatorEd25519(
     new Ed25519PublicKey(publicKey.toUint8Array()),
     new Ed25519Signature(new Uint8Array(64)),
@@ -514,14 +491,14 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  if ("feePayerAddress" in transaction) {
+  if (transaction.feePayerAddress) {
     return new FeePayerRawTransaction(
       transaction.rawTransaction,
       transaction.secondarySignerAddresses ?? [],
       transaction.feePayerAddress,
     );
   }
-  if ("secondarySignerAddresses" in transaction) {
+  if (transaction.secondarySignerAddresses) {
     return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
   }
 

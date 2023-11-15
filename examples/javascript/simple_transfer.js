@@ -76,7 +76,7 @@ const example = async () => {
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
-  const txn = await sdk.generateTransaction({
+  const txn = await sdk.build.transaction({
     sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
