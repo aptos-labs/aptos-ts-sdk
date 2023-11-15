@@ -141,7 +141,7 @@ const createLiquidityPool = async (
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::create_pool`,
-      functionArguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
+      functionArguments: [dogCoinAddr, catCoinAddr, false],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -187,7 +187,7 @@ const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, c
     sender: admin.accountAddress.toString(),
     data: {
       function: `${admin.accountAddress.toString()}::${coinName}::mint`,
-      functionArguments: [admin.accountAddress, new U64(amount)],
+      functionArguments: [admin.accountAddress, amount],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: admin, transaction: rawTxn });

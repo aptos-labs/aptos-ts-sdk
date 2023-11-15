@@ -4,16 +4,7 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
-import {
-  Account,
-  AccountAddress,
-  Aptos,
-  AptosConfig,
-  Network,
-  NetworkToNetworkName,
-  parseTypeTag,
-  U64,
-} from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
@@ -88,8 +79,8 @@ const example = async () => {
     sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
-      typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
+      typeArguments: [APTOS_COIN],
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 

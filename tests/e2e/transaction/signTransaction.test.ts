@@ -55,7 +55,7 @@ describe("sign transaction", () => {
           sender: singleSignerED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -73,7 +73,7 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -109,7 +109,7 @@ describe("sign transaction", () => {
           sender: singleSignerSecp256k1Account.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -127,7 +127,7 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -163,7 +163,7 @@ describe("sign transaction", () => {
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -181,7 +181,7 @@ describe("sign transaction", () => {
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         const accountAuthenticator = aptos.sign.transaction({
@@ -200,7 +200,7 @@ describe("sign transaction", () => {
           sender: legacyED25519SenderAccount.accountAddress.toString(),
           data: {
             function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
-            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+            functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
         expect(() =>
