@@ -4,6 +4,7 @@ import { AnySignature } from "./anySignature";
 import { PublicKey } from "./asymmetricCrypto";
 import { Ed25519PublicKey } from "./ed25519";
 import { Secp256k1PublicKey } from "./secp256k1";
+import { P256PublicKey } from "./p256";
 
 /**
  * Represents any public key supported by Aptos.
@@ -61,6 +62,9 @@ export class AnyPublicKey extends PublicKey {
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
       serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256k1);
       this.publicKey.serialize(serializer);
+    } else if (this.publicKey instanceof P256PublicKey) {
+      serializer.serializeU32AsUleb128(AnyPublicKeyVariant.P256);
+      this.publicKey.serialize(serializer);
     } else {
       throw new Error("Unknown public key type");
     }
@@ -73,6 +77,8 @@ export class AnyPublicKey extends PublicKey {
         return new AnyPublicKey(Ed25519PublicKey.load(deserializer));
       case AnyPublicKeyVariant.Secp256k1:
         return new AnyPublicKey(Secp256k1PublicKey.load(deserializer));
+      case AnyPublicKeyVariant.P256:
+        return new AnyPublicKey(P256PublicKey.load(deserializer));
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
     }

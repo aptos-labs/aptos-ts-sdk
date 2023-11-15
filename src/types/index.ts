@@ -107,11 +107,13 @@ export enum AccountAuthenticatorVariant {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  P256 = 2,
 }
 
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  WebAuthn = 2,
 }
 
 /**
@@ -1025,6 +1027,10 @@ export enum SigningSchemeInput {
    * For Secp256k1Ecdsa
    */
   Secp256k1Ecdsa = 2,
+  /**
+   * For P256Ecdsa
+   */
+  P256Ecdsa = 3,
 }
 
 /**
@@ -1080,4 +1086,16 @@ export type GenerateAccountWithSingleSignerSecp256k1Key = {
   legacy?: false;
 };
 
-export type GenerateAccount = GenerateAccountWithEd25519 | GenerateAccountWithSingleSignerSecp256k1Key;
+/**
+ * Input type to generate an account using Single Signer
+ * P256
+ */
+export type GenerateAccountWithSingleSignerP256Key = {
+  scheme: SigningSchemeInput.P256Ecdsa;
+  legacy?: false;
+};
+
+export type GenerateAccount =
+  | GenerateAccountWithEd25519
+  | GenerateAccountWithSingleSignerSecp256k1Key
+  | GenerateAccountWithSingleSignerP256Key;
