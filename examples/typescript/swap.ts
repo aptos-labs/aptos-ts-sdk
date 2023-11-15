@@ -55,7 +55,7 @@ const addLiquidity = async (
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::add_liquidity_entry`,
@@ -86,7 +86,7 @@ const swapAssets = async (
   amountOutMin: number,
   recipient: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::swap_entry`,
@@ -137,7 +137,7 @@ const createLiquidityPool = async (
   dogCoinAddr: AccountAddress,
   catCoinAddr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::create_pool`,
@@ -151,7 +151,7 @@ const createLiquidityPool = async (
 };
 
 const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Account): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::liquidity_pool::initialize`,
@@ -183,7 +183,7 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
  *  Admin mint the coin
  */
 const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: admin.accountAddress.toString(),
     data: {
       function: `${admin.accountAddress.toString()}::${coinName}::mint`,
@@ -215,7 +215,7 @@ const example = async () => {
   const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(aptosConfig);
   // Create three accounts
-  const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
+  const swapAddress = AccountAddress.from(process.argv[2]);
   const admin = Account.fromPrivateKeyAndAddress({
     privateKey: new Ed25519PrivateKey(process.argv[3]),
     address: swapAddress,
