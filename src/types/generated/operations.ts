@@ -18,6 +18,16 @@ export type TokenActivitiesFieldsFragment = {
   type: string;
 };
 
+export type AnsTokenFragmentFragment = {
+  domain?: string | null;
+  expiration_timestamp?: any | null;
+  registered_address?: string | null;
+  subdomain?: string | null;
+  token_standard?: string | null;
+  is_primary?: boolean | null;
+  owner_address?: string | null;
+};
+
 export type CurrentTokenOwnershipFieldsFragment = {
   token_standard: string;
   token_properties_mutated_v1?: any | null;
@@ -482,6 +492,25 @@ export type GetFungibleAssetMetadataQuery = {
     name: string;
     symbol: string;
     token_standard: string;
+  }>;
+};
+
+export type GetNamesQueryVariables = Types.Exact<{
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  where_condition?: Types.InputMaybe<Types.CurrentAptosNamesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentAptosNamesOrderBy> | Types.CurrentAptosNamesOrderBy>;
+}>;
+
+export type GetNamesQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
   }>;
 };
 

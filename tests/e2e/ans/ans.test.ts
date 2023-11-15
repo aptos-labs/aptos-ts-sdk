@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -516,6 +516,84 @@ describe("ANS", () => {
       );
 
       expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+    });
+  });
+
+  describe("can get names", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    // This account has two long living domain names, each with one subdomain.
+    const ACCOUNT_ADDRESS_1 = "0x24f92ae64dfcf44b2bbb3a4621515e86ad88d53d6b87f6dfe978b535621cefd4";
+    const DOMAIN = "8923ulahsdjfaiu";
+
+    test("returns all the names for an account", async () => {
+      const res = await testnet.ans.getAccountNames({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(4);
+    });
+
+    test("returns only the domains for an account", async () => {
+      const res = await testnet.ans.getAccountDomains({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // None of our results should have a subdomain
+      expect(res.find((name) => Boolean(name.subdomain))).toBeFalsy();
+    });
+
+    test("returns only the subdomains for an account", async () => {
+      const res = await testnet.ans.getAccountSubdomains({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+
+    test("returns only the subdomains names for a domain", async () => {
+      const res = await testnet.ans.getDomainSubdomains({ domain: DOMAIN });
+      expect(res.length).toBe(1);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+
+    test("accommodates where, pagination, and ordering", async () => {
+      let res: GetANSNameResponse;
+
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
+        options: { pagination: { limit: 1 } },
+      });
+      expect(res.length).toBe(1);
+
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
+        options: {
+          where: {
+            domain: { _eq: DOMAIN },
+          },
+        },
+      });
+      expect(res[0].domain).toBe(DOMAIN);
+    });
+
+    // TODO: When we have local testnet, test order here
+  });
+
+  describe("query an individual name", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    const domain = "8923ulahsdjfaiu";
+
+    test("returns domains subdomains", async () => {
+      const res1 = await testnet.ans.getName({ name: `not-a-name-${randomString()}` });
+      expect(res1).toBeFalsy();
+
+      const res2 = await testnet.ans.getName({ name: domain });
+      expect(res2).toBeTruthy();
     });
   });
 });

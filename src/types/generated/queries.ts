@@ -21,6 +21,17 @@ export const TokenActivitiesFieldsFragmentDoc = `
   type
 }
     `;
+export const AnsTokenFragmentFragmentDoc = `
+    fragment AnsTokenFragment on current_aptos_names {
+  domain
+  expiration_timestamp
+  registered_address
+  subdomain
+  token_standard
+  is_primary
+  owner_address
+}
+    `;
 export const CurrentTokenOwnershipFieldsFragmentDoc = `
     fragment CurrentTokenOwnershipFields on current_token_ownerships_v2 {
   token_standard
@@ -348,6 +359,18 @@ export const GetFungibleAssetMetadata = `
   }
 }
     `;
+export const GetNames = `
+    query getNames($offset: Int, $limit: Int, $where_condition: current_aptos_names_bool_exp, $order_by: [current_aptos_names_order_by!]) {
+  current_aptos_names(
+    limit: $limit
+    where: $where_condition
+    order_by: $order_by
+    offset: $offset
+  ) {
+    ...AnsTokenFragment
+  }
+}
+    ${AnsTokenFragmentFragmentDoc}`;
 export const GetNumberOfDelegators = `
     query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
   num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
@@ -660,6 +683,17 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getFungibleAssetMetadata",
+        "query",
+      );
+    },
+    getNames(
+      variables?: Types.GetNamesQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetNamesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetNamesQuery>(GetNames, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
+        "getNames",
         "query",
       );
     },
