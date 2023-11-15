@@ -3,6 +3,22 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Adds additional ANS APIs
+  - Transactions
+    - setPrimaryName
+    - setTargetAddress
+    - registerName
+    - renew_domain
+  - Queries
+    - getPrimaryName
+    - getOwnerAddress
+    - getExpiration
+    - getTargetAddress
+    - getName
+    - getAccountNames
+    - getAccountDomains
+    - getAccountSubdomains
+    - getDomainSubdomains
 
 ## 0.0.6 (2023-11-14)
 
