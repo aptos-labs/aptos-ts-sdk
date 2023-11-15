@@ -362,8 +362,6 @@ export async function getName(args: {
   return data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
 }
 
-
-
 interface QueryNamesOptions {
   options?: {
     pagination?: PaginationArgs;
