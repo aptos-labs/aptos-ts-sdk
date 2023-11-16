@@ -3,7 +3,11 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
+## 0.0.7 (2023-11-16)
+
 - Adds additional ANS APIs
+
   - Transactions
     - setPrimaryName
     - setTargetAddress
@@ -24,6 +28,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
   - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
   - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
+  - Different functions `aptos.sign.transaction` to sign a transaction as a single signer and `aptos.sign.transactionAsFeePayer`to sign a transaction as a sponsor
   - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
   - Return `InputMultiAgentTransaction` type changed to `MultiAgentTransaction` type
 
