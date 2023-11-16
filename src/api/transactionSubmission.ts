@@ -3,15 +3,57 @@
 
 import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput, PrivateKey } from "../core";
-import { AnyRawTransaction, SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
+import {
+  AnyRawTransaction,
+  SingleSignerTransaction,
+  InputGenerateTransactionOptions,
+  InputGenerateTransactionPayloadData,
+} from "../transactions/types";
 import { PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
 import { publicPackageTransaction, rotateAuthKey, signAndSubmitTransaction } from "../internal/transactionSubmission";
+import { TransactionWorker } from "../transactions/management";
 
 export class TransactionSubmission {
   readonly config: AptosConfig;
 
   constructor(config: AptosConfig) {
     this.config = config;
+  }
+
+  /**
+   * Batch transactions for a single account.
+   *
+   * This function uses a transaction worker that receives payloads to be processed
+   * and submitted to chain.
+   * Note that this process is best for submitting multiple transactions that
+   * dont rely on each other, i.e batch funds, batch token mints, etc.
+   *
+   * If any worker failure, the functions throws an error.
+   *
+   * @param args.sender The sender account to sign and submit the transaction
+   * @param args.data An array of transaction payloads
+   * @param args.options optional. Transaction generation configurations (excluding accountSequenceNumber)
+   *
+   * @return void. Throws if any error
+   */
+  async batchTransactionsForSingleAccount(args: {
+    sender: Account;
+    data: InputGenerateTransactionPayloadData[];
+    options?: Omit<InputGenerateTransactionOptions, "accountSequenceNumber">;
+  }): Promise<void> {
+    try {
+      const { sender, data, options } = args;
+      const transactionWorker = new TransactionWorker(this.config, sender);
+
+      transactionWorker.start();
+
+      for (const d of data) {
+        /* eslint-disable no-await-in-loop */
+        await transactionWorker.push(d, options);
+      }
+    } catch (error: any) {
+      throw new Error(`failed to submit transactions with error: ${error}`);
+    }
   }
 
   /**
