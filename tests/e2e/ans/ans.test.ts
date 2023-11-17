@@ -477,8 +477,6 @@ describe("ANS", () => {
         }),
       );
 
-      let res = await aptos.getExpiration({ name });
-
       // Change the expiration date of the name to be tomorrow
       const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
@@ -486,8 +484,8 @@ describe("ANS", () => {
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
 
       // We expect the renewed expiration time to be one year from tomorrow
-      const expectedExpirationDate = newExpirationDate + 365 * 24 * 60 * 60;
-      res = await aptos.getExpiration({ name });
+      const expectedExpirationDate = (newExpirationDate + 365 * 24 * 60 * 60) * 1000;
+      const res = await aptos.getExpiration({ name });
       expect(res?.toString()).toBe(expectedExpirationDate.toString());
     });
 

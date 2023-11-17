@@ -175,12 +175,10 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
   }
 
-  let tldExpiration = await getExpiration({ aptosConfig, name: domainName });
+  const tldExpiration = await getExpiration({ aptosConfig, name: domainName });
   if (!tldExpiration) {
     throw new Error("The domain does not exist");
   }
-  // The contract gives us seconds, but JS expects milliseconds
-  tldExpiration *= 1000;
 
   const expirationDateInMillisecondsSinceEpoch =
     expiration.policy === "subdomain:independent" ? expiration.expirationDate.valueOf() : tldExpiration;
@@ -224,7 +222,8 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
       },
     });
 
-    return res[0] as number;
+    // Normalize expiration time from epoch seconds to epoch milliseconds
+    return Number(res[0]) * 1000;
   } catch (e) {
     return undefined;
   }

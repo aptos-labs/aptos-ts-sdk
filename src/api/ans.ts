@@ -64,7 +64,7 @@ export class ANS {
    *
    * @param args.name - A string of the name to retrieve
    *
-   * @returns number as a unix timestamp in seconds.
+   * @returns number as a unix timestamp in milliseconds.
    */
   async getExpiration(args: { name: string }): Promise<number | undefined> {
     return getExpiration({ aptosConfig: this.config, ...args });
