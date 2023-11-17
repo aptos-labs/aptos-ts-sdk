@@ -358,7 +358,13 @@ export async function getName(args: {
     originMethod: "getName",
   });
 
-  return data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
+  let res = data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  if (res) {
+    res = sanitizeANSName(res);
+  }
+
+  return res;
 }
 
 interface QueryNamesOptions {
@@ -398,7 +404,7 @@ export async function getAccountNames(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetAccountDomainsArgs extends QueryNamesOptions {
@@ -431,7 +437,7 @@ export async function getAccountDomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
@@ -464,7 +470,7 @@ export async function getAccountSubdomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
@@ -494,7 +500,7 @@ export async function getDomainSubdomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 /**
@@ -557,4 +563,17 @@ export async function renewDomain(args: {
   });
 
   return transaction as SingleSignerTransaction;
+}
+
+/**
+ * The indexer returns ISO strings for expiration, however the contract works in
+ * epoch milliseconds. This function converts the ISO string to epoch
+ * milliseconds. In the future, if other properties need sanitization, this can
+ * be extended.
+ */
+function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
+  return {
+    ...name,
+    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+  };
 }
