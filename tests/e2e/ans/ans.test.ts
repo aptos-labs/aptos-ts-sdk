@@ -274,7 +274,7 @@ describe("ANS", () => {
           expiration: {
             policy: "subdomain:independent",
             // Expire the subdomain two seconds before the TLD expires
-            expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000),
+            expirationDate: Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000,
           },
           transferable: true,
           sender: alice,

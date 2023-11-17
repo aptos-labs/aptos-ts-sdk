@@ -123,7 +123,7 @@ export interface RegisterNameParameters {
   expiration:
     | { policy: "domain"; years?: 1 }
     | { policy: "subdomain:follow-domain" }
-    | { policy: "subdomain:independent"; expirationDate: Date };
+    | { policy: "subdomain:independent"; expirationDate: number };
   transferable?: boolean;
   toAddress?: AccountAddressInput;
   targetAddress?: AccountAddressInput;
@@ -181,7 +181,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
   }
 
   const expirationDateInMillisecondsSinceEpoch =
-    expiration.policy === "subdomain:independent" ? expiration.expirationDate.valueOf() : tldExpiration;
+    expiration.policy === "subdomain:independent" ? expiration.expirationDate : tldExpiration;
 
   if (expirationDateInMillisecondsSinceEpoch > tldExpiration) {
     throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
