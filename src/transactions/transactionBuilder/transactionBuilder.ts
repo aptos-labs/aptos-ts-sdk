@@ -413,10 +413,8 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
 export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
 
-  const transactionToSign = deriveTransactionType(transaction);
-
   // get the signing message
-  const message = getSigningMessage(transactionToSign);
+  const message = generateSigningMessage(transaction);
 
   // account.signMessage
   const signerSignature = signer.sign(message);
@@ -554,7 +552,8 @@ export function generateMultiSignersSignedTransaction(
   );
 }
 
-export function getSigningMessage(rawTxn: AnyRawTransactionInstance): Uint8Array {
+export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
+  const rawTxn = deriveTransactionType(transaction);
   const hash = sha3Hash.create();
 
   if (rawTxn instanceof RawTransaction) {

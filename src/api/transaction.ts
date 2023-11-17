@@ -19,6 +19,8 @@ import {
   TransactionResponse,
   WaitForTransactionOptions,
 } from "../types";
+import { getSigningMessage } from "../internal/transactionSubmission";
+import { AnyRawTransaction } from "../transactions";
 
 export class Transaction {
   readonly config: AptosConfig;
@@ -139,5 +141,17 @@ export class Transaction {
     return getGasPriceEstimation({
       aptosConfig: this.config,
     });
+  }
+
+  /**
+   * Returns a signing message for a transaction.
+   *
+   * This allows a user to sign a transaction using their own preferred signing method, and
+   * then submit it to the network.
+   * @param args.transaction A raw transaction for signing elsewhere
+   */
+  // eslint-disable-next-line class-methods-use-this
+  getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
+    return getSigningMessage(args);
   }
 }
