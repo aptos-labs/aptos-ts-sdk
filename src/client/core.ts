@@ -38,6 +38,9 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   if (overrides?.AUTH_TOKEN && url.includes("faucet")) {
     headers.Authorization = `Bearer ${overrides?.AUTH_TOKEN}`;
   }
+  if (overrides?.API_KEY && !url.includes("faucet")) {
+    headers.Authorization = `Bearer ${overrides?.API_KEY}`;
+  }
 
   /*
    * make a call using the @aptos-labs/aptos-client package
@@ -99,15 +102,14 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 
   let errorMessage: string;
 
-  // If it is the shape of an AptosApiError, convert it properly
-  if ("message" in response.data && "error_code" in response.data) {
-    errorMessage = JSON.stringify(response.data);
+  if (result && result.data && "message" in result.data && "error_code" in result.data) {
+    errorMessage = JSON.stringify(result.data);
   } else if (result.status in errors) {
     // If it's not an API type, it must come form infra, these are prehandled
     errorMessage = errors[result.status];
   } else {
     // Everything else is unhandled
-    errorMessage = `Unhandled Error ${response.status} : ${response.statusText}`;
+    errorMessage = `Unhandled Error ${result.status} : ${result.statusText}`;
   }
 
   throw new AptosApiError(options, result, errorMessage);

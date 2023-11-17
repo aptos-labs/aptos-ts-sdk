@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
+
 ## 0.0.7 (2023-11-16)
 
 - Adds additional ANS APIs

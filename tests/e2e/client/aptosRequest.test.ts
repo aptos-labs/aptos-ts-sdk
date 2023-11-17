@@ -110,6 +110,31 @@ describe("aptos request", () => {
     );
   });
 
+  describe("api key", () => {
+    test(
+      "should set api_token for full node requests",
+      async () => {
+        try {
+          const response = await aptosRequest(
+            {
+              url: `${NetworkToNodeAPI[config.network]}`,
+              method: "GET",
+              path: "accounts/0x1",
+              overrides: { API_KEY: "my-api-key" },
+              originMethod: "test when token is set",
+            },
+            config,
+          );
+          expect(response.config.headers).toHaveProperty("authorization", "Bearer my-api-key");
+        } catch (error: any) {
+          // should not get here
+          expect(true).toBe(false);
+        }
+      },
+      longTestTimeout,
+    );
+  });
+
   describe("full node", () => {
     describe("200 response", () => {
       test(
