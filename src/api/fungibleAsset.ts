@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
@@ -34,7 +35,7 @@ export class FungibleAsset extends Api {
    * @returns getFungibleAssetMetadata A list of fungible asset metadata
    */
   async getFungibleAssetMetadata(args?: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: FungibleAssetMetadataBoolExp;
@@ -62,7 +63,7 @@ export class FungibleAsset extends Api {
    */
   async getFungibleAssetMetadataByAssetType(args: {
     assetType: string;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetFungibleAssetMetadataResponse[0]> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -90,7 +91,7 @@ export class FungibleAsset extends Api {
    * @returns GetFungibleAssetActivitiesResponse A list of fungible asset metadata
    */
   async getFungibleAssetActivities(args?: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: FungibleAssetActivitiesBoolExp;
@@ -113,7 +114,7 @@ export class FungibleAsset extends Api {
    * @returns GetCurrentFungibleAssetBalancesResponse A list of fungible asset metadata
    */
   async getCurrentFungibleAssetBalances(args?: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: CurrentFungibleAssetBalancesBoolExp;

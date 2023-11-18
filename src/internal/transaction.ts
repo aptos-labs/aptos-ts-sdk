@@ -180,7 +180,7 @@ export async function waitForTransaction(args: {
  */
 export async function waitForIndexer(args: {
   aptosConfig: AptosConfig;
-  minimumLedgerVersion: string;
+  minimumLedgerVersion: AnyNumber;
   processorType?: ProcessorType;
 }): Promise<void> {
   const { aptosConfig, processorType } = args;

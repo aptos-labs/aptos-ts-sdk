@@ -27,7 +27,7 @@ export class Faucet extends Api {
     const fundTxn = fundAccount({ aptosConfig: this.config, ...args });
 
     if (args.options?.waitForIndexer !== false) {
-      await this.waitForIndexer({ minimumLedgerVersion: (await fundTxn).version });
+      await this.waitForIndexer({ minimumLedgerVersion: BigInt((await fundTxn).version) });
     }
 
     return fundTxn;

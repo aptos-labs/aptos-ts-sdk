@@ -322,7 +322,7 @@ describe("account api", () => {
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
         authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
-        minimumLedgerVersion: response.version,
+        minimumLedgerVersion: BigInt(response.version),
       });
 
       // Check if the lookup account address is the same as the original account address

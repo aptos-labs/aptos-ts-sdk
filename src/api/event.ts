@@ -24,7 +24,7 @@ export class Event extends Api {
   async getAccountEventsByCreationNumber(args: {
     accountAddress: AccountAddressInput;
     creationNumber: AnyNumber;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetEventsResponse> {
     await this.waitForIndexer({
       minimumLedgerVersion: args?.minimumLedgerVersion,
@@ -45,7 +45,7 @@ export class Event extends Api {
   async getAccountEventsByEventType(args: {
     accountAddress: AccountAddressInput;
     eventType: MoveStructId;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetEventsResponse[0]>;
@@ -75,7 +75,7 @@ export class Event extends Api {
    * @returns GetEventsQuery response type
    */
   async getEvents(args?: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       where?: EventsBoolExp;
       pagination?: PaginationArgs;

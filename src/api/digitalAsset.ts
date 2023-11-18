@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AnyNumber,
   GetCollectionDataResponse,
   GetCurrentTokenOwnershipResponse,
   GetOwnedTokensResponse,
@@ -83,7 +84,7 @@ export class DigitalAsset extends Api {
   async getCollectionData(args: {
     creatorAddress: AccountAddressInput;
     collectionName: string;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       tokenStandard?: TokenStandard;
     };
@@ -110,7 +111,7 @@ export class DigitalAsset extends Api {
   async getCollectionId(args: {
     creatorAddress: AccountAddressInput;
     collectionName: string;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       tokenStandard?: TokenStandard;
     };
@@ -153,7 +154,7 @@ export class DigitalAsset extends Api {
    */
   async getTokenData(args: {
     tokenAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetTokenDataResponse> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -171,7 +172,7 @@ export class DigitalAsset extends Api {
    */
   async getCurrentTokenOwnership(args: {
     tokenAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetCurrentTokenOwnershipResponse> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -189,7 +190,7 @@ export class DigitalAsset extends Api {
    */
   async getOwnedTokens(args: {
     ownerAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetOwnedTokensResponse[0]>;
@@ -211,7 +212,7 @@ export class DigitalAsset extends Api {
    */
   async getTokenActivity(args: {
     tokenAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetTokenActivityResponse[0]>;

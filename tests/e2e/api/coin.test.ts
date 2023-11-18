@@ -68,11 +68,11 @@ describe("coin", () => {
       const res = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
       const recipientCoins = await aptos.getAccountCoinsData({
         accountAddress: recipient.accountAddress,
-        minimumLedgerVersion: res.version,
+        minimumLedgerVersion: BigInt(res.version),
       });
       const senderCoinsAfter = await aptos.getAccountCoinsData({
         accountAddress: sender.accountAddress,
-        minimumLedgerVersion: res.version,
+        minimumLedgerVersion: BigInt(res.version),
       });
 
       expect(recipientCoins[0].amount).toBe(10);

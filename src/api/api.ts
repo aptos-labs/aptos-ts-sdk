@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { waitForIndexer } from "../internal/transaction";
+import { AnyNumber } from "../types";
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 
@@ -22,7 +23,7 @@ export abstract class Api {
    * @param args.processorType The processor type to wait for
    */
   protected async waitForIndexer(args: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     processorType?: ProcessorType;
   }): Promise<void> {
     const { processorType, minimumLedgerVersion } = args;

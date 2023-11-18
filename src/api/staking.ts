@@ -6,7 +6,7 @@ import {
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
 } from "../internal/staking";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
 import { AccountAddressInput } from "../core";
 import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
@@ -24,7 +24,7 @@ export class Staking extends Api {
    */
   async getNumberOfDelegators(args: {
     poolAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
     await this.waitForIndexer({
       minimumLedgerVersion: args?.minimumLedgerVersion,
@@ -40,7 +40,7 @@ export class Staking extends Api {
    * @returns GetNumberOfDelegatorsForAllPoolsResponse response type
    */
   async getNumberOfDelegatorsForAllPools(args?: {
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
     };
@@ -63,7 +63,7 @@ export class Staking extends Api {
   async getDelegatedStakingActivities(args: {
     delegatorAddress: AccountAddressInput;
     poolAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetDelegatedStakingActivitiesResponse> {
     await this.waitForIndexer({
       minimumLedgerVersion: args?.minimumLedgerVersion,

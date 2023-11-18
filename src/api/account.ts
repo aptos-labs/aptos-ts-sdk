@@ -4,6 +4,7 @@
 import { AccountAddress, PrivateKey, Account as AccountModule, AccountAddressInput } from "../core";
 import {
   AccountData,
+  AnyNumber,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedObjectsResponse,
@@ -187,7 +188,7 @@ export class Account extends Api {
    */
   async lookupOriginalAccountAddress(args: {
     authenticationKey: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: LedgerVersion;
   }): Promise<AccountAddress> {
     await this.waitForIndexer({
@@ -206,7 +207,7 @@ export class Account extends Api {
    */
   async getAccountTokensCount(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -234,7 +235,7 @@ export class Account extends Api {
    */
   async getAccountOwnedTokens(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -269,7 +270,7 @@ export class Account extends Api {
   async getAccountOwnedTokensFromCollectionAddress(args: {
     accountAddress: AccountAddressInput;
     collectionAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -302,7 +303,7 @@ export class Account extends Api {
    */
   async getAccountCollectionsWithOwnedTokens(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       tokenStandard?: TokenStandard;
       pagination?: PaginationArgs;
@@ -328,7 +329,7 @@ export class Account extends Api {
    */
   async getAccountTransactionsCount(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -352,7 +353,7 @@ export class Account extends Api {
    */
   async getAccountCoinsData(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
@@ -377,7 +378,7 @@ export class Account extends Api {
    */
   async getAccountCoinsCount(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
     await this.waitForIndexer({
       minimumLedgerVersion: args.minimumLedgerVersion,
@@ -398,7 +399,7 @@ export class Account extends Api {
    */
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
-    minimumLedgerVersion?: string;
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
