@@ -12,7 +12,7 @@ import {
 } from "../internal/transaction";
 import {
   AnyNumber,
-  FinalTransactionResponse,
+  CommittedTransactionResponse,
   GasEstimation,
   HexInput,
   PaginationArgs,
@@ -113,7 +113,7 @@ export class Transaction {
   async waitForTransaction(args: {
     transactionHash: HexInput;
     options?: WaitForTransactionOptions;
-  }): Promise<FinalTransactionResponse> {
+  }): Promise<CommittedTransactionResponse> {
     return waitForTransaction({
       aptosConfig: this.config,
       ...args,

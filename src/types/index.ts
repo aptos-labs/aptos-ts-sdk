@@ -278,10 +278,8 @@ export enum TransactionResponseType {
   StateCheckpoint = "state_checkpoint_transaction",
 }
 
-export type TransactionResponse = PendingTransactionResponse | FinalTransactionResponse;
-
-// Note: This excludes PendingTransactionResponse
-export type FinalTransactionResponse =
+export type TransactionResponse = PendingTransactionResponse | CommittedTransactionResponse;
+export type CommittedTransactionResponse =
   | UserTransactionResponse
   | GenesisTransactionResponse
   | BlockMetadataTransactionResponse

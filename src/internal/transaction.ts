@@ -18,7 +18,7 @@ import {
   type PaginationArgs,
   type TransactionResponse,
   WaitForTransactionOptions,
-  FinalTransactionResponse,
+  CommittedTransactionResponse,
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
 import { sleep } from "../utils/helpers";
@@ -101,7 +101,7 @@ export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
   options?: WaitForTransactionOptions;
-}): Promise<FinalTransactionResponse> {
+}): Promise<CommittedTransactionResponse> {
   const { aptosConfig, transactionHash, options } = args;
   const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
   const checkSuccess = options?.checkSuccess ?? true;

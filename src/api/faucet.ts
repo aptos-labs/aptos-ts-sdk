@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { fundAccount } from "../internal/faucet";
-import { FinalTransactionResponse, WaitForTransactionOptions } from "../types";
+import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
 import { Api } from "./api";
 
@@ -23,7 +23,7 @@ export class Faucet extends Api {
     accountAddress: AccountAddressInput;
     amount: number;
     options?: WaitForTransactionOptions;
-  }): Promise<FinalTransactionResponse> {
+  }): Promise<UserTransactionResponse> {
     const fundTxn = fundAccount({ aptosConfig: this.config, ...args });
 
     if (args.options?.waitForIndexer !== false) {
