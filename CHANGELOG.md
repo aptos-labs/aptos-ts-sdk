@@ -6,6 +6,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
 
+Breaking:
+- Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
+  - `getExpiration`: Previously returned seconds, now returns milliseconds
+  - `registerName`: Argument `expiration.expirationDate` was previously a `Date` object, now it is an epoch timestamp represented in milliseconds
+  - All query functions return epoch milliseconds instead of ISO date strings.
+
 ## 0.0.7 (2023-11-16)
 
 - Adds additional ANS APIs
