@@ -64,7 +64,7 @@ export class ANS {
    *
    * @param args.name - A string of the name to retrieve
    *
-   * @returns number as a unix timestamp in seconds.
+   * @returns number as a unix timestamp in milliseconds.
    */
   async getExpiration(args: { name: string }): Promise<number | undefined> {
     return getExpiration({ aptosConfig: this.config, ...args });
@@ -166,7 +166,7 @@ export class ANS {
    *    name: "test.aptos.apt",
    *    expiration: {
    *      policy: "subdomain:independent",
-   *      expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+   *      expirationDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
    *    },
    *  });
    * ```
@@ -179,8 +179,9 @@ export class ANS {
    * - domain: Years is required and the name will expire after the given number of years.
    * - subdomain:follow-domain: The name will expire at the same time as the domain name.
    * - subdomain:independent: The name will expire at the given date.
-   * @param args.expiration.expirationDate - A javascript date of when the subdomain will expire. Only applicable when
-   * the policy is set to 'subdomain:independent'.
+   * @param args.expiration.expirationDate - An epoch number in milliseconds of
+   * the date when the subdomain will expire. Only applicable when the policy is
+   * set to 'subdomain:independent'.
    * @param args.transferable  - Determines if the subdomain being minted is soul-bound. Applicable only to subdomains.
    * @param args.targetAddress optional - The address the domain name will resolve to. If not provided,
    * the sender's address will be used.

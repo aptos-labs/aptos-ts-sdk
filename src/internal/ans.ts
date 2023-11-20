@@ -123,7 +123,7 @@ export interface RegisterNameParameters {
   expiration:
     | { policy: "domain"; years?: 1 }
     | { policy: "subdomain:follow-domain" }
-    | { policy: "subdomain:independent"; expirationDate: Date };
+    | { policy: "subdomain:independent"; expirationDate: number };
   transferable?: boolean;
   toAddress?: AccountAddressInput;
   targetAddress?: AccountAddressInput;
@@ -175,15 +175,13 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
   }
 
-  let tldExpiration = await getExpiration({ aptosConfig, name: domainName });
+  const tldExpiration = await getExpiration({ aptosConfig, name: domainName });
   if (!tldExpiration) {
     throw new Error("The domain does not exist");
   }
-  // The contract gives us seconds, but JS expects milliseconds
-  tldExpiration *= 1000;
 
   const expirationDateInMillisecondsSinceEpoch =
-    expiration.policy === "subdomain:independent" ? expiration.expirationDate.valueOf() : tldExpiration;
+    expiration.policy === "subdomain:independent" ? expiration.expirationDate : tldExpiration;
 
   if (expirationDateInMillisecondsSinceEpoch > tldExpiration) {
     throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
@@ -224,7 +222,8 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
       },
     });
 
-    return res[0] as number;
+    // Normalize expiration time from epoch seconds to epoch milliseconds
+    return Number(res[0]) * 1000;
   } catch (e) {
     return undefined;
   }
@@ -359,7 +358,13 @@ export async function getName(args: {
     originMethod: "getName",
   });
 
-  return data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
+  let res = data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  if (res) {
+    res = sanitizeANSName(res);
+  }
+
+  return res;
 }
 
 interface QueryNamesOptions {
@@ -399,7 +404,7 @@ export async function getAccountNames(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetAccountDomainsArgs extends QueryNamesOptions {
@@ -432,7 +437,7 @@ export async function getAccountDomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
@@ -465,7 +470,7 @@ export async function getAccountSubdomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
@@ -495,7 +500,7 @@ export async function getDomainSubdomains(
     },
   });
 
-  return data.current_aptos_names;
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 /**
@@ -558,4 +563,17 @@ export async function renewDomain(args: {
   });
 
   return transaction as SingleSignerTransaction;
+}
+
+/**
+ * The indexer returns ISO strings for expiration, however the contract works in
+ * epoch milliseconds. This function converts the ISO string to epoch
+ * milliseconds. In the future, if other properties need sanitization, this can
+ * be extended.
+ */
+function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
+  return {
+    ...name,
+    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+  };
 }
