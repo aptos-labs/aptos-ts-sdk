@@ -5,10 +5,10 @@ import {
   Network,
   NetworkToNodeAPI,
   Aptos,
-  Account,
   U64,
   GraphqlQuery,
   NetworkToIndexerAPI,
+  Signer,
 } from "../../../src";
 import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { VERSION } from "../../../src/version";
@@ -23,8 +23,8 @@ describe("aptos request", () => {
       "call should include all expected headers",
       async () => {
         const aptos = new Aptos(config);
-        const sender = Account.generate();
-        const receiverAccounts = Account.generate();
+        const sender = Signer.generate();
+        const receiverAccounts = Signer.generate();
         await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100_000_000 });
         const transaction = await aptos.build.transaction({
           sender: sender.accountAddress.toString(),

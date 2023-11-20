@@ -1,4 +1,4 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, TypeTagStruct } from "../../../src";
+import { AptosConfig, Network, Aptos, Deserializer, Signer, TypeTagStruct } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
@@ -7,8 +7,8 @@ describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const sender = Account.generate();
-    const recipient = Account.generate();
+    const sender = Signer.generate();
+    const recipient = Signer.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -28,8 +28,8 @@ describe("coin", () => {
   test("it generates a transfer coin transaction with a custom coin type", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const sender = Account.generate();
-    const recipient = Account.generate();
+    const sender = Signer.generate();
+    const recipient = Signer.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -52,8 +52,8 @@ describe("coin", () => {
     async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const sender = Account.generate();
-      const recipient = Account.generate();
+      const sender = Signer.generate();
+      const recipient = Signer.generate();
 
       await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
       const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });

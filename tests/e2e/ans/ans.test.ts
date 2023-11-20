@@ -1,7 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
+import {
+  Aptos,
+  Network,
+  Account,
+  AnyRawTransaction,
+  U8,
+  AptosConfig,
+  GetANSNameResponse,
+  LegacyEd25519Signer,
+  Signer,
+} from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -22,7 +32,7 @@ describe("ANS", () => {
 
   let changeRouterMode: (mode: 0 | 1) => void;
 
-  const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
+  const signAndSubmit = async (signer: Signer | LegacyEd25519Signer, transaction: AnyRawTransaction) => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
     return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   };
@@ -32,7 +42,7 @@ describe("ANS", () => {
   beforeAll(
     async () => {
       const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+      const contractAccount = await aptos.deriveSignerFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
       // Publish the contract, should be idempotent
 
@@ -137,7 +147,7 @@ describe("ANS", () => {
   });
 
   describe("registerName", () => {
-    let alice: Account;
+    let alice: Signer | LegacyEd25519Signer;
     let bob: Account;
     let domainName: string;
     let subdomainName: string;
@@ -146,8 +156,8 @@ describe("ANS", () => {
       domainName = randomString();
       subdomainName = randomString();
 
-      alice = Account.generate();
-      bob = Account.generate();
+      alice = Signer.generate();
+      bob = Signer.generate();
       await Promise.all([
         aptos.fundAccount({
           accountAddress: alice.accountAddress.toString(),
@@ -289,20 +299,20 @@ describe("ANS", () => {
   });
 
   describe("setTargetAddress and getTargetAddress", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer | LegacyEd25519Signer;
+    let bob: Signer | LegacyEd25519Signer;
     let domainName: string;
     let subdomainName: string;
     let addr: string | undefined;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress.toString(),
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress.toString(),
         amount: 500_000_000,
@@ -379,19 +389,19 @@ describe("ANS", () => {
   });
 
   describe("setPrimaryName and getPrimaryName", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer | LegacyEd25519Signer;
+    let bob: Signer | LegacyEd25519Signer;
     let domainName: string;
     let subdomainName: string;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress.toString(),
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress.toString(),
         amount: 500_000_000,
@@ -441,19 +451,19 @@ describe("ANS", () => {
   });
 
   describe("renewDomain", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer | LegacyEd25519Signer;
+    let bob: Signer | LegacyEd25519Signer;
     let domainName: string;
     let subdomainName: string;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress.toString(),
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress.toString(),
         amount: 500_000_000,

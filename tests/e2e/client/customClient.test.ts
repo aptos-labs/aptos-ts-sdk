@@ -3,11 +3,11 @@ import {
   Aptos,
   Network,
   getAptosFullNode,
-  Account,
   postAptosFaucet,
   AccountAddress,
   postAptosFullNode,
   MimeType,
+  Signer,
 } from "../../../src";
 import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { customClient } from "../../unit/helper";
@@ -34,7 +34,7 @@ describe("custom client", () => {
 
   test("it uses custom client for post queries", async () => {
     const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
-    const account = Account.generate();
+    const account = Signer.generate();
     const response = await postAptosFaucet({
       aptosConfig: config,
       path: "fund",
@@ -50,8 +50,8 @@ describe("custom client", () => {
   test("it uses custom client for transaction submission", async () => {
     const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
     const aptos = new Aptos(config);
-    const account = Account.generate();
-    const recipient = Account.generate();
+    const account = Signer.generate();
+    const recipient = Signer.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100_000_000 });
     const transaction = await aptos.transferCoinTransaction({
       sender: account,

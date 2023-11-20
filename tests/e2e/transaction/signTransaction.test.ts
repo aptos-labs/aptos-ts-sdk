@@ -1,4 +1,13 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, U64, SigningSchemeInput } from "../../../src";
+import {
+  AptosConfig,
+  Network,
+  Aptos,
+  Deserializer,
+  U64,
+  SigningSchemeInput,
+  Signer,
+  LegacyEd25519Signer,
+} from "../../../src";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -11,13 +20,13 @@ const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
 
 describe("sign transaction", () => {
-  const contractPublisherAccount = Account.generate();
-  const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-  const legacyED25519SenderAccount = Account.generate();
-  const receiverAccounts = [Account.generate(), Account.generate()];
-  const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-  const secondarySignerAccount = Account.generate();
-  const feePayerAccount = Account.generate();
+  const contractPublisherAccount = Signer.generate();
+  const singleSignerED25519SenderAccount = Signer.generate({ scheme: SigningSchemeInput.Ed25519 });
+  const legacyED25519SenderAccount = LegacyEd25519Signer.generate();
+  const receiverAccounts = [Signer.generate(), Signer.generate()];
+  const singleSignerSecp256k1Account = Signer.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+  const secondarySignerAccount = Signer.generate();
+  const feePayerAccount = Signer.generate();
   beforeAll(async () => {
     await fundAccounts(aptos, [
       contractPublisherAccount,

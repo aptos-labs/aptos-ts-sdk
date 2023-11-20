@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Account } from "../../../src";
+import { AptosConfig, Aptos, Signer } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { Network } from "../../../src/utils/apiEndpoints";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
@@ -17,7 +17,7 @@ const tokenName = "Test Token";
 const tokenDescription = "my first nft";
 const tokenUri = "http://aptos.dev/nft";
 
-const creator = Account.generate();
+const creator = Signer.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection() {
