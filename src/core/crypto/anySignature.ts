@@ -1,10 +1,10 @@
-import { Serializer, Deserializer } from "../../bcs";
-import { AnySignatureVariant } from "../../types";
+import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { SigningSchemeInput } from "../../types";
 import { Signature } from "./asymmetricCrypto";
 import { Ed25519Signature } from "./ed25519";
 import { Secp256k1Signature } from "./secp256k1";
 
-export class AnySignature extends Signature {
+export class AnySignature extends Serializable {
   public readonly signature: Signature;
 
   constructor(signature: Signature) {
@@ -32,10 +32,10 @@ export class AnySignature extends Signature {
 
   serialize(serializer: Serializer): void {
     if (this.signature instanceof Ed25519Signature) {
-      serializer.serializeU32AsUleb128(AnySignatureVariant.Ed25519);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Ed25519);
       this.signature.serialize(serializer);
     } else if (this.signature instanceof Secp256k1Signature) {
-      serializer.serializeU32AsUleb128(AnySignatureVariant.Secp256k1);
+      serializer.serializeU32AsUleb128(SigningSchemeInput.Secp256k1Ecdsa);
       this.signature.serialize(serializer);
     } else {
       throw new Error("Unknown signature type");
@@ -45,12 +45,12 @@ export class AnySignature extends Signature {
   static deserialize(deserializer: Deserializer): AnySignature {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
-      case AnySignatureVariant.Ed25519:
-        return new AnySignature(Ed25519Signature.load(deserializer));
-      case AnySignatureVariant.Secp256k1:
-        return new AnySignature(Secp256k1Signature.load(deserializer));
+      case SigningSchemeInput.Ed25519:
+        return new AnySignature(Ed25519Signature.deserialize(deserializer));
+      case SigningSchemeInput.Secp256k1Ecdsa:
+        return new AnySignature(Secp256k1Signature.deserialize(deserializer));
       default:
-        throw new Error(`Unknown variant index for AnySignature: ${index}`);
+        throw new Error(`Unknown signature scheme for AnySignature: ${index}`);
     }
   }
 }

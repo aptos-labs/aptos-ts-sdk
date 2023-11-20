@@ -1,5 +1,6 @@
-import { Serializer, Deserializer } from "../../bcs";
-import { AnyPublicKeyVariant, HexInput } from "../../types";
+import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { AnyPublicKeyVariant, HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
 import { AnySignature } from "./anySignature";
 import { PublicKey } from "./asymmetricCrypto";
 import { Ed25519PublicKey } from "./ed25519";
@@ -13,7 +14,7 @@ import { Secp256k1PublicKey } from "./secp256k1";
  *
  * Any unified authentication key is represented in the SDK as `AnyPublicKey`.
  */
-export class AnyPublicKey extends PublicKey {
+export class AnyPublicKey extends Serializable {
   /**
    * Reference to the inner public key
    */
@@ -51,7 +52,14 @@ export class AnyPublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    return this.publicKey.verifySignature({ message, signature });
+    return this.publicKey.verifySignature({ message, signature: signature.signature });
+  }
+
+  authKey(): AuthenticationKey {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.SingleKey,
+      input: this.bcsToBytes(),
+    });
   }
 
   serialize(serializer: Serializer): void {
@@ -70,9 +78,9 @@ export class AnyPublicKey extends PublicKey {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
       case AnyPublicKeyVariant.Ed25519:
-        return new AnyPublicKey(Ed25519PublicKey.load(deserializer));
+        return new AnyPublicKey(Ed25519PublicKey.deserialize(deserializer));
       case AnyPublicKeyVariant.Secp256k1:
-        return new AnyPublicKey(Secp256k1PublicKey.load(deserializer));
+        return new AnyPublicKey(Secp256k1PublicKey.deserialize(deserializer));
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
     }

@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
+import { AuthenticationKey } from "../authenticationKey";
 import { PublicKey, PrivateKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 
 /**
@@ -68,11 +69,18 @@ export class Ed25519PublicKey extends PublicKey {
    * @param args.message a signed message
    * @param args.signature the signature of the message
    */
-  verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput(message).toUint8Array();
-    const rawSignature = signature.toUint8Array();
-    return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = signature.toUint8Array();
+    return nacl.sign.detached.verify(messageBytes, signatureBytes, this.key.toUint8Array());
+  }
+
+  authKey() {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.Ed25519,
+      input: this.key.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer): void {
@@ -80,11 +88,6 @@ export class Ed25519PublicKey extends PublicKey {
   }
 
   static deserialize(deserializer: Deserializer): Ed25519PublicKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519PublicKey(bytes);
-  }
-
-  static load(deserializer: Deserializer): Ed25519PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519PublicKey(bytes);
   }
@@ -153,9 +156,9 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @returns Signature
    */
   sign(message: HexInput): Ed25519Signature {
-    const hex = Hex.fromHexInput(message);
-    const signature = nacl.sign.detached(hex.toUint8Array(), this.signingKeyPair.secretKey);
-    return new Ed25519Signature(signature);
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = nacl.sign.detached(messageBytes, this.signingKeyPair.secretKey);
+    return new Ed25519Signature(signatureBytes);
   }
 
   serialize(serializer: Serializer): void {
@@ -276,11 +279,6 @@ export class Ed25519Signature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): Ed25519Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519Signature(bytes);
-  }
-
-  static load(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
   }
