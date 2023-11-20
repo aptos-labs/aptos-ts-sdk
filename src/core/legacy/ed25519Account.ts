@@ -1,6 +1,6 @@
 import { HexInput } from "../../types";
 import { AccountAddress } from "../accountAddress";
-import { AnySignature, Ed25519PublicKey, Ed25519Signature } from "../crypto";
+import { Ed25519PublicKey, Ed25519Signature } from "../crypto";
 
 export interface LegacyEd25519AccountConstructorArgs {
   publicKey: Ed25519PublicKey;
