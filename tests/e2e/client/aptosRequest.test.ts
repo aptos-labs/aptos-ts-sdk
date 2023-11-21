@@ -25,9 +25,9 @@ describe("aptos request", () => {
         const aptos = new Aptos(config);
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
-        await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100_000_000 });
+        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
         const transaction = await aptos.build.transaction({
-          sender: sender.accountAddress.toString(),
+          sender: sender.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts.accountAddress],

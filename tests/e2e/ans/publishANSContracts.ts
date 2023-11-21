@@ -38,7 +38,7 @@ export async function publishAnsContract(
   };
   try {
     await aptos.account.getAccountModule({
-      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
+      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS,
       moduleName: "domains",
     });
     console.log("ANS contract already published");

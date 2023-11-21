@@ -21,7 +21,7 @@ const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection() {
-  await aptos.fundAccount({ accountAddress: creator.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
   const transaction = await aptos.createCollectionTransaction({
     creator,
     description: collectionDescription,
@@ -44,7 +44,7 @@ async function setupToken(): Promise<string> {
   const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
-      ownerAddress: creator.accountAddress.toString(),
+      ownerAddress: creator.accountAddress,
       minimumLedgerVersion: BigInt(response.version),
     })
   )[0].current_token_data?.token_data_id!;

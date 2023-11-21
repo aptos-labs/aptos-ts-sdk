@@ -1,7 +1,7 @@
 .aptos/
 .DS_Store
 */**/.DS_Store
-.env/
+.env
 .history/
 .idea/
 .npm/
@@ -13,6 +13,7 @@ dist/
 node_modules/
 npm-debug.log
 tmp/
+examples/typescript/facoin/facoin.json
 
 # Vim swap files
 *.swp

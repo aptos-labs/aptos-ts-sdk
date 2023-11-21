@@ -515,7 +515,7 @@ export type GetNamesQuery = {
 };
 
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
-  where_condition: Types.NumActiveDelegatorPerPoolBoolExp;
+  where_condition?: Types.InputMaybe<Types.NumActiveDelegatorPerPoolBoolExp>;
   order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
 }>;
 

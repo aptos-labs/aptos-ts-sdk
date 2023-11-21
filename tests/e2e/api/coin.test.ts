@@ -9,11 +9,11 @@ describe("coin", () => {
     const aptos = new Aptos(config);
     const sender = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
       sender,
-      recipient: recipient.accountAddress.toString(),
+      recipient: recipient.accountAddress,
       amount: 10,
     });
 
@@ -30,11 +30,11 @@ describe("coin", () => {
     const aptos = new Aptos(config);
     const sender = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
       sender,
-      recipient: recipient.accountAddress.toString(),
+      recipient: recipient.accountAddress,
       amount: 10,
       coinType: "0x1::my_coin::type",
     });
@@ -55,12 +55,12 @@ describe("coin", () => {
       const sender = Account.generate();
       const recipient = Account.generate();
 
-      await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: FUND_AMOUNT });
-      const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress.toString() });
+      await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
+      const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress });
 
       const transaction = await aptos.transferCoinTransaction({
         sender,
-        recipient: recipient.accountAddress.toString(),
+        recipient: recipient.accountAddress,
         amount: 10,
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });

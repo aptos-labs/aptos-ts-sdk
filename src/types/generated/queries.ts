@@ -372,7 +372,7 @@ export const GetNames = `
 }
     ${AnsTokenFragmentFragmentDoc}`;
 export const GetNumberOfDelegators = `
-    query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp!, $order_by: [num_active_delegator_per_pool_order_by!]) {
+    query getNumberOfDelegators($where_condition: num_active_delegator_per_pool_bool_exp, $order_by: [num_active_delegator_per_pool_order_by!]) {
   num_active_delegator_per_pool(where: $where_condition, order_by: $order_by) {
     num_active_delegator
     pool_address
@@ -698,7 +698,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
       );
     },
     getNumberOfDelegators(
-      variables: Types.GetNumberOfDelegatorsQueryVariables,
+      variables?: Types.GetNumberOfDelegatorsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<Types.GetNumberOfDelegatorsQuery> {
       return withWrapper(

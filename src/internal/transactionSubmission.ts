@@ -285,7 +285,7 @@ export async function rotateAuthKey(args: {
   const { aptosConfig, fromAccount, toNewPrivateKey } = args;
   const accountInfo = await getInfo({
     aptosConfig,
-    accountAddress: fromAccount.accountAddress.toString(),
+    accountAddress: fromAccount.accountAddress,
   });
 
   const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
@@ -305,7 +305,7 @@ export async function rotateAuthKey(args: {
   // Generate transaction
   const rawTxn = await generateTransaction({
     aptosConfig,
-    sender: fromAccount.accountAddress.toString(),
+    sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key",
       functionArguments: [

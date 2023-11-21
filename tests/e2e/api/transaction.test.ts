@@ -18,10 +18,10 @@ describe("transaction api", () => {
 
   test("returns true when transaction is pending", async () => {
     const senderAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
     const bob = Account.generate();
     const rawTxn = await aptos.build.transaction({
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
         function: "0x1::aptos_account::transfer",
         functionArguments: [bob.accountAddress, new U64(10)],
@@ -43,10 +43,10 @@ describe("transaction api", () => {
     let txn: TransactionResponse;
     beforeAll(async () => {
       const senderAccount = Account.generate();
-      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
       const bob = Account.generate();
       const rawTxn = await aptos.build.transaction({
-        sender: senderAccount.accountAddress.toString(),
+        sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],

@@ -25,11 +25,11 @@ export async function getNumberOfDelegators(args: {
     query: GetNumberOfDelegators,
     variables: { where_condition: { pool_address: { _eq: address } } },
   };
-  const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
-  if (data.num_active_delegator_per_pool.length === 0) {
-    throw Error("Delegator pool not found");
-  }
-  return data.num_active_delegator_per_pool[0].num_active_delegator;
+  const data = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
+
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data.num_active_delegator_per_pool[0] ? data.num_active_delegator_per_pool[0].num_active_delegator : 0;
 }
 
 export async function getNumberOfDelegatorsForAllPools(args: {
@@ -41,9 +41,9 @@ export async function getNumberOfDelegatorsForAllPools(args: {
   const { aptosConfig, options } = args;
   const query = {
     query: GetNumberOfDelegators,
-    variables: { where_condition: {}, order_by: options?.orderBy },
+    variables: { order_by: options?.orderBy },
   };
-  const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({
+  const data = await queryIndexer<GetNumberOfDelegatorsQuery>({
     aptosConfig,
     query,
   });

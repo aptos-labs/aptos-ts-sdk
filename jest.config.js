@@ -5,7 +5,11 @@ module.exports = {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   testEnvironment: "node",
-  coveragePathIgnorePatterns: ["./src/internal/queries/", "./src/types/generated"],
+  coveragePathIgnorePatterns: [
+    "./src/internal/queries/",
+    "./src/types/generated",
+    "./tests/e2e/ans/publishANSContracts.ts",
+  ],
   testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
   setupFiles: ["dotenv/config"],

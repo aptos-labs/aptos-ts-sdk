@@ -41,7 +41,7 @@ describe("ANS", () => {
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
-          sender: contractAccount.accountAddress.toString(),
+          sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
             functionArguments: [],
@@ -54,7 +54,7 @@ describe("ANS", () => {
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
-          sender: contractAccount.accountAddress.toString(),
+          sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::router::set_mode`,
             functionArguments: [new U8(1)],
@@ -76,7 +76,7 @@ describe("ANS", () => {
           contractAccount,
           await generateTransaction({
             aptosConfig: config,
-            sender: contractAccount.accountAddress.toString(),
+            sender: contractAccount.accountAddress,
             data: {
               function:
                 tokenMode === 0
@@ -97,7 +97,7 @@ describe("ANS", () => {
           contractAccount,
           await generateTransaction({
             aptosConfig: config,
-            sender: contractAccount.accountAddress.toString(),
+            sender: contractAccount.accountAddress,
             data: {
               function: `${ANS_ADDRESS}::router::set_mode`,
               functionArguments: [mode],
@@ -150,11 +150,11 @@ describe("ANS", () => {
       bob = Account.generate();
       await Promise.all([
         aptos.fundAccount({
-          accountAddress: alice.accountAddress.toString(),
+          accountAddress: alice.accountAddress,
           amount: 500_000_000,
         }),
         aptos.fundAccount({
-          accountAddress: bob.accountAddress.toString(),
+          accountAddress: bob.accountAddress,
           amount: 500_000_000,
         }),
       ]);
@@ -298,13 +298,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 
@@ -333,7 +333,7 @@ describe("ANS", () => {
         alice,
         await aptos.setTargetAddress({
           name,
-          address: bob.accountAddress.toString(),
+          address: bob.accountAddress,
           sender: alice,
         }),
       );
@@ -369,7 +369,7 @@ describe("ANS", () => {
         alice,
         await aptos.setTargetAddress({
           name,
-          address: bob.accountAddress.toString(),
+          address: bob.accountAddress,
           sender: alice,
         }),
       );
@@ -387,13 +387,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 
@@ -402,7 +402,7 @@ describe("ANS", () => {
     });
 
     test("it returns null if no primary name is set", async () => {
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
       expect(res).toBeFalsy();
     });
 
@@ -413,7 +413,7 @@ describe("ANS", () => {
 
       await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -434,7 +434,7 @@ describe("ANS", () => {
 
       await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -449,13 +449,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 

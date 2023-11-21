@@ -53,7 +53,7 @@ describe("FungibleAsset", () => {
 
   test("it should fetch current fungible asset balance", async () => {
     const userAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: userAccount.accountAddress.toString(), amount: 1_000 });
+    await aptos.fundAccount({ accountAddress: userAccount.accountAddress, amount: 1_000 });
 
     const APT_COIN_TYPE = "0x1::aptos_coin::AptosCoin";
     const data = await aptos.getCurrentFungibleAssetBalances({

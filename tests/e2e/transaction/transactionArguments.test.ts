@@ -80,8 +80,8 @@ describe("various transaction arguments", () => {
     };
 
     const setupData = await aptos.getAccountResource<SetupData>({
-      accountAddress: senderAccount.accountAddress.toString(),
-      resourceType: `${senderAccount.accountAddress.toString()}::tx_args_module::SetupData`,
+      accountAddress: senderAccount.accountAddress,
+      resourceType: `${senderAccount.accountAddress}::tx_args_module::SetupData`,
     });
 
     moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_1.inner));
@@ -481,7 +481,7 @@ describe("various transaction arguments", () => {
   describe("script transactions", () => {
     it("successfully submits a script transaction with all argument types", async () => {
       const rawTransaction = await aptos.build.multiAgentTransaction({
-        sender: senderAccount.accountAddress.toString(),
+        sender: senderAccount.accountAddress,
         data: {
           bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
           functionArguments: [
@@ -500,7 +500,7 @@ describe("various transaction arguments", () => {
             MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]),
           ],
         },
-        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.toString()),
+        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress),
       });
       const senderAuthenticator = await aptos.sign.transaction({ signer: senderAccount, transaction: rawTransaction });
       const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
