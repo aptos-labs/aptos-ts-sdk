@@ -8,12 +8,12 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
+import { AccountAddress, AccountAddressInput, Hex, LegacyEd25519Signer, PublicKey } from "../../core";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
+import { Signer } from "../../core/signer";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
@@ -74,7 +74,6 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**
@@ -410,7 +409,10 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  *
  * @return The signer AccountAuthenticator
  */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function sign(args: {
+  signer: Signer | LegacyEd25519Signer;
+  transaction: AnyRawTransaction;
+}): AccountAuthenticator {
   const { signer, transaction } = args;
 
   const transactionToSign = deriveTransactionType(transaction);
@@ -418,22 +420,12 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
   // get the signing message
   const message = getSigningMessage(transactionToSign);
 
-  // account.signMessage
-  const signerSignature = signer.sign(message);
-
-  // return account authentication
-  switch (signer.signingScheme) {
-    case SigningScheme.Ed25519:
-      return new AccountAuthenticatorEd25519(
-        new Ed25519PublicKey(signer.publicKey.toUint8Array()),
-        new Ed25519Signature(signerSignature.toUint8Array()),
-      );
-    case SigningScheme.SingleKey:
-      return new AccountAuthenticatorSingleKey(signer.publicKey as AnyPublicKey, new AnySignature(signerSignature));
-    // TODO support MultiEd25519
-    default:
-      throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
+  if (signer instanceof LegacyEd25519Signer) {
+    const signature = signer.sign(message);
+    return new AccountAuthenticatorEd25519(signer.publicKey, signature);
   }
+  const signature = signer.sign(message);
+  return new AccountAuthenticatorSingleKey(signer.publicKey, signature);
 }
 
 /**

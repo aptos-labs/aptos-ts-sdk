@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+export * from "./anyPublicKey";
+export * from "./anySignature";
 export * from "./asymmetricCrypto";
 export * from "./ed25519";
 export * from "./multiEd25519";

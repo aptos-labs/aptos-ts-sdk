@@ -62,12 +62,15 @@ export class Secp256k1PublicKey extends PublicKey {
    * @param args.signature The signature
    * @returns true if the signature is valid
    */
-  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
-    const msgHex = Hex.fromHexInput(message).toUint8Array();
-    const sha3Message = sha3_256(msgHex);
-    const rawSignature = signature.toUint8Array();
-    return secp256k1.verify(rawSignature, sha3Message, this.toUint8Array());
+    if (!(signature instanceof Secp256k1Signature)) {
+      return false;
+    }
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const messageSha3Bytes = sha3_256(messageBytes);
+    const signatureBytes = signature.toUint8Array();
+    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array());
   }
 
   serialize(serializer: Serializer): void {
@@ -75,11 +78,6 @@ export class Secp256k1PublicKey extends PublicKey {
   }
 
   static deserialize(deserializer: Deserializer): Secp256k1PublicKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PublicKey(bytes);
-  }
-
-  static load(deserializer: Deserializer): Secp256k1PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1PublicKey(bytes);
   }
@@ -141,9 +139,9 @@ export class Secp256k1PrivateKey extends PrivateKey {
    * @returns Signature
    */
   sign(message: HexInput): Secp256k1Signature {
-    const msgHex = Hex.fromHexInput(message);
-    const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = secp256k1.sign(sha3Message, this.key.toUint8Array());
+    const messageBytes = Hex.fromHexInput(message);
+    const messageHashBytes = sha3_256(messageBytes.toUint8Array());
+    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array());
     return new Secp256k1Signature(signature.toCompactRawBytes());
   }
 
@@ -266,10 +264,5 @@ export class Secp256k1Signature extends Signature {
   static deserialize(deserializer: Deserializer): Secp256k1Signature {
     const hex = deserializer.deserializeBytes();
     return new Secp256k1Signature(hex);
-  }
-
-  static load(deserializer: Deserializer): Secp256k1Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256k1Signature(bytes);
   }
 }

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Aptos, AptosConfig, Network, Signer } from "../../../src";
 import {
   CurrentFungibleAssetBalancesBoolExp,
   FungibleAssetActivitiesBoolExp,
@@ -52,7 +52,7 @@ describe("FungibleAsset", () => {
   });
 
   test("it should fetch current fungible asset balance", async () => {
-    const userAccount = Account.generate();
+    const userAccount = Signer.generate();
     await aptos.fundAccount({ accountAddress: userAccount.accountAddress.toString(), amount: 1_000 });
 
     const APT_COIN_TYPE = "0x1::aptos_coin::AptosCoin";

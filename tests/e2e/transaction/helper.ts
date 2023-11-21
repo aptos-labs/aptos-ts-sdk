@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  Account,
   Aptos,
   UserTransactionResponse,
   TypeTag,
@@ -12,12 +11,14 @@ import {
   SimpleEntryFunctionArgumentTypes,
   MoveVector,
   AnyRawTransaction,
+  LegacyEd25519Signer,
+  Signer,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 export async function publishPackage(
   aptos: Aptos,
-  senderAccount: Account,
+  senderAccount: Signer | LegacyEd25519Signer,
   metadataBytes: HexInput,
   codeBytes: Array<HexInput>,
 ) {
@@ -42,7 +43,7 @@ export async function publishPackage(
 // Instead of funding each account individually, we fund one twice, then send coins from it to the rest
 // This results in 2 fund requests and 1 transaction instead of N fund requests. For running tests,
 // this saves 10-15 seconds each run.
-export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
+export async function fundAccounts(aptos: Aptos, accounts: Array<Signer | LegacyEd25519Signer>) {
   // Fund first account
   const firstAccount = accounts[0];
   // Fund the first account twice to make sure it has enough coins to send to the rest
@@ -80,7 +81,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
 // single signer
 export async function rawTransactionHelper(
   aptos: Aptos,
-  senderAccount: Account,
+  senderAccount: Signer | LegacyEd25519Signer,
   functionName: string,
   typeArgs: TypeTag[],
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
@@ -110,12 +111,12 @@ export async function rawTransactionHelper(
 // multi agent/fee payer
 export const rawTransactionMultiAgentHelper = async (
   aptos: Aptos,
-  senderAccount: Account,
+  senderAccount: Signer | LegacyEd25519Signer,
   functionName: string,
   typeArgs: Array<TypeTag>,
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
-  secondarySignerAccounts: Array<Account>,
-  feePayerAccount?: Account,
+  secondarySignerAccounts: Array<Signer | LegacyEd25519Signer>,
+  feePayerAccount?: Signer | LegacyEd25519Signer,
 ): Promise<UserTransactionResponse> => {
   let transactionData: InputGenerateTransactionData;
   let generatedTransaction: AnyRawTransaction;
@@ -215,7 +216,7 @@ export async function getContractBytecode() {
 
 export async function publishArgumentTestModule(
   aptos: Aptos,
-  senderAccount: Account,
+  senderAccount: Signer | LegacyEd25519Signer,
 ): Promise<UserTransactionResponse> {
   const contractBytecode = await getContractBytecode();
   const response = await publishPackage(aptos, senderAccount, ARGUMENT_TESTS_CONTRACT_METADATA, [contractBytecode]);
@@ -230,7 +231,7 @@ export const multiSignerScriptBytecode =
   // eslint-disable-next-line max-len
   "a11ceb0b060000000701000402040a030e18042608052e4307713e08af01200000000101020401000100030800010403040100010505060100010607040100010708060100000201020202030207060c060c0303050503030b000108010b000108010b0001080101080102060c03010b0001090002070b000109000b000109000002070b000109000302050b000109000a6170746f735f636f696e04636f696e04436f696e094170746f73436f696e087769746864726177056d657267650765787472616374076465706f73697400000000000000000000000000000000000000000000000000000000000000010000011a0b000a0238000c070b010a0338000c080d070b0838010d070b020b03160b061738020c090b040b0738030b050b09380302";
 
-export async function publishTransferPackage(aptos: Aptos, senderAccount: Account) {
+export async function publishTransferPackage(aptos: Aptos, senderAccount: Signer | LegacyEd25519Signer) {
   await publishPackage(
     aptos,
     senderAccount,

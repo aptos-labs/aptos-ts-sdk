@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Aptos, AptosConfig, Network, Signer } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 describe("Event", () => {
@@ -9,7 +9,7 @@ describe("Event", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
-    const testAccount = Account.generate();
+    const testAccount = Signer.generate();
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
 
     const events = await aptos.getAccountEventsByCreationNumber({
@@ -24,7 +24,7 @@ describe("Event", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
-    const testAccount = Account.generate();
+    const testAccount = Signer.generate();
     await aptos.fundAccount({
       accountAddress: testAccount.accountAddress.toString(),
       amount: FUND_AMOUNT,
@@ -42,7 +42,7 @@ describe("Event", () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
-    const testAccount = Account.generate();
+    const testAccount = Signer.generate();
     await aptos.fundAccount({
       accountAddress: testAccount.accountAddress.toString(),
       amount: FUND_AMOUNT,
@@ -59,8 +59,8 @@ describe("Event", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const testAccount1 = Account.generate();
-      const testAccount2 = Account.generate();
+      const testAccount1 = Signer.generate();
+      const testAccount2 = Signer.generate();
       await aptos.fundAccount({
         accountAddress: testAccount1.accountAddress.toString(),
         amount: FUND_AMOUNT,

@@ -1,5 +1,6 @@
+import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { AnyPublicKey } from "./anyPublicKey";
@@ -106,6 +107,13 @@ export class MultiKey extends PublicKey {
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     throw new Error("not implemented");
+  }
+
+  authKey(): AuthenticationKey {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.MultiKey,
+      input: this.bcsToBytes(),
+    });
   }
 
   serialize(serializer: Serializer): void {

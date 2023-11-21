@@ -1,12 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AuthenticationKey } from "../authenticationKey";
 import { PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
@@ -92,6 +93,13 @@ export class MultiEd25519PublicKey extends PublicKey {
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   verifySignature(args: { message: HexInput; signature: MultiEd25519Signature }): boolean {
     throw new Error("TODO - Method not implemented.");
+  }
+
+  authKey() {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.MultiEd25519,
+      input: this.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer): void {

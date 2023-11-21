@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput, LegacyEd25519Signer, Signer } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, MoveValue, OrderBy, PaginationArgs } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
@@ -118,7 +118,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
 
 export interface RegisterNameParameters {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: Signer | LegacyEd25519Signer;
   name: string;
   expiration:
     | { policy: "domain"; years?: 1 }
@@ -254,7 +254,7 @@ export async function getPrimaryName(args: {
 
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: Signer | LegacyEd25519Signer;
   name: string | null;
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
@@ -312,7 +312,7 @@ export async function getTargetAddress(args: {
 
 export async function setTargetAddress(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: Signer | LegacyEd25519Signer;
   name: string;
   address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
@@ -534,7 +534,7 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
 
 export async function renewDomain(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: Signer | LegacyEd25519Signer;
   name: string;
   years?: 1;
   options?: InputGenerateTransactionOptions;

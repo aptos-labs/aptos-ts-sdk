@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { AccountAddress, PrivateKey, Account as AccountModule, AccountAddressInput } from "../core";
+import { AccountAddress, PrivateKey, AccountAddressInput } from "../core";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -20,7 +20,7 @@ import {
   TransactionResponse,
 } from "../types";
 import {
-  deriveAccountFromPrivateKey,
+  deriveSignerFromPrivateKey,
   getAccountCoinsCount,
   getAccountCoinsData,
   getAccountCollectionsWithOwnedTokens,
@@ -360,20 +360,20 @@ export class Account {
   }
 
   /**
-   * Derives an account by providing a private key.
+   * Derives a signer by providing a private key.
    * This functions resolves the provided private key type and derives the public key from it.
    *
-   * If the privateKey is a Secp256k1 type, it derives the account using the derived public key and
+   * If the privateKey is a Secp256k1 type, it derives the signer using the derived public key and
    * auth key using the SingleKey scheme locally.
    *
    * If the privateKey is a ED25519 type, it looks up the authentication key on chain, and uses it to resolve
-   * whether it is a Legacy ED25519 key or a Unified ED25519 key. It then derives the account based
+   * whether it is a Legacy ED25519 key or a Unified ED25519 key. It then derives the signer based
    * on that.
    *
-   * @param args.privateKey An account private key
-   * @returns Account type
+   * @param args.privateKey A signer private key
+   * @returns the derived signer
    */
-  async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
-    return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
+  async deriveSignerFromPrivateKey(args: { privateKey: PrivateKey }) {
+    return deriveSignerFromPrivateKey({ aptosConfig: this.config, ...args });
   }
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "./aptosConfig";
-import { Account, AccountAddressInput, PrivateKey } from "../core";
+import { AccountAddressInput, LegacyEd25519Signer, PrivateKey, Signer } from "../core";
 import { AnyRawTransaction, SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { PendingTransactionResponse, HexInput, TransactionResponse } from "../types";
 import { publicPackageTransaction, rotateAuthKey, signAndSubmitTransaction } from "../internal/transactionSubmission";
@@ -30,7 +30,7 @@ export class TransactionSubmission {
    * @return PendingTransactionResponse
    */
   async signAndSubmitTransaction(args: {
-    signer: Account;
+    signer: Signer | LegacyEd25519Signer;
     transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
@@ -73,7 +73,10 @@ export class TransactionSubmission {
    *
    * @returns PendingTransactionResponse
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
+  async rotateAuthKey(args: {
+    fromSigner: Signer | LegacyEd25519Signer;
+    toNewPrivateKey: PrivateKey;
+  }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 }
