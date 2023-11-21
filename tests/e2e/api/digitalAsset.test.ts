@@ -27,9 +27,13 @@ async function setupCollection(): Promise<string> {
     name: collectionName,
     uri: collectionUri,
   });
-  const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
-  const data = await aptos.getCollectionData({ collectionName, creatorAddress });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+  const data = await aptos.getCollectionData({
+    collectionName,
+    creatorAddress,
+    minimumLedgerVersion: BigInt(response.version),
+  });
   return data.collection_id;
 }
 
@@ -41,11 +45,12 @@ async function setupToken(): Promise<string> {
     name: tokenName,
     uri: tokenUri,
   });
-  const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
       ownerAddress: creator.accountAddress.toString(),
+      minimumLedgerVersion: BigInt(response.version),
     })
   )[0].current_token_data?.token_data_id!;
 }

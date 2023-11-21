@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
 } from "../types";
-import { AptosConfig } from "./aptosConfig";
 import {
   getCurrentFungibleAssetBalances,
   getFungibleAssetActivities,
@@ -18,31 +18,37 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
+import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.
  */
 export class FungibleAsset {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
+  constructor(readonly config: AptosConfig) {}
 
   /**
    * Queries the current fungible asset metadata.
    *
    * This query returns the fungible asset metadata for all fungible assets.
    * It can be filtered by creator address and asset type.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
    * @returns getFungibleAssetMetadata A list of fungible asset metadata
    */
   async getFungibleAssetMetadata(args?: {
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: FungibleAssetMetadataBoolExp;
     };
   }): Promise<GetFungibleAssetMetadataResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+    });
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
   }
 
@@ -51,6 +57,7 @@ export class FungibleAsset {
    *
    * This query returns the fungible asset metadata for a specific fungible asset.
    *
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param assetType The asset type of the fungible asset.
    * e.g
    * "0x1::aptos_coin::AptosCoin" for Aptos Coin
@@ -58,12 +65,20 @@ export class FungibleAsset {
    *
    * @returns getFungibleAssetMetadata A fungible asset metadata item
    */
-  async getFungibleAssetMetadataByAssetType(assetType: string): Promise<GetFungibleAssetMetadataResponse[0]> {
+  async getFungibleAssetMetadataByAssetType(args: {
+    assetType: string;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<GetFungibleAssetMetadataResponse[0]> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+    });
     const data = await getFungibleAssetMetadata({
       aptosConfig: this.config,
       options: {
         where: {
-          asset_type: { _eq: assetType },
+          asset_type: { _eq: args.assetType },
         },
       },
     });
@@ -76,15 +91,22 @@ export class FungibleAsset {
    *
    * This query returns the fungible asset activities.
    * It can be filtered by owner address, asset type, and type.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
    * @returns GetFungibleAssetActivitiesResponse A list of fungible asset metadata
    */
   async getFungibleAssetActivities(args?: {
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: FungibleAssetActivitiesBoolExp;
     };
   }): Promise<GetFungibleAssetActivitiesResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+    });
     return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
   }
 
@@ -93,15 +115,22 @@ export class FungibleAsset {
    *
    * This query returns the fungible asset balance.
    * It can be filtered by owner address, and asset type
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
    * @returns GetCurrentFungibleAssetBalancesResponse A list of fungible asset metadata
    */
   async getCurrentFungibleAssetBalances(args?: {
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       pagination?: PaginationArgs;
       where?: CurrentFungibleAssetBalancesBoolExp;
     };
   }): Promise<GetCurrentFungibleAssetBalancesResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+    });
     return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
   }
 }

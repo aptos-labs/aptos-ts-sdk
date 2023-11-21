@@ -380,8 +380,8 @@ export const GetNumberOfDelegators = `
 }
     `;
 export const GetProcessorStatus = `
-    query getProcessorStatus {
-  processor_status {
+    query getProcessorStatus($where_condition: processor_status_bool_exp) {
+  processor_status(where: $where_condition) {
     last_success_version
     processor
     last_updated

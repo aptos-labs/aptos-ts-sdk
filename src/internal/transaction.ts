@@ -18,11 +18,12 @@ import {
   type PaginationArgs,
   type TransactionResponse,
   WaitForTransactionOptions,
+  CommittedTransactionResponse,
 } from "../types";
-import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
+import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
 import { sleep } from "../utils/helpers";
 import { memoizeAsync } from "../utils/memoize";
-import { getIndexerLastSuccessVersion } from "./general";
+import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
 
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -100,11 +101,10 @@ export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
   options?: WaitForTransactionOptions;
-}): Promise<TransactionResponse> {
+}): Promise<CommittedTransactionResponse> {
   const { aptosConfig, transactionHash, options } = args;
   const timeoutSecs = options?.timeoutSecs ?? DEFAULT_TXN_TIMEOUT_SEC;
   const checkSuccess = options?.checkSuccess ?? true;
-  const indexerVersionCheck = options?.indexerVersionCheck ?? true;
 
   let isPending = true;
   let timeElapsed = 0;
@@ -172,44 +172,41 @@ export async function waitForTransaction(args: {
     );
   }
 
-  // Make sure indexer is synced with the latest ledger version
-  if (indexerVersionCheck) {
-    try {
-      await waitForLastSuccessIndexerVersionSync({ aptosConfig, ledgerVersion: Number(lastTxn.version) });
-    } catch (_e) {
-      throw new WaitForTransactionError(
-        // eslint-disable-next-line max-len
-        `Transaction ${transactionHash} committed, but timed out waiting for indexer to sync with ledger version ${lastTxn.version}.` +
-          "You can disable this check by setting `indexerVersionCheck` to false in the `extraArgs` parameter.",
-        lastTxn,
-      );
-    }
-  }
-
   return lastTxn;
 }
 
 /**
  * Waits for the indexer to sync up to the ledgerVersion. Timeout is 3 seconds.
  */
-async function waitForLastSuccessIndexerVersionSync(args: {
+export async function waitForIndexer(args: {
   aptosConfig: AptosConfig;
-  ledgerVersion: number;
+  minimumLedgerVersion: AnyNumber;
+  processorType?: ProcessorType;
 }): Promise<void> {
-  const { aptosConfig, ledgerVersion } = args;
+  const { aptosConfig, processorType } = args;
+  const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
   const timeoutMilliseconds = 3000; // 3 seconds
   const startTime = new Date().getTime();
   let indexerVersion = -1;
 
-  while (indexerVersion < ledgerVersion) {
+  while (indexerVersion < minimumLedgerVersion) {
     // check for timeout
     if (new Date().getTime() - startTime > timeoutMilliseconds) {
       throw new Error("waitForLastSuccessIndexerVersionSync timeout");
     }
 
-    // eslint-disable-next-line no-await-in-loop
-    indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
-    if (indexerVersion >= ledgerVersion) {
+    if (processorType === undefined) {
+      // Get the last success version from all processor
+      // eslint-disable-next-line no-await-in-loop
+      indexerVersion = await getIndexerLastSuccessVersion({ aptosConfig });
+    } else {
+      // Get the last success version from the specific processor
+      // eslint-disable-next-line no-await-in-loop
+      const processor = await getProcessorStatus({ aptosConfig, processorType });
+      indexerVersion = processor.last_success_version;
+    }
+
+    if (indexerVersion >= minimumLedgerVersion) {
       // break out immediately if we are synced
       break;
     }

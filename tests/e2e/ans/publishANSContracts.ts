@@ -79,11 +79,11 @@ export async function publishAnsContract(
 
     // 2. Fund ANS account.
     console.log("---funding account---");
-    const fundHash = await aptos.fundAccount({
+    const fundTxn = await aptos.fundAccount({
       accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
       amount: 100_000_000_000,
     });
-    await aptos.waitForTransaction({ transactionHash: fundHash });
+    await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
     console.log(`Test account funded ${LOCAL_ANS_ACCOUNT_ADDRESS}`);
 
     // 3. Publish the ANS modules under the ANS account.

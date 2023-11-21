@@ -1,45 +1,59 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig } from "./aptosConfig";
 import {
   getDelegatedStakingActivities,
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
 } from "../internal/staking";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
 import { AccountAddressInput } from "../core";
+import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Staking` related queries on Aptos.
  */
 export class Staking {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
+  constructor(readonly config: AptosConfig) {}
 
   /**
    * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
    * @param args.poolAddress Pool address
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns The number of delegators for the given pool
    */
-  async getNumberOfDelegators(args: { poolAddress: AccountAddressInput }): Promise<number> {
+  async getNumberOfDelegators(args: {
+    poolAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<number> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+    });
     return getNumberOfDelegators({ aptosConfig: this.config, ...args });
   }
 
   /**
    * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetNumberOfDelegatorsForAllPoolsResponse response type
    */
   async getNumberOfDelegatorsForAllPools(args?: {
+    minimumLedgerVersion?: AnyNumber;
     options?: {
       orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
     };
   }): Promise<GetNumberOfDelegatorsResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+    });
     return getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
   }
 
@@ -48,12 +62,19 @@ export class Staking {
    *
    * @param args.delegatorAddress Delegator address
    * @param args.poolAddress Pool address
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetDelegatedStakingActivitiesResponse response type
    */
   async getDelegatedStakingActivities(args: {
     delegatorAddress: AccountAddressInput;
     poolAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
   }): Promise<GetDelegatedStakingActivitiesResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+    });
     return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
   }
 }

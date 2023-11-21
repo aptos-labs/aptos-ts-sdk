@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosFaucet } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { WaitForTransactionOptions } from "../types";
+import { TransactionResponseType, UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";
 
@@ -20,7 +20,7 @@ export async function fundAccount(args: {
   accountAddress: AccountAddressInput;
   amount: number;
   options?: WaitForTransactionOptions;
-}): Promise<string> {
+}): Promise<UserTransactionResponse> {
   const { aptosConfig, accountAddress, amount, options } = args;
   const timeout = options?.timeoutSecs || DEFAULT_TXN_TIMEOUT_SEC;
   const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
@@ -35,15 +35,19 @@ export async function fundAccount(args: {
 
   const txnHash = data.txn_hashes[0];
 
-  await waitForTransaction({
+  const res = await waitForTransaction({
     aptosConfig,
     transactionHash: txnHash,
     options: {
       timeoutSecs: timeout,
       checkSuccess: options?.checkSuccess,
-      indexerVersionCheck: options?.indexerVersionCheck,
     },
   });
 
-  return txnHash;
+  // Response is always User transaction for a user submitted transaction
+  if (res.type === TransactionResponseType.User) {
+    return res as UserTransactionResponse;
+  }
+
+  throw new Error(`Unexpected transaction received for fund account: ${res.type}`);
 }

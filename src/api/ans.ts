@@ -30,11 +30,7 @@ import { AptosConfig } from "./aptosConfig";
  * A class to handle all `ANS` operations
  */
 export class ANS {
-  readonly config: AptosConfig;
-
-  constructor(config: AptosConfig) {
-    this.config = config;
-  }
+  constructor(readonly config: AptosConfig) {}
 
   /**
    * Retrieve the owner address of a domain name or subdomain name from the contract.
