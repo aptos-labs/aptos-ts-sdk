@@ -8,13 +8,16 @@ import {
 } from "../internal/staking";
 import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
 import { AccountAddressInput } from "../core";
-import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Staking` related queries on Aptos.
  */
-export class Staking extends Api {
+export class Staking {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
@@ -26,9 +29,10 @@ export class Staking extends Api {
     poolAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.STAKE_PROCESSOR,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
     });
     return getNumberOfDelegators({ aptosConfig: this.config, ...args });
   }
@@ -45,9 +49,10 @@ export class Staking extends Api {
       orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
     };
   }): Promise<GetNumberOfDelegatorsResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.STAKE_PROCESSOR,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
     });
     return getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
   }
@@ -65,9 +70,10 @@ export class Staking extends Api {
     poolAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetDelegatedStakingActivitiesResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.STAKE_PROCESSOR,
+      processorTypes: [ProcessorType.STAKE_PROCESSOR],
     });
     return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
   }

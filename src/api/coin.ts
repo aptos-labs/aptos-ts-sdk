@@ -5,12 +5,14 @@ import { Account, AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
-import { Api } from "./api";
+import { AptosConfig } from "./aptosConfig";
 
 /**
  * A class to handle all `Coin` operations
  */
-export class Coin extends Api {
+export class Coin {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Generate a transfer coin transaction that can be simulated and/or signed and submitted
    *

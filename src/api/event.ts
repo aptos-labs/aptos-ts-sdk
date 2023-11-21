@@ -5,13 +5,16 @@ import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvent
 import { AnyNumber, GetEventsResponse, MoveStructId, OrderBy, PaginationArgs } from "../types";
 import { EventsBoolExp } from "../types/generated/types";
 import { AccountAddressInput } from "../core";
-import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Event` Aptos related queries
  */
-export class Event extends Api {
+export class Event {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Get events by creation number and an account address
    *
@@ -26,9 +29,10 @@ export class Event extends Api {
     creationNumber: AnyNumber;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetEventsResponse> {
-    await this.waitForIndexer({
-      minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.EVENTS_PROCESSOR,
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
     });
     return getAccountEventsByCreationNumber({ aptosConfig: this.config, ...args });
   }
@@ -51,9 +55,10 @@ export class Event extends Api {
       orderBy?: OrderBy<GetEventsResponse[0]>;
     };
   }): Promise<GetEventsResponse> {
-    await this.waitForIndexer({
-      minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.EVENTS_PROCESSOR,
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
     });
     return getAccountEventsByEventType({ aptosConfig: this.config, ...args });
   }
@@ -82,9 +87,10 @@ export class Event extends Api {
       orderBy?: OrderBy<GetEventsResponse[0]>;
     };
   }): Promise<GetEventsResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.EVENTS_PROCESSOR,
+      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
     });
     return getEvents({ aptosConfig: this.config, ...args });
   }

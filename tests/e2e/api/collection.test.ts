@@ -33,7 +33,7 @@ describe("Collection", () => {
     const data = await aptos.getCollectionData({
       collectionName,
       creatorAddress,
-      minimumLedgerVersion: response.version,
+      minimumLedgerVersion: BigInt(response.version),
     });
 
     expect(data.collection_name).toEqual(collectionName);

@@ -45,7 +45,7 @@ async function setupToken(): Promise<string> {
   return (
     await aptos.getOwnedTokens({
       ownerAddress: creator.accountAddress.toString(),
-      minimumLedgerVersion: response.version,
+      minimumLedgerVersion: BigInt(response.version),
     })
   )[0].current_token_data?.token_data_id!;
 }

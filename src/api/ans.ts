@@ -24,12 +24,14 @@ import {
 } from "../internal/ans";
 import { GetANSNameResponse, MoveAddressType } from "../types";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
-import { Api } from "./api";
+import { AptosConfig } from "./aptosConfig";
 
 /**
  * A class to handle all `ANS` operations
  */
-export class ANS extends Api {
+export class ANS {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Retrieve the owner address of a domain name or subdomain name from the contract.
    *

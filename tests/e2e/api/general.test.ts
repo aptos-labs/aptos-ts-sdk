@@ -213,11 +213,11 @@ describe("general api", () => {
     });
   });
 
-  test("it should get the processor statuses", async () => {
+  test("it should get the processor statuses for one", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
 
     const processor = await aptos.getProcessorStatus(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
-    expect(processor.processor).toEqual(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR.valueOf());
+    expect(processor.processor).toEqual(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
   });
 });

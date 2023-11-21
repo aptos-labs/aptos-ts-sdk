@@ -18,13 +18,16 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
-import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.
  */
-export class FungibleAsset extends Api {
+export class FungibleAsset {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Queries the current fungible asset metadata.
    *
@@ -41,9 +44,10 @@ export class FungibleAsset extends Api {
       where?: FungibleAssetMetadataBoolExp;
     };
   }): Promise<GetFungibleAssetMetadataResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
     });
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
   }
@@ -65,9 +69,10 @@ export class FungibleAsset extends Api {
     assetType: string;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetFungibleAssetMetadataResponse[0]> {
-    await this.waitForIndexer({
-      minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
     });
     const data = await getFungibleAssetMetadata({
       aptosConfig: this.config,
@@ -97,9 +102,10 @@ export class FungibleAsset extends Api {
       where?: FungibleAssetActivitiesBoolExp;
     };
   }): Promise<GetFungibleAssetActivitiesResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
     });
     return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
   }
@@ -120,9 +126,10 @@ export class FungibleAsset extends Api {
       where?: CurrentFungibleAssetBalancesBoolExp;
     };
   }): Promise<GetCurrentFungibleAssetBalancesResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
     });
     return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
   }

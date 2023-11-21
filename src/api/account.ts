@@ -37,13 +37,16 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Account` related queries on Aptos.
  */
-export class Account extends Api {
+export class Account {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Queries the current state for an Aptos account given its account address
    *
@@ -191,10 +194,12 @@ export class Account extends Api {
     minimumLedgerVersion?: AnyNumber;
     options?: LedgerVersion;
   }): Promise<AccountAddress> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
+
     return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -209,9 +214,10 @@ export class Account extends Api {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountTokensCount({
       aptosConfig: this.config,
@@ -242,9 +248,10 @@ export class Account extends Api {
       orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensQueryResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountOwnedTokens({
       aptosConfig: this.config,
@@ -277,9 +284,10 @@ export class Account extends Api {
       orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
     };
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountOwnedTokensFromCollectionAddress({
       aptosConfig: this.config,
@@ -310,9 +318,10 @@ export class Account extends Api {
       orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
     };
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountCollectionsWithOwnedTokens({
       aptosConfig: this.config,
@@ -331,9 +340,10 @@ export class Account extends Api {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountTransactionsCount({
       aptosConfig: this.config,
@@ -359,9 +369,10 @@ export class Account extends Api {
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
     };
   }): Promise<GetAccountCoinsDataResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountCoinsData({
       aptosConfig: this.config,
@@ -380,9 +391,10 @@ export class Account extends Api {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountCoinsCount({ aptosConfig: this.config, ...args });
   }
@@ -405,9 +417,10 @@ export class Account extends Api {
       orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
     };
   }): Promise<GetAccountOwnedObjectsResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
     return getAccountOwnedObjects({
       aptosConfig: this.config,

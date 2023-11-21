@@ -4,12 +4,15 @@
 import { fundAccount } from "../internal/faucet";
 import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
-import { Api } from "./api";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexer } from "../internal/transaction";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
  */
-export class Faucet extends Api {
+export class Faucet {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * This creates an account if it does not exist and mints the specified amount of
    * coins into that account
@@ -24,10 +27,10 @@ export class Faucet extends Api {
     amount: number;
     options?: WaitForTransactionOptions;
   }): Promise<UserTransactionResponse> {
-    const fundTxn = fundAccount({ aptosConfig: this.config, ...args });
+    const fundTxn = await fundAccount({ aptosConfig: this.config, ...args });
 
     if (args.options?.waitForIndexer !== false) {
-      await this.waitForIndexer({ minimumLedgerVersion: BigInt((await fundTxn).version) });
+      await waitForIndexer({ aptosConfig: this.config, minimumLedgerVersion: BigInt(fundTxn.version) });
     }
 
     return fundTxn;

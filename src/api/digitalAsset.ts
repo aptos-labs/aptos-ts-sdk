@@ -25,13 +25,16 @@ import {
   getTokenData,
   mintTokenTransaction,
 } from "../internal/digitalAsset";
-import { Api } from "./api";
 import { ProcessorType } from "../utils/const";
+import { AptosConfig } from "./aptosConfig";
+import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.
  */
-export class DigitalAsset extends Api {
+export class DigitalAsset {
+  constructor(readonly config: AptosConfig) {}
+
   /**
    * Creates a new collection within the specified account
    *
@@ -89,9 +92,10 @@ export class DigitalAsset extends Api {
       tokenStandard?: TokenStandard;
     };
   }): Promise<GetCollectionDataResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      processorTypes: getTokenProcessorTypes(args.options?.tokenStandard),
     });
     return getCollectionData({ aptosConfig: this.config, ...args });
   }
@@ -116,9 +120,10 @@ export class DigitalAsset extends Api {
       tokenStandard?: TokenStandard;
     };
   }): Promise<string> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      processorTypes: getTokenProcessorTypes(args.options?.tokenStandard),
     });
     return getCollectionId({ aptosConfig: this.config, ...args });
   }
@@ -156,9 +161,11 @@ export class DigitalAsset extends Api {
     tokenAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetTokenDataResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      // TODO(greg): Should take in a consistent input for token queries
+      processorTypes: getTokenProcessorTypes(undefined),
     });
     return getTokenData({ aptosConfig: this.config, ...args });
   }
@@ -174,9 +181,11 @@ export class DigitalAsset extends Api {
     tokenAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetCurrentTokenOwnershipResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      // TODO(greg): Should take in a consistent input for token queries
+      processorTypes: getTokenProcessorTypes(undefined),
     });
     return getCurrentTokenOwnership({ aptosConfig: this.config, ...args });
   }
@@ -196,9 +205,11 @@ export class DigitalAsset extends Api {
       orderBy?: OrderBy<GetOwnedTokensResponse[0]>;
     };
   }): Promise<GetOwnedTokensResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      // TODO(greg): Should take in a consistent input for token queries
+      processorTypes: getTokenProcessorTypes(undefined),
     });
     return getOwnedTokens({ aptosConfig: this.config, ...args });
   }
@@ -218,10 +229,24 @@ export class DigitalAsset extends Api {
       orderBy?: OrderBy<GetTokenActivityResponse[0]>;
     };
   }): Promise<GetTokenActivityResponse> {
-    await this.waitForIndexer({
+    await waitForIndexerOnVersion({
+      config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.TOKEN_PROCESSOR,
+      // TODO(greg): Should take in a consistent input for token queries
+      processorTypes: getTokenProcessorTypes(undefined),
     });
     return getTokenActivity({ aptosConfig: this.config, ...args });
+  }
+}
+
+function getTokenProcessorTypes(tokenStandard?: TokenStandard) {
+  switch (tokenStandard) {
+    case "v1":
+      return [ProcessorType.TOKEN_PROCESSOR];
+    case "v2":
+      return [ProcessorType.TOKEN_V2_PROCESSOR];
+    default:
+      // If it's something we don't recognize, or undefined, just do both
+      return [ProcessorType.TOKEN_PROCESSOR, ProcessorType.TOKEN_V2_PROCESSOR];
   }
 }
