@@ -256,7 +256,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     if (input.length !== AccountAddress.LONG_STRING_LENGTH + 2) {
       if (!address.isSpecial()) {
         throw new ParsingError(
-          `The given hex string ${address} is not a special address, it must be represented as 0x + 64 chars.`,
+          `The given hex string ${input} is not a special address, it must be represented as 0x + 64 chars.`,
           AddressInvalidReason.LONG_FORM_REQUIRED_UNLESS_SPECIAL,
         );
       } else if (input.length !== 3) {
