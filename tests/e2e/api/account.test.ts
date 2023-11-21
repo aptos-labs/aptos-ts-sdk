@@ -22,7 +22,7 @@ describe("account api", () => {
       const aptos = new Aptos(config);
       await expect(async () => aptos.getAccountInfo({ accountAddress: "0x123" })).rejects.toThrow(
         // eslint-disable-next-line max-len
-        "The given hex string 0x0000000000000000000000000000000000000000000000000000000000000123 is not a special address, it must be represented as 0x + 64 chars.",
+        "The given hex string 0x123 is not a special address, it must be represented as 0x + 64 chars.",
       );
     });
   });
