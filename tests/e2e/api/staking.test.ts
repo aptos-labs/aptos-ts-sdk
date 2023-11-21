@@ -20,7 +20,7 @@ describe("staking api", () => {
     expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator);
   });
 
-  test("it throws if the poolAddress does not exist", async () => {
+  test("it returns 0 if the poolAddress does not exist", async () => {
     const config = new AptosConfig({ network: Network.DEVNET });
     const aptos = new Aptos(config);
     const badAddress = "0x12345678901234567850020dfd67646b1e46282999483e7064e70f02f7e12345";
