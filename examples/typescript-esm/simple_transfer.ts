@@ -88,7 +88,7 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.from(bob.accountAddress), TRANSFER_AMOUNT],
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 
