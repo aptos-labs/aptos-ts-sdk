@@ -90,9 +90,9 @@ export class ANS {
    * point to addresses that are not the owner of the name
    *
    * ```ts
-   * await aptos.setTargetAddress({sender: alice, name: "test.aptos", address: bob.accountAddress.toString})
+   * await aptos.setTargetAddress({sender: alice, name: "test.aptos", address: bob.accountAddress})
    * const address = await aptos.getTargetAddress({name: "test.aptos"})
-   * // address = bob.accountAddress.toString()
+   * // address = bob.accountAddress
    * ```
    *
    * @param args.name - A string of the name: test.aptos.apt, test.apt, test, test.aptos, etc.
@@ -115,7 +115,7 @@ export class ANS {
    * account also may not have a primary name.
    *
    * ```ts
-   * const name = await aptos.getPrimaryName({address: alice.accountAddress.toString()})
+   * const name = await aptos.getPrimaryName({address: alice.accountAddress})
    * // name = test.aptos
    * ```
    *
@@ -134,7 +134,7 @@ export class ANS {
    *
    * ```ts
    * await aptos.setPrimaryName({sender: alice, name: "test.aptos"})
-   * const primaryName = await aptos.getPrimaryName({address: alice.accountAddress.toString()})
+   * const primaryName = await aptos.getPrimaryName({address: alice.accountAddress})
    * // primaryName = test.aptos
    * ```
    *

@@ -12,7 +12,6 @@ import {
   Network,
   NetworkToNetworkName,
   parseTypeTag,
-  U64,
 } from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
@@ -89,7 +88,7 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
+      functionArguments: [AccountAddress.from(bob.accountAddress), TRANSFER_AMOUNT],
     },
   });
 

@@ -13,7 +13,7 @@ const aptos = new Aptos(config);
 describe("Collection", () => {
   test("it creates a new collection on chain and fetches its data", async () => {
     const creator = Account.generate();
-    const creatorAddress = creator.accountAddress.toString();
+    const creatorAddress = creator.accountAddress;
     const collectionName = "Aptos Test NFT Collection";
     const collectionDescription = "My new collection!";
     const collectionUri = "https://aptos.dev";
@@ -37,7 +37,7 @@ describe("Collection", () => {
     });
 
     expect(data.collection_name).toEqual(collectionName);
-    expect(data.creator_address).toEqual(creatorAddress);
+    expect(data.creator_address).toEqual(creatorAddress.toString());
     expect(data.description).toEqual(collectionDescription);
     expect(data.uri).toEqual(collectionUri);
     expect(data.current_supply).toEqual(0);

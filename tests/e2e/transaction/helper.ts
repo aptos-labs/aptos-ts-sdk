@@ -22,7 +22,7 @@ export async function publishPackage(
   codeBytes: Array<HexInput>,
 ) {
   const rawTransaction = await aptos.publishPackageTransaction({
-    account: senderAccount.accountAddress.toString(),
+    account: senderAccount.accountAddress,
     metadataBytes,
     moduleBytecode: codeBytes,
   });
@@ -46,14 +46,14 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   // Fund first account
   const firstAccount = accounts[0];
   // Fund the first account twice to make sure it has enough coins to send to the rest
-  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress, amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress, amount: FUND_AMOUNT });
   // Get the addresses for `accounts[1..n]`
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send coins from `account[0]` to `account[1..n]`
   const transaction = await aptos.build.transaction({
-    sender: firstAccount.accountAddress.toString(),
+    sender: firstAccount.accountAddress,
     data: {
       function: "0x1::aptos_account::batch_transfer",
       functionArguments: [
@@ -86,9 +86,9 @@ export async function rawTransactionHelper(
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
   const rawTransaction = await aptos.build.transaction({
-    sender: senderAccount.accountAddress.toString(),
+    sender: senderAccount.accountAddress,
     data: {
-      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+      function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
       functionArguments: args,
     },
@@ -122,9 +122,9 @@ export const rawTransactionMultiAgentHelper = async (
   // Fee payer
   if (feePayerAccount) {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },
@@ -134,9 +134,9 @@ export const rawTransactionMultiAgentHelper = async (
     generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else if (secondarySignerAccounts) {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },
@@ -145,9 +145,9 @@ export const rawTransactionMultiAgentHelper = async (
     generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },

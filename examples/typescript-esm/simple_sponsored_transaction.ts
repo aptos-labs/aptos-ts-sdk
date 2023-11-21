@@ -6,7 +6,7 @@
  * with a sponsor account to pay for the gas fee
  */
 import "dotenv";
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName, U64 } from "@aptos-labs/ts-sdk";
+import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
@@ -63,7 +63,7 @@ const example = async () => {
     withFeePayer: true,
     data: {
       function: "0x1::aptos_account::transfer",
-      functionArguments: [bob.accountAddress, new U64(TRANSFER_AMOUNT)],
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 

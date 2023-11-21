@@ -1,7 +1,7 @@
 .aptos/
 .DS_Store
 */**/.DS_Store
-.env/
+.env
 .history/
 .idea/
 .npm/

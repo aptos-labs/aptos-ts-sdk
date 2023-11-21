@@ -247,10 +247,8 @@ export async function getAccountTokensCount(args: {
     query: graphqlQuery,
     originMethod: "getAccountTokensCount",
   });
-  if (!data.current_token_ownerships_v2_aggregate.aggregate) {
-    throw Error("Failed to get the count of account tokens");
-  }
-  return data.current_token_ownerships_v2_aggregate.aggregate.count;
+
+  return data.current_token_ownerships_v2_aggregate.aggregate?.count ?? 0;
 }
 
 export async function getAccountOwnedTokens(args: {
@@ -407,11 +405,7 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  if (!data.account_transactions_aggregate.aggregate) {
-    throw Error("Failed to get the count of account transactions");
-  }
-
-  return data.account_transactions_aggregate.aggregate.count;
+  return data.account_transactions_aggregate.aggregate?.count ?? 0;
 }
 
 export async function getAccountCoinsData(args: {

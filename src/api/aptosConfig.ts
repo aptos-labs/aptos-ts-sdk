@@ -10,11 +10,11 @@ import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
  * This class holds the config information for the SDK client instance.
  */
 export class AptosConfig {
-  /** The Network that this SDK is associated with. */
+  /** The Network that this SDK is associated with. Defaults to DEVNET */
   readonly network: Network;
 
   /**
-   * The client instance the SDK uses
+   * The client instance the SDK uses. Defaults to `@aptos-labs/aptos-client
    */
   readonly client: Client;
 

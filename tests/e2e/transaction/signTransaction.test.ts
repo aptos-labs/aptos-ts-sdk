@@ -35,7 +35,7 @@ describe("sign transaction", () => {
     describe("Single Sender ED25519", () => {
       test("it signs a script transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerED25519SenderAccount.accountAddress.toString(),
+          sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
@@ -52,9 +52,9 @@ describe("sign transaction", () => {
       });
       test("it signs an entry function transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerED25519SenderAccount.accountAddress.toString(),
+          sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -69,10 +69,10 @@ describe("sign transaction", () => {
       });
       test("it signs a multi sig transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerED25519SenderAccount.accountAddress.toString(),
+          sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -89,7 +89,7 @@ describe("sign transaction", () => {
     describe("Single Sender Secp256k1", () => {
       test("it signs a script transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerSecp256k1Account.accountAddress.toString(),
+          sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
@@ -106,9 +106,9 @@ describe("sign transaction", () => {
       });
       test("it signs an entry function transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerSecp256k1Account.accountAddress.toString(),
+          sender: singleSignerSecp256k1Account.accountAddress,
           data: {
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -123,10 +123,10 @@ describe("sign transaction", () => {
       });
       test("it signs a multi sig transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: singleSignerSecp256k1Account.accountAddress.toString(),
+          sender: singleSignerSecp256k1Account.accountAddress,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -143,7 +143,7 @@ describe("sign transaction", () => {
     describe("Legacy ED25519", () => {
       test("it signs a script transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: legacyED25519SenderAccount.accountAddress.toString(),
+          sender: legacyED25519SenderAccount.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
@@ -160,9 +160,9 @@ describe("sign transaction", () => {
       });
       test("it signs an entry function transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: legacyED25519SenderAccount.accountAddress.toString(),
+          sender: legacyED25519SenderAccount.accountAddress,
           data: {
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -177,10 +177,10 @@ describe("sign transaction", () => {
       });
       test("it signs a multi sig transaction", async () => {
         const rawTxn = await aptos.build.transaction({
-          sender: legacyED25519SenderAccount.accountAddress.toString(),
+          sender: legacyED25519SenderAccount.accountAddress,
           data: {
             multisigAddress: secondarySignerAccount.accountAddress,
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });
@@ -197,9 +197,9 @@ describe("sign transaction", () => {
     describe("validate fee payer data on sign transaction", () => {
       test("it fails to sign transaction as fee payer if transaction is not a fee payer transaction", async () => {
         const transaction = await aptos.build.transaction({
-          sender: legacyED25519SenderAccount.accountAddress.toString(),
+          sender: legacyED25519SenderAccount.accountAddress,
           data: {
-            function: `${contractPublisherAccount.accountAddress.toString()}::transfer::transfer`,
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
             functionArguments: [1, receiverAccounts[0].accountAddress],
           },
         });

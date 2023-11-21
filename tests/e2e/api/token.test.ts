@@ -21,7 +21,7 @@ const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection() {
-  await aptos.fundAccount({ accountAddress: creator.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
   const transaction = await aptos.createCollectionTransaction({
     creator,
     description: collectionDescription,
