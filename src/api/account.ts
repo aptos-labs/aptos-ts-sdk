@@ -167,7 +167,7 @@ export class Account {
    * @example An example of an account resource
    * ```
    * {
-   *    data: { value: 6 }
+   *    value: 6
    * }
    * ```
    */
