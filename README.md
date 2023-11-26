@@ -1,8 +1,21 @@
 # Typescript SDK for Aptos
 
+![License][github-license]
 [![Discord][discord-image]][discord-url]
-[![NPM Package Version][npm-image-version]][npm-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
+
+### Latest Version
+[![NPM Package Version][npm-image-version]][npm-url]
+![Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk)
+![NPM bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk)
+
+### Experimental Development Version
+[![NPM Experimental Version](https://img.shields.io/npm/v/%40aptos-labs/ts-sdk/experimental)][experimental-url]
+![Experimental Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk/experimental)
+![Experimental bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk/experimental
+)
+
+
 
 > **This library is experimental**. Therefore, the API is unstable and may change without warning.
 
@@ -164,5 +177,8 @@ If neither of these describes what you would like to contribute, checkout out th
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg
 [npm-url]: https://npmjs.org/package/@aptos-labs/ts-sdk
+[experimental-url]: https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/experimental
 [discord-image]: https://img.shields.io/discord/945856774056083548?label=Discord&logo=discord&style=flat~~~~
+[discord-url]: https://discord.gg/aptosnetwork
+[github-license]: https://img.shields.io/github/license/aptos-labs/aptos-ts-sdk
 [discord-url]: https://discord.gg/aptosnetwork
