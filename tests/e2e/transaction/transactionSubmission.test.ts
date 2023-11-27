@@ -13,10 +13,7 @@ import {
 } from "../../../src";
 import { MultiKey } from "../../../src/core/crypto/multiKey";
 import { waitForTransaction } from "../../../src/internal/transaction";
-import {
-  AccountAuthenticatorMultiKey,
-  AccountAuthenticatorSingleKey,
-} from "../../../src/transactions/authenticator/account";
+import { AccountAuthenticatorMultiKey } from "../../../src/transactions/authenticator/account";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
@@ -647,13 +644,13 @@ describe("transaction submission", () => {
       const account1Authenticator = aptos.sign.transaction({ signer: singleSignerED25519SenderAccount, transaction });
       const account3Authenticator = aptos.sign.transaction({ signer: singleSignerSecp256k1Account, transaction });
 
+      if (!(account1Authenticator.isSingleKey() && account3Authenticator.isSingleKey())) {
+        throw new Error("Both AccountAuthenticators should be an instance of AccountAuthenticatorSingleKey");
+      }
+
       const multiKeyAuth = new AccountAuthenticatorMultiKey(
         multiKey,
-        [
-          // TODO find a fix
-          (account1Authenticator as AccountAuthenticatorSingleKey).signature,
-          (account3Authenticator as AccountAuthenticatorSingleKey).signature,
-        ],
+        [account1Authenticator.signature, account3Authenticator.signature],
         bitmap,
       );
 

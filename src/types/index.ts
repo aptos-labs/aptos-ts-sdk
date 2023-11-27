@@ -298,6 +298,30 @@ export type CommittedTransactionResponse =
   | BlockMetadataTransactionResponse
   | StateCheckpointTransactionResponse;
 
+export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
+  return response.type === TransactionResponseType.Pending;
+}
+
+export function isUserTransactionResponse(response: TransactionResponse): response is UserTransactionResponse {
+  return response.type === TransactionResponseType.User;
+}
+
+export function isGenesisTransactionResponse(response: TransactionResponse): response is GenesisTransactionResponse {
+  return response.type === TransactionResponseType.Genesis;
+}
+
+export function isBlockMetadataTransactionResponse(
+  response: TransactionResponse,
+): response is BlockMetadataTransactionResponse {
+  return response.type === TransactionResponseType.BlockMetadata;
+}
+
+export function isStateCheckpointTransactionResponse(
+  response: TransactionResponse,
+): response is StateCheckpointTransactionResponse {
+  return response.type === TransactionResponseType.StateCheckpoint;
+}
+
 export type PendingTransactionResponse = {
   type: TransactionResponseType.Pending;
   hash: string;

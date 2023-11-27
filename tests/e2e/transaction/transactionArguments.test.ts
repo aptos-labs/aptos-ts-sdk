@@ -14,14 +14,13 @@ import {
   U32,
   U64,
   U8,
-  TransactionFeePayerSignature,
-  TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
   SimpleEntryFunctionArgumentTypes,
   Ed25519PrivateKey,
-  UserTransactionResponse,
   parseTypeTag,
   isMultiAgentSignature,
+  isFeePayerSignature,
+  isUserTransactionResponse,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -380,14 +379,16 @@ describe("various transaction arguments", () => {
         secondarySignerAccounts,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionMultiAgentSignature;
+      if (response.signature === undefined || !isMultiAgentSignature(response.signature)) {
+        throw new Error("Expected multi agent signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
         AccountAddress.fromStringRelaxed(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect((responseSignature as any).fee_payer_address).toBeUndefined();
     });
   });
 
@@ -403,7 +404,10 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
       expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
@@ -425,7 +429,10 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
         AccountAddress.fromStringRelaxed(address),
       );
@@ -448,7 +455,10 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
       expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
@@ -470,7 +480,10 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
         AccountAddress.fromStringRelaxed(address),
       );
@@ -519,11 +532,19 @@ describe("various transaction arguments", () => {
         senderAuthenticator,
         additionalSignersAuthenticators: secondaryAuthenticators,
       });
-      const response = (await aptos.waitForTransaction({
+      const response = await aptos.waitForTransaction({
         transactionHash: transactionResponse.hash,
-      })) as UserTransactionResponse;
+      });
       expect(response.success).toBe(true);
-      expect((response.signature as TransactionMultiAgentSignature).type).toBe("multi_agent_signature");
+
+      if (!isUserTransactionResponse(response)) {
+        throw new Error("Expected user transaction response");
+      }
+
+      if (response.signature === undefined || !isMultiAgentSignature(response.signature)) {
+        throw new Error("Expected multi agent signature");
+      }
+      expect(response.signature.type).toBe("multi_agent_signature");
       expect(response.payload.type).toBe("script_payload");
     });
   });

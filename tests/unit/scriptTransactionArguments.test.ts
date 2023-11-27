@@ -1,7 +1,20 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, Serializer, Deserializer, Bool, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../src";
+import {
+  AccountAddress,
+  Serializer,
+  Deserializer,
+  Bool,
+  MoveVector,
+  U128,
+  U16,
+  U256,
+  U32,
+  U64,
+  U8,
+  TransactionArgument,
+} from "../../src";
 import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
 describe("Tests for the script transaction argument class", () => {
@@ -49,23 +62,23 @@ describe("Tests for the script transaction argument class", () => {
     validateBytes(MoveVector.U8([1, 2, 3, 4, 5]), scriptVectorU8Bytes);
   });
 
-  const deserializeAsScriptArg = (input: ScriptFunctionArgument) => {
+  const deserializeAsScriptArg = <T extends TransactionArgument>(input: ScriptFunctionArgument): T => {
     serializer = new Serializer();
     input.serializeForScriptFunction(serializer);
     const deserializer = new Deserializer(serializer.toUint8Array());
-    return deserializeFromScriptArgument(deserializer);
+    return deserializeFromScriptArgument(deserializer) as T;
   };
 
   it("should deserialize all types of ScriptTransactionArguments correctly", () => {
-    const scriptArgU8 = deserializeAsScriptArg(new U8(1)) as U8;
-    const scriptArgU16 = deserializeAsScriptArg(new U16(2)) as U16;
-    const scriptArgU32 = deserializeAsScriptArg(new U32(3)) as U32;
-    const scriptArgU64 = deserializeAsScriptArg(new U64(4)) as U64;
-    const scriptArgU128 = deserializeAsScriptArg(new U128(5)) as U128;
-    const scriptArgU256 = deserializeAsScriptArg(new U256(6)) as U256;
-    const scriptArgBool = deserializeAsScriptArg(new Bool(false)) as Bool;
-    const scriptArgAddress = deserializeAsScriptArg(AccountAddress.FOUR) as AccountAddress;
-    const scriptArgU8Vector = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
+    const scriptArgU8 = deserializeAsScriptArg<U8>(new U8(1));
+    const scriptArgU16 = deserializeAsScriptArg<U16>(new U16(2));
+    const scriptArgU32 = deserializeAsScriptArg<U32>(new U32(3));
+    const scriptArgU64 = deserializeAsScriptArg<U64>(new U64(4));
+    const scriptArgU128 = deserializeAsScriptArg<U128>(new U128(5));
+    const scriptArgU256 = deserializeAsScriptArg<U256>(new U256(6));
+    const scriptArgBool = deserializeAsScriptArg<Bool>(new Bool(false));
+    const scriptArgAddress = deserializeAsScriptArg<AccountAddress>(AccountAddress.FOUR);
+    const scriptArgU8Vector = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
 
     expect(scriptArgU8.value).toEqual(1);
     expect(scriptArgU16.value).toEqual(2);
@@ -88,7 +101,7 @@ describe("Tests for the script transaction argument class", () => {
     expect(deserializeAsScriptArg(new Bool(false)) instanceof Bool).toBe(true);
     expect(deserializeAsScriptArg(AccountAddress.FOUR) instanceof AccountAddress).toBe(true);
     expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
-    const deserializedVectorU8 = deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) as MoveVector<U8>;
+    const deserializedVectorU8 = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
     expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);
   });
 });

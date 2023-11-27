@@ -77,4 +77,16 @@ export class AnyPublicKey extends PublicKey {
         throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
     }
   }
+
+  static isPublicKey(publicKey: PublicKey): publicKey is AnyPublicKey {
+    return publicKey instanceof AnyPublicKey;
+  }
+
+  isEd25519(): this is Ed25519PublicKey {
+    return this.publicKey instanceof Ed25519PublicKey;
+  }
+
+  isSecp256k1PublicKey(): this is Secp256k1PublicKey {
+    return this.publicKey instanceof Secp256k1PublicKey;
+  }
 }
