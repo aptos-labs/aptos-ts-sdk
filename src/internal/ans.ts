@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, MoveValue, OrderBy, PaginationArgs } from "../types";
+import { GetANSNameResponse, MoveAddressType, MoveValue, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types";
@@ -255,7 +255,7 @@ export async function getPrimaryName(args: {
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: Account;
-  name: string | null;
+  name?: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, options } = args;
@@ -368,11 +368,7 @@ export async function getName(args: {
 }
 
 interface QueryNamesOptions {
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetANSNameResponse[0]>;
-    where?: CurrentAptosNamesBoolExp;
-  };
+  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
 }
 
 export interface GetAccountNamesArgs extends QueryNamesOptions {
@@ -392,8 +388,8 @@ export async function getAccountNames(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -424,8 +420,8 @@ export async function getAccountDomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -457,8 +453,8 @@ export async function getAccountSubdomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -488,8 +484,8 @@ export async function getDomainSubdomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),

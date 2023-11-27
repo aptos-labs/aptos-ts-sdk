@@ -8,9 +8,10 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
-  OrderBy,
+  OrderByArg,
   PaginationArgs,
   TokenStandard,
+  TokenStandardArg,
 } from "../types";
 import { Account, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
@@ -88,9 +89,7 @@ export class DigitalAsset {
     creatorAddress: AccountAddressInput;
     collectionName: string;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      tokenStandard?: TokenStandard;
-    };
+    options?: TokenStandardArg;
   }): Promise<GetCollectionDataResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -116,9 +115,7 @@ export class DigitalAsset {
     creatorAddress: AccountAddressInput;
     collectionName: string;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      tokenStandard?: TokenStandard;
-    };
+    options?: TokenStandardArg;
   }): Promise<string> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -200,10 +197,7 @@ export class DigitalAsset {
   async getOwnedTokens(args: {
     ownerAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetOwnedTokensResponse[0]>;
-    };
+    options?: PaginationArgs & OrderByArg<GetOwnedTokensResponse[0]>;
   }): Promise<GetOwnedTokensResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -224,10 +218,7 @@ export class DigitalAsset {
   async getTokenActivity(args: {
     tokenAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetTokenActivityResponse[0]>;
-    };
+    options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
   }): Promise<GetTokenActivityResponse> {
     await waitForIndexerOnVersion({
       config: this.config,

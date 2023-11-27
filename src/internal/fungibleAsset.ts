@@ -14,6 +14,7 @@ import {
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
+  WhereArg,
 } from "../types";
 import { queryIndexer } from "./general";
 import {
@@ -34,10 +35,7 @@ import {
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: FungibleAssetMetadataBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
 }): Promise<GetFungibleAssetMetadataResponse> {
   const { aptosConfig, options } = args;
 
@@ -45,8 +43,8 @@ export async function getFungibleAssetMetadata(args: {
     query: GetFungibleAssetMetadata,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 
@@ -61,10 +59,7 @@ export async function getFungibleAssetMetadata(args: {
 
 export async function getFungibleAssetActivities(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: FungibleAssetActivitiesBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
 }): Promise<GetFungibleAssetActivitiesResponse> {
   const { aptosConfig, options } = args;
 
@@ -72,8 +67,8 @@ export async function getFungibleAssetActivities(args: {
     query: GetFungibleAssetActivities,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 
@@ -88,10 +83,7 @@ export async function getFungibleAssetActivities(args: {
 
 export async function getCurrentFungibleAssetBalances(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: CurrentFungibleAssetBalancesBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
 }): Promise<GetCurrentFungibleAssetBalancesResponse> {
   const { aptosConfig, options } = args;
 
@@ -99,8 +91,8 @@ export async function getCurrentFungibleAssetBalances(args: {
     query: GetCurrentFungibleAssetBalances,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 

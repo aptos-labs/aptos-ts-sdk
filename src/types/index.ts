@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Network } from "../utils/apiEndpoints";
+import { OrderBy, TokenStandard } from "./indexer";
 
 export * from "./indexer";
 
@@ -154,6 +155,17 @@ export interface PaginationArgs {
   limit?: number;
 }
 
+export interface TokenStandardArg {
+  tokenStandard?: TokenStandard;
+}
+export interface OrderByArg<T extends {}> {
+  orderBy?: OrderBy<T>;
+}
+
+export interface WhereArg<T extends {}> {
+  where?: T;
+}
+
 /**
  * QUERY TYPES
  */
@@ -225,7 +237,7 @@ export type AptosRequest = {
 /**
  * Specifies ledger version of transactions. By default latest version will be used
  */
-export type LedgerVersion = {
+export type LedgerVersionArg = {
   ledgerVersion?: AnyNumber;
 };
 

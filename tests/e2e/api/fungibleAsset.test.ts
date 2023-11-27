@@ -38,9 +38,7 @@ describe("FungibleAsset", () => {
   test("it should fetch fungible asset activities with correct number and asset type ", async () => {
     const data = await aptos.getFungibleAssetActivities({
       options: {
-        pagination: {
-          limit: 2,
-        },
+        limit: 2,
         where: {
           asset_type: { _eq: APTOS_COIN },
         } as FungibleAssetActivitiesBoolExp,

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getAccountEventsByCreationNumber, getAccountEventsByEventType, getEvents } from "../internal/event";
-import { AnyNumber, GetEventsResponse, MoveStructId, OrderBy, PaginationArgs } from "../types";
+import { AnyNumber, GetEventsResponse, MoveStructId, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { EventsBoolExp } from "../types/generated/types";
 import { AccountAddressInput } from "../core";
 import { ProcessorType } from "../utils/const";
@@ -50,10 +50,7 @@ export class Event {
     accountAddress: AccountAddressInput;
     eventType: MoveStructId;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetEventsResponse[0]>;
-    };
+    options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
   }): Promise<GetEventsResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -81,11 +78,7 @@ export class Event {
    */
   async getEvents(args?: {
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      where?: EventsBoolExp;
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetEventsResponse[0]>;
-    };
+    options?: PaginationArgs & OrderByArg<GetEventsResponse[0]> & WhereArg<EventsBoolExp>;
   }): Promise<GetEventsResponse> {
     await waitForIndexerOnVersion({
       config: this.config,

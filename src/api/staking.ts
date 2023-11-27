@@ -6,7 +6,7 @@ import {
   getNumberOfDelegators,
   getNumberOfDelegatorsForAllPools,
 } from "../internal/staking";
-import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { AnyNumber, GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
 import { AccountAddressInput } from "../core";
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
@@ -45,9 +45,7 @@ export class Staking {
    */
   async getNumberOfDelegatorsForAllPools(args?: {
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
-    };
+    options?: OrderByArg<GetNumberOfDelegatorsResponse[0]>;
   }): Promise<GetNumberOfDelegatorsResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
