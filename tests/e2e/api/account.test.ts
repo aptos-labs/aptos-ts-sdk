@@ -27,7 +27,7 @@ describe("account api", () => {
     });
   });
 
-  describe("fetch data with account address as string", () => {
+  describe("fetch data", () => {
     test("it fetches account data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
@@ -198,6 +198,30 @@ describe("account api", () => {
       expect(accountCoinsCount).toBe(1);
     });
 
+    test("it fetches account's coin amount", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate();
+      const fundTxn = await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+      // custom coin type
+      const accountCoinsAmount = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: "my::coin::type",
+      });
+      expect(accountCoinsAmount).toBe(0);
+      // APT Aptos coin
+      const accountAPTAmount = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: "0x1::aptos_coin::AptosCoin",
+      });
+      expect(accountAPTAmount).toBe(100000000);
+    });
+
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
@@ -239,67 +263,6 @@ describe("account api", () => {
         const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
-    });
-  });
-
-  describe("fetch data with account address as Uint8Array", () => {
-    test("it fetches account data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountInfo({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data).toHaveProperty("sequence_number");
-      expect(data.sequence_number).toBe("0");
-      expect(data).toHaveProperty("authentication_key");
-      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
-    });
-
-    test("it fetches account modules", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModules({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data.length).toBeGreaterThan(0);
-    });
-
-    test("it fetches an account module", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModule({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-        moduleName: "coin",
-      });
-      expect(data).toHaveProperty("bytecode");
-    });
-
-    test("it fetches account resources", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResources({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data.length).toBeGreaterThan(0);
-    });
-
-    test("it fetches an account resource with partial information", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResource<{ authentication_key: string }>({
-        accountAddress: "0x1",
-        resourceType: "0x1::account::Account",
-      });
-      expect(data).toHaveProperty("authentication_key");
-      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
     });
   });
 

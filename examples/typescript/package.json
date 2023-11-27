@@ -13,6 +13,7 @@
     "swap": "ts-node swap.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
     "external_signing": "ts-node external_signing.ts",
+    "your_coin": "ts-node yourCoin/index.ts",
     "test": "run-s simple_transfer mint_nft multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing"
   },
   "keywords": [],

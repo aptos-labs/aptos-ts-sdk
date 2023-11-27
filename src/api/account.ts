@@ -21,6 +21,7 @@ import {
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
+  getAccountCoinAmount,
   getAccountCoinsCount,
   getAccountCoinsData,
   getAccountCollectionsWithOwnedTokens,
@@ -40,6 +41,7 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -356,9 +358,10 @@ export class Account {
    *
    * @param args.accountAddress The account address we want to get the coins data for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.pagination.offset The number coin to start returning results from
-   * @param args.options.pagination.limit The number of results to return
-   * @param args.options.orderBy The order to sort the coins by
+   * @param args.options.pagination.offset optional. The number coin to start returning results from
+   * @param args.options.pagination.limit optional. The number of results to return
+   * @param args.options.orderBy optional. The order to sort the coins by
+   * @param args.options.where optional. Filter the results by
    * @returns Array with the coins data
    */
   async getAccountCoinsData(args: {
@@ -367,6 +370,7 @@ export class Account {
     options?: {
       pagination?: PaginationArgs;
       orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
+      where?: CurrentFungibleAssetBalancesBoolExp;
     };
   }): Promise<GetAccountCoinsDataResponse> {
     await waitForIndexerOnVersion({
@@ -400,13 +404,53 @@ export class Account {
   }
 
   /**
+   * Queries the acount's APT amount
+   *
+   * @param args.accountAddress The account address we want to get the total count for
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @returns Current amount of account's APT
+   */
+  async getAccountAPTAmount(args: {
+    accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<number> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+    });
+    return getAccountCoinAmount({ aptosConfig: this.config, coinType: "0x1::aptos_coin::AptosCoin", ...args });
+  }
+
+  /**
+   * Queries the acount's coin amount by the coin type
+   *
+   * @param args.accountAddress The account address we want to get the total count for
+   * @param args.coinType The coin type to query
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @returns Current amount of account's coin
+   */
+  async getAccountCoinAmount(args: {
+    accountAddress: AccountAddressInput;
+    coinType: MoveStructId;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<number> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+    });
+    return getAccountCoinAmount({ aptosConfig: this.config, ...args });
+  }
+
+  /**
    * Queries an account's owned objects
    *
    * @param args.accountAddress The account address we want to get the objects for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.pagination.offset The number coin to start returning results from
+   * @param args.options.pagination.offset The starting position to start returning results from
    * @param args.options.pagination.limit The number of results to return
-   * @param args.options.orderBy The order to sort the coins by
+   * @param args.options.orderBy The order to sort the objects by
    * @returns Objects array with the object data
    */
   async getAccountOwnedObjects(args: {
