@@ -427,7 +427,10 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
         new Ed25519Signature(signerSignature.toUint8Array()),
       );
     case SigningScheme.SingleKey:
-      return new AccountAuthenticatorSingleKey(signer.publicKey as AnyPublicKey, new AnySignature(signerSignature));
+      if (!AnyPublicKey.isPublicKey(signer.publicKey)) {
+        throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
+      }
+      return new AccountAuthenticatorSingleKey(signer.publicKey, new AnySignature(signerSignature));
     // TODO support MultiEd25519
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
@@ -448,9 +451,12 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 
   const transactionToSubmit = deriveTransactionType(transaction);
 
-  if (feePayerAuthenticator || additionalSignersAuthenticators) {
+  if (
+    (feePayerAuthenticator || additionalSignersAuthenticators) &&
+    (transactionToSubmit instanceof MultiAgentRawTransaction || transactionToSubmit instanceof FeePayerRawTransaction)
+  ) {
     return generateMultiSignersSignedTransaction(
-      transactionToSubmit as MultiAgentRawTransaction | FeePayerRawTransaction,
+      transactionToSubmit,
       senderAuthenticator,
       feePayerAuthenticator,
       additionalSignersAuthenticators,
@@ -460,20 +466,21 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
   // submit single signer transaction
 
   // check what instance is accountAuthenticator
-  if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
+  if (senderAuthenticator instanceof AccountAuthenticatorEd25519 && transactionToSubmit instanceof RawTransaction) {
     const transactionAuthenticator = new TransactionAuthenticatorEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );
-    return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
+    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
   }
 
   if (
-    senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
-    senderAuthenticator instanceof AccountAuthenticatorMultiKey
+    (senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
+      senderAuthenticator instanceof AccountAuthenticatorMultiKey) &&
+    transactionToSubmit instanceof RawTransaction
   ) {
     const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
-    return new SignedTransaction(transactionToSubmit as RawTransaction, transactionAuthenticator).bcsToBytes();
+    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
   }
 
   throw new Error(

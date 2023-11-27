@@ -78,17 +78,18 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
 }
 
 /// This function is a helper for paginating using a function wrapping an API
-export async function paginateWithCursor<Req extends Record<string, any>, Res extends any[]>(
+export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out = [];
+  const out: any[] = [];
   let cursor: string | undefined;
-  const requestParams = options.params as Req & { start?: string; limit?: number };
+  const requestParams = options.params as { start?: string; limit?: number };
   // eslint-disable-next-line no-constant-condition
   while (true) {
     requestParams.start = cursor;
     // eslint-disable-next-line no-await-in-loop
-    const response = await getAptosFullNode<Req, Res>({
+    const response = await get<Req, Res>({
+      type: AptosApiType.FULLNODE,
       aptosConfig: options.aptosConfig,
       originMethod: options.originMethod,
       path: options.path,
@@ -103,11 +104,11 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     cursor = response.headers["x-aptos-cursor"];
     // Now that we have the cursor (if any), we remove the headers before
     // adding these to the output of this function.
-    delete (response as any).headers;
+    delete response.headers;
     out.push(...response.data);
     if (cursor === null || cursor === undefined) {
       break;
     }
   }
-  return out as any;
+  return out as Res;
 }

@@ -84,8 +84,8 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;
-const None = (): MoveValue => ({ vec: [] }) as any;
+const Some = <T>(value: T): MoveValue => ({ vec: [value] });
+const None = (): MoveValue => ({ vec: [] });
 // != here is intentional, we want to check for null and undefined
 // eslint-disable-next-line eqeqeq
 const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
@@ -514,7 +514,7 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
-  const res = await view({
+  const [gracePeriodInSeconds] = await view<[number]>({
     aptosConfig,
     payload: {
       function: `${routerAddress}::config::reregistration_grace_sec`,
@@ -522,7 +522,6 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
     },
   });
 
-  const gracePeriodInSeconds = res[0] as number;
   const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
   const now = () => new Date();
   return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();

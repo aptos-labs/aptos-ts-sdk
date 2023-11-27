@@ -167,7 +167,7 @@ export async function waitForTransaction(args: {
   }
   if (!lastTxn.success) {
     throw new FailedTransactionError(
-      `Transaction ${transactionHash} failed with an error: ${(lastTxn as any).vm_status}`,
+      `Transaction ${transactionHash} failed with an error: ${lastTxn.vm_status}`,
       lastTxn,
     );
   }
