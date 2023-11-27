@@ -46,7 +46,7 @@ export async function fundAccount(args: {
 
   // Response is always User transaction for a user submitted transaction
   if (res.type === TransactionResponseType.User) {
-    return res as UserTransactionResponse;
+    return res;
   }
 
   throw new Error(`Unexpected transaction received for fund account: ${res.type}`);

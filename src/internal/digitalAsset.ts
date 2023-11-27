@@ -74,7 +74,7 @@ export async function mintTokenTransaction(args: {
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTokenData(args: {
@@ -241,7 +241,7 @@ export async function createCollectionTransaction(
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getCollectionData(args: {

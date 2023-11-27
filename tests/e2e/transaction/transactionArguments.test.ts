@@ -21,6 +21,7 @@ import {
   Ed25519PrivateKey,
   UserTransactionResponse,
   parseTypeTag,
+  isMultiAgentSignature,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -351,14 +352,18 @@ describe("various transaction arguments", () => {
         secondarySignerAccounts,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionMultiAgentSignature;
+
+      const responseSignature = response.signature;
+      if (responseSignature === undefined || !isMultiAgentSignature(responseSignature)) {
+        throw new Error("Expected multi agent signature");
+      }
+
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
         AccountAddress.fromStringRelaxed(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect((responseSignature as any).fee_payer_address).toBeUndefined();
     });
 
     it("simple inputs successfully submits a multi signer transaction with all argument types", async () => {

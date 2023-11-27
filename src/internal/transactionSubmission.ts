@@ -286,7 +286,7 @@ export async function publicPackageTransaction(args: {
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 /**

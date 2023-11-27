@@ -1,4 +1,4 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, TypeTagStruct } from "../../../src";
+import { AptosConfig, Network, Aptos, Account, Deserializer } from "../../../src";
 import { waitForTransaction } from "../../../src/internal/transaction";
 import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
@@ -19,10 +19,19 @@ describe("coin", () => {
 
     const txnDeserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
-    const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
-    expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
-    expect((typeArgs[0] as TypeTagStruct).value.moduleName.identifier).toBe("aptos_coin");
-    expect((typeArgs[0] as TypeTagStruct).value.name.identifier).toBe("AptosCoin");
+
+    if (!(rawTransaction.payload instanceof TransactionPayloadEntryFunction)) {
+      throw new Error("Transaction payload is not an entry function");
+    }
+
+    const typeArg = rawTransaction.payload.entryFunction.type_args[0];
+    if (!typeArg.isStruct()) {
+      throw new Error("Transaction payload type arg is not a struct");
+    }
+
+    expect(typeArg.value.address.toString()).toBe("0x1");
+    expect(typeArg.value.moduleName.identifier).toBe("aptos_coin");
+    expect(typeArg.value.name.identifier).toBe("AptosCoin");
   });
 
   test("it generates a transfer coin transaction with a custom coin type", async () => {
@@ -41,10 +50,19 @@ describe("coin", () => {
 
     const txnDeserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
     const rawTransaction = RawTransaction.deserialize(txnDeserializer);
-    const typeArgs = (rawTransaction.payload as TransactionPayloadEntryFunction).entryFunction.type_args;
-    expect((typeArgs[0] as TypeTagStruct).value.address.toString()).toBe("0x1");
-    expect((typeArgs[0] as TypeTagStruct).value.moduleName.identifier).toBe("my_coin");
-    expect((typeArgs[0] as TypeTagStruct).value.name.identifier).toBe("type");
+
+    if (!(rawTransaction.payload instanceof TransactionPayloadEntryFunction)) {
+      throw new Error("Transaction payload is not an entry function");
+    }
+
+    const typeArg = rawTransaction.payload.entryFunction.type_args[0];
+    if (!typeArg.isStruct()) {
+      throw new Error("Transaction payload type arg is not a struct");
+    }
+
+    expect(typeArg.value.address.toString()).toBe("0x1");
+    expect(typeArg.value.moduleName.identifier).toBe("my_coin");
+    expect(typeArg.value.name.identifier).toBe("type");
   });
 
   test(

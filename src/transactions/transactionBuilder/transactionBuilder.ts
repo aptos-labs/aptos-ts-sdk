@@ -500,7 +500,7 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
     return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
   }
 
-  return transaction.rawTransaction as RawTransaction;
+  return transaction.rawTransaction;
 }
 
 /**

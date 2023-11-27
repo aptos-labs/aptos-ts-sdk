@@ -2,11 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import {
-  CurrentFungibleAssetBalancesBoolExp,
-  FungibleAssetActivitiesBoolExp,
-  FungibleAssetMetadataBoolExp,
-} from "../../../src/types/generated/types";
 import { APTOS_COIN } from "../../../src/utils/const";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -18,7 +13,7 @@ describe("FungibleAsset", () => {
       options: {
         where: {
           asset_type: { _eq: APTOS_COIN },
-        } as FungibleAssetMetadataBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(1);
@@ -41,7 +36,7 @@ describe("FungibleAsset", () => {
         limit: 2,
         where: {
           asset_type: { _eq: APTOS_COIN },
-        } as FungibleAssetActivitiesBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(2);
@@ -59,7 +54,7 @@ describe("FungibleAsset", () => {
         where: {
           owner_address: { _eq: userAccount.accountAddress.toString() },
           asset_type: { _eq: APTOS_COIN },
-        } as CurrentFungibleAssetBalancesBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(1);

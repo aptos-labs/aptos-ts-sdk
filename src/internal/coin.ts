@@ -28,5 +28,5 @@ export async function transferCoinTransaction(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }

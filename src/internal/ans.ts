@@ -167,7 +167,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
       options,
     });
 
-    return transaction as SingleSignerTransaction;
+    return transaction;
   }
 
   // We are a subdomain
@@ -205,7 +205,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
@@ -272,7 +272,7 @@ export async function setPrimaryName(args: {
       options,
     });
 
-    return transaction as SingleSignerTransaction;
+    return transaction;
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
@@ -287,7 +287,7 @@ export async function setPrimaryName(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTargetAddress(args: {
@@ -331,7 +331,7 @@ export async function setTargetAddress(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getName(args: {
@@ -359,7 +359,7 @@ export async function getName(args: {
   });
 
   // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
-  let res = data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  let res = data.current_aptos_names[0];
   if (res) {
     res = sanitizeANSName(res);
   }
@@ -558,7 +558,7 @@ export async function renewDomain(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 /**
