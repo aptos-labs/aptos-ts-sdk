@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -28,7 +27,7 @@ describe("Collection", () => {
     });
     const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
 
-    const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
     const data = await aptos.getCollectionData({
       collectionName,

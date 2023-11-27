@@ -10,11 +10,11 @@ import {
   Deserializer,
   SigningSchemeInput,
   AuthenticationKey,
+  MultiKey,
+  AccountAuthenticatorMultiKey,
+  RawTransaction,
+  TransactionPayloadEntryFunction,
 } from "../../../src";
-import { MultiKey } from "../../../src/core/crypto/multiKey";
-import { waitForTransaction } from "../../../src/internal/transaction";
-import { AccountAuthenticatorMultiKey } from "../../../src/transactions/authenticator/account";
-import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
@@ -55,8 +55,7 @@ describe("transaction submission", () => {
           transaction,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
 
@@ -74,8 +73,7 @@ describe("transaction submission", () => {
           signer: singleSignerED25519SenderAccount,
           transaction,
         });
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
@@ -107,8 +105,7 @@ describe("transaction submission", () => {
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -135,8 +132,7 @@ describe("transaction submission", () => {
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await waitForTransaction({
-            aptosConfig: config,
+          await aptos.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -167,8 +163,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -194,8 +189,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -225,8 +219,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -247,8 +240,7 @@ describe("transaction submission", () => {
           signer: singleSignerSecp256k1Account,
           transaction,
         });
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
@@ -265,8 +257,7 @@ describe("transaction submission", () => {
           signer: singleSignerSecp256k1Account,
           transaction,
         });
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("single_sender");
@@ -298,8 +289,7 @@ describe("transaction submission", () => {
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -326,8 +316,7 @@ describe("transaction submission", () => {
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await waitForTransaction({
-            aptosConfig: config,
+          await aptos.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -358,8 +347,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -385,8 +373,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -416,8 +403,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -438,8 +424,7 @@ describe("transaction submission", () => {
           signer: legacyED25519SenderAccount,
           transaction,
         });
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("ed25519_signature");
@@ -456,8 +441,7 @@ describe("transaction submission", () => {
           signer: legacyED25519SenderAccount,
           transaction,
         });
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("ed25519_signature");
@@ -488,8 +472,7 @@ describe("transaction submission", () => {
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("multi_agent_signature");
@@ -516,8 +499,7 @@ describe("transaction submission", () => {
             additionalSignersAuthenticators: [secondarySignerAuthenticator],
           });
 
-          await waitForTransaction({
-            aptosConfig: config,
+          await aptos.waitForTransaction({
             transactionHash: response.hash,
           });
           expect(response.signature?.type).toBe("multi_agent_signature");
@@ -547,8 +529,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -574,8 +555,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -605,8 +585,7 @@ describe("transaction submission", () => {
           feePayerAuthenticator: feePayerSignerAuthenticator,
         });
 
-        await waitForTransaction({
-          aptosConfig: config,
+        await aptos.waitForTransaction({
           transactionHash: response.hash,
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
@@ -655,8 +634,7 @@ describe("transaction submission", () => {
       );
 
       const response = await aptos.submit.transaction({ transaction, senderAuthenticator: multiKeyAuth });
-      await waitForTransaction({
-        aptosConfig: config,
+      await aptos.waitForTransaction({
         transactionHash: response.hash,
       });
       expect(response.signature?.type).toBe("single_sender");
@@ -698,8 +676,7 @@ describe("transaction submission", () => {
         signer: account,
         transaction,
       });
-      await waitForTransaction({
-        aptosConfig: config,
+      await aptos.waitForTransaction({
         transactionHash: response.hash,
       });
       const accountModules = await aptos.getAccountModules({ accountAddress: account.accountAddress });

@@ -9,8 +9,8 @@ import {
   U64,
   GraphqlQuery,
   NetworkToIndexerAPI,
+  generateSignedTransaction,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
 import { singleSignerScriptBytecode } from "../transaction/helper";

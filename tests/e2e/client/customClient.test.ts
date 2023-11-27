@@ -8,8 +8,8 @@ import {
   AccountAddress,
   postAptosFullNode,
   MimeType,
+  generateSignedTransaction,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { customClient } from "../../unit/helper";
 
 describe("custom client", () => {

@@ -1,9 +1,15 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, U64, SigningSchemeInput } from "../../../src";
 import {
+  AptosConfig,
+  Network,
+  Aptos,
+  Account,
+  Deserializer,
+  U64,
+  SigningSchemeInput,
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
   AccountAuthenticatorSingleKey,
-} from "../../../src/transactions/authenticator/account";
+} from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 

@@ -14,8 +14,9 @@ import {
   U64,
   U8,
   TransactionArgument,
+  ScriptFunctionArgument,
+  deserializeFromScriptArgument,
 } from "../../src";
-import { ScriptFunctionArgument, deserializeFromScriptArgument } from "../../src/transactions/instances";
 
 describe("Tests for the script transaction argument class", () => {
   let serializer: Serializer;

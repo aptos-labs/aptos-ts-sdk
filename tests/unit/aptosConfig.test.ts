@@ -8,8 +8,8 @@ import {
   NetworkToFaucetAPI,
   NetworkToNodeAPI,
   NetworkToIndexerAPI,
+  AptosApiType,
 } from "../../src";
-import { AptosApiType } from "../../src/utils/const";
 
 describe("aptos config", () => {
   test("it should set urls based on a local network", async () => {

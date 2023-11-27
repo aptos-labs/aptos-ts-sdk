@@ -10,8 +10,8 @@ import {
   Secp256k1PublicKey,
   SigningScheme,
   SigningSchemeInput,
+  AnyPublicKey,
 } from "../../src";
-import { AnyPublicKey } from "../../src/core/crypto/anyPublicKey";
 
 import {
   ed25519,

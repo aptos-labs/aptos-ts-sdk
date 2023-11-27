@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Account } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
-import { Network } from "../../../src/utils/apiEndpoints";
+import { AptosConfig, Aptos, Account, Network } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -29,7 +27,7 @@ async function setupCollection() {
     uri: collectionUri,
   });
   const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+  await aptos.waitForTransaction({ transactionHash: response.hash });
 }
 
 async function setupToken(): Promise<string> {
@@ -41,7 +39,7 @@ async function setupToken(): Promise<string> {
     uri: tokenUri,
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
       ownerAddress: creator.accountAddress,

@@ -1,6 +1,12 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
-import { RawTransaction, TransactionPayloadEntryFunction } from "../../../src/transactions/instances";
+import {
+  AptosConfig,
+  Network,
+  Aptos,
+  Account,
+  Deserializer,
+  RawTransaction,
+  TransactionPayloadEntryFunction,
+} from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 describe("coin", () => {
@@ -83,7 +89,7 @@ describe("coin", () => {
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
 
-      const res = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+      const res = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
       const recipientCoins = await aptos.getAccountCoinsData({
         accountAddress: recipient.accountAddress,
         minimumLedgerVersion: BigInt(res.version),

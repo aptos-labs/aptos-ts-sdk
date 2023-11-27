@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { APTOS_COIN } from "../../../src/utils/const";
+import { Account, Aptos, AptosConfig, Network, APTOS_COIN } from "../../../src";
 
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
