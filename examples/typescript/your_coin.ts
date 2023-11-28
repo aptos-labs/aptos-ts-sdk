@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { compilePackage, getPackageBytesToPublish } from "../utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 /**
  * This example demonstrate how one can publish a new custom coin to chain.
@@ -18,7 +18,7 @@ const MOON_COINS_TO_MINT = 100;
 const MOON_COINS_TO_TRANSFER = 100;
 
 // Setup the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.TESTNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
@@ -101,11 +101,9 @@ async function main() {
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling MoonCoin package locally ===");
-  compilePackage("yourCoin/moonCoin", "yourCoin/moonCoin/moonCoin.json", [
-    { name: "MoonCoin", address: alice.accountAddress },
-  ]);
+  compilePackage("move/moonCoin", "move/moonCoin/moonCoin.json", [{ name: "MoonCoin", address: alice.accountAddress }]);
 
-  const { metadataBytes, byteCode } = getPackageBytesToPublish("yourCoin/moonCoin/moonCoin.json");
+  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/moonCoin/moonCoin.json");
 
   console.log(`\n=== Publishing MoonCoin package to ${aptos.config.network} network ===`);
 

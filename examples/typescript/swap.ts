@@ -159,7 +159,7 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
   await new Promise<void>((resolve) => {
     readline.question(
       "Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n" +
-        "1. cd to /aptos-ts-sdk/examples/typescript/facoin folder \n" +
+        "1. cd to /aptos-ts-sdk/examples/typescript/move/facoin folder \n" +
         "2. run 'aptos move publish --named-address FACoin=[admin] --profile=[admin] \n" +
         "   Note: [admin] is the same profile you used to publish your 'swap' package",
       () => {
