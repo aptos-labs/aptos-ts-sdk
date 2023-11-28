@@ -226,6 +226,30 @@ describe("transaction builder", () => {
       });
       expect(rawTxnWithDefaultMaxGasAmount.max_gas_amount).toBe(200000n);
     });
+
+    test("it generates a raw transaction with account not on chain and account sequence number set to 0", async () => {
+      const alice = Account.generate();
+      const bob = Account.generate();
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: [1, bob.accountAddress],
+      });
+      const rawTransaction = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+        options: { accountSequenceNumber: 0 },
+      });
+      expect(rawTransaction.sequence_number).toBe(0n);
+      expect(() =>
+        generateRawTransaction({
+          aptosConfig: config,
+          sender: alice.accountAddress,
+          payload,
+        }),
+      ).rejects.toThrow();
+    });
   });
   describe("generate transaction", () => {
     test("it returns a serialized raw transaction", async () => {
