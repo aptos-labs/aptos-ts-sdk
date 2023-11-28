@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -28,7 +27,7 @@ async function setupCollection(): Promise<string> {
     uri: collectionUri,
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   const data = await aptos.getCollectionData({
     collectionName,
     creatorAddress,
@@ -46,7 +45,7 @@ async function setupToken(): Promise<string> {
     uri: tokenUri,
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  const response = await waitForTransaction({ aptosConfig: config, transactionHash: pendingTxn.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
       ownerAddress: creator.accountAddress.toString(),

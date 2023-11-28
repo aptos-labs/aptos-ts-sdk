@@ -11,17 +11,14 @@ import {
   AccountAddress,
   EntryFunctionABI,
   parseTypeTag,
-} from "../../../src";
-import { AccountAuthenticator, AccountAuthenticatorEd25519 } from "../../../src/transactions/authenticator/account";
-import {
+  AccountAuthenticator,
+  AccountAuthenticatorEd25519,
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
   RawTransaction,
   TransactionPayloadEntryFunction,
   TransactionPayloadMultisig,
   TransactionPayloadScript,
-} from "../../../src/transactions/instances";
-import {
   buildTransaction,
   deriveTransactionType,
   generateRawTransaction,
@@ -30,8 +27,8 @@ import {
   generateTransactionPayload,
   generateTransactionPayloadWithABI,
   sign,
-} from "../../../src/transactions/transactionBuilder/transactionBuilder";
-import { SignedTransaction } from "../../../src/transactions/instances/signedTransaction";
+  SignedTransaction,
+} from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage } from "./helper";
 

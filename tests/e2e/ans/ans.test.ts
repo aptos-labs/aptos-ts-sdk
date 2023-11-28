@@ -559,7 +559,7 @@ describe("ANS", () => {
 
       res = await testnet.ans.getAccountNames({
         accountAddress: ACCOUNT_ADDRESS_1,
-        options: { pagination: { limit: 1 } },
+        options: { limit: 1 },
       });
       expect(res.length).toBe(1);
 

@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructId, OrderBy } from "../types";
+import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructId, OrderByArg, WhereArg } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
 import { EventsBoolExp } from "../types/generated/types";
@@ -36,10 +36,7 @@ export async function getAccountEventsByEventType(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   eventType: MoveStructId;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetEventsResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
   const { accountAddress, aptosConfig, eventType, options } = args;
   const address = AccountAddress.fromRelaxed(accountAddress).toStringLong();
@@ -51,7 +48,7 @@ export async function getAccountEventsByEventType(args: {
 
   const customOptions = {
     where: whereCondition,
-    pagination: options?.pagination,
+    pagination: options,
     orderBy: options?.orderBy,
   };
 
@@ -60,11 +57,7 @@ export async function getAccountEventsByEventType(args: {
 
 export async function getEvents(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    where?: EventsBoolExp;
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetEventsResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetEventsResponse[0]> & WhereArg<EventsBoolExp>;
 }): Promise<GetEventsResponse> {
   const { aptosConfig, options } = args;
 
@@ -72,8 +65,8 @@ export async function getEvents(args: {
     query: GetEvents,
     variables: {
       where_condition: options?.where,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };

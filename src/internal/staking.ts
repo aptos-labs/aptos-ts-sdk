@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
 import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
 import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";
 import { queryIndexer } from "./general";
@@ -34,9 +34,7 @@ export async function getNumberOfDelegators(args: {
 
 export async function getNumberOfDelegatorsForAllPools(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
-  };
+  options?: OrderByArg<GetNumberOfDelegatorsResponse[0]>;
 }): Promise<GetNumberOfDelegatorsResponse> {
   const { aptosConfig, options } = args;
   const query = {

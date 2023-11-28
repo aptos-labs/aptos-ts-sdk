@@ -17,7 +17,7 @@ import {
   GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveValue,
   TableItemRequest,
   ViewRequest,
@@ -71,7 +71,7 @@ export async function getTableItem<T>(args: {
   aptosConfig: AptosConfig;
   handle: string;
   data: TableItemRequest;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, handle, data, options } = args;
   const response = await postAptosFullNode<TableItemRequest, any>({
@@ -87,7 +87,7 @@ export async function getTableItem<T>(args: {
 export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   aptosConfig: AptosConfig;
   payload: InputViewRequestData;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, payload, options } = args;
   const { data } = await postAptosFullNode<ViewRequest, MoveValue[]>({

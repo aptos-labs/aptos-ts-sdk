@@ -10,14 +10,15 @@ import {
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
-  OrderBy,
+  OrderByArg,
   PaginationArgs,
-  TokenStandard,
+  TokenStandardArg,
   TransactionResponse,
+  WhereArg,
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
@@ -84,7 +85,7 @@ export class Account {
 
   async getAccountModules(args: {
     accountAddress: AccountAddressInput;
-    options?: PaginationArgs & LedgerVersion;
+    options?: PaginationArgs & LedgerVersionArg;
   }): Promise<MoveModuleBytecode[]> {
     return getModules({ aptosConfig: this.config, ...args });
   }
@@ -109,7 +110,7 @@ export class Account {
   async getAccountModule(args: {
     accountAddress: AccountAddressInput;
     moduleName: string;
-    options?: LedgerVersion;
+    options?: LedgerVersionArg;
   }): Promise<MoveModuleBytecode> {
     return getModule({ aptosConfig: this.config, ...args });
   }
@@ -150,7 +151,7 @@ export class Account {
    */
   async getAccountResources(args: {
     accountAddress: AccountAddressInput;
-    options?: PaginationArgs & LedgerVersion;
+    options?: PaginationArgs & LedgerVersionArg;
   }): Promise<MoveResource[]> {
     return getResources({ aptosConfig: this.config, ...args });
   }
@@ -176,7 +177,7 @@ export class Account {
   async getAccountResource<T extends {} = any>(args: {
     accountAddress: AccountAddressInput;
     resourceType: MoveStructId;
-    options?: LedgerVersion;
+    options?: LedgerVersionArg;
   }): Promise<T> {
     return getResource<T>({ aptosConfig: this.config, ...args });
   }
@@ -194,7 +195,7 @@ export class Account {
   async lookupOriginalAccountAddress(args: {
     authenticationKey: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: LedgerVersion;
+    options?: LedgerVersionArg;
   }): Promise<AccountAddress> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -236,19 +237,15 @@ export class Account {
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.pagination.offset The number token to start returning results from
-   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.offset The number token to start returning results from
+   * @param args.options.limit The number of results to return
    * @param args.options.orderBy The order to sort the tokens by
    * @returns Tokens array with the token data
    */
   async getAccountOwnedTokens(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      tokenStandard?: TokenStandard;
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
-    };
+    options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensQueryResponse[0]>;
   }): Promise<GetAccountOwnedTokensQueryResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -271,8 +268,8 @@ export class Account {
    * @param args.collectionAddress The address of the collection being queried
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.pagination.offset The number token to start returning results from
-   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.offset The number token to start returning results from
+   * @param args.options.limit The number of results to return
    * @param args.options.orderBy The order to sort the tokens by
    * @returns Tokens array with the token data
    */
@@ -280,11 +277,7 @@ export class Account {
     accountAddress: AccountAddressInput;
     collectionAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      tokenStandard?: TokenStandard;
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
-    };
+    options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensFromCollectionResponse[0]>;
   }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -306,19 +299,15 @@ export class Account {
    * @param args.accountAddress The account address we want to get the collections for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.pagination.offset The number collection to start returning results from
-   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.offset The number collection to start returning results from
+   * @param args.options.limit The number of results to return
    * @param args.options.orderBy The order to sort the tokens by
    * @returns Collections array with the collections data
    */
   async getAccountCollectionsWithOwnedTokens(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      tokenStandard?: TokenStandard;
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
-    };
+    options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountCollectionsWithOwnedTokenResponse[0]>;
   }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -358,8 +347,8 @@ export class Account {
    *
    * @param args.accountAddress The account address we want to get the coins data for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.pagination.offset optional. The number coin to start returning results from
-   * @param args.options.pagination.limit optional. The number of results to return
+   * @param args.options.offset optional. The number coin to start returning results from
+   * @param args.options.limit optional. The number of results to return
    * @param args.options.orderBy optional. The order to sort the coins by
    * @param args.options.where optional. Filter the results by
    * @returns Array with the coins data
@@ -367,11 +356,9 @@ export class Account {
   async getAccountCoinsData(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
-      where?: CurrentFungibleAssetBalancesBoolExp;
-    };
+    options?: PaginationArgs &
+      OrderByArg<GetAccountCoinsDataResponse[0]> &
+      WhereArg<CurrentFungibleAssetBalancesBoolExp>;
   }): Promise<GetAccountCoinsDataResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -448,18 +435,15 @@ export class Account {
    *
    * @param args.accountAddress The account address we want to get the objects for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.pagination.offset The starting position to start returning results from
-   * @param args.options.pagination.limit The number of results to return
+   * @param args.options.offset The starting position to start returning results from
+   * @param args.options.limit The number of results to return
    * @param args.options.orderBy The order to sort the objects by
    * @returns Objects array with the object data
    */
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
-    };
+    options?: PaginationArgs & OrderByArg<GetAccountOwnedObjectsResponse[0]>;
   }): Promise<GetAccountOwnedObjectsResponse> {
     await waitForIndexerOnVersion({
       config: this.config,

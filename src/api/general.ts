@@ -20,7 +20,7 @@ import {
   GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveValue,
   TableItemRequest,
   InputViewRequestData,
@@ -117,7 +117,7 @@ export class General {
    *
    * @returns Table item value rendered in JSON
    */
-  async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersion }): Promise<T> {
+  async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersionArg }): Promise<T> {
     return getTableItem<T>({ aptosConfig: this.config, ...args });
   }
 
@@ -136,7 +136,10 @@ export class General {
    *
    * @returns an array of Move values
    */
-  async view<T extends Array<MoveValue>>(args: { payload: InputViewRequestData; options?: LedgerVersion }): Promise<T> {
+  async view<T extends Array<MoveValue>>(args: {
+    payload: InputViewRequestData;
+    options?: LedgerVersionArg;
+  }): Promise<T> {
     return view<T>({ aptosConfig: this.config, ...args });
   }
 

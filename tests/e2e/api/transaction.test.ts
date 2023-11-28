@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account, TransactionResponse, UserTransactionResponse, U64 } from "../../../src";
+import { AptosConfig, Aptos, Network, Account, TransactionResponse, U64 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -69,15 +69,19 @@ describe("transaction api", () => {
     });
 
     test("it queries for transactions by version", async () => {
+      if (!("version" in txn)) {
+        throw new Error("Transaction is still pending!");
+      }
+
       const transaction = await aptos.getTransactionByVersion({
-        ledgerVersion: Number((txn as UserTransactionResponse).version),
+        ledgerVersion: Number(txn.version),
       });
       expect(transaction).toStrictEqual(txn);
     });
 
     test("it queries for transactions by hash", async () => {
       const transaction = await aptos.getTransactionByHash({
-        transactionHash: (txn as UserTransactionResponse).hash,
+        transactionHash: txn.hash,
       });
       expect(transaction).toStrictEqual(txn);
     });

@@ -114,8 +114,10 @@ describe("Deserialize TypeTags", () => {
     const tag = new TypeTagVector(new TypeTagU32());
 
     tag.serialize(serializer);
-    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array())) as TypeTagVector;
-    expect(deserialized).toBeInstanceOf(TypeTagVector);
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    if (!deserialized.isVector()) {
+      throw new Error("Expected deserialized value to be a TypeTagVector");
+    }
     expect(deserialized.value).toBeInstanceOf(TypeTagU32);
   });
 
@@ -124,7 +126,10 @@ describe("Deserialize TypeTags", () => {
     const tag = parseTypeTag(expectedTypeTag.string);
 
     tag.serialize(serializer);
-    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array())) as TypeTagStruct;
+    const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
+    if (!deserialized.isStruct()) {
+      throw new Error("Expected deserialized value to be a TypeTagStruct");
+    }
     expect(deserialized).toBeInstanceOf(TypeTagStruct);
     expect(deserialized.value).toBeInstanceOf(StructTag);
     expect(deserialized.value.address.toString()).toEqual(expectedTypeTag.address);

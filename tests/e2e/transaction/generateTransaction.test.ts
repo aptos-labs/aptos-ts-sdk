@@ -1,10 +1,16 @@
-import { AptosConfig, Network, Aptos, Account, Deserializer, U64, AccountAddress } from "../../../src";
 import {
+  AptosConfig,
+  Network,
+  Aptos,
+  Account,
+  Deserializer,
+  U64,
+  AccountAddress,
   RawTransaction,
   TransactionPayloadScript,
   TransactionPayloadMultisig,
   TransactionPayloadEntryFunction,
-} from "../../../src/transactions/instances";
+} from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, singleSignerScriptBytecode } from "./helper";
 

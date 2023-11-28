@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData } from "../../../src";
-import { ProcessorType } from "../../../src/utils/const";
+import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData, ProcessorType } from "../../../src";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
@@ -38,22 +37,23 @@ describe("general api", () => {
   test("it fetches table item data", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const resource = await aptos.getAccountResource({
-      accountAddress: "0x1",
-      resourceType: "0x1::coin::CoinInfo<0x1::aptos_coin::AptosCoin>",
-    });
-
-    const {
+    type Supply = {
       supply: {
         vec: [
           {
             aggregator: {
-              vec: [{ handle, key }],
-            },
+              vec: [{ handle: string; key: string }];
+            };
           },
-        ],
-      },
-    } = resource as any;
+        ];
+      };
+    };
+    const resource = await aptos.getAccountResource<Supply>({
+      accountAddress: "0x1",
+      resourceType: "0x1::coin::CoinInfo<0x1::aptos_coin::AptosCoin>",
+    });
+
+    const { handle, key } = resource.supply.vec[0].aggregator.vec[0];
 
     const supply = await aptos.getTableItem<string>({
       handle,

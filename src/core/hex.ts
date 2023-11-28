@@ -115,10 +115,9 @@ export class Hex {
 
     try {
       return new Hex(hexToBytes(input));
-    } catch (e) {
-      const error = e as Error;
+    } catch (error: any) {
       throw new ParsingError(
-        `Hex string contains invalid hex characters: ${error.message}`,
+        `Hex string contains invalid hex characters: ${error?.message}`,
         HexInvalidReason.INVALID_HEX_CHARS,
       );
     }
@@ -153,12 +152,11 @@ export class Hex {
     try {
       Hex.fromString(str);
       return { valid: true };
-    } catch (e) {
-      const error = e as ParsingError<HexInvalidReason>;
+    } catch (error: any) {
       return {
         valid: false,
-        invalidReason: error.invalidReason,
-        invalidReasonMessage: error.message,
+        invalidReason: error?.invalidReason,
+        invalidReasonMessage: error?.message,
       };
     }
   }

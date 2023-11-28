@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Network } from "../utils/apiEndpoints";
+import { OrderBy, TokenStandard } from "./indexer";
 
 export * from "./indexer";
 
@@ -154,6 +155,18 @@ export interface PaginationArgs {
   limit?: number;
 }
 
+export interface TokenStandardArg {
+  tokenStandard?: TokenStandard;
+}
+
+export interface OrderByArg<T extends {}> {
+  orderBy?: OrderBy<T>;
+}
+
+export interface WhereArg<T extends {}> {
+  where?: T;
+}
+
 /**
  * QUERY TYPES
  */
@@ -225,7 +238,7 @@ export type AptosRequest = {
 /**
  * Specifies ledger version of transactions. By default latest version will be used
  */
-export type LedgerVersion = {
+export type LedgerVersionArg = {
   ledgerVersion?: AnyNumber;
 };
 
@@ -284,6 +297,30 @@ export type CommittedTransactionResponse =
   | GenesisTransactionResponse
   | BlockMetadataTransactionResponse
   | StateCheckpointTransactionResponse;
+
+export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
+  return response.type === TransactionResponseType.Pending;
+}
+
+export function isUserTransactionResponse(response: TransactionResponse): response is UserTransactionResponse {
+  return response.type === TransactionResponseType.User;
+}
+
+export function isGenesisTransactionResponse(response: TransactionResponse): response is GenesisTransactionResponse {
+  return response.type === TransactionResponseType.Genesis;
+}
+
+export function isBlockMetadataTransactionResponse(
+  response: TransactionResponse,
+): response is BlockMetadataTransactionResponse {
+  return response.type === TransactionResponseType.BlockMetadata;
+}
+
+export function isStateCheckpointTransactionResponse(
+  response: TransactionResponse,
+): response is StateCheckpointTransactionResponse {
+  return response.type === TransactionResponseType.StateCheckpoint;
+}
 
 export type PendingTransactionResponse = {
   type: TransactionResponseType.Pending;
@@ -574,6 +611,28 @@ export type TransactionSignature =
   | TransactionMultiAgentSignature
   | TransactionFeePayerSignature;
 
+export function isEd25519Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
+  return "signature" in signature && signature.signature === "ed25519_signature";
+}
+
+export function isSecp256k1Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
+  return "signature" in signature && signature.signature === "secp256k1_ecdsa_signature";
+}
+
+export function isMultiAgentSignature(signature: TransactionSignature): signature is TransactionMultiAgentSignature {
+  return signature.type === "multi_agent_signature";
+}
+
+export function isFeePayerSignature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
+  return signature.type === "fee_payer_signature";
+}
+
+export function isMultiEd25519Signature(
+  signature: TransactionSignature,
+): signature is TransactionMultiEd25519Signature {
+  return signature.type === "multi_ed25519_signature";
+}
+
 export type TransactionEd25519Signature = {
   type: string;
   public_key: string;
@@ -634,13 +693,10 @@ export type TransactionFeePayerSignature = {
 /**
  * The union of all single account signatures.
  */
-export type AccountSignature = AccountEd25519Signature | AccountSecp256k1Signature | AccountMultiEd25519Signature;
-
-export type AccountEd25519Signature = TransactionEd25519Signature;
-
-export type AccountSecp256k1Signature = TransactionSecp256k1Signature;
-
-export type AccountMultiEd25519Signature = TransactionMultiEd25519Signature;
+export type AccountSignature =
+  | TransactionEd25519Signature
+  | TransactionSecp256k1Signature
+  | TransactionMultiEd25519Signature;
 
 export type WriteSet = ScriptWriteSet | DirectWriteSet;
 

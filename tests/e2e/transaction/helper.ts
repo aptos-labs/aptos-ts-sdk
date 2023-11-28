@@ -12,6 +12,7 @@ import {
   SimpleEntryFunctionArgumentTypes,
   MoveVector,
   AnyRawTransaction,
+  isUserTransactionResponse,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -34,9 +35,16 @@ export async function publishPackage(
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
-  return (await aptos.waitForTransaction({
+
+  const response = await aptos.waitForTransaction({
     transactionHash: txnHash.hash,
-  })) as UserTransactionResponse;
+  });
+
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+
+  return response;
 }
 
 // Instead of funding each account individually, we fund one twice, then send coins from it to the rest
@@ -73,7 +81,10 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 }
 
 // Transaction builder helpers
@@ -104,7 +115,10 @@ export async function rawTransactionHelper(
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 }
 
 // multi agent/fee payer
@@ -191,7 +205,10 @@ export const rawTransactionMultiAgentHelper = async (
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 };
 
 export const PUBLISHER_ACCOUNT_PK = "0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";

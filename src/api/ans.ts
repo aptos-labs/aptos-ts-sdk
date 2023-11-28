@@ -145,7 +145,7 @@ export class ANS {
    */
   async setPrimaryName(args: {
     sender: Account;
-    name: string | null;
+    name?: string;
     options?: InputGenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
@@ -233,8 +233,8 @@ export class ANS {
    *
    * @param args
    * @param args.accountAddress - A AccountAddressInput of the address to retrieve names for.
-   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
-   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.offset - Optional, the offset to start from when fetching names
+   * @param args.options.limit - Optional, A number of the names to fetch per request
    * @param args.options.orderBy - The order to sort the names by
    * @param args.options.where - Additional filters to apply to the query
    *
@@ -249,8 +249,8 @@ export class ANS {
    *
    * @param args
    * @param args.accountAddress - A AccountAddressInput of the address to retrieve domain names for.
-   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
-   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.offset - Optional, the offset to start from when fetching names
+   * @param args.options.limit - Optional, A number of the names to fetch per request
    * @param args.options.orderBy - The order to sort the names by
    * @param args.options.where - Additional filters to apply to the query
    *
@@ -265,8 +265,8 @@ export class ANS {
    *
    * @param args
    * @param args.accountAddress - A AccountAddressInput of the address to retrieve subdomains names for.
-   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
-   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.offset - Optional, the offset to start from when fetching names
+   * @param args.options.limit - Optional, A number of the names to fetch per request
    * @param args.options.orderBy - The order to sort the names by
    * @param args.options.where - Additional filters to apply to the query
    *
@@ -281,8 +281,8 @@ export class ANS {
    *
    * @param args
    * @param args.domain - A string of the domain name: eg. "test.apt" or "test" (without the suffix of .apt)
-   * @param args.options.pagination.offset - Optional, the offset to start from when fetching names
-   * @param args.options.pagination.limit - Optional, A number of the names to fetch per request
+   * @param args.options.offset - Optional, the offset to start from when fetching names
+   * @param args.options.limit - Optional, A number of the names to fetch per request
    * @param args.options.orderBy - The order to sort the names by
    * @param args.options.where - Additional filters to apply to the query
    *

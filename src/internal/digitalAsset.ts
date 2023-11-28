@@ -19,9 +19,9 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
-  OrderBy,
+  OrderByArg,
   PaginationArgs,
-  TokenStandard,
+  TokenStandardArg,
 } from "../types";
 import {
   GetCollectionDataQuery,
@@ -74,7 +74,7 @@ export async function mintTokenTransaction(args: {
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTokenData(args: {
@@ -132,10 +132,7 @@ export async function getCurrentTokenOwnership(args: {
 export async function getOwnedTokens(args: {
   aptosConfig: AptosConfig;
   ownerAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetTokenActivityResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetOwnedTokensResponse> {
   const { aptosConfig, ownerAddress, options } = args;
 
@@ -147,8 +144,8 @@ export async function getOwnedTokens(args: {
     query: GetCurrentTokenOwnership,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -165,10 +162,7 @@ export async function getOwnedTokens(args: {
 export async function getTokenActivity(args: {
   aptosConfig: AptosConfig;
   tokenAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetTokenActivityResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetTokenActivityResponse> {
   const { aptosConfig, tokenAddress, options } = args;
 
@@ -180,8 +174,8 @@ export async function getTokenActivity(args: {
     query: GetTokenActivity,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -247,16 +241,14 @@ export async function createCollectionTransaction(
     },
     options,
   });
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
-  options?: {
-    tokenStandard?: TokenStandard;
-  };
+  options?: TokenStandardArg;
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
   const address = AccountAddress.from(creatorAddress);
@@ -289,9 +281,7 @@ export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
-  options?: {
-    tokenStandard?: TokenStandard;
-  };
+  options?: TokenStandardArg;
 }): Promise<string> {
   return (await getCollectionData(args)).collection_id;
 }

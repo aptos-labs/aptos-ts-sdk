@@ -7,6 +7,7 @@ import {
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
+  WhereArg,
 } from "../types";
 import {
   getCurrentFungibleAssetBalances,
@@ -39,10 +40,7 @@ export class FungibleAsset {
    */
   async getFungibleAssetMetadata(args?: {
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      where?: FungibleAssetMetadataBoolExp;
-    };
+    options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
   }): Promise<GetFungibleAssetMetadataResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -58,7 +56,7 @@ export class FungibleAsset {
    * This query returns the fungible asset metadata for a specific fungible asset.
    *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param assetType The asset type of the fungible asset.
+   * @param args.assetType The asset type of the fungible asset.
    * e.g
    * "0x1::aptos_coin::AptosCoin" for Aptos Coin
    * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" - address format if this is fungible asset
@@ -97,10 +95,7 @@ export class FungibleAsset {
    */
   async getFungibleAssetActivities(args?: {
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      where?: FungibleAssetActivitiesBoolExp;
-    };
+    options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
   }): Promise<GetFungibleAssetActivitiesResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
@@ -121,10 +116,7 @@ export class FungibleAsset {
    */
   async getCurrentFungibleAssetBalances(args?: {
     minimumLedgerVersion?: AnyNumber;
-    options?: {
-      pagination?: PaginationArgs;
-      where?: CurrentFungibleAssetBalancesBoolExp;
-    };
+    options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
   }): Promise<GetCurrentFungibleAssetBalancesResponse> {
     await waitForIndexerOnVersion({
       config: this.config,

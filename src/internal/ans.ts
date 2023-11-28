@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, MoveValue, OrderBy, PaginationArgs } from "../types";
+import { GetANSNameResponse, MoveAddressType, MoveValue, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types";
@@ -84,8 +84,8 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;
-const None = (): MoveValue => ({ vec: [] }) as any;
+const Some = <T>(value: T): MoveValue => ({ vec: [value] });
+const None = (): MoveValue => ({ vec: [] });
 // != here is intentional, we want to check for null and undefined
 // eslint-disable-next-line eqeqeq
 const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
@@ -167,7 +167,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
       options,
     });
 
-    return transaction as SingleSignerTransaction;
+    return transaction;
   }
 
   // We are a subdomain
@@ -205,7 +205,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
@@ -255,7 +255,7 @@ export async function getPrimaryName(args: {
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: Account;
-  name: string | null;
+  name?: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, options } = args;
@@ -272,7 +272,7 @@ export async function setPrimaryName(args: {
       options,
     });
 
-    return transaction as SingleSignerTransaction;
+    return transaction;
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
@@ -287,7 +287,7 @@ export async function setPrimaryName(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTargetAddress(args: {
@@ -331,7 +331,7 @@ export async function setTargetAddress(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 export async function getName(args: {
@@ -359,7 +359,7 @@ export async function getName(args: {
   });
 
   // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
-  let res = data.current_aptos_names[0] as GetANSNameResponse[0] | undefined;
+  let res = data.current_aptos_names[0];
   if (res) {
     res = sanitizeANSName(res);
   }
@@ -368,11 +368,7 @@ export async function getName(args: {
 }
 
 interface QueryNamesOptions {
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetANSNameResponse[0]>;
-    where?: CurrentAptosNamesBoolExp;
-  };
+  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
 }
 
 export interface GetAccountNamesArgs extends QueryNamesOptions {
@@ -392,8 +388,8 @@ export async function getAccountNames(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -424,8 +420,8 @@ export async function getAccountDomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -457,8 +453,8 @@ export async function getAccountSubdomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -488,8 +484,8 @@ export async function getDomainSubdomains(
     query: {
       query: GetNames,
       variables: {
-        limit: options?.pagination?.limit,
-        offset: options?.pagination?.offset,
+        limit: options?.limit,
+        offset: options?.offset,
         order_by: options?.orderBy,
         where_condition: {
           ...(args.options?.where ?? {}),
@@ -518,7 +514,7 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
-  const res = await view({
+  const [gracePeriodInSeconds] = await view<[number]>({
     aptosConfig,
     payload: {
       function: `${routerAddress}::config::reregistration_grace_sec`,
@@ -526,7 +522,6 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
     },
   });
 
-  const gracePeriodInSeconds = res[0] as number;
   const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
   const now = () => new Date();
   return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
@@ -562,7 +557,7 @@ export async function renewDomain(args: {
     options,
   });
 
-  return transaction as SingleSignerTransaction;
+  return transaction;
 }
 
 /**
