@@ -7,12 +7,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
 - [`Added`] Added `waitForIndexer` function to wait for indexer to sync up with full node. All indexer query functions now accepts a new optional param `minimumLedgerVersion` to wait for indexer to sync up with the target processor.
 - Add `getSigningMessage` to allow users to sign transactions with external signers and other use cases
-
-Breaking:
-- Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
+- [`Breaking`] Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
   - `getExpiration`: Previously returned seconds, now returns milliseconds
   - `registerName`: Argument `expiration.expirationDate` was previously a `Date` object, now it is an epoch timestamp represented in milliseconds
   - All query functions return epoch milliseconds instead of ISO date strings.
+- [`Breaking`] Flatten options for all functions to be a single level
+- Cleanup internal usage of casting
+- Export AnyPublicKey and AnySignature types
 
 ## 0.0.7 (2023-11-16)
 
