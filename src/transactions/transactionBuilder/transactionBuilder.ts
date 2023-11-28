@@ -209,9 +209,10 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options } = args;
 
-  const getSequenceNumber = options?.accountSequenceNumber
-    ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
-    : getInfo({ aptosConfig, accountAddress: sender });
+  const getSequenceNumber =
+    options?.accountSequenceNumber !== undefined
+      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
+      : getInfo({ aptosConfig, accountAddress: sender });
 
   const getChainId = NetworkToChainId[aptosConfig.network]
     ? Promise.resolve({ chain_id: NetworkToChainId[aptosConfig.network] })
