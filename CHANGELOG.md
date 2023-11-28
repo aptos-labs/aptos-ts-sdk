@@ -13,7 +13,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - All query functions return epoch milliseconds instead of ISO date strings.
 - [`Breaking`] Flatten options for all functions to be a single level
 - Cleanup internal usage of casting
-- Export AnyPublicKey and AnySignature types
+- Export `AnyPublicKey` and `AnySignature` types
+- Add `transferFungibleAsset` function to easily generate a transaction to transfer a fungible asset from sender's primary store to recipient's primary store
 
 ## 0.0.7 (2023-11-16)
 

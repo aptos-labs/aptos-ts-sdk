@@ -10,6 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import {
+  AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
@@ -32,6 +33,9 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
+import { Account, AccountAddress } from "../core";
+import { InputGenerateTransactionOptions } from "../transactions";
+import { generateTransaction } from "./transactionSubmission";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
@@ -103,4 +107,26 @@ export async function getCurrentFungibleAssetBalances(args: {
   });
 
   return data.current_fungible_asset_balances;
+}
+
+export async function transferFungibleAsset(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  fungibleAssetMetadataAddress: AccountAddress;
+  recipient: AccountAddress;
+  amount: AnyNumber;
+  options?: InputGenerateTransactionOptions;
+}) {
+  const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::primary_fungible_store::transfer",
+      typeArguments: ["0x1::fungible_asset::Metadata"],
+      functionArguments: [fungibleAssetMetadataAddress, recipient, amount],
+    },
+    options,
+  });
+  return transaction;
 }
