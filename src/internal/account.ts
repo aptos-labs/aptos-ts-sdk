@@ -54,6 +54,7 @@ import {
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { AnyPublicKey } from "../core/crypto/anyPublicKey";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -414,18 +415,41 @@ export async function getAccountTransactionsCount(args: {
   return data.account_transactions_aggregate.aggregate ? data.account_transactions_aggregate.aggregate.count : 0;
 }
 
+export async function getAccountCoinAmount(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  coinType: MoveStructId;
+}): Promise<number> {
+  const { aptosConfig, accountAddress, coinType } = args;
+  const address = AccountAddress.from(accountAddress).toStringLong();
+
+  const data = await getAccountCoinsData({
+    aptosConfig,
+    accountAddress: address,
+    options: {
+      where: { asset_type: { _eq: coinType } },
+    },
+  });
+
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data[0] ? data[0].amount : 0;
+}
+
 export async function getAccountCoinsData(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   options?: {
     pagination?: PaginationArgs;
     orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
+    where?: CurrentFungibleAssetBalancesBoolExp;
   };
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string } } = {
+    ...options?.where,
     owner_address: { _eq: address },
   };
 
