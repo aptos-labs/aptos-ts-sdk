@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
 const WIDTH = 16;
@@ -21,11 +23,7 @@ function formatAccountInfo(account: Account): string {
     account.publicKey,
   ];
 
-  return vals
-    .map((v) => {
-      return truncate(v).padEnd(WIDTH);
-    })
-    .join(" ");
+  return vals.map((v) => truncate(v).padEnd(WIDTH)).join(" ");
 }
 
 (async () => {
@@ -40,7 +38,7 @@ function formatAccountInfo(account: Account): string {
       WIDTH,
     )} ${"Public Key".padEnd(WIDTH)}`,
   );
-  console.log(`---------------------------------------------------------------------------------`);
+  console.log("---------------------------------------------------------------------------------");
   console.log(`${"alice".padEnd(WIDTH)} ${formatAccountInfo(alice)}`);
   console.log(`${"bob".padEnd(WIDTH)} ${formatAccountInfo(bob)}`);
   console.log("\n...rotating...".padStart(WIDTH));
