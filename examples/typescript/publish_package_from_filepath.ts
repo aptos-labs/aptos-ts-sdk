@@ -54,7 +54,7 @@ async function main() {
     accountAddress: alice.accountAddress,
   });
   // published 2 modules
-  assert(accountModules.length === 2);
+  assert(accountModules.length === 3);
   // first account's module bytecode equals the published bytecode
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode

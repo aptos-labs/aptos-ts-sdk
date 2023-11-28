@@ -13,6 +13,7 @@ import {
   getCurrentFungibleAssetBalances,
   getFungibleAssetActivities,
   getFungibleAssetMetadata,
+  transferFungibleAsset,
 } from "../internal/fungibleAsset";
 import {
   CurrentFungibleAssetBalancesBoolExp,
@@ -22,6 +23,8 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
+import { Account, AccountAddress } from "../core";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.
@@ -30,13 +33,11 @@ export class FungibleAsset {
   constructor(readonly config: AptosConfig) {}
 
   /**
-   * Queries the current fungible asset metadata.
+   * Queries all fungible asset metadata.
    *
-   * This query returns the fungible asset metadata for all fungible assets.
-   * It can be filtered by creator address and asset type.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
-   * @returns getFungibleAssetMetadata A list of fungible asset metadata
+   * @returns A list of fungible asset metadata
    */
   async getFungibleAssetMetadata(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -51,7 +52,7 @@ export class FungibleAsset {
   }
 
   /**
-   * Queries the current specific fungible asset metadata
+   * Queries a fungible asset metadata
    *
    * This query returns the fungible asset metadata for a specific fungible asset.
    *
@@ -61,7 +62,7 @@ export class FungibleAsset {
    * "0x1::aptos_coin::AptosCoin" for Aptos Coin
    * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" - address format if this is fungible asset
    *
-   * @returns getFungibleAssetMetadata A fungible asset metadata item
+   * @returns A fungible asset metadata item
    */
   async getFungibleAssetMetadataByAssetType(args: {
     assetType: string;
@@ -85,13 +86,11 @@ export class FungibleAsset {
   }
 
   /**
-   * Queries the fungible asset activities
+   * Queries all fungible asset activities
    *
-   * This query returns the fungible asset activities.
-   * It can be filtered by owner address, asset type, and type.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
-   * @returns GetFungibleAssetActivitiesResponse A list of fungible asset metadata
+   * @returns A list of fungible asset metadata
    */
   async getFungibleAssetActivities(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -106,13 +105,11 @@ export class FungibleAsset {
   }
 
   /**
-   * Queries the fungible asset balance
+   * Queries all fungible asset balances
    *
-   * This query returns the fungible asset balance.
-   * It can be filtered by owner address, and asset type
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
-   * @returns GetCurrentFungibleAssetBalancesResponse A list of fungible asset metadata
+   * @returns A list of fungible asset metadata
    */
   async getCurrentFungibleAssetBalances(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -124,5 +121,28 @@ export class FungibleAsset {
       processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
     });
     return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   *  Transfer `amount` of fungible asset from sender's primary store to recipient's primary store.
+   *
+   * Use this method to transfer any fungible asset including fungible token.
+   *
+   * @param sender The sender account
+   * @param fungibleAssetMetadataAddress The fungible asset account address.
+   * For example if you’re transferring USDT this would be the USDT address
+   * @param recipient The recipient account address
+   * @param amount Number of assets to transfer
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain.
+   */
+  async transferFungibleAsset(args: {
+    sender: Account;
+    fungibleAssetMetadataAddress: AccountAddress;
+    recipient: AccountAddress;
+    amount: AnyNumber;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SingleSignerTransaction> {
+    return transferFungibleAsset({ aptosConfig: this.config, ...args });
   }
 }
