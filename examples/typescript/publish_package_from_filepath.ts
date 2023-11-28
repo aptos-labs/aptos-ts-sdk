@@ -30,9 +30,9 @@ async function main() {
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");
-  compilePackage("facoin", "facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
+  compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
 
-  const { metadataBytes, byteCode } = getPackageBytesToPublish("facoin/facoin.json");
+  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
