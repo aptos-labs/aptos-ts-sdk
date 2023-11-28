@@ -38,7 +38,7 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { ProcessorType } from "../utils/const";
+import { APTOS_COIN, ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
@@ -404,7 +404,7 @@ export class Account {
   }
 
   /**
-   * Queries the acount's APT amount
+   * Queries the account's APT amount
    *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -419,11 +419,11 @@ export class Account {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
     });
-    return getAccountCoinAmount({ aptosConfig: this.config, coinType: "0x1::aptos_coin::AptosCoin", ...args });
+    return getAccountCoinAmount({ aptosConfig: this.config, coinType: APTOS_COIN, ...args });
   }
 
   /**
-   * Queries the acount's coin amount by the coin type
+   * Queries the account's coin amount by the coin type
    *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.coinType The coin type to query

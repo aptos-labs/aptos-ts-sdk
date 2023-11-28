@@ -1,7 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Ed25519PrivateKey, Network, SigningSchemeInput, U64 } from "../../../src";
+import {
+  APTOS_COIN,
+  Account,
+  Aptos,
+  AptosConfig,
+  Ed25519PrivateKey,
+  Network,
+  SigningSchemeInput,
+  U64,
+} from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -217,7 +226,7 @@ describe("account api", () => {
       // APT Aptos coin
       const accountAPTAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
-        coinType: "0x1::aptos_coin::AptosCoin",
+        coinType: APTOS_COIN,
       });
       expect(accountAPTAmount).toBe(100000000);
     });

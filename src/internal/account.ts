@@ -431,6 +431,8 @@ export async function getAccountCoinAmount(args: {
     },
   });
 
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
   return data[0] ? data[0].amount : 0;
 }
 

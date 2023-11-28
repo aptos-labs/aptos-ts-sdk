@@ -18,7 +18,7 @@ const MOON_COINS_TO_MINT = 100;
 const MOON_COINS_TO_TRANSFER = 100;
 
 // Setup the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.TESTNET;
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
@@ -28,7 +28,7 @@ async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress):
     sender: receiver.accountAddress,
     data: {
       function: "0x1::managed_coin::register",
-      typeArguments: [`${coinTypeAddress.toString()}::moon_coin::MoonCoin`],
+      typeArguments: [`${coinTypeAddress}::moon_coin::MoonCoin`],
       functionArguments: [],
     },
   });
@@ -49,7 +49,7 @@ async function transferCoin(
     sender: sender.accountAddress,
     data: {
       function: "0x1::aptos_account::transfer_coins",
-      typeArguments: [`${sender.accountAddress.toString()}::moon_coin::MoonCoin`],
+      typeArguments: [`${sender.accountAddress}::moon_coin::MoonCoin`],
       functionArguments: [receiverAddress, amount],
     },
   });
@@ -66,7 +66,7 @@ async function mintCoin(minter: Account, receiverAddress: AccountAddress, amount
     sender: minter.accountAddress,
     data: {
       function: "0x1::managed_coin::mint",
-      typeArguments: [`${minter.accountAddress.toString()}::moon_coin::MoonCoin`],
+      typeArguments: [`${minter.accountAddress}::moon_coin::MoonCoin`],
       functionArguments: [receiverAddress, amount],
     },
   });

@@ -24,7 +24,7 @@ export function compilePackage(
     console.log("aptos is not installed. Please install it from the instructions on aptos.dev");
   }
 
-  const addressArg = namedAddresses.map(({ name, address }) => `${name}=${address.toString()}`).join(" ");
+  const addressArg = namedAddresses.map(({ name, address }) => `${name}=${address}`).join(" ");
 
   // Assume-yes automatically overwrites the previous compiled version, only do this if you are sure you want to overwrite the previous version.
   const compileCommand = `aptos move build-publish-payload --json-output-file ${outputFile} --package-dir ${packageDir} --named-addresses ${addressArg} --assume-yes`;
@@ -42,7 +42,7 @@ export function compilePackage(
 export function getPackageBytesToPublish(filePath: string) {
   // current working directory - the root folder of this repo
   const cwd = process.cwd();
-  // target directory - current working directory + facoin/facoin.json (facoin.json is generated with the prevoius cli command)
+  // target directory - current working directory + filePath (filePath json file is generated with the prevoius, compilePackage, cli command)
   const modulePath = path.join(cwd, filePath);
 
   const jsonData = JSON.parse(fs.readFileSync(modulePath, "utf8"));
