@@ -208,7 +208,7 @@ async function main() {
   console.log("Bob transfers 10 coins to Alice as the owner.");
   const transferFungibleAssetRawTransaction = await aptos.transferFungibleAsset({
     sender: bob,
-    fungibleAssetMetadataAddress: AccountAddress.fromRelaxed(metadataAddress),
+    fungibleAssetMetadataAddress: AccountAddress.from(metadataAddress),
     recipient: alice.accountAddress,
     amount: 10,
   });
