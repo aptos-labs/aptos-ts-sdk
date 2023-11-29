@@ -19,6 +19,7 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
+  MoveStructId,
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
@@ -138,6 +139,7 @@ export async function getOwnedTokens(args: {
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
     owner_address: { _eq: AccountAddress.from(ownerAddress).toStringLong() },
+    amount: { _gt: 0 },
   };
 
   const graphqlQuery = {
@@ -284,4 +286,26 @@ export async function getCollectionId(args: {
   options?: TokenStandardArg;
 }): Promise<string> {
   return (await getCollectionData(args)).collection_id;
+}
+
+export async function transferDigitalAsset(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  digitalAssetAddress: AccountAddressInput;
+  recipient: AccountAddress;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::object::transfer",
+      typeArguments: [digitalAssetType ?? "0x4::token::Token"],
+      functionArguments: [digitalAssetAddress, recipient],
+    },
+    options,
+  });
+  return transaction;
 }

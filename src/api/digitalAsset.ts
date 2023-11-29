@@ -8,12 +8,13 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
+  MoveStructId,
   OrderByArg,
   PaginationArgs,
   TokenStandard,
   TokenStandardArg,
 } from "../types";
-import { Account, AccountAddressInput } from "../core";
+import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
   CreateCollectionOptions,
@@ -25,6 +26,7 @@ import {
   getTokenActivity,
   getTokenData,
   mintTokenTransaction,
+  transferDigitalAsset,
 } from "../internal/digitalAsset";
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
@@ -227,6 +229,29 @@ export class DigitalAsset {
       processorTypes: getTokenProcessorTypes(undefined),
     });
     return getTokenActivity({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Transfer a digital asset (non fungible token) ownership.
+   *
+   * We can transfer a digital asset only when the digital asset is not frozen
+   * (i.e. owner transfer is not disabled such as for soul bound tokens)
+   *
+   * @param args.sender The sender account of the current digital asset owner
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.recipient The recipient account address
+   * @param args.digitalAssetType optional. The digital asset type, default to "0x4::token::Token"
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async transferDigitalAsset(args: {
+    sender: Account;
+    digitalAssetAddress: AccountAddressInput;
+    recipient: AccountAddress;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SingleSignerTransaction> {
+    return transferDigitalAsset({ aptosConfig: this.config, ...args });
   }
 }
 
