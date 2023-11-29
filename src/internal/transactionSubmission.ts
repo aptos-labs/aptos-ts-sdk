@@ -92,7 +92,14 @@ export async function generateTransaction(
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, data, options } = args;
+  const payload = await buildTransactionPayload(args);
+  return buildRawTransaction(args, payload);
+}
+
+export async function buildTransactionPayload(
+  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+): Promise<AnyTransactionPayloadInstance> {
+  const { aptosConfig, data } = args;
 
   // Merge in aptosConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
@@ -118,6 +125,14 @@ export async function generateTransaction(
     };
     payload = await generateTransactionPayload(generateTransactionPayloadData);
   }
+  return payload;
+}
+
+export async function buildRawTransaction(
+  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+  payload: AnyTransactionPayloadInstance,
+): Promise<AnyRawTransaction> {
+  const { aptosConfig, sender, options } = args;
 
   let feePayerAddress;
   if (isFeePayerTransactionInput(args)) {

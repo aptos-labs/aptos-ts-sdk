@@ -15,7 +15,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Cleanup internal usage of casting
 - Export `AnyPublicKey` and `AnySignature` types
 - Add `transferFungibleAsset` function to easily generate a transaction to transfer a fungible asset from sender's primary store to recipient's primary store
-- [`Breaking`] AccountAddress.fromRelaxed is now AccountAddress.from, and a new AccountAddress.fromStrict has the old functionality.
+- [`Breaking`] `AccountAddress.fromRelaxed` is now `AccountAddress.from`, and a new `AccountAddress.fromStrict` has the old functionality.
+- Implement transaction management worker layer to manage transaction submission for a single account with a high throughput
 
 ## 0.0.7 (2023-11-16)
 
