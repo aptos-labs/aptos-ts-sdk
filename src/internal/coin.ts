@@ -1,11 +1,9 @@
 import { AptosConfig } from "../api/aptosConfig";
-import { U64 } from "../bcs/serializable/movePrimitives";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
 import { APTOS_COIN } from "../utils/const";
 import { generateTransaction } from "./transactionSubmission";
-import { parseTypeTag } from "../transactions/typeTag/parser";
 
 export async function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;
@@ -22,8 +20,8 @@ export async function transferCoinTransaction(args: {
     sender: sender.accountAddress,
     data: {
       function: "0x1::aptos_account::transfer_coins",
-      typeArguments: [parseTypeTag(coinStructType)],
-      functionArguments: [AccountAddress.from(recipient), new U64(amount)],
+      typeArguments: [coinStructType],
+      functionArguments: [recipient, amount],
     },
     options,
   });
