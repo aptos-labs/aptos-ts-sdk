@@ -17,6 +17,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `transferFungibleAsset` function to easily generate a transaction to transfer a fungible asset from sender's primary store to recipient's primary store
 - [`Breaking`] `AccountAddress.fromRelaxed` is now `AccountAddress.from`, and a new `AccountAddress.fromStrict` has the old functionality.
 - Implement transaction management worker layer to manage transaction submission for a single account with a high throughput
+- [`Fixed`] Allow for Uint8Array to be passed as a `vector<u8>` argument on entry functions
+- [`Fixed`] Allow for raw vectors to be passed as arguments with encoded types within them for Remote ABI on entry functions e.g. [AccountAddress]
 
 ## 0.0.7 (2023-11-16)
 

@@ -30,7 +30,7 @@ export type SimpleEntryFunctionArgumentTypes =
   | null // To support optional empty
   | undefined // To support optional empty
   | Uint8Array
-  | Array<SimpleEntryFunctionArgumentTypes>;
+  | Array<SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes>;
 
 /**
  * Entry function arguments to be used when building a raw transaction using BCS serialized arguments
@@ -115,7 +115,7 @@ export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { apt
  * The data needed to generate a Multi Sig payload
  */
 export type InputMultiSigData = {
-  multisigAddress: AccountAddress;
+  multisigAddress: AccountAddressInput;
 } & InputEntryFunctionData;
 
 /**

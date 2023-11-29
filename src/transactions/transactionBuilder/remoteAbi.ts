@@ -12,7 +12,6 @@ import {
   findFirstNonSignerArg,
   isBcsAddress,
   isBcsBool,
-  isBcsFixedBytes,
   isBcsString,
   isBcsU128,
   isBcsU16,
@@ -21,6 +20,7 @@ import {
   isBcsU64,
   isBcsU8,
   isBool,
+  isEncodedEntryFunctionArgument,
   isLargeNumber,
   isNull,
   isNumber,
@@ -104,28 +104,25 @@ export function convertArgument(
     throw new Error(`Too many arguments for '${functionName}', expected ${functionAbi.parameters.length}`);
   }
 
+  const param = functionAbi.parameters[position];
+  return checkOrConvertArgument(arg, param, position, genericTypeParams);
+}
+
+export function checkOrConvertArgument(
+  arg: SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes,
+  param: TypeTag,
+  position: number,
+  genericTypeParams: Array<TypeTag>,
+) {
   // If the argument is bcs encoded, we can just use it directly
-  if (
-    isBcsBool(arg) ||
-    isBcsU8(arg) ||
-    isBcsU16(arg) ||
-    isBcsU32(arg) ||
-    isBcsU64(arg) ||
-    isBcsU128(arg) ||
-    isBcsU256(arg) ||
-    isBcsAddress(arg) ||
-    isBcsString(arg) ||
-    isBcsFixedBytes(arg) ||
-    arg instanceof MoveVector ||
-    arg instanceof MoveOption
-  ) {
+  if (isEncodedEntryFunctionArgument(arg)) {
     // Ensure the type matches the ABI
-    checkType(functionAbi, arg, position);
+    checkType(param, arg, position);
     return arg;
   }
 
   // If it is not BCS encoded, we will need to convert it with the ABI
-  return parseArg(arg, functionAbi.parameters[position], position, genericTypeParams);
+  return parseArg(arg, param, position, genericTypeParams);
 }
 
 /**
@@ -198,19 +195,30 @@ function parseArg(
       throw new Error(`Generic argument ${param.toString()} is invalid for argument ${position}`);
     }
 
-    parseArg(arg, genericTypeParams[genericIndex], position, genericTypeParams);
+    checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams);
   }
 
   // We have to special case some vectors for Vector<u8>
   if (param.isVector()) {
     // Check special case for Vector<u8>
-    if (param.value.isU8() && isString(arg)) {
-      // TODO: Improve message when hex is invalid
-      return MoveVector.U8(Hex.fromHexInput(arg).toUint8Array());
+    if (param.value.isU8()) {
+      if (isString(arg)) {
+        try {
+          return MoveVector.U8(Hex.fromHexInput(arg).toUint8Array());
+        } catch (e: any) {
+          // This is a bit of a hack to not reuse code, but also have a better error message
+          throw new Error(`vector<u8> must be passed in as a hex string or a Uint8array, type '${param.toString()}'`);
+        }
+      }
+      if (arg instanceof Uint8Array) {
+        return MoveVector.U8(arg);
+      }
     }
 
+    // TODO: Support Uint16Array, Uint32Array, BigUint64Array?
+
     if (Array.isArray(arg)) {
-      return new MoveVector(arg.map((item) => parseArg(item, param.value, position, genericTypeParams)));
+      return new MoveVector(arg.map((item) => checkOrConvertArgument(item, param.value, position, genericTypeParams)));
     }
 
     throw new Error(`Type mismatch for argument ${position}, type '${param.toString()}'`);
@@ -239,7 +247,7 @@ function parseArg(
         return new MoveOption<U8>(null);
       }
 
-      return new MoveOption(parseArg(arg, param.value.typeArgs[0], position, genericTypeParams));
+      return new MoveOption(checkOrConvertArgument(arg, param.value.typeArgs[0], position, genericTypeParams));
     }
 
     throw new Error(`Unsupported struct input type for argument ${position}, type '${param.toString()}'`);
@@ -250,12 +258,11 @@ function parseArg(
 
 /**
  * Checks that the type of an already BCS encoded argument matches the ABI
- * @param functionAbi
+ * @param param
  * @param arg
  * @param position
  */
-function checkType(functionAbi: EntryFunctionABI, arg: EntryFunctionArgumentTypes, position: number) {
-  const param = functionAbi.parameters[position];
+function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number) {
   if (param.isBool()) {
     if (isBcsBool(arg)) {
       return;

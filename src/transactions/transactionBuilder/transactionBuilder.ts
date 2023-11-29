@@ -171,12 +171,7 @@ export function generateTransactionPayloadWithABI(
 
   // Send it as multi sig if it's a multisig payload
   if ("multisigAddress" in args) {
-    let multisigAddress: AccountAddress;
-    if (typeof args.multisigAddress === "string") {
-      multisigAddress = AccountAddress.from(args.multisigAddress);
-    } else {
-      multisigAddress = args.multisigAddress;
-    }
+    const multisigAddress = AccountAddress.from(args.multisigAddress);
     return new TransactionPayloadMultisig(
       new MultiSig(multisigAddress, new MultisigTransactionPayload(entryFunctionPayload)),
     );
