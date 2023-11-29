@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 0.0.8 (2023-11-29)
+
 - Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
 - [`Added`] Added `waitForIndexer` function to wait for indexer to sync up with full node. All indexer query functions now accepts a new optional param `minimumLedgerVersion` to wait for indexer to sync up with the target processor.
 - Add `getSigningMessage` to allow users to sign transactions with external signers and other use cases
