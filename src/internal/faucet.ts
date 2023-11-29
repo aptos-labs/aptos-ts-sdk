@@ -27,7 +27,7 @@ export async function fundAccount(args: {
     aptosConfig,
     path: "fund",
     body: {
-      address: AccountAddress.fromRelaxed(accountAddress).toString(),
+      address: AccountAddress.from(accountAddress).toString(),
       amount,
     },
     originMethod: "fundAccount",

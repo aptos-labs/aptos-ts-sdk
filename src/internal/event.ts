@@ -39,7 +39,7 @@ export async function getAccountEventsByEventType(args: {
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
   const { accountAddress, aptosConfig, eventType, options } = args;
-  const address = AccountAddress.fromRelaxed(accountAddress).toStringLong();
+  const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: address },

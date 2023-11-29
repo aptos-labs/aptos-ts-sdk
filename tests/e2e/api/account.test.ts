@@ -15,27 +15,6 @@ import {
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
 
-  describe("throws when account address in invalid", () => {
-    test("it throws with a short account address", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      await expect(async () =>
-        aptos.getAccountInfo({
-          accountAddress: "ca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0",
-        }),
-      ).rejects.toThrow("Hex string must start with a leading 0x.");
-    });
-
-    test("it throws when invalid account address", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      await expect(async () => aptos.getAccountInfo({ accountAddress: "0x123" })).rejects.toThrow(
-        // eslint-disable-next-line max-len
-        "The given hex string 0x123 is not a special address, it must be represented as 0x + 64 chars.",
-      );
-    });
-  });
-
   describe("fetch data", () => {
     test("it fetches account data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });

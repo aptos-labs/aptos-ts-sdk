@@ -279,7 +279,7 @@ export async function publicPackageTransaction(args: {
 
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: AccountAddress.fromRelaxed(account),
+    sender: AccountAddress.from(account),
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],

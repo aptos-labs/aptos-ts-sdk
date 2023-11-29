@@ -7,40 +7,35 @@
 
 import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
-const BOB_INITIAL_BALANCE = 1_000_000;
+const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 1_000_000;
+
+// Setup the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const config = new AptosConfig({ network: APTOS_NETWORK });
+const aptos = new Aptos(config);
 
 /**
  * Prints the balance of an account
  * @param aptos
  * @param name
  * @param address
- * @returns {Promise<*>}
+ * @returns {Promise<number>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address,
-    resourceType: COIN_STORE,
+const balance = async (name: string, accountAddress: AccountAddress): Promise<number> => {
+  const amount = await aptos.getAccountAPTAmount({
+    accountAddress,
   });
-  const amount = Number(resource.coin.value);
-
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
 };
 
 const example = async () => {
   console.log(
-    "This example will create two accounts (Alice and Bob), fund them, and transfer between them using transferCoinTransaction.",
+    "This example will create two accounts (Alice and Bob), fund Alice, and transfer between them using transferCoinTransaction.",
   );
-
-  // Setup the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(config);
 
   // Create two accounts
   const alice = Account.generate();
@@ -54,23 +49,15 @@ const example = async () => {
   console.log("\n=== Funding accounts ===\n");
 
   // Fund alice account
-  const aliceFundTxn = await aptos.faucet.fundAccount({
+  await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
-  console.log("Alice's fund transaction: ", aliceFundTxn);
-
-  // Fund bob account
-  const bobFundTxn = await aptos.faucet.fundAccount({
-    accountAddress: bob.accountAddress,
-    amount: BOB_INITIAL_BALANCE,
-  });
-  console.log("Bob's fund transaction: ", bobFundTxn);
 
   // Show the balances
-  console.log("\n=== Balances ===\n");
-  const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  console.log("\n=== Initial Balances ===\n");
+  const aliceBalance = await balance("Alice", alice.accountAddress);
+  const bobBalance = await balance("Bob", bob.accountAddress);
 
   if (aliceBalance !== ALICE_INITIAL_BALANCE) throw new Error("Alice's balance is incorrect");
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
@@ -87,8 +74,8 @@ const example = async () => {
   console.log(`Committed transaction: ${response.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
-  const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
-  const newBobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const newAliceBalance = await balance("Alice", alice.accountAddress);
+  const newBobBalance = await balance("Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
   if (newBobBalance !== TRANSFER_AMOUNT + BOB_INITIAL_BALANCE)

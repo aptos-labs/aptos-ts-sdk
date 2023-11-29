@@ -32,7 +32,7 @@ export async function publishAnsContract(
   aptos: Aptos,
 ): Promise<{ address: AccountAddress; privateKey: Ed25519PrivateKey }> {
   const ret = {
-    address: AccountAddress.fromStringRelaxed(LOCAL_ANS_ACCOUNT_ADDRESS),
+    address: AccountAddress.fromString(LOCAL_ANS_ACCOUNT_ADDRESS),
     privateKey: new Ed25519PrivateKey(LOCAL_ANS_ACCOUNT_PK),
   };
   try {
