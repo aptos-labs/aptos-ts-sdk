@@ -121,7 +121,7 @@ const example = async () => {
     data: {
       bytecode: TRANSFER_SCRIPT,
       typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.fromStringRelaxed(objectAddress), new U64(TRANSFER_AMOUNT)],
+      functionArguments: [AccountAddress.fromString(objectAddress), new U64(TRANSFER_AMOUNT)],
     },
   });
 
