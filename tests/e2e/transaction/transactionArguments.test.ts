@@ -86,9 +86,9 @@ describe("various transaction arguments", () => {
       resourceType: `${senderAccount.accountAddress}::tx_args_module::SetupData`,
     });
 
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_1.inner));
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_2.inner));
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_3.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_1.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_2.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_3.inner));
 
     transactionArguments = [
       new Bool(true),
@@ -110,12 +110,12 @@ describe("various transaction arguments", () => {
       MoveVector.U128([0, 1, 2, MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT]),
       MoveVector.U256([0, 1, 2, MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT]),
       new MoveVector([
-        AccountAddress.fromStringRelaxed("0x0"),
-        AccountAddress.fromStringRelaxed("0xabc"),
-        AccountAddress.fromStringRelaxed("0xdef"),
-        AccountAddress.fromStringRelaxed("0x123"),
-        AccountAddress.fromStringRelaxed("0x456"),
-        AccountAddress.fromStringRelaxed("0x789"),
+        AccountAddress.fromString("0x0"),
+        AccountAddress.fromString("0xabc"),
+        AccountAddress.fromString("0xdef"),
+        AccountAddress.fromString("0x123"),
+        AccountAddress.fromString("0x456"),
+        AccountAddress.fromString("0x789"),
       ]),
       EXPECTED_VECTOR_STRING,
       new MoveVector(moduleObjects),
@@ -360,7 +360,7 @@ describe("various transaction arguments", () => {
       }
 
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
@@ -386,7 +386,7 @@ describe("various transaction arguments", () => {
       }
       const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
@@ -411,7 +411,7 @@ describe("various transaction arguments", () => {
       }
       const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -436,12 +436,12 @@ describe("various transaction arguments", () => {
       }
       const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -462,7 +462,7 @@ describe("various transaction arguments", () => {
       }
       const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -487,12 +487,12 @@ describe("various transaction arguments", () => {
       }
       const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });

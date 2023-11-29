@@ -234,7 +234,7 @@ export async function generateRawTransaction(args: {
   };
 
   return new RawTransaction(
-    AccountAddress.fromRelaxed(sender),
+    AccountAddress.from(sender),
     BigInt(sequenceNumber),
     payload,
     BigInt(maxGasAmount),
@@ -290,18 +290,18 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
   // if multi agent transaction
   if ("secondarySignerAddresses" in args) {
     const signers: Array<AccountAddress> =
-      args.secondarySignerAddresses?.map((signer) => AccountAddress.fromRelaxed(signer)) ?? [];
+      args.secondarySignerAddresses?.map((signer) => AccountAddress.from(signer)) ?? [];
 
     return {
       rawTransaction: rawTxn,
       secondarySignerAddresses: signers,
-      feePayerAddress: args.feePayerAddress ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
+      feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
     };
   }
   // return the raw transaction
   return {
     rawTransaction: rawTxn,
-    feePayerAddress: args.feePayerAddress ? AccountAddress.fromRelaxed(args.feePayerAddress) : undefined,
+    feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
   };
 }
 

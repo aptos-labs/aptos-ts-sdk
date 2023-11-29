@@ -113,7 +113,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.fromRelaxed(owner).toString() : undefined;
+  return owner ? AccountAddress.from(owner).toString() : undefined;
 }
 
 export interface RegisterNameParameters {
@@ -240,7 +240,7 @@ export async function getPrimaryName(args: {
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_primary_name`,
-      functionArguments: [AccountAddress.fromRelaxed(address).toString()],
+      functionArguments: [AccountAddress.from(address).toString()],
     },
   });
 
@@ -307,7 +307,7 @@ export async function getTargetAddress(args: {
   });
 
   const target = unwrapOption<MoveAddressType>(res[0]);
-  return target ? AccountAddress.fromRelaxed(target).toString() : undefined;
+  return target ? AccountAddress.from(target).toString() : undefined;
 }
 
 export async function setTargetAddress(args: {

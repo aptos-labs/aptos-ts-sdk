@@ -218,7 +218,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * NOTE: This function has strict parsing behavior. For relaxed behavior, please use
-   * the `fromStringRelaxed` function.
+   * the `fromString` function.
    *
    * Creates an instance of AccountAddress from a hex string.
    *
@@ -243,13 +243,13 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns An instance of AccountAddress.
    */
-  static fromString(input: string): AccountAddress {
+  static fromStringStrict(input: string): AccountAddress {
     // Assert the string starts with 0x.
     if (!input.startsWith("0x")) {
       throw new ParsingError("Hex string must start with a leading 0x.", AddressInvalidReason.LEADING_ZERO_X_REQUIRED);
     }
 
-    const address = AccountAddress.fromStringRelaxed(input);
+    const address = AccountAddress.fromString(input);
 
     // Check if the address is in LONG form. If it is not, this is only allowed for
     // special addresses, in which case we check it is in proper SHORT form.
@@ -274,8 +274,8 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * NOTE: This function has relaxed parsing behavior. For strict behavior, please use
-   * the `fromString` function. Where possible use `fromString` rather than this
-   * function, `fromStringRelaxed` is only provided for backwards compatibility.
+   * the `fromStringStrict` function. Where possible use `fromStringStrict` rather than this
+   * function, `fromString` is only provided for backwards compatibility.
    *
    * Creates an instance of AccountAddress from a hex string.
    *
@@ -297,7 +297,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @returns An instance of AccountAddress.
    */
-  static fromStringRelaxed(input: string): AccountAddress {
+  static fromString(input: string): AccountAddress {
     let parsedInput = input;
     // Remove leading 0x for parsing.
     if (input.startsWith("0x")) {
@@ -341,22 +341,6 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * This handles, Uint8array, string, and AccountAddress itself
    * @param input
    */
-  static fromRelaxed(input: AccountAddressInput): AccountAddress {
-    if (input instanceof AccountAddress) {
-      return input;
-    }
-    if (input instanceof Uint8Array) {
-      return new AccountAddress(input);
-    }
-    return AccountAddress.fromStringRelaxed(input);
-  }
-
-  /**
-   * Convenience method for creating an AccountAddress from all known inputs.
-   *
-   * This handles, Uint8array, string, and AccountAddress itself
-   * @param input
-   */
   static from(input: AccountAddressInput): AccountAddress {
     if (input instanceof AccountAddress) {
       return input;
@@ -367,6 +351,22 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     return AccountAddress.fromString(input);
   }
 
+  /**
+   * Convenience method for creating an AccountAddress from all known inputs.
+   *
+   * This handles, Uint8array, string, and AccountAddress itself
+   * @param input
+   */
+  static fromStrict(input: AccountAddressInput): AccountAddress {
+    if (input instanceof AccountAddress) {
+      return input;
+    }
+    if (input instanceof Uint8Array) {
+      return new AccountAddress(input);
+    }
+    return AccountAddress.fromStringStrict(input);
+  }
+
   // ===
   // Methods for checking validity.
   // ===
@@ -375,15 +375,15 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Check if the string is a valid AccountAddress.
    *
    * @param args.input A hex string representing an account address.
-   * @param args.relaxed If true, use relaxed parsing behavior. If false, use strict parsing behavior.
+   * @param args.strict If true, use strict parsing behavior. If false, use relaxed parsing behavior.
    *
    * @returns valid = true if the string is valid, valid = false if not. If the string
    * is not valid, invalidReason will be set explaining why it is invalid.
    */
-  static isValid(args: { input: AccountAddressInput; relaxed?: boolean }): ParsingResult<AddressInvalidReason> {
+  static isValid(args: { input: AccountAddressInput; strict?: boolean }): ParsingResult<AddressInvalidReason> {
     try {
-      if (args.relaxed) {
-        AccountAddress.fromRelaxed(args.input);
+      if (args.strict) {
+        AccountAddress.fromStrict(args.input);
       } else {
         AccountAddress.from(args.input);
       }
