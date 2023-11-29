@@ -37,12 +37,12 @@ const tokensToMint = 100;
 
 async function main() {
   const sender: Account = Account.generate();
-  console.log(`sender ${sender.accountAddress.toString()}`);
+  console.log(`sender ${sender.accountAddress}`);
 
   // fund sender accounts
   const funds: Array<Promise<UserTransactionResponse>> = [];
 
-  funds.push(aptos.fundAccount({ accountAddress: sender.accountAddress.toStringWithoutPrefix(), amount: 10000000000 }));
+  funds.push(aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 10000000000 }));
 
   await Promise.all(funds);
 
