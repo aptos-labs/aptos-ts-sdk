@@ -25,6 +25,7 @@ import {
   getOwnedTokens,
   getTokenActivity,
   getTokenData,
+  mintSoulBoundTokenTransaction,
   mintTokenTransaction,
   transferDigitalAsset,
 } from "../internal/digitalAsset";
@@ -37,43 +38,6 @@ import { waitForIndexerOnVersion } from "./utils";
  */
 export class DigitalAsset {
   constructor(readonly config: AptosConfig) {}
-
-  /**
-   * Creates a new collection within the specified account
-   *
-   * @param args.creator the account of the collection's creator
-   * @param args.description the description of the collection
-   * @param args.name the name of the collection
-   * @param args.uri the URI to additional info about the collection
-   *
-   * The parameters below are optional.
-   * @param args.maxSupply controls the max supply of the tokens - defaults MAX_U64_BIG_INT
-   * @param args.mutableDescription controls mutability of the collection's description - defaults true
-   * @param args.mutableRoyalty controls mutability of the collection's description - defaults true
-   * @param args.mutableUri controls mutability of the collection's URI - defaults true
-   * @param args.mutableTokenDescription controls mutability of the token's description - defaults true
-   * @param args.mutableTokenName controls mutability of the token's name - defaults true
-   * @param args.mutableTokenProperties controls mutability of token's properties - defaults true
-   * @param args.mutableTokenUri controls mutability of the token's URI - defaults true
-   * @param args.tokensBurnableByCreator controls whether tokens can be burnable by the creator - defaults true
-   * @param args.tokensFreezableByCreator controls whether tokens can be frozen by the creator - defaults true
-   * @param args.royaltyNumerator the numerator of the royalty to be paid to the creator when a token is transferred - defaults 0
-   * @param args.royaltyDenominator the denominator of the royalty to be paid to the creator when a token is transferred -
-   *    defaults 1
-   *
-   * @returns A SingleSignerTransaction that when submitted will create the collection.
-   */
-  async createCollectionTransaction(
-    args: {
-      creator: Account;
-      description: string;
-      name: string;
-      uri: string;
-      options?: InputGenerateTransactionOptions;
-    } & CreateCollectionOptions,
-  ): Promise<SingleSignerTransaction> {
-    return createCollectionTransaction({ aptosConfig: this.config, ...args });
-  }
 
   /**
    * Queries data of a specific collection by the collection creator address and the collection name.
@@ -125,28 +89,6 @@ export class DigitalAsset {
       processorTypes: getTokenProcessorTypes(args.options?.tokenStandard),
     });
     return getCollectionId({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * Create a transaction to mint a token into the creators account within an existing collection.
-   *
-   * @param args.creator the creator of the collection
-   * @param args.collection the name of the collection the token belongs to
-   * @param args.description the description of the token
-   * @param args.name the name of the token
-   * @param args.uri the URI to additional info about the token
-   *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
-   */
-  async mintTokenTransaction(args: {
-    creator: Account;
-    collection: string;
-    description: string;
-    name: string;
-    uri: string;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
-    return mintTokenTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -232,6 +174,65 @@ export class DigitalAsset {
   }
 
   /**
+   * Creates a new collection within the specified account
+   *
+   * @param args.creator the account of the collection's creator
+   * @param args.description the description of the collection
+   * @param args.name the name of the collection
+   * @param args.uri the URI to additional info about the collection
+   *
+   * The parameters below are optional.
+   * @param args.maxSupply controls the max supply of the tokens - defaults MAX_U64_BIG_INT
+   * @param args.mutableDescription controls mutability of the collection's description - defaults true
+   * @param args.mutableRoyalty controls mutability of the collection's description - defaults true
+   * @param args.mutableUri controls mutability of the collection's URI - defaults true
+   * @param args.mutableTokenDescription controls mutability of the token's description - defaults true
+   * @param args.mutableTokenName controls mutability of the token's name - defaults true
+   * @param args.mutableTokenProperties controls mutability of token's properties - defaults true
+   * @param args.mutableTokenUri controls mutability of the token's URI - defaults true
+   * @param args.tokensBurnableByCreator controls whether tokens can be burnable by the creator - defaults true
+   * @param args.tokensFreezableByCreator controls whether tokens can be frozen by the creator - defaults true
+   * @param args.royaltyNumerator the numerator of the royalty to be paid to the creator when a token is transferred - defaults 0
+   * @param args.royaltyDenominator the denominator of the royalty to be paid to the creator when a token is transferred -
+   *    defaults 1
+   *
+   * @returns A SingleSignerTransaction that when submitted will create the collection.
+   */
+  async createCollectionTransaction(
+    args: {
+      creator: Account;
+      description: string;
+      name: string;
+      uri: string;
+      options?: InputGenerateTransactionOptions;
+    } & CreateCollectionOptions,
+  ): Promise<SingleSignerTransaction> {
+    return createCollectionTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Create a transaction to mint a token into the creators account within an existing collection.
+   *
+   * @param args.creator the creator of the collection
+   * @param args.collection the name of the collection the token belongs to
+   * @param args.description the description of the token
+   * @param args.name the name of the token
+   * @param args.uri the URI to additional info about the token
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async mintTokenTransaction(args: {
+    creator: Account;
+    collection: string;
+    description: string;
+    name: string;
+    uri: string;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SingleSignerTransaction> {
+    return mintTokenTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
    * Transfer a digital asset (non fungible token) ownership.
    *
    * We can transfer a digital asset only when the digital asset is not frozen
@@ -252,6 +253,21 @@ export class DigitalAsset {
     options?: InputGenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
     return transferDigitalAsset({ aptosConfig: this.config, ...args });
+  }
+
+  async mintSoulBoundTokenTransaction(args: {
+    account: Account;
+    collection: string;
+    description: string;
+    name: string;
+    uri: string;
+    recipient: AccountAddress;
+    propertyKeys: Array<string>;
+    propertyTypes: Array<string>;
+    propertyValues: Array<string>;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SingleSignerTransaction> {
+    return mintSoulBoundTokenTransaction({ aptosConfig: this.config, ...args });
   }
 }
 

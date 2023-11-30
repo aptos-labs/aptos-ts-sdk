@@ -140,4 +140,20 @@ describe("DigitalAsset", () => {
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
   });
+
+  test.only("it mints soul bound token", async () => {
+    const bob = Account.generate();
+    await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: FUND_AMOUNT });
+    const transaction = await aptos.mintSoulBoundTokenTransaction({
+      account: creator,
+      collection: "AliceCollection",
+      description: "Alice's simple soul bound token",
+      name: "Alice's soul bound token",
+      uri: "https://aptos.dev/img/nyan.jpeg",
+      recipient: bob.accountAddress,
+      propertyKeys: ["key"],
+      propertyTypes: ["bool"],
+      propertyValues: ["true"],
+    });
+  });
 });

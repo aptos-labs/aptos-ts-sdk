@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
+import { MoveString, MoveVector, Bool, U64, U8, Serializer } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
@@ -40,6 +40,7 @@ import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 import { MAX_U64_BIG_INT } from "../bcs/consts";
 import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
+import { parseTypeTag } from "../transactions";
 
 // TODO: Support properties when minting.
 export interface MintTokenOptions {
@@ -308,4 +309,62 @@ export async function transferDigitalAsset(args: {
     options,
   });
   return transaction;
+}
+
+export async function mintSoulBoundTokenTransaction(args: {
+  aptosConfig: AptosConfig;
+  account: Account;
+  collection: string;
+  description: string;
+  name: string;
+  uri: string;
+  recipient: AccountAddress;
+  propertyKeys: Array<string>;
+  propertyTypes: Array<string>;
+  propertyValues: Array<string>;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    account,
+    collection,
+    description,
+    name,
+    uri,
+    recipient,
+    propertyKeys,
+    propertyTypes,
+    propertyValues,
+    options,
+  } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: account.accountAddress,
+    data: {
+      function: "0x4::aptos_token::mint_soul_bound",
+      functionArguments: [
+        collection,
+        description,
+        name,
+        uri,
+        propertyKeys,
+        propertyTypes,
+        getPropertyValueRaw(propertyValues, propertyTypes),
+        recipient,
+      ],
+    },
+    options,
+  });
+  return transaction;
+}
+
+function getPropertyValueRaw(propertyValues: Array<string>, propertyTypes: Array<string>): MoveVector<U8> {
+  propertyTypes.forEach((typ, index) => {
+    const typeTag = parseTypeTag(typ);
+    console.log("typeTag", typeTag);
+    const movebool = new Bool(propertyValues[index]);
+  });
+
+  // just to supres error
+  return MoveVector.U8(new Uint8Array());
 }
