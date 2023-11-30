@@ -279,4 +279,8 @@ export class Account {
     const rawMessage = Hex.fromHexInput(message).toUint8Array();
     return this.publicKey.verifySignature({ message: rawMessage, signature });
   }
+
+  toString(): string {
+    return `Account(address:${this.accountAddress}, scheme: ${this.signingScheme}, publicKey: ${this.publicKey})`;
+  }
 }

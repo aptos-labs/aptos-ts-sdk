@@ -25,4 +25,8 @@ export class Identifier extends Serializable {
     const identifier = deserializer.deserializeStr();
     return new Identifier(identifier);
   }
+
+  toString(): string {
+    return this.identifier;
+  }
 }

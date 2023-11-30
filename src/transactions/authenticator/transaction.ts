@@ -62,6 +62,10 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
     const signature = Ed25519Signature.deserialize(deserializer);
     return new TransactionAuthenticatorEd25519(public_key, signature);
   }
+
+  toString(): string {
+    return `TransactionAuthenticatorEd25519(public_key: ${this.public_key.toString()}, signature: ${this.signature.toString()})`;
+  }
 }
 
 /**
@@ -92,6 +96,11 @@ export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticat
     const public_key = MultiEd25519PublicKey.deserialize(deserializer);
     const signature = MultiEd25519Signature.deserialize(deserializer);
     return new TransactionAuthenticatorMultiEd25519(public_key, signature);
+  }
+
+  toString(): string {
+    // eslint-disable-next-line max-len
+    return `TransactionAuthenticatorMultiEd25519(public_key: ${this.public_key.toString()}, signature: ${this.signature.toString()})`;
   }
 }
 
@@ -133,6 +142,11 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
     const secondary_signer_addresses = deserializer.deserializeVector(AccountAddress);
     const secondary_signers = deserializer.deserializeVector(AccountAuthenticator);
     return new TransactionAuthenticatorMultiAgent(sender, secondary_signer_addresses, secondary_signers);
+  }
+
+  toString(): string {
+    // eslint-disable-next-line max-len
+    return `TransactionAuthenticatorMultiAgent(sender: ${this.sender}, secondary_signer_addresses:${this.secondary_signer_addresses} secondary_signers: ${this.secondary_signers})`;
   }
 }
 
@@ -188,6 +202,11 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
     const fee_payer = { address, authenticator };
     return new TransactionAuthenticatorFeePayer(sender, secondary_signer_addresses, secondary_signers, fee_payer);
   }
+
+  toString(): string {
+    // eslint-disable-next-line max-len
+    return `TransactionAuthenticatorFeePayer(sender: ${this.sender}, secondary_signer_addresses:${this.secondary_signer_addresses} secondary_signers: ${this.secondary_signers}, fee_payer_address: ${this.fee_payer.address}, fee_payer_authenticator: ${this.fee_payer.authenticator})`;
+  }
 }
 
 /**
@@ -211,5 +230,9 @@ export class TransactionAuthenticatorSingleSender extends TransactionAuthenticat
   static load(deserializer: Deserializer): TransactionAuthenticatorSingleSender {
     const sender = AccountAuthenticator.deserialize(deserializer);
     return new TransactionAuthenticatorSingleSender(sender);
+  }
+
+  toString(): string {
+    return `TransactionAuthenticatorSingleSender(sender: ${this.sender})`;
   }
 }

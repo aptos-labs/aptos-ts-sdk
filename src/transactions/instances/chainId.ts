@@ -23,4 +23,17 @@ export class ChainId extends Serializable {
     const chainId = deserializer.deserializeU8();
     return new ChainId(chainId);
   }
+
+  toString(): string {
+    switch (this.chainId) {
+      case 1:
+        return "mainnet";
+      case 2:
+        return "testnet";
+      case 4:
+        return "testing";
+      default:
+        return `ChainId(${this.chainId})`;
+    }
+  }
 }

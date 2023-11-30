@@ -50,4 +50,8 @@ export class ModuleId extends Serializable {
     const name = Identifier.deserialize(deserializer);
     return new ModuleId(address, name);
   }
+
+  toString(): string {
+    return `${this.address}::${this.name}`;
+  }
 }
