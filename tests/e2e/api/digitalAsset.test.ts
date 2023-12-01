@@ -134,9 +134,14 @@ describe("DigitalAsset", () => {
       recipient: digitalAssetReceiver.accountAddress,
     });
     const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: pendingTransaction.hash });
+    const committedTransaction = await aptos.waitForTransaction({ transactionHash: pendingTransaction.hash });
 
-    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: digitalAssetReceiver.accountAddress }))[0];
+    const tokenData = (
+      await aptos.getOwnedTokens({
+        ownerAddress: digitalAssetReceiver.accountAddress,
+        minimumLedgerVersion: BigInt(committedTransaction.version),
+      })
+    )[0];
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(digitalAssetReceiver.accountAddress.toString());
   });

@@ -1,7 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
+import {
+  Aptos,
+  Network,
+  Account,
+  AnyRawTransaction,
+  U8,
+  AptosConfig,
+  GetANSNameResponse,
+  CommittedTransactionResponse,
+} from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -18,9 +27,9 @@ describe("ANS", () => {
     expirationDate: number,
     domainName: string,
     subdomainName?: string,
-  ) => void;
+  ) => Promise<CommittedTransactionResponse>;
 
-  let changeRouterMode: (mode: 0 | 1) => void;
+  let changeRouterMode: (mode: 0 | 1) => Promise<CommittedTransactionResponse>;
 
   const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
@@ -466,7 +475,7 @@ describe("ANS", () => {
     test("can renew a v2 name that is eligible for renewal", async () => {
       const name = domainName;
 
-      changeRouterMode(1);
+      await changeRouterMode(1);
 
       await signAndSubmit(
         alice,
@@ -479,7 +488,7 @@ describe("ANS", () => {
 
       // Change the expiration date of the name to be tomorrow
       const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).valueOf() / 1000);
-      changeExpirationDate(1, newExpirationDate, name);
+      await changeExpirationDate(1, newExpirationDate, name);
 
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
 
@@ -493,7 +502,7 @@ describe("ANS", () => {
       const tld = domainName;
       const name = `${subdomainName}.${domainName}`;
 
-      changeRouterMode(1);
+      await changeRouterMode(1);
 
       await signAndSubmit(
         alice,
