@@ -15,7 +15,7 @@ export async function transferCoinTransaction(args: {
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, recipient, amount, coinType, options } = args;
   const coinStructType = coinType ?? APTOS_COIN;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
     data: {
@@ -25,6 +25,4 @@ export async function transferCoinTransaction(args: {
     },
     options,
   });
-
-  return transaction;
 }

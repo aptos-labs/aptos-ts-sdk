@@ -52,7 +52,7 @@ async function main() {
     creator: sender,
     description: "Batch Collection",
     name: COLLECTION_NAME,
-    uri: "http://aptos.dev",
+    uri: "https://aptos.dev",
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
   await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -67,7 +67,7 @@ async function main() {
         COLLECTION_NAME,
         `my ${i} token description`,
         `my ${i} token`,
-        "http://aptos.dev/nft",
+        "https://aptos.dev/nft",
         [],
         [],
         [],
@@ -77,7 +77,7 @@ async function main() {
   }
 
   // batch mint token transactions
-  aptos.batchTransactionsForSingleAccount({ sender, data: payloads });
+  return aptos.batchTransactionsForSingleAccount({ sender, data: payloads });
 }
 
 main();

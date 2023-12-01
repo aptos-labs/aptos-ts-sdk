@@ -175,7 +175,7 @@ export interface WhereArg<T extends {}> {
  * A configuration object we can pass with the request to the server.
  *
  * @param AUTH_TOKEN - an auth token to send with a faucet request
- * @param API_KEY - api key generated from developer portal {@link https://developers.aptoslabs.com/manage/api-keys}}
+ * @param API_KEY - api key generated from developer portal {@link https://developers.aptoslabs.com/manage/api-keys}
  * @param HEADERS - extra headers we want to send with the request
  * @param WITH_CREDENTIALS - whether to carry cookies. By default, it is set to true and cookies will be sent
  */
@@ -213,9 +213,9 @@ export interface Client {
 /**
  * The API request type
  *
- * @param url - the url to make the request to, i.e https://fullnode.aptoslabs.devnet.com/v1
+ * @param url - the url to make the request to, i.e. https://fullnode.aptoslabs.devnet.com/v1
  * @param method - the request method "GET" | "POST"
- * @param endpoint (optional) - the endpoint to make the request to, i.e transactions
+ * @param endpoint (optional) - the endpoint to make the request to, i.e. transactions
  * @param body (optional) - the body of the request
  * @param contentType (optional) - the content type to set the `content-type` header to,
  * by default is set to `application/json`
@@ -236,7 +236,7 @@ export type AptosRequest = {
 };
 
 /**
- * Specifies ledger version of transactions. By default latest version will be used
+ * Specifies ledger version of transactions. By default, latest version will be used
  */
 export type LedgerVersionArg = {
   ledgerVersion?: AnyNumber;

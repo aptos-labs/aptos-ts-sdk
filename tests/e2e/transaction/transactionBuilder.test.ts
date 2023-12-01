@@ -371,7 +371,7 @@ describe("transaction builder", () => {
         payload,
       });
 
-      const bcsTransaction = await generateSignedTransactionForSimulation({
+      const bcsTransaction = generateSignedTransactionForSimulation({
         transaction,
         signerPublicKey: alice.publicKey,
       });
@@ -486,7 +486,7 @@ describe("transaction builder", () => {
         payload,
       });
       const authenticator = sign({ signer: alice, transaction });
-      const bcsTransaction = await generateSignedTransaction({
+      const bcsTransaction = generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
       });
@@ -499,7 +499,7 @@ describe("transaction builder", () => {
     test("it generates a multi agent signed transaction", async () => {
       const alice = Account.generate();
       await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
-      const bob = await Account.generate();
+      const bob = Account.generate();
       const payload = await generateTransactionPayload({
         aptosConfig: config,
         function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -516,7 +516,7 @@ describe("transaction builder", () => {
         signer: bob,
         transaction,
       });
-      const bcsTransaction = await generateSignedTransaction({
+      const bcsTransaction = generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
         additionalSignersAuthenticators: [secondaryAuthenticator],
@@ -547,7 +547,7 @@ describe("transaction builder", () => {
         signer: bob,
         transaction,
       });
-      const bcsTransaction = await generateSignedTransaction({
+      const bcsTransaction = generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
         feePayerAuthenticator,

@@ -27,7 +27,7 @@ export async function publishPackage(
     metadataBytes,
     moduleBytecode: codeBytes,
   });
-  const signedTxn = await aptos.sign.transaction({
+  const signedTxn = aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
@@ -70,7 +70,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
       ],
     },
   });
-  const signedTxn = await aptos.sign.transaction({
+  const signedTxn = aptos.sign.transaction({
     signer: firstAccount,
     transaction,
   });
@@ -104,7 +104,7 @@ export async function rawTransactionHelper(
       functionArguments: args,
     },
   });
-  const senderAuthenticator = await aptos.sign.transaction({
+  const senderAuthenticator = aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
@@ -235,8 +235,7 @@ export async function publishArgumentTestModule(
   senderAccount: Account,
 ): Promise<UserTransactionResponse> {
   const contractBytecode = await getContractBytecode();
-  const response = await publishPackage(aptos, senderAccount, ARGUMENT_TESTS_CONTRACT_METADATA, [contractBytecode]);
-  return response;
+  return publishPackage(aptos, senderAccount, ARGUMENT_TESTS_CONTRACT_METADATA, [contractBytecode]);
 }
 
 export const singleSignerScriptBytecode =

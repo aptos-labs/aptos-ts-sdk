@@ -63,7 +63,7 @@ export async function superagentCustomClient<Req, Res>(
   const response = await superagent.get(`${url}?${params}`, request);
   return {
     status: response.status,
-    statusText: response.statusText,
+    statusText: response.statusType,
     data: response.text,
     headers: response.headers,
     config: response,

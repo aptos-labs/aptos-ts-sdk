@@ -58,7 +58,7 @@ export async function mintTokenTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
     data: {
@@ -75,7 +75,6 @@ export async function mintTokenTransaction(args: {
     },
     options,
   });
-  return transaction;
 }
 
 export async function getTokenData(args: {
@@ -217,7 +216,7 @@ export async function createCollectionTransaction(
   } & CreateCollectionOptions,
 ): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: creator.accountAddress,
     data: {
@@ -243,7 +242,6 @@ export async function createCollectionTransaction(
     },
     options,
   });
-  return transaction;
 }
 
 export async function getCollectionData(args: {
@@ -297,7 +295,7 @@ export async function transferDigitalAsset(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
     data: {
@@ -307,5 +305,4 @@ export async function transferDigitalAsset(args: {
     },
     options,
   });
-  return transaction;
 }

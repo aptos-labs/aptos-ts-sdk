@@ -17,7 +17,7 @@ export async function waitForIndexerOnVersion(args: {
   if (args.minimumLedgerVersion !== undefined) {
     // eslint-disable-next-line no-restricted-syntax
 
-    // Collect all of the promises to wait at the same time
+    // Collect the promises to wait at the same time
     // TODO(greg): This needs to be refactored to be handled at the query time.  It involves rewriting
     // a bunch of the logic for wait for indexer
     const promises: Array<Promise<void>> = [];

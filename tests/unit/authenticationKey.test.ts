@@ -62,12 +62,12 @@ describe("AuthenticationKey", () => {
   it("should throw an error on an unsupported key", () => {
     class NewPublicKey extends PublicKey {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-      deserialize(deserializer: Deserializer): PublicKey {
+      deserialize(_deserializer: Deserializer): PublicKey {
         throw new Error("Not implemented");
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-      serialize(serializer: Serializer): void {
+      serialize(_serializer: Serializer): void {
         throw new Error("Not implemented");
       }
 
@@ -82,7 +82,7 @@ describe("AuthenticationKey", () => {
       }
 
       // eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-unused-vars
-      verifySignature(args: { message: HexInput; signature: Signature }): boolean {
+      verifySignature(_args: { message: HexInput; signature: Signature }): boolean {
         throw new Error("Not implemented");
       }
     }

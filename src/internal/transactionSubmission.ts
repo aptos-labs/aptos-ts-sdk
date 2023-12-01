@@ -84,7 +84,7 @@ export async function generateTransaction(
  * ```
  * {
  *  rawTransaction: RawTransaction,
- *  secondarySignerAddresses? : Array<AccountAddress>,
+ *  secondarySignerAddresses?: Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
  * ```
@@ -192,7 +192,7 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  * ```
  * {
  *  rawTransaction: RawTransaction,
- *  secondarySignerAddresses? : Array<AccountAddress>,
+ *  secondarySignerAddresses?: Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
  * ```
@@ -200,8 +200,7 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  * @return The signer AccountAuthenticator
  */
 export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-  const accountAuthenticator = sign({ ...args });
-  return accountAuthenticator;
+  return sign({ ...args });
 }
 
 /**
@@ -292,7 +291,7 @@ export async function publicPackageTransaction(args: {
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: AccountAddress.from(account),
     data: {
@@ -301,7 +300,6 @@ export async function publicPackageTransaction(args: {
     },
     options,
   });
-  return transaction;
 }
 
 /**
@@ -348,10 +346,9 @@ export async function rotateAuthKey(args: {
       ],
     },
   });
-  const pendingTxn = await signAndSubmitTransaction({
+  return signAndSubmitTransaction({
     aptosConfig,
     signer: fromAccount,
     transaction: rawTxn,
   });
-  return pendingTxn;
 }

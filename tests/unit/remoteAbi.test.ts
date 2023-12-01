@@ -41,7 +41,7 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(MAX_U32, parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U32));
       expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U16));
 
-      // Large numbers can be passed as strings, bigints, and numbrers
+      // Large numbers can be passed as strings, bigints, and numbers
       expect(checkOrConvertArgument(MAX_U64, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64));
       expect(checkOrConvertArgument(MAX_U64.toString(), parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64));
       expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U16));

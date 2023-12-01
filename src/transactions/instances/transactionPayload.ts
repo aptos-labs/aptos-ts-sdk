@@ -193,14 +193,14 @@ export class EntryFunction {
    * @example
    * A coin transfer function has one type argument "CoinType".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    * @param args Arguments to the move function.
    *
    * @example
    * A coin transfer function has three arguments "from", "to" and "amount".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    * @returns EntryFunction
    */
@@ -287,14 +287,14 @@ export class Script {
    * @example
    * A coin transfer function has one type argument "CoinType".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    * @param args The arguments that the bytecode function requires.
    *
    * @example
    * A coin transfer function has three arguments "from", "to" and "amount".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    */
   constructor(bytecode: Uint8Array, type_args: Array<TypeTag>, args: Array<ScriptFunctionArgument>) {

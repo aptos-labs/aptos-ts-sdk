@@ -11,12 +11,12 @@ for full details. This page describes [our development process](#our-development
 ## Aptos SDK
 
 To contribute to the Aptos SDK implementation, first fork the [aptos-ts-sdk](https://github.com/aptos-labs/aptos-ts-sdk) 
-repository.  For more information on how to fork see the [Github documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
+repository.  For more information on how to fork see the [GitHub documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
 
 ## Our Development Process
 ### Documentation
 
-Aptos's developer website is also open source (the code can be found in this 
+The Aptos developer website is also open source. The code can be found in this 
 [repository](https://github.com/aptos-labs/aptos-core/tree/main/developers-docs-site/).  It is built using 
 [Docusaurus](https://docusaurus.io/):
 
@@ -110,9 +110,9 @@ needed conflicts to be resolved. As such, PRs with merge commits will be rejecte
 ## Bisect-able History
 
 It is important that the project history is bisect-able so that when regressions are identified we can easily use 
-`git bisect` to be able to pin-point the exact commit which introduced the regression. This requires that every commit 
-is able to be built and passes all lints and tests. So if your pull request includes multiple commits be sure that each 
-and every commit is able to be built and passes all checks performed by CI.
+`git bisect` to be able to pinpoint the exact commit which introduced the regression. This requires that every commit 
+builds and passes all lints and tests. So if your pull request includes multiple commits be sure that each 
+and every commit builds and passes all checks performed by CI.
 
 ## Issues
 

@@ -22,7 +22,7 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param sdk
  * @param name
  * @param address
  * @returns {Promise<*>}
@@ -40,7 +40,7 @@ const balance = async (sdk, name, address) => {
 const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const sdk = new Aptos(config);
 

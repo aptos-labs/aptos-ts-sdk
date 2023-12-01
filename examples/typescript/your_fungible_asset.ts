@@ -12,6 +12,7 @@ import {
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
 /**
  * This example demonstrate how one can compile, deploy, and mint its own fungible asset (FA)
  * It uses the fa_coin.move module that can be found in the move folder
@@ -22,7 +23,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * 3. Run `pnpm run your_coin`
  */
 
-// Setup the client
+// Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
@@ -42,7 +43,7 @@ async function transferCoin(
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
+  const senderAuthenticator = aptos.sign.transaction({ signer: admin, transaction });
   const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -58,7 +59,7 @@ async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): P
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
+  const senderAuthenticator = aptos.sign.transaction({ signer: admin, transaction });
   const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -74,7 +75,7 @@ async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: Any
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
+  const senderAuthenticator = aptos.sign.transaction({ signer: admin, transaction });
   const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -90,7 +91,7 @@ async function freeze(admin: Account, targetAddress: AccountAddress): Promise<st
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
+  const senderAuthenticator = aptos.sign.transaction({ signer: admin, transaction });
   const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -106,7 +107,7 @@ async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
+  const senderAuthenticator = aptos.sign.transaction({ signer: admin, transaction });
   const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -171,10 +172,10 @@ async function main() {
   const metadataAddress = await getMetadata(alice);
   console.log("metadata address:", metadataAddress);
 
-  console.log("All the balances in this exmaple refer to balance in primary fungible stores of each account.");
+  console.log("All the balances in this example refer to balance in primary fungible stores of each account.");
   console.log(`Alice's initial FACoin balance: ${await getFaBalance(alice, metadataAddress)}.`);
   console.log(`Bob's initial FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
-  console.log(`Charlie's initial balance: ${await await getFaBalance(charlie, metadataAddress)}.`);
+  console.log(`Charlie's initial balance: ${await getFaBalance(charlie, metadataAddress)}.`);
 
   console.log("Alice mints Charlie 100 coins.");
   const mintCoinTransactionHash = await mintCoin(alice, charlie, 100);

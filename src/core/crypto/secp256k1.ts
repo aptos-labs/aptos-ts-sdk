@@ -196,7 +196,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
   }
 
   /**
-   * A private inner function so we can separate from the main fromDerivationPath() method
+   * A private inner function, so we can separate from the main fromDerivationPath() method
    * to add tests to verify we create the keys correctly.
    *
    * @param path the BIP44 path
@@ -220,7 +220,7 @@ export class Secp256k1PrivateKey extends PrivateKey {
 }
 
 /**
- * A signature of a message signed using an Secp256k1 ecdsa private key
+ * A signature of a message signed using a Secp256k1 ecdsa private key
  */
 export class Secp256k1Signature extends Signature {
   /**
@@ -244,7 +244,7 @@ export class Secp256k1Signature extends Signature {
 
     const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Secp256k1Signature.LENGTH) {
-      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}, recieved ${hex.toUint8Array().length}`);
+      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}, received ${hex.toUint8Array().length}`);
     }
     this.data = hex;
   }

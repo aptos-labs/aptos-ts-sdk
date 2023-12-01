@@ -128,11 +128,11 @@ export class FungibleAsset {
    *
    * Use this method to transfer any fungible asset including fungible token.
    *
-   * @param sender The sender account
-   * @param fungibleAssetMetadataAddress The fungible asset account address.
+   * @param args.sender The sender account
+   * @param args.fungibleAssetMetadataAddress The fungible asset account address.
    * For example if you’re transferring USDT this would be the USDT address
-   * @param recipient The recipient account address
-   * @param amount Number of assets to transfer
+   * @param args.recipient The recipient account address
+   * @param args.amount Number of assets to transfer
    *
    * @returns A SingleSignerTransaction that can be simulated or submitted to chain.
    */

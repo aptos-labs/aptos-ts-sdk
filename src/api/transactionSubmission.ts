@@ -26,7 +26,7 @@ export class TransactionSubmission {
    * This function uses a transaction worker that receives payloads to be processed
    * and submitted to chain.
    * Note that this process is best for submitting multiple transactions that
-   * dont rely on each other, i.e batch funds, batch token mints, etc.
+   * don't rely on each other, i.e. batch funds, batch token mints, etc.
    *
    * If any worker failure, the functions throws an error.
    *
@@ -64,7 +64,7 @@ export class TransactionSubmission {
    * ```
    * {
    *  rawTransaction: RawTransaction,
-   *  secondarySignerAddresses? : Array<AccountAddress>,
+   *  secondarySignerAddresses?: Array<AccountAddress>,
    *  feePayerAddress?: AccountAddress
    * }
    * ```
@@ -106,7 +106,7 @@ export class TransactionSubmission {
   }
 
   /**
-   * Rotate an account's auth key. After rotation, only the new private key can be used to sign txns for
+   * Rotate an account's auth key. After rotation, only the new private key can be used to sign transactions for
    * the account.
    * Note: Only legacy Ed25519 scheme is supported for now.
    * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}

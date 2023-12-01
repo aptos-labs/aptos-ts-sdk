@@ -340,7 +340,7 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
  * @param maxValue The input argument must be <= maxValue
  */
 function checkNumberRange<T extends AnyNumber>(minValue: T, maxValue: T) {
-  return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const childFunction = descriptor.value;
     // eslint-disable-next-line no-param-reassign
     descriptor.value = function deco(value: AnyNumber) {

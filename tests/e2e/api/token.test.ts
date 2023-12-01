@@ -9,11 +9,11 @@ const aptos = new Aptos(config);
 
 const collectionName = "Test Collection";
 const collectionDescription = "My new collection!";
-const collectionUri = "http://aptos.dev";
+const collectionUri = "https://aptos.dev";
 
 const tokenName = "Test Token";
 const tokenDescription = "my first nft";
-const tokenUri = "http://aptos.dev/nft";
+const tokenUri = "https://aptos.dev/nft";
 
 const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();

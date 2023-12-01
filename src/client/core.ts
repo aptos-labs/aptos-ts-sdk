@@ -105,7 +105,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
   if (result && result.data && "message" in result.data && "error_code" in result.data) {
     errorMessage = JSON.stringify(result.data);
   } else if (result.status in errors) {
-    // If it's not an API type, it must come form infra, these are prehandled
+    // If it's not an API type, it must come from infra, so these are already handled
     errorMessage = errors[result.status];
   } else {
     // Everything else is unhandled

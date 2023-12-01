@@ -35,8 +35,7 @@ export function isValidANSSegment(fragment: string): boolean {
   if (fragment.length < 3) return false;
   if (fragment.length > 63) return false;
   // only lowercase a-z and 0-9 are allowed, along with -. a domain may not start or end with a hyphen
-  if (!/^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment)) return false;
-  return true;
+  return /^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(fragment);
 }
 
 /**
@@ -157,7 +156,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     const secondsInYear = 31536000;
     const registrationDuration = years * secondsInYear;
 
-    const transaction = await generateTransaction({
+    return generateTransaction({
       aptosConfig,
       sender: sender.accountAddress.toString(),
       data: {
@@ -166,8 +165,6 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
       },
       options,
     });
-
-    return transaction;
   }
 
   // We are a subdomain
@@ -187,7 +184,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
   }
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress.toString(),
     data: {
@@ -204,8 +201,6 @@ export async function registerName(args: RegisterNameParameters): Promise<Single
     },
     options,
   });
-
-  return transaction;
 }
 
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
@@ -262,7 +257,7 @@ export async function setPrimaryName(args: {
   const routerAddress = getRouterAddress(aptosConfig);
 
   if (!name) {
-    const transaction = await generateTransaction({
+    return generateTransaction({
       aptosConfig,
       sender: sender.accountAddress.toString(),
       data: {
@@ -271,13 +266,11 @@ export async function setPrimaryName(args: {
       },
       options,
     });
-
-    return transaction;
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress.toString(),
     data: {
@@ -286,8 +279,6 @@ export async function setPrimaryName(args: {
     },
     options,
   });
-
-  return transaction;
 }
 
 export async function getTargetAddress(args: {
@@ -321,7 +312,7 @@ export async function setTargetAddress(args: {
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress.toString(),
     data: {
@@ -330,8 +321,6 @@ export async function setTargetAddress(args: {
     },
     options,
   });
-
-  return transaction;
 }
 
 export async function getName(args: {
@@ -547,7 +536,7 @@ export async function renewDomain(args: {
     throw new Error("Currently, only 1 year renewals are supported");
   }
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress.toString(),
     data: {
@@ -556,8 +545,6 @@ export async function renewDomain(args: {
     },
     options,
   });
-
-  return transaction;
 }
 
 /**

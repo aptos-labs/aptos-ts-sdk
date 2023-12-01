@@ -280,7 +280,7 @@ export class ANS {
    * Fetches all subdomains names for a given domain. Note, this will not return the domain itself.
    *
    * @param args
-   * @param args.domain - A string of the domain name: eg. "test.apt" or "test" (without the suffix of .apt)
+   * @param args.domain - A string of the domain name: e.g. "test.apt" or "test" (without the suffix of .apt)
    * @param args.options.offset - Optional, the offset to start from when fetching names
    * @param args.options.limit - Optional, A number of the names to fetch per request
    * @param args.options.orderBy - The order to sort the names by

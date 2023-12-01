@@ -9,11 +9,11 @@ const aptos = new Aptos(config);
 
 const collectionName = "Test Collection";
 const collectionDescription = "My new collection!";
-const collectionUri = "http://aptos.dev";
+const collectionUri = "https://aptos.dev";
 
 const tokenName = "Test Token";
 const tokenDescription = "my first nft";
-const tokenUri = "http://aptos.dev/nft";
+const tokenUri = "https://aptos.dev/nft";
 
 const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
@@ -125,19 +125,19 @@ describe("DigitalAsset", () => {
   });
 
   test("it transfers digital asset ownership", async () => {
-    const digitalAssetReciever = Account.generate();
-    await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
+    const digitalAssetReceiver = Account.generate();
+    await aptos.fundAccount({ accountAddress: digitalAssetReceiver.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferDigitalAsset({
       sender: creator,
       digitalAssetAddress: tokenAddress,
-      recipient: digitalAssetReciever.accountAddress,
+      recipient: digitalAssetReceiver.accountAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: pendingTransaction.hash });
 
-    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: digitalAssetReciever.accountAddress }))[0];
+    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: digitalAssetReceiver.accountAddress }))[0];
     expect(tokenData.token_data_id).toEqual(tokenAddress);
-    expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
+    expect(tokenData.owner_address).toEqual(digitalAssetReceiver.accountAddress.toString());
   });
 });

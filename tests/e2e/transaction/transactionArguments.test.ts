@@ -318,7 +318,7 @@ describe("various transaction arguments", () => {
     });
   });
 
-  // only public entry functions- shouldn't need to test private again
+  // only public entry functions - shouldn't need to test private again
   describe("single signer transactions with all entry function arguments", () => {
     it("successfully submits a single signer transaction with all argument types", async () => {
       const response = await rawTransactionHelper(aptos, senderAccount, "public_arguments", [], transactionArguments);
@@ -337,7 +337,7 @@ describe("various transaction arguments", () => {
     });
   });
 
-  // only public entry functions- shouldn't need to test private again
+  // only public entry functions - shouldn't need to test private again
   describe("multi signer transaction with all entry function arguments", () => {
     it("successfully submits a multi signer transaction with all argument types", async () => {
       const secondarySignerAddresses = secondarySignerAccounts.map((account) => account.accountAddress);
@@ -522,7 +522,7 @@ describe("various transaction arguments", () => {
         },
         secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress),
       });
-      const senderAuthenticator = await aptos.sign.transaction({ signer: senderAccount, transaction: rawTransaction });
+      const senderAuthenticator = aptos.sign.transaction({ signer: senderAccount, transaction: rawTransaction });
       const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
         aptos.sign.transaction({
           signer: account,

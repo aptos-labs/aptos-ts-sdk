@@ -48,7 +48,7 @@ export class AptosConfig {
    * Returns the URL endpoint to send the request to.
    * If a custom URL was provided in the config, that URL is returned.
    * If a custom URL was provided but not URL endpoints, an error is thrown.
-   * Otherwise, the URL endpoint is derived from the network.
+   * Otherwise, the URL endpoint derives from the network.
    *
    * @param apiType - The type of Aptos API to get the URL for.
    *

@@ -35,7 +35,7 @@ describe("account sequence number", () => {
     async () => {
       await accountSequenceNumber.initialize();
       expect(accountSequenceNumber.currentNumber).toEqual(BigInt(0));
-      expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(0));
+      expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(0));
     },
     longTestTimeout,
   );
@@ -47,7 +47,7 @@ describe("account sequence number", () => {
       authentication_key: account.accountAddress.toString(),
     });
     await accountSequenceNumber.update();
-    expect(accountSequenceNumber.lastUncommintedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
+    expect(accountSequenceNumber.lastUncommittedNumber).toEqual(BigInt(parseInt(seqNum, 10)));
   });
 
   it(
@@ -67,7 +67,7 @@ describe("account sequence number", () => {
   );
 
   it(
-    "includes updated on-chain sequnce number in local sequence number",
+    "includes updated on-chain sequence number in local sequence number",
     async () => {
       const previousSeqNum = "5";
       getAccountInfoSpy.mockResolvedValue({

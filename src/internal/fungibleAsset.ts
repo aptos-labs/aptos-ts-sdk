@@ -118,7 +118,7 @@ export async function transferFungibleAsset(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
     data: {
@@ -128,5 +128,4 @@ export async function transferFungibleAsset(args: {
     },
     options,
   });
-  return transaction;
 }

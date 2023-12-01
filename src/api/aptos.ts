@@ -19,7 +19,7 @@ import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 
 /**
- * This class is the main entry point into Aptos's
+ * This class is the main entry point into Aptos
  * APIs and separates functionality into different namespaces.
  *
  * To use the SDK, create a new Aptos instance to get access

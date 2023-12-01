@@ -44,7 +44,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Breaking`] Refactor transaction builder flow
   - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
-  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
+  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi-agent as `aptos.*.multiAgentTransaction`
   - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
   - Different functions `aptos.sign.transaction` to sign a transaction as a single signer and `aptos.sign.transactionAsFeePayer`to sign a transaction as a sponsor
   - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
@@ -131,11 +131,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - Generate new keys
   - Derive from existing private key
   - Derive from mnemonics path
-  - Derive from private key and address (for account that has it's key rotated)
+  - Derive from private key and address (for account that has its key rotated)
   - Sign
   - Verify signature
 - BCS support
-  - Move sub-classes to easily serialize and deserialize Move types
+  - Move subclasses to easily serialize and deserialize Move types
   - Unified Argument class for entry function and script payload argument types
   - Full nested serialization/deserialization support
 - Examples (both typescript and javascript)
@@ -146,5 +146,5 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
   - Mint collection and nft
 - Local custom types (instead of generating types)
 - In depths type checking on compile time
-  - Typescript can infer the return type based on the argument being passed into `generateTransaction` function (singlesigner,multiagent,feepayer)
+  - Typescript can infer the return type based on the argument being passed into `generateTransaction` function (single signer,multi-agent,fee payer)
   - Support for orderBy keys type checking for indexer queries

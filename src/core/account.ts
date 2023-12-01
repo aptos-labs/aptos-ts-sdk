@@ -139,7 +139,7 @@ export class Account {
         break;
       default:
         privateKey = Ed25519PrivateKey.generate();
-        if (useLegacy === false) {
+        if (!useLegacy) {
           publicKey = new AnyPublicKey(privateKey.publicKey());
         } else {
           publicKey = privateKey.publicKey();
@@ -157,7 +157,7 @@ export class Account {
    * This is used as a local calculation and therefore is used to instantiate an `Account`
    * that has not had its authentication key rotated.
    *
-   * @param privateKey PrivateKey - private key of the account
+   * @param args.privateKey PrivateKey - private key of the account
    * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
    * to generating a Legacy Ed25519 keypair
    *

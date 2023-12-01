@@ -80,10 +80,10 @@ export class TypeTagParserError extends Error {
  * 3. A nested struct e.g. 0x1::coin::Coin<0x1234::coin::MyCoin>
  *
  * There are a few more special cases that need to be handled, however.
- * 1. Multiple generics e.g 0x1::pair::Pair<u8, u16>
+ * 1. Multiple generics e.g. 0x1::pair::Pair<u8, u16>
  * 2. Spacing in the generics e.g. 0x1::pair::Pair< u8 , u16>
  * 3. Nested generics of different depths e.g. 0x1::pair::Pair<0x1::coin::Coin<0x1234::coin::MyCoin>, u8>
- * 4. Generics for types in ABIs are filled in with placeholders e.g T1, T2, T3
+ * 4. Generics for types in ABIs are filled in with placeholders e.g. T1, T2, T3
  */
 export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
   const allowGenerics = options?.allowGenerics ?? false;
@@ -207,6 +207,7 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
  * Parses a type tag with internal types associated
  * @param str
  * @param types
+ * @param allowGenerics Allows generics to be parsed, this is used for ABI parsing and should not be used for other usage
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
   // TODO: Parse references to any item not just signer

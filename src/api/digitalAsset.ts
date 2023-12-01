@@ -194,7 +194,7 @@ export class DigitalAsset {
    *
    * @param args.ownerAddress The address of the owner
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddresss.
+   * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddress.
    */
   async getOwnedTokens(args: {
     ownerAddress: AccountAddressInput;
@@ -232,7 +232,7 @@ export class DigitalAsset {
   }
 
   /**
-   * Transfer a digital asset (non fungible token) ownership.
+   * Transfer a digital asset (non-fungible token) ownership.
    *
    * We can transfer a digital asset only when the digital asset is not frozen
    * (i.e. owner transfer is not disabled such as for soul bound tokens)

@@ -49,7 +49,7 @@ async function main() {
     transactionHash: response.hash,
   });
 
-  console.log("\n===Checking modules onchain===");
+  console.log("\n===Checking modules on-chain===");
   const accountModules = await aptos.getAccountModules({
     accountAddress: alice.accountAddress,
   });
@@ -59,7 +59,7 @@ async function main() {
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode
   assert(accountModules[1].bytecode === `${Hex.fromHexInput(byteCode[1]).toString()}`);
-  console.log("Modules onchain check passed");
+  console.log("Modules on-chain check passed");
 }
 
 if (require.main === module) {

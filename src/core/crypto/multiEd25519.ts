@@ -90,7 +90,7 @@ export class MultiEd25519PublicKey extends PublicKey {
   }
 
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: { message: HexInput; signature: MultiEd25519Signature }): boolean {
+  verifySignature(_args: { message: HexInput; signature: MultiEd25519Signature }): boolean {
     throw new Error("TODO - Method not implemented.");
   }
 

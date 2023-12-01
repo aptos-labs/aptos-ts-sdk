@@ -87,10 +87,11 @@ export async function fetchEntryFunctionAbi(
 
 /**
  * Converts a non-BCS encoded argument into BCS encoded, if necessary
- * @param functionName
- * @param functionAbi
- * @param arg
- * @param position
+ * @param functionName Name of function
+ * @param functionAbi ABI of function arguments
+ * @param arg The argument to convert
+ * @param position Position in the function arguments for error messages
+ * @param genericTypeParams The list of generic type parameters for the function
  */
 export function convertArgument(
   functionName: string,
@@ -188,7 +189,7 @@ function parseArg(
     throwTypeMismatch("bigint | number | string", position);
   }
 
-  // Generic needs to use the sub-type
+  // Generic needs to use the subtype
   if (param.isGeneric()) {
     const genericIndex = param.value;
     if (genericIndex < 0 || genericIndex >= genericTypeParams.length) {
@@ -257,7 +258,7 @@ function parseArg(
 }
 
 /**
- * Checks that the type of an already BCS encoded argument matches the ABI
+ * Checks that the type of the already BCS encoded argument matches the ABI
  * @param param
  * @param arg
  * @param position

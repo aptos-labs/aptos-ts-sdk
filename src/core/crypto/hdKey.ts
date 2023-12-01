@@ -74,7 +74,7 @@ export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | stri
  * @param index
  * @constructor
  */
-export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
+export const deriveChildPrivateKey = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
   const buffer = new ArrayBuffer(4);
   new DataView(buffer).setUint32(0, index);
   const indexBytes = new Uint8Array(buffer);

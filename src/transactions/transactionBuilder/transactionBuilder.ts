@@ -267,7 +267,7 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * ```
  * {
  *  rawTransaction: RawTransaction,
- *  secondarySignerAddresses? : Array<AccountAddress>,
+ *  secondarySignerAddresses?: Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
  * ```
@@ -350,9 +350,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
       transaction.secondarySignerAddresses,
     );
 
-    let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
-
-    secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
+    const secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
       getAuthenticatorForSimulation(publicKey),
     );
 
@@ -511,7 +509,8 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
  *
  * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
  * @param senderAuthenticator The account authenticator of the transaction sender
- * @param secondarySignerAuthenticators The extra signers account Authenticators
+ * @param feePayerAuthenticator The fee payer's authenticator
+ * @param additionalSignersAuthenticators The extra signers account Authenticators
  *
  * @returns A SignedTransaction
  */

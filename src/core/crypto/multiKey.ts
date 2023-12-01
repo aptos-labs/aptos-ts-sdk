@@ -38,7 +38,7 @@ export class MultiKey extends PublicKey {
       if (publicKey instanceof AnyPublicKey) {
         keys.push(publicKey);
       } else {
-        // if public key is instance of a legacy authentication key, i.e
+        // if public key is instance of a legacy authentication key, i.e.
         // Legacy Ed25519, convert it into AnyPublicKey
         keys.push(new AnyPublicKey(publicKey));
       }
@@ -104,7 +104,7 @@ export class MultiKey extends PublicKey {
 
   // TODO
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
+  verifySignature(_args: { message: HexInput; signature: AnySignature }): boolean {
     throw new Error("not implemented");
   }
 

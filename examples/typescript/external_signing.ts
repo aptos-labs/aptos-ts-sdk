@@ -47,9 +47,9 @@ const balance = async (aptos: Aptos, account: Account, name: string): Promise<nu
  * Provides a mock "Cold wallet" that's signed externally from the SDK
  */
 class ExternalSigner {
-  private account: Account;
+  private readonly account: Account;
 
-  private aptos: Aptos;
+  private readonly aptos: Aptos;
 
   public name: string;
 
@@ -76,7 +76,7 @@ class ExternalSigner {
   }
 
   /**
-   * Setup the account making sure it has funds and exists
+   * Set up the account making sure it has funds and exists
    */
   async setup() {
     if (this.isSetup) {
@@ -107,7 +107,7 @@ class ExternalSigner {
     const deserializer = new Deserializer(encodedTransaction);
     const rawTransaction = RawTransaction.deserialize(deserializer);
 
-    // Some changes to make it signable, this would need more logic for fee payer or additional signers
+    // Some changes to make it able to be signed, this would need more logic for fee payer or additional signers
     // TODO: Make BCS handle any object type?
     const transaction = { rawTransaction };
     const signingMessage = this.aptos.getSigningMessage({ transaction });
@@ -130,7 +130,7 @@ class ExternalSigner {
 const example = async () => {
   console.log("This example will pretend that hot is on a separate server, and never access information from it");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 

@@ -68,7 +68,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Creates an instance of AccountAddress from a Uint8Array.
    *
-   * @param args.data A Uint8Array representing an account address.
+   * @param input A Uint8Array representing an account address.
    */
   constructor(input: Uint8Array) {
     super();

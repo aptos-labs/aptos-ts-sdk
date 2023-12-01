@@ -290,7 +290,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    *
    * @throws {Error} Throws an error if the MoveOption does not contain a value.
    *
-   * @returns {T} The contained value if present.
+   * @returns `T` The contained value if present.
    */
   unwrap(): T {
     if (!this.isSome()) {

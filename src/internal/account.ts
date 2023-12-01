@@ -250,7 +250,7 @@ export async function getAccountTokensCount(args: {
     originMethod: "getAccountTokensCount",
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data.current_token_ownerships_v2_aggregate.aggregate
     ? data.current_token_ownerships_v2_aggregate.aggregate.count
@@ -399,7 +399,7 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data.account_transactions_aggregate.aggregate ? data.account_transactions_aggregate.aggregate.count : 0;
 }
@@ -420,7 +420,7 @@ export async function getAccountCoinAmount(args: {
     },
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data[0] ? data[0].amount : 0;
 }
@@ -515,8 +515,8 @@ export async function getAccountOwnedObjects(args: {
  * NOTE: There is a potential issue once unified single signer scheme will be adopted
  * by the community.
  *
- * Becuase on could create 2 accounts with the same private key with this new authenticator type,
- * we’ll need to determine the order in which we lookup the accounts. First unified
+ * Because on could create 2 accounts with the same private key with this new authenticator type,
+ * we’ll need to determine the order in which we look up the accounts. First unified
  * scheme and then legacy scheme vs first legacy scheme and then unified scheme.
  *
  */

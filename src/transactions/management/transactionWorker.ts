@@ -34,7 +34,7 @@ export class TransactionWorker {
   readonly account: Account;
 
   // current account sequence number
-  readonly accountSequnceNumber: AccountSequenceNumber;
+  readonly accountSequenceNumber: AccountSequenceNumber;
 
   readonly taskQueue: AsyncQueue<() => Promise<void>> = new AsyncQueue<() => Promise<void>>();
 
@@ -69,8 +69,8 @@ export class TransactionWorker {
    * Provides a simple framework for receiving payloads to be processed.
    *
    * @param aptosConfig - a config object
-   * @param sender - a sender as Account
-   * @param maxWaitTime - the max wait time to wait before resyncing the sequence number
+   * @param account - a sender as Account
+   * @param maxWaitTime - the max wait time to wait before re-syncing the sequence number
    * to the current on-chain state, default to 30
    * @param maximumInFlight - submit up to `maximumInFlight` transactions per account.
    * Mempool limits the number of transactions per account to 100, hence why we default to 100.
@@ -86,7 +86,7 @@ export class TransactionWorker {
     this.aptosConfig = aptosConfig;
     this.account = account;
     this.started = false;
-    this.accountSequnceNumber = new AccountSequenceNumber(
+    this.accountSequenceNumber = new AccountSequenceNumber(
       aptosConfig,
       account,
       maxWaitTime,
@@ -106,7 +106,7 @@ export class TransactionWorker {
       /* eslint-disable no-constant-condition */
       while (true) {
         if (this.transactionsQueue.isEmpty()) return;
-        const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
+        const sequenceNumber = await this.accountSequenceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
         if (!transaction) return;
@@ -115,7 +115,7 @@ export class TransactionWorker {
           transaction,
           signer: this.account,
         });
-        await this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
+        this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
       }
     } catch (error: any) {
       if (error instanceof AsyncQueueCancelledError) {
@@ -204,13 +204,14 @@ export class TransactionWorker {
 
   /**
    * Push transaction to the transactions queue
-   * @param payload Transaction payload
+   * @param transactionData Transaction payload
+   * @param options Options for generating this transaction
    */
   async push(
     transactionData: InputGenerateTransactionPayloadData,
     options?: InputGenerateTransactionOptions,
   ): Promise<void> {
-    await this.transactionsQueue.enqueue([transactionData, options]);
+    this.transactionsQueue.enqueue([transactionData, options]);
   }
 
   /**
@@ -225,14 +226,12 @@ export class TransactionWorker {
   ): Promise<SingleSignerTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
-    const transaction = await generateTransaction({
+    return generateTransaction({
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
       data: transactionData,
       options: { ...options, accountSequenceNumber: sequenceNumber },
     });
-
-    return transaction;
   }
 
   /**
@@ -263,7 +262,7 @@ export class TransactionWorker {
   }
 
   /**
-   * Stops the the transaction management process.
+   * Stops the transaction management process.
    */
   stop() {
     if (this.taskQueue.isCancelled()) {

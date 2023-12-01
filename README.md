@@ -78,9 +78,9 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 #### Generate new keys
 
 ```ts
-const account = Account.generate(); // defaults to Legacy Ed25519
-const account = Account.generate({ scheme: SingingSchemeInput.Secp256k1 }); // Single Sender Secp256k1
-const account = Account.generate({ scheme: SingingSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
+const accountLegacyEd25519 = Account.generate(); // defaults to Legacy Ed25519
+const accountSingleSenderSecp256k1 = Account.generate({ scheme: SingingSchemeInput.Secp256k1 }); // Single Sender Secp256k1
+const accountSingleSenderEd25519 = Account.generate({ scheme: SingingSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
 ```
 
 #### Derive from private key
@@ -123,16 +123,16 @@ const transaction = await aptos.build.transaction({
 
 // using sign and submit separately
 const senderAuthenticator = aptos.sign.transaction({ signer: alice, transaction });
-const committedTransaction = await aptos.submit.transaction({ transaction, senderAuthenticator });
+const pendingTransaction = await aptos.submit.transaction({ transaction, senderAuthenticator });
 
 // using signAndSubmit combined
-const committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+const samePendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
 
 Using built in `transferCoinTransaction`
 
 ```ts
-const alice: Account;
+const alice: Account = Account.generate();
 const bobAddress = "0xb0b";
 const transaction = await aptos.transferCoinTransaction({
   sender: alice.accountAddress.toString(),
@@ -145,7 +145,7 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 
 ## Documentation and examples
 
-- For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
+- For reference documentation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
 - For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing

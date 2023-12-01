@@ -684,7 +684,7 @@ describe("transaction submission", () => {
     });
   });
   describe("validate fee payer data on transaction submission", () => {
-    test("it throws when trying to simluate a fee payer transaction without the feePayerAuthenticator", async () => {
+    test("it throws when trying to simulate a fee payer transaction without the feePayerAuthenticator", async () => {
       const transaction = await aptos.build.transaction({
         sender: legacyED25519SenderAccount.accountAddress,
         data: {
@@ -703,7 +703,7 @@ describe("transaction submission", () => {
       ).rejects.toThrow();
     });
 
-    test("it throws when trying to simluate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
+    test("it throws when trying to simulate a multi agent fee payer transaction without the feePayerPublicKey", async () => {
       const transaction = await aptos.build.multiAgentTransaction({
         sender: legacyED25519SenderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],

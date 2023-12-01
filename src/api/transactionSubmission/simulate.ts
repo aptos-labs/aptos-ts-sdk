@@ -39,7 +39,7 @@ export class Simulate {
   }
 }
 
-function ValidateFeePayerData(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
+function ValidateFeePayerData(_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
   /* eslint-disable-next-line func-names, no-param-reassign */
   descriptor.value = async function (...args: any[]) {

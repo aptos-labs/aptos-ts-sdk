@@ -466,7 +466,7 @@ describe("ANS", () => {
     test("can renew a v2 name that is eligible for renewal", async () => {
       const name = domainName;
 
-      await changeRouterMode(1);
+      changeRouterMode(1);
 
       await signAndSubmit(
         alice,
@@ -478,8 +478,8 @@ describe("ANS", () => {
       );
 
       // Change the expiration date of the name to be tomorrow
-      const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
-      await changeExpirationDate(1, newExpirationDate, name);
+      const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).valueOf() / 1000);
+      changeExpirationDate(1, newExpirationDate, name);
 
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
 
@@ -493,7 +493,7 @@ describe("ANS", () => {
       const tld = domainName;
       const name = `${subdomainName}.${domainName}`;
 
-      await changeRouterMode(1);
+      changeRouterMode(1);
 
       await signAndSubmit(
         alice,

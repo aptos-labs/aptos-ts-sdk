@@ -39,7 +39,7 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { APTOS_COIN, ProcessorType } from "../utils/const";
+import { APTOS_COIN, ProcessorType } from "../utils";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";

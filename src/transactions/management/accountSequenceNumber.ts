@@ -37,7 +37,7 @@ export class AccountSequenceNumber {
   readonly account: Account;
 
   // sequence number on chain
-  lastUncommintedNumber: bigint | null = null;
+  lastUncommittedNumber: bigint | null = null;
 
   // local sequence number
   currentNumber: bigint | null = null;
@@ -49,7 +49,7 @@ export class AccountSequenceNumber {
    * which can result in race conditions and data inconsistency.
    * This code actually doesn't do it though, since we aren't giving out a slot, it is still somewhat a race condition.
    *
-   * The ideal solution is likely that each thread grabs the next number from a incremental integer.
+   * The ideal solution is likely that each thread grabs the next number from an incremental integer.
    * When they complete, they increment that number and that entity is able to enter the `lock`.
    * That would guarantee ordering.
    */
@@ -89,20 +89,20 @@ export class AccountSequenceNumber {
     this.lock = true;
     let nextNumber = BigInt(0);
     try {
-      if (this.lastUncommintedNumber === null || this.currentNumber === null) {
+      if (this.lastUncommittedNumber === null || this.currentNumber === null) {
         await this.initialize();
       }
 
-      if (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
+      if (this.currentNumber! - this.lastUncommittedNumber! >= this.maximumInFlight) {
         await this.update();
 
         const startTime = now();
-        while (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
+        while (this.currentNumber! - this.lastUncommittedNumber! >= this.maximumInFlight) {
           await sleep(this.sleepTime);
           if (now() - startTime > this.maxWaitTime) {
             /* eslint-disable no-console */
             console.warn(
-              `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,
+              `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
             );
             await this.initialize();
           } else {
@@ -129,7 +129,7 @@ export class AccountSequenceNumber {
       accountAddress: this.account.accountAddress,
     });
     this.currentNumber = BigInt(sequenceNumber);
-    this.lastUncommintedNumber = BigInt(sequenceNumber);
+    this.lastUncommittedNumber = BigInt(sequenceNumber);
   }
 
   /**
@@ -142,18 +142,18 @@ export class AccountSequenceNumber {
       aptosConfig: this.aptosConfig,
       accountAddress: this.account.accountAddress,
     });
-    this.lastUncommintedNumber = BigInt(sequenceNumber);
-    return this.lastUncommintedNumber;
+    this.lastUncommittedNumber = BigInt(sequenceNumber);
+    return this.lastUncommittedNumber;
   }
 
   /**
-   * Synchronizes local sequence number with the seqeunce number on chain for this account.
+   * Synchronizes local sequence number with the sequence number on chain for this account.
    *
    * Poll the network until all submitted transactions have either been committed or until
    * the maximum wait time has elapsed
    */
   async synchronize(): Promise<void> {
-    if (this.lastUncommintedNumber === this.currentNumber) return;
+    if (this.lastUncommittedNumber === this.currentNumber) return;
 
     /* eslint-disable no-await-in-loop */
     while (this.lock) {
@@ -165,11 +165,11 @@ export class AccountSequenceNumber {
     try {
       await this.update();
       const startTime = now();
-      while (this.lastUncommintedNumber !== this.currentNumber) {
+      while (this.lastUncommittedNumber !== this.currentNumber) {
         if (now() - startTime > this.maxWaitTime) {
           /* eslint-disable no-console */
           console.warn(
-            `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,
+            `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
           );
           await this.initialize();
         } else {

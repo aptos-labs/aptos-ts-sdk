@@ -68,8 +68,8 @@ async function main() {
 
   await Promise.all(funds);
 
-  console.log(`${funds.length} sender accounts funded in ${Date.now() / 1000 - last} seconds`);
   last = Date.now() / 1000;
+  console.log(`${funds.length} sender accounts funded in ${Date.now() / 1000 - last} seconds`);
 
   // read sender accounts
   const balances: Array<Promise<AccountData>> = [];
@@ -78,8 +78,8 @@ async function main() {
   }
   await Promise.all(balances);
 
-  console.log(`${balances.length} sender account balances checked in ${Date.now() / 1000 - last} seconds`);
   last = Date.now() / 1000;
+  console.log(`${balances.length} sender account balances checked in ${Date.now() / 1000 - last} seconds`);
 
   // create transactions
   const payloads: InputGenerateTransactionPayloadData[] = [];

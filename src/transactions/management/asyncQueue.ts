@@ -2,7 +2,7 @@
  * The AsyncQueue class is an async-aware data structure that provides a queue-like
  * behavior for managing asynchronous tasks or operations.
  * It allows to enqueue items and dequeue them asynchronously.
- * This is not thread-safe but it is async concurrency safe and
+ * This is not thread-safe, but it is async concurrency safe, and
  * it does not guarantee ordering for those that call into and await on enqueue.
  */
 
