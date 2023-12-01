@@ -149,7 +149,7 @@ function parseArg(
     if (isString(arg)) {
       return AccountAddress.fromString(arg);
     }
-    throwTypeMismatch("string", position);
+    throwTypeMismatch("string | AccountAddress", position);
   }
   if (param.isU8()) {
     if (isNumber(arg)) {
@@ -195,7 +195,7 @@ function parseArg(
       throw new Error(`Generic argument ${param.toString()} is invalid for argument ${position}`);
     }
 
-    checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams);
+    return checkOrConvertArgument(arg, genericTypeParams[genericIndex], position, genericTypeParams);
   }
 
   // We have to special case some vectors for Vector<u8>
@@ -237,7 +237,7 @@ function parseArg(
       if (isString(arg)) {
         return AccountAddress.fromString(arg);
       }
-      throwTypeMismatch("string", position);
+      throwTypeMismatch("string | AccountAddress", position);
     }
 
     if (param.isOption()) {
@@ -313,7 +313,12 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
   }
   if (param.isVector()) {
     if (arg instanceof MoveVector) {
-      // TODO: More introspection to verify the type
+      // If there's anything in it, check that the inner types match
+      // Note that since it's typed, the first item should be the same as the rest
+      if (arg.values.length > 0) {
+        checkType(param.value, arg.values[0], position);
+      }
+
       return;
     }
     throwTypeMismatch("MoveVector", position);
@@ -335,7 +340,10 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
     }
     if (param.isOption()) {
       if (arg instanceof MoveOption) {
-        // TODO: more introspection for the type
+        // If there's a value, we can check the inner type (otherwise it doesn't really matter)
+        if (arg.value !== undefined) {
+          checkType(param.value.typeArgs[0], arg.value, position);
+        }
         return;
       }
       throwTypeMismatch("MoveOption", position);
