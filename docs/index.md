@@ -4,6 +4,8 @@
 ## SDK Versions
 
 This is a repository of all Aptos TypeScript SDK documentation by version.
+
+- [Experimental - @aptos-labs/ts-sdk-0.0.8](@aptos-labs/ts-sdk-0.0.8)
 - [Alpha - @aptos-labs/ts-sdk-0.0.4](@aptos-labs/ts-sdk-0.0.4)
 - [Alpha - @aptos-labs/ts-sdk-0.0.3](@aptos-labs/ts-sdk-0.0.3)
 - [Alpha - @aptos-labs/ts-sdk-0.0.2](@aptos-labs/ts-sdk-0.0.2)
