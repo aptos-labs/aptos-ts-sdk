@@ -16,14 +16,14 @@ import {
   U64,
   U8,
 } from "../../src";
-
-const MAX_U8 = 255;
-const MAX_U16 = 65535;
-const MAX_U32 = 4_294_967_295;
-const MAX_U64 = 18_446_744_073_709_551_615n;
-const MAX_U128 = 340_282_366_920_938_463_463_374_607_431_768_211_455n;
-const MAX_U256 =
-  115_792_089_237_316_195_423_570_985_008_687_907_853_269_984_665_640_564_039_457_584_007_913_129_639_935n;
+import {
+  MAX_U128_BIG_INT,
+  MAX_U16_NUMBER,
+  MAX_U256_BIG_INT,
+  MAX_U32_NUMBER,
+  MAX_U64_BIG_INT,
+  MAX_U8_NUMBER,
+} from "../../src/bcs/consts";
 
 describe("Remote ABI", () => {
   describe("Parse", () => {
@@ -35,32 +35,48 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(true, parseTypeTag("bool"), 0, [])).toEqual(new Bool(true));
 
       // Small numbers can only be passed as numbers
-      expect(checkOrConvertArgument(MAX_U8, parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8));
-      expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u16"), 0, [])).toEqual(new U16(MAX_U16));
-      expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U16));
-      expect(checkOrConvertArgument(MAX_U32, parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U32));
-      expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U16));
+      expect(checkOrConvertArgument(MAX_U8_NUMBER, parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8_NUMBER));
+      expect(checkOrConvertArgument(MAX_U16_NUMBER, parseTypeTag("u16"), 0, [])).toEqual(new U16(MAX_U16_NUMBER));
+      expect(checkOrConvertArgument(MAX_U16_NUMBER, parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U16_NUMBER));
+      expect(checkOrConvertArgument(MAX_U32_NUMBER, parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U32_NUMBER));
+      expect(checkOrConvertArgument(MAX_U16_NUMBER, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U16_NUMBER));
 
       // Large numbers can be passed as strings, bigints, and numbers
-      expect(checkOrConvertArgument(MAX_U64, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64));
-      expect(checkOrConvertArgument(MAX_U64.toString(), parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64));
-      expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U16));
-      expect(checkOrConvertArgument(MAX_U128, parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U128));
-      expect(checkOrConvertArgument(MAX_U128.toString(), parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U128));
-      expect(checkOrConvertArgument(MAX_U16, parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U16));
-      expect(checkOrConvertArgument(MAX_U256, parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256));
-      expect(checkOrConvertArgument(MAX_U256.toString(), parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256));
+      expect(checkOrConvertArgument(MAX_U64_BIG_INT, parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64_BIG_INT));
+      expect(checkOrConvertArgument(MAX_U64_BIG_INT.toString(), parseTypeTag("u64"), 0, [])).toEqual(
+        new U64(MAX_U64_BIG_INT),
+      );
+      expect(checkOrConvertArgument(MAX_U16_NUMBER, parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U16_NUMBER));
+      expect(checkOrConvertArgument(MAX_U128_BIG_INT, parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U128_BIG_INT));
+      expect(checkOrConvertArgument(MAX_U128_BIG_INT.toString(), parseTypeTag("u128"), 0, [])).toEqual(
+        new U128(MAX_U128_BIG_INT),
+      );
+      expect(checkOrConvertArgument(MAX_U16_NUMBER, parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U16_NUMBER));
+      expect(checkOrConvertArgument(MAX_U256_BIG_INT, parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256_BIG_INT));
+      expect(checkOrConvertArgument(MAX_U256_BIG_INT.toString(), parseTypeTag("u256"), 0, [])).toEqual(
+        new U256(MAX_U256_BIG_INT),
+      );
     });
 
     it("should parse a typed arguments", () => {
       expect(checkOrConvertArgument(AccountAddress.ONE, parseTypeTag("address"), 0, [])).toEqual(AccountAddress.ONE);
       expect(checkOrConvertArgument(new Bool(true), parseTypeTag("bool"), 0, [])).toEqual(new Bool(true));
-      expect(checkOrConvertArgument(new U8(MAX_U8), parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8));
-      expect(checkOrConvertArgument(new U16(MAX_U16), parseTypeTag("u16"), 0, [])).toEqual(new U16(MAX_U16));
-      expect(checkOrConvertArgument(new U32(MAX_U32), parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U32));
-      expect(checkOrConvertArgument(new U64(MAX_U64), parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U64));
-      expect(checkOrConvertArgument(new U128(MAX_U128), parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U128));
-      expect(checkOrConvertArgument(new U256(MAX_U256), parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256));
+      expect(checkOrConvertArgument(new U8(MAX_U8_NUMBER), parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8_NUMBER));
+      expect(checkOrConvertArgument(new U16(MAX_U16_NUMBER), parseTypeTag("u16"), 0, [])).toEqual(
+        new U16(MAX_U16_NUMBER),
+      );
+      expect(checkOrConvertArgument(new U32(MAX_U32_NUMBER), parseTypeTag("u32"), 0, [])).toEqual(
+        new U32(MAX_U32_NUMBER),
+      );
+      expect(checkOrConvertArgument(new U64(MAX_U64_BIG_INT), parseTypeTag("u64"), 0, [])).toEqual(
+        new U64(MAX_U64_BIG_INT),
+      );
+      expect(checkOrConvertArgument(new U128(MAX_U128_BIG_INT), parseTypeTag("u128"), 0, [])).toEqual(
+        new U128(MAX_U128_BIG_INT),
+      );
+      expect(checkOrConvertArgument(new U256(MAX_U256_BIG_INT), parseTypeTag("u256"), 0, [])).toEqual(
+        new U256(MAX_U256_BIG_INT),
+      );
     });
 
     it("should parse a complex simple arguments", () => {
