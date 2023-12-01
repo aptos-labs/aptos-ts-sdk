@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveString, MoveVector, Bool, U64, U8, Serializer } from "../bcs";
+import { MoveString, Bool, U64 } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
@@ -40,53 +40,41 @@ import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 import { MAX_U64_BIG_INT } from "../bcs/consts";
 import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
-import { parseTypeTag } from "../transactions";
+import { checkOrConvertArgument, parseTypeTag } from "../transactions";
 
-// TODO: Support properties when minting.
-export interface MintTokenOptions {
-  propertyKeys?: Array<string>;
-  propertyTypes?: Array<string>;
-  propertyValues?: Array<string>;
-}
+// A property type map for the user input and what Move expects
+const PropertyTypeMap = {
+  BOOLEAN: "bool",
+  U8: "u8",
+  U16: "u16",
+  U32: "u32",
+  U64: "u64",
+  U128: "u128",
+  U256: "u256",
+  ADDRESS: "address",
+  STRING: "0x1::string::String",
+  // TODO support array/vector property types and values
+  // ARRAY: "vector<u8>",
+};
 
-export async function mintTokenTransaction(args: {
+export type PropertyType = keyof typeof PropertyTypeMap;
+
+// Accepted property value types for user input
+export type PropertyValue = boolean | number | bigint | string | AccountAddress | Array<PropertyValue>;
+
+// The default digital asset type to use if non provided
+const defaultDigitalAssetType = "0x4::token::Token";
+
+// FETCH QUERIES
+
+export async function getDigitalAssetData(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
-  collection: string;
-  description: string;
-  name: string;
-  uri: string;
-  options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
-  const { aptosConfig, options, creator } = args;
-  const transaction = await generateTransaction({
-    aptosConfig,
-    sender: creator.accountAddress,
-    data: {
-      function: "0x4::aptos_token::mint",
-      functionArguments: [
-        new MoveString(args.collection),
-        new MoveString(args.description),
-        new MoveString(args.name),
-        new MoveString(args.uri),
-        MoveVector.MoveString([]),
-        MoveVector.MoveString([]),
-        new MoveVector<MoveVector<U8>>([]),
-      ],
-    },
-    options,
-  });
-  return transaction;
-}
-
-export async function getTokenData(args: {
-  aptosConfig: AptosConfig;
-  tokenAddress: AccountAddressInput;
+  digitalAssetAddress: AccountAddressInput;
 }): Promise<GetTokenDataResponse> {
-  const { aptosConfig, tokenAddress } = args;
+  const { aptosConfig, digitalAssetAddress } = args;
 
   const whereCondition: { token_data_id: { _eq: string } } = {
-    token_data_id: { _eq: AccountAddress.from(tokenAddress).toStringLong() },
+    token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
   };
 
   const graphqlQuery = {
@@ -99,20 +87,20 @@ export async function getTokenData(args: {
   const data = await queryIndexer<GetTokenDataQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getTokenData",
+    originMethod: "getDigitalAssetData",
   });
 
   return data.current_token_datas_v2[0];
 }
 
-export async function getCurrentTokenOwnership(args: {
+export async function getCurrentDigitalAssetOwnership(args: {
   aptosConfig: AptosConfig;
-  tokenAddress: AccountAddressInput;
+  digitalAssetAddress: AccountAddressInput;
 }): Promise<GetCurrentTokenOwnershipResponse> {
-  const { aptosConfig, tokenAddress } = args;
+  const { aptosConfig, digitalAssetAddress } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
-    token_data_id: { _eq: AccountAddress.from(tokenAddress).toStringLong() },
+    token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
   };
 
   const graphqlQuery = {
@@ -125,13 +113,13 @@ export async function getCurrentTokenOwnership(args: {
   const data = await queryIndexer<GetCurrentTokenOwnershipQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getCurrentTokenOwnership",
+    originMethod: "getCurrentDigitalAssetOwnership",
   });
 
   return data.current_token_ownerships_v2[0];
 }
 
-export async function getOwnedTokens(args: {
+export async function getOwnedDigitalAssets(args: {
   aptosConfig: AptosConfig;
   ownerAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
@@ -156,21 +144,21 @@ export async function getOwnedTokens(args: {
   const data = await queryIndexer<GetCurrentTokenOwnershipQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getOwnedTokens",
+    originMethod: "getOwnedDigitalAssets",
   });
 
   return data.current_token_ownerships_v2;
 }
 
-export async function getTokenActivity(args: {
+export async function getDigitalAssetActivity(args: {
   aptosConfig: AptosConfig;
-  tokenAddress: AccountAddressInput;
+  digitalAssetAddress: AccountAddressInput;
   options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetTokenActivityResponse> {
-  const { aptosConfig, tokenAddress, options } = args;
+  const { aptosConfig, digitalAssetAddress, options } = args;
 
   const whereCondition: TokenActivitiesV2BoolExp = {
-    token_data_id: { _eq: AccountAddress.from(tokenAddress).toStringLong() },
+    token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
   };
 
   const graphqlQuery = {
@@ -186,7 +174,7 @@ export async function getTokenActivity(args: {
   const data = await queryIndexer<GetTokenActivityQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getTokenActivity",
+    originMethod: "getDigitalAssetActivity",
   });
 
   return data.token_activities_v2;
@@ -289,7 +277,54 @@ export async function getCollectionId(args: {
   return (await getCollectionData(args)).collection_id;
 }
 
-export async function transferDigitalAsset(args: {
+// TRANSACTIONS
+
+export async function mintDigitalAssetTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  collection: string;
+  description: string;
+  name: string;
+  uri: string;
+  propertyKeys?: Array<string>;
+  propertyTypes?: Array<PropertyType>;
+  propertyValues?: Array<PropertyValue>;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    options,
+    creator,
+    collection,
+    description,
+    name,
+    uri,
+    propertyKeys,
+    propertyTypes,
+    propertyValues,
+  } = args;
+  const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::mint",
+      functionArguments: [
+        collection,
+        description,
+        name,
+        uri,
+        propertyKeys ?? [],
+        convertedPropertyType ?? [],
+        getPropertyValueRaw(propertyValues ?? [], convertedPropertyType ?? []),
+      ],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function transferDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   digitalAssetAddress: AccountAddressInput;
@@ -303,7 +338,7 @@ export async function transferDigitalAsset(args: {
     sender: sender.accountAddress,
     data: {
       function: "0x1::object::transfer",
-      typeArguments: [digitalAssetType ?? "0x4::token::Token"],
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
       functionArguments: [digitalAssetAddress, recipient],
     },
     options,
@@ -311,7 +346,7 @@ export async function transferDigitalAsset(args: {
   return transaction;
 }
 
-export async function mintSoulBoundTokenTransaction(args: {
+export async function mintSoulBoundTransaction(args: {
   aptosConfig: AptosConfig;
   account: Account;
   collection: string;
@@ -319,9 +354,9 @@ export async function mintSoulBoundTokenTransaction(args: {
   name: string;
   uri: string;
   recipient: AccountAddress;
-  propertyKeys: Array<string>;
-  propertyTypes: Array<string>;
-  propertyValues: Array<string>;
+  propertyKeys?: Array<string>;
+  propertyTypes?: Array<PropertyType>;
+  propertyValues?: Array<PropertyValue>;
   options?: InputGenerateTransactionOptions;
 }): Promise<SingleSignerTransaction> {
   const {
@@ -337,6 +372,13 @@ export async function mintSoulBoundTokenTransaction(args: {
     propertyValues,
     options,
   } = args;
+  if (propertyKeys?.length !== propertyValues?.length) {
+    throw new Error("Property keys and property values counts do not match");
+  }
+  if (propertyTypes?.length !== propertyValues?.length) {
+    throw new Error("Property types and property values counts do not match");
+  }
+  const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   const transaction = await generateTransaction({
     aptosConfig,
     sender: account.accountAddress,
@@ -347,10 +389,178 @@ export async function mintSoulBoundTokenTransaction(args: {
         description,
         name,
         uri,
-        propertyKeys,
-        propertyTypes,
-        getPropertyValueRaw(propertyValues, propertyTypes),
+        propertyKeys ?? [],
+        convertedPropertyType ?? [],
+        getPropertyValueRaw(propertyValues ?? [], convertedPropertyType ?? []),
         recipient,
+      ],
+    },
+    options,
+  });
+
+  return transaction;
+}
+
+export async function burnDigitalAssetTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::burn",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function freezeDigitalAssetTransaferTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::freeze_transfer",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function unfreezeDigitalAssetTransaferTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::unfreeze_transfer",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function setDigitalAssetDescriptionTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  description: string;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::set_description",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress, description],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function setDigitalAssetNameTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  name: string;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::set_name",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress, name],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function setDigitalAssetURITransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  uri: string;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::set_uri",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress, uri],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function addDigitalAssetPropertyTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  propertyKey: string;
+  propertyType: PropertyType;
+  propertyValue: PropertyValue;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    creator,
+    propertyKey,
+    propertyType,
+    propertyValue,
+    digitalAssetAddress,
+    digitalAssetType,
+    options,
+  } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::add_property",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [
+        digitalAssetAddress,
+        propertyKey,
+        PropertyTypeMap[propertyType],
+        getSinglePropertyValueRaw(propertyValue, PropertyTypeMap[propertyType]),
       ],
     },
     options,
@@ -358,13 +568,144 @@ export async function mintSoulBoundTokenTransaction(args: {
   return transaction;
 }
 
-function getPropertyValueRaw(propertyValues: Array<string>, propertyTypes: Array<string>): MoveVector<U8> {
+export async function removeDigitalAssetPropertyTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  propertyKey: string;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::remove_property",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [digitalAssetAddress, propertyKey],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function updateDigitalAssetPropertyTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  propertyKey: string;
+  propertyType: PropertyType;
+  propertyValue: PropertyValue;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    creator,
+    propertyKey,
+    propertyType,
+    propertyValue,
+    digitalAssetAddress,
+    digitalAssetType,
+    options,
+  } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::update_property",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
+      functionArguments: [
+        digitalAssetAddress,
+        propertyKey,
+        PropertyTypeMap[propertyType],
+        getSinglePropertyValueRaw(propertyValue, PropertyTypeMap[propertyType]),
+      ],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function addDigitalAssetTypedPropertyTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  propertyKey: string;
+  propertyType: PropertyType;
+  propertyValue: PropertyValue;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    creator,
+    propertyKey,
+    propertyType,
+    propertyValue,
+    digitalAssetAddress,
+    digitalAssetType,
+    options,
+  } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::add_typed_property",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],
+      functionArguments: [digitalAssetAddress, propertyKey, propertyValue],
+    },
+    options,
+  });
+  return transaction;
+}
+
+export async function updateDigitalAssetTypedPropertyTransaction(args: {
+  aptosConfig: AptosConfig;
+  creator: Account;
+  propertyKey: string;
+  propertyType: PropertyType;
+  propertyValue: PropertyValue;
+  digitalAssetAddress: AccountAddressInput;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const {
+    aptosConfig,
+    creator,
+    propertyKey,
+    propertyType,
+    propertyValue,
+    digitalAssetAddress,
+    digitalAssetType,
+    options,
+  } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: creator.accountAddress,
+    data: {
+      function: "0x4::aptos_token::update_typed_property",
+      typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],
+      functionArguments: [digitalAssetAddress, propertyKey, propertyValue],
+    },
+    options,
+  });
+  return transaction;
+}
+
+function getPropertyValueRaw(propertyValues: Array<PropertyValue>, propertyTypes: Array<string>): Array<Uint8Array> {
+  const results = new Array<Uint8Array>();
+
   propertyTypes.forEach((typ, index) => {
-    const typeTag = parseTypeTag(typ);
-    console.log("typeTag", typeTag);
-    const movebool = new Bool(propertyValues[index]);
+    results.push(getSinglePropertyValueRaw(propertyValues[index], typ));
   });
 
-  // just to supres error
-  return MoveVector.U8(new Uint8Array());
+  return results;
+}
+
+function getSinglePropertyValueRaw(propertyValue: PropertyValue, propertyType: string): Uint8Array {
+  const typeTag = parseTypeTag(propertyType);
+  const res = checkOrConvertArgument(propertyValue, typeTag, 0, []);
+  return res.bcsToBytes();
 }

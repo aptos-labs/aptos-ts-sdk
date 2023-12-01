@@ -17,17 +17,30 @@ import {
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
+  addDigitalAssetPropertyTransaction,
+  addDigitalAssetTypedPropertyTransaction,
+  burnDigitalAssetTransaction,
   CreateCollectionOptions,
   createCollectionTransaction,
+  freezeDigitalAssetTransaferTransaction,
   getCollectionData,
   getCollectionId,
-  getCurrentTokenOwnership,
-  getOwnedTokens,
-  getTokenActivity,
-  getTokenData,
-  mintSoulBoundTokenTransaction,
-  mintTokenTransaction,
-  transferDigitalAsset,
+  getCurrentDigitalAssetOwnership,
+  getDigitalAssetActivity,
+  getDigitalAssetData,
+  getOwnedDigitalAssets,
+  mintDigitalAssetTransaction,
+  mintSoulBoundTransaction,
+  PropertyType,
+  PropertyValue,
+  removeDigitalAssetPropertyTransaction,
+  setDigitalAssetDescriptionTransaction,
+  setDigitalAssetNameTransaction,
+  setDigitalAssetURITransaction,
+  transferDigitalAssetTransaction,
+  unfreezeDigitalAssetTransaferTransaction,
+  updateDigitalAssetPropertyTransaction,
+  updateDigitalAssetTypedPropertyTransaction,
 } from "../internal/digitalAsset";
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
@@ -92,14 +105,14 @@ export class DigitalAsset {
   }
 
   /**
-   * Gets token data given the address of a token.
+   * Gets digital asset data given the address of a digital asset.
    *
-   * @param args.tokenAddress The address of the token
+   * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns GetTokenDataResponse containing relevant data to the token.
+   * @returns GetTokenDataResponse containing relevant data to the digital asset.
    */
-  async getTokenData(args: {
-    tokenAddress: AccountAddressInput;
+  async getDigitalAssetData(args: {
+    digitalAssetAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetTokenDataResponse> {
     await waitForIndexerOnVersion({
@@ -108,18 +121,19 @@ export class DigitalAsset {
       // TODO(greg): Should take in a consistent input for token queries
       processorTypes: getTokenProcessorTypes(undefined),
     });
-    return getTokenData({ aptosConfig: this.config, ...args });
+    return getDigitalAssetData({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Gets token ownership data given the address of a token.
+   * Gets digital asset ownership data given the address of a digital asset.
    *
-   * @param args.tokenAddress The address of the token
+   * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the token.
+   *
+   * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the digital asset.
    */
-  async getCurrentTokenOwnership(args: {
-    tokenAddress: AccountAddressInput;
+  async getCurrentDigitalAssetOwnership(args: {
+    digitalAssetAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<GetCurrentTokenOwnershipResponse> {
     await waitForIndexerOnVersion({
@@ -128,17 +142,18 @@ export class DigitalAsset {
       // TODO(greg): Should take in a consistent input for token queries
       processorTypes: getTokenProcessorTypes(undefined),
     });
-    return getCurrentTokenOwnership({ aptosConfig: this.config, ...args });
+    return getCurrentDigitalAssetOwnership({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Gets the tokens that the given address owns.
+   * Gets the digital assets that the given address owns.
    *
    * @param args.ownerAddress The address of the owner
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns GetOwnedTokensResponse containing ownership data of the tokens belonging to the ownerAddresss.
+   *
+   * @returns GetOwnedTokensResponse containing ownership data of the digital assets belonging to the ownerAddresss.
    */
-  async getOwnedTokens(args: {
+  async getOwnedDigitalAssets(args: {
     ownerAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & OrderByArg<GetOwnedTokensResponse[0]>;
@@ -149,18 +164,19 @@ export class DigitalAsset {
       // TODO(greg): Should take in a consistent input for token queries
       processorTypes: getTokenProcessorTypes(undefined),
     });
-    return getOwnedTokens({ aptosConfig: this.config, ...args });
+    return getOwnedDigitalAssets({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Gets the activity data given the address of a token.
+   * Gets the activity data given the address of a digital asset.
    *
-   * @param args.tokenAddress The address of the token
+   * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns GetTokenActivityResponse containing relevant activity data to the token.
+   *
+   * @returns GetTokenActivityResponse containing relevant activity data to the digital asset.
    */
-  async getTokenActivity(args: {
-    tokenAddress: AccountAddressInput;
+  async getDigitalAssetActivity(args: {
+    digitalAssetAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
   }): Promise<GetTokenActivityResponse> {
@@ -170,7 +186,7 @@ export class DigitalAsset {
       // TODO(greg): Should take in a consistent input for token queries
       processorTypes: getTokenProcessorTypes(undefined),
     });
-    return getTokenActivity({ aptosConfig: this.config, ...args });
+    return getDigitalAssetActivity({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -182,19 +198,20 @@ export class DigitalAsset {
    * @param args.uri the URI to additional info about the collection
    *
    * The parameters below are optional.
-   * @param args.maxSupply controls the max supply of the tokens - defaults MAX_U64_BIG_INT
+   * @param args.maxSupply controls the max supply of the digital assets - defaults MAX_U64_BIG_INT
    * @param args.mutableDescription controls mutability of the collection's description - defaults true
    * @param args.mutableRoyalty controls mutability of the collection's description - defaults true
    * @param args.mutableUri controls mutability of the collection's URI - defaults true
-   * @param args.mutableTokenDescription controls mutability of the token's description - defaults true
-   * @param args.mutableTokenName controls mutability of the token's name - defaults true
-   * @param args.mutableTokenProperties controls mutability of token's properties - defaults true
-   * @param args.mutableTokenUri controls mutability of the token's URI - defaults true
-   * @param args.tokensBurnableByCreator controls whether tokens can be burnable by the creator - defaults true
-   * @param args.tokensFreezableByCreator controls whether tokens can be frozen by the creator - defaults true
-   * @param args.royaltyNumerator the numerator of the royalty to be paid to the creator when a token is transferred - defaults 0
-   * @param args.royaltyDenominator the denominator of the royalty to be paid to the creator when a token is transferred -
-   *    defaults 1
+   * @param args.mutableTokenDescription controls mutability of the digital asset's description - defaults true
+   * @param args.mutableTokenName controls mutability of the digital asset's name - defaults true
+   * @param args.mutableTokenProperties controls mutability of digital asset's properties - defaults true
+   * @param args.mutableTokenUri controls mutability of the digital asset's URI - defaults true
+   * @param args.tokensBurnableByCreator controls whether digital assets can be burnable by the creator - defaults true
+   * @param args.tokensFreezableByCreator controls whether digital assets can be frozen by the creator - defaults true
+   * @param args.royaltyNumerator the numerator of the royalty to be paid to the creator when
+   * a digital asset is transferred - defaults 0
+   * @param args.royaltyDenominator the denominator of the royalty to be paid to the creator
+   * when a digital asset is transferred - defaults 1
    *
    * @returns A SingleSignerTransaction that when submitted will create the collection.
    */
@@ -211,32 +228,35 @@ export class DigitalAsset {
   }
 
   /**
-   * Create a transaction to mint a token into the creators account within an existing collection.
+   * Create a transaction to mint a digital asset into the creators account within an existing collection.
    *
    * @param args.creator the creator of the collection
-   * @param args.collection the name of the collection the token belongs to
-   * @param args.description the description of the token
-   * @param args.name the name of the token
-   * @param args.uri the URI to additional info about the token
+   * @param args.collection the name of the collection the digital asset belongs to
+   * @param args.description the description of the digital asset
+   * @param args.name the name of the digital asset
+   * @param args.uri the URI to additional info about the digital asset
    *
    * @returns A SingleSignerTransaction that can be simulated or submitted to chain
    */
-  async mintTokenTransaction(args: {
+  async mintDigitalAssetTransaction(args: {
     creator: Account;
     collection: string;
     description: string;
     name: string;
     uri: string;
+    propertyKeys?: Array<string>;
+    propertyTypes?: Array<PropertyType>;
+    propertyValues?: Array<PropertyValue>;
     options?: InputGenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    return mintTokenTransaction({ aptosConfig: this.config, ...args });
+    return mintDigitalAssetTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Transfer a digital asset (non fungible token) ownership.
+   * Transfer a digital asset (non fungible digital asset) ownership.
    *
    * We can transfer a digital asset only when the digital asset is not frozen
-   * (i.e. owner transfer is not disabled such as for soul bound tokens)
+   * (i.e. owner transfer is not disabled such as for soul bound digital assets)
    *
    * @param args.sender The sender account of the current digital asset owner
    * @param args.digitalAssetAddress The digital asset address
@@ -245,29 +265,267 @@ export class DigitalAsset {
    *
    * @returns A SingleSignerTransaction that can be simulated or submitted to chain
    */
-  async transferDigitalAsset(args: {
+  async transferDigitalAssetTransaction(args: {
     sender: Account;
     digitalAssetAddress: AccountAddressInput;
     recipient: AccountAddress;
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    return transferDigitalAsset({ aptosConfig: this.config, ...args });
+    return transferDigitalAssetTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async mintSoulBoundTokenTransaction(args: {
+  /**
+   * Mint a soul bound digital asset into a recipient's account
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.collection The collection name that the digital asset belongs to
+   * @param args.description The digital asset description
+   * @param args.name The digital asset name
+   * @param args.uri The digital asset URL
+   * @param args.recipient The account address where the digital asset will be created
+   * @param args.propertyKeys The property keys for storing on-chain properties
+   * @param args.propertyTypes The type of property values
+   * @param args.propertyValues The property values to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async mintSoulBoundTransaction(args: {
     account: Account;
     collection: string;
     description: string;
     name: string;
     uri: string;
     recipient: AccountAddress;
-    propertyKeys: Array<string>;
-    propertyTypes: Array<string>;
-    propertyValues: Array<string>;
+    propertyKeys?: Array<string>;
+    propertyTypes?: Array<PropertyType>;
+    propertyValues?: Array<PropertyValue>;
     options?: InputGenerateTransactionOptions;
   }): Promise<SingleSignerTransaction> {
-    return mintSoulBoundTokenTransaction({ aptosConfig: this.config, ...args });
+    return mintSoulBoundTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Burn a digital asset by its creator
+   *
+   * @param args.creator The creator account
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async burnDigitalAssetTransaction(args: {
+    creator: Account;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return burnDigitalAssetTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Freeze digital asset transfer ability
+   *
+   * @param args.creator The creator account
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async freezeDigitalAssetTransaferTransaction(args: {
+    creator: Account;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return freezeDigitalAssetTransaferTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Unfreeze digital asset transfer ability
+   *
+   * @param args.creator The creator account
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async unfreezeDigitalAssetTransaferTransaction(args: {
+    creator: Account;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return unfreezeDigitalAssetTransaferTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Set the digital asset description
+   *
+   * @param args.creator The creator account
+   * @param args.description The digital asset description
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async setDigitalAssetDescriptionTransaction(args: {
+    creator: Account;
+    description: string;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return setDigitalAssetDescriptionTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Set the digital asset name
+   *
+   * @param args.creator The creator account
+   * @param args.name The digital asset name
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async setDigitalAssetNameTransaction(args: {
+    creator: Account;
+    name: string;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return setDigitalAssetNameTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Set the digital asset name
+   *
+   * @param args.creator The creator account
+   * @param args.uri The digital asset uri
+   * @param args.digitalAssetAddress The digital asset address
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async setDigitalAssetURITransaction(args: {
+    creator: Account;
+    uri: string;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return setDigitalAssetURITransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Add a digital asset property
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.propertyKey The property key for storing on-chain properties
+   * @param args.propertyType The type of property value
+   * @param args.propertyValue The property value to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async addDigitalAssetPropertyTransaction(args: {
+    creator: Account;
+    propertyKey: string;
+    propertyType: PropertyType;
+    propertyValue: PropertyValue;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return addDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Remove a digital asset property
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.propertyKey The property key for storing on-chain properties
+   * @param args.propertyType The type of property value
+   * @param args.propertyValue The property value to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async removeDigitalAssetPropertyTransaction(args: {
+    creator: Account;
+    propertyKey: string;
+    propertyType: PropertyType;
+    propertyValue: PropertyValue;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return removeDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Update a digital asset property
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.propertyKey The property key for storing on-chain properties
+   * @param args.propertyType The type of property value
+   * @param args.propertyValue The property value to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async updateDigitalAssetPropertyTransaction(args: {
+    creator: Account;
+    propertyKey: string;
+    propertyType: PropertyType;
+    propertyValue: PropertyValue;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return updateDigitalAssetPropertyTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Add a typed digital asset property
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.propertyKey The property key for storing on-chain properties
+   * @param args.propertyType The type of property value
+   * @param args.propertyValue The property value to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async addDigitalAssetTypedPropertyTransaction(args: {
+    creator: Account;
+    propertyKey: string;
+    propertyType: PropertyType;
+    propertyValue: PropertyValue;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return addDigitalAssetTypedPropertyTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Update a typed digital asset property
+   *
+   * @param args.account The account that mints the digital asset
+   * @param args.digitalAssetAddress The digital asset address
+   * @param args.propertyKey The property key for storing on-chain properties
+   * @param args.propertyType The type of property value
+   * @param args.propertyValue The property value to be stored on-chain
+   *
+   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   */
+  async updateDigitalAssetTypedPropertyTransaction(args: {
+    creator: Account;
+    propertyKey: string;
+    propertyType: PropertyType;
+    propertyValue: PropertyValue;
+    digitalAssetAddress: AccountAddressInput;
+    digitalAssetType?: MoveStructId;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return updateDigitalAssetTypedPropertyTransaction({ aptosConfig: this.config, ...args });
   }
 }
 
