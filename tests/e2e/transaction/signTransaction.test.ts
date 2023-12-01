@@ -51,7 +51,6 @@ describe("sign transaction", () => {
           signer: singleSignerED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -68,7 +67,6 @@ describe("sign transaction", () => {
           signer: singleSignerED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -86,7 +84,6 @@ describe("sign transaction", () => {
           signer: singleSignerED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -105,7 +102,6 @@ describe("sign transaction", () => {
           signer: singleSignerSecp256k1Account,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -122,7 +118,6 @@ describe("sign transaction", () => {
           signer: singleSignerSecp256k1Account,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -140,7 +135,6 @@ describe("sign transaction", () => {
           signer: singleSignerED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
@@ -159,7 +153,6 @@ describe("sign transaction", () => {
           signer: legacyED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
@@ -176,7 +169,6 @@ describe("sign transaction", () => {
           signer: legacyED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
@@ -194,7 +186,6 @@ describe("sign transaction", () => {
           signer: legacyED25519SenderAccount,
           transaction: rawTxn,
         });
-        expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
         const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();

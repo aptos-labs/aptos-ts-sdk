@@ -103,6 +103,10 @@ describe("Tests for the script transaction argument class", () => {
     expect(deserializeAsScriptArg(AccountAddress.FOUR) instanceof AccountAddress).toBe(true);
     expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
     const deserializedVectorU8 = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
-    expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);
+    expect(deserializedVectorU8.values[0].value).toEqual(1);
+    expect(deserializedVectorU8.values[1].value).toEqual(2);
+    expect(deserializedVectorU8.values[2].value).toEqual(3);
+    expect(deserializedVectorU8.values[3].value).toEqual(4);
+    expect(deserializedVectorU8.values[4].value).toEqual(5);
   });
 });

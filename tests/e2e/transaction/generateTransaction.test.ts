@@ -34,10 +34,8 @@ describe("generate transaction", () => {
           functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
         },
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
     test("with multi sig payload", async () => {
@@ -49,10 +47,8 @@ describe("generate transaction", () => {
           functionArguments: [receiverAccounts[0].accountAddress, 1],
         },
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
     });
 
@@ -64,10 +60,8 @@ describe("generate transaction", () => {
           functionArguments: [receiverAccounts[0].accountAddress, 1],
         },
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
@@ -82,11 +76,9 @@ describe("generate transaction", () => {
           functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
         },
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses[0]).toStrictEqual(secondarySignerAccount.accountAddress);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
 
@@ -99,11 +91,9 @@ describe("generate transaction", () => {
           functionArguments: [receiverAccounts[0].accountAddress, 1],
         },
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses[0]).toStrictEqual(secondarySignerAccount.accountAddress);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });
@@ -118,12 +108,10 @@ describe("generate transaction", () => {
         },
         withFeePayer: true,
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       expect(transaction.secondarySignerAddresses).toBe(undefined);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
 
@@ -137,12 +125,10 @@ describe("generate transaction", () => {
         },
         withFeePayer: true,
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).toBe(undefined);
       expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
     });
 
@@ -155,12 +141,10 @@ describe("generate transaction", () => {
         },
         withFeePayer: true,
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses).toBe(undefined);
       expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
 
@@ -174,12 +158,10 @@ describe("generate transaction", () => {
         },
         withFeePayer: true,
       });
-      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
       expect(transaction.secondarySignerAddresses![0]).toStrictEqual(secondarySignerAccount.accountAddress);
       expect(transaction.feePayerAddress).toStrictEqual(AccountAddress.ZERO);
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
-      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
       expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });

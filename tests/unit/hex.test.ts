@@ -21,31 +21,26 @@ test("creates a new Hex instance from string", () => {
 
 test("converts hex bytes input into hex data", () => {
   const hex = new Hex(mockHex.bytes);
-  expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("converts hex string input into hex data", () => {
   const hex = Hex.fromString(mockHex.withPrefix);
-  expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("accepts hex string input without prefix", () => {
   const hex = Hex.fromString(mockHex.withoutPrefix);
-  expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("accepts hex string with prefix", () => {
   const hex = Hex.fromString(mockHex.withPrefix);
-  expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("converts hex string to bytes", () => {
   const hex = Hex.fromHexInput(mockHex.withPrefix).toUint8Array();
-  expect(hex instanceof Uint8Array).toBeTruthy();
   expect(hex).toEqual(mockHex.bytes);
 });
 
