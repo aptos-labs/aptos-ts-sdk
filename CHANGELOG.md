@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add release automation, so version updates can be made with simply `pnpm update-version`
+
 ## 0.0.8 (2023-11-29)
 
 - Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
