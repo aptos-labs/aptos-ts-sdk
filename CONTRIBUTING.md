@@ -122,4 +122,5 @@ necessary information and instructions to reproduce your issue.
 ## Releasing a new version
 
 Simply update the version in `package.json` and `pnpm update-version` will take care of the rest. This will create a new
-version everywhere in the code, and generate documentation accordingly.
+version everywhere in the code, and generate documentation accordingly.  Ensure you check out a new branch before running
+these commands.
