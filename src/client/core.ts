@@ -69,6 +69,13 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 ): Promise<AptosResponse<Req, Res>> {
   const { url, path } = options;
   const fullUrl = `${url}/${path ?? ""}`;
+  aptosConfig.logger.trace({
+    method: options.method,
+    fullUrl,
+    acceptType: options.acceptType,
+    contentType: options.contentType,
+    body: options.body,
+  });
   const response = await request<Req, Res>({ ...options, url: fullUrl }, aptosConfig.client);
 
   const result: AptosResponse<Req, Res> = {

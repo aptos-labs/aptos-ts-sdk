@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { ILogObj, Logger } from "tslog";
 import { AptosConfig } from "./aptosConfig";
 import { Account, AccountAddressInput, PrivateKey } from "../core";
 import {
@@ -16,8 +17,11 @@ import { TransactionWorker } from "../transactions/management";
 export class TransactionSubmission {
   readonly config: AptosConfig;
 
+  readonly logger: Logger<ILogObj>;
+
   constructor(config: AptosConfig) {
     this.config = config;
+    this.logger = config.logger.getSubLogger({ name: `${this.config.network}-TxnSubmitter` });
   }
 
   /**

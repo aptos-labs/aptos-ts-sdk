@@ -142,7 +142,27 @@ export type AptosSettings = {
   readonly clientConfig?: ClientConfig;
 
   readonly client?: Client;
+
+  readonly logConfig?: LogConfig;
 };
+
+export type LogConfig = {
+  readonly logEnabled?: boolean;
+  readonly logLevel?: LogLevel;
+  readonly logFormat?: "pretty" | "json";
+};
+
+/**
+ * The log levels for the SDK.
+ */
+export enum LogLevel {
+  "trace" = 1,
+  "debug" = 2,
+  "info" = 3,
+  "warn" = 4,
+  "error" = 5,
+  "fatal" = 6,
+}
 
 /**
  *

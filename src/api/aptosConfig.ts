@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
-import { AptosSettings, ClientConfig, Client } from "../types";
-import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
+import { ILogObj, Logger } from "tslog";
+import { AptosSettings, Client, ClientConfig, LogLevel } from "../types";
+import { Network, NetworkToFaucetAPI, NetworkToIndexerAPI, NetworkToNodeAPI } from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
 /**
@@ -35,6 +36,8 @@ export class AptosConfig {
 
   readonly clientConfig?: ClientConfig;
 
+  readonly logger: Logger<ILogObj>;
+
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? DEFAULT_NETWORK;
     this.fullnode = settings?.fullnode;
@@ -42,6 +45,22 @@ export class AptosConfig {
     this.indexer = settings?.indexer;
     this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
+
+    // Default to have logs disabled
+    let logFormat: "json" | "hidden" | "pretty" = "hidden";
+
+    // If logs are enabled, default to JSON output
+    if (settings?.logConfig?.logEnabled) {
+      logFormat = settings?.logConfig?.logFormat ?? "json";
+    }
+
+    // Default to info level logs
+    const logLevel = settings?.logConfig?.logLevel ?? LogLevel.info;
+    this.logger = new Logger({
+      name: `Aptos-${this.network}`,
+      minLevel: logLevel,
+      type: logFormat,
+    });
   }
 
   /**

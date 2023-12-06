@@ -13,6 +13,7 @@
  * The worker fires events for any submission and/or execution success and/or failure.
  */
 
+import { ILogObj, Logger } from "tslog";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { waitForTransaction } from "../../internal/transaction";
@@ -65,6 +66,8 @@ export class TransactionWorker {
    */
   executedTransactions: Array<[string, bigint, any]> = [];
 
+  readonly logger: Logger<ILogObj>;
+
   /**
    * Provides a simple framework for receiving payloads to be processed.
    *
@@ -93,6 +96,10 @@ export class TransactionWorker {
       maximumInFlight,
       sleepTime,
     );
+    this.logger = aptosConfig.logger.getSubLogger({
+      name: `${this.account.accountAddress}-TxnWorker`,
+      hideLogPositionForProduction: true,
+    });
   }
 
   /**
@@ -110,6 +117,9 @@ export class TransactionWorker {
         if (sequenceNumber === null) return;
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
         if (!transaction) return;
+
+        this.logger.debug({ action: "submit", transaction });
+
         const pendingTransaction = signAndSubmitTransaction({
           aptosConfig: this.aptosConfig,
           transaction,
@@ -172,6 +182,7 @@ export class TransactionWorker {
       if (error instanceof AsyncQueueCancelledError) {
         return;
       }
+      this.logger.error({ action: "process", message: "Process loop failed", error });
       throw new Error(`Process execution failed for ${this.account.accountAddress.toString()} with error ${error}`);
     }
   }
@@ -210,6 +221,7 @@ export class TransactionWorker {
     transactionData: InputGenerateTransactionPayloadData,
     options?: InputGenerateTransactionOptions,
   ): Promise<void> {
+    this.logger.debug({ action: "push", transaction: transactionData });
     await this.transactionsQueue.enqueue([transactionData, options]);
   }
 
@@ -225,6 +237,9 @@ export class TransactionWorker {
   ): Promise<SingleSignerTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
+
+    this.logger.debug({ action: "generate", transaction: transactionData });
+
     const transaction = await generateTransaction({
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
@@ -256,6 +271,7 @@ export class TransactionWorker {
     if (this.started) {
       throw new Error("worker has already started");
     }
+    this.logger.info({ action: "start", message: "Starting transaction worker" });
     this.started = true;
     this.taskQueue.enqueue(() => this.submitNextTransaction());
     this.taskQueue.enqueue(() => this.processTransactions());
@@ -269,6 +285,7 @@ export class TransactionWorker {
     if (this.taskQueue.isCancelled()) {
       throw new Error("worker has already stopped");
     }
+    this.logger.info({ action: "stop", message: "Stopping transaction worker" });
     this.started = false;
     this.taskQueue.cancel();
   }
