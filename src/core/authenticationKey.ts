@@ -12,6 +12,7 @@ import { AnyPublicKey } from "./crypto/anyPublicKey";
 import { MultiKey } from "./crypto/multiKey";
 import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
+import { Secp256k1PublicKey, Secp256r1PublicKey } from "./crypto";
 
 /**
  * Each account stores an authentication key. Authentication key enables account owners to rotate
@@ -110,7 +111,7 @@ export class AuthenticationKey extends Serializable {
    * @returns AuthenticationKey
    */
   static fromPublicKey(args: { publicKey: PublicKey }): AuthenticationKey {
-    const { publicKey } = args;
+    let { publicKey } = args;
 
     let scheme: number;
     if (publicKey instanceof Ed25519PublicKey) {
@@ -119,6 +120,14 @@ export class AuthenticationKey extends Serializable {
     } else if (publicKey instanceof MultiEd25519PublicKey) {
       // for legacy support
       scheme = SigningScheme.MultiEd25519.valueOf();
+    } else if (publicKey instanceof Secp256k1PublicKey) {
+      // Only single sender supported for Secp256k1
+      scheme = SigningScheme.SingleKey.valueOf();
+      publicKey = new AnyPublicKey(publicKey);
+    } else if (publicKey instanceof Secp256r1PublicKey) {
+      // Only single sender supported for Secp256r1
+      scheme = SigningScheme.SingleKey.valueOf();
+      publicKey = new AnyPublicKey(publicKey);
     } else if (publicKey instanceof AnyPublicKey) {
       scheme = SigningScheme.SingleKey.valueOf();
     } else if (publicKey instanceof MultiKey) {

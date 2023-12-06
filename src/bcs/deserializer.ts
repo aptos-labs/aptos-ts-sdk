@@ -68,20 +68,6 @@ export class Deserializer {
   }
 
   /**
-   * Deserializes a vector of array of bytes.
-   *
-   * BCS layout for "vector bytes": vector_length | bytes_length | bytes | bytes_length | bytes...
-   */
-  deserializeVectorBytes(): Array<Uint8Array> {
-    const length = this.deserializeUleb128AsU32();
-    const vector = new Array<Uint8Array>();
-    for (let i = 0; i < length; i += 1) {
-      vector.push(this.deserializeBytes());
-    }
-    return vector;
-  }
-
-  /**
    * Deserializes an array of bytes. The number of bytes to read is already known.
    *
    */
