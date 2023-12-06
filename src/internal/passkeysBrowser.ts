@@ -7,63 +7,106 @@
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
  */
-import { sha3_256 } from "@noble/hashes/sha3";
-import { p256 } from "@noble/curves/p256";
-import { AptosConfig } from "../api/aptosConfig";
-import { Hex } from "../core";
 import {
-  AnyRawTransaction,
-  deriveTransactionType,
-  getAuthenticatorForWebAuthn,
-  getSigningMessage,
-} from "../transactions";
+  generateRegistrationOptions as _generateRegistrationOptions,
+  verifyRegistrationResponse as _verifyRegistrationResponse,
+  VerifiedRegistrationResponse,
+} from "@simplewebauthn/server";
+import { startRegistration } from "@simplewebauthn/browser";
+import { isoBase64URL, cose, parseAuthenticatorData, convertCOSEtoPKCS } from "@simplewebauthn/server/helpers";
+import { PublicKeyCredentialCreationOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/server/esm/deps";
+import { AptosConfig } from "../api/aptosConfig";
+import { AccountAddress, AuthenticationKey, PublicKey } from "../core";
+import { AnyRawTransaction, signWithPasskey } from "../transactions";
 import { HexInput, PendingTransactionResponse } from "../types";
 import { submitTransaction } from "./transactionSubmission";
+import { Secp256r1PublicKey } from "../core/crypto/secp256r1";
 
-export async function signWithPasskey(args: {
-  aptosConfig: AptosConfig;
-  credentialId: HexInput;
-  publicKey: HexInput;
-  transaction: AnyRawTransaction;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, credentialId, publicKey, transaction } = args;
-  const allowCredentials: PublicKeyCredentialDescriptor[] = [
-    {
-      type: "public-key",
-      id: Hex.fromHexInput(credentialId).toUint8Array(),
-    },
-  ];
+const supportedAlgorithmIDs = [cose.COSEALG.ES256];
 
-  // get the signing message and hash it to create the challenge
-  const transactionToSign = deriveTransactionType(transaction);
-  const signingMessage = getSigningMessage(transactionToSign);
-  const challenge = sha3_256(signingMessage);
-
-  const publicKeyCredReqOptions: PublicKeyCredentialRequestOptions = {
-    challenge,
-    allowCredentials,
+export async function generateRegistrationOptions(args: {
+  rpName: string;
+  rpID: string;
+  userID: string;
+  userName: string;
+  challenge?: string | Uint8Array;
+  userDisplayName?: string;
+  timeout?: number;
+  attestationType?: AttestationConveyancePreference;
+  authenticatorAttachment?: AuthenticatorAttachment;
+}): Promise<PublicKeyCredentialCreationOptionsJSON> {
+  const { authenticatorAttachment } = args;
+  const authenticatorSelection: AuthenticatorSelectionCriteria = {
+    authenticatorAttachment,
+    residentKey: "required",
+    userVerification: "required",
   };
 
-  const authenticationResponse = (await navigator.credentials.get({
-    publicKey: publicKeyCredReqOptions,
-  })) as PublicKeyCredential;
-
-  const authenticatorAssertionResponse = authenticationResponse.response as AuthenticatorAssertionResponse;
-
-  const { clientDataJSON, authenticatorData, signature } = authenticatorAssertionResponse;
-
-  const signatureCompact = p256.Signature.fromDER(new Uint8Array(signature)).toCompactRawBytes();
-
-  const authenticator = getAuthenticatorForWebAuthn({
-    publicKey,
-    clientDataJSON: new Uint8Array(clientDataJSON),
-    authenticatorData: new Uint8Array(authenticatorData),
-    signature: signatureCompact,
+  return _generateRegistrationOptions({
+    ...args,
+    authenticatorSelection,
+    supportedAlgorithmIDs,
   });
+}
 
+export async function registerCredential(
+  creationOptionsJSON: PublicKeyCredentialCreationOptionsJSON,
+): Promise<RegistrationResponseJSON> {
+  return startRegistration(creationOptionsJSON);
+}
+
+export async function verifyRegistrationResponse(args: {
+  response: RegistrationResponseJSON;
+  expectedChallenge: string | ((challenge: string) => boolean | Promise<boolean>);
+  expectedOrigin: string | string[];
+  expectedRPID?: string | string[];
+}): Promise<VerifiedRegistrationResponse> {
+  return _verifyRegistrationResponse({
+    ...args,
+    requireUserVerification: true,
+    supportedAlgorithmIDs,
+  });
+}
+
+export function parsePublicKey(response: RegistrationResponseJSON): PublicKey {
+  const authData = isoBase64URL.toBuffer(response.response.authenticatorData!);
+  const parsedAuthenticatorData = parseAuthenticatorData(authData);
+  // Convert from COSE
+  const publicKey = convertCOSEtoPKCS(parsedAuthenticatorData.credentialPublicKey!);
+  return new Secp256r1PublicKey(publicKey);
+}
+
+export async function signAndSubmitWithPasskey(args: {
+  aptosConfig: AptosConfig;
+  credentialId: string | Uint8Array;
+  publicKey: PublicKey;
+  transaction: AnyRawTransaction;
+  timeout?: number;
+  rpID?: string;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, transaction } = args;
+
+  const authenticator = await signWithPasskey({ ...args });
   return submitTransaction({
     aptosConfig,
     transaction,
     senderAuthenticator: authenticator,
   });
+}
+
+export async function getPasskeyAccountAddress(args: { publicKey: HexInput; alg?: number }): Promise<AccountAddress> {
+  const { publicKey, alg } = args;
+  const algorithm = alg ?? cose.COSEALG.ES256;
+
+  let publicKeyObj: PublicKey;
+  switch (algorithm) {
+    // ES256, P256, Secp256r1 are all the same thing.
+    case cose.COSEALG.ES256:
+      publicKeyObj = new Secp256r1PublicKey(publicKey);
+      break;
+    default:
+      throw new Error("Algorithm is not supported");
+  }
+  const authKey = AuthenticationKey.fromPublicKey({ publicKey: publicKeyObj });
+  return AccountAddress.from(authKey.toString());
 }

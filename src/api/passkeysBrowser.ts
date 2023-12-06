@@ -1,10 +1,19 @@
+/* eslint-disable class-methods-use-this */
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { PublicKeyCredentialCreationOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/server/esm/deps";
 import { AptosConfig } from "./aptosConfig";
 import { HexInput, PendingTransactionResponse } from "../types";
 import { AnyRawTransaction } from "../transactions";
-import { signWithPasskey } from "../internal/passkeysBrowser";
+import {
+  generateRegistrationOptions,
+  getPasskeyAccountAddress,
+  parsePublicKey,
+  registerCredential,
+  signAndSubmitWithPasskey,
+} from "../internal/passkeysBrowser";
+import { AccountAddress, PublicKey } from "../core";
 
 /**
  * A class for all `Passkeys` related operations on Aptos on the browser.
@@ -24,11 +33,41 @@ export class PasskeysBrowser {
    * @param args.transaction The transaction to sign
    * @returns The pending transaction response
    */
-  async signWithPasskey(args: {
-    credentialId: HexInput;
-    publicKey: HexInput;
+  async signAndSubmitWithPasskey(args: {
+    credentialId: string | Uint8Array;
+    publicKey: PublicKey;
     transaction: AnyRawTransaction;
+    timeout?: number;
+    rpID?: string;
   }): Promise<PendingTransactionResponse> {
-    return signWithPasskey({ aptosConfig: this.config, ...args });
+    return signAndSubmitWithPasskey({ aptosConfig: this.config, ...args });
+  }
+
+  async getPasskeyAccountAddress(args: { publicKey: HexInput }): Promise<AccountAddress> {
+    return getPasskeyAccountAddress(args);
+  }
+
+  async generateRegistrationOptions(args: {
+    rpName: string;
+    rpID: string;
+    userID: string;
+    userName: string;
+    challenge?: string | Uint8Array;
+    userDisplayName?: string;
+    timeout?: number;
+    attestationType?: AttestationConveyancePreference;
+    authenticatorAttachment?: AuthenticatorAttachment;
+  }): Promise<PublicKeyCredentialCreationOptionsJSON> {
+    return generateRegistrationOptions(args);
+  }
+
+  async registerCredential(
+    creationOptionsJSON: PublicKeyCredentialCreationOptionsJSON,
+  ): Promise<RegistrationResponseJSON> {
+    return registerCredential(creationOptionsJSON);
+  }
+
+  parsePublicKey(response: RegistrationResponseJSON): PublicKey {
+    return parsePublicKey(response);
   }
 }
