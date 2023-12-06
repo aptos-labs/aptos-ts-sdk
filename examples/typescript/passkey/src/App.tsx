@@ -126,7 +126,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
     const addr = await aptos.getPasskeyAccountAddress({publicKey})
 
-    const txn = await aptos.generateTransaction({
+    const txn = await aptos.build.transaction({
       sender: addr,
       data: {
         function: "0x1::coin::transfer",
