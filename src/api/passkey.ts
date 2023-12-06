@@ -12,7 +12,7 @@ import {
   parsePublicKey,
   registerCredential,
   signAndSubmitWithPasskey,
-} from "../internal/passkeysBrowser";
+} from "../internal/passkey";
 import { AccountAddress, PublicKey } from "../core";
 
 /**
