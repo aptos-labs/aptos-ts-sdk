@@ -28,7 +28,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
   const { url, method, body, contentType, params, overrides } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
-    "x-aptos-client": `aptos-ts-sdk/${VERSION}`,
+    "x-aptos-client": `aptos-new-ts-sdk/${VERSION}`,
     "content-type": contentType ?? MimeType.JSON,
   };
 

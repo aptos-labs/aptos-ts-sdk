@@ -51,7 +51,7 @@ describe("aptos request", () => {
             },
             config,
           );
-          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-ts-sdk/${VERSION}`);
+          expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-new-ts-sdk/${VERSION}`);
           expect(response.config.headers).toHaveProperty("my", "header");
           expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
         } catch (error: any) {
