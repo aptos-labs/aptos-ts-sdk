@@ -9,8 +9,8 @@ import {
   U64,
   GraphqlQuery,
   NetworkToIndexerAPI,
+  generateSignedTransaction,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
 import { singleSignerScriptBytecode } from "../transaction/helper";
@@ -25,15 +25,15 @@ describe("aptos request", () => {
         const aptos = new Aptos(config);
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
-        await aptos.fundAccount({ accountAddress: sender.accountAddress.toString(), amount: 100_000_000 });
-        const transaction = await aptos.generateTransaction({
-          sender: sender.accountAddress.toString(),
+        await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
+        const transaction = await aptos.build.transaction({
+          sender: sender.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts.accountAddress],
           },
         });
-        const authenticator = aptos.signTransaction({
+        const authenticator = aptos.sign.transaction({
           signer: sender,
           transaction,
         });
@@ -101,6 +101,31 @@ describe("aptos request", () => {
             config,
           );
           expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
+        } catch (error: any) {
+          // should not get here
+          expect(true).toBe(false);
+        }
+      },
+      longTestTimeout,
+    );
+  });
+
+  describe("api key", () => {
+    test(
+      "should set api_token for full node requests",
+      async () => {
+        try {
+          const response = await aptosRequest(
+            {
+              url: `${NetworkToNodeAPI[config.network]}`,
+              method: "GET",
+              path: "accounts/0x1",
+              overrides: { API_KEY: "my-api-key" },
+              originMethod: "test when token is set",
+            },
+            config,
+          );
+          expect(response.config.headers).toHaveProperty("authorization", "Bearer my-api-key");
         } catch (error: any) {
           // should not get here
           expect(true).toBe(false);

@@ -4,6 +4,54 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add release automation, so version updates can be made with simply `pnpm update-version`
+
+## 0.0.8 (2023-11-29)
+
+- Respect `API_KEY` option in `clientConfig` when making indexer and/or fullnode queries
+- [`Added`] Added `waitForIndexer` function to wait for indexer to sync up with full node. All indexer query functions now accepts a new optional param `minimumLedgerVersion` to wait for indexer to sync up with the target processor.
+- Add `getSigningMessage` to allow users to sign transactions with external signers and other use cases
+- [`Breaking`] Changes ANS date usage to consistently use epoch timestamps represented in milliseconds.
+  - `getExpiration`: Previously returned seconds, now returns milliseconds
+  - `registerName`: Argument `expiration.expirationDate` was previously a `Date` object, now it is an epoch timestamp represented in milliseconds
+  - All query functions return epoch milliseconds instead of ISO date strings.
+- [`Breaking`] Flatten options for all functions to be a single level
+- Cleanup internal usage of casting
+- Export `AnyPublicKey` and `AnySignature` types
+- Add `transferFungibleAsset` function to easily generate a transaction to transfer a fungible asset from sender's primary store to recipient's primary store
+- [`Breaking`] `AccountAddress.fromRelaxed` is now `AccountAddress.from`, and a new `AccountAddress.fromStrict` has the old functionality.
+- Implement transaction management worker layer to manage transaction submission for a single account with a high throughput
+- [`Fixed`] Allow for Uint8Array to be passed as a `vector<u8>` argument on entry functions
+- [`Fixed`] Allow for raw vectors to be passed as arguments with encoded types within them for Remote ABI on entry functions e.g. [AccountAddress]
+
+## 0.0.7 (2023-11-16)
+
+- Adds additional ANS APIs
+
+  - Transactions
+    - setPrimaryName
+    - setTargetAddress
+    - registerName
+    - renew_domain
+  - Queries
+    - getPrimaryName
+    - getOwnerAddress
+    - getExpiration
+    - getTargetAddress
+    - getName
+    - getAccountNames
+    - getAccountDomains
+    - getAccountSubdomains
+    - getDomainSubdomains
+
+- [`Breaking`] Refactor transaction builder flow
+  - Each builder step is under a dedicated namespace - `aptos.build.transaction`, `aptos.sign.transaction`, `aptos.submit.transaction`
+  - Supports and implements 2 types of transactions - single signer as `aptos.*.transaction` and multi agent as `aptos.*.multiAgentTransaction`
+  - A boolean `withFeePayer` argument can be passed to any transaction `build` function to make it a Sponsor transaction
+  - Different functions `aptos.sign.transaction` to sign a transaction as a single signer and `aptos.sign.transactionAsFeePayer`to sign a transaction as a sponsor
+  - Return `InputSingleSignerTransaction` type changed to `SingleSignerTransaction` type
+  - Return `InputMultiAgentTransaction` type changed to `MultiAgentTransaction` type
+
 ## 0.0.6 (2023-11-14)
 
 - [`Breaking`] Changed `ViewRequestData` to `InputViewRequestData`

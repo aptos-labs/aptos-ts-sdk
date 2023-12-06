@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account, TransactionResponse, UserTransactionResponse, U64 } from "../../../src";
+import { AptosConfig, Aptos, Network, Account, TransactionResponse, U64 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -18,20 +18,20 @@ describe("transaction api", () => {
 
   test("returns true when transaction is pending", async () => {
     const senderAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
     const bob = Account.generate();
-    const rawTxn = await aptos.generateTransaction({
-      sender: senderAccount.accountAddress.toString(),
+    const rawTxn = await aptos.build.transaction({
+      sender: senderAccount.accountAddress,
       data: {
         function: "0x1::aptos_account::transfer",
         functionArguments: [bob.accountAddress, new U64(10)],
       },
     });
-    const authenticator = aptos.signTransaction({
+    const authenticator = aptos.sign.transaction({
       signer: senderAccount,
       transaction: rawTxn,
     });
-    const response = await aptos.submitTransaction({
+    const response = await aptos.submit.transaction({
       transaction: rawTxn,
       senderAuthenticator: authenticator,
     });
@@ -43,20 +43,20 @@ describe("transaction api", () => {
     let txn: TransactionResponse;
     beforeAll(async () => {
       const senderAccount = Account.generate();
-      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+      await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
       const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
-        sender: senderAccount.accountAddress.toString(),
+      const rawTxn = await aptos.build.transaction({
+        sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.signTransaction({
+      const authenticator = aptos.sign.transaction({
         signer: senderAccount,
         transaction: rawTxn,
       });
-      const response = await aptos.submitTransaction({
+      const response = await aptos.submit.transaction({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
@@ -69,15 +69,19 @@ describe("transaction api", () => {
     });
 
     test("it queries for transactions by version", async () => {
+      if (!("version" in txn)) {
+        throw new Error("Transaction is still pending!");
+      }
+
       const transaction = await aptos.getTransactionByVersion({
-        ledgerVersion: Number((txn as UserTransactionResponse).version),
+        ledgerVersion: Number(txn.version),
       });
       expect(transaction).toStrictEqual(txn);
     });
 
     test("it queries for transactions by hash", async () => {
       const transaction = await aptos.getTransactionByHash({
-        transactionHash: (txn as UserTransactionResponse).hash,
+        transactionHash: txn.hash,
       });
       expect(transaction).toStrictEqual(txn);
     });

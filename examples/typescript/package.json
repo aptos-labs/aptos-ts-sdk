@@ -6,13 +6,14 @@
   "scripts": {
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_transfer": "ts-node simple_transfer.ts",
-    "mint_nft": "ts-node mint_nft.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
     "custom_client": "ts-node custom_client.ts",
     "swap": "ts-node swap.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
-    "test": "run-s simple_transfer mint_nft multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath"
+    "external_signing": "ts-node external_signing.ts",
+    "your_coin": "ts-node your_coin.ts",
+    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,8 @@
   "dependencies": {
     "dotenv": "^16.3.1",
     "npm-run-all": "latest",
-    "superagent": "^8.1.2"
+    "superagent": "^8.1.2",
+    "tweetnacl": "^1.0.3"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."

@@ -1,9 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Account } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
-import { Network } from "../../../src/utils/apiEndpoints";
+import { AptosConfig, Aptos, Account, Network } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -21,7 +19,7 @@ const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection() {
-  await aptos.fundAccount({ accountAddress: creator.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
   const transaction = await aptos.createCollectionTransaction({
     creator,
     description: collectionDescription,
@@ -29,7 +27,7 @@ async function setupCollection() {
     uri: collectionUri,
   });
   const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+  await aptos.waitForTransaction({ transactionHash: response.hash });
 }
 
 async function setupToken(): Promise<string> {
@@ -40,11 +38,12 @@ async function setupToken(): Promise<string> {
     name: tokenName,
     uri: tokenUri,
   });
-  const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
-      ownerAddress: creator.accountAddress.toString(),
+      ownerAddress: creator.accountAddress,
+      minimumLedgerVersion: BigInt(response.version),
     })
   )[0].current_token_data?.token_data_id!;
 }

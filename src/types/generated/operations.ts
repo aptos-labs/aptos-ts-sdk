@@ -18,6 +18,16 @@ export type TokenActivitiesFieldsFragment = {
   type: string;
 };
 
+export type AnsTokenFragmentFragment = {
+  domain?: string | null;
+  expiration_timestamp?: any | null;
+  registered_address?: string | null;
+  subdomain?: string | null;
+  token_standard?: string | null;
+  is_primary?: boolean | null;
+  owner_address?: string | null;
+};
+
 export type CurrentTokenOwnershipFieldsFragment = {
   token_standard: string;
   token_properties_mutated_v1?: any | null;
@@ -485,8 +495,27 @@ export type GetFungibleAssetMetadataQuery = {
   }>;
 };
 
+export type GetNamesQueryVariables = Types.Exact<{
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  where_condition?: Types.InputMaybe<Types.CurrentAptosNamesBoolExp>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentAptosNamesOrderBy> | Types.CurrentAptosNamesOrderBy>;
+}>;
+
+export type GetNamesQuery = {
+  current_aptos_names: Array<{
+    domain?: string | null;
+    expiration_timestamp?: any | null;
+    registered_address?: string | null;
+    subdomain?: string | null;
+    token_standard?: string | null;
+    is_primary?: boolean | null;
+    owner_address?: string | null;
+  }>;
+};
+
 export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
-  where_condition: Types.NumActiveDelegatorPerPoolBoolExp;
+  where_condition?: Types.InputMaybe<Types.NumActiveDelegatorPerPoolBoolExp>;
   order_by?: Types.InputMaybe<Array<Types.NumActiveDelegatorPerPoolOrderBy> | Types.NumActiveDelegatorPerPoolOrderBy>;
 }>;
 
@@ -494,7 +523,9 @@ export type GetNumberOfDelegatorsQuery = {
   num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
 };
 
-export type GetProcessorStatusQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type GetProcessorStatusQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.ProcessorStatusBoolExp>;
+}>;
 
 export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;

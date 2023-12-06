@@ -25,9 +25,9 @@ import {
   TypeTagParserErrorType,
   TypeTagReference,
   aptosCoinStructTag,
+  Identifier,
+  APTOS_COIN,
 } from "../../src";
-import { Identifier } from "../../src/transactions/instances";
-import { APTOS_COIN } from "../../src/utils/const";
 
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");

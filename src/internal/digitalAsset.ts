@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveString, MoveVector, Bool, U64, U8 } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
 import {
   AnyNumber,
   GetCollectionDataResponse,
@@ -19,9 +19,10 @@ import {
   GetOwnedTokensResponse,
   GetTokenActivityResponse,
   GetTokenDataResponse,
-  OrderBy,
+  MoveStructId,
+  OrderByArg,
   PaginationArgs,
-  TokenStandard,
+  TokenStandardArg,
 } from "../types";
 import {
   GetCollectionDataQuery,
@@ -55,7 +56,7 @@ export async function mintTokenTransaction(args: {
   name: string;
   uri: string;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -74,7 +75,7 @@ export async function mintTokenTransaction(args: {
     },
     options,
   });
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTokenData(args: {
@@ -132,23 +133,21 @@ export async function getCurrentTokenOwnership(args: {
 export async function getOwnedTokens(args: {
   aptosConfig: AptosConfig;
   ownerAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetTokenActivityResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetOwnedTokensResponse> {
   const { aptosConfig, ownerAddress, options } = args;
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
     owner_address: { _eq: AccountAddress.from(ownerAddress).toStringLong() },
+    amount: { _gt: 0 },
   };
 
   const graphqlQuery = {
     query: GetCurrentTokenOwnership,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -165,10 +164,7 @@ export async function getOwnedTokens(args: {
 export async function getTokenActivity(args: {
   aptosConfig: AptosConfig;
   tokenAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetTokenActivityResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetTokenActivityResponse[0]>;
 }): Promise<GetTokenActivityResponse> {
   const { aptosConfig, tokenAddress, options } = args;
 
@@ -180,8 +176,8 @@ export async function getTokenActivity(args: {
     query: GetTokenActivity,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -219,7 +215,7 @@ export async function createCollectionTransaction(
     uri: string;
     options?: InputGenerateTransactionOptions;
   } & CreateCollectionOptions,
-): Promise<InputSingleSignerTransaction> {
+): Promise<SingleSignerTransaction> {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -247,16 +243,14 @@ export async function createCollectionTransaction(
     },
     options,
   });
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
 }
 
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
-  options?: {
-    tokenStandard?: TokenStandard;
-  };
+  options?: TokenStandardArg;
 }): Promise<GetCollectionDataResponse> {
   const { aptosConfig, creatorAddress, collectionName, options } = args;
   const address = AccountAddress.from(creatorAddress);
@@ -289,9 +283,29 @@ export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
   collectionName: string;
-  options?: {
-    tokenStandard?: TokenStandard;
-  };
+  options?: TokenStandardArg;
 }): Promise<string> {
   return (await getCollectionData(args)).collection_id;
+}
+
+export async function transferDigitalAsset(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  digitalAssetAddress: AccountAddressInput;
+  recipient: AccountAddress;
+  digitalAssetType?: MoveStructId;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::object::transfer",
+      typeArguments: [digitalAssetType ?? "0x4::token::Token"],
+      functionArguments: [digitalAssetAddress, recipient],
+    },
+    options,
+  });
+  return transaction;
 }

@@ -11,12 +11,12 @@ describe("Faucet", () => {
     const testAccount = Account.generate();
 
     // Fund the account
-    await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
 
     // Check the balance
     type Coin = { coin: { value: string } };
     const resource = await aptos.getAccountResource<Coin>({
-      accountAddress: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress,
       resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
     });
     const amount = Number(resource.coin.value);

@@ -266,9 +266,9 @@ describe("BCS Serializer", () => {
 
   it("serializes a vector of Serializable types correctly", () => {
     const addresses = new Array<AccountAddress>(
-      AccountAddress.fromRelaxed("0x1"),
-      AccountAddress.fromRelaxed("0xa"),
-      AccountAddress.fromRelaxed("0x0123456789abcdef"),
+      AccountAddress.from("0x1"),
+      AccountAddress.from("0xa"),
+      AccountAddress.from("0x0123456789abcdef"),
     );
     const serializer = new Serializer();
     serializer.serializeVector(addresses);

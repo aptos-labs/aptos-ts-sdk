@@ -1,33 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Ed25519PrivateKey, Network, SigningSchemeInput, U64 } from "../../../src";
+import {
+  APTOS_COIN,
+  Account,
+  Aptos,
+  AptosConfig,
+  Ed25519PrivateKey,
+  Network,
+  SigningSchemeInput,
+  U64,
+} from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
 
-  describe("throws when account address in invalid", () => {
-    test("it throws with a short account address", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      await expect(async () =>
-        aptos.getAccountInfo({
-          accountAddress: "ca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0",
-        }),
-      ).rejects.toThrow("Hex string must start with a leading 0x.");
-    });
-
-    test("it throws when invalid account address", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      await expect(async () => aptos.getAccountInfo({ accountAddress: "0x123" })).rejects.toThrow(
-        // eslint-disable-next-line max-len
-        "The given hex string 0x0000000000000000000000000000000000000000000000000000000000000123 is not a special address, it must be represented as 0x + 64 chars.",
-      );
-    });
-  });
-
-  describe("fetch data with account address as string", () => {
+  describe("fetch data", () => {
     test("it fetches account data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
@@ -127,18 +115,18 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      const rawTxn = await aptos.generateTransaction({
+      const rawTxn = await aptos.build.transaction({
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.signTransaction({
+      const authenticator = aptos.sign.transaction({
         signer: senderAccount,
         transaction: rawTxn,
       });
-      const response = await aptos.submitTransaction({
+      const response = await aptos.submit.transaction({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
@@ -158,7 +146,7 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: response.hash });
       const accountTransactionsCount = await aptos.getAccountTransactionsCount({
         accountAddress: senderAccount.accountAddress,
       });
@@ -169,12 +157,12 @@ describe("account api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
-      const response = await aptos.fundAccount({
+      const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinData = await aptos.getAccountCoinsData({
         accountAddress: senderAccount.accountAddress,
       });
@@ -186,16 +174,40 @@ describe("account api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const senderAccount = Account.generate();
-      const response = await aptos.fundAccount({
+      const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
 
-      await aptos.waitForTransaction({ transactionHash: response });
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
       const accountCoinsCount = await aptos.getAccountCoinsCount({
         accountAddress: senderAccount.accountAddress,
       });
       expect(accountCoinsCount).toBe(1);
+    });
+
+    test("it fetches account's coin amount", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const senderAccount = Account.generate();
+      const fundTxn = await aptos.fundAccount({
+        accountAddress: senderAccount.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+
+      await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
+      // custom coin type
+      const accountCoinsAmount = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: "my::coin::type",
+      });
+      expect(accountCoinsAmount).toBe(0);
+      // APT Aptos coin
+      const accountAPTAmount = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: APTOS_COIN,
+      });
+      expect(accountAPTAmount).toBe(100000000);
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
@@ -242,67 +254,6 @@ describe("account api", () => {
     });
   });
 
-  describe("fetch data with account address as Uint8Array", () => {
-    test("it fetches account data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountInfo({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data).toHaveProperty("sequence_number");
-      expect(data.sequence_number).toBe("0");
-      expect(data).toHaveProperty("authentication_key");
-      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
-    });
-
-    test("it fetches account modules", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModules({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data.length).toBeGreaterThan(0);
-    });
-
-    test("it fetches an account module", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountModule({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-        moduleName: "coin",
-      });
-      expect(data).toHaveProperty("bytecode");
-    });
-
-    test("it fetches account resources", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResources({
-        accountAddress: new Uint8Array([
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ]),
-      });
-      expect(data.length).toBeGreaterThan(0);
-    });
-
-    test("it fetches an account resource with partial information", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
-      const data = await aptos.getAccountResource<{ authentication_key: string }>({
-        accountAddress: "0x1",
-        resourceType: "0x1::account::Account",
-      });
-      expect(data).toHaveProperty("authentication_key");
-      expect(data.authentication_key).toBe("0x0000000000000000000000000000000000000000000000000000000000000001");
-    });
-  });
-
   describe("Key Rotation", () => {
     test("it should rotate ed25519 to ed25519 auth key correctly", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
@@ -317,11 +268,12 @@ describe("account api", () => {
 
       // Rotate the key
       const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
         authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
+        minimumLedgerVersion: BigInt(response.version),
       });
 
       // Check if the lookup account address is the same as the original account address

@@ -21,15 +21,16 @@ import {
   GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
-  OrderBy,
+  OrderByArg,
   PaginationArgs,
   SigningScheme,
-  TokenStandard,
+  TokenStandardArg,
   TransactionResponse,
+  WhereArg,
 } from "../types";
 import {
   GetAccountCoinsCountQuery,
@@ -54,6 +55,7 @@ import {
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { AnyPublicKey } from "../core/crypto/anyPublicKey";
+import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -71,7 +73,7 @@ export async function getInfo(args: {
 export async function getModules(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: PaginationArgs & LedgerVersion;
+  options?: PaginationArgs & LedgerVersionArg;
 }): Promise<MoveModuleBytecode[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, MoveModuleBytecode[]>({
@@ -98,7 +100,7 @@ export async function getModule(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   moduleName: string;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<MoveModuleBytecode> {
   // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
   // by the developer directly
@@ -117,7 +119,7 @@ async function getModuleInner(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   moduleName: string;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<MoveModuleBytecode> {
   const { aptosConfig, accountAddress, moduleName, options } = args;
 
@@ -147,7 +149,7 @@ export async function getTransactions(args: {
 export async function getResources(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: PaginationArgs & LedgerVersion;
+  options?: PaginationArgs & LedgerVersionArg;
 }): Promise<MoveResource[]> {
   const { aptosConfig, accountAddress, options } = args;
   return paginateWithCursor<{}, MoveResource[]>({
@@ -166,7 +168,7 @@ export async function getResource<T extends {}>(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   resourceType: MoveStructId;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, accountAddress, resourceType, options } = args;
   const { data } = await getAptosFullNode<{}, MoveResource>({
@@ -181,7 +183,7 @@ export async function getResource<T extends {}>(args: {
 export async function lookupOriginalAccountAddress(args: {
   aptosConfig: AptosConfig;
   authenticationKey: AccountAddressInput;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<AccountAddress> {
   const { aptosConfig, authenticationKey, options } = args;
   type OriginatingAddress = {
@@ -247,20 +249,18 @@ export async function getAccountTokensCount(args: {
     query: graphqlQuery,
     originMethod: "getAccountTokensCount",
   });
-  if (!data.current_token_ownerships_v2_aggregate.aggregate) {
-    throw Error("Failed to get the count of account tokens");
-  }
-  return data.current_token_ownerships_v2_aggregate.aggregate.count;
+
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data.current_token_ownerships_v2_aggregate.aggregate
+    ? data.current_token_ownerships_v2_aggregate.aggregate.count
+    : 0;
 }
 
 export async function getAccountOwnedTokens(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: {
-    tokenStandard?: TokenStandard;
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetAccountOwnedTokensQueryResponse[0]>;
-  };
+  options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensQueryResponse[0]>;
 }): Promise<GetAccountOwnedTokensQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
@@ -279,8 +279,8 @@ export async function getAccountOwnedTokens(args: {
     query: GetAccountOwnedTokens,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -298,11 +298,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   collectionAddress: AccountAddressInput;
-  options?: {
-    tokenStandard?: TokenStandard;
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetAccountOwnedTokensFromCollectionResponse[0]>;
-  };
+  options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountOwnedTokensFromCollectionResponse[0]>;
 }): Promise<GetAccountOwnedTokensFromCollectionResponse> {
   const { aptosConfig, accountAddress, collectionAddress, options } = args;
   const ownerAddress = AccountAddress.from(accountAddress).toStringLong();
@@ -327,8 +323,8 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
     query: GetAccountOwnedTokensFromCollection,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -345,11 +341,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
 export async function getAccountCollectionsWithOwnedTokens(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: {
-    tokenStandard?: TokenStandard;
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetAccountCollectionsWithOwnedTokenResponse[0]>;
-  };
+  options?: TokenStandardArg & PaginationArgs & OrderByArg<GetAccountCollectionsWithOwnedTokenResponse[0]>;
 }): Promise<GetAccountCollectionsWithOwnedTokenResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
@@ -373,8 +365,8 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
     query: GetAccountCollectionsWithOwnedTokens,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -407,25 +399,42 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  if (!data.account_transactions_aggregate.aggregate) {
-    throw Error("Failed to get the count of account transactions");
-  }
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data.account_transactions_aggregate.aggregate ? data.account_transactions_aggregate.aggregate.count : 0;
+}
 
-  return data.account_transactions_aggregate.aggregate.count;
+export async function getAccountCoinAmount(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  coinType: MoveStructId;
+}): Promise<number> {
+  const { aptosConfig, accountAddress, coinType } = args;
+  const address = AccountAddress.from(accountAddress).toStringLong();
+
+  const data = await getAccountCoinsData({
+    aptosConfig,
+    accountAddress: address,
+    options: {
+      where: { asset_type: { _eq: coinType } },
+    },
+  });
+
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data[0] ? data[0].amount : 0;
 }
 
 export async function getAccountCoinsData(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetAccountCoinsDataResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetAccountCoinsDataResponse[0]> & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
 }): Promise<GetAccountCoinsDataResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string } } = {
+    ...options?.where,
     owner_address: { _eq: address },
   };
 
@@ -433,8 +442,8 @@ export async function getAccountCoinsData(args: {
     query: GetAccountCoinsData,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };
@@ -476,10 +485,7 @@ export async function getAccountCoinsCount(args: {
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: {
-    pagination?: PaginationArgs;
-    orderBy?: OrderBy<GetAccountOwnedObjectsResponse[0]>;
-  };
+  options?: PaginationArgs & OrderByArg<GetAccountOwnedObjectsResponse[0]>;
 }): Promise<GetAccountOwnedObjectsResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
@@ -491,8 +497,8 @@ export async function getAccountOwnedObjects(args: {
     query: GetAccountOwnedObjects,
     variables: {
       where_condition: whereCondition,
-      offset: options?.pagination?.offset,
-      limit: options?.pagination?.limit,
+      offset: options?.offset,
+      limit: options?.limit,
       order_by: options?.orderBy,
     },
   };

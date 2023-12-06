@@ -18,11 +18,9 @@ import {
   AccountAddress,
   Aptos,
   AptosConfig,
-  Bool,
   Ed25519PrivateKey,
   Network,
   NetworkToNetworkName,
-  U64,
   InputViewRequestData,
 } from "@aptos-labs/ts-sdk";
 import { createInterface } from "readline";
@@ -42,7 +40,7 @@ const getOptimalLpAmount = async (
 ): Promise<void> => {
   const payload: InputViewRequestData = {
     function: `${swap.toString()}::router::optimal_liquidity_amounts`,
-    functionArguments: [token1Addr.toString(), token2Addr.toString(), false, "200000", "300000", "200", "300"],
+    functionArguments: [token1Addr, token2Addr, false, "200000", "300000", "200", "300"],
   };
   const result = await aptos.view({ payload });
   console.log("Optimal LP amount: ", result);
@@ -55,19 +53,11 @@ const addLiquidity = async (
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
-    sender: deployer.accountAddress.toString(),
+  const rawTxn = await aptos.build.transaction({
+    sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::add_liquidity_entry`,
-      functionArguments: [
-        token1Addr,
-        token2Addr,
-        new Bool(false),
-        new U64(200000),
-        new U64(300000),
-        new U64(200),
-        new U64(300),
-      ],
+      functionArguments: [token1Addr, token2Addr, false, 200000, 300000, 200, 300],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -86,11 +76,11 @@ const swapAssets = async (
   amountOutMin: number,
   recipient: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
+  const rawTxn = await aptos.build.transaction({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::swap_entry`,
-      functionArguments: [new U64(amountIn), new U64(amountOutMin), fromToken, toToken, new Bool(false), recipient],
+      functionArguments: [amountIn, amountOutMin, fromToken, toToken, false, recipient],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -137,11 +127,11 @@ const createLiquidityPool = async (
   dogCoinAddr: AccountAddress,
   catCoinAddr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
-    sender: deployer.accountAddress.toString(),
+  const rawTxn = await aptos.build.transaction({
+    sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::create_pool`,
-      functionArguments: [dogCoinAddr, catCoinAddr, new Bool(false)],
+      functionArguments: [dogCoinAddr, catCoinAddr, false],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: deployer, transaction: rawTxn });
@@ -151,8 +141,8 @@ const createLiquidityPool = async (
 };
 
 const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Account): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
-    sender: deployer.accountAddress.toString(),
+  const rawTxn = await aptos.build.transaction({
+    sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::liquidity_pool::initialize`,
       functionArguments: [],
@@ -169,7 +159,7 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
   await new Promise<void>((resolve) => {
     readline.question(
       "Follow the steps to publish the Dog and Cat Coin module with Admin's address, and press enter. \n" +
-        "1. cd to /aptos-ts-sdk/examples/typescript/facoin folder \n" +
+        "1. cd to /aptos-ts-sdk/examples/typescript/move/facoin folder \n" +
         "2. run 'aptos move publish --named-address FACoin=[admin] --profile=[admin] \n" +
         "   Note: [admin] is the same profile you used to publish your 'swap' package",
       () => {
@@ -183,11 +173,11 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
  *  Admin mint the coin
  */
 const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
-  const rawTxn = await aptos.generateTransaction({
-    sender: admin.accountAddress.toString(),
+  const rawTxn = await aptos.build.transaction({
+    sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress.toString()}::${coinName}::mint`,
-      functionArguments: [admin.accountAddress, new U64(amount)],
+      functionArguments: [admin.accountAddress, amount],
     },
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: admin, transaction: rawTxn });
@@ -215,7 +205,7 @@ const example = async () => {
   const aptosConfig = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(aptosConfig);
   // Create three accounts
-  const swapAddress = AccountAddress.fromHexInput(process.argv[2]);
+  const swapAddress = AccountAddress.from(process.argv[2]);
   const admin = Account.fromPrivateKeyAndAddress({
     privateKey: new Ed25519PrivateKey(process.argv[3]),
     address: swapAddress,
@@ -225,7 +215,7 @@ const example = async () => {
   console.log(`Admin's address is: ${admin.accountAddress.toString()}`);
   console.log(`Swap address is: ${swapAddress.toString()}`);
   // Fund Admin account
-  await aptos.fundAccount({ accountAddress: admin.accountAddress.toString(), amount: 100_000_000 });
+  await aptos.fundAccount({ accountAddress: admin.accountAddress, amount: 100_000_000 });
 
   console.log("\n====== Create Fungible Asset -> (Dog and Cat coin) ======\n");
   await createFungibleAsset(aptos, admin);

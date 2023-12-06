@@ -10,10 +10,12 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import {
+  AnyNumber,
   GetCurrentFungibleAssetBalancesResponse,
   GetFungibleAssetActivitiesResponse,
   GetFungibleAssetMetadataResponse,
   PaginationArgs,
+  WhereArg,
 } from "../types";
 import { queryIndexer } from "./general";
 import {
@@ -31,13 +33,13 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
+import { Account, AccountAddress } from "../core";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions";
+import { generateTransaction } from "./transactionSubmission";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: FungibleAssetMetadataBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
 }): Promise<GetFungibleAssetMetadataResponse> {
   const { aptosConfig, options } = args;
 
@@ -45,8 +47,8 @@ export async function getFungibleAssetMetadata(args: {
     query: GetFungibleAssetMetadata,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 
@@ -61,10 +63,7 @@ export async function getFungibleAssetMetadata(args: {
 
 export async function getFungibleAssetActivities(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: FungibleAssetActivitiesBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
 }): Promise<GetFungibleAssetActivitiesResponse> {
   const { aptosConfig, options } = args;
 
@@ -72,8 +71,8 @@ export async function getFungibleAssetActivities(args: {
     query: GetFungibleAssetActivities,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 
@@ -88,10 +87,7 @@ export async function getFungibleAssetActivities(args: {
 
 export async function getCurrentFungibleAssetBalances(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    pagination?: PaginationArgs;
-    where?: CurrentFungibleAssetBalancesBoolExp;
-  };
+  options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
 }): Promise<GetCurrentFungibleAssetBalancesResponse> {
   const { aptosConfig, options } = args;
 
@@ -99,8 +95,8 @@ export async function getCurrentFungibleAssetBalances(args: {
     query: GetCurrentFungibleAssetBalances,
     variables: {
       where_condition: options?.where,
-      limit: options?.pagination?.limit,
-      offset: options?.pagination?.offset,
+      limit: options?.limit,
+      offset: options?.offset,
     },
   };
 
@@ -111,4 +107,26 @@ export async function getCurrentFungibleAssetBalances(args: {
   });
 
   return data.current_fungible_asset_balances;
+}
+
+export async function transferFungibleAsset(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  fungibleAssetMetadataAddress: AccountAddress;
+  recipient: AccountAddress;
+  amount: AnyNumber;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SingleSignerTransaction> {
+  const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
+  const transaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::primary_fungible_store::transfer",
+      typeArguments: ["0x1::fungible_asset::Metadata"],
+      functionArguments: [fungibleAssetMetadataAddress, recipient, amount],
+    },
+    options,
+  });
+  return transaction;
 }

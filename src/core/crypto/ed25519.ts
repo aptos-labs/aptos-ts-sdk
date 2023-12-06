@@ -88,6 +88,11 @@ export class Ed25519PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519PublicKey(bytes);
   }
+
+  // TODO(greg): Currently, we can't put this on the abstract type, because of a circular dependency
+  static isPublicKey(publicKey: PublicKey): publicKey is Ed25519PublicKey {
+    return publicKey instanceof Ed25519PublicKey;
+  }
 }
 
 /**
@@ -226,6 +231,10 @@ export class Ed25519PrivateKey extends PrivateKey {
     });
     return new Ed25519PrivateKey(privateKey);
   }
+
+  static isPrivateKey(privateKey: PrivateKey): privateKey is Ed25519PrivateKey {
+    return privateKey instanceof Ed25519PrivateKey;
+  }
 }
 
 /**
@@ -283,5 +292,9 @@ export class Ed25519Signature extends Signature {
   static load(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
+  }
+
+  static isSignature(signature: Signature): signature is Ed25519Signature {
+    return signature instanceof Ed25519Signature;
   }
 }

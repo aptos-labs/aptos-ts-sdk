@@ -11,6 +11,8 @@ import {
   InputGenerateTransactionData,
   SimpleEntryFunctionArgumentTypes,
   MoveVector,
+  AnyRawTransaction,
+  isUserTransactionResponse,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -21,21 +23,28 @@ export async function publishPackage(
   codeBytes: Array<HexInput>,
 ) {
   const rawTransaction = await aptos.publishPackageTransaction({
-    account: senderAccount.accountAddress.toString(),
+    account: senderAccount.accountAddress,
     metadataBytes,
     moduleBytecode: codeBytes,
   });
-  const signedTxn = await aptos.signTransaction({
+  const signedTxn = await aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const txnHash = await aptos.submitTransaction({
+  const txnHash = await aptos.submit.transaction({
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
-  return (await aptos.waitForTransaction({
+
+  const response = await aptos.waitForTransaction({
     transactionHash: txnHash.hash,
-  })) as UserTransactionResponse;
+  });
+
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+
+  return response;
 }
 
 // Instead of funding each account individually, we fund one twice, then send coins from it to the rest
@@ -45,14 +54,14 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   // Fund first account
   const firstAccount = accounts[0];
   // Fund the first account twice to make sure it has enough coins to send to the rest
-  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
-  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress, amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: firstAccount.accountAddress, amount: FUND_AMOUNT });
   // Get the addresses for `accounts[1..n]`
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send coins from `account[0]` to `account[1..n]`
-  const transaction = await aptos.generateTransaction({
-    sender: firstAccount.accountAddress.toString(),
+  const transaction = await aptos.build.transaction({
+    sender: firstAccount.accountAddress,
     data: {
       function: "0x1::aptos_account::batch_transfer",
       functionArguments: [
@@ -61,18 +70,21 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
       ],
     },
   });
-  const signedTxn = await aptos.signTransaction({
+  const signedTxn = await aptos.sign.transaction({
     signer: firstAccount,
     transaction,
   });
-  const transactionResponse = await aptos.submitTransaction({
+  const transactionResponse = await aptos.submit.transaction({
     transaction,
     senderAuthenticator: signedTxn,
   });
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 }
 
 // Transaction builder helpers
@@ -84,26 +96,29 @@ export async function rawTransactionHelper(
   typeArgs: TypeTag[],
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
-  const rawTransaction = await aptos.generateTransaction({
-    sender: senderAccount.accountAddress.toString(),
+  const rawTransaction = await aptos.build.transaction({
+    sender: senderAccount.accountAddress,
     data: {
-      function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+      function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
       typeArguments: typeArgs,
       functionArguments: args,
     },
   });
-  const senderAuthenticator = await aptos.signTransaction({
+  const senderAuthenticator = await aptos.sign.transaction({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const transactionResponse = await aptos.submitTransaction({
+  const transactionResponse = await aptos.submit.transaction({
     transaction: rawTransaction,
     senderAuthenticator,
   });
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 }
 
 // multi agent/fee payer
@@ -117,73 +132,83 @@ export const rawTransactionMultiAgentHelper = async (
   feePayerAccount?: Account,
 ): Promise<UserTransactionResponse> => {
   let transactionData: InputGenerateTransactionData;
+  let generatedTransaction: AnyRawTransaction;
   // Fee payer
   if (feePayerAccount) {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
-      hasFeePayer: true,
+      withFeePayer: true,
     };
+    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else if (secondarySignerAccounts) {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
     };
+    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
   } else {
     transactionData = {
-      sender: senderAccount.accountAddress.toString(),
+      sender: senderAccount.accountAddress,
       data: {
-        function: `${senderAccount.accountAddress.toString()}::tx_args_module::${functionName}`,
+        function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
         typeArguments: typeArgs,
         functionArguments: args,
       },
     };
+    generatedTransaction = await aptos.build.transaction(transactionData);
   }
 
-  const generatedTransaction = await aptos.generateTransaction(transactionData);
-
-  const senderAuthenticator = aptos.signTransaction({
+  const senderAuthenticator = aptos.sign.transaction({
     signer: senderAccount,
     transaction: generatedTransaction,
   });
 
   const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-    aptos.signTransaction({
+    aptos.sign.transaction({
       signer: account,
       transaction: generatedTransaction,
     }),
   );
 
   let feePayerAuthenticator;
+  let transactionResponse;
   if (feePayerAccount !== undefined) {
-    feePayerAuthenticator = aptos.signTransaction({
+    feePayerAuthenticator = aptos.sign.transactionAsFeePayer({
       signer: feePayerAccount,
       transaction: generatedTransaction,
-      asFeePayer: true,
+    });
+    transactionResponse = await aptos.submit.multiAgentTransaction({
+      transaction: generatedTransaction,
+      senderAuthenticator,
+      additionalSignersAuthenticators: secondaryAuthenticators,
+      feePayerAuthenticator,
+    });
+  } else {
+    transactionResponse = await aptos.submit.multiAgentTransaction({
+      transaction: generatedTransaction,
+      senderAuthenticator,
+      additionalSignersAuthenticators: secondaryAuthenticators,
     });
   }
-
-  const transactionResponse = await aptos.submitTransaction({
-    transaction: generatedTransaction,
-    senderAuthenticator,
-    additionalSignersAuthenticators: secondaryAuthenticators,
-    feePayerAuthenticator,
-  });
 
   const response = await aptos.waitForTransaction({
     transactionHash: transactionResponse.hash,
   });
-  return response as UserTransactionResponse;
+  if (!isUserTransactionResponse(response)) {
+    throw new Error("Expected user transaction response");
+  }
+  return response;
 };
 
 export const PUBLISHER_ACCOUNT_PK = "0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";

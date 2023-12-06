@@ -17,7 +17,7 @@ import {
   GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveValue,
   TableItemRequest,
   ViewRequest,
@@ -25,6 +25,7 @@ import {
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
+import { ProcessorType } from "../utils/const";
 
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
@@ -70,7 +71,7 @@ export async function getTableItem<T>(args: {
   aptosConfig: AptosConfig;
   handle: string;
   data: TableItemRequest;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, handle, data, options } = args;
   const response = await postAptosFullNode<TableItemRequest, any>({
@@ -86,7 +87,7 @@ export async function getTableItem<T>(args: {
 export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
   aptosConfig: AptosConfig;
   payload: InputViewRequestData;
-  options?: LedgerVersion;
+  options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, payload, options } = args;
   const { data } = await postAptosFullNode<ViewRequest, MoveValue[]>({
@@ -158,4 +159,30 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
 export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<number> {
   const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
   return response[0].last_success_version;
+}
+
+export async function getProcessorStatus(args: {
+  aptosConfig: AptosConfig;
+  processorType: ProcessorType;
+}): Promise<GetProcessorStatusResponse[0]> {
+  const { aptosConfig, processorType } = args;
+
+  const whereCondition: { processor: { _eq: string } } = {
+    processor: { _eq: processorType.valueOf() },
+  };
+
+  const graphqlQuery = {
+    query: GetProcessorStatus,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+
+  const data = await queryIndexer<GetProcessorStatusQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getProcessorStatus",
+  });
+
+  return data.processor_status[0];
 }

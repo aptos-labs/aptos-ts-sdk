@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderBy } from "../types";
+import { GetDelegatedStakingActivitiesResponse, GetNumberOfDelegatorsResponse, OrderByArg } from "../types";
 import { GetDelegatedStakingActivitiesQuery, GetNumberOfDelegatorsQuery } from "../types/generated/operations";
 import { GetDelegatedStakingActivities, GetNumberOfDelegators } from "../types/generated/queries";
 import { queryIndexer } from "./general";
@@ -20,30 +20,28 @@ export async function getNumberOfDelegators(args: {
   poolAddress: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, poolAddress } = args;
-  const address = AccountAddress.fromRelaxed(poolAddress).toStringLong();
+  const address = AccountAddress.from(poolAddress).toStringLong();
   const query = {
     query: GetNumberOfDelegators,
     variables: { where_condition: { pool_address: { _eq: address } } },
   };
-  const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
-  if (data.num_active_delegator_per_pool.length === 0) {
-    throw Error("Delegator pool not found");
-  }
-  return data.num_active_delegator_per_pool[0].num_active_delegator;
+  const data = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
+
+  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // might be because of how ts infer the graphql generated scheme type
+  return data.num_active_delegator_per_pool[0] ? data.num_active_delegator_per_pool[0].num_active_delegator : 0;
 }
 
 export async function getNumberOfDelegatorsForAllPools(args: {
   aptosConfig: AptosConfig;
-  options?: {
-    orderBy?: OrderBy<GetNumberOfDelegatorsResponse[0]>;
-  };
+  options?: OrderByArg<GetNumberOfDelegatorsResponse[0]>;
 }): Promise<GetNumberOfDelegatorsResponse> {
   const { aptosConfig, options } = args;
   const query = {
     query: GetNumberOfDelegators,
-    variables: { where_condition: {}, order_by: options?.orderBy },
+    variables: { order_by: options?.orderBy },
   };
-  const data: GetNumberOfDelegatorsQuery = await queryIndexer<GetNumberOfDelegatorsQuery>({
+  const data = await queryIndexer<GetNumberOfDelegatorsQuery>({
     aptosConfig,
     query,
   });
@@ -59,8 +57,8 @@ export async function getDelegatedStakingActivities(args: {
   const query = {
     query: GetDelegatedStakingActivities,
     variables: {
-      delegatorAddress: AccountAddress.fromRelaxed(delegatorAddress).toStringLong(),
-      poolAddress: AccountAddress.fromRelaxed(poolAddress).toStringLong(),
+      delegatorAddress: AccountAddress.from(delegatorAddress).toStringLong(),
+      poolAddress: AccountAddress.from(poolAddress).toStringLong(),
     },
   };
   const data = await queryIndexer<GetDelegatedStakingActivitiesQuery>({ aptosConfig, query });

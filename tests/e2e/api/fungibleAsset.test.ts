@@ -1,13 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import {
-  CurrentFungibleAssetBalancesBoolExp,
-  FungibleAssetActivitiesBoolExp,
-  FungibleAssetMetadataBoolExp,
-} from "../../../src/types/generated/types";
-import { APTOS_COIN } from "../../../src/utils/const";
+import { Account, Aptos, AptosConfig, Network, APTOS_COIN } from "../../../src";
 
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
@@ -18,7 +12,7 @@ describe("FungibleAsset", () => {
       options: {
         where: {
           asset_type: { _eq: APTOS_COIN },
-        } as FungibleAssetMetadataBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(1);
@@ -27,23 +21,21 @@ describe("FungibleAsset", () => {
   });
 
   test("it should fetch a specific fungible asset metadata", async () => {
-    let data = await aptos.getFungibleAssetMetadataByAssetType(APTOS_COIN);
+    let data = await aptos.getFungibleAssetMetadataByAssetType({ assetType: APTOS_COIN });
     expect(data.asset_type).toEqual(APTOS_COIN);
 
     // fetch by something that doesn't exist
-    data = await aptos.getFungibleAssetMetadataByAssetType("0x1::aptos_coin::testnotexist");
+    data = await aptos.getFungibleAssetMetadataByAssetType({ assetType: "0x1::aptos_coin::testnotexist" });
     expect(data).toBeUndefined();
   });
 
   test("it should fetch fungible asset activities with correct number and asset type ", async () => {
     const data = await aptos.getFungibleAssetActivities({
       options: {
-        pagination: {
-          limit: 2,
-        },
+        limit: 2,
         where: {
           asset_type: { _eq: APTOS_COIN },
-        } as FungibleAssetActivitiesBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(2);
@@ -53,7 +45,7 @@ describe("FungibleAsset", () => {
 
   test("it should fetch current fungible asset balance", async () => {
     const userAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: userAccount.accountAddress.toString(), amount: 1_000 });
+    await aptos.fundAccount({ accountAddress: userAccount.accountAddress, amount: 1_000 });
 
     const APT_COIN_TYPE = "0x1::aptos_coin::AptosCoin";
     const data = await aptos.getCurrentFungibleAssetBalances({
@@ -61,7 +53,7 @@ describe("FungibleAsset", () => {
         where: {
           owner_address: { _eq: userAccount.accountAddress.toString() },
           asset_type: { _eq: APTOS_COIN },
-        } as CurrentFungibleAssetBalancesBoolExp,
+        },
       },
     });
     expect(data.length).toEqual(1);

@@ -10,10 +10,10 @@ describe("Event", () => {
     const aptos = new Aptos(config);
 
     const testAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: testAccount.accountAddress.toString(), amount: FUND_AMOUNT });
+    await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
 
     const events = await aptos.getAccountEventsByCreationNumber({
-      accountAddress: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress,
       creationNumber: 0,
     });
 
@@ -26,12 +26,12 @@ describe("Event", () => {
 
     const testAccount = Account.generate();
     await aptos.fundAccount({
-      accountAddress: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
 
     const events = await aptos.getAccountEventsByEventType({
-      accountAddress: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress,
       eventType: "0x1::account::CoinRegisterEvent",
     });
 
@@ -44,7 +44,7 @@ describe("Event", () => {
 
     const testAccount = Account.generate();
     await aptos.fundAccount({
-      accountAddress: testAccount.accountAddress.toString(),
+      accountAddress: testAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
 
@@ -62,11 +62,11 @@ describe("Event", () => {
       const testAccount1 = Account.generate();
       const testAccount2 = Account.generate();
       await aptos.fundAccount({
-        accountAddress: testAccount1.accountAddress.toString(),
+        accountAddress: testAccount1.accountAddress,
         amount: FUND_AMOUNT,
       });
       await aptos.fundAccount({
-        accountAddress: testAccount2.accountAddress.toString(),
+        accountAddress: testAccount2.accountAddress,
         amount: FUND_AMOUNT,
       });
 

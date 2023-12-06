@@ -10,10 +10,14 @@ import { Faucet } from "./faucet";
 import { FungibleAsset } from "./fungibleAsset";
 import { General } from "./general";
 import { ANS } from "./ans";
+import { PasskeysBrowser } from "./passkeysBrowser";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { TransactionSubmission } from "./transactionSubmission";
-import { PasskeysBrowser } from "./passkeysBrowser";
+import { Build } from "./transactionSubmission/build";
+import { Sign } from "./transactionSubmission/sign";
+import { Simulate } from "./transactionSubmission/simulate";
+import { Submit } from "./transactionSubmission/submit";
 
 /**
  * This class is the main entry point into Aptos's
@@ -49,6 +53,14 @@ export class Aptos {
 
   readonly transactionSubmission: TransactionSubmission;
 
+  readonly build: Build;
+
+  readonly sign: Sign;
+
+  readonly simulate: Simulate;
+
+  readonly submit: Submit;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -63,6 +75,10 @@ export class Aptos {
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.transactionSubmission = new TransactionSubmission(this.config);
+    this.build = new Build(this.config);
+    this.sign = new Sign(this.config);
+    this.simulate = new Simulate(this.config);
+    this.submit = new Submit(this.config);
   }
 }
 
@@ -113,3 +129,7 @@ applyMixin(Aptos, PasskeysBrowser, "passkeysBrowser");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
+applyMixin(Aptos, Build, "build");
+applyMixin(Aptos, Sign, "sign");
+applyMixin(Aptos, Simulate, "simulate");
+applyMixin(Aptos, Submit, "submit");

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig } from "../../../src";
+import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -41,7 +41,7 @@ describe("ANS", () => {
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
-          sender: contractAccount.accountAddress.toString(),
+          sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::domains::init_reverse_lookup_registry_v1`,
             functionArguments: [],
@@ -54,7 +54,7 @@ describe("ANS", () => {
         contractAccount,
         await generateTransaction({
           aptosConfig: config,
-          sender: contractAccount.accountAddress.toString(),
+          sender: contractAccount.accountAddress,
           data: {
             function: `${ANS_ADDRESS}::router::set_mode`,
             functionArguments: [new U8(1)],
@@ -76,7 +76,7 @@ describe("ANS", () => {
           contractAccount,
           await generateTransaction({
             aptosConfig: config,
-            sender: contractAccount.accountAddress.toString(),
+            sender: contractAccount.accountAddress,
             data: {
               function:
                 tokenMode === 0
@@ -97,7 +97,7 @@ describe("ANS", () => {
           contractAccount,
           await generateTransaction({
             aptosConfig: config,
-            sender: contractAccount.accountAddress.toString(),
+            sender: contractAccount.accountAddress,
             data: {
               function: `${ANS_ADDRESS}::router::set_mode`,
               functionArguments: [mode],
@@ -150,11 +150,11 @@ describe("ANS", () => {
       bob = Account.generate();
       await Promise.all([
         aptos.fundAccount({
-          accountAddress: alice.accountAddress.toString(),
+          accountAddress: alice.accountAddress,
           amount: 500_000_000,
         }),
         aptos.fundAccount({
-          accountAddress: bob.accountAddress.toString(),
+          accountAddress: bob.accountAddress,
           amount: 500_000_000,
         }),
       ]);
@@ -274,7 +274,7 @@ describe("ANS", () => {
           expiration: {
             policy: "subdomain:independent",
             // Expire the subdomain two seconds before the TLD expires
-            expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000),
+            expirationDate: Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000,
           },
           transferable: true,
           sender: alice,
@@ -298,13 +298,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 
@@ -333,7 +333,7 @@ describe("ANS", () => {
         alice,
         await aptos.setTargetAddress({
           name,
-          address: bob.accountAddress.toString(),
+          address: bob.accountAddress,
           sender: alice,
         }),
       );
@@ -369,7 +369,7 @@ describe("ANS", () => {
         alice,
         await aptos.setTargetAddress({
           name,
-          address: bob.accountAddress.toString(),
+          address: bob.accountAddress,
           sender: alice,
         }),
       );
@@ -387,13 +387,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 
@@ -402,7 +402,7 @@ describe("ANS", () => {
     });
 
     test("it returns null if no primary name is set", async () => {
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
       expect(res).toBeFalsy();
     });
 
@@ -413,7 +413,7 @@ describe("ANS", () => {
 
       await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -434,7 +434,7 @@ describe("ANS", () => {
 
       await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
 
-      const res = await aptos.getPrimaryName({ address: alice.accountAddress.toString() });
+      const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
       expect(res).toEqual(name);
     });
@@ -449,13 +449,13 @@ describe("ANS", () => {
     beforeEach(async () => {
       alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: alice.accountAddress.toString(),
+        accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
       bob = Account.generate();
       await aptos.fundAccount({
-        accountAddress: bob.accountAddress.toString(),
+        accountAddress: bob.accountAddress,
         amount: 500_000_000,
       });
 
@@ -477,8 +477,6 @@ describe("ANS", () => {
         }),
       );
 
-      let res = await aptos.getExpiration({ name });
-
       // Change the expiration date of the name to be tomorrow
       const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
@@ -486,8 +484,8 @@ describe("ANS", () => {
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
 
       // We expect the renewed expiration time to be one year from tomorrow
-      const expectedExpirationDate = newExpirationDate + 365 * 24 * 60 * 60;
-      res = await aptos.getExpiration({ name });
+      const expectedExpirationDate = (newExpirationDate + 365 * 24 * 60 * 60) * 1000;
+      const res = await aptos.getExpiration({ name });
       expect(res?.toString()).toBe(expectedExpirationDate.toString());
     });
 
@@ -516,6 +514,84 @@ describe("ANS", () => {
       );
 
       expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+    });
+  });
+
+  describe("can get names", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    // This account has two long living domain names, each with one subdomain.
+    const ACCOUNT_ADDRESS_1 = "0x24f92ae64dfcf44b2bbb3a4621515e86ad88d53d6b87f6dfe978b535621cefd4";
+    const DOMAIN = "8923ulahsdjfaiu";
+
+    test("returns all the names for an account", async () => {
+      const res = await testnet.ans.getAccountNames({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(4);
+    });
+
+    test("returns only the domains for an account", async () => {
+      const res = await testnet.ans.getAccountDomains({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // None of our results should have a subdomain
+      expect(res.find((name) => Boolean(name.subdomain))).toBeFalsy();
+    });
+
+    test("returns only the subdomains for an account", async () => {
+      const res = await testnet.ans.getAccountSubdomains({ accountAddress: ACCOUNT_ADDRESS_1 });
+      expect(res.length).toBe(2);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+
+    test("returns only the subdomains names for a domain", async () => {
+      const res = await testnet.ans.getDomainSubdomains({ domain: DOMAIN });
+      expect(res.length).toBe(1);
+      // All our results should have a subdomain
+      expect(res.find((name) => !name.subdomain)).toBeFalsy();
+    });
+
+    test("accommodates where, pagination, and ordering", async () => {
+      let res: GetANSNameResponse;
+
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
+        options: { limit: 1 },
+      });
+      expect(res.length).toBe(1);
+
+      res = await testnet.ans.getAccountNames({
+        accountAddress: ACCOUNT_ADDRESS_1,
+        options: {
+          where: {
+            domain: { _eq: DOMAIN },
+          },
+        },
+      });
+      expect(res[0].domain).toBe(DOMAIN);
+    });
+
+    // TODO: When we have local testnet, test order here
+  });
+
+  describe("query an individual name", () => {
+    const testnet = new Aptos(
+      new AptosConfig({
+        network: Network.TESTNET,
+      }),
+    );
+
+    const domain = "8923ulahsdjfaiu";
+
+    test("returns domains subdomains", async () => {
+      const res1 = await testnet.ans.getName({ name: `not-a-name-${randomString()}` });
+      expect(res1).toBeFalsy();
+
+      const res2 = await testnet.ans.getName({ name: domain });
+      expect(res2).toBeTruthy();
     });
   });
 });

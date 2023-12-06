@@ -222,10 +222,10 @@ export class Deserializer {
    * @example
    * // serialize a vector of addresses
    * const addresses = new Array<AccountAddress>(
-   *   AccountAddress.fromRelaxed("0x1"),
-   *   AccountAddress.fromRelaxed("0x2"),
-   *   AccountAddress.fromRelaxed("0xa"),
-   *   AccountAddress.fromRelaxed("0xb"),
+   *   AccountAddress.from("0x1"),
+   *   AccountAddress.from("0x2"),
+   *   AccountAddress.from("0xa"),
+   *   AccountAddress.from("0xb"),
    * );
    * const serializer = new Serializer();
    * serializer.serializeVector(addresses);

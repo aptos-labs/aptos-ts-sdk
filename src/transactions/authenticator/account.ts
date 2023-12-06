@@ -29,6 +29,22 @@ export abstract class AccountAuthenticator extends Serializable {
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
   }
+
+  isEd25519(): this is AccountAuthenticatorEd25519 {
+    return this instanceof AccountAuthenticatorEd25519;
+  }
+
+  isMultiEd25519(): this is AccountAuthenticatorMultiEd25519 {
+    return this instanceof AccountAuthenticatorMultiEd25519;
+  }
+
+  isSingleKey(): this is AccountAuthenticatorSingleKey {
+    return this instanceof AccountAuthenticatorSingleKey;
+  }
+
+  isMultiKey(): this is AccountAuthenticatorMultiKey {
+    return this instanceof AccountAuthenticatorMultiKey;
+  }
 }
 
 /**

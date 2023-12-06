@@ -1,10 +1,20 @@
 # Typescript SDK for Aptos
 
+![License][github-license]
 [![Discord][discord-image]][discord-url]
-[![NPM Package Version][npm-image-version]][npm-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
-> **This library is experimental**. Therefore, the API is unstable and may change without warning.
+### Latest Version
+
+[![NPM Package Version][npm-image-version]][npm-url]
+![Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk)
+![NPM bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk)
+
+### Experimental Development Version
+
+[![NPM Experimental Version](https://img.shields.io/npm/v/%40aptos-labs/ts-sdk/experimental)][experimental-url]
+![Experimental Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk/experimental)
+![Experimental bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk/experimental)
 
 The Aptos TypeScript SDK provides a convenient way to interact with the Aptos blockchain using TypeScript. It offers a
 set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
@@ -18,7 +28,7 @@ This repository supports version >= 0.0.0 of the [Aptos SDK npm package](https:/
 Install with your favorite package manager such as npm, yarn, or pnpm:
 
 ```bash
-pnpm install @aptos-labs/ts-sdk@experimental
+pnpm install @aptos-labs/ts-sdk
 ```
 
 ##### For use in a browser
@@ -26,7 +36,7 @@ pnpm install @aptos-labs/ts-sdk@experimental
 You can add the SDK to your web application using a script tag:
 
 ```html
-<script src="https://unpkg.com/@aptos-labs/ts-sdk@experimental/dist/browser/index.global.js" />
+<script src="https://unpkg.com/@aptos-labs/ts-sdk/dist/browser/index.global.js" />
 ```
 
 Then, the SDK can be accessed through `window.aptosSDK`.
@@ -44,7 +54,7 @@ If you want to pass in a custom config
 
 ```ts
 // an optional config information for the SDK client instance.
-const config = new AptosConfig({ network: Network.LOCAL });
+const config = new AptosConfig({ network: Network.LOCAL }); // default network is devnet
 const aptos = new Aptos(config);
 ```
 
@@ -56,7 +66,7 @@ const aptos = new Aptos(config);
 const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 ```
 
-### Keys management (default to Ed25519)
+### Account management (default to Ed25519)
 
 > Note: We introduce a Single Sender authentication (as introduced in [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263)). Generating an account defaults to Legacy Ed25519 authentication with the option to use the Single Sender unified authentication
 
@@ -99,26 +109,33 @@ Using transaction submission api
 ```ts
 const alice: Account = Account.generate();
 const bobAddress = "0xb0b";
-const transaction = await aptos.generateTransaction({
-  sender: alice.accountAddress.toString(),
+// build transaction
+const transaction = await aptos.build.transaction({
+  sender: alice,
   data: {
     function: "0x1::coin::transfer",
-    type_arguments: [new TypeTagStruct(StructTag.fromString("0x1::aptos_coin::AptosCoin"))],
-    arguments: [AccountAddress.fromHexInput(bobAddress), new U64(100)],
+    type_arguments: ["0x1::aptos_coin::AptosCoin"],
+    arguments: [bobAddress, 100],
   },
 });
 
-let committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+// using sign and submit separately
+const senderAuthenticator = aptos.sign.transaction({ signer: alice, transaction });
+const committedTransaction = await aptos.submit.transaction({ transaction, senderAuthenticator });
+
+// using signAndSubmit combined
+const committedTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
 
 Using built in `transferCoinTransaction`
 
 ```ts
-const alice: Account;
+const alice: Account = Account.generate();
 const bobAddress = "0xb0b";
+// build transaction
 const transaction = await aptos.transferCoinTransaction({
-  sender: alice.accountAddress.toString(),
-  recipient: bob,
+  sender: alice,
+  recipient: bobAddress,
   amount: 100,
 });
 
@@ -127,6 +144,7 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 
 ## Documentation and examples
 
+- For full SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/ts-sdk-v2/)
 - For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
 - For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
@@ -159,5 +177,8 @@ If neither of these describes what you would like to contribute, checkout out th
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg
 [npm-url]: https://npmjs.org/package/@aptos-labs/ts-sdk
+[experimental-url]: https://www.npmjs.com/package/@aptos-labs/ts-sdk/v/experimental
 [discord-image]: https://img.shields.io/discord/945856774056083548?label=Discord&logo=discord&style=flat~~~~
+[discord-url]: https://discord.gg/aptosnetwork
+[github-license]: https://img.shields.io/github/license/aptos-labs/aptos-ts-sdk
 [discord-url]: https://discord.gg/aptosnetwork

@@ -8,8 +8,8 @@ import {
   AccountAddress,
   postAptosFullNode,
   MimeType,
+  generateSignedTransaction,
 } from "../../../src";
-import { generateSignedTransaction } from "../../../src/transactions/transactionBuilder/transactionBuilder";
 import { customClient } from "../../unit/helper";
 
 describe("custom client", () => {
@@ -28,23 +28,27 @@ describe("custom client", () => {
 
   test("it uses custom client for fetch queries", async () => {
     const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
-    const response = await getAptosFullNode({ aptosConfig: config, originMethod: "getInfo", path: "accounts/0x1" });
-    expect(((response.request as any).headers as any)?.customClient).toBeTruthy();
+    const response = await getAptosFullNode<{ headers?: { customClient?: any } }, {}>({
+      aptosConfig: config,
+      originMethod: "getInfo",
+      path: "accounts/0x1",
+    });
+    expect(response?.request?.headers?.customClient).toBeTruthy();
   });
 
   test("it uses custom client for post queries", async () => {
     const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
     const account = Account.generate();
-    const response = await postAptosFaucet({
+    const response = await postAptosFaucet<{ headers?: { customClient?: any } }, {}>({
       aptosConfig: config,
       path: "fund",
       body: {
-        address: AccountAddress.from(account.accountAddress.toString()).toString(),
+        address: AccountAddress.from(account.accountAddress).toString(),
         amount: 100_000_000,
       },
       originMethod: "testFundAccount",
     });
-    expect(((response.request as any).headers as any)?.customClient).toBeTruthy();
+    expect(response?.request?.headers?.customClient).toBeTruthy();
   });
 
   test("it uses custom client for transaction submission", async () => {
@@ -52,21 +56,21 @@ describe("custom client", () => {
     const aptos = new Aptos(config);
     const account = Account.generate();
     const recipient = Account.generate();
-    await aptos.fundAccount({ accountAddress: account.accountAddress.toString(), amount: 100_000_000 });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
     const transaction = await aptos.transferCoinTransaction({
       sender: account,
-      recipient: recipient.accountAddress.toString(),
+      recipient: recipient.accountAddress,
       amount: 10,
     });
-    const authenticator = aptos.signTransaction({ signer: account, transaction });
+    const authenticator = aptos.sign.transaction({ signer: account, transaction });
     const signedTransaction = generateSignedTransaction({ transaction, senderAuthenticator: authenticator });
-    const response = await postAptosFullNode({
+    const response = await postAptosFullNode<{ headers?: { customClient?: any } }, {}>({
       aptosConfig: config,
       body: signedTransaction,
       path: "transactions",
       originMethod: "testSubmitTransaction",
       contentType: MimeType.BCS_SIGNED_TRANSACTION,
     });
-    expect(((response.request as any).headers as any)?.customClient).toBeTruthy();
+    expect(response?.request?.headers?.customClient).toBeTruthy();
   });
 });

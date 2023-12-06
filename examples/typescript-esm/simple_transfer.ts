@@ -12,7 +12,6 @@ import {
   Network,
   NetworkToNetworkName,
   parseTypeTag,
-  U64,
 } from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
@@ -84,12 +83,12 @@ const example = async () => {
   if (bobBalance !== BOB_INITIAL_BALANCE) throw new Error("Bob's balance is incorrect");
 
   // Transfer between users
-  const txn = await aptos.generateTransaction({
+  const txn = await aptos.build.transaction({
     sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [parseTypeTag(APTOS_COIN)],
-      functionArguments: [AccountAddress.from(bob.accountAddress), new U64(TRANSFER_AMOUNT)],
+      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
     },
   });
 

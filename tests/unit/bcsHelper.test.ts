@@ -18,8 +18,8 @@ import {
   U32,
   U64,
   U8,
+  EntryFunctionArgument,
 } from "../../src";
-import { EntryFunctionArgument } from "../../src/transactions/instances";
 /* eslint-disable @typescript-eslint/no-shadow */
 
 describe("Tests for the Serializable class", () => {

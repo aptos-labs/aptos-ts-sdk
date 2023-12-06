@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Network } from "../../../src";
-import { waitForTransaction } from "../../../src/internal/transaction";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -20,16 +19,20 @@ const creator = Account.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection(): Promise<string> {
-  await aptos.fundAccount({ accountAddress: creator.accountAddress.toString(), amount: FUND_AMOUNT });
+  await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
   const transaction = await aptos.createCollectionTransaction({
     creator,
     description: collectionDescription,
     name: collectionName,
     uri: collectionUri,
   });
-  const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
-  const data = await aptos.getCollectionData({ collectionName, creatorAddress });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const data = await aptos.getCollectionData({
+    collectionName,
+    creatorAddress,
+    minimumLedgerVersion: BigInt(response.version),
+  });
   return data.collection_id;
 }
 
@@ -41,11 +44,12 @@ async function setupToken(): Promise<string> {
     name: tokenName,
     uri: tokenUri,
   });
-  const response = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-  await waitForTransaction({ aptosConfig: config, transactionHash: response.hash });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
     await aptos.getOwnedTokens({
       ownerAddress: creator.accountAddress.toString(),
+      minimumLedgerVersion: BigInt(response.version),
     })
   )[0].current_token_data?.token_data_id!;
 }
@@ -58,7 +62,7 @@ describe("DigitalAsset", () => {
     tokenAddress = await setupToken();
   });
 
-  test("it gets token data for a token's address", async () => {
+  test("it gets token data for a digital asset's address", async () => {
     const tokenData = await aptos.getTokenData({ tokenAddress });
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);
@@ -79,7 +83,7 @@ describe("DigitalAsset", () => {
     expect(tokenData.current_token_data?.token_uri).toEqual(tokenUri);
   });
 
-  test("it gets ownership data given a token's address", async () => {
+  test("it gets ownership data given a digital asset's address", async () => {
     const tokenOwnershipData = await aptos.getCurrentTokenOwnership({ tokenAddress });
 
     expect(tokenOwnershipData.token_data_id).toEqual(tokenAddress);
@@ -89,7 +93,7 @@ describe("DigitalAsset", () => {
     expect(tokenOwnershipData.current_token_data?.token_uri).toEqual(tokenUri);
   });
 
-  test("it gets activity data given a token's address", async () => {
+  test("it gets activity data given a digital asset's address", async () => {
     const tokenActivityData = await aptos.getTokenActivity({ tokenAddress });
 
     expect(tokenActivityData[0].entry_function_id_str).toEqual("0x4::aptos_token::mint");
@@ -118,5 +122,22 @@ describe("DigitalAsset", () => {
 
     const address = await aptos.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
+  });
+
+  test("it transfers digital asset ownership", async () => {
+    const digitalAssetReciever = Account.generate();
+    await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
+
+    const transaction = await aptos.transferDigitalAsset({
+      sender: creator,
+      digitalAssetAddress: tokenAddress,
+      recipient: digitalAssetReciever.accountAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+
+    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: digitalAssetReciever.accountAddress }))[0];
+    expect(tokenData.token_data_id).toEqual(tokenAddress);
+    expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
   });
 });

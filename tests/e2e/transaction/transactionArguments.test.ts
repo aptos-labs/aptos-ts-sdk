@@ -14,13 +14,16 @@ import {
   U32,
   U64,
   U8,
-  TransactionFeePayerSignature,
-  TransactionMultiAgentSignature,
   EntryFunctionArgumentTypes,
   SimpleEntryFunctionArgumentTypes,
   Ed25519PrivateKey,
-  UserTransactionResponse,
   parseTypeTag,
+  isMultiAgentSignature,
+  isFeePayerSignature,
+  isUserTransactionResponse,
+  MoveOption,
+  MoveString,
+  MoveVector,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -30,7 +33,6 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
-import { MoveOption, MoveString, MoveVector } from "../../../src/bcs/serializable/moveStructs";
 import {
   fundAccounts,
   rawTransactionHelper,
@@ -80,13 +82,13 @@ describe("various transaction arguments", () => {
     };
 
     const setupData = await aptos.getAccountResource<SetupData>({
-      accountAddress: senderAccount.accountAddress.toString(),
-      resourceType: `${senderAccount.accountAddress.toString()}::tx_args_module::SetupData`,
+      accountAddress: senderAccount.accountAddress,
+      resourceType: `${senderAccount.accountAddress}::tx_args_module::SetupData`,
     });
 
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_1.inner));
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_2.inner));
-    moduleObjects.push(AccountAddress.fromStringRelaxed(setupData.empty_object_3.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_1.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_2.inner));
+    moduleObjects.push(AccountAddress.fromString(setupData.empty_object_3.inner));
 
     transactionArguments = [
       new Bool(true),
@@ -108,12 +110,12 @@ describe("various transaction arguments", () => {
       MoveVector.U128([0, 1, 2, MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT]),
       MoveVector.U256([0, 1, 2, MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT]),
       new MoveVector([
-        AccountAddress.fromStringRelaxed("0x0"),
-        AccountAddress.fromStringRelaxed("0xabc"),
-        AccountAddress.fromStringRelaxed("0xdef"),
-        AccountAddress.fromStringRelaxed("0x123"),
-        AccountAddress.fromStringRelaxed("0x456"),
-        AccountAddress.fromStringRelaxed("0x789"),
+        AccountAddress.fromString("0x0"),
+        AccountAddress.fromString("0xabc"),
+        AccountAddress.fromString("0xdef"),
+        AccountAddress.fromString("0x123"),
+        AccountAddress.fromString("0x456"),
+        AccountAddress.fromString("0x789"),
       ]),
       EXPECTED_VECTOR_STRING,
       new MoveVector(moduleObjects),
@@ -351,14 +353,18 @@ describe("various transaction arguments", () => {
         secondarySignerAccounts,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionMultiAgentSignature;
+
+      const responseSignature = response.signature;
+      if (responseSignature === undefined || !isMultiAgentSignature(responseSignature)) {
+        throw new Error("Expected multi agent signature");
+      }
+
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect((responseSignature as any).fee_payer_address).toBeUndefined();
     });
 
     it("simple inputs successfully submits a multi signer transaction with all argument types", async () => {
@@ -375,14 +381,16 @@ describe("various transaction arguments", () => {
         secondarySignerAccounts,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionMultiAgentSignature;
+      if (response.signature === undefined || !isMultiAgentSignature(response.signature)) {
+        throw new Error("Expected multi agent signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect((responseSignature as any).fee_payer_address).toBeUndefined();
     });
   });
 
@@ -398,9 +406,12 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -420,14 +431,17 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -443,9 +457,12 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       expect(responseSignature.secondary_signer_addresses.length).toEqual(0);
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -465,14 +482,17 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
-      const responseSignature = response.signature as TransactionFeePayerSignature;
+      if (response.signature === undefined || !isFeePayerSignature(response.signature)) {
+        throw new Error("Expected fee payer signature");
+      }
+      const responseSignature = response.signature;
       const secondarySignerAddressesParsed = responseSignature.secondary_signer_addresses.map((address) =>
-        AccountAddress.fromStringRelaxed(address),
+        AccountAddress.fromString(address),
       );
       expect(secondarySignerAddressesParsed.map((s) => s.toString())).toEqual(
         secondarySignerAddresses.map((address) => address.toString()),
       );
-      expect(AccountAddress.fromStringRelaxed(responseSignature.fee_payer_address).toString()).toEqual(
+      expect(AccountAddress.fromString(responseSignature.fee_payer_address).toString()).toEqual(
         feePayerAccount.accountAddress.toString(),
       );
     });
@@ -480,8 +500,8 @@ describe("various transaction arguments", () => {
 
   describe("script transactions", () => {
     it("successfully submits a script transaction with all argument types", async () => {
-      const rawTransaction = await aptos.generateTransaction({
-        sender: senderAccount.accountAddress.toString(),
+      const rawTransaction = await aptos.build.multiAgentTransaction({
+        sender: senderAccount.accountAddress,
         data: {
           bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
           functionArguments: [
@@ -500,25 +520,33 @@ describe("various transaction arguments", () => {
             MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]),
           ],
         },
-        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress.toString()),
+        secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress),
       });
-      const senderAuthenticator = await aptos.signTransaction({ signer: senderAccount, transaction: rawTransaction });
+      const senderAuthenticator = await aptos.sign.transaction({ signer: senderAccount, transaction: rawTransaction });
       const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-        aptos.signTransaction({
+        aptos.sign.transaction({
           signer: account,
           transaction: rawTransaction,
         }),
       );
-      const transactionResponse = await aptos.submitTransaction({
+      const transactionResponse = await aptos.submit.multiAgentTransaction({
         transaction: rawTransaction,
         senderAuthenticator,
         additionalSignersAuthenticators: secondaryAuthenticators,
       });
-      const response = (await aptos.waitForTransaction({
+      const response = await aptos.waitForTransaction({
         transactionHash: transactionResponse.hash,
-      })) as UserTransactionResponse;
+      });
       expect(response.success).toBe(true);
-      expect((response.signature as TransactionMultiAgentSignature).type).toBe("multi_agent_signature");
+
+      if (!isUserTransactionResponse(response)) {
+        throw new Error("Expected user transaction response");
+      }
+
+      if (response.signature === undefined || !isMultiAgentSignature(response.signature)) {
+        throw new Error("Expected multi agent signature");
+      }
+      expect(response.signature.type).toBe("multi_agent_signature");
       expect(response.payload.type).toBe("script_payload");
     });
   });

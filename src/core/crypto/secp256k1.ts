@@ -83,6 +83,10 @@ export class Secp256k1PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1PublicKey(bytes);
   }
+
+  static isPublicKey(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
+    return publicKey instanceof Secp256k1PublicKey;
+  }
 }
 
 /**
@@ -209,6 +213,10 @@ export class Secp256k1PrivateKey extends PrivateKey {
 
     return new Secp256k1PrivateKey(privateKey);
   }
+
+  static isPrivateKey(privateKey: PrivateKey): privateKey is Secp256k1PrivateKey {
+    return privateKey instanceof Secp256k1PrivateKey;
+  }
 }
 
 /**
@@ -271,5 +279,9 @@ export class Secp256k1Signature extends Signature {
   static load(deserializer: Deserializer): Secp256k1Signature {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1Signature(bytes);
+  }
+
+  static isSignature(signature: Signature): signature is Secp256k1Signature {
+    return signature instanceof Secp256k1Signature;
   }
 }

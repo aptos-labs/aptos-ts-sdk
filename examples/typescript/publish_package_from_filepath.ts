@@ -11,10 +11,8 @@
 /* eslint-disable max-len */
 
 import assert from "assert";
-import fs from "fs";
-import path from "path";
 import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-import { compilePackage } from "./utils";
+import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
@@ -32,17 +30,9 @@ async function main() {
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling the package locally ===");
-  compilePackage("facoin", "facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
+  compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
 
-  // current working directory - the root folder of this repo
-  const cwd = process.cwd();
-  // target directory - current working directory + facoin/facoin.json (facoin.json is generated with the prevoius cli command)
-  const modulePath = path.join(cwd, "facoin/facoin.json");
-
-  const jsonData = JSON.parse(fs.readFileSync(modulePath, "utf8"));
-
-  const metadataBytes = jsonData.args[0].value;
-  const byteCode = jsonData.args[1].value;
+  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
@@ -64,7 +54,7 @@ async function main() {
     accountAddress: alice.accountAddress,
   });
   // published 2 modules
-  assert(accountModules.length === 2);
+  assert(accountModules.length === 3);
   // first account's module bytecode equals the published bytecode
   assert(accountModules[0].bytecode === `${Hex.fromHexInput(byteCode[0]).toString()}`);
   // second account's module bytecode equals the published bytecode

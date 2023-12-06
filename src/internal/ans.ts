@@ -10,10 +10,13 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, InputSingleSignerTransaction } from "../transactions/types";
-import { MoveAddressType, MoveValue } from "../types";
+import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { GetANSNameResponse, MoveAddressType, MoveValue, OrderByArg, PaginationArgs, WhereArg } from "../types";
+import { GetNamesQuery } from "../types/generated/operations";
+import { GetNames } from "../types/generated/queries";
+import { CurrentAptosNamesBoolExp } from "../types/generated/types";
 import { Network } from "../utils/apiEndpoints";
-import { view } from "./general";
+import { queryIndexer, view } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 
 export const VALIDATION_RULES_DESCRIPTION = [
@@ -81,8 +84,8 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] }) as any;
-const None = (): MoveValue => ({ vec: [] }) as any;
+const Some = <T>(value: T): MoveValue => ({ vec: [value] });
+const None = (): MoveValue => ({ vec: [] });
 // != here is intentional, we want to check for null and undefined
 // eslint-disable-next-line eqeqeq
 const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
@@ -110,7 +113,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.fromRelaxed(owner).toString() : undefined;
+  return owner ? AccountAddress.from(owner).toString() : undefined;
 }
 
 export interface RegisterNameParameters {
@@ -120,14 +123,14 @@ export interface RegisterNameParameters {
   expiration:
     | { policy: "domain"; years?: 1 }
     | { policy: "subdomain:follow-domain" }
-    | { policy: "subdomain:independent"; expirationDate: Date };
+    | { policy: "subdomain:independent"; expirationDate: number };
   transferable?: boolean;
   toAddress?: AccountAddressInput;
   targetAddress?: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }
 
-export async function registerName(args: RegisterNameParameters): Promise<InputSingleSignerTransaction> {
+export async function registerName(args: RegisterNameParameters): Promise<SingleSignerTransaction> {
   const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -164,7 +167,7 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
       options,
     });
 
-    return transaction as InputSingleSignerTransaction;
+    return transaction;
   }
 
   // We are a subdomain
@@ -172,15 +175,13 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     throw new Error(`${expiration.policy} requires a subdomain to be provided.`);
   }
 
-  let tldExpiration = await getExpiration({ aptosConfig, name: domainName });
+  const tldExpiration = await getExpiration({ aptosConfig, name: domainName });
   if (!tldExpiration) {
     throw new Error("The domain does not exist");
   }
-  // The contract gives us seconds, but JS expects milliseconds
-  tldExpiration *= 1000;
 
   const expirationDateInMillisecondsSinceEpoch =
-    expiration.policy === "subdomain:independent" ? expiration.expirationDate.valueOf() : tldExpiration;
+    expiration.policy === "subdomain:independent" ? expiration.expirationDate : tldExpiration;
 
   if (expirationDateInMillisecondsSinceEpoch > tldExpiration) {
     throw new Error("The subdomain expiration time cannot be greater than the domain expiration time");
@@ -204,7 +205,7 @@ export async function registerName(args: RegisterNameParameters): Promise<InputS
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
 }
 
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
@@ -221,7 +222,8 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
       },
     });
 
-    return res[0] as number;
+    // Normalize expiration time from epoch seconds to epoch milliseconds
+    return Number(res[0]) * 1000;
   } catch (e) {
     return undefined;
   }
@@ -238,7 +240,7 @@ export async function getPrimaryName(args: {
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_primary_name`,
-      functionArguments: [AccountAddress.fromRelaxed(address).toString()],
+      functionArguments: [AccountAddress.from(address).toString()],
     },
   });
 
@@ -253,9 +255,9 @@ export async function getPrimaryName(args: {
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: Account;
-  name: string | null;
+  name?: string;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
@@ -270,7 +272,7 @@ export async function setPrimaryName(args: {
       options,
     });
 
-    return transaction as InputSingleSignerTransaction;
+    return transaction;
   }
 
   const { domainName, subdomainName } = isValidANSName(name);
@@ -285,7 +287,7 @@ export async function setPrimaryName(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
 }
 
 export async function getTargetAddress(args: {
@@ -305,7 +307,7 @@ export async function getTargetAddress(args: {
   });
 
   const target = unwrapOption<MoveAddressType>(res[0]);
-  return target ? AccountAddress.fromRelaxed(target).toString() : undefined;
+  return target ? AccountAddress.from(target).toString() : undefined;
 }
 
 export async function setTargetAddress(args: {
@@ -314,7 +316,7 @@ export async function setTargetAddress(args: {
   name: string;
   address: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, address, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -329,25 +331,190 @@ export async function setTargetAddress(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
+}
+
+export async function getName(args: {
+  aptosConfig: AptosConfig;
+  name: string;
+}): Promise<GetANSNameResponse[0] | undefined> {
+  const { aptosConfig, name } = args;
+  const { domainName, subdomainName = "" } = isValidANSName(name);
+
+  const where: CurrentAptosNamesBoolExp = {
+    domain: { _eq: domainName },
+    subdomain: { _eq: subdomainName },
+  };
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    query: {
+      query: GetNames,
+      variables: {
+        where_condition: where,
+        limit: 1,
+      },
+    },
+    originMethod: "getName",
+  });
+
+  // Convert the expiration_timestamp from an ISO string to milliseconds since epoch
+  let res = data.current_aptos_names[0];
+  if (res) {
+    res = sanitizeANSName(res);
+  }
+
+  return res;
+}
+
+interface QueryNamesOptions {
+  options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
+}
+
+export interface GetAccountNamesArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
+
+export async function getAccountNames(
+  args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
+
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getAccountNames",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.limit,
+        offset: options?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names.map(sanitizeANSName);
+}
+
+export interface GetAccountDomainsArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
+
+export async function getAccountDomains(
+  args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
+
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getAccountDomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.limit,
+        offset: options?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+          subdomain: { _eq: "" },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names.map(sanitizeANSName);
+}
+
+export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
+  accountAddress: AccountAddressInput;
+}
+
+export async function getAccountSubdomains(
+  args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, accountAddress } = args;
+
+  const expirationDate = await getANSExpirationDate({ aptosConfig });
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getAccountSubdomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.limit,
+        offset: options?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          owner_address: { _eq: accountAddress.toString() },
+          expiration_timestamp: { _gte: expirationDate },
+          subdomain: { _neq: "" },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names.map(sanitizeANSName);
+}
+
+export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
+  domain: string;
+}
+
+export async function getDomainSubdomains(
+  args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
+): Promise<GetANSNameResponse> {
+  const { aptosConfig, options, domain } = args;
+
+  const data = await queryIndexer<GetNamesQuery>({
+    aptosConfig,
+    originMethod: "getDomainSubdomains",
+    query: {
+      query: GetNames,
+      variables: {
+        limit: options?.limit,
+        offset: options?.offset,
+        order_by: options?.orderBy,
+        where_condition: {
+          ...(args.options?.where ?? {}),
+          domain: { _eq: domain },
+          subdomain: { _neq: "" },
+        },
+      },
+    },
+  });
+
+  return data.current_aptos_names.map(sanitizeANSName);
 }
 
 /**
- * This function returns the grace period in seconds that is set by the ANS
- * contract. The grace period allows for names to be past expiration for a
- * certain amount of time before they are released to the public. The names will
- * not function as normal, but the owner can renew without others taking
- * ownership of the name. At the time of writing, the contract specified 30
- * days.
+ * This function returns the expiration date in which a name is fully expired as
+ * defined by the contract.  The grace period allows for names to be past
+ * expiration for a certain amount of time before they are released to the
+ * public. The names will not function as normal, but the owner can renew
+ * without others taking ownership of the name. At the time of writing, the
+ * contract specified 30 days.
  *
  * @param args.aptosConfig an AptosConfig object
  * @returns
  */
-export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }): Promise<number> {
+async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
-  const res = await view({
+  const [gracePeriodInSeconds] = await view<[number]>({
     aptosConfig,
     payload: {
       function: `${routerAddress}::config::reregistration_grace_sec`,
@@ -355,7 +522,9 @@ export async function getGracePeriodInSeconds(args: { aptosConfig: AptosConfig }
     },
   });
 
-  return res[0] as number;
+  const gracePeriodInDays = gracePeriodInSeconds / 60 / 60 / 24;
+  const now = () => new Date();
+  return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
 }
 
 export async function renewDomain(args: {
@@ -364,7 +533,7 @@ export async function renewDomain(args: {
   name: string;
   years?: 1;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, sender, name, years = 1, options } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const renewalDuration = years * 31536000;
@@ -388,5 +557,18 @@ export async function renewDomain(args: {
     options,
   });
 
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
+}
+
+/**
+ * The indexer returns ISO strings for expiration, however the contract works in
+ * epoch milliseconds. This function converts the ISO string to epoch
+ * milliseconds. In the future, if other properties need sanitization, this can
+ * be extended.
+ */
+function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
+  return {
+    ...name,
+    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+  };
 }

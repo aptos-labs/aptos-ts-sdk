@@ -1,8 +1,7 @@
 import { execSync } from "child_process";
 import "dotenv";
-import { AccountAddress, Aptos, Ed25519PrivateKey } from "../../../src";
+import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey } from "../../../src";
 import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
-import { AptosApiType } from "../../../src/utils/const";
 
 /**
  * TS SDK supports ANS. Since ANS contract is not part of aptos-framework
@@ -33,12 +32,12 @@ export async function publishAnsContract(
   aptos: Aptos,
 ): Promise<{ address: AccountAddress; privateKey: Ed25519PrivateKey }> {
   const ret = {
-    address: AccountAddress.fromStringRelaxed(LOCAL_ANS_ACCOUNT_ADDRESS),
+    address: AccountAddress.fromString(LOCAL_ANS_ACCOUNT_ADDRESS),
     privateKey: new Ed25519PrivateKey(LOCAL_ANS_ACCOUNT_PK),
   };
   try {
     await aptos.account.getAccountModule({
-      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
+      accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS,
       moduleName: "domains",
     });
     console.log("ANS contract already published");
@@ -79,11 +78,11 @@ export async function publishAnsContract(
 
     // 2. Fund ANS account.
     console.log("---funding account---");
-    const fundHash = await aptos.fundAccount({
+    const fundTxn = await aptos.fundAccount({
       accountAddress: LOCAL_ANS_ACCOUNT_ADDRESS.toString(),
       amount: 100_000_000_000,
     });
-    await aptos.waitForTransaction({ transactionHash: fundHash });
+    await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
     console.log(`Test account funded ${LOCAL_ANS_ACCOUNT_ADDRESS}`);
 
     // 3. Publish the ANS modules under the ANS account.

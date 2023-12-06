@@ -8,6 +8,7 @@ import {
   getChainTopUserTransactions,
   getIndexerLastSuccessVersion,
   getLedgerInfo,
+  getProcessorStatus,
   getTableItem,
   queryIndexer,
   view,
@@ -16,13 +17,15 @@ import {
   AnyNumber,
   Block,
   GetChainTopUserTransactionsResponse,
+  GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
-  LedgerVersion,
+  LedgerVersionArg,
   MoveValue,
   TableItemRequest,
   InputViewRequestData,
 } from "../types";
+import { ProcessorType } from "../utils/const";
 
 /**
  * A class to query all `General` Aptos related queries
@@ -114,7 +117,7 @@ export class General {
    *
    * @returns Table item value rendered in JSON
    */
-  async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersion }): Promise<T> {
+  async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersionArg }): Promise<T> {
     return getTableItem<T>({ aptosConfig: this.config, ...args });
   }
 
@@ -133,7 +136,10 @@ export class General {
    *
    * @returns an array of Move values
    */
-  async view<T extends Array<MoveValue>>(args: { payload: InputViewRequestData; options?: LedgerVersion }): Promise<T> {
+  async view<T extends Array<MoveValue>>(args: {
+    payload: InputViewRequestData;
+    options?: LedgerVersionArg;
+  }): Promise<T> {
     return view<T>({ aptosConfig: this.config, ...args });
   }
 
@@ -184,5 +190,15 @@ export class General {
    */
   async getIndexerLastSuccessVersion(): Promise<number> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
+  }
+
+  /**
+   * Query the processor status for a specific processor type.
+   *
+   * @param processorType The processor type to query
+   * @returns
+   */
+  async getProcessorStatus(processorType: ProcessorType): Promise<GetProcessorStatusResponse[0]> {
+    return getProcessorStatus({ aptosConfig: this.config, processorType });
   }
 }

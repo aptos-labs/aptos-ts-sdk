@@ -254,6 +254,7 @@ export class TypeTagGeneric extends TypeTag {
 
   constructor(public readonly value: number) {
     super();
+    if (value < 0) throw new Error("Generic type parameter index cannot be negative");
   }
 
   serialize(serializer: Serializer): void {

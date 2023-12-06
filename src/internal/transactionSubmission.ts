@@ -19,21 +19,36 @@ import {
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
   sign,
+  generateSigningMessage,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
   AnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
-  InputSingleSignerTransaction,
+  SingleSignerTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
-  InputGenerateFeePayerRawTransactionData,
   InputGenerateMultiAgentRawTransactionData,
+  InputGenerateSingleSignerRawTransactionData,
+  MultiAgentTransaction,
+  AnyTransactionPayloadInstance,
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
 
+/**
+ * We are defining function signatures, each with its specific input and output.
+ * These are the possible function signature for `generateTransaction` function.
+ * When we call `generateTransaction` function with the relevant type properties,
+ * Typescript can infer the return type based on the appropriate function overload.
+ */
+export async function generateTransaction(
+  args: { aptosConfig: AptosConfig } & InputGenerateSingleSignerRawTransactionData,
+): Promise<SingleSignerTransaction>;
+export async function generateTransaction(
+  args: { aptosConfig: AptosConfig } & InputGenerateMultiAgentRawTransactionData,
+): Promise<MultiAgentTransaction>;
 /**
  * Generates any transaction by passing in the required arguments
  *
@@ -77,12 +92,21 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, data, options } = args;
+  const payload = await buildTransactionPayload(args);
+  return buildRawTransaction(args, payload);
+}
+
+export async function buildTransactionPayload(
+  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+): Promise<AnyTransactionPayloadInstance> {
+  const { aptosConfig, data } = args;
 
   // Merge in aptosConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
+  let payload: AnyTransactionPayloadInstance;
   if ("bytecode" in data) {
     generateTransactionPayloadData = data;
+    payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else if ("multisigAddress" in data) {
     generateTransactionPayloadData = {
       aptosConfig,
@@ -91,6 +115,7 @@ export async function generateTransaction(
       functionArguments: data.functionArguments,
       typeArguments: data.typeArguments,
     };
+    payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else {
     generateTransactionPayloadData = {
       aptosConfig,
@@ -98,12 +123,24 @@ export async function generateTransaction(
       functionArguments: data.functionArguments,
       typeArguments: data.typeArguments,
     };
+    payload = await generateTransactionPayload(generateTransactionPayloadData);
+  }
+  return payload;
+}
+
+export async function buildRawTransaction(
+  args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
+  payload: AnyTransactionPayloadInstance,
+): Promise<AnyRawTransaction> {
+  const { aptosConfig, sender, options } = args;
+
+  let feePayerAddress;
+  if (isFeePayerTransactionInput(args)) {
+    feePayerAddress = AccountAddress.ZERO.toString();
   }
 
-  if (isFeePayerTransactionInput(args)) {
+  if (isMultiAgentTransactionInput(args)) {
     const { secondarySignerAddresses } = args;
-    const feePayerAddress = args.hasFeePayer ? AccountAddress.ZERO : undefined;
-    const payload = await generateTransactionPayload(generateTransactionPayloadData);
     return buildTransaction({
       aptosConfig,
       sender,
@@ -113,37 +150,38 @@ export async function generateTransaction(
       feePayerAddress,
     });
   }
-  if (isMultiAgentTransactionInput(args)) {
-    const { secondarySignerAddresses } = args;
-    const payload = await generateTransactionPayload(generateTransactionPayloadData);
-    return buildTransaction({
-      aptosConfig,
-      sender,
-      payload,
-      options,
-      secondarySignerAddresses,
-    });
-  }
 
-  const payload = await generateTransactionPayload(generateTransactionPayloadData);
   return buildTransaction({
     aptosConfig,
     sender,
     payload,
     options,
+    feePayerAddress,
   });
 }
 
-function isFeePayerTransactionInput(
-  data: InputGenerateTransactionData,
-): data is InputGenerateFeePayerRawTransactionData {
-  return "hasFeePayer" in data;
+function isFeePayerTransactionInput(data: InputGenerateTransactionData): boolean {
+  return data.withFeePayer === true;
 }
 
 function isMultiAgentTransactionInput(
   data: InputGenerateTransactionData,
 ): data is InputGenerateMultiAgentRawTransactionData {
   return "secondarySignerAddresses" in data;
+}
+
+/**
+ * Builds a signing message that can be signed by external signers
+ *
+ * Note: Please prefer using `signTransaction` unless signing outside the SDK
+ *
+ * @param args.transaction AnyRawTransaction, as generated by `generateTransaction()`
+ *
+ * @return The message to be signed
+ */
+export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
+  const { transaction } = args;
+  return generateSigningMessage(transaction);
 }
 
 /**
@@ -249,21 +287,21 @@ export async function publicPackageTransaction(args: {
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
   options?: InputGenerateTransactionOptions;
-}): Promise<InputSingleSignerTransaction> {
+}): Promise<SingleSignerTransaction> {
   const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
   const transaction = await generateTransaction({
     aptosConfig,
-    sender: AccountAddress.fromRelaxed(account),
+    sender: AccountAddress.from(account),
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
     },
     options,
   });
-  return transaction as InputSingleSignerTransaction;
+  return transaction;
 }
 
 /**
@@ -277,7 +315,7 @@ export async function rotateAuthKey(args: {
   const { aptosConfig, fromAccount, toNewPrivateKey } = args;
   const accountInfo = await getInfo({
     aptosConfig,
-    accountAddress: fromAccount.accountAddress.toString(),
+    accountAddress: fromAccount.accountAddress,
   });
 
   const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
@@ -297,7 +335,7 @@ export async function rotateAuthKey(args: {
   // Generate transaction
   const rawTxn = await generateTransaction({
     aptosConfig,
-    sender: fromAccount.accountAddress.toString(),
+    sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key",
       functionArguments: [
