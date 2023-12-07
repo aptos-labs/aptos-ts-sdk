@@ -37,7 +37,7 @@ async function setupCollection(): Promise<string> {
 }
 
 async function setupToken(): Promise<string> {
-  const transaction = await aptos.mintTokenTransaction({
+  const transaction = await aptos.mintDigitalAssetTransaction({
     creator,
     collection: collectionName,
     description: tokenDescription,
@@ -47,7 +47,7 @@ async function setupToken(): Promise<string> {
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
   const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   return (
-    await aptos.getOwnedTokens({
+    await aptos.getOwnedDigitalAssets({
       ownerAddress: creator.accountAddress.toString(),
       minimumLedgerVersion: BigInt(response.version),
     })
@@ -62,8 +62,8 @@ describe("DigitalAsset", () => {
     tokenAddress = await setupToken();
   });
 
-  test("it gets token data for a digital asset's address", async () => {
-    const tokenData = await aptos.getTokenData({ tokenAddress });
+  test("it gets digital asset data for a digital asset's address", async () => {
+    const tokenData = await aptos.getDigitalAssetData({ digitalAssetAddress: tokenAddress });
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.description).toEqual(tokenDescription);
@@ -73,8 +73,8 @@ describe("DigitalAsset", () => {
     expect(tokenData.current_collection?.creator_address).toEqual(creatorAddress);
   });
 
-  test("it gets an owner's tokens", async () => {
-    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: creatorAddress }))[0];
+  test("it gets an owner's digital assets", async () => {
+    const tokenData = (await aptos.getOwnedDigitalAssets({ ownerAddress: creatorAddress }))[0];
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(creatorAddress);
@@ -84,7 +84,7 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets ownership data given a digital asset's address", async () => {
-    const tokenOwnershipData = await aptos.getCurrentTokenOwnership({ tokenAddress });
+    const tokenOwnershipData = await aptos.getCurrentDigitalAssetOwnership({ digitalAssetAddress: tokenAddress });
 
     expect(tokenOwnershipData.token_data_id).toEqual(tokenAddress);
     expect(tokenOwnershipData.owner_address).toEqual(creatorAddress);
@@ -94,7 +94,7 @@ describe("DigitalAsset", () => {
   });
 
   test("it gets activity data given a digital asset's address", async () => {
-    const tokenActivityData = await aptos.getTokenActivity({ tokenAddress });
+    const tokenActivityData = await aptos.getDigitalAssetActivity({ digitalAssetAddress: tokenAddress });
 
     expect(tokenActivityData[0].entry_function_id_str).toEqual("0x4::aptos_token::mint");
     expect(tokenActivityData[0].token_data_id).toEqual(tokenAddress);
@@ -124,20 +124,169 @@ describe("DigitalAsset", () => {
     expect(address).toEqual(data.collection_id);
   });
 
+  test("it freezes transfer ability", async () => {
+    const transaction = await aptos.freezeDigitalAssetTransaferTransaction({
+      creator,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it unfreezes transfer ability", async () => {
+    const transaction = await aptos.unfreezeDigitalAssetTransaferTransaction({
+      creator,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it sets digital asset descripion", async () => {
+    const transaction = await aptos.setDigitalAssetDescriptionTransaction({
+      creator,
+      description: "my new description",
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it sets digital asset name", async () => {
+    const transaction = await aptos.setDigitalAssetNameTransaction({
+      creator,
+      name: "my new name",
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it sets digital asset uri", async () => {
+    const transaction = await aptos.setDigitalAssetURITransaction({
+      creator,
+      uri: "my.new.uri",
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it adds digital asset property", async () => {
+    const transaction = await aptos.addDigitalAssetPropertyTransaction({
+      creator,
+      propertyKey: "newKey",
+      propertyType: "BOOLEAN",
+      propertyValue: true,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it updates digital asset property", async () => {
+    const transaction = await aptos.updateDigitalAssetPropertyTransaction({
+      creator,
+      propertyKey: "newKey",
+      propertyType: "BOOLEAN",
+      propertyValue: false,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it removes digital asset property", async () => {
+    const transaction = await aptos.removeDigitalAssetPropertyTransaction({
+      creator,
+      propertyKey: "newKey",
+      propertyType: "BOOLEAN",
+      propertyValue: true,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it adds typed digital asset property", async () => {
+    const transaction = await aptos.addDigitalAssetTypedPropertyTransaction({
+      creator,
+      propertyKey: "typedKey",
+      propertyType: "STRING",
+      propertyValue: "hello",
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it updates typed digital asset property", async () => {
+    const transaction = await aptos.updateDigitalAssetTypedPropertyTransaction({
+      creator,
+      propertyKey: "typedKey",
+      propertyType: "U8",
+      propertyValue: 2,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+  });
+
+  test("it mints soul bound token", async () => {
+    const bob = Account.generate();
+    await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: FUND_AMOUNT });
+    const transaction = await aptos.mintSoulBoundTransaction({
+      account: creator,
+      collection: collectionName,
+      description: "soul bound token description",
+      name: "soul bound token",
+      uri: "https://aptos.dev/img/nyan.jpeg",
+      recipient: bob.accountAddress,
+      propertyKeys: [
+        "bool key",
+        "U8 key",
+        "U16 key",
+        "U32 key",
+        "U64 key",
+        "U128 key",
+        "U256 key",
+        "ADDRESS key",
+        "STRING key",
+      ],
+      propertyTypes: ["BOOLEAN", "U8", "U16", "U32", "U64", "U128", "U256", "ADDRESS", "STRING"],
+      propertyValues: [true, 1, 1, 1, 1, 1, 1, bob.accountAddress, "hi"],
+    });
+    await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+  });
+
   test("it transfers digital asset ownership", async () => {
     const digitalAssetReciever = Account.generate();
     await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.transferDigitalAsset({
+    const transaction = await aptos.transferDigitalAssetTransaction({
       sender: creator,
       digitalAssetAddress: tokenAddress,
       recipient: digitalAssetReciever.accountAddress,
     });
     const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const res = await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
 
-    const tokenData = (await aptos.getOwnedTokens({ ownerAddress: digitalAssetReciever.accountAddress }))[0];
+    const tokenData = (
+      await aptos.getOwnedDigitalAssets({
+        ownerAddress: digitalAssetReciever.accountAddress,
+        minimumLedgerVersion: BigInt(res.version),
+      })
+    )[0];
     expect(tokenData.token_data_id).toEqual(tokenAddress);
     expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
+  });
+
+  test("it burns digital asset", async () => {
+    const transaction = await aptos.burnDigitalAssetTransaction({
+      creator,
+      digitalAssetAddress: tokenAddress,
+    });
+    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
   });
 });

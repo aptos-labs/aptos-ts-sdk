@@ -67,7 +67,7 @@ const example = async () => {
 
   console.log("\n=== Alice Mints the digital asset ===\n");
 
-  const mintTokenTransaction = await aptos.mintTokenTransaction({
+  const mintTokenTransaction = await aptos.mintDigitalAssetTransaction({
     creator: alice,
     collection: collectionName,
     description: tokenDescription,
@@ -78,7 +78,7 @@ const example = async () => {
   committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: mintTokenTransaction });
   pendingTxn = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
 
-  const alicesDigitalAsset = await aptos.getOwnedTokens({
+  const alicesDigitalAsset = await aptos.getOwnedDigitalAssets({
     ownerAddress: alice.accountAddress,
     minimumLedgerVersion: BigInt(pendingTxn.version),
   });
@@ -88,7 +88,7 @@ const example = async () => {
 
   console.log("\n=== Transfer the digital asset to Bob ===\n");
 
-  const transferTransaction = await aptos.transferDigitalAsset({
+  const transferTransaction = await aptos.transferDigitalAssetTransaction({
     sender: alice,
     digitalAssetAddress: alicesDigitalAsset[0].token_data_id,
     recipient: bob.accountAddress,
@@ -96,13 +96,13 @@ const example = async () => {
   committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: transferTransaction });
   pendingTxn = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
 
-  const alicesDigitalAssetsAfter = await aptos.getOwnedTokens({
+  const alicesDigitalAssetsAfter = await aptos.getOwnedDigitalAssets({
     ownerAddress: alice.accountAddress,
     minimumLedgerVersion: BigInt(pendingTxn.version),
   });
   console.log(`Alices's digital assets balance: ${alicesDigitalAssetsAfter.length}`);
 
-  const bobDigitalAssetsAfter = await aptos.getOwnedTokens({
+  const bobDigitalAssetsAfter = await aptos.getOwnedDigitalAssets({
     ownerAddress: bob.accountAddress,
     minimumLedgerVersion: BigInt(pendingTxn.version),
   });
