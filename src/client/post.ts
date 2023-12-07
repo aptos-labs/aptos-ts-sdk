@@ -76,6 +76,7 @@ export async function post<Req extends {}, Res extends {}>(
       },
     },
     aptosConfig,
+    type,
   );
 }
 

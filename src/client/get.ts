@@ -68,6 +68,7 @@ export async function get<Req extends {}, Res extends {}>(
       },
     },
     aptosConfig,
+    type,
   );
 }
 

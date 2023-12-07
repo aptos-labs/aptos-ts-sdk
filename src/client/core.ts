@@ -4,7 +4,8 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
 import { VERSION } from "../version";
-import { AptosRequest, MimeType, ClientRequest, ClientResponse, Client, AnyNumber } from "../types";
+import { AnyNumber, AptosRequest, Client, ClientRequest, ClientResponse, MimeType } from "../types";
+import { AptosApiType } from "../utils";
 
 /**
  * Meaningful errors map
@@ -61,11 +62,13 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
  *
  * @param options AptosRequest
  * @param aptosConfig The config information for the SDK client instance
+ * @param type The type of API endpoint to call e.g. fullnode, indexer, etc
  * @returns the response or AptosApiError
  */
 export async function aptosRequest<Req extends {}, Res extends {}>(
   options: AptosRequest,
   aptosConfig: AptosConfig,
+  type: AptosApiType,
 ): Promise<AptosResponse<Req, Res>> {
   const { url, path } = options;
   const fullUrl = `${url}/${path ?? ""}`;
@@ -83,7 +86,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
-  if (aptosConfig.isIndexerRequest(url)) {
+  if (type === AptosApiType.INDEXER) {
     const indexerResponse = result.data as any;
     // errors from indexer
     if (indexerResponse.errors) {

@@ -8,13 +8,29 @@ import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
 /**
  * This class holds the config information for the SDK client instance.
+ *
+ * @example To use Aptos Labs endpoints, simply set the `network` property to the desired network.
+ * ```typescript
+ *   const config = new AptosConfig({ network: Network.DEVNET });
+ * ```
+ *
+ * @example To use custom endpoints, set the `network` property to the desired network, and the appropriate URLs. The URL
+ * must contain the full path and will not have a `/v1` added.
+ * ```typescript
+ *   const config = new AptosConfig({
+ *     network: Network.TESTNET,
+ *     fullnode: "https://my-testnet-fullnode.com/v1",
+ *   });
+ * ```
  */
 export class AptosConfig {
-  /** The Network that this SDK is associated with. Defaults to DEVNET */
+  /**
+   * The Network that this SDK is associated with. Defaults to `Network.DEVNET`
+   */
   readonly network: Network;
 
   /**
-   * The client instance the SDK uses. Defaults to `@aptos-labs/aptos-client
+   * The client instance the SDK uses. Defaults to `@aptos-labs/aptos-client`
    */
   readonly client: Client;
 
@@ -71,14 +87,5 @@ export class AptosConfig {
       default:
         throw Error(`apiType ${apiType} is not supported`);
     }
-  }
-
-  /**
-   * Checks if the URL is a known indexer endpoint
-   *
-   * @internal
-   * */
-  isIndexerRequest(url: string): boolean {
-    return NetworkToIndexerAPI[this.network] === url;
   }
 }
