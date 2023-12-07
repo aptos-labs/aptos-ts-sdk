@@ -27,11 +27,11 @@ export async function publishPackage(
     metadataBytes,
     moduleBytecode: codeBytes,
   });
-  const signedTxn = await aptos.sign.transaction({
+  const signedTxn = await aptos.transaction.sign({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const txnHash = await aptos.submit.transaction({
+  const txnHash = await aptos.transaction.submit.simple({
     transaction: rawTransaction,
     senderAuthenticator: signedTxn,
   });
@@ -60,7 +60,7 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   const addressesRemaining = accounts.slice(1).map((account) => account.accountAddress);
   const amountToSend = Math.floor((FUND_AMOUNT * 2) / accounts.length);
   // Send coins from `account[0]` to `account[1..n]`
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: firstAccount.accountAddress,
     data: {
       function: "0x1::aptos_account::batch_transfer",
@@ -70,11 +70,11 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
       ],
     },
   });
-  const signedTxn = await aptos.sign.transaction({
+  const signedTxn = await aptos.transaction.sign({
     signer: firstAccount,
     transaction,
   });
-  const transactionResponse = await aptos.submit.transaction({
+  const transactionResponse = await aptos.transaction.submit.simple({
     transaction,
     senderAuthenticator: signedTxn,
   });
@@ -96,7 +96,7 @@ export async function rawTransactionHelper(
   typeArgs: TypeTag[],
   args: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
 ): Promise<UserTransactionResponse> {
-  const rawTransaction = await aptos.build.transaction({
+  const rawTransaction = await aptos.transaction.build.simple({
     sender: senderAccount.accountAddress,
     data: {
       function: `${senderAccount.accountAddress}::tx_args_module::${functionName}`,
@@ -104,11 +104,11 @@ export async function rawTransactionHelper(
       functionArguments: args,
     },
   });
-  const senderAuthenticator = await aptos.sign.transaction({
+  const senderAuthenticator = await aptos.transaction.sign({
     signer: senderAccount,
     transaction: rawTransaction,
   });
-  const transactionResponse = await aptos.submit.transaction({
+  const transactionResponse = await aptos.transaction.submit.simple({
     transaction: rawTransaction,
     senderAuthenticator,
   });
@@ -145,7 +145,7 @@ export const rawTransactionMultiAgentHelper = async (
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
       withFeePayer: true,
     };
-    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
+    generatedTransaction = await aptos.transaction.build.multiAgent(transactionData);
   } else if (secondarySignerAccounts) {
     transactionData = {
       sender: senderAccount.accountAddress,
@@ -156,7 +156,7 @@ export const rawTransactionMultiAgentHelper = async (
       },
       secondarySignerAddresses: secondarySignerAccounts?.map((account) => account.accountAddress.data),
     };
-    generatedTransaction = await aptos.build.multiAgentTransaction(transactionData);
+    generatedTransaction = await aptos.transaction.build.multiAgent(transactionData);
   } else {
     transactionData = {
       sender: senderAccount.accountAddress,
@@ -166,16 +166,16 @@ export const rawTransactionMultiAgentHelper = async (
         functionArguments: args,
       },
     };
-    generatedTransaction = await aptos.build.transaction(transactionData);
+    generatedTransaction = await aptos.transaction.build.simple(transactionData);
   }
 
-  const senderAuthenticator = aptos.sign.transaction({
+  const senderAuthenticator = aptos.transaction.sign({
     signer: senderAccount,
     transaction: generatedTransaction,
   });
 
   const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-    aptos.sign.transaction({
+    aptos.transaction.sign({
       signer: account,
       transaction: generatedTransaction,
     }),
@@ -184,18 +184,18 @@ export const rawTransactionMultiAgentHelper = async (
   let feePayerAuthenticator;
   let transactionResponse;
   if (feePayerAccount !== undefined) {
-    feePayerAuthenticator = aptos.sign.transactionAsFeePayer({
+    feePayerAuthenticator = aptos.transaction.signAsFeePayer({
       signer: feePayerAccount,
       transaction: generatedTransaction,
     });
-    transactionResponse = await aptos.submit.multiAgentTransaction({
+    transactionResponse = await aptos.transaction.submit.multiAgent({
       transaction: generatedTransaction,
       senderAuthenticator,
       additionalSignersAuthenticators: secondaryAuthenticators,
       feePayerAuthenticator,
     });
   } else {
-    transactionResponse = await aptos.submit.multiAgentTransaction({
+    transactionResponse = await aptos.transaction.submit.multiAgent({
       transaction: generatedTransaction,
       senderAuthenticator,
       additionalSignersAuthenticators: secondaryAuthenticators,

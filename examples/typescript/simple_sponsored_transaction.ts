@@ -58,7 +58,7 @@ const example = async () => {
   // Generate a fee payer (aka sponsor) transaction
   // with Alice as the sender and sponsor as the fee payer
   console.log("\n=== Submitting Transaction ===\n");
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: aliceAddress,
     withFeePayer: true,
     data: {
@@ -68,13 +68,13 @@ const example = async () => {
   });
 
   // Alice signs
-  const senderSignature = aptos.sign.transaction({ signer: alice, transaction });
+  const senderSignature = aptos.transaction.sign({ signer: alice, transaction });
 
   // Sponsor signs
-  const sponsorSignature = aptos.sign.transactionAsFeePayer({ signer: sponsor, transaction });
+  const sponsorSignature = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
 
   // Submit the transaction to chain
-  const committedTxn = await aptos.submit.transaction({
+  const committedTxn = await aptos.transaction.submit.simple({
     transaction,
     senderAuthenticator: senderSignature,
     feePayerAuthenticator: sponsorSignature,

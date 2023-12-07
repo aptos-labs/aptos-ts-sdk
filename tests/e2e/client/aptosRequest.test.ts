@@ -26,14 +26,14 @@ describe("aptos request", () => {
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
         await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
-        const transaction = await aptos.build.transaction({
+        const transaction = await aptos.transaction.build.simple({
           sender: sender.accountAddress,
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts.accountAddress],
           },
         });
-        const authenticator = aptos.sign.transaction({
+        const authenticator = aptos.transaction.sign({
           signer: sender,
           transaction,
         });

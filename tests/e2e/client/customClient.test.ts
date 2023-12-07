@@ -62,7 +62,7 @@ describe("custom client", () => {
       recipient: recipient.accountAddress,
       amount: 10,
     });
-    const authenticator = aptos.sign.transaction({ signer: account, transaction });
+    const authenticator = aptos.transaction.sign({ signer: account, transaction });
     const signedTransaction = generateSignedTransaction({ transaction, senderAuthenticator: authenticator });
     const response = await postAptosFullNode<{ headers?: { customClient?: any } }, {}>({
       aptosConfig: config,

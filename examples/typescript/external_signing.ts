@@ -151,7 +151,7 @@ const example = async () => {
   if (hotBalance !== HOT_INITIAL_BALANCE) throw new Error("Hot's balance is incorrect");
 
   // Transfer between users
-  const singleSignerTransaction = await aptos.build.transaction({
+  const singleSignerTransaction = await aptos.transaction.build.simple({
     sender: cold.address(),
     data: {
       function: "0x1::coin::transfer",
@@ -175,7 +175,7 @@ const example = async () => {
 
   // Combine the transaction and send
   console.log("\n=== Transfer transaction ===\n");
-  const committedTxn = await aptos.submit.transaction({
+  const committedTxn = await aptos.transaction.submit.simple({
     transaction: singleSignerTransaction,
     senderAuthenticator: authenticator,
   });

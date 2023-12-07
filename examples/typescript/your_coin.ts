@@ -24,7 +24,7 @@ const aptos = new Aptos(config);
 
 /** Register the receiver account to receive transfers for the new coin. */
 async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: receiver.accountAddress,
     data: {
       function: "0x1::managed_coin::register",
@@ -33,8 +33,8 @@ async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress):
     },
   });
 
-  const senderAuthenticator = aptos.sign.transaction({ signer: receiver, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = aptos.transaction.sign({ signer: receiver, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
@@ -45,7 +45,7 @@ async function transferCoin(
   receiverAddress: AccountAddress,
   amount: number | bigint,
 ): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: sender.accountAddress,
     data: {
       function: "0x1::aptos_account::transfer_coins",
@@ -54,15 +54,15 @@ async function transferCoin(
     },
   });
 
-  const senderAuthenticator = aptos.sign.transaction({ signer: sender, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = aptos.transaction.sign({ signer: sender, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
 
 /** Mints amount of the newly created coin to a specified receiver address */
 async function mintCoin(minter: Account, receiverAddress: AccountAddress, amount: number): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: minter.accountAddress,
     data: {
       function: "0x1::managed_coin::mint",
@@ -71,8 +71,8 @@ async function mintCoin(minter: Account, receiverAddress: AccountAddress, amount
     },
   });
 
-  const senderAuthenticator = aptos.sign.transaction({ signer: minter, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = aptos.transaction.sign({ signer: minter, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }

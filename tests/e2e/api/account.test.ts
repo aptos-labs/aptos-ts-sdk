@@ -115,18 +115,18 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      const rawTxn = await aptos.build.transaction({
+      const rawTxn = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.sign.transaction({
+      const authenticator = aptos.transaction.sign({
         signer: senderAccount,
         transaction: rawTxn,
       });
-      const response = await aptos.submit.transaction({
+      const response = await aptos.transaction.submit.simple({
         transaction: rawTxn,
         senderAuthenticator: authenticator,
       });
@@ -200,12 +200,14 @@ describe("account api", () => {
       const accountCoinsAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: "my::coin::type",
+        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountCoinsAmount).toBe(0);
       // APT Aptos coin
       const accountAPTAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
         coinType: APTOS_COIN,
+        minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount).toBe(100000000);
     });

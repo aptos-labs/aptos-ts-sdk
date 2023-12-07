@@ -500,7 +500,7 @@ describe("various transaction arguments", () => {
 
   describe("script transactions", () => {
     it("successfully submits a script transaction with all argument types", async () => {
-      const rawTransaction = await aptos.build.multiAgentTransaction({
+      const rawTransaction = await aptos.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
@@ -522,14 +522,14 @@ describe("various transaction arguments", () => {
         },
         secondarySignerAddresses: secondarySignerAccounts.map((account) => account.accountAddress),
       });
-      const senderAuthenticator = await aptos.sign.transaction({ signer: senderAccount, transaction: rawTransaction });
+      const senderAuthenticator = await aptos.transaction.sign({ signer: senderAccount, transaction: rawTransaction });
       const secondaryAuthenticators = secondarySignerAccounts.map((account) =>
-        aptos.sign.transaction({
+        aptos.transaction.sign({
           signer: account,
           transaction: rawTransaction,
         }),
       );
-      const transactionResponse = await aptos.submit.multiAgentTransaction({
+      const transactionResponse = await aptos.transaction.submit.multiAgent({
         transaction: rawTransaction,
         senderAuthenticator,
         additionalSignersAuthenticators: secondaryAuthenticators,

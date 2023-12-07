@@ -99,7 +99,7 @@ const example = async () => {
 
   // Create the object
   console.log("\n=== Create an object owned by Alice ===\n");
-  const createObject = await aptos.build.transaction({
+  const createObject = await aptos.transaction.build.simple({
     sender: alice.accountAddress,
     data: {
       bytecode: CREATE_OBJECT_SCRIPT,
@@ -115,7 +115,7 @@ const example = async () => {
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
 
   console.log("\n=== Transfer object ownership to Bob ===\n");
-  const transferTxn = await aptos.build.multiAgentTransaction({
+  const transferTxn = await aptos.transaction.build.multiAgent({
     sender: alice.accountAddress,
     secondarySignerAddresses: [bob.accountAddress],
     data: {
@@ -126,12 +126,12 @@ const example = async () => {
   });
 
   // Alice signs
-  const aliceSignature = aptos.sign.transaction({ signer: alice, transaction: transferTxn });
+  const aliceSignature = aptos.transaction.sign({ signer: alice, transaction: transferTxn });
 
   // Bob signs
-  const bobSignature = aptos.sign.transaction({ signer: bob, transaction: transferTxn });
+  const bobSignature = aptos.transaction.sign({ signer: bob, transaction: transferTxn });
 
-  const pendingTransferTxn = await aptos.submit.multiAgentTransaction({
+  const pendingTransferTxn = await aptos.transaction.submit.multiAgent({
     transaction: transferTxn,
     senderAuthenticator: aliceSignature,
     additionalSignersAuthenticators: [bobSignature],
