@@ -7,8 +7,8 @@ import { Network } from "./apiEndpoints";
  * Type of API endpoint for request routing
  */
 export enum AptosApiType {
-  FULLNODE,
-  INDEXER,
+  FULLNODE_V1,
+  INDEXER_V1,
   FAUCET,
 }
 

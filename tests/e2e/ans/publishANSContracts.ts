@@ -92,7 +92,7 @@ export async function publishAnsContract(
     for (const contract of contracts) {
       execCmdBuffer(
         `${cliInvocation} move publish --package-dir ${repoDir}/${contract} --assume-yes --private-key=${LOCAL_ANS_ACCOUNT_PK} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
-          AptosApiType.FULLNODE,
+          AptosApiType.FULLNODE_V1,
         )}`,
       );
     }

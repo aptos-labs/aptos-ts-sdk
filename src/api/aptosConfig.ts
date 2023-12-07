@@ -3,7 +3,7 @@
 
 import aptosClient from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client } from "../types";
-import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
+import { NetworkToNodeV1API, NetworkToFaucetAPI, NetworkToIndexerV1API, Network } from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
 /**
@@ -19,17 +19,44 @@ export class AptosConfig {
   readonly client: Client;
 
   /**
-   * The optional hardcoded fullnode URL to send requests to instead of using the network
+   * The optional hardcoded fullnode URL to send requests to instead of using the network.
+   *
+   * This should be of the form:
+   * - `http(s)://<host>:<port>`
+   *
+   * @example
+   * ```typescript
+   *   const localFullnode = "http://localhost:8080";
+   *   const customFullnode = "https://my-fullnode.com";
+   * ```
    */
   readonly fullnode?: string;
 
   /**
    * The optional hardcoded faucet URL to send requests to instead of using the network
+   *
+   * This should be of the form:
+   * - `http(s)://<host>:<port>`
+   *
+   *  @example
+   *    * ```typescript
+   *    *   const localFullnode = "http://localhost:8081";
+   *    *   const customFullnode = "https://my-faucet.com";
+   *    * ```
    */
   readonly faucet?: string;
 
   /**
    * The optional hardcoded indexer URL to send requests to instead of using the network
+   *
+   * This should be of the form:
+   * - `http(s)://<host>:<port>`
+   *
+   *  @example
+   *    * ```typescript
+   *    *   const localFullnode = "http://localhost:8081";
+   *    *   const customFullnode = "https://my-indexer.com";
+   *    * ```
    */
   readonly indexer?: string;
 
@@ -56,18 +83,28 @@ export class AptosConfig {
    */
   getRequestUrl(apiType: AptosApiType): string {
     switch (apiType) {
-      case AptosApiType.FULLNODE:
-        if (this.fullnode !== undefined) return this.fullnode;
+      case AptosApiType.FULLNODE_V1:
+        if (this.fullnode !== undefined) {
+          // For V1 REST API, ensure it ends with a /v1
+          const fullnodeUrl = this.fullnode;
+          if (fullnodeUrl.endsWith("/v1")) return fullnodeUrl;
+          return `${fullnodeUrl}/v1`;
+        }
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom full node url");
-        return NetworkToNodeAPI[this.network];
+        return NetworkToNodeV1API[this.network];
       case AptosApiType.FAUCET:
         if (this.faucet !== undefined) return this.faucet;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom faucet url");
         return NetworkToFaucetAPI[this.network];
-      case AptosApiType.INDEXER:
-        if (this.indexer !== undefined) return this.indexer;
+      case AptosApiType.INDEXER_V1:
+        if (this.indexer !== undefined) {
+          // For V1 indexer API, ensure it ends with a /v1/graphql
+          const indexerUrl = this.indexer;
+          if (indexerUrl.endsWith("/v1/graphql")) return indexerUrl;
+          return `${indexerUrl}/v1/graphql`;
+        }
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom indexer url");
-        return NetworkToIndexerAPI[this.network];
+        return NetworkToIndexerV1API[this.network];
       default:
         throw Error(`apiType ${apiType} is not supported`);
     }
@@ -79,6 +116,6 @@ export class AptosConfig {
    * @internal
    * */
   isIndexerRequest(url: string): boolean {
-    return NetworkToIndexerAPI[this.network] === url;
+    return NetworkToIndexerV1API[this.network] === url;
   }
 }

@@ -6,6 +6,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`
 - Rename custom request header to `aptos-typescript-sdk`
+- [`Breaking`] Change NodeAPI and IndexerAPI mappings to be renamed with V1
+- Fix URLs of indexers and REST APIs to be of the server, and not the path, to allow flexibility for future API versions.
 
 ## 0.0.8 (2023-11-29)
 

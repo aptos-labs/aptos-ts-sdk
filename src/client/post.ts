@@ -82,13 +82,13 @@ export async function post<Req extends {}, Res extends {}>(
 export async function postAptosFullNode<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
+  return post<Req, Res>({ ...options, type: AptosApiType.FULLNODE_V1 });
 }
 
 export async function postAptosIndexer<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.INDEXER });
+  return post<Req, Res>({ ...options, type: AptosApiType.INDEXER_V1 });
 }
 
 export async function postAptosFaucet<Req extends {}, Res extends {}>(

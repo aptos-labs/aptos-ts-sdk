@@ -74,7 +74,7 @@ export async function get<Req extends {}, Res extends {}>(
 export async function getAptosFullNode<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
+  return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE_V1 });
 }
 
 /// This function is a helper for paginating using a function wrapping an API
@@ -89,7 +89,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     requestParams.start = cursor;
     // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
-      type: AptosApiType.FULLNODE,
+      type: AptosApiType.FULLNODE_V1,
       aptosConfig: options.aptosConfig,
       originMethod: options.originMethod,
       path: options.path,
