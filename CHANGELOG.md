@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`
+- Rename custom request header to `aptos-typescript-sdk`
 
 ## 0.0.8 (2023-11-29)
 
