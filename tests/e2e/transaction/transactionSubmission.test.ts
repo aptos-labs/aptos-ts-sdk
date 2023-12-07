@@ -40,6 +40,20 @@ describe("transaction submission", () => {
     ]);
     await publishTransferPackage(aptos, contractPublisherAccount);
   }, longTestTimeout);
+
+  test("test", async () => {
+    aptos.transaction.basic.build();
+    aptos.transaction.basic.simulate();
+    aptos.transaction.basic.submit();
+
+    aptos.transaction.sign();
+    aptos.transaction.signAsFeePayer();
+
+    aptos.transaction.multiAgent.build();
+    aptos.transaction.multiAgent.submit();
+    aptos.transaction.multiAgent.simulate();
+  });
+
   describe("Single Sender ED25519", () => {
     describe("single signer", () => {
       test("with script payload", async () => {

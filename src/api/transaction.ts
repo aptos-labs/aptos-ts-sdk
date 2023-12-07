@@ -19,14 +19,49 @@ import {
   TransactionResponse,
   WaitForTransactionOptions,
 } from "../types";
-import { getSigningMessage } from "../internal/transactionSubmission";
-import { AnyRawTransaction } from "../transactions";
+import { getSigningMessage, signTransaction } from "../internal/transactionSubmission";
+import { AccountAuthenticator, AnyRawTransaction } from "../transactions";
+import { MultiAgent } from "./transactionSubmission/multiAgent";
+import { SimpleTransaction } from "./transactionSubmission/simpleTransaction";
+import { Account } from "../core";
 
 export class Transaction {
   readonly config: AptosConfig;
 
+  readonly basic: SimpleTransaction;
+
+  readonly multiAgent: MultiAgent;
+
   constructor(config: AptosConfig) {
     this.config = config;
+    this.multiAgent = new MultiAgent(this.config);
+    this.basic = new SimpleTransaction(this.config);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+    return signTransaction({
+      ...args,
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+    const { signer, transaction } = args;
+
+    // if transaction doesnt hold a "feePayerAddress" prop it means
+    // this is not a fee payer transaction
+    if (!transaction.feePayerAddress) {
+      throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
+    }
+
+    // Set the feePayerAddress to the signer account address
+    transaction.feePayerAddress = signer.accountAddress;
+
+    return signTransaction({
+      signer,
+      transaction,
+    });
   }
 
   /**
