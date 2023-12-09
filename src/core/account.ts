@@ -64,7 +64,7 @@ export class Account {
    *
    * @param args.privateKey PrivateKey - private key of the account
    * @param args.address AccountAddress - address of the account
-   * @param args.legacy optional. If set to true, the keypair authentication keys will be derived with a Legacy scheme.
+   * @param args.legacy optional. If set to false, the keypair authentication keys will be derived with a unified scheme.
    * Defaults to deriving an authentication key with the legacy scheme.
    *
    * This method is private because it should only be called by the factory static methods.
