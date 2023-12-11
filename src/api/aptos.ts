@@ -12,11 +12,6 @@ import { General } from "./general";
 import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
-import { TransactionSubmission } from "./transactionSubmission";
-import { Build } from "./transactionSubmission/build";
-import { Sign } from "./transactionSubmission/sign";
-import { Simulate } from "./transactionSubmission/simulate";
-import { Submit } from "./transactionSubmission/submit";
 
 /**
  * This class is the main entry point into Aptos's
@@ -48,16 +43,6 @@ export class Aptos {
 
   readonly transaction: Transaction;
 
-  readonly transactionSubmission: TransactionSubmission;
-
-  readonly build: Build;
-
-  readonly sign: Sign;
-
-  readonly simulate: Simulate;
-
-  readonly submit: Submit;
-
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -70,16 +55,13 @@ export class Aptos {
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
-    this.transactionSubmission = new TransactionSubmission(this.config);
-    this.build = new Build(this.config);
-    this.sign = new Sign(this.config);
-    this.simulate = new Simulate(this.config);
-    this.submit = new Submit(this.config);
   }
 }
 
+// extends Aptos interface so all the methods and properties from the other classes will be recognized by typescript.
 export interface Aptos
   extends Account,
+    ANS,
     Coin,
     DigitalAsset,
     Event,
@@ -87,9 +69,7 @@ export interface Aptos
     FungibleAsset,
     General,
     Staking,
-    Transaction,
-    ANS,
-    TransactionSubmission {}
+    Transaction {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -122,8 +102,3 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
-applyMixin(Aptos, TransactionSubmission, "transactionSubmission");
-applyMixin(Aptos, Build, "build");
-applyMixin(Aptos, Sign, "sign");
-applyMixin(Aptos, Simulate, "simulate");
-applyMixin(Aptos, Submit, "submit");

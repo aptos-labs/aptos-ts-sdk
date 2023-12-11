@@ -34,7 +34,7 @@ async function transferCoin(
   toAddress: AccountAddress,
   amount: AnyNumber,
 ): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress}::fa_coin::transfer`,
@@ -42,15 +42,15 @@ async function transferCoin(
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
 
 /** Admin mint the newly created coin to the specified receiver address */
 async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress}::fa_coin::mint`,
@@ -58,15 +58,15 @@ async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): P
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
 
 /** Admin burns the newly created coin from the specified receiver address */
 async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: AnyNumber): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress}::fa_coin::burn`,
@@ -74,15 +74,15 @@ async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: Any
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
 
 /** Admin freezes the primary fungible store of the specified account */
 async function freeze(admin: Account, targetAddress: AccountAddress): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress}::fa_coin::freeze_account`,
@@ -90,15 +90,15 @@ async function freeze(admin: Account, targetAddress: AccountAddress): Promise<st
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }
 
 /** Admin unfreezes the primary fungible store of the specified account */
 async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<string> {
-  const transaction = await aptos.build.transaction({
+  const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress}::fa_coin::unfreeze_account`,
@@ -106,8 +106,8 @@ async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<
     },
   });
 
-  const senderAuthenticator = await aptos.sign.transaction({ signer: admin, transaction });
-  const pendingTxn = await aptos.submit.transaction({ transaction, senderAuthenticator });
+  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
 }

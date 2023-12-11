@@ -6,6 +6,7 @@ import { simulateTransaction } from "../../internal/transactionSubmission";
 import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
 import { UserTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
+import { ValidateFeePayerDataOnSimulation } from "./helpers";
 
 /**
  * A class to handle all `Simulate` transaction operations
@@ -17,8 +18,18 @@ export class Simulate {
     this.config = config;
   }
 
-  @ValidateFeePayerData
-  async transaction(args: {
+  /**
+   * Simulate a simple transaction
+   *
+   * @param args.signerPublicKey The signer public key
+   * @param args.transaction An instance of a raw transaction
+   * @param args.options optional. Optional transaction configurations
+   * @param args.feePayerPublicKey optional. The fee payer public key if it is a fee payer transaction
+   *
+   * @returns Array<UserTransactionResponse>
+   */
+  @ValidateFeePayerDataOnSimulation
+  async simple(args: {
     signerPublicKey: PublicKey;
     transaction: AnyRawTransaction;
     feePayerPublicKey?: PublicKey;
@@ -27,8 +38,19 @@ export class Simulate {
     return simulateTransaction({ aptosConfig: this.config, ...args });
   }
 
-  @ValidateFeePayerData
-  async multiAgentTransaction(args: {
+  /**
+   * Simulate a multi agent transaction
+   *
+   * @param args.signerPublicKey The signer public key
+   * @param args.transaction An instance of a raw transaction
+   * @param args.secondarySignersPublicKeys An array of the secondary signers public keys
+   * @param args.options optional. Optional transaction configurations
+   * @param args.feePayerPublicKey optional. The fee payer public key if it is a fee payer transaction
+   *
+   * @returns Array<UserTransactionResponse>
+   */
+  @ValidateFeePayerDataOnSimulation
+  async multiAgent(args: {
     signerPublicKey: PublicKey;
     transaction: AnyRawTransaction;
     secondarySignersPublicKeys: Array<PublicKey>;
@@ -37,20 +59,4 @@ export class Simulate {
   }): Promise<Array<UserTransactionResponse>> {
     return simulateTransaction({ aptosConfig: this.config, ...args });
   }
-}
-
-function ValidateFeePayerData(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  /* eslint-disable-next-line func-names, no-param-reassign */
-  descriptor.value = async function (...args: any[]) {
-    const [methodArgs] = args;
-
-    if (methodArgs.transaction.feePayerAddress && !methodArgs.feePayerPublicKey) {
-      throw new Error("You are simulating a Fee Payer transaction but missing the feePayerPublicKey");
-    }
-
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
 }

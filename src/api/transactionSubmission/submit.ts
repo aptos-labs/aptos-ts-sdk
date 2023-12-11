@@ -5,6 +5,7 @@ import { submitTransaction } from "../../internal/transactionSubmission";
 import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
 import { PendingTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
+import { ValidateFeePayerDataOnSubmission } from "./helpers";
 
 /**
  * A class to handle all `Submit` transaction operations
@@ -16,8 +17,17 @@ export class Submit {
     this.config = config;
   }
 
-  @ValidateFeePayerData
-  async transaction(args: {
+  /**
+   * Submit a simple transaction
+   *
+   * @param args.transaction An instance of a raw transaction
+   * @param args.senderAuthenticator optional. The sender account authenticator
+   * @param args.feePayerAuthenticator optional. The fee payer account authenticator if it is a fee payer transaction
+   *
+   * @returns PendingTransactionResponse
+   */
+  @ValidateFeePayerDataOnSubmission
+  async simple(args: {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator?: AccountAuthenticator;
@@ -25,8 +35,18 @@ export class Submit {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
 
-  @ValidateFeePayerData
-  async multiAgentTransaction(args: {
+  /**
+   * Submit a multi agent transaction
+   *
+   * @param args.transaction An instance of a raw transaction
+   * @param args.senderAuthenticator optional. The sender account authenticator
+   * @param args.additionalSignersAuthenticators An array of the secondary signers account authenticators
+   * @param args.feePayerAuthenticator optional. The fee payer account authenticator if it is a fee payer transaction
+   *
+   * @returns PendingTransactionResponse
+   */
+  @ValidateFeePayerDataOnSubmission
+  async multiAgent(args: {
     transaction: AnyRawTransaction;
     senderAuthenticator: AccountAuthenticator;
     additionalSignersAuthenticators: Array<AccountAuthenticator>;
@@ -34,20 +54,4 @@ export class Submit {
   }): Promise<PendingTransactionResponse> {
     return submitTransaction({ aptosConfig: this.config, ...args });
   }
-}
-
-function ValidateFeePayerData(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  /* eslint-disable-next-line func-names, no-param-reassign */
-  descriptor.value = async function (...args: any[]) {
-    const [methodArgs] = args;
-
-    if (methodArgs.transaction.feePayerAddress && !methodArgs.feePayerAuthenticator) {
-      throw new Error("You are submitting a Fee Payer transaction but missing the feePayerAuthenticator");
-    }
-
-    return originalMethod.apply(this, args);
-  };
-
-  return descriptor;
 }

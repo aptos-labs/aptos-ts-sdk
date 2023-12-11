@@ -21,7 +21,17 @@ export class Build {
     this.config = config;
   }
 
-  async transaction(args: {
+  /**
+   * Build a simple transaction
+   *
+   * @param args.sender The sender account address
+   * @param args.data The transaction data
+   * @param args.options optional. Optional transaction configurations
+   * @param args.withFeePayer optional. Whether there is a fee payer for the transaction
+   *
+   * @returns SingleSignerTransaction
+   */
+  async simple(args: {
     sender: AccountAddressInput;
     data: InputGenerateTransactionPayloadData;
     options?: InputGenerateTransactionOptions;
@@ -30,7 +40,18 @@ export class Build {
     return generateTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async multiAgentTransaction(args: {
+  /**
+   * Build a multi agent transaction
+   *
+   * @param args.sender The sender account address
+   * @param args.data The transaction data
+   * @param args.secondarySignerAddresses An array of the secondary signers account addresses
+   * @param args.options optional. Optional transaction configurations
+   * @param args.withFeePayer optional. Whether there is a fee payer for the transaction
+   *
+   * @returns MultiAgentTransaction
+   */
+  async multiAgent(args: {
     sender: AccountAddressInput;
     data: InputGenerateTransactionPayloadData;
     secondarySignerAddresses: AccountAddressInput[];

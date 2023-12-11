@@ -53,7 +53,7 @@ const addLiquidity = async (
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.build.transaction({
+  const rawTxn = await aptos.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::add_liquidity_entry`,
@@ -76,7 +76,7 @@ const swapAssets = async (
   amountOutMin: number,
   recipient: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.build.transaction({
+  const rawTxn = await aptos.transaction.build.simple({
     sender: deployer.accountAddress.toString(),
     data: {
       function: `${swap.toString()}::router::swap_entry`,
@@ -127,7 +127,7 @@ const createLiquidityPool = async (
   dogCoinAddr: AccountAddress,
   catCoinAddr: AccountAddress,
 ): Promise<string> => {
-  const rawTxn = await aptos.build.transaction({
+  const rawTxn = await aptos.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::router::create_pool`,
@@ -141,7 +141,7 @@ const createLiquidityPool = async (
 };
 
 const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Account): Promise<string> => {
-  const rawTxn = await aptos.build.transaction({
+  const rawTxn = await aptos.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
       function: `${swap.toString()}::liquidity_pool::initialize`,
@@ -173,7 +173,7 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
  *  Admin mint the coin
  */
 const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
-  const rawTxn = await aptos.build.transaction({
+  const rawTxn = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
       function: `${admin.accountAddress.toString()}::${coinName}::mint`,
