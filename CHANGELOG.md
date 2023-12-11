@@ -4,11 +4,17 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+## 1.1.0 (2023-12-11)
+
 - Add release automation, so version updates can be made with simply `pnpm update-version`
 - Rename custom request header to `aptos-typescript-sdk`
 - [`Breaking`] Rename `token` to `digitalAsset` and add digital asset built in transaction generation functions
 - [`Breaking`] change transaction submission builder flow namespace to be under a `transaction` namespace
 - [`Breaking`] Rename `SingleSignerTransaction` type to `SimpleTransaction`
+
+## 1.0.0 (2023-12-04)
+
+Release Stable version `1.0.0`
 
 ## 0.0.8 (2023-11-29)
 
