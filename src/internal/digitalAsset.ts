@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveString, Bool, U64 } from "../bcs";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import {
   AnyNumber,
   GetCollectionDataResponse,
@@ -204,7 +204,7 @@ export async function createCollectionTransaction(
     uri: string;
     options?: InputGenerateTransactionOptions;
   } & CreateCollectionOptions,
-): Promise<SingleSignerTransaction> {
+): Promise<SimpleTransaction> {
   const { aptosConfig, options, creator } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -290,7 +290,7 @@ export async function mintDigitalAssetTransaction(args: {
   propertyTypes?: Array<PropertyType>;
   propertyValues?: Array<PropertyValue>;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     options,
@@ -331,7 +331,7 @@ export async function transferDigitalAssetTransaction(args: {
   recipient: AccountAddress;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -358,7 +358,7 @@ export async function mintSoulBoundTransaction(args: {
   propertyTypes?: Array<PropertyType>;
   propertyValues?: Array<PropertyValue>;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     account,
@@ -407,7 +407,7 @@ export async function burnDigitalAssetTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -428,7 +428,7 @@ export async function freezeDigitalAssetTransaferTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -449,7 +449,7 @@ export async function unfreezeDigitalAssetTransaferTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -471,7 +471,7 @@ export async function setDigitalAssetDescriptionTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -493,7 +493,7 @@ export async function setDigitalAssetNameTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -515,7 +515,7 @@ export async function setDigitalAssetURITransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -539,7 +539,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     creator,
@@ -575,7 +575,7 @@ export async function removeDigitalAssetPropertyTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,
@@ -599,7 +599,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     creator,
@@ -637,7 +637,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     creator,
@@ -670,7 +670,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     creator,

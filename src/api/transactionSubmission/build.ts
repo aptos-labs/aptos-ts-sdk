@@ -6,7 +6,7 @@ import { generateTransaction } from "../../internal/transactionSubmission";
 import {
   InputGenerateTransactionPayloadData,
   InputGenerateTransactionOptions,
-  SingleSignerTransaction,
+  SimpleTransaction,
   MultiAgentTransaction,
 } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
@@ -29,14 +29,14 @@ export class Build {
    * @param args.options optional. Optional transaction configurations
    * @param args.withFeePayer optional. Whether there is a fee payer for the transaction
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
   async simple(args: {
     sender: AccountAddressInput;
     data: InputGenerateTransactionPayloadData;
     options?: InputGenerateTransactionOptions;
     withFeePayer?: boolean;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
   }
 

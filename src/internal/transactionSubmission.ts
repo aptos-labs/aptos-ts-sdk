@@ -26,7 +26,7 @@ import {
   AnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
-  SingleSignerTransaction,
+  SimpleTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
   InputGenerateMultiAgentRawTransactionData,
@@ -45,7 +45,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
  */
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateSingleSignerRawTransactionData,
-): Promise<SingleSignerTransaction>;
+): Promise<SimpleTransaction>;
 export async function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateMultiAgentRawTransactionData,
 ): Promise<MultiAgentTransaction>;
@@ -287,7 +287,7 @@ export async function publicPackageTransaction(args: {
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));

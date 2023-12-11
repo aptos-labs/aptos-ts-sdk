@@ -15,7 +15,7 @@ import {
   TokenStandardArg,
 } from "../types";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
   addDigitalAssetTypedPropertyTransaction,
@@ -213,7 +213,7 @@ export class DigitalAsset {
    * @param args.royaltyDenominator the denominator of the royalty to be paid to the creator
    * when a digital asset is transferred - defaults 1
    *
-   * @returns A SingleSignerTransaction that when submitted will create the collection.
+   * @returns A SimpleTransaction that when submitted will create the collection.
    */
   async createCollectionTransaction(
     args: {
@@ -223,7 +223,7 @@ export class DigitalAsset {
       uri: string;
       options?: InputGenerateTransactionOptions;
     } & CreateCollectionOptions,
-  ): Promise<SingleSignerTransaction> {
+  ): Promise<SimpleTransaction> {
     return createCollectionTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -236,7 +236,7 @@ export class DigitalAsset {
    * @param args.name the name of the digital asset
    * @param args.uri the URI to additional info about the digital asset
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async mintDigitalAssetTransaction(args: {
     creator: Account;
@@ -248,7 +248,7 @@ export class DigitalAsset {
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return mintDigitalAssetTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -263,7 +263,7 @@ export class DigitalAsset {
    * @param args.recipient The recipient account address
    * @param args.digitalAssetType optional. The digital asset type, default to "0x4::token::Token"
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async transferDigitalAssetTransaction(args: {
     sender: Account;
@@ -271,7 +271,7 @@ export class DigitalAsset {
     recipient: AccountAddress;
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return transferDigitalAssetTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -288,7 +288,7 @@ export class DigitalAsset {
    * @param args.propertyTypes The type of property values
    * @param args.propertyValues The property values to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async mintSoulBoundTransaction(args: {
     account: Account;
@@ -301,7 +301,7 @@ export class DigitalAsset {
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return mintSoulBoundTransaction({ aptosConfig: this.config, ...args });
   }
 
@@ -311,7 +311,7 @@ export class DigitalAsset {
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async burnDigitalAssetTransaction(args: {
     creator: Account;
@@ -328,7 +328,7 @@ export class DigitalAsset {
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async freezeDigitalAssetTransaferTransaction(args: {
     creator: Account;
@@ -345,7 +345,7 @@ export class DigitalAsset {
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async unfreezeDigitalAssetTransaferTransaction(args: {
     creator: Account;
@@ -363,7 +363,7 @@ export class DigitalAsset {
    * @param args.description The digital asset description
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetDescriptionTransaction(args: {
     creator: Account;
@@ -382,7 +382,7 @@ export class DigitalAsset {
    * @param args.name The digital asset name
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetNameTransaction(args: {
     creator: Account;
@@ -401,7 +401,7 @@ export class DigitalAsset {
    * @param args.uri The digital asset uri
    * @param args.digitalAssetAddress The digital asset address
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetURITransaction(args: {
     creator: Account;
@@ -422,7 +422,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value
    * @param args.propertyValue The property value to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async addDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -445,7 +445,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value
    * @param args.propertyValue The property value to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async removeDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -468,7 +468,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value
    * @param args.propertyValue The property value to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async updateDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -491,7 +491,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value
    * @param args.propertyValue The property value to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async addDigitalAssetTypedPropertyTransaction(args: {
     creator: Account;
@@ -514,7 +514,7 @@ export class DigitalAsset {
    * @param args.propertyType The type of property value
    * @param args.propertyValue The property value to be stored on-chain
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async updateDigitalAssetTypedPropertyTransaction(args: {
     creator: Account;

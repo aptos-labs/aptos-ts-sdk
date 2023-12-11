@@ -32,7 +32,7 @@ import {
   AnyRawTransaction,
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
-  SingleSignerTransaction,
+  SimpleTransaction,
 } from "../transactions";
 import { AccountAddressInput, Account, PrivateKey } from "../core";
 import { TransactionWorker } from "../transactions/management";
@@ -193,14 +193,14 @@ export class Transaction {
    * @param args.metadataBytes The package metadata bytes
    * @param args.moduleBytecode An array of the bytecode of each module in the package in compiler output order
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain
+   * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async publishPackageTransaction(args: {
     account: AccountAddressInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return publicPackageTransaction({ aptosConfig: this.config, ...args });
   }
 

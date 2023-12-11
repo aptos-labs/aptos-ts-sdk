@@ -23,7 +23,7 @@ import {
   GetDomainSubdomainsArgs,
 } from "../internal/ans";
 import { GetANSNameResponse, MoveAddressType } from "../types";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -98,14 +98,14 @@ export class ANS {
    * @param args.name - A string of the name: test.aptos.apt, test.apt, test, test.aptos, etc.
    * @param args.address - A AccountAddressInput of the address to set the domain or subdomain to
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
   async setTargetAddress(args: {
     sender: Account;
     name: string;
     address: AccountAddressInput;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return setTargetAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -141,13 +141,13 @@ export class ANS {
    * @param args.sender - The sender account
    * @param args.name - A string of the name: test, test.apt, test.aptos, test.aptos.apt, etc.
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
   async setPrimaryName(args: {
     sender: Account;
     name?: string;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return setPrimaryName({ aptosConfig: this.config, ...args });
   }
 
@@ -184,9 +184,9 @@ export class ANS {
    * @param args.toAddress optional - The address to send the domain name to. If not provided,
    * the transaction will be sent to the router.
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
-  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SingleSignerTransaction> {
+  async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SimpleTransaction> {
     return registerName({ aptosConfig: this.config, ...args });
   }
 
@@ -205,14 +205,14 @@ export class ANS {
    * Subdomains cannot be renewed.
    * @param args.years - The number of years to renew the name. Currently only one year is permitted.
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
   async renewDomain(args: {
     sender: Account;
     name: string;
     years?: 1;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return renewDomain({ aptosConfig: this.config, ...args });
   }
 
