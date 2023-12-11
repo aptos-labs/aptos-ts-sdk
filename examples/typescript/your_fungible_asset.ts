@@ -149,9 +149,9 @@ async function main() {
   await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 100_000_000 });
 
   console.log("\n=== Compiling MoonCoin package locally ===");
-  compilePackage("facoin", "facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
+  compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
 
-  const { metadataBytes, byteCode } = getPackageBytesToPublish("facoin/facoin.json");
+  const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
