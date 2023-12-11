@@ -3,7 +3,7 @@
 
 import { Account, AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
-import { SingleSignerTransaction, InputGenerateTransactionOptions } from "../transactions/types";
+import { SimpleTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -21,7 +21,7 @@ export class Coin {
    * @param args.amount The amount to transfer
    * @param args.coinType optional. The coin struct type to transfer. Defaults to 0x1::aptos_coin::AptosCoin
    *
-   * @returns SingleSignerTransaction
+   * @returns SimpleTransaction
    */
   async transferCoinTransaction(args: {
     sender: Account;
@@ -29,7 +29,7 @@ export class Coin {
     amount: AnyNumber;
     coinType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return transferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 }
