@@ -129,30 +129,23 @@ const example = async () => {
   // Bob signs
   const bobSignature = aptos.transaction.sign({ signer: bob, transaction: transferTxn });
 
-  const bobObjectsBefore = await aptos.getAccountOwnedObjects({
-    accountAddress: bob.accountAddress,
-  });
   const pendingTransferTxn = await aptos.transaction.submit.multiAgent({
     transaction: transferTxn,
     senderAuthenticator: aliceSignature,
     additionalSignersAuthenticators: [bobSignature],
   });
-  const transferResponse = await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
+  const transferResponse = await aptos.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
 
   const bobObjectsAfter = await aptos.getAccountOwnedObjects({
     accountAddress: bob.accountAddress,
     minimumLedgerVersion: BigInt(transferResponse.version),
   });
 
-  console.log("Bob's objects before and after transfer:", bobObjectsBefore, bobObjectsAfter);
-
   if (
     bobObjectsAfter.find((object: { object_address: string }) => object.object_address === objectAddress) === undefined
   ) {
     throw new Error(`Failed to transfer object to bob ${objectAddress}`);
   }
-
-  console.log("Transferred object in txn: ", pendingTransferTxn.hash);
 
   // Check balance
   console.log("\n=== New Balances ===\n");
