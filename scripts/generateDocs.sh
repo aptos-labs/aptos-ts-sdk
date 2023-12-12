@@ -15,7 +15,7 @@ if [ -d "docs/@aptos-labs/ts-sdk-$npm_package_version" ]; then
   echo "WARNING! Docs folder already exists, overwriting docs for version $npm_package_version";
 fi
 
-cross-var npx typedoc src/index.ts --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --cleanOutputDir --excludeInternal --includeVersion;
+npx typedoc src/index.ts --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --cleanOutputDir --excludeInternal --includeVersion;
 
 # Update the main page
 INDEX_FILE='docs/index.md';
@@ -37,7 +37,7 @@ else
   # TODO: Make this more stable / a different way of generating that isn't just inserting a line
   {
     head -n $FIRST_LINE $INDEX_FILE;
-    cross-var echo "- [$LABEL - @aptos-labs/ts-sdk-$npm_package_version](@aptos-labs/ts-sdk-$npm_package_version)";
+    echo "- [$LABEL - @aptos-labs/ts-sdk-$npm_package_version](@aptos-labs/ts-sdk-$npm_package_version)";
     tail -n +$NEXT_LINE $INDEX_FILE;
   } > $INDEX_FILE.tmp && mv $INDEX_FILE.tmp $INDEX_FILE
 fi
