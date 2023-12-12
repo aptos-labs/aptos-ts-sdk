@@ -10,6 +10,7 @@ export enum AptosApiType {
   FULLNODE,
   INDEXER,
   FAUCET,
+  PEPPER,
 }
 
 export const DEFAULT_NETWORK = Network.DEVNET;

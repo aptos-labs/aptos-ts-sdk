@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { Serializer, Deserializer, Serializable } from "../../bcs";
+import { PublicKey, Signature } from "../../core";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -12,6 +13,10 @@ import { MultiKey } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
+  abstract getPublicKey(): PublicKey;
+
+  abstract getSignature(): Signature | Array<Signature>;
+
   abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): AccountAuthenticator {
@@ -65,6 +70,14 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
     this.signature = signature;
   }
 
+  getPublicKey(): PublicKey {
+    return this.public_key;
+  }
+
+  getSignature(): Signature {
+    return this.signature;
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
     this.public_key.serialize(serializer);
@@ -96,6 +109,14 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
     this.signature = signature;
   }
 
+  getPublicKey(): PublicKey {
+    return this.public_key;
+  }
+
+  getSignature(): Signature {
+    return this.signature;
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.MultiEd25519);
     this.public_key.serialize(serializer);
@@ -125,6 +146,14 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
     super();
     this.public_key = public_key;
     this.signature = signature;
+  }
+
+  getPublicKey(): PublicKey {
+    return this.public_key;
+  }
+
+  getSignature(): Signature {
+    return this.signature;
   }
 
   serialize(serializer: Serializer): void {
@@ -159,6 +188,14 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
     this.public_keys = public_keys;
     this.signatures = signatures;
     this.signatures_bitmap = signatures_bitmap;
+  }
+
+  getPublicKey(): PublicKey {
+    return this.public_keys;
+  }
+
+  getSignature(): Array<AnySignature> {
+    return this.signatures;
   }
 
   serialize(serializer: Serializer): void {

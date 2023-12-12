@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
+import { Account, ZkIDAccount } from "../../core/account";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -76,6 +76,7 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { OpenIdSignature, OpenIdSignatureOrZkProof, ZkIDSignature } from "../../core/crypto/zkid";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -429,6 +430,37 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
   }
+}
+
+export function signWithOIDC(args: {
+  signer: ZkIDAccount;
+  jwt: string;
+  transaction: AnyRawTransaction;
+}): AccountAuthenticator {
+  const { signer, jwt, transaction } = args;
+  jwt.split(".");
+  const [jwtHeader, jwtPayload, jwtSignature] = jwt.split(".");
+  const openIdSig = new OpenIdSignature({
+    jwtSignature,
+    jwtPayloadJson: jwtPayload,
+    uidKey: signer.uidKey,
+    epkBlinder: signer.ephemeralAccount.blinder,
+    pepper: signer.pepper,
+  });
+
+  const { expiryTimestamp } = signer.ephemeralAccount;
+  const ephemeralPublicKey = signer.ephemeralAccount.publicKey;
+  const message = generateSigningMessage(transaction);
+  const ephemeralSignature = signer.sign(message);
+  const zkid = new ZkIDSignature({
+    jwtHeader,
+    openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
+    expiryTimestamp,
+    ephemeralPublicKey,
+    ephemeralSignature,
+  });
+
+  return new AccountAuthenticatorSingleKey(new AnyPublicKey(signer.publicKey), new AnySignature(zkid));
 }
 
 /**

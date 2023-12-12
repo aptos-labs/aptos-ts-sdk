@@ -1,15 +1,23 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { jwtDecode, JwtPayload } from "jwt-decode";
+import { base64url } from "jose";
 import { AccountAddress } from "./accountAddress";
 import { AuthenticationKey } from "./authenticationKey";
 import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetricCrypto";
 import { Ed25519PrivateKey, Ed25519PublicKey } from "./crypto/ed25519";
+
 import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
 import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
+
 import { Hex } from "./hex";
 import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
+import { computeAddressSeed, ZkIDPublicKey } from "./crypto/zkid";
+import { EphemeralPublicKey } from "./crypto/ephermeralPublicKey";
+import { bigIntToBytesLE, packBytes, padAndPackBytes, poseidonHash } from "./crypto/poseidon";
+import { EphemeralSignature } from "./crypto/ephemeralSignature";
 
 /**
  * Class for creating and managing account on Aptos network
@@ -278,5 +286,150 @@ export class Account {
     const { message, signature } = args;
     const rawMessage = Hex.fromHexInput(message).toUint8Array();
     return this.publicKey.verifySignature({ message: rawMessage, signature });
+  }
+}
+
+export class EphemeralAccount {
+  readonly blinder: Uint8Array;
+
+  readonly expiryTimestamp: bigint;
+
+  readonly nonce: string;
+
+  readonly privateKey: PrivateKey;
+
+  readonly publicKey: EphemeralPublicKey;
+
+  constructor(args: { privateKey: PrivateKey; expiryTimestamp: bigint }) {
+    const { privateKey, expiryTimestamp } = args;
+    this.privateKey = privateKey;
+    this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
+    this.expiryTimestamp = expiryTimestamp;
+    this.blinder = generateBlinder();
+    this.nonce = this.generateNonce();
+  }
+
+  static generate(args?: GenerateAccount): EphemeralAccount {
+    let privateKey: PrivateKey;
+
+    switch (args?.scheme) {
+      case SigningSchemeInput.Ed25519:
+      default:
+        privateKey = Ed25519PrivateKey.generate();
+    }
+
+    const expiryTimestamp = BigInt(123); // TODO
+
+    return new EphemeralAccount({ privateKey, expiryTimestamp });
+  }
+
+  generateNonce(): string {
+    const epkFields = padAndPackBytes(this.publicKey.bcsToBytes(), 64);
+    const blinderField = packBytes(this.blinder);
+    const fields = epkFields.concat(BigInt(this.expiryTimestamp)).concat(blinderField);
+    const nonceHash = poseidonHash(fields);
+    return base64url.encode(bigIntToBytesLE(nonceHash, 32));
+  }
+
+  /**
+   * Sign the given message with the private key.
+   *   *
+   * @param data in HexInput format
+   * @returns EphemeralSignature
+   */
+  sign(data: HexInput): EphemeralSignature {
+    return new EphemeralSignature(this.privateKey.sign(data));
+  }
+}
+
+function generateBlinder(): Uint8Array {
+  // Fix  blinder for testing
+  const uint8Array = new Uint8Array(31);
+  for (let i = 0; i < uint8Array.length; i += 1) {
+    uint8Array[i] = i;
+  }
+  // Todo - uncomment
+  // return randomBytes(31);
+  return uint8Array;
+}
+
+export class ZkIDAccount {
+  static readonly PEPPER_LENGTH: number = 31;
+
+  ephemeralAccount: EphemeralAccount;
+
+  publicKey: ZkIDPublicKey;
+
+  uidKey: string;
+
+  uidVal: string;
+
+  aud: string;
+
+  pepper: Uint8Array;
+
+  accountAddress: AccountAddress;
+
+  constructor(args: {
+    address?: AccountAddress;
+    ephemeralAccount: EphemeralAccount;
+    iss: string;
+    uidKey: string;
+    uidVal: string;
+    aud: string;
+    pepper: HexInput;
+  }) {
+    const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper } = args;
+    this.ephemeralAccount = ephemeralAccount;
+    const addressSeed = computeAddressSeed(args);
+    this.publicKey = new ZkIDPublicKey(iss, addressSeed);
+    const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
+    const derivedAddress = authKey.derivedAddress();
+    this.accountAddress = address ?? derivedAddress;
+    this.uidKey = uidKey;
+    this.uidVal = uidVal;
+    this.aud = aud;
+
+    const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
+    if (pepperBytes.length !== ZkIDAccount.PEPPER_LENGTH) {
+      throw new Error(`Pepper length in bytes should be ${ZkIDAccount.PEPPER_LENGTH}`);
+    }
+    this.pepper = pepperBytes;
+  }
+
+  /**
+   * Sign the given message with the private key.
+   *   *
+   * @param data in HexInput format
+   * @returns EphemeralSignature
+   */
+  sign(data: HexInput): EphemeralSignature {
+    return this.ephemeralAccount.sign(data);
+  }
+
+  static fromJWT(args: {
+    jwt: string;
+    ephemeralAccount: EphemeralAccount;
+    pepper: HexInput;
+    uidKey?: string;
+  }): ZkIDAccount {
+    const { jwt, ephemeralAccount, pepper } = args;
+    const uidKey = args.uidKey ?? "sub";
+
+    const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
+    const iss = jwtPayload.iss!;
+    if (typeof jwtPayload.aud !== "string") {
+      throw new Error("aud was not found or an array of values");
+    }
+    const aud = jwtPayload.aud!;
+    const uidVal = jwtPayload[uidKey];
+    return new ZkIDAccount({
+      ephemeralAccount,
+      iss,
+      uidKey,
+      uidVal,
+      aud,
+      pepper,
+    });
   }
 }

@@ -12,6 +12,7 @@ import { General } from "./general";
 import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
+import { ZkID } from "./zkid";
 
 /**
  * This class is the main entry point into Aptos's
@@ -43,6 +44,8 @@ export class Aptos {
 
   readonly transaction: Transaction;
 
+  readonly zkid: ZkID;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -55,6 +58,7 @@ export class Aptos {
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
+    this.zkid = new ZkID(this.config);
   }
 }
 
@@ -69,7 +73,8 @@ export interface Aptos
     FungibleAsset,
     General,
     Staking,
-    Transaction {}
+    Transaction,
+    ZkID {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -102,3 +107,4 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
+applyMixin(Aptos, ZkID, "zkid");

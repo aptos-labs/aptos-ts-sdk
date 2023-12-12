@@ -3,7 +3,13 @@
 
 import aptosClient from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client } from "../types";
-import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
+import {
+  NetworkToNodeAPI,
+  NetworkToFaucetAPI,
+  NetworkToIndexerAPI,
+  Network,
+  NetworkToPepperAPI,
+} from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
 /**
@@ -29,6 +35,11 @@ export class AptosConfig {
   readonly faucet?: string;
 
   /**
+   * The optional hardcoded pepper service URL to send requests to instead of using the network
+   */
+  readonly pepper?: string;
+
+  /**
    * The optional hardcoded indexer URL to send requests to instead of using the network
    */
   readonly indexer?: string;
@@ -39,6 +50,7 @@ export class AptosConfig {
     this.network = settings?.network ?? DEFAULT_NETWORK;
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
+    this.pepper = settings?.pepper;
     this.indexer = settings?.indexer;
     this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
@@ -68,6 +80,10 @@ export class AptosConfig {
         if (this.indexer !== undefined) return this.indexer;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom indexer url");
         return NetworkToIndexerAPI[this.network];
+      case AptosApiType.PEPPER:
+        if (this.pepper !== undefined) return this.pepper;
+        if (this.network === Network.CUSTOM) throw new Error("Please provide a custom pepper service url");
+        return NetworkToPepperAPI[this.network];
       default:
         throw Error(`apiType ${apiType} is not supported`);
     }
@@ -80,5 +96,14 @@ export class AptosConfig {
    * */
   isIndexerRequest(url: string): boolean {
     return NetworkToIndexerAPI[this.network] === url;
+  }
+
+  /**
+   * Checks if the URL is a known pepper service endpoint
+   *
+   * @internal
+   * */
+  isPepperServiceRequest(url: string): boolean {
+    return NetworkToPepperAPI[this.network] === url;
   }
 }

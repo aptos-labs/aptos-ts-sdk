@@ -107,11 +107,26 @@ export enum AccountAuthenticatorVariant {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  ZkID = 2,
 }
 
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  ZkID = 2,
+}
+
+export enum EphemeralPublicKeyVariant {
+  Ed25519 = 0,
+}
+
+export enum EphemeralSignatureVariant {
+  Ed25519 = 0,
+}
+
+export enum OpenIdSignatureOrZkProofVariant {
+  ZkProof = 0,
+  OpenIdSignature = 1,
 }
 
 /**
@@ -138,6 +153,8 @@ export type AptosSettings = {
   readonly faucet?: string;
 
   readonly indexer?: string;
+
+  readonly pepper?: string;
 
   readonly clientConfig?: ClientConfig;
 

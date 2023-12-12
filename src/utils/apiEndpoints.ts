@@ -22,6 +22,13 @@ export const NetworkToFaucetAPI: Record<string, string> = {
   local: "http://127.0.0.1:8081",
 };
 
+export const NetworkToPepperAPI: Record<string, string> = {
+  mainnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app/",
+  testnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app/",
+  devnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app/",
+  local: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app/",
+};
+
 export enum Network {
   MAINNET = "mainnet",
   TESTNET = "testnet",

@@ -96,3 +96,9 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
 ): Promise<AptosResponse<Req, Res>> {
   return post<Req, Res>({ ...options, type: AptosApiType.FAUCET });
 }
+
+export async function postAptosPepperService<Req extends {}, Res extends {}>(
+  options: PostAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
+  return post<Req, Res>({ ...options, type: AptosApiType.PEPPER });
+}
