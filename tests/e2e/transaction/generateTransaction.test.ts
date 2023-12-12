@@ -27,7 +27,7 @@ describe("generate transaction", () => {
 
   describe("single signer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -41,7 +41,7 @@ describe("generate transaction", () => {
       expect(deserializedTransaction.payload instanceof TransactionPayloadScript).toBeTruthy();
     });
     test("with multi sig payload", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
@@ -57,7 +57,7 @@ describe("generate transaction", () => {
     });
 
     test("it generates an entry function transaction", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
@@ -74,7 +74,7 @@ describe("generate transaction", () => {
 
   describe("multi agent transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.build.multiAgentTransaction({
+      const transaction = await aptos.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
@@ -91,7 +91,7 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.build.multiAgentTransaction({
+      const transaction = await aptos.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {
@@ -110,7 +110,7 @@ describe("generate transaction", () => {
 
   describe("fee payer transaction", () => {
     test("with script payload", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           bytecode: singleSignerScriptBytecode,
@@ -128,7 +128,7 @@ describe("generate transaction", () => {
     });
 
     test("with multi sig payload", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           multisigAddress: secondarySignerAccount.accountAddress,
@@ -147,7 +147,7 @@ describe("generate transaction", () => {
     });
 
     test("with entry function transaction", async () => {
-      const transaction = await aptos.build.transaction({
+      const transaction = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
@@ -165,7 +165,7 @@ describe("generate transaction", () => {
     });
 
     test("as a multi agent", async () => {
-      const transaction = await aptos.build.multiAgentTransaction({
+      const transaction = await aptos.transaction.build.multiAgent({
         sender: senderAccount.accountAddress,
         secondarySignerAddresses: [secondarySignerAccount.accountAddress],
         data: {

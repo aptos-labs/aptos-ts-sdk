@@ -181,7 +181,7 @@ export type InputGenerateRawTransactionArgs =
  *
  * @param rawTransaction a bcs serialized raw transaction
  */
-export interface SingleSignerTransaction {
+export interface SimpleTransaction {
   rawTransaction: RawTransaction;
   feePayerAddress?: AccountAddress;
   secondarySignerAddresses?: undefined;
@@ -202,7 +202,7 @@ export interface MultiAgentTransaction {
 /**
  * Unified type that holds all the return interfaces when generating different transaction types
  */
-export type AnyRawTransaction = SingleSignerTransaction | MultiAgentTransaction;
+export type AnyRawTransaction = SimpleTransaction | MultiAgentTransaction;
 
 // TRANSACTION SIMULATION TYPES //
 

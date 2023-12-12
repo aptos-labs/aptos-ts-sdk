@@ -1,6 +1,6 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
 import { APTOS_COIN } from "../utils/const";
 import { generateTransaction } from "./transactionSubmission";
@@ -12,7 +12,7 @@ export async function transferCoinTransaction(args: {
   amount: AnyNumber;
   coinType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, sender, recipient, amount, coinType, options } = args;
   const coinStructType = coinType ?? APTOS_COIN;
   const transaction = await generateTransaction({

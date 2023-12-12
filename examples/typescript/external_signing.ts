@@ -151,7 +151,7 @@ const example = async () => {
   if (hotBalance !== HOT_INITIAL_BALANCE) throw new Error("Hot's balance is incorrect");
 
   // Transfer between users
-  const singleSignerTransaction = await aptos.build.transaction({
+  const simpleTransaction = await aptos.transaction.build.simple({
     sender: cold.address(),
     data: {
       function: "0x1::coin::transfer",
@@ -162,7 +162,7 @@ const example = async () => {
 
   // Send the transaction to external signer to sign
   const serializer = new Serializer();
-  singleSignerTransaction.rawTransaction.serialize(serializer);
+  simpleTransaction.rawTransaction.serialize(serializer);
   const rawTransactionBytes = serializer.toUint8Array();
 
   // We're going to pretend that the network call is just an external function call
@@ -175,8 +175,8 @@ const example = async () => {
 
   // Combine the transaction and send
   console.log("\n=== Transfer transaction ===\n");
-  const committedTxn = await aptos.submit.transaction({
-    transaction: singleSignerTransaction,
+  const committedTxn = await aptos.transaction.submit.simple({
+    transaction: simpleTransaction,
     senderAuthenticator: authenticator,
   });
 

@@ -64,7 +64,7 @@ import {
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
-  SingleSignerTransaction,
+  SimpleTransaction,
   InputGenerateTransactionOptions,
   MultiAgentTransaction,
   InputScriptData,
@@ -251,9 +251,7 @@ export async function generateRawTransaction(args: {
  * When we call our `generateTransaction` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
  */
-export async function buildTransaction(
-  args: InputGenerateSingleSignerRawTransactionArgs,
-): Promise<SingleSignerTransaction>;
+export async function buildTransaction(args: InputGenerateSingleSignerRawTransactionArgs): Promise<SimpleTransaction>;
 export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
 
 /**

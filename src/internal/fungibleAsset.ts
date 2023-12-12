@@ -34,7 +34,7 @@ import {
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
 import { Account, AccountAddress } from "../core";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { generateTransaction } from "./transactionSubmission";
 
 export async function getFungibleAssetMetadata(args: {
@@ -116,7 +116,7 @@ export async function transferFungibleAsset(args: {
   recipient: AccountAddress;
   amount: AnyNumber;
   options?: InputGenerateTransactionOptions;
-}): Promise<SingleSignerTransaction> {
+}): Promise<SimpleTransaction> {
   const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
   const transaction = await generateTransaction({
     aptosConfig,

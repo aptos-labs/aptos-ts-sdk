@@ -18,11 +18,7 @@ import { Account } from "../../core";
 import { waitForTransaction } from "../../internal/transaction";
 import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
 import { PendingTransactionResponse, TransactionResponse } from "../../types";
-import {
-  InputGenerateTransactionOptions,
-  InputGenerateTransactionPayloadData,
-  SingleSignerTransaction,
-} from "../types";
+import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData, SimpleTransaction } from "../types";
 import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 
@@ -219,10 +215,7 @@ export class TransactionWorker {
    * @param sequenceNumber a sequence number the transaction will be generated with
    * @returns
    */
-  async generateNextTransaction(
-    account: Account,
-    sequenceNumber: bigint,
-  ): Promise<SingleSignerTransaction | undefined> {
+  async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
     const transaction = await generateTransaction({

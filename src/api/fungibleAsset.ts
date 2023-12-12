@@ -24,7 +24,7 @@ import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { Account, AccountAddress } from "../core";
-import { InputGenerateTransactionOptions, SingleSignerTransaction } from "../transactions";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.
@@ -134,7 +134,7 @@ export class FungibleAsset {
    * @param recipient The recipient account address
    * @param amount Number of assets to transfer
    *
-   * @returns A SingleSignerTransaction that can be simulated or submitted to chain.
+   * @returns A SimpleTransaction that can be simulated or submitted to chain.
    */
   async transferFungibleAsset(args: {
     sender: Account;
@@ -142,7 +142,7 @@ export class FungibleAsset {
     recipient: AccountAddress;
     amount: AnyNumber;
     options?: InputGenerateTransactionOptions;
-  }): Promise<SingleSignerTransaction> {
+  }): Promise<SimpleTransaction> {
     return transferFungibleAsset({ aptosConfig: this.config, ...args });
   }
 }
