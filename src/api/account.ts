@@ -197,12 +197,6 @@ export class Account {
     minimumLedgerVersion?: AnyNumber;
     options?: LedgerVersionArg;
   }): Promise<AccountAddress> {
-    await waitForIndexerOnVersion({
-      config: this.config,
-      minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
-    });
-
     return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
   }
 
