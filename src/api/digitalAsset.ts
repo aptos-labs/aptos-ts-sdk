@@ -72,7 +72,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getCollectionData({ aptosConfig: this.config, ...args });
   }
@@ -98,7 +98,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getCollectionId({ aptosConfig: this.config, ...args });
   }
@@ -117,7 +117,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getDigitalAssetData({ aptosConfig: this.config, ...args });
   }
@@ -137,7 +137,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getCurrentDigitalAssetOwnership({ aptosConfig: this.config, ...args });
   }
@@ -158,7 +158,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getOwnedDigitalAssets({ aptosConfig: this.config, ...args });
   }
@@ -179,7 +179,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getDigitalAssetActivity({ aptosConfig: this.config, ...args });
   }

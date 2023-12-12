@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Fixed examples to use wait on indexer rather than sleep
 - Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
+- [`Breaking`] Changed output of `getIndexerLastSuccessVersion` to `bigint` from `number`
 
 ## 1.1.0 (2023-12-11)
 

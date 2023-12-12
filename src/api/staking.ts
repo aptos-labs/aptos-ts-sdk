@@ -32,7 +32,7 @@ export class Staking {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+      processorType: ProcessorType.STAKE_PROCESSOR,
     });
     return getNumberOfDelegators({ aptosConfig: this.config, ...args });
   }
@@ -50,7 +50,7 @@ export class Staking {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+      processorType: ProcessorType.STAKE_PROCESSOR,
     });
     return getNumberOfDelegatorsForAllPools({ aptosConfig: this.config, ...args });
   }
@@ -71,7 +71,7 @@ export class Staking {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.STAKE_PROCESSOR],
+      processorType: ProcessorType.STAKE_PROCESSOR,
     });
     return getDelegatedStakingActivities({ aptosConfig: this.config, ...args });
   }

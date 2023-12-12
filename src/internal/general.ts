@@ -156,9 +156,9 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
   return data.processor_status;
 }
 
-export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<number> {
+export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
   const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
-  return response[0].last_success_version;
+  return BigInt(response[0].last_success_version);
 }
 
 export async function getProcessorStatus(args: {

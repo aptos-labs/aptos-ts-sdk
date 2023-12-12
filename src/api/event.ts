@@ -32,7 +32,7 @@ export class Event {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
+      processorType: ProcessorType.EVENTS_PROCESSOR,
     });
     return getAccountEventsByCreationNumber({ aptosConfig: this.config, ...args });
   }
@@ -55,7 +55,7 @@ export class Event {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
+      processorType: ProcessorType.EVENTS_PROCESSOR,
     });
     return getAccountEventsByEventType({ aptosConfig: this.config, ...args });
   }
@@ -83,7 +83,7 @@ export class Event {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.EVENTS_PROCESSOR],
+      processorType: ProcessorType.EVENTS_PROCESSOR,
     });
     return getEvents({ aptosConfig: this.config, ...args });
   }
