@@ -52,7 +52,7 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(MAX_U256.toString(), parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256));
     });
 
-    it("should parse a typed arguments", () => {
+    it("should parse typed arguments", () => {
       expect(checkOrConvertArgument(AccountAddress.ONE, parseTypeTag("address"), 0, [])).toEqual(AccountAddress.ONE);
       expect(checkOrConvertArgument(new Bool(true), parseTypeTag("bool"), 0, [])).toEqual(new Bool(true));
       expect(checkOrConvertArgument(new U8(MAX_U8), parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8));
@@ -145,6 +145,10 @@ describe("Remote ABI", () => {
 
       expect(checkOrConvertArgument(MoveVector.U8([0, 255]), parseTypeTag("vector<u8>"), 0, [])).toEqual(
         MoveVector.U8([0, 255]),
+      );
+      // String also supported for move vector
+      expect(checkOrConvertArgument(new MoveString("hello"), parseTypeTag("vector<u8>"), 0, [])).toEqual(
+        MoveVector.U8(new MoveString("hello").bcsToBytes()),
       );
       expect(
         checkOrConvertArgument(

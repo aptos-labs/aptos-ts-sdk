@@ -117,8 +117,7 @@ export function checkOrConvertArgument(
   // If the argument is bcs encoded, we can just use it directly
   if (isEncodedEntryFunctionArgument(arg)) {
     // Ensure the type matches the ABI
-    checkType(param, arg, position);
-    return arg;
+    return checkType(param, arg, position);
   }
 
   // If it is not BCS encoded, we will need to convert it with the ABI
@@ -262,65 +261,67 @@ function parseArg(
  * @param arg
  * @param position
  */
-function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number) {
+function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number): EntryFunctionArgumentTypes {
   if (param.isBool()) {
     if (isBcsBool(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("Bool", position);
   }
   if (param.isAddress()) {
     if (isBcsAddress(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("AccountAddress", position);
   }
   if (param.isU8()) {
     if (isBcsU8(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U8", position);
   }
   if (param.isU16()) {
     if (isBcsU16(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U16", position);
   }
   if (param.isU32()) {
     if (isBcsU32(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U32", position);
   }
   if (param.isU64()) {
     if (isBcsU64(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U64", position);
   }
   if (param.isU128()) {
     if (isBcsU128(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U128", position);
   }
   if (param.isU256()) {
     if (isBcsU256(arg)) {
-      return;
+      return arg;
     }
     throwTypeMismatch("U256", position);
   }
   if (param.isVector()) {
     if (arg instanceof MoveVector) {
       // If there's anything in it, check that the inner types match
-      // Note that since it's typed, the first item should be the same as the rest
-      if (arg.values.length > 0) {
-        checkType(param.value, arg.values[0], position);
-      }
-
-      return;
+      const newValues = arg.values.map((item) => checkType(param.value, item, position));
+      return new MoveVector(newValues);
     }
+
+    // Special case string as vector<u8>
+    if (arg instanceof MoveString && param.value.isU8()) {
+      return MoveVector.U8(arg.bcsToBytes());
+    }
+
     throwTypeMismatch("MoveVector", position);
   }
 
@@ -328,13 +329,13 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
   if (param instanceof TypeTagStruct) {
     if (param.isString()) {
       if (isBcsString(arg)) {
-        return;
+        return arg;
       }
       throwTypeMismatch("MoveString", position);
     }
     if (param.isObject()) {
       if (isBcsAddress(arg)) {
-        return;
+        return arg;
       }
       throwTypeMismatch("AccountAddress", position);
     }
@@ -342,9 +343,9 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
       if (arg instanceof MoveOption) {
         // If there's a value, we can check the inner type (otherwise it doesn't really matter)
         if (arg.value !== undefined) {
-          checkType(param.value.typeArgs[0], arg.value, position);
+          return new MoveOption(checkType(param.value.typeArgs[0], arg.value, position));
         }
-        return;
+        return arg;
       }
       throwTypeMismatch("MoveOption", position);
     }
