@@ -197,12 +197,6 @@ export class Account {
     minimumLedgerVersion?: AnyNumber;
     options?: LedgerVersionArg;
   }): Promise<AccountAddress> {
-    await waitForIndexerOnVersion({
-      config: this.config,
-      minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
-    });
-
     return lookupOriginalAccountAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -220,7 +214,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
     });
     return getAccountTokensCount({
       aptosConfig: this.config,
@@ -250,7 +244,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountOwnedTokens({
       aptosConfig: this.config,
@@ -282,7 +276,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountOwnedTokensFromCollectionAddress({
       aptosConfig: this.config,
@@ -312,7 +306,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getAccountCollectionsWithOwnedTokens({
       aptosConfig: this.config,
@@ -334,7 +328,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR,
     });
     return getAccountTransactionsCount({
       aptosConfig: this.config,
@@ -363,7 +357,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getAccountCoinsData({
       aptosConfig: this.config,
@@ -385,7 +379,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getAccountCoinsCount({ aptosConfig: this.config, ...args });
   }
@@ -401,12 +395,7 @@ export class Account {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    await waitForIndexerOnVersion({
-      config: this.config,
-      minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
-    });
-    return getAccountCoinAmount({ aptosConfig: this.config, coinType: APTOS_COIN, ...args });
+    return this.getAccountCoinAmount({ coinType: APTOS_COIN, ...args });
   }
 
   /**
@@ -425,7 +414,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getAccountCoinAmount({ aptosConfig: this.config, ...args });
   }
@@ -448,7 +437,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorType: ProcessorType.DEFAULT,
     });
     return getAccountOwnedObjects({
       aptosConfig: this.config,

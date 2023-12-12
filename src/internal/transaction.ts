@@ -187,7 +187,7 @@ export async function waitForIndexer(args: {
   const minimumLedgerVersion = BigInt(args.minimumLedgerVersion);
   const timeoutMilliseconds = 3000; // 3 seconds
   const startTime = new Date().getTime();
-  let indexerVersion = -1;
+  let indexerVersion = BigInt(-1);
 
   while (indexerVersion < minimumLedgerVersion) {
     // check for timeout

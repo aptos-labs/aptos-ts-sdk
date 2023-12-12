@@ -188,7 +188,7 @@ export class General {
    *
    * This is useful to tell what ledger version the indexer is updated to, as it can be behind the full nodes.
    */
-  async getIndexerLastSuccessVersion(): Promise<number> {
+  async getIndexerLastSuccessVersion(): Promise<bigint> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
   }
 

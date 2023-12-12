@@ -77,12 +77,13 @@ const example = async () => {
   });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
-  await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  await sleep(500);
+  const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
 
   console.log("\n=== Balances after transfer ===\n");
-  const aliceBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: aliceAddress });
+  const aliceBalanceAfter = await aptos.getAccountCoinsData({
+    accountAddress: aliceAddress,
+    minimumLedgerVersion: BigInt(response.version),
+  });
   const bobBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: bobAddress });
   const sponsorBalanceAfter = await aptos.getAccountCoinsData({ accountAddress: sponsorAddress });
 
@@ -101,10 +102,5 @@ const example = async () => {
   console.log(`Bob's balance is: ${bobBalanceAfter[0].amount}`);
   console.log(`Sponsor's balance is: ${sponsorBalanceAfter[0].amount}`);
 };
-
-const sleep = async (timeMs) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, timeMs);
-  });
 
 example();

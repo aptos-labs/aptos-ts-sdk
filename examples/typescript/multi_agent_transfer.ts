@@ -45,11 +45,6 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
   return amount;
 };
 
-const sleep = async (timeMs: number) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, timeMs);
-  });
-
 const CREATE_OBJECT_SCRIPT =
   "0xa11ceb0b060000000601000402040403080a051209071b3608512000000001000302000102000200000402030001060c000105010800066f626a656374067369676e65720a616464726573735f6f660e436f6e7374727563746f725265660d6372656174655f6f626a6563740000000000000000000000000000000000000000000000000000000000000001000001050b00110011010102";
 const TRANSFER_SCRIPT =
@@ -107,9 +102,12 @@ const example = async () => {
     },
   });
   const pendingObjectTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: createObject });
-  await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
+  const response = await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
 
-  const objects = await aptos.getAccountOwnedObjects({ accountAddress: alice.accountAddress });
+  const objects = await aptos.getAccountOwnedObjects({
+    accountAddress: alice.accountAddress,
+    minimumLedgerVersion: BigInt(response.version),
+  });
   const objectAddress = objects[0].object_address;
 
   console.log(`Created object ${objectAddress} with transaction: ${pendingObjectTxn.hash}`);
@@ -136,18 +134,18 @@ const example = async () => {
     senderAuthenticator: aliceSignature,
     additionalSignersAuthenticators: [bobSignature],
   });
-  await aptos.waitForTransaction({ transactionHash: pendingObjectTxn.hash });
+  const transferResponse = await aptos.waitForTransaction({ transactionHash: pendingTransferTxn.hash });
 
-  // TODO: There's some indexer consistency issue to be improved here
-  await sleep(200);
+  const bobObjectsAfter = await aptos.getAccountOwnedObjects({
+    accountAddress: bob.accountAddress,
+    minimumLedgerVersion: BigInt(transferResponse.version),
+  });
 
-  const bobObjectsAfter = await aptos.getAccountOwnedObjects({ accountAddress: bob.accountAddress });
-
-  if (bobObjectsAfter.find((object) => object.object_address === objectAddress) === undefined) {
+  if (
+    bobObjectsAfter.find((object: { object_address: string }) => object.object_address === objectAddress) === undefined
+  ) {
     throw new Error(`Failed to transfer object to bob ${objectAddress}`);
   }
-
-  console.log("Transferred object in txn: ", pendingTransferTxn.hash);
 
   // Check balance
   console.log("\n=== New Balances ===\n");
