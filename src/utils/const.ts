@@ -58,12 +58,12 @@ export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
  */
 export enum ProcessorType {
   ACCOUNT_TRANSACTION_PROCESSOR = "account_transactions_processor",
-  COIN_PROCESSOR = "coin_processor",
   DEFAULT = "default_processor",
   EVENTS_PROCESSOR = "events_processor",
+  // Fungible asset processor also handles coins
   FUNGIBLE_ASSET_PROCESSOR = "fungible_asset_processor",
   STAKE_PROCESSOR = "stake_processor",
-  TOKEN_PROCESSOR = "token_processor",
+  // Token V2 processor replaces Token processor (not only for digital assets)
   TOKEN_V2_PROCESSOR = "token_v2_processor",
   USER_TRANSACTION_PROCESSOR = "user_transaction_processor",
 }

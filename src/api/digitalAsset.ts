@@ -11,7 +11,6 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
-  TokenStandard,
   TokenStandardArg,
 } from "../types";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
@@ -73,7 +72,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: getTokenProcessorTypes(args.options?.tokenStandard),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getCollectionData({ aptosConfig: this.config, ...args });
   }
@@ -99,7 +98,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: getTokenProcessorTypes(args.options?.tokenStandard),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getCollectionId({ aptosConfig: this.config, ...args });
   }
@@ -118,8 +117,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      // TODO(greg): Should take in a consistent input for token queries
-      processorTypes: getTokenProcessorTypes(undefined),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getDigitalAssetData({ aptosConfig: this.config, ...args });
   }
@@ -139,8 +137,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      // TODO(greg): Should take in a consistent input for token queries
-      processorTypes: getTokenProcessorTypes(undefined),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getCurrentDigitalAssetOwnership({ aptosConfig: this.config, ...args });
   }
@@ -161,8 +158,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      // TODO(greg): Should take in a consistent input for token queries
-      processorTypes: getTokenProcessorTypes(undefined),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getOwnedDigitalAssets({ aptosConfig: this.config, ...args });
   }
@@ -183,8 +179,7 @@ export class DigitalAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      // TODO(greg): Should take in a consistent input for token queries
-      processorTypes: getTokenProcessorTypes(undefined),
+      processorTypes: [ProcessorType.TOKEN_V2_PROCESSOR],
     });
     return getDigitalAssetActivity({ aptosConfig: this.config, ...args });
   }
@@ -526,17 +521,5 @@ export class DigitalAsset {
     options?: InputGenerateTransactionOptions;
   }) {
     return updateDigitalAssetTypedPropertyTransaction({ aptosConfig: this.config, ...args });
-  }
-}
-
-function getTokenProcessorTypes(tokenStandard?: TokenStandard) {
-  switch (tokenStandard) {
-    case "v1":
-      return [ProcessorType.TOKEN_PROCESSOR];
-    case "v2":
-      return [ProcessorType.TOKEN_V2_PROCESSOR];
-    default:
-      // If it's something we don't recognize, or undefined, just do both
-      return [ProcessorType.TOKEN_PROCESSOR, ProcessorType.TOKEN_V2_PROCESSOR];
   }
 }

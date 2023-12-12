@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Fixed examples to use wait on indexer rather than sleep
+- Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
+
 ## 1.1.0 (2023-12-11)
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`
