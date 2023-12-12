@@ -448,7 +448,7 @@ export class Account {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
-      processorTypes: [ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR],
+      processorTypes: [ProcessorType.DEFAULT],
     });
     return getAccountOwnedObjects({
       aptosConfig: this.config,

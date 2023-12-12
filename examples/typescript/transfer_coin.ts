@@ -24,9 +24,10 @@ const aptos = new Aptos(config);
  * @returns {Promise<number>}
  *
  */
-const balance = async (name: string, accountAddress: AccountAddress): Promise<number> => {
+const balance = async (name: string, accountAddress: AccountAddress, versionToWaitFor?: bigint): Promise<number> => {
   const amount = await aptos.getAccountAPTAmount({
     accountAddress,
+    minimumLedgerVersion: versionToWaitFor,
   });
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
@@ -74,7 +75,7 @@ const example = async () => {
   console.log(`Committed transaction: ${response.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
-  const newAliceBalance = await balance("Alice", alice.accountAddress);
+  const newAliceBalance = await balance("Alice", alice.accountAddress, BigInt(response.version));
   const newBobBalance = await balance("Bob", bob.accountAddress);
 
   // Bob should have the transfer amount
