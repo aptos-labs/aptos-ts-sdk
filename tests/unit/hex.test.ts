@@ -61,7 +61,10 @@ test("converts hex bytes to string without 0x prefix", () => {
 });
 
 test("throws when parsing invalid hex char", () => {
-  expect(() => Hex.fromString("0xzyzz")).toThrow("Hex string contains invalid hex characters: Invalid byte sequence");
+  expect(() => Hex.fromString("0xzyzz")).toThrow(
+    // eslint-disable-next-line quotes
+    'Hex string contains invalid hex characters: hex string expected, got non-hex character "zy" at index 0',
+  );
 });
 
 test("throws when parsing hex of length zero", () => {

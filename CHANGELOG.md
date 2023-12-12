@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Update dependencies in the Typescript SDK to keep up with latest changes
+- Updated @aptos-labs/aptos-client dependency
+
 ## 1.1.0 (2023-12-11)
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`
