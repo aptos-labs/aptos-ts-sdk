@@ -10,11 +10,15 @@
 import {
   generateRegistrationOptions as _generateRegistrationOptions,
   verifyRegistrationResponse as _verifyRegistrationResponse,
+  generateAuthenticationOptions as _generateAuthenticationOptions,
+  verifyAuthenticationResponse as _verifyAuthenticationResponse,
   VerifiedRegistrationResponse,
+  VerifiedAuthenticationResponse,
 } from "@simplewebauthn/server";
-import { startRegistration } from "@simplewebauthn/browser";
+import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
 import { isoBase64URL, cose, parseAuthenticatorData, convertCOSEtoPKCS } from "@simplewebauthn/server/helpers";
-import { PublicKeyCredentialCreationOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/server/esm/deps";
+import { AuthenticationResponseJSON, AuthenticatorDevice, PublicKeyCredentialCreationOptionsJSON, 
+  PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/server/esm/deps";
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AuthenticationKey, PublicKey } from "../core";
 import { AnyRawTransaction, signWithPasskey } from "../transactions";
@@ -66,6 +70,43 @@ export async function verifyRegistrationResponse(args: {
     requireUserVerification: true,
     supportedAlgorithmIDs,
   });
+}
+
+export async function generateAuthenticationOptions(args: {
+  credentialId: string | Uint8Array;
+  timeout?: number;
+  rpID?: string;
+}): Promise<PublicKeyCredentialRequestOptionsJSON> {
+  const {credentialId} = args;
+  const allowCredentials: PublicKeyCredentialDescriptor[] = [
+    {
+      type: "public-key",
+      id: typeof credentialId === "string" ? isoBase64URL.toBuffer(credentialId) : credentialId,
+    },
+  ];
+  return _generateAuthenticationOptions({...args, allowCredentials, userVerification: "required"})
+}
+
+export async function authenticateCredential(
+  requestOptionsJSON: PublicKeyCredentialRequestOptionsJSON
+): Promise<AuthenticationResponseJSON> {
+  return startAuthentication(requestOptionsJSON)
+}
+
+export async function verifyAuthenticationResponse(args: {
+  response: AuthenticationResponseJSON;
+  expectedChallenge: string | ((challenge: string) => boolean | Promise<boolean>);
+  expectedOrigin: string | string[];
+  expectedRPID: string | string[];
+  expectedType?: string | string[];
+  authenticator: AuthenticatorDevice;
+  requireUserVerification?: boolean;
+  advancedFIDOConfig?: {
+      userVerification?: UserVerificationRequirement;
+  };
+}): Promise<VerifiedAuthenticationResponse> {
+
+  return _verifyAuthenticationResponse({...args})
 }
 
 export function parsePublicKey(response: RegistrationResponseJSON): PublicKey {
