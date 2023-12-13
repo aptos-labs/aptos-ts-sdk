@@ -71,12 +71,21 @@ describe("Remote ABI", () => {
         MoveVector.Bool([true, false]),
       );
 
-      // vector<u8> supports Array<number>, Uint8Array, and hex strings
+      // vector<u8> supports Array<number>, Uint8Array, ArrayBuffer, and utf-8 strings
       expect(checkOrConvertArgument([0, 255], parseTypeTag("vector<u8>"), 0, [])).toEqual(MoveVector.U8([0, 255]));
       expect(checkOrConvertArgument(new Uint8Array([0, 255]), parseTypeTag("vector<u8>"), 0, [])).toEqual(
         MoveVector.U8([0, 255]),
       );
-      expect(checkOrConvertArgument("0x00FF", parseTypeTag("vector<u8>"), 0, [])).toEqual(MoveVector.U8([0, 255]));
+      expect(checkOrConvertArgument(new Uint8Array([0, 255]).buffer, parseTypeTag("vector<u8>"), 0, [])).toEqual(
+        MoveVector.U8([0, 255]),
+      );
+      // When using strings, it should be exactly the same as a Move String, but it should be a MoveVector
+      const convertedString = checkOrConvertArgument("0xFF", parseTypeTag("vector<u8>"), 0, []);
+      expect(convertedString).toBeInstanceOf(MoveVector<U8>);
+      expect(convertedString.bcsToBytes()).toEqual(new MoveString("0xFF").bcsToBytes());
+      expect(checkOrConvertArgument("Hello", parseTypeTag("vector<u8>"), 0, []).bcsToBytes()).toEqual(
+        new MoveString("Hello").bcsToBytes(),
+      );
 
       expect(checkOrConvertArgument("Hello", parseTypeTag("0x1::string::String"), 0, [])).toEqual(
         new MoveString("Hello"),
@@ -196,7 +205,6 @@ describe("Remote ABI", () => {
       expect(() => checkOrConvertArgument(false, parseTypeTag("0x1::object::Object<u8>"), 0, [])).toThrowError();
       expect(() => checkOrConvertArgument(false, parseTypeTag("vector<u8>"), 0, [])).toThrowError();
       expect(() => checkOrConvertArgument([0], parseTypeTag("vector<T0>"), 0, [])).toThrowError();
-      expect(() => checkOrConvertArgument("not a hex string", parseTypeTag("vector<u8>"), 0, [])).toThrowError();
 
       // Invalid struct
       expect(() => checkOrConvertArgument(false, parseTypeTag("0x1::account::Account"), 0, [])).toThrowError();
@@ -229,6 +237,43 @@ describe("Remote ABI", () => {
 
       // Unsupported type
       expect(() => checkOrConvertArgument(false, parseTypeTag("signer"), 0, [])).toThrowError();
+    });
+
+    it("should not support unsupported vector conversions", () => {
+      // These are not supported currently, but could in the future
+      expect(() =>
+        checkOrConvertArgument(new Uint16Array([1, 2, 3]), parseTypeTag("vector<u16>"), 0, []),
+      ).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new Uint32Array([1, 2, 3]), parseTypeTag("vector<u32>"), 0, []),
+      ).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new BigUint64Array([1n, 2n, 3n]), parseTypeTag("vector<u64>"), 0, []),
+      ).toThrowError();
+
+      // Signed arrays shouldn't work though
+      expect(() => checkOrConvertArgument(new Int8Array([1, 2, 3]), parseTypeTag("vector<u8>"), 0, [])).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new Int16Array([1, 2, 3]), parseTypeTag("vector<u16>"), 0, []),
+      ).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new Int32Array([1, 2, 3]), parseTypeTag("vector<u32>"), 0, []),
+      ).toThrowError();
+      expect(() =>
+        checkOrConvertArgument(new BigInt64Array([1n, 2n, 3n]), parseTypeTag("vector<u64>"), 0, []),
+      ).toThrowError();
+
+      // Below u64 can't support bigints
+      expect(() => checkOrConvertArgument([1n, 2n], parseTypeTag("vector<u8>"), 0, [])).toThrowError();
+      expect(() => checkOrConvertArgument([1n, 2n], parseTypeTag("vector<u16>"), 0, [])).toThrowError();
+      expect(() => checkOrConvertArgument([1n, 2n], parseTypeTag("vector<u32>"), 0, [])).toThrowError();
+
+      // Can't mix types that don't match
+      expect(() => checkOrConvertArgument([1n, new U64(2)], parseTypeTag("vector<u8>"), 0, [])).toThrowError();
+      expect(() => checkOrConvertArgument([1n, new U64(2)], parseTypeTag("vector<u16>"), 0, [])).toThrowError();
+      expect(() => checkOrConvertArgument([1n, new U64(2)], parseTypeTag("vector<u32>"), 0, [])).toThrowError();
+
+      // TODO: Verify string behavior on u64 and above
     });
   });
 });
