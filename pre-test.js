@@ -1,16 +1,29 @@
-const { executeSync } = require('graphql')
-const { execSync } = require('node:child_process')
+// import { http } from 'node:http'
 
-module.exports = function globalSetup() {
+module.exports = async () => {
+	const http = require('node:http')
 
-	const whichAptos = execSync('which aptos').toString()
+	let a, b, c
 
-	if (!whichAptos) {
-		throw new Error("Aptos CLI is not installed")
+	http.get('http://127.0.0.1:8080/', (response) => {
+		a = response.statusCode
+	})
+
+	http.get('http://127.0.0.1:8090/', (response) => {
+		b = response.statusCode
+	})
+
+	http.get('http://127.0.0.1:8081/', (response) => {
+		c = response.statusCode
+	})
+
+	if (a === 200) {
+		throw new Error("Issue in aptos local testnet")
 	}
-
-	const localTestNetRunning = execSync('ps -ax | grep aptos').toString().split(' ')
-	if (localTestNetRunning[localTestNetRunning.length - 2] !== "run-local-testnet") {
-		throw new Error("TestNet is not running")
+	if (b === 200) {
+		throw new Error("Issue in aptos local testnet")
 	}
-}
+	if (c === 302) {
+		throw new Error("Issue in aptos local testnet")
+	}
+};
