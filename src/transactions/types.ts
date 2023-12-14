@@ -30,6 +30,7 @@ export type SimpleEntryFunctionArgumentTypes =
   | null // To support optional empty
   | undefined // To support optional empty
   | Uint8Array
+  | ArrayBuffer
   | Array<SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes>;
 
 /**

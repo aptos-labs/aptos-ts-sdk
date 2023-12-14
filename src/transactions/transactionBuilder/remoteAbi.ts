@@ -6,7 +6,7 @@ import { TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
 import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
-import { AccountAddress, Hex } from "../../core";
+import { AccountAddress } from "../../core";
 import { getModule } from "../../internal/account";
 import {
   findFirstNonSignerArg,
@@ -27,6 +27,8 @@ import {
   isString,
   throwTypeMismatch,
 } from "./helpers";
+
+const TEXT_ENCODER = new TextEncoder();
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags
@@ -202,16 +204,16 @@ function parseArg(
   if (param.isVector()) {
     // Check special case for Vector<u8>
     if (param.value.isU8()) {
+      // We don't allow vector<u8>, but we convert strings to UTF8 uint8array
+      // This is legacy behavior from the original SDK
       if (isString(arg)) {
-        try {
-          return MoveVector.U8(Hex.fromHexInput(arg).toUint8Array());
-        } catch (e: any) {
-          // This is a bit of a hack to not reuse code, but also have a better error message
-          throw new Error(`vector<u8> must be passed in as a hex string or a Uint8array, type '${param.toString()}'`);
-        }
+        return MoveVector.U8(TEXT_ENCODER.encode(arg));
       }
       if (arg instanceof Uint8Array) {
         return MoveVector.U8(arg);
+      }
+      if (arg instanceof ArrayBuffer) {
+        return MoveVector.U8(new Uint8Array(arg));
       }
     }
 
