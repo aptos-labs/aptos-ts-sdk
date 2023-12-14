@@ -4,7 +4,7 @@
 if [ -n "$1" ]; then
   LABEL=$1;
 else
-  LABEL="Experimental";
+  LABEL="Stable";
 fi
 
 # Generate docs by version for the SDK
