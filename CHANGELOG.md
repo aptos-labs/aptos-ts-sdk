@@ -4,11 +4,16 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.2.0 (2023-12-14)
+
 - Fixed examples to use wait on indexer rather than sleep
 - Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
 - [`Breaking`] Changed output of `getIndexerLastSuccessVersion` to `bigint` from `number`
 - Update dependencies in the Typescript SDK to keep up with latest changes
 - Updated @aptos-labs/aptos-client dependency
+- [`Breaking`] Hex string inputs to `vector<u8>` entry function arguments will now be interpreted as a string instead of hex
+- String inputs to `vector<u8>` entry function arguments will now be interpeted as UTF-8 bytes
+- ArrayBuffer is now a possible input for `vector<u8>` entry function arguments
 
 ## 1.1.0 (2023-12-11)
 
