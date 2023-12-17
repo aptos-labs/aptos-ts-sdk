@@ -16,7 +16,7 @@ import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "..
 import { AnyPublicKey } from "./crypto/anyPublicKey";
 import { computeAddressSeed, ZkIDPublicKey } from "./crypto/zkid";
 import { EphemeralPublicKey } from "./crypto/ephermeralPublicKey";
-import { bigIntToBytesLE, packBytes, padAndPackBytes, poseidonHash } from "./crypto/poseidon";
+import { bigIntToBytesLE, bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "./crypto/poseidon";
 import { EphemeralSignature } from "./crypto/ephemeralSignature";
 
 /**
@@ -324,9 +324,9 @@ export class EphemeralAccount {
   }
 
   generateNonce(): string {
-    const epkFields = padAndPackBytes(this.publicKey.bcsToBytes(), 64);
-    const blinderField = packBytes(this.blinder);
-    const fields = epkFields.concat(BigInt(this.expiryTimestamp)).concat(blinderField);
+    const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
+    fields.push(BigInt(this.expiryTimestamp))
+    fields.push(bytesToBigIntLE(this.blinder))
     const nonceHash = poseidonHash(fields);
     return base64url.encode(bigIntToBytesLE(nonceHash, 32));
   }

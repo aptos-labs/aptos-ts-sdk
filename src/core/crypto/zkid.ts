@@ -7,7 +7,7 @@ import { Hex } from "../hex";
 import { HexInput, OpenIdSignatureOrZkProofVariant } from "../../types";
 import { EphemeralPublicKey } from "./ephermeralPublicKey";
 import { EphemeralSignature } from "./ephemeralSignature";
-import { bigIntToBytesLE, hashASCIIStrToField, hashBytes, poseidonHash } from "./poseidon";
+import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 
 /**
  * Represents the ZkIDPublicKey public key
@@ -97,19 +97,8 @@ export function computeAddressSeed(args: {
     hashASCIIStrToField(aud, 248),
     hashASCIIStrToField(uidKey, 248),
     hashASCIIStrToField(uidVal, 248),
-    hashBytes(Hex.fromHexInput(pepper).toUint8Array(), 31),
+    bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
   ];
-
-  // console.log("aud")
-  // console.log(hashASCIIStrToField(aud, 248))
-  // console.log("uidKey")
-  // console.log(hashASCIIStrToField(uidKey, 248))
-  // console.log("uidVal")
-  // console.log(hashASCIIStrToField(uidVal, 248))
-  // console.log("pepper hash")
-  // console.log(hashBytes(Hex.fromHexInput(pepper).toUint8Array(), 31))
-  // console.log("address seed")
-  // console.log(bigIntToBytesLE(poseidonHash(fields), ZkIDPublicKey.ADDRESS_SEED_LENGTH))
 
   return bigIntToBytesLE(poseidonHash(fields), ZkIDPublicKey.ADDRESS_SEED_LENGTH);
 }

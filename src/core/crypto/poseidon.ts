@@ -45,18 +45,18 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
 export function hashASCIIStrToField(str: string, maxSizeBytes: number) {
   const textEncoder = new TextEncoder();
   const strBytes = textEncoder.encode(str);
-  return hashBytes(strBytes, maxSizeBytes);
+  return hashBytesNoLen(strBytes, maxSizeBytes);
 }
 
-export function hashBytes(bytes: Uint8Array, maxSizeBytes: number) {
+function hashBytesNoLen(bytes: Uint8Array, maxSizeBytes: number) {
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
   }
-  const packed = [BigInt(maxSizeBytes)].concat(padAndPackBytes(bytes, maxSizeBytes));
+  const packed = padAndPackBytesNoLen(bytes, maxSizeBytes);
   return poseidonHash(packed);
 }
 
-export function padAndPackBytes(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
+function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
   }
@@ -64,7 +64,14 @@ export function padAndPackBytes(bytes: Uint8Array, maxSizeBytes: number): bigint
   return packBytes(paddedStrBytes);
 }
 
-export function packBytes(bytes: Uint8Array): bigint[] {
+export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
+  if (bytes.length > maxSizeBytes) {
+    throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
+  }
+  return [BigInt(bytes.length)].concat(padAndPackBytesNoLen(bytes, maxSizeBytes));
+}
+
+function packBytes(bytes: Uint8Array): bigint[] {
   if (bytes.length > MAX_NUM_INPUT_BYTES) {
     throw new Error(`Can't pack more than ${MAX_NUM_INPUT_BYTES}.  Was given ${bytes.length} bytes`);
   }
@@ -79,7 +86,7 @@ function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
   return result;
 }
 
-function bytesToBigIntLE(bytes: Uint8Array): bigint {
+export function bytesToBigIntLE(bytes: Uint8Array): bigint {
   let result = BigInt(0);
   for (let i = bytes.length - 1; i >= 0; i -= 1) {
     result = (result << BigInt(8)) | BigInt(bytes[i]);
