@@ -17,7 +17,7 @@ import {
   MultiAgentRawTransaction,
   RawTransaction,
   TransactionPayloadEntryFunction,
-  TransactionPayloadMultisig,
+  TransactionPayloadMultiSig,
   TransactionPayloadScript,
   buildTransaction,
   deriveTransactionType,
@@ -63,7 +63,7 @@ describe("transaction builder", () => {
         function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
         functionArguments: [200, "0x1"],
       });
-      expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
     test("it generates an entry function transaction payload", async () => {
       const payload = await generateTransactionPayload({
@@ -111,7 +111,7 @@ describe("transaction builder", () => {
         },
         functionAbi,
       );
-      expect(payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
     test("it generates an entry function transaction payload", async () => {
       const payload = generateTransactionPayloadWithABI(
@@ -181,7 +181,7 @@ describe("transaction builder", () => {
         payload,
       });
       expect(rawTxn instanceof RawTransaction).toBeTruthy();
-      expect(rawTxn.payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      expect(rawTxn.payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
 
     test("it generates a raw transaction with an entry function payload", async () => {
