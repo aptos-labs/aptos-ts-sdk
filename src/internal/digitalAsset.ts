@@ -59,7 +59,8 @@ const PropertyTypeMap = {
 export type PropertyType = keyof typeof PropertyTypeMap;
 
 // Accepted property value types for user input
-// To pass in an Array, use Uint8Array type - for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
+// To pass in an Array, use Uint8Array type
+// for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
 export type PropertyValue = boolean | number | bigint | string | AccountAddress | Uint8Array;
 
 // The default digital asset type to use if non provided
