@@ -53,14 +53,14 @@ const PropertyTypeMap = {
   U256: "u256",
   ADDRESS: "address",
   STRING: "0x1::string::String",
-  // TODO support array/vector property types and values
-  // ARRAY: "vector<u8>",
+  ARRAY: "vector<u8>",
 };
 
 export type PropertyType = keyof typeof PropertyTypeMap;
 
 // Accepted property value types for user input
-export type PropertyValue = boolean | number | bigint | string | AccountAddress | Array<PropertyValue>;
+// To pass in an Array, use Uint8Array type - for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
+export type PropertyValue = boolean | number | bigint | string | AccountAddress | Uint8Array;
 
 // The default digital asset type to use if non provided
 const defaultDigitalAssetType = "0x4::token::Token";
@@ -696,7 +696,6 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
 
 function getPropertyValueRaw(propertyValues: Array<PropertyValue>, propertyTypes: Array<string>): Array<Uint8Array> {
   const results = new Array<Uint8Array>();
-
   propertyTypes.forEach((typ, index) => {
     results.push(getSinglePropertyValueRaw(propertyValues[index], typ));
   });

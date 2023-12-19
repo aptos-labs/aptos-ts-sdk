@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
+- Add support to Array value in digital asset property map
 
 # 1.2.0 (2023-12-14)
 
