@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
+
 # 1.2.0 (2023-12-14)
 
 - Fixed examples to use wait on indexer rather than sleep

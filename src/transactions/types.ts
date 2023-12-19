@@ -12,7 +12,7 @@ import {
   FeePayerRawTransaction,
   RawTransaction,
   TransactionPayloadEntryFunction,
-  TransactionPayloadMultisig,
+  TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId } from "../types";
@@ -89,7 +89,7 @@ export type InputGenerateTransactionOptions = {
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
-  | TransactionPayloadMultisig;
+  | TransactionPayloadMultiSig;
 
 /**
  * Unified type for the data needed to generate a transaction payload of types:
