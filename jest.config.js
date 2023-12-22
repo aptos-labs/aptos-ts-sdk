@@ -10,6 +10,9 @@ module.exports = {
     "./src/types/generated",
     "./tests/e2e/ans/publishANSContracts.ts",
   ],
+  transform: {
+    "^.+\\.ts?$": "ts-jest",
+  },
   testPathIgnorePatterns: ["dist/*", "examples/*"],
   collectCoverage: true,
   setupFiles: ["dotenv/config"],
@@ -23,4 +26,6 @@ module.exports = {
   },
   // To help avoid exhausting all the available fds.
   maxWorkers: 4,
+  globalSetup: "./tests/preTest.ts",
+  globalTeardown: "./tests/postTest.js",
 };

@@ -54,6 +54,7 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
+    "@aptos-labs/aptos-cli": "^0.1.2",
     "@babel/traverse": "^7.23.6",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/import-types-preset": "^3.0.0",
