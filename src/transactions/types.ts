@@ -77,9 +77,9 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * Optional options to set when generating a transaction
  */
 export type InputGenerateTransactionOptions = {
-  maxGasAmount?: AnyNumber;
-  gasUnitPrice?: AnyNumber;
-  expireTimestamp?: AnyNumber;
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
 };
 
