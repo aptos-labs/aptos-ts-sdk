@@ -8,7 +8,7 @@ import {
   AccountAddress,
   RawTransaction,
   TransactionPayloadScript,
-  TransactionPayloadMultisig,
+  TransactionPayloadMultiSig,
   TransactionPayloadEntryFunction,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
@@ -53,7 +53,7 @@ describe("generate transaction", () => {
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
 
     test("it generates an entry function transaction", async () => {
@@ -143,7 +143,7 @@ describe("generate transaction", () => {
       const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
       const deserializedTransaction = RawTransaction.deserialize(deserializer);
       expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
-      expect(deserializedTransaction.payload instanceof TransactionPayloadMultisig).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
 
     test("with entry function transaction", async () => {

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Account, Aptos, AptosConfig, Bool, MoveString, MoveVector, Network, U8 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -43,6 +43,9 @@ async function setupToken(): Promise<string> {
     description: tokenDescription,
     name: tokenName,
     uri: tokenUri,
+    propertyKeys: ["my bool key", "my array key"],
+    propertyTypes: ["BOOLEAN", "ARRAY"],
+    propertyValues: [false, "[value]"],
   });
   const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
   const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
@@ -252,9 +255,21 @@ describe("DigitalAsset", () => {
         "U256 key",
         "ADDRESS key",
         "STRING key",
+        "ARRAY of bytes key",
       ],
-      propertyTypes: ["BOOLEAN", "U8", "U16", "U32", "U64", "U128", "U256", "ADDRESS", "STRING"],
-      propertyValues: [true, 1, 1, 1, 1, 1, 1, bob.accountAddress, "hi"],
+      propertyTypes: ["BOOLEAN", "U8", "U16", "U32", "U64", "U128", "U256", "ADDRESS", "STRING", "ARRAY"],
+      propertyValues: [
+        true,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        bob.accountAddress,
+        "hi",
+        new MoveVector([new MoveString("hello"), new U8(1), new Bool(true), new MoveString("world")]).bcsToBytes(),
+      ],
     });
     await aptos.signAndSubmitTransaction({ signer: creator, transaction });
   });
