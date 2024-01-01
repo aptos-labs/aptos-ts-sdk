@@ -1,2 +1,1 @@
-export * from "./aptosNode";
-export * from "./aptosCLI";
+export * from "./localNode";
