@@ -1,8 +1,11 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
-var kill = require("tree-kill");
+import kill from "tree-kill";
+import { sleep } from "../utils/helpers";
 
 export class LocalNode {
-  static MAXIMUM_WAIT_TIME_SEC = 30;
+  readonly MAXIMUM_WAIT_TIME_SEC = 30;
+
+  readonly READINESS_ENDPOINT = "http://127.0.0.1:8070/";
 
   process: ChildProcessWithoutNullStreams | null = null;
 
@@ -11,7 +14,8 @@ export class LocalNode {
    * of the node process, including the node process itself
    */
   stop() {
-    kill(this.process?.pid);
+    if (!this.process?.pid) return;
+    kill(this.process.pid);
   }
 
   /**
@@ -42,12 +46,14 @@ export class LocalNode {
     childProcess.stderr?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
+      // eslint-disable-next-line no-console
       console.log(str);
     });
 
     childProcess.stdout?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
+      // eslint-disable-next-line no-console
       console.log(str);
     });
   }
@@ -59,11 +65,13 @@ export class LocalNode {
    */
   async waitUntilProcessIsUp(): Promise<boolean> {
     let operational = await this.checkIfProcessIsUp();
-    let start = Date.now() / 1000;
+    const start = Date.now() / 1000;
     let last = start;
 
-    while (!operational && start + LocalNode.MAXIMUM_WAIT_TIME_SEC > last) {
-      await this.sleep(1000);
+    while (!operational && start + this.MAXIMUM_WAIT_TIME_SEC > last) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(1000);
+      // eslint-disable-next-line no-await-in-loop
       operational = await this.checkIfProcessIsUp();
       last = Date.now() / 1000;
     }
@@ -78,20 +86,13 @@ export class LocalNode {
   async checkIfProcessIsUp(): Promise<boolean> {
     try {
       // Query readiness endpoint
-      const data = await fetch("http://127.0.0.1:8070/");
+      const data = await fetch(this.READINESS_ENDPOINT);
       if (data.status === 200) {
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (err: any) {
       return false;
     }
-  }
-
-  sleep(timeMs: number): Promise<null> {
-    return new Promise((resolve) => {
-      setTimeout(resolve, timeMs);
-    });
   }
 }
