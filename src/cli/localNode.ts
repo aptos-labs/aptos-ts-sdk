@@ -15,9 +15,16 @@ export class LocalNode {
   }
 
   /**
-   * Runs a local testnet and wait for process to be up
+   * Runs a local testnet and waits for process to be up.
+   *
+   * If local node process is already up it returns and does
+   * not start the process
    */
   async run() {
+    const nodeIsUp = await this.checkIfProcessIsUp();
+    if (nodeIsUp) {
+      return;
+    }
     this.start();
     await this.waitUntilProcessIsUp();
   }
