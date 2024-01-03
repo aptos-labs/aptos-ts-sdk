@@ -7,6 +7,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
 - Add support to Array value in digital asset property map
 - [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
+- Add `@aptos-labs/aptos-cli` npm package as a dev dependency
+- Implement a `LocalNode` module to run a local testnet with in the SDK environment
+- Use `LocalNode` module to spin up a local testnet pre running SDK tests
 
 # 1.2.0 (2023-12-14)
 
