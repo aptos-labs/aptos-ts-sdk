@@ -23,4 +23,7 @@ module.exports = {
   },
   // To help avoid exhausting all the available fds.
   maxWorkers: 4,
+  // to check if pg and aptos local node is running
+  testEnvironment: 'node',
+  globalSetup: './pre-test.js',
 };
