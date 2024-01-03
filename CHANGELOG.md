@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Update BigInt constants to be hardcoded rather than use Math.pow
 - [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
 - Add support to Array value in digital asset property map
 - [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
