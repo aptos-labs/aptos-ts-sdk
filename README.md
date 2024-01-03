@@ -179,7 +179,7 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 
 To run the SDK tests, simply run from the root of this repository:
 
-> Note: for a better experience, make sure there is no aptos local node process up and running.
+> Note: for a better experience, make sure there is no aptos local node process up and running (can check if there is a process running on port 8080).
 
 ```bash
 pnpm i

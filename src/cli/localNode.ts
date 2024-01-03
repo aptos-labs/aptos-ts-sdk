@@ -75,6 +75,13 @@ export class LocalNode {
       operational = await this.checkIfProcessIsUp();
       last = Date.now() / 1000;
     }
+
+    // If we are here it means something blocks the process to start.
+    // Might worth checking if another process is running on port 8080
+    if (!operational) {
+      throw new Error("Process failed to start");
+    }
+
     return true;
   }
 

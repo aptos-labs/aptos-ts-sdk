@@ -22,22 +22,6 @@ runs:
     - run: pnpm install --frozen-lockfile
       shell: bash
 
-    # # Install the CLI.
-    # - run: pnpm install -g @aptos-labs/aptos-cli
-    #   shell: bash
-
-    # # Run a local testnet in the background.
-    # - run: aptos node run-local-testnet --force-restart --assume-yes --with-indexer-api --log-to-stdout >& ${{ runner.temp }}/local-testnet-logs.txt &
-    #   shell: bash
-
-    # # Wait for the local testnet to be ready by hitting the readiness endpoint.
-    # # We give it a while because the CLI will have to download some images before
-    # # actually running the local testnet, which can take a while.
-    # - run: pnpm install -g wait-on
-    #   shell: bash
-    # - run: wait-on --verbose --interval 1500 --timeout 120000 --httpTimeout 120000 http-get://127.0.0.1:8070
-    #   shell: bash
-
     # Run the TS SDK tests.
     - uses: nick-fields/retry@7f8f3d9f0f62fe5925341be21c2e8314fd4f7c7c # pin@v2
       name: sdk-pnpm-test
