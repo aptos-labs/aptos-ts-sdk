@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
 - Add support to Array value in digital asset property map
+- [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
 
 # 1.2.0 (2023-12-14)
 
