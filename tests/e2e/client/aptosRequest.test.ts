@@ -1,15 +1,16 @@
 import {
-  aptosRequest,
-  AptosApiError,
-  AptosConfig,
-  Network,
-  NetworkToNodeAPI,
-  Aptos,
   Account,
-  U64,
-  GraphqlQuery,
-  NetworkToIndexerAPI,
+  Aptos,
+  AptosApiError,
+  AptosApiType,
+  AptosConfig,
+  aptosRequest,
   generateSignedTransaction,
+  GraphqlQuery,
+  Network,
+  NetworkToIndexerAPI,
+  NetworkToNodeAPI,
+  U64,
 } from "../../../src";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
@@ -50,6 +51,7 @@ describe("aptos request", () => {
               overrides: { HEADERS: { my: "header" } },
             },
             config,
+            AptosApiType.FULLNODE,
           );
           expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
           expect(response.config.headers).toHaveProperty("my", "header");
@@ -77,6 +79,7 @@ describe("aptos request", () => {
               originMethod: "test when token is set",
             },
             config,
+            AptosApiType.FULLNODE,
           );
           expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
         } catch (error: any) {
@@ -99,6 +102,7 @@ describe("aptos request", () => {
               originMethod: "test when token is not set",
             },
             config,
+            AptosApiType.FULLNODE,
           );
           expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
         } catch (error: any) {
@@ -124,6 +128,7 @@ describe("aptos request", () => {
               originMethod: "test when token is set",
             },
             config,
+            AptosApiType.FULLNODE,
           );
           expect(response.config.headers).toHaveProperty("authorization", "Bearer my-api-key");
         } catch (error: any) {
@@ -149,6 +154,7 @@ describe("aptos request", () => {
                 originMethod: "test fullnode 200 status",
               },
               config,
+              AptosApiType.FULLNODE,
             );
             expect(response).toHaveProperty("data", {
               sequence_number: "0",
@@ -176,6 +182,7 @@ describe("aptos request", () => {
                 originMethod: "test 400 status",
               },
               config,
+              AptosApiType.FULLNODE,
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
@@ -211,6 +218,7 @@ describe("aptos request", () => {
                 originMethod: "test 404 status",
               },
               config,
+              AptosApiType.FULLNODE,
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
@@ -252,6 +260,7 @@ describe("aptos request", () => {
                 contentType: "application/x.aptos.signed_transaction+bcs",
               },
               config,
+              AptosApiType.FULLNODE,
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
@@ -299,6 +308,7 @@ describe("aptos request", () => {
                 originMethod: "test indexer 200 status",
               },
               config,
+              AptosApiType.INDEXER,
             );
             expect(response).toHaveProperty("data", {
               ledger_infos: [
@@ -335,6 +345,7 @@ describe("aptos request", () => {
                 originMethod: "test indexer 400 status",
               },
               config,
+              AptosApiType.INDEXER,
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
