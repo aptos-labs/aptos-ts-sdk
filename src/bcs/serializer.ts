@@ -316,6 +316,10 @@ export class Serializer {
       item.serialize(this);
     });
   }
+
+  toString(): string {
+    return `Serializer(offset: ${this.offset} buffer: ${this.buffer})`;
+  }
 }
 
 export function ensureBoolean(value: unknown): asserts value is boolean {

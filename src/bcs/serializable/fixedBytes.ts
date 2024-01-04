@@ -62,4 +62,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
     const bytes = deserializer.deserializeFixedBytes(length);
     return new FixedBytes(bytes);
   }
+
+  toString(): string {
+    return Hex.fromHexInput(this.value).toString();
+  }
 }

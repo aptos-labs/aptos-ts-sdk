@@ -220,6 +220,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     }
     return new MoveVector(values);
   }
+
+  toString(): string {
+    return `[${this.values.map((v) => v.toString()).join(",")}]`;
+  }
 }
 
 export class MoveString extends Serializable implements TransactionArgument {
@@ -250,6 +254,10 @@ export class MoveString extends Serializable implements TransactionArgument {
   static deserialize(deserializer: Deserializer): MoveString {
     return new MoveString(deserializer.deserializeStr());
   }
+
+  toString(): string {
+    return this.value;
+  }
 }
 
 export class MoveOption<T extends Serializable & EntryFunctionArgument>
@@ -279,8 +287,10 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   /**
    * Retrieves the inner value of the MoveOption.
    *
-   * This method is inspired by Rust's `Option<T>.unwrap()`.
-   * In Rust, attempting to unwrap a `None` value results in a panic.
+   * This method is inspired by Rust's `;
+   Option<T>.unwrap()`.
+   * In Rust, attempting to unwrap a `;
+   None` value results in a panic.
    *
    * Similarly, this method will throw an error if the value is not present.
    *
@@ -312,121 +322,156 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveOption<U8> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U8> from a `;
+   number` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U8(1).isSome() === true;
    * MoveOption.U8().isSome() === false;
    * MoveOption.U8(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U8> with an inner value `value`
+   * @returns a MoveOption<U8> with an inner value `;
+   value`
    */
   static U8(value?: number | null): MoveOption<U8> {
     return new MoveOption<U8>(value !== null && value !== undefined ? new U8(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<U16> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U16> from a `;
+   number` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U16(1).isSome() === true;
    * MoveOption.U16().isSome() === false;
    * MoveOption.U16(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U16> with an inner value `value`
+   * @returns a MoveOption<U16> with an inner value `;
+   value`
    */
   static U16(value?: number | null): MoveOption<U16> {
     return new MoveOption<U16>(value !== null && value !== undefined ? new U16(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<U32> from a `number` or `undefined`.
+   * Factory method to generate a MoveOption<U32> from a `;
+   number` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U32(1).isSome() === true;
    * MoveOption.U32().isSome() === false;
    * MoveOption.U32(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U32> with an inner value `value`
+   * @returns a MoveOption<U32> with an inner value `;
+   value`
    */
   static U32(value?: number | null): MoveOption<U32> {
     return new MoveOption<U32>(value !== null && value !== undefined ? new U32(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<U64> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U64> from a `;
+   number` or a `;
+   bigint` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U64(1).isSome() === true;
    * MoveOption.U64().isSome() === false;
    * MoveOption.U64(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U64> with an inner value `value`
+   * @returns a MoveOption<U64> with an inner value `;
+   value`
    */
   static U64(value?: AnyNumber | null): MoveOption<U64> {
     return new MoveOption<U64>(value !== null && value !== undefined ? new U64(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<U128> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U128> from a `;
+   number` or a `;
+   bigint` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U128(1).isSome() === true;
    * MoveOption.U128().isSome() === false;
    * MoveOption.U128(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U128> with an inner value `value`
+   * @returns a MoveOption<U128> with an inner value `;
+   value`
    */
   static U128(value?: AnyNumber | null): MoveOption<U128> {
     return new MoveOption<U128>(value !== null && value !== undefined ? new U128(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<U256> from a `number` or a `bigint` or `undefined`.
+   * Factory method to generate a MoveOption<U256> from a `;
+   number` or a `;
+   bigint` or `;
+   undefined`.
    *
    * @example
    * MoveOption.U256(1).isSome() === true;
    * MoveOption.U256().isSome() === false;
    * MoveOption.U256(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<U256> with an inner value `value`
+   * @returns a MoveOption<U256> with an inner value `;
+   value`
    */
   static U256(value?: AnyNumber | null): MoveOption<U256> {
     return new MoveOption<U256>(value !== null && value !== undefined ? new U256(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<Bool> from a `boolean` or `undefined`.
+   * Factory method to generate a MoveOption<Bool> from a `;
+   boolean` or `;
+   undefined`.
    *
    * @example
    * MoveOption.Bool(true).isSome() === true;
    * MoveOption.Bool().isSome() === false;
    * MoveOption.Bool(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<Bool> with an inner value `value`
+   * @returns a MoveOption<Bool> with an inner value `;
+   value`
    */
   static Bool(value?: boolean | null): MoveOption<Bool> {
     return new MoveOption<Bool>(value !== null && value !== undefined ? new Bool(value) : undefined);
   }
 
   /**
-   * Factory method to generate a MoveOption<MoveString> from a `string` or `undefined`.
+   * Factory method to generate a MoveOption<MoveString> from a `;
+   string` or `;
+   undefined`.
    *
    * @example
    * MoveOption.MoveString("hello").isSome() === true;
    * MoveOption.MoveString("").isSome() === true;
    * MoveOption.MoveString().isSome() === false;
    * MoveOption.MoveString(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @params value: the value used to fill the MoveOption. If `;
+   value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
-   * @returns a MoveOption<MoveString> with an inner value `value`
+   * @returns a MoveOption<MoveString> with an inner value `;
+   value`
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);
@@ -438,5 +483,13 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   ): MoveOption<U> {
     const vector = MoveVector.deserialize(deserializer, cls);
     return new MoveOption(vector.values[0]);
+  }
+
+  toString(): string {
+    if (this.value === undefined) {
+      return "Option(None)";
+    }
+    return `;
+    Option(Some(${this.value}))`;
   }
 }

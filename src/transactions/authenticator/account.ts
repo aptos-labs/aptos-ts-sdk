@@ -76,6 +76,10 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
     const signature = Ed25519Signature.deserialize(deserializer);
     return new AccountAuthenticatorEd25519(public_key, signature);
   }
+
+  toString(): string {
+    return `AccountAuthenticatorEd25519(public_key: ${this.public_key}, signature: ${this.signature})`;
+  }
 }
 
 /**
@@ -107,6 +111,10 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
     const signature = MultiEd25519Signature.deserialize(deserializer);
     return new AccountAuthenticatorMultiEd25519(public_key, signature);
   }
+
+  toString(): string {
+    return `AccountAuthenticatorMultiEd25519(public_key: ${this.public_key}, signature: ${this.signature})`;
+  }
 }
 
 /**
@@ -137,6 +145,10 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
     const public_key = AnyPublicKey.deserialize(deserializer);
     const signature = AnySignature.deserialize(deserializer);
     return new AccountAuthenticatorSingleKey(public_key, signature);
+  }
+
+  toString(): string {
+    return `AccountAuthenticatorSingleKey(public_key: ${this.public_key}, signature: ${this.signature})`;
   }
 }
 
@@ -173,5 +185,10 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
     const signatures = deserializer.deserializeVector(AnySignature);
     const signatures_bitmap = deserializer.deserializeBytes();
     return new AccountAuthenticatorMultiKey(public_keys, signatures, signatures_bitmap);
+  }
+
+  toString(): string {
+    // eslint-disable-next-line max-len
+    return `AccountAuthenticatorMultiKey(public_keys: ${this.public_keys}, signatures: ${this.signatures}, signatures_bitmap: ${this.signatures_bitmap})`;
   }
 }

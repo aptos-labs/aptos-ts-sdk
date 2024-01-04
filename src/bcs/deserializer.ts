@@ -245,4 +245,8 @@ export class Deserializer {
     }
     return vector;
   }
+
+  toString(): string {
+    return `Deserializer(offset: ${this.offset} buffer: ${this.buffer})`;
+  }
 }
