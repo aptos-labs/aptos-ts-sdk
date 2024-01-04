@@ -58,7 +58,8 @@ export class Aptos {
   }
 }
 
-// extends Aptos interface so all the methods and properties from the other classes will be recognized by typescript.
+// extends Aptos interface so all the methods and properties
+// from the other classes will be recognized by typescript.
 export interface Aptos
   extends Account,
     ANS,
@@ -69,7 +70,7 @@ export interface Aptos
     FungibleAsset,
     General,
     Staking,
-    Transaction {}
+    Omit<Transaction, "build" | "simulate" | "submit"> {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
