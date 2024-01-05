@@ -83,11 +83,38 @@ const account = Account.generate({ scheme: SingingSchemeInput.Ed25519, legacy: f
 #### Derive from private key
 
 ```ts
-const aptos = new Aptos();
-// This functions resolves the provided private key type and derives the public key from it
+// Create a private key instance for Ed25519 scheme
+const privateKey = new Ed25519PrivateKey("myEd25519privatekeystring");
+// Or for Secp256k1 scheme
+const privateKey = new Secp256k1PrivateKey("mySecp256k1privatekeystring");
+
+// Derive an account from private key
+
+// This is used as a local calculation and therefore is used to instantiate an `Account`
+// that has not had its authentication key rotated
+const account = await Account.fromPrivateKey({ privateKey });
+
+// Also, can use this function that resolves the provided private key type and derives the public key from it
 // to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
 // Read more https://github.com/aptos-labs/aptos-ts-sdk/blob/main/src/api/account.ts#L364
-const account = await aptos.deriveAccountFromPrivateKey({ privateKey: privateKey });
+const aptos = new Aptos();
+const account = await aptos.deriveAccountFromPrivateKey({ privateKey });
+```
+
+#### Derive from private key and address
+
+```ts
+// Create a private key instance for Ed25519 scheme
+const privateKey = new Ed25519PrivateKey("myEd25519privatekeystring");
+// Or for Secp256k1 scheme
+const privateKey = new Secp256k1PrivateKey("mySecp256k1privatekeystring");
+
+// Derive an account from private key and address
+
+// create an AccountAddress instance from the account address string
+const address = AccountAddress.from("myaccountaddressstring");
+// Derieve an account from private key and address
+const account = await Account.fromPrivateKeyAndAddress({ privateKey, address });
 ```
 
 #### Derive from path
@@ -111,11 +138,11 @@ const alice: Account = Account.generate();
 const bobAddress = "0xb0b";
 // build transaction
 const transaction = await aptos.transaction.build.simple({
-  sender: alice,
+  sender: alice.accountAddress,
   data: {
     function: "0x1::coin::transfer",
-    type_arguments: ["0x1::aptos_coin::AptosCoin"],
-    arguments: [bobAddress, 100],
+    typeArguments: ["0x1::aptos_coin::AptosCoin"],
+    functionArguments: [bobAddress, 100],
   },
 });
 
@@ -152,9 +179,10 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 
 To run the SDK tests, simply run from the root of this repository:
 
-> Note: make sure aptos local node is up and running. Take a look at the [local development network guide](https://aptos.dev/guides/local-development-network/) for more details.
+> Note: for a better experience, make sure there is no aptos local node process up and running (can check if there is a process running on port 8080).
 
 ```bash
+pnpm i
 pnpm test
 ```
 

@@ -42,11 +42,11 @@ import {
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
   MultiSig,
-  MultisigTransactionPayload,
+  MultiSigTransactionPayload,
   RawTransaction,
   Script,
   TransactionPayloadEntryFunction,
-  TransactionPayloadMultisig,
+  TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "../instances";
 import { SignedTransaction } from "../instances/signedTransaction";
@@ -90,11 +90,11 @@ export async function generateTransactionPayload(
 ): Promise<TransactionPayloadEntryFunction>;
 export async function generateTransactionPayload(
   args: InputMultiSigDataWithRemoteABI,
-): Promise<TransactionPayloadMultisig>;
+): Promise<TransactionPayloadMultiSig>;
 
 /**
  * Builds a transaction payload based on the data argument and returns
- * a transaction payload - TransactionPayloadScript | TransactionPayloadMultisig | TransactionPayloadEntryFunction
+ * a transaction payload - TransactionPayloadScript | TransactionPayloadMultiSig | TransactionPayloadEntryFunction
  *
  * This uses the RemoteABI by default, and the remote ABI can be skipped by using generateTransactionPayloadWithABI
  *
@@ -128,7 +128,7 @@ export function generateTransactionPayloadWithABI(
 export function generateTransactionPayloadWithABI(
   args: InputMultiSigData,
   functionAbi: EntryFunctionABI,
-): TransactionPayloadMultisig;
+): TransactionPayloadMultiSig;
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadData,
   functionAbi: EntryFunctionABI,
@@ -173,8 +173,8 @@ export function generateTransactionPayloadWithABI(
   // Send it as multi sig if it's a multisig payload
   if ("multisigAddress" in args) {
     const multisigAddress = AccountAddress.from(args.multisigAddress);
-    return new TransactionPayloadMultisig(
-      new MultiSig(multisigAddress, new MultisigTransactionPayload(entryFunctionPayload)),
+    return new TransactionPayloadMultiSig(
+      new MultiSig(multisigAddress, new MultiSigTransactionPayload(entryFunctionPayload)),
     );
   }
 

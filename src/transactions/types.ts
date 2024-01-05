@@ -12,7 +12,7 @@ import {
   FeePayerRawTransaction,
   RawTransaction,
   TransactionPayloadEntryFunction,
-  TransactionPayloadMultisig,
+  TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "./instances";
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId } from "../types";
@@ -30,6 +30,7 @@ export type SimpleEntryFunctionArgumentTypes =
   | null // To support optional empty
   | undefined // To support optional empty
   | Uint8Array
+  | ArrayBuffer
   | Array<SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes>;
 
 /**
@@ -76,9 +77,9 @@ export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransactio
  * Optional options to set when generating a transaction
  */
 export type InputGenerateTransactionOptions = {
-  maxGasAmount?: AnyNumber;
-  gasUnitPrice?: AnyNumber;
-  expireTimestamp?: AnyNumber;
+  maxGasAmount?: number;
+  gasUnitPrice?: number;
+  expireTimestamp?: number;
   accountSequenceNumber?: AnyNumber;
 };
 
@@ -88,7 +89,7 @@ export type InputGenerateTransactionOptions = {
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
   | TransactionPayloadScript
-  | TransactionPayloadMultisig;
+  | TransactionPayloadMultiSig;
 
 /**
  * Unified type for the data needed to generate a transaction payload of types:

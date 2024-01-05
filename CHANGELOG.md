@@ -4,6 +4,29 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Omit `"build" | "simulate" | "submit"` from `aptos` namespace
+
+# 1.3.0 (2024-01-03)
+
+- [`Breaking`] Capitalize `TransactionPayloadMultiSig` type
+- Add support to Array value in digital asset property map
+- [`Breaking`] Change `maxGasAmount, gasUnitPrice and expireTimestamp` properties in `InputGenerateTransactionOptions` type to `number` type
+- Add `@aptos-labs/aptos-cli` npm package as a dev dependency
+- Implement a `LocalNode` module to run a local testnet with in the SDK environment
+- Use `LocalNode` module to spin up a local testnet pre running SDK tests
+- Update BigInt constants to be hardcoded rather than use Math.pow
+
+# 1.2.0 (2023-12-14)
+
+- Fixed examples to use wait on indexer rather than sleep
+- Fixed `waitOnIndexer` to wait on correct tables / remove duplicate or unnecessary waits on indexer
+- [`Breaking`] Changed output of `getIndexerLastSuccessVersion` to `bigint` from `number`
+- Update dependencies in the Typescript SDK to keep up with latest changes
+- Updated @aptos-labs/aptos-client dependency
+- [`Breaking`] Hex string inputs to `vector<u8>` entry function arguments will now be interpreted as a string instead of hex
+- String inputs to `vector<u8>` entry function arguments will now be interpeted as UTF-8 bytes
+- ArrayBuffer is now a possible input for `vector<u8>` entry function arguments
+
 ## 1.1.0 (2023-12-11)
 
 - Add release automation, so version updates can be made with simply `pnpm update-version`

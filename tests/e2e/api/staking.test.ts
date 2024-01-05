@@ -2,23 +2,28 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig, Aptos, Network } from "../../../src";
+import { longTestTimeout } from "../../unit/helper";
 
 describe("staking api", () => {
-  test("it queries for the number of delegators", async () => {
-    const config = new AptosConfig({ network: Network.MAINNET });
-    const aptos = new Aptos(config);
-    const numDelegatorsData = await aptos.getNumberOfDelegatorsForAllPools({
-      options: { orderBy: [{ num_active_delegator: "desc" }] },
-    });
-    expect(numDelegatorsData.length).toBeGreaterThan(5);
-    for (let i = 1; i <= 5; i += 1) {
-      expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThanOrEqual(
-        numDelegatorsData[i + 1].num_active_delegator,
-      );
-    }
-    const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: numDelegatorsData[0].pool_address! });
-    expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator);
-  });
+  test(
+    "it queries for the number of delegators",
+    async () => {
+      const config = new AptosConfig({ network: Network.MAINNET });
+      const aptos = new Aptos(config);
+      const numDelegatorsData = await aptos.getNumberOfDelegatorsForAllPools({
+        options: { orderBy: [{ num_active_delegator: "desc" }] },
+      });
+      expect(numDelegatorsData.length).toBeGreaterThan(5);
+      for (let i = 1; i <= 5; i += 1) {
+        expect(numDelegatorsData[i].num_active_delegator).toBeGreaterThanOrEqual(
+          numDelegatorsData[i + 1].num_active_delegator,
+        );
+      }
+      const numDelegators = await aptos.getNumberOfDelegators({ poolAddress: numDelegatorsData[0].pool_address! });
+      expect(numDelegators).toEqual(numDelegatorsData[0].num_active_delegator);
+    },
+    longTestTimeout,
+  );
 
   test("it returns 0 if the poolAddress does not exist", async () => {
     const config = new AptosConfig({ network: Network.DEVNET });

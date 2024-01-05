@@ -67,7 +67,7 @@ export abstract class TransactionPayload extends Serializable {
       case TransactionPayloadVariants.EntryFunction:
         return TransactionPayloadEntryFunction.load(deserializer);
       case TransactionPayloadVariants.Multisig:
-        return TransactionPayloadMultisig.load(deserializer);
+        return TransactionPayloadMultiSig.load(deserializer);
       default:
         throw new Error(`Unknown variant index for TransactionPayload: ${index}`);
     }
@@ -121,7 +121,7 @@ export class TransactionPayloadEntryFunction extends TransactionPayload {
 /**
  * Representation of a Transaction Payload Multi-sig that can serialized and deserialized
  */
-export class TransactionPayloadMultisig extends TransactionPayload {
+export class TransactionPayloadMultiSig extends TransactionPayload {
   public readonly multiSig: MultiSig;
 
   constructor(multiSig: MultiSig) {
@@ -134,9 +134,9 @@ export class TransactionPayloadMultisig extends TransactionPayload {
     this.multiSig.serialize(serializer);
   }
 
-  static load(deserializer: Deserializer): TransactionPayloadMultisig {
-    const multiSig = MultiSig.deserialize(deserializer);
-    return new TransactionPayloadMultisig(multiSig);
+  static load(deserializer: Deserializer): TransactionPayloadMultiSig {
+    const value = MultiSig.deserialize(deserializer);
+    return new TransactionPayloadMultiSig(value);
   }
 }
 
@@ -334,7 +334,7 @@ export class Script {
 export class MultiSig {
   public readonly multisig_address: AccountAddress;
 
-  public readonly transaction_payload?: MultisigTransactionPayload;
+  public readonly transaction_payload?: MultiSigTransactionPayload;
 
   /**
    * Contains the payload to run a multi-sig account transaction.
@@ -344,7 +344,7 @@ export class MultiSig {
    * @param transaction_payload The payload of the multi-sig transaction. This is optional when executing a multi-sig
    *  transaction whose payload is already stored on chain.
    */
-  constructor(multisig_address: AccountAddress, transaction_payload?: MultisigTransactionPayload) {
+  constructor(multisig_address: AccountAddress, transaction_payload?: MultiSigTransactionPayload) {
     this.multisig_address = multisig_address;
     this.transaction_payload = transaction_payload;
   }
@@ -366,7 +366,7 @@ export class MultiSig {
     const payloadPresent = deserializer.deserializeBool();
     let transaction_payload;
     if (payloadPresent) {
-      transaction_payload = MultisigTransactionPayload.deserialize(deserializer);
+      transaction_payload = MultiSigTransactionPayload.deserialize(deserializer);
     }
     return new MultiSig(multisig_address, transaction_payload);
   }
@@ -380,7 +380,7 @@ export class MultiSig {
  * transactions used in `multisig_account.move`. Eventually, this class will be able to
  * support script payloads when the `multisig_account.move` module supports them.
  */
-export class MultisigTransactionPayload {
+export class MultiSigTransactionPayload extends Serializable {
   public readonly transaction_payload: EntryFunction;
 
   /**
@@ -391,6 +391,7 @@ export class MultisigTransactionPayload {
    * Script might be supported in the future.
    */
   constructor(transaction_payload: EntryFunction) {
+    super();
     this.transaction_payload = transaction_payload;
   }
 
@@ -404,9 +405,10 @@ export class MultisigTransactionPayload {
     this.transaction_payload.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): MultisigTransactionPayload {
-    // This is the enum value indicating which type of payload the multi-sig transaction contains.
+  static deserialize(deserializer: Deserializer): MultiSigTransactionPayload {
+    // TODO: Support other types of payload beside EntryFunction.
+    // This is the enum value indicating which type of payload the multisig tx contains.
     deserializer.deserializeUleb128AsU32();
-    return new MultisigTransactionPayload(EntryFunction.deserialize(deserializer));
+    return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
   }
 }

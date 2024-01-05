@@ -46,7 +46,7 @@ export class FungibleAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
   }
@@ -71,7 +71,7 @@ export class FungibleAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     const data = await getFungibleAssetMetadata({
       aptosConfig: this.config,
@@ -99,7 +99,7 @@ export class FungibleAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
   }
@@ -118,7 +118,7 @@ export class FungibleAsset {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args?.minimumLedgerVersion,
-      processorTypes: [ProcessorType.FUNGIBLE_ASSET_PROCESSOR],
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
     return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
   }
