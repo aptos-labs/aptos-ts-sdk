@@ -9,6 +9,7 @@ import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
+import { Base64 } from "../common";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -112,12 +113,21 @@ export class Secp256k1PrivateKey extends PrivateKey {
   constructor(hexInput: HexInput) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
-    if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
+    let privateKeyBytes: Hex;
+    if (hexInput instanceof Uint8Array) {
+      privateKeyBytes = Hex.fromHexInput(hexInput);
+    } else if (hexInput.match("^0x[0-9a-fA-F]{64}$")) {
+      privateKeyBytes = Hex.fromHexInput(hexInput);
+    } else {
+      // Wrap the value in a hex object
+      privateKeyBytes = Hex.fromHexInput(Base64.toBytes(hexInput));
+    }
+
+    if (privateKeyBytes.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
 
-    this.key = privateKeyHex;
+    this.key = privateKeyBytes;
   }
 
   /**
@@ -136,6 +146,10 @@ export class Secp256k1PrivateKey extends PrivateKey {
    */
   toString(): string {
     return this.key.toString();
+  }
+
+  toBase64(): string {
+    return Base64.toString(this.toUint8Array());
   }
 
   /**

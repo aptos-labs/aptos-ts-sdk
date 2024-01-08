@@ -179,6 +179,19 @@ describe("PrivateKey", () => {
     expect(key).toBeInstanceOf(Ed25519PrivateKey);
     expect(privateKey).toEqual(key.toString());
   });
+
+  it("should serialize to base64 and deserialize correctly", () => {
+    const { privateKeyBase64, privateKey } = wallet;
+    const key1 = new Ed25519PrivateKey(privateKey);
+    const key2 = new Ed25519PrivateKey(privateKeyBase64);
+    expect(key1).toEqual(key2);
+
+    const keyString = key2.toBase64();
+    expect(keyString).toEqual(privateKeyBase64);
+
+    const key3 = new Ed25519PrivateKey(keyString);
+    expect(key3).toEqual(key2);
+  });
 });
 
 describe("Signature", () => {

@@ -2,8 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
-import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
+import { secp256k1TestObject, secp256k1WalletTestObject, wallet } from "./helper";
+import {
+  Deserializer,
+  Ed25519PrivateKey,
+  Hex,
+  Secp256k1PrivateKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+  Serializer,
+} from "../../src";
 
 /* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
@@ -139,6 +147,19 @@ describe("Secp256k1PrivateKey", () => {
     const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
     expect(key.toString()).toEqual(privateKey);
+  });
+
+  it("should serialize to base64 and deserialize correctly", () => {
+    const { privateKeyBase64, privateKey } = secp256k1WalletTestObject;
+    const key1 = new Secp256k1PrivateKey(privateKey);
+    const key2 = new Secp256k1PrivateKey(privateKeyBase64);
+    expect(key1).toEqual(key2);
+
+    const keyString = key2.toBase64();
+    expect(keyString).toEqual(privateKeyBase64);
+
+    const key3 = new Secp256k1PrivateKey(keyString);
+    expect(key3).toEqual(key2);
   });
 });
 

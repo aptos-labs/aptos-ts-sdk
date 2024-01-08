@@ -38,3 +38,16 @@ export type ParsingResult<T> = {
    */
   invalidReasonMessage?: string;
 };
+
+/**
+ *  Handles conversion of bytes and strings to and from Base64
+ */
+export class Base64 {
+  static toString(bytes: Uint8Array): string {
+    return Buffer.from(bytes).toString("base64");
+  }
+
+  static toBytes(str: string): Uint8Array {
+    return Uint8Array.from(Buffer.from(str, "base64"));
+  }
+}

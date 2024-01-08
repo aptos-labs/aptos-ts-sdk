@@ -8,6 +8,7 @@ import { Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
+import { Base64 } from "../common";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -124,13 +125,21 @@ export class Ed25519PrivateKey extends PrivateKey {
   constructor(hexInput: HexInput) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
-    if (privateKeyHex.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
+    let privateKeyBytes: Uint8Array;
+    if (hexInput instanceof Uint8Array) {
+      privateKeyBytes = hexInput;
+    } else if (hexInput.match("^0x[0-9a-fA-F]{64}$")) {
+      privateKeyBytes = Hex.fromHexInput(hexInput).toUint8Array();
+    } else {
+      privateKeyBytes = Base64.toBytes(hexInput);
+    }
+
+    if (privateKeyBytes.length !== Ed25519PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`);
     }
 
     // Create keyPair from Private key in Uint8Array format
-    this.signingKeyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
+    this.signingKeyPair = nacl.sign.keyPair.fromSeed(privateKeyBytes.slice(0, Ed25519PrivateKey.LENGTH));
   }
 
   /**
@@ -149,6 +158,10 @@ export class Ed25519PrivateKey extends PrivateKey {
    */
   toString(): string {
     return Hex.fromHexInput(this.toUint8Array()).toString();
+  }
+
+  toBase64(): string {
+    return Base64.toString(this.toUint8Array());
   }
 
   /**

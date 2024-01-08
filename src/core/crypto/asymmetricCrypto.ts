@@ -50,6 +50,11 @@ export abstract class PrivateKey extends Serializable {
    */
   abstract toString(): string;
 
+  /**
+   * Get the private key as a base64 string e.g. Ab2fs3e4==
+   */
+  abstract toBase64(): string;
+
   abstract serialize(serializer: Serializer): void;
 
   /**
