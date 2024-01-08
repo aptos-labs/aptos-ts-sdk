@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddressInput } from "../core";
+import { AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
 import { SimpleTransaction, InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
@@ -24,7 +24,7 @@ export class Coin {
    * @returns SimpleTransaction
    */
   async transferCoinTransaction(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     recipient: AccountAddressInput;
     amount: AnyNumber;
     coinType?: MoveStructId;

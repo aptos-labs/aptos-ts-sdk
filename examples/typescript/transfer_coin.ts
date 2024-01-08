@@ -66,7 +66,7 @@ const example = async () => {
   // Transfer between users
   console.log(`\n=== Transfer ${TRANSFER_AMOUNT} from Alice to Bob ===\n`);
   const transaction = await aptos.transferCoinTransaction({
-    sender: alice,
+    sender: alice.accountAddress,
     recipient: bob.accountAddress,
     amount: TRANSFER_AMOUNT,
   });

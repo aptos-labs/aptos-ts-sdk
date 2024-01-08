@@ -18,7 +18,7 @@ describe("coin", () => {
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
-      sender,
+      sender: sender.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
     });
@@ -48,7 +48,7 @@ describe("coin", () => {
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
-      sender,
+      sender: sender.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
       coinType: "0x1::my_coin::type",
@@ -83,7 +83,7 @@ describe("coin", () => {
       const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress });
 
       const transaction = await aptos.transferCoinTransaction({
-        sender,
+        sender: sender.accountAddress,
         recipient: recipient.accountAddress,
         amount: 10,
       });
