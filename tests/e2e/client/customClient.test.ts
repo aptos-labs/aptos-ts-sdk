@@ -58,7 +58,7 @@ describe("custom client", () => {
     const recipient = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
     const transaction = await aptos.transferCoinTransaction({
-      sender: account,
+      sender: account.accountAddress,
       recipient: recipient.accountAddress,
       amount: 10,
     });

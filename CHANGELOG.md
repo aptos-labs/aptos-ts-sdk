@@ -4,7 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.4.0 (2024-01-08)
+
 - Omit `"build" | "simulate" | "submit"` from `aptos` namespace
+- [`Breaking`] Change `sender` property type to `AccountAddressInput` in `transferCoinTransaction()`
 
 # 1.3.0 (2024-01-03)
 
