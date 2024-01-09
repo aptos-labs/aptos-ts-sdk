@@ -83,6 +83,17 @@ export class ZkIDPublicKey extends PublicKey {
   static isPublicKey(publicKey: PublicKey): publicKey is ZkIDPublicKey {
     return publicKey instanceof ZkIDPublicKey;
   }
+
+  static create(args: {
+    iss: string;
+    uidKey: string;
+    uidVal: string;
+    aud: string;
+    pepper: HexInput;
+  }): ZkIDPublicKey {
+    computeAddressSeed(args);
+    return new ZkIDPublicKey(args.iss,computeAddressSeed(args));
+  }
 }
 
 export function computeAddressSeed(args: {
