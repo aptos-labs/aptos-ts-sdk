@@ -4,10 +4,10 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
-import { PrivateKey, PublicKey, Signature } from "./asymmetricCrypto";
-import { Deserializer, Serializer } from "../../bcs";
+import { AuthenticationKey } from "../authenticationKey";
+import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningSchemeInput } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 
 /**
@@ -15,12 +15,14 @@ import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
  *
  * Secp256k1 authentication key is represented in the SDK as `AnyPublicKey`.
  */
-export class Secp256k1PublicKey extends PublicKey {
+export class Secp256k1PublicKey extends Serializable {
   // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 
   // Hex value of the public key
   private readonly key: Hex;
+
+  // region Constructors
 
   /**
    * Create a new PublicKey instance from a Uint8Array or String.
@@ -36,6 +38,34 @@ export class Secp256k1PublicKey extends PublicKey {
     }
     this.key = hex;
   }
+
+  // endregion
+
+  // region PublicKey
+
+  /**
+   * Verifies a signed data with a public key
+   *
+   * @param args.message message
+   * @param args.signature The signature
+   * @returns true if the signature is valid
+   */
+  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
+    const { message, signature } = args;
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const messageSha3Bytes = sha3_256(messageBytes);
+    const signatureBytes = signature.toUint8Array();
+    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array());
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  authKey(): AuthenticationKey {
+    throw new Error("Can't derive an authentication key from a standalone Secp256k1 public key");
+  }
+
+  // endregion
+
+  // region Serializable
 
   /**
    * Get the public key in bytes (Uint8Array).
@@ -55,21 +85,6 @@ export class Secp256k1PublicKey extends PublicKey {
     return this.key.toString();
   }
 
-  /**
-   * Verifies a signed data with a public key
-   *
-   * @param args.message message
-   * @param args.signature The signature
-   * @returns true if the signature is valid
-   */
-  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
-    const { message, signature } = args;
-    const msgHex = Hex.fromHexInput(message).toUint8Array();
-    const sha3Message = sha3_256(msgHex);
-    const rawSignature = signature.toUint8Array();
-    return secp256k1.verify(rawSignature, sha3Message, this.toUint8Array());
-  }
-
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.key.toUint8Array());
   }
@@ -79,20 +94,13 @@ export class Secp256k1PublicKey extends PublicKey {
     return new Secp256k1PublicKey(bytes);
   }
 
-  static load(deserializer: Deserializer): Secp256k1PublicKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PublicKey(bytes);
-  }
-
-  static isPublicKey(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
-    return publicKey instanceof Secp256k1PublicKey;
-  }
+  // endregion
 }
 
 /**
  * A Secp256k1 ecdsa private key
  */
-export class Secp256k1PrivateKey extends PrivateKey {
+export class Secp256k1PrivateKey extends Serializable {
   /**
    * Length of Secp256k1 ecdsa private key
    */
@@ -103,6 +111,8 @@ export class Secp256k1PrivateKey extends PrivateKey {
    * @private
    */
   private readonly key: Hex;
+
+  // region Constructors
 
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
@@ -121,46 +131,6 @@ export class Secp256k1PrivateKey extends PrivateKey {
   }
 
   /**
-   * Get the private key in bytes (Uint8Array).
-   *
-   * @returns
-   */
-  toUint8Array(): Uint8Array {
-    return this.key.toUint8Array();
-  }
-
-  /**
-   * Get the private key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the private key
-   */
-  toString(): string {
-    return this.key.toString();
-  }
-
-  /**
-   * Sign the given message with the private key.
-   *
-   * @param message in HexInput format
-   * @returns Signature
-   */
-  sign(message: HexInput): Secp256k1Signature {
-    const msgHex = Hex.fromHexInput(message);
-    const sha3Message = sha3_256(msgHex.toUint8Array());
-    const signature = secp256k1.sign(sha3Message, this.key.toUint8Array());
-    return new Secp256k1Signature(signature.toCompactRawBytes());
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.toUint8Array());
-  }
-
-  static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PrivateKey(bytes);
-  }
-
-  /**
    * Generate a new random private key.
    *
    * @returns Secp256k1PrivateKey
@@ -168,16 +138,6 @@ export class Secp256k1PrivateKey extends PrivateKey {
   static generate(): Secp256k1PrivateKey {
     const hexInput = secp256k1.utils.randomPrivateKey();
     return new Secp256k1PrivateKey(hexInput);
-  }
-
-  /**
-   * Derive the Secp256k1PublicKey from this private key.
-   *
-   * @returns Secp256k1PublicKey
-   */
-  publicKey(): Secp256k1PublicKey {
-    const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
-    return new Secp256k1PublicKey(bytes);
   }
 
   /**
@@ -214,15 +174,76 @@ export class Secp256k1PrivateKey extends PrivateKey {
     return new Secp256k1PrivateKey(privateKey);
   }
 
-  static isPrivateKey(privateKey: PrivateKey): privateKey is Secp256k1PrivateKey {
-    return privateKey instanceof Secp256k1PrivateKey;
+  // endregion
+
+  // region PrivateKey
+
+  // eslint-disable-next-line class-methods-use-this
+  scheme() {
+    return SigningSchemeInput.Secp256k1Ecdsa;
   }
+
+  /**
+   * Sign the given message with the private key.
+   *
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(message: HexInput): Secp256k1Signature {
+    const messageBytes = Hex.fromHexInput(message);
+    const messageHashBytes = sha3_256(messageBytes.toUint8Array());
+    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array());
+    return new Secp256k1Signature(signature.toCompactRawBytes());
+  }
+
+  /**
+   * Derive the Secp256k1PublicKey from this private key.
+   *
+   * @returns Secp256k1PublicKey
+   */
+  publicKey(): Secp256k1PublicKey {
+    const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
+    return new Secp256k1PublicKey(bytes);
+  }
+
+  // endregion
+
+  // region Serializable
+
+  /**
+   * Get the private key in bytes (Uint8Array).
+   *
+   * @returns
+   */
+  toUint8Array(): Uint8Array {
+    return this.key.toUint8Array();
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key
+   */
+  toString(): string {
+    return this.key.toString();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
+  }
+
+  static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Secp256k1PrivateKey(bytes);
+  }
+
+  // endregion
 }
 
 /**
  * A signature of a message signed using an Secp256k1 ecdsa private key
  */
-export class Secp256k1Signature extends Signature {
+export class Secp256k1Signature extends Serializable {
   /**
    * Secp256k1 ecdsa signatures are 256-bit.
    */
@@ -233,6 +254,8 @@ export class Secp256k1Signature extends Signature {
    * @private
    */
   private readonly data: Hex;
+
+  // region Constructors
 
   /**
    * Create a new Signature instance from a Uint8Array or String.
@@ -248,6 +271,10 @@ export class Secp256k1Signature extends Signature {
     }
     this.data = hex;
   }
+
+  // endregion
+
+  // region Signature
 
   /**
    * Get the signature in bytes (Uint8Array).
@@ -267,6 +294,10 @@ export class Secp256k1Signature extends Signature {
     return this.data.toString();
   }
 
+  // endregion
+
+  // region BcsSerializable
+
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.data.toUint8Array());
   }
@@ -276,12 +307,5 @@ export class Secp256k1Signature extends Signature {
     return new Secp256k1Signature(hex);
   }
 
-  static load(deserializer: Deserializer): Secp256k1Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Secp256k1Signature(bytes);
-  }
-
-  static isSignature(signature: Signature): signature is Secp256k1Signature {
-    return signature instanceof Secp256k1Signature;
-  }
+  // endregion
 }

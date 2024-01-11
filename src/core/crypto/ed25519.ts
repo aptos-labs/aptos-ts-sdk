@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
-import { PublicKey, PrivateKey, Signature } from "./asymmetricCrypto";
+import { AuthenticationKey } from "../authenticationKey";
 import { Deserializer } from "../../bcs/deserializer";
-import { Serializer } from "../../bcs/serializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 
 /**
@@ -18,11 +18,16 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
  * Ed25519 scheme is represented in the SDK as `Legacy authentication key` and also
  * as `AnyPublicKey` that represents any `Unified authentication key`
  */
-export class Ed25519PublicKey extends PublicKey {
+export class Ed25519PublicKey extends Serializable {
   /**
    * Length of an Ed25519 public key
    */
   static readonly LENGTH: number = 32;
+
+  /**
+   * Authentication scheme
+   */
+  public readonly scheme = AuthenticationKeyScheme.Ed25519;
 
   /**
    * Bytes of the public key
@@ -70,9 +75,21 @@ export class Ed25519PublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
     const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput(message).toUint8Array();
-    const rawSignature = signature.toUint8Array();
-    return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
+    if (!(signature instanceof Ed25519Signature)) {
+      return false;
+    }
+
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = signature.toUint8Array();
+    const publicKeyBytes = this.key.toUint8Array();
+    return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+  }
+
+  authKey() {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: this.scheme,
+      input: this.key.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer): void {
@@ -83,22 +100,12 @@ export class Ed25519PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519PublicKey(bytes);
   }
-
-  static load(deserializer: Deserializer): Ed25519PublicKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519PublicKey(bytes);
-  }
-
-  // TODO(greg): Currently, we can't put this on the abstract type, because of a circular dependency
-  static isPublicKey(publicKey: PublicKey): publicKey is Ed25519PublicKey {
-    return publicKey instanceof Ed25519PublicKey;
-  }
 }
 
 /**
  * Represents the private key of an Ed25519 key pair.
  */
-export class Ed25519PrivateKey extends PrivateKey {
+export class Ed25519PrivateKey extends Serializable {
   /**
    * Length of an Ed25519 private key
    */
@@ -115,6 +122,8 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @private
    */
   private readonly signingKeyPair: nacl.SignKeyPair;
+
+  // region Constructors
 
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
@@ -134,45 +143,6 @@ export class Ed25519PrivateKey extends PrivateKey {
   }
 
   /**
-   * Get the private key in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the private key
-   */
-  toUint8Array(): Uint8Array {
-    return this.signingKeyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH);
-  }
-
-  /**
-   * Get the private key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the private key
-   */
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
-  }
-
-  /**
-   * Sign the given message with the private key.
-   *
-   * @param message in HexInput format
-   * @returns Signature
-   */
-  sign(message: HexInput): Ed25519Signature {
-    const hex = Hex.fromHexInput(message);
-    const signature = nacl.sign.detached(hex.toUint8Array(), this.signingKeyPair.secretKey);
-    return new Ed25519Signature(signature);
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.toUint8Array());
-  }
-
-  static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519PrivateKey(bytes);
-  }
-
-  /**
    * Generate a new random private key.
    *
    * @returns Ed25519PrivateKey
@@ -180,16 +150,6 @@ export class Ed25519PrivateKey extends PrivateKey {
   static generate(): Ed25519PrivateKey {
     const keyPair = nacl.sign.keyPair();
     return new Ed25519PrivateKey(keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH));
-  }
-
-  /**
-   * Derive the Ed25519PublicKey for this private key.
-   *
-   * @returns Ed25519PublicKey
-   */
-  publicKey(): Ed25519PublicKey {
-    const bytes = this.signingKeyPair.publicKey;
-    return new Ed25519PublicKey(bytes);
   }
 
   /**
@@ -232,25 +192,92 @@ export class Ed25519PrivateKey extends PrivateKey {
     return new Ed25519PrivateKey(privateKey);
   }
 
-  static isPrivateKey(privateKey: PrivateKey): privateKey is Ed25519PrivateKey {
-    return privateKey instanceof Ed25519PrivateKey;
+  // endregion
+
+  // region PrivateKey
+
+  // // eslint-disable-next-line class-methods-use-this
+  // scheme() {
+  //   return SigningSchemeInput.Ed25519;
+  // }
+
+  /**
+   * Derive the Ed25519PublicKey for this private key.
+   *
+   * @returns Ed25519PublicKey
+   */
+  publicKey(): Ed25519PublicKey {
+    const bytes = this.signingKeyPair.publicKey;
+    return new Ed25519PublicKey(bytes);
   }
+
+  /**
+   * Sign the given message with the private key.
+   *
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(message: HexInput): Ed25519Signature {
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = nacl.sign.detached(messageBytes, this.signingKeyPair.secretKey);
+    return new Ed25519Signature(signatureBytes);
+  }
+
+  // endregion
+
+  // region Serializable
+
+  /**
+   * Get the private key in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the private key
+   */
+  toUint8Array(): Uint8Array {
+    return this.signingKeyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH);
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key
+   */
+  toString(): string {
+    return Hex.fromHexInput(this.toUint8Array()).toString();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
+  }
+
+  static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Ed25519PrivateKey(bytes);
+  }
+
+  // endregion
 }
 
 /**
  * A signature of a message signed using an Ed25519 private key
  */
-export class Ed25519Signature extends Signature {
+export class Ed25519Signature extends Serializable {
   /**
    * Length of an Ed25519 signature
    */
   static readonly LENGTH = 64;
 
   /**
+   * Authentication scheme
+   */
+  public readonly scheme = AuthenticationKeyScheme.Ed25519;
+
+  /**
    * The signature bytes
    * @private
    */
   private readonly data: Hex;
+
+  // region Constructors
 
   constructor(hexInput: HexInput) {
     super();
@@ -261,6 +288,10 @@ export class Ed25519Signature extends Signature {
 
     this.data = hex;
   }
+
+  // endregion
+
+  // region Serializable
 
   /**
    * Get the signature in bytes (Uint8Array).
@@ -280,6 +311,10 @@ export class Ed25519Signature extends Signature {
     return this.data.toString();
   }
 
+  // endregion
+
+  // region BcsSerializable
+
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.data.toUint8Array());
   }
@@ -289,12 +324,5 @@ export class Ed25519Signature extends Signature {
     return new Ed25519Signature(bytes);
   }
 
-  static load(deserializer: Deserializer): Ed25519Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519Signature(bytes);
-  }
-
-  static isSignature(signature: Signature): signature is Ed25519Signature {
-    return signature instanceof Ed25519Signature;
-  }
+  // endregion
 }
