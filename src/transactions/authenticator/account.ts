@@ -1,15 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { Serializer, Deserializer, Serializable } from "../../bcs";
-import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
-import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { MultiKey } from "../../core/crypto/multiKey";
-import { AccountAuthenticatorVariant } from "../../types";
+import { AnyPublicKey, AnySignature } from "../../core/crypto/singleKey";
+import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
+import { AccountAuthenticatorVariant, HexInput } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -65,6 +62,10 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
     this.signature = signature;
   }
 
+  verify(message: HexInput): boolean {
+    return this.public_key.verifySignature({ message, signature: this.signature });
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
     this.public_key.serialize(serializer);
@@ -72,9 +73,9 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorEd25519 {
-    const public_key = Ed25519PublicKey.deserialize(deserializer);
+    const publicKey = Ed25519PublicKey.deserialize(deserializer);
     const signature = Ed25519Signature.deserialize(deserializer);
-    return new AccountAuthenticatorEd25519(public_key, signature);
+    return new AccountAuthenticatorEd25519(publicKey, signature);
   }
 }
 
@@ -90,10 +91,35 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
 
   public readonly signature: MultiEd25519Signature;
 
-  constructor(public_key: MultiEd25519PublicKey, signature: MultiEd25519Signature) {
+  constructor(publicKey: MultiEd25519PublicKey, signature: MultiEd25519Signature);
+  constructor(publicKey: MultiEd25519PublicKey, authenticators: AccountAuthenticatorEd25519[]);
+  constructor(
+    publicKey: MultiEd25519PublicKey,
+    signatureOrAuthenticators: MultiEd25519Signature | AccountAuthenticatorEd25519[],
+  ) {
     super();
-    this.public_key = public_key;
-    this.signature = signature;
+    this.public_key = publicKey;
+    if (signatureOrAuthenticators instanceof MultiEd25519Signature) {
+      this.signature = signatureOrAuthenticators;
+    } else {
+      const authenticators = signatureOrAuthenticators;
+      const signatures: Ed25519Signature[] = [];
+      const bits: number[] = [];
+      for (const authenticator of authenticators) {
+        const index = publicKey.publicKeys.findIndex((key) => key.toString() === authenticator.public_key.toString());
+        if (index === -1) {
+          throw new Error("Unexpected public key");
+        }
+        signatures.push(authenticator.signature);
+        bits.push(index);
+      }
+      const bitmap = MultiEd25519Signature.createBitmap({ bits });
+      this.signature = new MultiEd25519Signature({ signatures, bitmap });
+    }
+  }
+
+  verify(message: HexInput): boolean {
+    return this.public_key.verifySignature({ message, signature: this.signature });
   }
 
   serialize(serializer: Serializer): void {
@@ -103,9 +129,9 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorMultiEd25519 {
-    const public_key = MultiEd25519PublicKey.deserialize(deserializer);
+    const publicKey = MultiEd25519PublicKey.deserialize(deserializer);
     const signature = MultiEd25519Signature.deserialize(deserializer);
-    return new AccountAuthenticatorMultiEd25519(public_key, signature);
+    return new AccountAuthenticatorMultiEd25519(publicKey, signature);
   }
 }
 
@@ -134,9 +160,9 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorSingleKey {
-    const public_key = AnyPublicKey.deserialize(deserializer);
+    const publicKey = AnyPublicKey.deserialize(deserializer);
     const signature = AnySignature.deserialize(deserializer);
-    return new AccountAuthenticatorSingleKey(public_key, signature);
+    return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
 }
 
@@ -148,30 +174,43 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
  *
  */
 export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
-  public readonly public_keys: MultiKey;
+  public readonly publicKey: MultiKey;
 
-  public readonly signatures: Array<AnySignature>;
+  public readonly signature: MultiKeySignature;
 
-  public readonly signatures_bitmap: Uint8Array;
-
-  constructor(public_keys: MultiKey, signatures: Array<AnySignature>, signatures_bitmap: Uint8Array) {
+  constructor(publicKey: MultiKey, signature: MultiKeySignature);
+  constructor(publicKey: MultiKey, authenticators: AccountAuthenticatorSingleKey[]);
+  constructor(publicKey: MultiKey, signatureOrAuthenticators: MultiKeySignature | AccountAuthenticatorSingleKey[]) {
     super();
-    this.public_keys = public_keys;
-    this.signatures = signatures;
-    this.signatures_bitmap = signatures_bitmap;
+    this.publicKey = publicKey;
+    if (signatureOrAuthenticators instanceof MultiKeySignature) {
+      this.signature = signatureOrAuthenticators;
+    } else {
+      const authenticators = signatureOrAuthenticators;
+      const signatures: AnySignature[] = [];
+      const bits: number[] = [];
+      for (const authenticator of authenticators) {
+        const index = publicKey.publicKeys.findIndex((key) => key.toString() === authenticator.public_key.toString());
+        if (index === -1) {
+          throw new Error("Unexpected public key");
+        }
+        signatures.push(authenticator.signature);
+        bits.push(index);
+      }
+      const bitmap = MultiKeySignature.createBitmap({ bits });
+      this.signature = new MultiKeySignature({ signatures, bitmap });
+    }
   }
 
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.MultiKey);
-    this.public_keys.serialize(serializer);
-    serializer.serializeVector<AnySignature>(this.signatures);
-    serializer.serializeBytes(this.signatures_bitmap);
+    this.publicKey.serialize(serializer);
+    this.signature.serialize(serializer);
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorMultiKey {
-    const public_keys = MultiKey.deserialize(deserializer);
-    const signatures = deserializer.deserializeVector(AnySignature);
-    const signatures_bitmap = deserializer.deserializeBytes();
-    return new AccountAuthenticatorMultiKey(public_keys, signatures, signatures_bitmap);
+    const publicKey = MultiKey.deserialize(deserializer);
+    const signature = MultiKeySignature.deserialize(deserializer);
+    return new AccountAuthenticatorMultiKey(publicKey, signature);
   }
 }
