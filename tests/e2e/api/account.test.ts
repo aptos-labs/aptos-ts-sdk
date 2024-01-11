@@ -1,16 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  APTOS_COIN,
-  Account,
-  Aptos,
-  AptosConfig,
-  Ed25519PrivateKey,
-  Network,
-  SigningSchemeInput,
-  U64,
-} from "../../../src";
+import { Aptos, APTOS_COIN, AptosConfig, Network, Signer, SigningSchemeInput, U64 } from "../../../src";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -109,12 +100,12 @@ describe("account api", () => {
     test("it fetches account transactions", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
       });
-      const bob = Account.generate();
+      const bob = Signer.generate();
       const rawTxn = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
@@ -140,7 +131,7 @@ describe("account api", () => {
     test("it fetches account transactions count", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       const response = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
@@ -156,7 +147,7 @@ describe("account api", () => {
     test("it fetches account coins data", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
@@ -173,7 +164,7 @@ describe("account api", () => {
     test("it fetches account coins count", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
@@ -189,7 +180,7 @@ describe("account api", () => {
     test("it fetches account's coin amount", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       const fundTxn = await aptos.fundAccount({
         accountAddress: senderAccount.accountAddress,
         amount: FUND_AMOUNT,
@@ -215,7 +206,7 @@ describe("account api", () => {
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const account = Account.generate();
+      const account = Signer.generate();
 
       // Fund and create account on-chain
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: FUND_AMOUNT });
@@ -230,27 +221,27 @@ describe("account api", () => {
       test("single sender ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+        const account = Signer.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await aptos.deriveSignerFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
       test("single sender secp256k1", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+        const account = Signer.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await aptos.deriveSignerFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
       test("legacy ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
         const aptos = new Aptos(config);
-        const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+        const account = Signer.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
         await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100 });
 
-        const derivedAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: account.privateKey });
+        const derivedAccount = await aptos.deriveSignerFromPrivateKey({ privateKey: account.privateKey });
         expect(derivedAccount).toStrictEqual(account);
       });
     });
@@ -262,19 +253,19 @@ describe("account api", () => {
       const aptos = new Aptos(config);
 
       // Current Account
-      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const account = Signer.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
       // account that holds the new key
-      const rotateToPrivateKey = Ed25519PrivateKey.generate();
+      const rotateToSigner = Signer.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
 
       // Rotate the key
-      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toNewPrivateKey: rotateToPrivateKey });
+      const pendingTxn = await aptos.rotateAuthKey({ fromSigner: account, toSigner: rotateToSigner });
       const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-        authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
+        authenticationKey: rotateToSigner.publicKey.authKey().derivedAddress(),
         minimumLedgerVersion: BigInt(response.version),
       });
 
