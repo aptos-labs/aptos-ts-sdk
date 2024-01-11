@@ -9,7 +9,6 @@ import {
   U64,
   Deserializer,
   SigningSchemeInput,
-  AuthenticationKey,
   MultiKey,
   AccountAuthenticatorMultiKey,
   RawTransaction,
@@ -606,7 +605,7 @@ describe("transaction submission", () => {
         signaturesRequired: 2,
       });
 
-      const authKey = AuthenticationKey.fromPublicKey({ publicKey: multiKey });
+      const authKey = multiKey.authKey();
 
       const multiKeyAccountAddress = authKey.derivedAddress();
 
