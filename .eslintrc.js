@@ -27,6 +27,7 @@ module.exports = {
     "max-classes-per-file": ["error", 10],
     "import/prefer-default-export": "off",
     "object-curly-newline": "off",
+    // Replacing airbnb rule with following, to re-enable "ForOfStatement"
     "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
     "no-use-before-define": "off",
     "no-unused-vars": "off",
