@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey } from "../../core";
+import type { PublicKeyInput } from "../../core";
 import { simulateTransaction } from "../../internal/transactionSubmission";
 import { AnyRawTransaction, InputSimulateTransactionOptions } from "../../transactions";
 import { UserTransactionResponse } from "../../types";
@@ -30,9 +30,9 @@ export class Simulate {
    */
   @ValidateFeePayerDataOnSimulation
   async simple(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey: PublicKeyInput;
     transaction: AnyRawTransaction;
-    feePayerPublicKey?: PublicKey;
+    feePayerPublicKey?: PublicKeyInput;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {
     return simulateTransaction({ aptosConfig: this.config, ...args });
@@ -51,10 +51,10 @@ export class Simulate {
    */
   @ValidateFeePayerDataOnSimulation
   async multiAgent(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey: PublicKeyInput;
     transaction: AnyRawTransaction;
-    secondarySignersPublicKeys: Array<PublicKey>;
-    feePayerPublicKey?: PublicKey;
+    secondarySignersPublicKeys: PublicKeyInput[];
+    feePayerPublicKey?: PublicKeyInput;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {
     return simulateTransaction({ aptosConfig: this.config, ...args });

@@ -274,12 +274,21 @@ export type InputGenerateTransactionData =
   | InputGenerateSingleSignerRawTransactionData
   | InputGenerateMultiAgentRawTransactionData;
 
+export interface SubmitSimpleTransactionArgs {
+  transaction: SimpleTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  additionalSignersAuthenticators?: undefined;
+  feePayerAuthenticator?: AccountAuthenticator;
+}
+
+export interface SubmitMultiSignerTransactionArgs {
+  transaction: MultiAgentTransaction;
+  senderAuthenticator: AccountAuthenticator;
+  additionalSignersAuthenticators: AccountAuthenticator[];
+  feePayerAuthenticator?: AccountAuthenticator;
+}
+
 /**
  * Interface that holds the user data input when submitting a transaction
  */
-export interface InputSubmitTransactionData {
-  transaction: AnyRawTransaction;
-  senderAuthenticator: AccountAuthenticator;
-  feePayerAuthenticator?: AccountAuthenticator;
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>;
-}
+export type InputSubmitTransactionData = SubmitSimpleTransactionArgs | SubmitMultiSignerTransactionArgs;

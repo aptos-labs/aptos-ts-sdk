@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { submitTransaction } from "../../internal/transactionSubmission";
-import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
+import { AccountAuthenticator, MultiAgentTransaction, SimpleTransaction } from "../../transactions";
 import { PendingTransactionResponse } from "../../types";
 import { AptosConfig } from "../aptosConfig";
 import { ValidateFeePayerDataOnSubmission } from "./helpers";
@@ -28,7 +28,7 @@ export class Submit {
    */
   @ValidateFeePayerDataOnSubmission
   async simple(args: {
-    transaction: AnyRawTransaction;
+    transaction: SimpleTransaction;
     senderAuthenticator: AccountAuthenticator;
     feePayerAuthenticator?: AccountAuthenticator;
   }): Promise<PendingTransactionResponse> {
@@ -47,7 +47,7 @@ export class Submit {
    */
   @ValidateFeePayerDataOnSubmission
   async multiAgent(args: {
-    transaction: AnyRawTransaction;
+    transaction: MultiAgentTransaction;
     senderAuthenticator: AccountAuthenticator;
     additionalSignersAuthenticators: Array<AccountAuthenticator>;
     feePayerAuthenticator?: AccountAuthenticator;
