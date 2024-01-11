@@ -1,17 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { PublicKey, Signature } from "./asymmetricCrypto";
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializer } from "../../bcs/serializer";
+import { Deserializer, Serializer } from "../../bcs";
+import { SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { Signature } from "./signature";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
  */
-export class MultiEd25519PublicKey extends PublicKey {
+export class MultiEd25519PublicKey extends AccountPublicKey {
   /**
    * Maximum number of public keys supported
    */
@@ -28,7 +28,7 @@ export class MultiEd25519PublicKey extends PublicKey {
   static readonly MIN_THRESHOLD = 1;
 
   /**
-   * List of Ed25519 public keys for this MultiEd25519PublicKey
+   * List of Ed25519 public keys for this LegacyMultiEd25519PublicKey
    */
   public readonly publicKeys: Ed25519PublicKey[];
 
@@ -50,13 +50,13 @@ export class MultiEd25519PublicKey extends PublicKey {
    */
   constructor(args: { publicKeys: Ed25519PublicKey[]; threshold: number }) {
     super();
-
     const { publicKeys, threshold } = args;
 
     // Validate number of public keys
     if (publicKeys.length > MultiEd25519PublicKey.MAX_KEYS || publicKeys.length < MultiEd25519PublicKey.MIN_KEYS) {
       throw new Error(
-        `Must have between ${MultiEd25519PublicKey.MIN_KEYS} and ${MultiEd25519PublicKey.MAX_KEYS} public keys, inclusive`,
+        `Must have between ${MultiEd25519PublicKey.MIN_KEYS} and ` +
+          `${MultiEd25519PublicKey.MAX_KEYS} public keys, inclusive`,
       );
     }
 
@@ -69,6 +69,50 @@ export class MultiEd25519PublicKey extends PublicKey {
 
     this.publicKeys = publicKeys;
     this.threshold = threshold;
+  }
+
+  // region AccountPublicKey
+
+  verifySignature(args: VerifySignatureArgs): boolean {
+    const { message, signature } = args;
+    if (!(signature instanceof MultiEd25519Signature)) {
+      return false;
+    }
+
+    const indices: number[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      for (let j = 0; j < 8; j += 1) {
+        // eslint-disable-next-line no-bitwise
+        const bitIsSet = (signature.bitmap[i] & (1 << (7 - j))) !== 0;
+        if (bitIsSet) {
+          const index = i * 8 + j;
+          indices.push(index);
+        }
+      }
+    }
+
+    if (indices.length !== signature.signatures.length) {
+      throw new Error("Bitmap and signatures length mismatch");
+    }
+
+    if (indices.length < this.threshold) {
+      throw new Error("Not enough signatures");
+    }
+
+    for (let i = 0; i < indices.length; i += 1) {
+      const publicKey = this.publicKeys[indices[i]];
+      if (!publicKey.verifySignature({ message, signature: signature.signatures[i] })) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  authKey(): AuthenticationKey {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.MultiEd25519,
+      input: this.toUint8Array(),
+    });
   }
 
   /**
@@ -85,14 +129,9 @@ export class MultiEd25519PublicKey extends PublicKey {
     return bytes;
   }
 
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
-  }
+  // endregion
 
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: { message: HexInput; signature: MultiEd25519Signature }): boolean {
-    throw new Error("TODO - Method not implemented.");
-  }
+  // region Serializable
 
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.toUint8Array());
@@ -110,6 +149,8 @@ export class MultiEd25519PublicKey extends PublicKey {
     }
     return new MultiEd25519PublicKey({ publicKeys: keys, threshold });
   }
+
+  // endregion
 }
 
 /**
@@ -146,25 +187,32 @@ export class MultiEd25519Signature extends Signature {
    *
    * @param args.signatures A list of signatures
    * @param args.bitmap 4 bytes, at most 32 signatures are supported. If Nth bit value is `1`, the Nth
-   * signature should be provided in `signatures`. Bits are read from left to right
+   * signature should be provided in `signatures`. Bits are read from left to right.
+   * Alternatively, you can specify an array of bitmap positions.
+   * Valid position should range between 0 and 31.
+   * @see MultiEd25519Signature.createBitmap
    */
-  constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array }) {
+  constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array | number[] }) {
     super();
-
     const { signatures, bitmap } = args;
-    if (bitmap.length !== MultiEd25519Signature.BITMAP_LEN) {
-      throw new Error(`"bitmap" length should be ${MultiEd25519Signature.BITMAP_LEN}`);
-    }
 
     if (signatures.length > MultiEd25519Signature.MAX_SIGNATURES_SUPPORTED) {
       throw new Error(
         `The number of signatures cannot be greater than ${MultiEd25519Signature.MAX_SIGNATURES_SUPPORTED}`,
       );
     }
-
     this.signatures = signatures;
-    this.bitmap = bitmap;
+
+    if (!(bitmap instanceof Uint8Array)) {
+      this.bitmap = MultiEd25519Signature.createBitmap({ bits: bitmap });
+    } else if (bitmap.length !== MultiEd25519Signature.BITMAP_LEN) {
+      throw new Error(`"bitmap" length should be ${MultiEd25519Signature.BITMAP_LEN}`);
+    } else {
+      this.bitmap = bitmap;
+    }
   }
+
+  // region AccountSignature
 
   /**
    * Converts a MultiSignature into Uint8Array (bytes) with `bytes = s1_bytes | ... | sn_bytes | bitmap`
@@ -180,9 +228,28 @@ export class MultiEd25519Signature extends Signature {
     return bytes;
   }
 
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
+  // endregion
+
+  // region Serializable
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
   }
+
+  static deserialize(deserializer: Deserializer): MultiEd25519Signature {
+    const bytes = deserializer.deserializeBytes();
+    const bitmap = bytes.subarray(bytes.length - 4);
+
+    const signatures: Ed25519Signature[] = [];
+
+    for (let i = 0; i < bytes.length - bitmap.length; i += Ed25519Signature.LENGTH) {
+      const begin = i;
+      signatures.push(new Ed25519Signature(bytes.subarray(begin, begin + Ed25519Signature.LENGTH)));
+    }
+    return new MultiEd25519Signature({ signatures, bitmap });
+  }
+
+  // endregion
 
   /**
    * Helper method to create a bitmap out of the specified bit positions
@@ -208,13 +275,17 @@ export class MultiEd25519Signature extends Signature {
     // Check if duplicates exist in bits
     const dupCheckSet = new Set();
 
-    bits.forEach((bit: number) => {
+    bits.forEach((bit: number, index) => {
       if (bit >= MultiEd25519Signature.MAX_SIGNATURES_SUPPORTED) {
         throw new Error(`Cannot have a signature larger than ${MultiEd25519Signature.MAX_SIGNATURES_SUPPORTED - 1}.`);
       }
 
       if (dupCheckSet.has(bit)) {
         throw new Error("Duplicate bits detected.");
+      }
+
+      if (index > 0 && bit <= bits[index - 1]) {
+        throw new Error("The bits need to be sorted in ascending order.");
       }
 
       dupCheckSet.add(bit);
@@ -230,22 +301,5 @@ export class MultiEd25519Signature extends Signature {
     });
 
     return bitmap;
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.toUint8Array());
-  }
-
-  static deserialize(deserializer: Deserializer): MultiEd25519Signature {
-    const bytes = deserializer.deserializeBytes();
-    const bitmap = bytes.subarray(bytes.length - 4);
-
-    const signatures: Ed25519Signature[] = [];
-
-    for (let i = 0; i < bytes.length - bitmap.length; i += Ed25519Signature.LENGTH) {
-      const begin = i;
-      signatures.push(new Ed25519Signature(bytes.subarray(begin, begin + Ed25519Signature.LENGTH)));
-    }
-    return new MultiEd25519Signature({ signatures, bitmap });
   }
 }
