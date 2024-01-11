@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
+import { Aptos, Network, Account, U8, AptosConfig, GetANSNameResponse, Signer, SimpleTransaction } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { publishAnsContract } from "./publishANSContracts";
@@ -22,7 +22,7 @@ describe("ANS", () => {
 
   let changeRouterMode: (mode: 0 | 1) => void;
 
-  const signAndSubmit = async (signer: Account, transaction: AnyRawTransaction) => {
+  const signAndSubmit = async (signer: Signer, transaction: SimpleTransaction) => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ transaction, signer });
     return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
   };
@@ -32,7 +32,7 @@ describe("ANS", () => {
   beforeAll(
     async () => {
       const { address: ANS_ADDRESS, privateKey: ANS_PRIVATE_KEY } = await publishAnsContract(aptos);
-      const contractAccount = await aptos.deriveAccountFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
+      const contractAccount = await aptos.deriveSignerFromPrivateKey({ privateKey: ANS_PRIVATE_KEY });
 
       // Publish the contract, should be idempotent
 
@@ -137,7 +137,7 @@ describe("ANS", () => {
   });
 
   describe("registerName", () => {
-    let alice: Account;
+    let alice: Signer;
     let bob: Account;
     let domainName: string;
     let subdomainName: string;
@@ -146,8 +146,8 @@ describe("ANS", () => {
       domainName = randomString();
       subdomainName = randomString();
 
-      alice = Account.generate();
-      bob = Account.generate();
+      alice = Signer.generate();
+      bob = Signer.generate();
       await Promise.all([
         aptos.fundAccount({
           accountAddress: alice.accountAddress,
@@ -166,7 +166,7 @@ describe("ANS", () => {
       expect(
         await aptos.registerName({
           name,
-          sender: alice,
+          sender: alice.accountAddress,
           expiration: { policy: "domain" },
         }),
       ).toBeTruthy();
@@ -174,14 +174,14 @@ describe("ANS", () => {
       expect(
         await aptos.registerName({
           name,
-          sender: alice,
+          sender: alice.accountAddress,
           expiration: { policy: "domain", years: 1 },
         }),
       ).toBeTruthy();
 
       await expect(
         aptos.registerName({
-          sender: alice,
+          sender: alice.accountAddress,
           name,
           // Force the year to be absent
           expiration: { policy: "domain", years: 0 } as any,
@@ -191,7 +191,7 @@ describe("ANS", () => {
       // Testing to make sure that the subdomain policy is enforced
       await expect(
         aptos.registerName({
-          sender: alice,
+          sender: alice.accountAddress,
           name,
           // Force the year to be absent
           expiration: { policy: "subdomain:follow-domain" },
@@ -207,7 +207,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -223,7 +223,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
           targetAddress: bob.accountAddress.toString(),
           toAddress: bob.accountAddress.toString(),
         }),
@@ -239,7 +239,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name: domainName,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -249,7 +249,7 @@ describe("ANS", () => {
           name: `${subdomainName}.${domainName}`,
           expiration: { policy: "subdomain:follow-domain" },
           transferable: true,
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -263,7 +263,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name: domainName,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -277,7 +277,7 @@ describe("ANS", () => {
             expirationDate: Date.now() + 365 * 24 * 60 * 60 * 1000 - 2000,
           },
           transferable: true,
-          sender: alice,
+          sender: alice.accountAddress,
           targetAddress: bob.accountAddress.toString(),
           toAddress: bob.accountAddress.toString(),
         }),
@@ -289,20 +289,20 @@ describe("ANS", () => {
   });
 
   describe("setTargetAddress and getTargetAddress", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer;
+    let bob: Signer;
     let domainName: string;
     let subdomainName: string;
     let addr: string | undefined;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
@@ -320,7 +320,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
           targetAddress: alice.accountAddress.toString(),
           toAddress: alice.accountAddress.toString(),
         }),
@@ -334,7 +334,7 @@ describe("ANS", () => {
         await aptos.setTargetAddress({
           name,
           address: bob.accountAddress,
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
       addr = await aptos.getTargetAddress({ name });
@@ -349,7 +349,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name: domainName,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -358,7 +358,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "subdomain:follow-domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -370,7 +370,7 @@ describe("ANS", () => {
         await aptos.setTargetAddress({
           name,
           address: bob.accountAddress,
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
       addr = await aptos.getTargetAddress({ name });
@@ -379,19 +379,19 @@ describe("ANS", () => {
   });
 
   describe("setPrimaryName and getPrimaryName", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer;
+    let bob: Signer;
     let domainName: string;
     let subdomainName: string;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
@@ -409,9 +409,16 @@ describe("ANS", () => {
     test("it sets and gets domain primary names", async () => {
       const name = domainName;
 
-      await signAndSubmit(alice, await aptos.registerName({ name, expiration: { policy: "domain" }, sender: alice }));
+      await signAndSubmit(
+        alice,
+        await aptos.registerName({
+          name,
+          expiration: { policy: "domain" },
+          sender: alice.accountAddress,
+        }),
+      );
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice.accountAddress }));
 
       const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
@@ -424,15 +431,19 @@ describe("ANS", () => {
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice }),
+        await aptos.registerName({ name: tld, expiration: { policy: "domain" }, sender: alice.accountAddress }),
       );
 
       await signAndSubmit(
         alice,
-        await aptos.registerName({ name, expiration: { policy: "subdomain:follow-domain" }, sender: alice }),
+        await aptos.registerName({
+          name,
+          expiration: { policy: "subdomain:follow-domain" },
+          sender: alice.accountAddress,
+        }),
       );
 
-      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice }));
+      await signAndSubmit(alice, await aptos.setPrimaryName({ name, sender: alice.accountAddress }));
 
       const res = await aptos.getPrimaryName({ address: alice.accountAddress });
 
@@ -441,19 +452,19 @@ describe("ANS", () => {
   });
 
   describe("renewDomain", () => {
-    let alice: Account;
-    let bob: Account;
+    let alice: Signer;
+    let bob: Signer;
     let domainName: string;
     let subdomainName: string;
 
     beforeEach(async () => {
-      alice = Account.generate();
+      alice = Signer.generate();
       await aptos.fundAccount({
         accountAddress: alice.accountAddress,
         amount: 500_000_000,
       });
 
-      bob = Account.generate();
+      bob = Signer.generate();
       await aptos.fundAccount({
         accountAddress: bob.accountAddress,
         amount: 500_000_000,
@@ -473,7 +484,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -481,7 +492,7 @@ describe("ANS", () => {
       const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
-      await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
+      await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice.accountAddress }));
 
       // We expect the renewed expiration time to be one year from tomorrow
       const expectedExpirationDate = (newExpirationDate + 365 * 24 * 60 * 60) * 1000;
@@ -500,7 +511,7 @@ describe("ANS", () => {
         await aptos.registerName({
           name: tld,
           expiration: { policy: "domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
@@ -509,11 +520,11 @@ describe("ANS", () => {
         await aptos.registerName({
           name,
           expiration: { policy: "subdomain:follow-domain" },
-          sender: alice,
+          sender: alice.accountAddress,
         }),
       );
 
-      expect(aptos.renewDomain({ name, sender: alice })).rejects.toThrow();
+      expect(aptos.renewDomain({ name, sender: alice.accountAddress })).rejects.toThrow();
     });
   });
 

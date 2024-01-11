@@ -1,7 +1,7 @@
 import { longTestTimeout } from "../../unit/helper";
 import { Aptos } from "../../../src/api/aptos";
 import { AptosConfig } from "../../../src/api/aptosConfig";
-import { Account } from "../../../src/core";
+import { Signer } from "../../../src/core";
 import * as AccountQueries from "../../../src/internal/account";
 
 import { Network } from "../../../src/utils/apiEndpoints";
@@ -10,7 +10,7 @@ import { AccountSequenceNumber } from "../../../src/transactions/management/acco
 const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(aptosConfig);
 
-const account = Account.generate();
+const account = Signer.generate();
 
 const accountSequenceNumber = new AccountSequenceNumber(aptosConfig, account, 30, 100, 10);
 let getAccountInfoSpy: jest.SpyInstance;

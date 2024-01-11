@@ -6,38 +6,37 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveVector, U8 } from "../bcs";
+import { MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account } from "../core/account";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { PrivateKey } from "../core/crypto";
+import { AccountAddressInput, Ed25519Signer, Signer } from "../core";
+import { AccountAddress } from "../core/accountAddress";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
   buildTransaction,
-  generateTransactionPayload,
-  generateSignedTransactionForSimulation,
   generateSignedTransaction,
+  generateSignedTransactionForSimulation,
+  generateTransactionPayload,
   sign,
   generateSigningMessage,
   generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
-  InputGenerateTransactionData,
   AnyRawTransaction,
-  InputSimulateTransactionData,
+  AnyTransactionPayloadInstance,
+  InputGenerateMultiAgentRawTransactionData,
+  InputGenerateSingleSignerRawTransactionData,
+  InputGenerateTransactionData,
   InputGenerateTransactionOptions,
   SimpleTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
-  InputSubmitTransactionData,
-  InputGenerateMultiAgentRawTransactionData,
-  InputGenerateSingleSignerRawTransactionData,
+  InputSimulateTransactionData,
   MultiAgentTransaction,
-  AnyTransactionPayloadInstance,
+  InputSubmitTransactionData,
   EntryFunctionABI,
 } from "../transactions/types";
+import { HexInput, MimeType, PendingTransactionResponse, TransactionResponse, UserTransactionResponse } from "../types";
 import { getInfo } from "./account";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
 import { TypeTagU8, TypeTagVector } from "../transactions";
 
 /**
@@ -143,10 +142,7 @@ export async function buildRawTransaction(
 ): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, options } = args;
 
-  let feePayerAddress;
-  if (isFeePayerTransactionInput(args)) {
-    feePayerAddress = AccountAddress.ZERO.toString();
-  }
+  const feePayerAddress = args.withFeePayer ? AccountAddress.ZERO : undefined;
 
   if (isMultiAgentTransactionInput(args)) {
     const { secondarySignerAddresses } = args;
@@ -167,10 +163,6 @@ export async function buildRawTransaction(
     options,
     feePayerAddress,
   });
-}
-
-function isFeePayerTransactionInput(data: InputGenerateTransactionData): boolean {
-  return data.withFeePayer === true;
 }
 
 function isMultiAgentTransactionInput(
@@ -208,7 +200,7 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  *
  * @return The signer AccountAuthenticator
  */
-export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function signTransaction(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
   const accountAuthenticator = sign({ ...args });
   return accountAuthenticator;
 }
@@ -278,8 +270,8 @@ export async function submitTransaction(
 
 export async function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
-  signer: Account;
-  transaction: AnyRawTransaction;
+  signer: Signer;
+  transaction: SimpleTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;
   const authenticator = signTransaction({ signer, transaction });
@@ -297,18 +289,18 @@ const packagePublishAbi: EntryFunctionABI = {
 
 export async function publicPackageTransaction(args: {
   aptosConfig: AptosConfig;
-  account: AccountAddressInput;
+  sender: AccountAddressInput;
   metadataBytes: HexInput;
   moduleBytecode: Array<HexInput>;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, account, metadataBytes, moduleBytecode, options } = args;
+  const { aptosConfig, sender, metadataBytes, moduleBytecode, options } = args;
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
   return generateTransaction({
     aptosConfig,
-    sender: AccountAddress.from(account),
+    sender,
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
@@ -335,49 +327,47 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
  */
 export async function rotateAuthKey(args: {
   aptosConfig: AptosConfig;
-  fromAccount: Account;
-  toNewPrivateKey: PrivateKey;
+  fromSigner: Ed25519Signer;
+  toSigner: Ed25519Signer;
 }): Promise<TransactionResponse> {
-  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
+  const { aptosConfig, fromSigner, toSigner } = args;
   const accountInfo = await getInfo({
     aptosConfig,
-    accountAddress: fromAccount.accountAddress,
+    accountAddress: fromSigner.accountAddress,
   });
-
-  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
 
   const challenge = new RotationProofChallenge({
     sequenceNumber: BigInt(accountInfo.sequence_number),
-    originator: fromAccount.accountAddress,
-    currentAuthKey: AccountAddress.from(accountInfo.authentication_key),
-    newPublicKey: newAccount.publicKey,
+    originator: fromSigner.accountAddress,
+    currentAuthKey: fromSigner.publicKey.authKey(),
+    newPublicKey: toSigner.publicKey,
   });
 
   // Sign the challenge
   const challengeHex = challenge.bcsToBytes();
-  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
-  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
+  const proofSignedByCurrentPrivateKey = fromSigner.sign(challengeHex);
+  const proofSignedByNewPrivateKey = toSigner.sign(challengeHex);
 
   // Generate transaction
   const rawTxn = await generateTransaction({
     aptosConfig,
-    sender: fromAccount.accountAddress,
+    sender: fromSigner.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key",
       functionArguments: [
-        new U8(fromAccount.signingScheme.valueOf()), // from scheme
-        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
-        new U8(newAccount.signingScheme.valueOf()), // to scheme
-        MoveVector.U8(newAccount.publicKey.toUint8Array()),
-        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
-        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
+        fromSigner.publicKey.scheme, // from scheme
+        fromSigner.publicKey.toUint8Array(),
+        toSigner.publicKey.scheme, // to scheme
+        toSigner.publicKey.toUint8Array(),
+        proofSignedByCurrentPrivateKey.signature.toUint8Array(),
+        proofSignedByNewPrivateKey.signature.toUint8Array(),
       ],
       abi: rotateAuthKeyAbi,
     },
   });
   return signAndSubmitTransaction({
     aptosConfig,
-    signer: fromAccount,
+    signer: fromSigner,
     transaction: rawTxn,
   });
 }

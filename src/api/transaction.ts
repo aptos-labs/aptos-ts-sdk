@@ -34,7 +34,7 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AccountAddressInput, Account, PrivateKey } from "../core";
+import { AccountAddressInput, Ed25519Signer, Signer, SingleKeySigner } from "../core";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
@@ -199,7 +199,7 @@ export class Transaction {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async publishPackageTransaction(args: {
-    account: AccountAddressInput;
+    sender: AccountAddressInput;
     metadataBytes: HexInput;
     moduleBytecode: Array<HexInput>;
     options?: InputGenerateTransactionOptions;
@@ -217,7 +217,10 @@ export class Transaction {
    *
    * @returns PendingTransactionResponse
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
+  async rotateAuthKey(args: {
+    fromSigner: Ed25519Signer | SingleKeySigner;
+    toSigner: Ed25519Signer | SingleKeySigner;
+  }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 
@@ -230,7 +233,7 @@ export class Transaction {
    * @returns AccountAuthenticator
    */
   // eslint-disable-next-line class-methods-use-this
-  sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  sign(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({
       ...args,
     });
@@ -245,21 +248,23 @@ export class Transaction {
    * @returns AccountAuthenticator
    */
   // eslint-disable-next-line class-methods-use-this
-  signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  signAsFeePayer(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
 
-    // if transaction doesnt hold a "feePayerAddress" prop it means
+    // if transaction doesn't hold a "feePayerAddress" prop it means
     // this is not a fee payer transaction
     if (!transaction.feePayerAddress) {
       throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
     }
 
-    // Set the feePayerAddress to the signer account address
-    transaction.feePayerAddress = signer.accountAddress;
+    const transactionWithAdjustedFeePayer: AnyRawTransaction = {
+      ...transaction,
+      feePayerAddress: signer.accountAddress,
+    };
 
     return signTransaction({
       signer,
-      transaction,
+      transaction: transactionWithAdjustedFeePayer,
     });
   }
 
@@ -284,7 +289,7 @@ export class Transaction {
    * @return void. Throws if any error
    */
   async batchTransactionsForSingleAccount(args: {
-    sender: Account;
+    sender: Signer;
     data: InputGenerateTransactionPayloadData[];
     options?: Omit<InputGenerateTransactionOptions, "accountSequenceNumber">;
   }): Promise<void> {
@@ -312,8 +317,8 @@ export class Transaction {
    * @return PendingTransactionResponse
    */
   async signAndSubmitTransaction(args: {
-    signer: Account;
-    transaction: AnyRawTransaction;
+    signer: Signer;
+    transaction: SimpleTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;
     return signAndSubmitTransaction({

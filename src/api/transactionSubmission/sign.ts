@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../../core";
+import { Signer } from "../../core";
 import { signTransaction } from "../../internal/transactionSubmission";
 import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
@@ -17,14 +17,14 @@ export class Sign {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  transaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  transaction(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({
       ...args,
     });
   }
 
   // eslint-disable-next-line class-methods-use-this
-  transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  transactionAsFeePayer(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
 
     // if transaction doesnt hold a "feePayerAddress" prop it means

@@ -11,8 +11,6 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../core/account";
-import { PrivateKey } from "../core/crypto/asymmetricCrypto";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
@@ -27,7 +25,6 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
-  SigningScheme,
   TokenStandardArg,
   TransactionResponse,
   WhereArg,
@@ -53,8 +50,14 @@ import {
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
-import { AnyPublicKey } from "../core/crypto/anyPublicKey";
+import {
+  AuthenticationKey,
+  Ed25519PrivateKey,
+  Ed25519Signer,
+  Secp256k1PrivateKey,
+  Signer,
+  SingleKeySigner,
+} from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
 export async function getInfo(args: {
@@ -515,50 +518,45 @@ export async function getAccountOwnedObjects(args: {
  * NOTE: There is a potential issue once unified single signer scheme will be adopted
  * by the community.
  *
- * Becuase on could create 2 accounts with the same private key with this new authenticator type,
+ * Because one could create 2 accounts with the same private key with this new authenticator type,
  * we’ll need to determine the order in which we lookup the accounts. First unified
  * scheme and then legacy scheme vs first legacy scheme and then unified scheme.
  *
  */
-export async function deriveAccountFromPrivateKey(args: {
+export async function deriveSignerFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  privateKey: PrivateKey;
-}): Promise<Account> {
+  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey;
+}): Promise<Signer> {
   const { aptosConfig, privateKey } = args;
-  const publicKey = new AnyPublicKey(privateKey.publicKey());
+  const singleKeySigner = new SingleKeySigner({ privateKey });
 
-  if (privateKey instanceof Secp256k1PrivateKey) {
-    // private key is secp256k1, therefore we know it for sure uses a single signer key
-    const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
-    const address = authKey.derivedAddress();
-    return Account.fromPrivateKeyAndAddress({ privateKey, address });
-  }
-
+  // Try resolving possible ambiguity when using an Ed25519PrivateKey
   if (privateKey instanceof Ed25519PrivateKey) {
-    // lookup single sender ed25519
-    const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
-      publicKey,
-      scheme: SigningScheme.SingleKey,
-    });
-    const isSingleSenderTransactionAuthenticator = await isAccountExist({
-      authKey: singleSenderTransactionAuthenticatorAuthKey,
+    const isSingleKeySignerOnChain = await isAccountExist({
+      authKey: singleKeySigner.publicKey.authKey(),
       aptosConfig,
     });
-    if (isSingleSenderTransactionAuthenticator) {
-      const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
-      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
+
+    if (isSingleKeySignerOnChain) {
+      return singleKeySigner;
     }
-    // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
-    const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
-    if (isLegacyEd25519) {
-      const address = legacyAuthKey.derivedAddress();
-      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
+
+    const ed25519Signer = new Ed25519Signer({ privateKey });
+    const isEd25519SignerOnChain = await isAccountExist({
+      authKey: ed25519Signer.publicKey.authKey(),
+      aptosConfig,
+    });
+
+    if (isEd25519SignerOnChain) {
+      return ed25519Signer;
     }
+
+    // if we are here, it means we couldn't find an address with an
+    // auth key that matches the provided private key
+    throw new Error(`Can't derive account from private key ${privateKey}`);
   }
-  // if we are here, it means we couldn't find an address with an
-  // auth key that matches the provided private key
-  throw new Error(`Can't derive account from private key ${privateKey}`);
+
+  return singleKeySigner;
 }
 
 export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: AuthenticationKey }): Promise<boolean> {

@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Aptos, AptosConfig, Network, Signer } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -11,7 +11,7 @@ const aptos = new Aptos(config);
 // Disable these tests for now until we can test against LOCAL
 describe("Collection", () => {
   test("it creates a new collection on chain and fetches its data", async () => {
-    const creator = Account.generate();
+    const creator = Signer.generate();
     const creatorAddress = creator.accountAddress;
     const collectionName = "Aptos Test NFT Collection";
     const collectionDescription = "My new collection!";
@@ -20,7 +20,7 @@ describe("Collection", () => {
     await aptos.fundAccount({ accountAddress: creatorAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.createCollectionTransaction({
-      creator,
+      creator: creator.accountAddress,
       description: collectionDescription,
       name: collectionName,
       uri: collectionUri,

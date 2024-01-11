@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account, TransactionResponse, U64 } from "../../../src";
+import { AptosConfig, Aptos, Network, TransactionResponse, U64, Signer } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
@@ -17,9 +17,9 @@ describe("transaction api", () => {
   });
 
   test("returns true when transaction is pending", async () => {
-    const senderAccount = Account.generate();
+    const senderAccount = Signer.generate();
     await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
-    const bob = Account.generate();
+    const bob = Signer.generate();
     const rawTxn = await aptos.transaction.build.simple({
       sender: senderAccount.accountAddress,
       data: {
@@ -42,9 +42,9 @@ describe("transaction api", () => {
   describe("fetch transaction queries", () => {
     let txn: TransactionResponse;
     beforeAll(async () => {
-      const senderAccount = Account.generate();
+      const senderAccount = Signer.generate();
       await aptos.fundAccount({ accountAddress: senderAccount.accountAddress, amount: FUND_AMOUNT });
-      const bob = Account.generate();
+      const bob = Signer.generate();
       const rawTxn = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {

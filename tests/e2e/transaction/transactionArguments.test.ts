@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  Account,
   AptosConfig,
   Network,
   Aptos,
@@ -24,6 +23,7 @@ import {
   MoveOption,
   MoveString,
   MoveVector,
+  Signer,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -55,12 +55,12 @@ jest.setTimeout(10000);
 describe("various transaction arguments", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const senderAccount = Account.fromPrivateKey({
+  const senderAccount = Signer.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
     legacy: false,
   });
-  const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
-  const feePayerAccount = Account.generate();
+  const secondarySignerAccounts = [Signer.generate(), Signer.generate(), Signer.generate(), Signer.generate()];
+  const feePayerAccount = Signer.generate();
   const moduleObjects: Array<AccountAddress> = [];
   let transactionArguments: Array<EntryFunctionArgumentTypes>;
   let simpleTransactionArguments: Array<SimpleEntryFunctionArgumentTypes>;

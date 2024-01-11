@@ -2,10 +2,10 @@ import EventEmitter from "eventemitter3";
 import { TransactionWorkerEvents, TransactionWorker, TransactionWorkerEventsEnum } from "../../transactions/management";
 import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
-import { Account } from "../../core";
+import { Signer } from "../../core";
 
 export class TransactionManagement extends EventEmitter<TransactionWorkerEvents> {
-  account!: Account;
+  sender!: Signer;
 
   transactionWorker!: TransactionWorker;
 
@@ -22,9 +22,9 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    *
    * @param args.sender The sender account to sign and submit the transaction
    */
-  private start(args: { sender: Account }): void {
+  private start(args: { sender: Signer }): void {
     const { sender } = args;
-    this.account = sender;
+    this.sender = sender;
     this.transactionWorker = new TransactionWorker(this.config, sender);
 
     this.transactionWorker.start();
@@ -90,7 +90,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * @return void. Throws if any error
    */
   forSingleAccount(args: {
-    sender: Account;
+    sender: Signer;
     data: InputGenerateTransactionPayloadData[];
     options?: Omit<InputGenerateTransactionOptions, "accountSequenceNumber">;
   }): void {

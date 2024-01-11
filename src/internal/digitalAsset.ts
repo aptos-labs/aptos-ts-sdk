@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Bool, MoveString, MoveVector, U64 } from "../bcs";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { EntryFunctionABI, InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import {
   AnyNumber,
@@ -232,7 +232,7 @@ const createCollectionAbi: EntryFunctionABI = {
 export async function createCollectionTransaction(
   args: {
     aptosConfig: AptosConfig;
-    creator: Account;
+    creator: AccountAddressInput;
     description: string;
     name: string;
     uri: string;
@@ -242,7 +242,7 @@ export async function createCollectionTransaction(
   const { aptosConfig, options, creator } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::create_collection",
       functionArguments: [
@@ -328,7 +328,7 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
 
 export async function mintDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   collection: string;
   description: string;
   name: string;
@@ -353,7 +353,7 @@ export async function mintDigitalAssetTransaction(args: {
   const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::mint",
       functionArguments: [
@@ -378,7 +378,7 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
 
 export async function transferDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
-  sender: Account;
+  sender: AccountAddressInput;
   digitalAssetAddress: AccountAddressInput;
   recipient: AccountAddressInput;
   digitalAssetType?: MoveStructId;
@@ -387,7 +387,7 @@ export async function transferDigitalAssetTransaction(args: {
   const { aptosConfig, sender, digitalAssetAddress, recipient, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: sender.accountAddress,
+    sender,
     data: {
       function: "0x1::object::transfer",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -414,7 +414,7 @@ const mintSoulBoundAbi: EntryFunctionABI = {
 
 export async function mintSoulBoundTransaction(args: {
   aptosConfig: AptosConfig;
-  account: Account;
+  account: AccountAddressInput;
   collection: string;
   description: string;
   name: string;
@@ -447,7 +447,7 @@ export async function mintSoulBoundTransaction(args: {
   const convertedPropertyType = propertyTypes?.map((type) => PropertyTypeMap[type]);
   return generateTransaction({
     aptosConfig,
-    sender: account.accountAddress,
+    sender: account,
     data: {
       function: "0x4::aptos_token::mint_soul_bound",
       functionArguments: [
@@ -473,7 +473,7 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
 
 export async function burnDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
@@ -481,7 +481,7 @@ export async function burnDigitalAssetTransaction(args: {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::burn",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -499,7 +499,7 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
 
 export async function freezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
@@ -507,7 +507,7 @@ export async function freezeDigitalAssetTransferTransaction(args: {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::freeze_transfer",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -525,7 +525,7 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
 
 export async function unfreezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
   options?: InputGenerateTransactionOptions;
@@ -533,7 +533,7 @@ export async function unfreezeDigitalAssetTransferTransaction(args: {
   const { aptosConfig, creator, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::unfreeze_transfer",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -551,7 +551,7 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
 
 export async function setDigitalAssetDescriptionTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   description: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
@@ -560,7 +560,7 @@ export async function setDigitalAssetDescriptionTransaction(args: {
   const { aptosConfig, creator, description, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::set_description",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -578,7 +578,7 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
 
 export async function setDigitalAssetNameTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   name: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
@@ -587,7 +587,7 @@ export async function setDigitalAssetNameTransaction(args: {
   const { aptosConfig, creator, name, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::set_name",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -605,7 +605,7 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
 
 export async function setDigitalAssetURITransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   uri: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
@@ -614,7 +614,7 @@ export async function setDigitalAssetURITransaction(args: {
   const { aptosConfig, creator, uri, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::set_uri",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -637,7 +637,7 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
 
 export async function addDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   propertyKey: string;
   propertyType: PropertyType;
   propertyValue: PropertyValue;
@@ -657,7 +657,7 @@ export async function addDigitalAssetPropertyTransaction(args: {
   } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::add_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -680,7 +680,7 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
 
 export async function removeDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   propertyKey: string;
   digitalAssetAddress: AccountAddressInput;
   digitalAssetType?: MoveStructId;
@@ -689,7 +689,7 @@ export async function removeDigitalAssetPropertyTransaction(args: {
   const { aptosConfig, creator, propertyKey, digitalAssetAddress, digitalAssetType, options } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::remove_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -712,7 +712,7 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
 
 export async function updateDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   propertyKey: string;
   propertyType: PropertyType;
   propertyValue: PropertyValue;
@@ -732,7 +732,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
   } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::update_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType],
@@ -759,7 +759,7 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
 
 export async function addDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   propertyKey: string;
   propertyType: PropertyType;
   propertyValue: PropertyValue;
@@ -779,7 +779,7 @@ export async function addDigitalAssetTypedPropertyTransaction(args: {
   } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::add_typed_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],
@@ -801,7 +801,7 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
 
 export async function updateDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;
-  creator: Account;
+  creator: AccountAddressInput;
   propertyKey: string;
   propertyType: PropertyType;
   propertyValue: PropertyValue;
@@ -821,7 +821,7 @@ export async function updateDigitalAssetTypedPropertyTransaction(args: {
   } = args;
   return generateTransaction({
     aptosConfig,
-    sender: creator.accountAddress,
+    sender: creator,
     data: {
       function: "0x4::aptos_token::update_typed_property",
       typeArguments: [digitalAssetType ?? defaultDigitalAssetType, PropertyTypeMap[propertyType]],

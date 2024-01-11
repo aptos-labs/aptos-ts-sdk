@@ -2,7 +2,6 @@ import {
   AptosConfig,
   Network,
   Aptos,
-  Account,
   Deserializer,
   U64,
   AccountAddress,
@@ -12,6 +11,7 @@ import {
   TransactionPayloadEntryFunction,
   TypeTagU64,
   TypeTagAddress,
+  Signer,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, singleSignerScriptBytecode } from "./helper";
@@ -19,10 +19,10 @@ import { fundAccounts, singleSignerScriptBytecode } from "./helper";
 describe("generate transaction", () => {
   const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
-  const senderAccount = Account.generate();
-  const recieverAccounts = [Account.generate(), Account.generate()];
-  const secondarySignerAccount = Account.generate();
-  const feePayerAccount = Account.generate();
+  const senderAccount = Signer.generate();
+  const recieverAccounts = [Signer.generate(), Signer.generate()];
+  const secondarySignerAccount = Signer.generate();
+  const feePayerAccount = Signer.generate();
   beforeAll(async () => {
     await fundAccounts(aptos, [senderAccount, ...recieverAccounts, secondarySignerAccount, feePayerAccount]);
   }, longTestTimeout);

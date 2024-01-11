@@ -2,10 +2,10 @@ import {
   AptosConfig,
   Network,
   Aptos,
-  Account,
   Deserializer,
   RawTransaction,
   TransactionPayloadEntryFunction,
+  Signer,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
@@ -13,8 +13,8 @@ describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const sender = Account.generate();
-    const recipient = Account.generate();
+    const sender = Signer.generate();
+    const recipient = Signer.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -43,8 +43,8 @@ describe("coin", () => {
   test("it generates a transfer coin transaction with a custom coin type", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const sender = Account.generate();
-    const recipient = Account.generate();
+    const sender = Signer.generate();
+    const recipient = Signer.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferCoinTransaction({
@@ -76,8 +76,8 @@ describe("coin", () => {
     async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const sender = Account.generate();
-      const recipient = Account.generate();
+      const sender = Signer.generate();
+      const recipient = Signer.generate();
 
       await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
       const senderCoinsBefore = await aptos.getAccountCoinsData({ accountAddress: sender.accountAddress });

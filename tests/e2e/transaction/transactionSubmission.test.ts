@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  Account,
   AptosConfig,
   Network,
   Aptos,
@@ -13,6 +12,7 @@ import {
   AccountAuthenticatorMultiKey,
   RawTransaction,
   TransactionPayloadEntryFunction,
+  Signer,
   Bool,
   MoveString,
 } from "../../../src";
@@ -23,13 +23,13 @@ import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, single
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
 describe("transaction submission", () => {
-  const contractPublisherAccount = Account.generate();
-  const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-  const legacyED25519SenderAccount = Account.generate();
-  const receiverAccounts = [Account.generate(), Account.generate()];
-  const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-  const secondarySignerAccount = Account.generate();
-  const feePayerAccount = Account.generate();
+  const contractPublisherAccount = Signer.generate();
+  const singleSignerED25519SenderAccount = Signer.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+  const legacyED25519SenderAccount = Signer.generate();
+  const receiverAccounts = [Signer.generate(), Signer.generate()];
+  const singleSignerSecp256k1Account = Signer.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+  const secondarySignerAccount = Signer.generate();
+  const feePayerAccount = Signer.generate();
   beforeAll(async () => {
     await fundAccounts(aptos, [
       contractPublisherAccount,
@@ -618,8 +618,6 @@ describe("transaction submission", () => {
           functionArguments: [1, receiverAccounts[0].accountAddress],
         },
       });
-      // create a bitmap where singleSignerED25519SenderAccount and singleSignerSecp256k1Account
-      const bitmap = multiKey.createBitmap({ bits: [0, 2] });
 
       // account1 and account3 sign the transaction
       const account1Authenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
@@ -629,11 +627,7 @@ describe("transaction submission", () => {
         throw new Error("Both AccountAuthenticators should be an instance of AccountAuthenticatorSingleKey");
       }
 
-      const multiKeyAuth = new AccountAuthenticatorMultiKey(
-        multiKey,
-        [account1Authenticator.signature, account3Authenticator.signature],
-        bitmap,
-      );
+      const multiKeyAuth = new AccountAuthenticatorMultiKey(multiKey, [account1Authenticator, account3Authenticator]);
 
       const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator: multiKeyAuth });
       await aptos.waitForTransaction({
@@ -643,7 +637,7 @@ describe("transaction submission", () => {
     });
   });
   describe("publish move module", () => {
-    const account = Account.generate();
+    const account = Signer.generate();
     const metadataBytes =
       // eslint-disable-next-line max-len
       "107472616e73616374696f6e5f746573740100000000000000004035364643333939394442364244363842383430304539323438363839393837413338313439344644413241343631334144373946333630323134353539324545ba011f8b08000000000002ff5d8f3d0ec2300c85779f0265e944032b12030b97a8aaca4d4c1b95fc284e0bc72729a503f2e2a7f7d97e6e02aa09076ac1a1a5c3f5205244c7a892f1ae4bc449c04291b32ae6a9ce25001a4d819c26a70c717d0bc9f33de6052f1fa7160693325c8d2905be4899e538f7b5f25662218f4fec796b958f5467a082484b19b2685c053cf7dac4a2bf98f50bc9c7efc236bbeb2a0742ad233113b7b0baddeeaeb9df6701ff9f15a3131fec1509190201000001087472616e73666572ca021f8b08000000000002ff9552cb4ec33010bcf72bf654a522dc10071790101f12b9f1a6582476e407a142fd77fc48d23826125891627b661fb39e4e32db22184585a6b5e1525406b52124dc34a8e07b07e03eab11686fa4ae1a453b1ca4fa20245ed4928be33629c03b87f6f6d4f21a50187581c60a3083ac4e97cafd0a07c7d570e5cac35ef3b34055cef71a6b29d82f00eda415a61ae3ece343064da109c6f41c431953a8758a4d413988bdd43c2f780893f2ab45035e74a4c07338103270f3ce141d9e6e5323e4d5efdfdcf6a508ec32d17338ae53c6b6fe9c33d2cb741287f01a7e457e87ea8cc5beb3cbb6cb65bd5bc45623f8e50c539b3ccb520edca58dc07d3acd75632358cc6f552e52cfb3c9b993ea5481e75e6381dc89a3db8b85df0443b5e9b7959b14d61c3f3d3ff14bee897fbc9caf3fcd6f43ec54364a9d355e7f00fb8d2dcfd603000000000300000000000000000000000000000000000000000000000000000000000000010e4170746f734672616d65776f726b00000000000000000000000000000000000000000000000000000000000000010b4170746f735374646c696200000000000000000000000000000000000000000000000000000000000000010a4d6f76655374646c696200";
@@ -655,7 +649,7 @@ describe("transaction submission", () => {
 
     test("it generates a publish move module transaction successfully", async () => {
       const transaction = await aptos.publishPackageTransaction({
-        account: account.accountAddress,
+        sender: account.accountAddress,
         // eslint-disable-next-line max-len
         metadataBytes,
         moduleBytecode: [byteCode],
@@ -669,7 +663,7 @@ describe("transaction submission", () => {
 
     test("it submits a publish move module transaction successfully", async () => {
       const transaction = await aptos.publishPackageTransaction({
-        account: account.accountAddress,
+        sender: account.accountAddress,
         // eslint-disable-next-line max-len
         metadataBytes,
         moduleBytecode: [byteCode],
@@ -729,7 +723,7 @@ describe("transaction submission", () => {
   });
   describe("sponsor transactions", () => {
     test("submits simple sponsored transaction for an uncreated main signer account", async () => {
-      const uncreatedAccount = Account.generate();
+      const uncreatedAccount = Signer.generate();
 
       // expect uncreatedAccount has not been created on chain
       await expect(() =>

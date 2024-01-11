@@ -13,7 +13,7 @@ import {
   PaginationArgs,
   TokenStandardArg,
 } from "../types";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
@@ -212,7 +212,7 @@ export class DigitalAsset {
    */
   async createCollectionTransaction(
     args: {
-      creator: Account;
+      creator: AccountAddressInput;
       description: string;
       name: string;
       uri: string;
@@ -234,7 +234,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async mintDigitalAssetTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     collection: string;
     description: string;
     name: string;
@@ -261,7 +261,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async transferDigitalAssetTransaction(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     digitalAssetAddress: AccountAddressInput;
     recipient: AccountAddress;
     digitalAssetType?: MoveStructId;
@@ -286,7 +286,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async mintSoulBoundTransaction(args: {
-    account: Account;
+    account: AccountAddressInput;
     collection: string;
     description: string;
     name: string;
@@ -309,7 +309,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async burnDigitalAssetTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
@@ -326,7 +326,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async freezeDigitalAssetTransaferTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
@@ -343,7 +343,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async unfreezeDigitalAssetTransaferTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
@@ -361,7 +361,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetDescriptionTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     description: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
@@ -380,7 +380,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetNameTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     name: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
@@ -399,7 +399,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async setDigitalAssetURITransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     uri: string;
     digitalAssetAddress: AccountAddressInput;
     digitalAssetType?: MoveStructId;
@@ -420,7 +420,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async addDigitalAssetPropertyTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     propertyKey: string;
     propertyType: PropertyType;
     propertyValue: PropertyValue;
@@ -443,7 +443,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async removeDigitalAssetPropertyTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     propertyKey: string;
     propertyType: PropertyType;
     propertyValue: PropertyValue;
@@ -466,7 +466,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async updateDigitalAssetPropertyTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     propertyKey: string;
     propertyType: PropertyType;
     propertyValue: PropertyValue;
@@ -489,7 +489,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async addDigitalAssetTypedPropertyTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     propertyKey: string;
     propertyType: PropertyType;
     propertyValue: PropertyValue;
@@ -512,7 +512,7 @@ export class DigitalAsset {
    * @returns A SimpleTransaction that can be simulated or submitted to chain
    */
   async updateDigitalAssetTypedPropertyTransaction(args: {
-    creator: Account;
+    creator: AccountAddressInput;
     propertyKey: string;
     propertyType: PropertyType;
     propertyValue: PropertyValue;

@@ -1,14 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, AptosConfig, Account, Network } from "../../../src";
+import { Aptos, AptosConfig, Network, Signer } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 describe("Faucet", () => {
   test("it should fund an account", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
-    const testAccount = Account.generate();
+    const testAccount = Signer.generate();
 
     // Fund the account
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });

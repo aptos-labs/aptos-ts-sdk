@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Bool, MoveString, MoveVector, Network, U8 } from "../../../src";
+import { Aptos, AptosConfig, Bool, MoveString, MoveVector, Network, Signer, U8 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
@@ -15,13 +15,13 @@ const tokenName = "Test Token";
 const tokenDescription = "my first nft";
 const tokenUri = "http://aptos.dev/nft";
 
-const creator = Account.generate();
+const creator = Signer.generate();
 const creatorAddress = creator.accountAddress.toString();
 
 async function setupCollection(): Promise<string> {
   await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
   const transaction = await aptos.createCollectionTransaction({
-    creator,
+    creator: creator.accountAddress,
     description: collectionDescription,
     name: collectionName,
     uri: collectionUri,
@@ -38,7 +38,7 @@ async function setupCollection(): Promise<string> {
 
 async function setupToken(): Promise<string> {
   const transaction = await aptos.mintDigitalAssetTransaction({
-    creator,
+    creator: creator.accountAddress,
     collection: collectionName,
     description: tokenDescription,
     name: tokenName,
@@ -129,7 +129,7 @@ describe("DigitalAsset", () => {
 
   test("it freezes transfer ability", async () => {
     const transaction = await aptos.freezeDigitalAssetTransaferTransaction({
-      creator,
+      creator: creator.accountAddress,
       digitalAssetAddress: tokenAddress,
     });
     const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
@@ -138,7 +138,7 @@ describe("DigitalAsset", () => {
 
   test("it unfreezes transfer ability", async () => {
     const transaction = await aptos.unfreezeDigitalAssetTransaferTransaction({
-      creator,
+      creator: creator.accountAddress,
       digitalAssetAddress: tokenAddress,
     });
     const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
@@ -147,7 +147,7 @@ describe("DigitalAsset", () => {
 
   test("it sets digital asset descripion", async () => {
     const transaction = await aptos.setDigitalAssetDescriptionTransaction({
-      creator,
+      creator: creator.accountAddress,
       description: "my new description",
       digitalAssetAddress: tokenAddress,
     });
@@ -157,7 +157,7 @@ describe("DigitalAsset", () => {
 
   test("it sets digital asset name", async () => {
     const transaction = await aptos.setDigitalAssetNameTransaction({
-      creator,
+      creator: creator.accountAddress,
       name: "my new name",
       digitalAssetAddress: tokenAddress,
     });
@@ -167,7 +167,7 @@ describe("DigitalAsset", () => {
 
   test("it sets digital asset uri", async () => {
     const transaction = await aptos.setDigitalAssetURITransaction({
-      creator,
+      creator: creator.accountAddress,
       uri: "my.new.uri",
       digitalAssetAddress: tokenAddress,
     });
@@ -177,7 +177,7 @@ describe("DigitalAsset", () => {
 
   test("it adds digital asset property", async () => {
     const transaction = await aptos.addDigitalAssetPropertyTransaction({
-      creator,
+      creator: creator.accountAddress,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: true,
@@ -189,7 +189,7 @@ describe("DigitalAsset", () => {
 
   test("it updates digital asset property", async () => {
     const transaction = await aptos.updateDigitalAssetPropertyTransaction({
-      creator,
+      creator: creator.accountAddress,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: false,
@@ -201,7 +201,7 @@ describe("DigitalAsset", () => {
 
   test("it removes digital asset property", async () => {
     const transaction = await aptos.removeDigitalAssetPropertyTransaction({
-      creator,
+      creator: creator.accountAddress,
       propertyKey: "newKey",
       propertyType: "BOOLEAN",
       propertyValue: true,
@@ -213,7 +213,7 @@ describe("DigitalAsset", () => {
 
   test("it adds typed digital asset property", async () => {
     const transaction = await aptos.addDigitalAssetTypedPropertyTransaction({
-      creator,
+      creator: creator.accountAddress,
       propertyKey: "typedKey",
       propertyType: "STRING",
       propertyValue: "hello",
@@ -225,7 +225,7 @@ describe("DigitalAsset", () => {
 
   test("it updates typed digital asset property", async () => {
     const transaction = await aptos.updateDigitalAssetTypedPropertyTransaction({
-      creator,
+      creator: creator.accountAddress,
       propertyKey: "typedKey",
       propertyType: "U8",
       propertyValue: 2,
@@ -236,10 +236,10 @@ describe("DigitalAsset", () => {
   });
 
   test("it mints soul bound token", async () => {
-    const bob = Account.generate();
+    const bob = Signer.generate();
     await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: FUND_AMOUNT });
     const transaction = await aptos.mintSoulBoundTransaction({
-      account: creator,
+      account: creator.accountAddress,
       collection: collectionName,
       description: "soul bound token description",
       name: "soul bound token",
@@ -275,11 +275,11 @@ describe("DigitalAsset", () => {
   });
 
   test("it transfers digital asset ownership", async () => {
-    const digitalAssetReciever = Account.generate();
+    const digitalAssetReciever = Signer.generate();
     await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferDigitalAssetTransaction({
-      sender: creator,
+      sender: creator.accountAddress,
       digitalAssetAddress: tokenAddress,
       recipient: digitalAssetReciever.accountAddress,
     });
@@ -298,7 +298,7 @@ describe("DigitalAsset", () => {
 
   test("it burns digital asset", async () => {
     const transaction = await aptos.burnDigitalAssetTransaction({
-      creator,
+      creator: creator.accountAddress,
       digitalAssetAddress: tokenAddress,
     });
     const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });

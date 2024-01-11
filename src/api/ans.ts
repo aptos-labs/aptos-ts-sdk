@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddressInput } from "../core";
+import { AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
   getExpiration,
@@ -101,7 +101,7 @@ export class ANS {
    * @returns SimpleTransaction
    */
   async setTargetAddress(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name: string;
     address: AccountAddressInput;
     options?: InputGenerateTransactionOptions;
@@ -144,7 +144,7 @@ export class ANS {
    * @returns SimpleTransaction
    */
   async setPrimaryName(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name?: string;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
@@ -208,7 +208,7 @@ export class ANS {
    * @returns SimpleTransaction
    */
   async renewDomain(args: {
-    sender: Account;
+    sender: AccountAddressInput;
     name: string;
     years?: 1;
     options?: InputGenerateTransactionOptions;
