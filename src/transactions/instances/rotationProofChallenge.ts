@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Serializer, Serializable } from "../../bcs/serializer";
+import { AuthenticationKey, PublicKeyInput } from "../../core";
 import { AccountAddress } from "../../core/accountAddress";
 import { AnyNumber } from "../../types";
-import { PublicKey } from "../../core/crypto/asymmetricCrypto";
-import { MoveString, MoveVector, U64, U8 } from "../../bcs";
+import { MoveString, U64 } from "../../bcs";
 
 /**
  * Representation of the challenge which is needed to sign by owner of the account
@@ -25,10 +25,10 @@ export class RotationProofChallenge extends Serializable {
   public readonly originator: AccountAddress;
 
   // Signer's current authentication key
-  public readonly currentAuthKey: AccountAddress;
+  public readonly currentAuthKey: AuthenticationKey;
 
   // New public key to rotate to
-  public readonly newPublicKey: MoveVector<U8>;
+  public readonly newPublicKey: PublicKeyInput;
 
   // Sequence number of the account
   public readonly sequenceNumber: U64;
@@ -36,14 +36,14 @@ export class RotationProofChallenge extends Serializable {
   constructor(args: {
     sequenceNumber: AnyNumber;
     originator: AccountAddress;
-    currentAuthKey: AccountAddress;
-    newPublicKey: PublicKey;
+    currentAuthKey: AuthenticationKey;
+    newPublicKey: PublicKeyInput;
   }) {
     super();
     this.sequenceNumber = new U64(args.sequenceNumber);
     this.originator = args.originator;
     this.currentAuthKey = args.currentAuthKey;
-    this.newPublicKey = MoveVector.U8(args.newPublicKey.toUint8Array());
+    this.newPublicKey = args.newPublicKey;
   }
 
   serialize(serializer: Serializer): void {
