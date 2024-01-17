@@ -8,10 +8,17 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
-import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
-import { AnySignature } from "../../core/crypto/anySignature";
+import {
+  AccountAddress,
+  AccountAddressInput,
+  AnyPublicKey,
+  AnySignature,
+  Hex,
+  Signer,
+  MultiEd25519PublicKey,
+  MultiKey,
+  PublicKeyInput,
+} from "../../core";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
@@ -27,11 +34,12 @@ import {
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
-  TransactionAuthenticatorEd25519,
+  TransactionAuthenticator,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
   TransactionAuthenticatorSingleSender,
@@ -73,7 +81,7 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber, SigningScheme } from "../../types";
+import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**
@@ -281,7 +289,9 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * ```
  */
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
+  const { aptosConfig, sender, payload, options } = args;
+  const feePayerAddress = args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined;
+
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
     aptosConfig,
@@ -291,21 +301,15 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     feePayerAddress,
   });
 
-  // if multi agent transaction
-  if ("secondarySignerAddresses" in args) {
-    const signers: Array<AccountAddress> =
-      args.secondarySignerAddresses?.map((signer) => AccountAddress.from(signer)) ?? [];
+  const secondarySignerAddresses =
+    "secondarySignerAddresses" in args
+      ? args.secondarySignerAddresses.map((address) => AccountAddress.from(address))
+      : undefined;
 
-    return {
-      rawTransaction: rawTxn,
-      secondarySignerAddresses: signers,
-      feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
-    };
-  }
-  // return the raw transaction
   return {
     rawTransaction: rawTxn,
-    feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
+    secondarySignerAddresses,
+    feePayerAddress,
   };
 }
 
@@ -321,90 +325,81 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * @returns A signed serialized transaction that can be simulated
  */
 export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
-  const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
+  const { transaction, signerPublicKey } = args;
 
-  const accountAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
+  const signerAuthenticator = getAuthenticatorForSimulation(signerPublicKey);
 
-  // fee payer transaction
+  let transactionAuthenticator: TransactionAuthenticator;
   if (transaction.feePayerAddress) {
-    const transactionToSign = new FeePayerRawTransaction(
-      transaction.rawTransaction,
-      transaction.secondarySignerAddresses ?? [],
-      transaction.feePayerAddress,
-    );
-    let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
-    if (secondarySignersPublicKeys) {
-      secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
-        getAuthenticatorForSimulation(publicKey),
-      );
+    if (!args.feePayerPublicKey) {
+      throw new Error("Missing fee payer public key");
     }
-    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey!);
+    const secondarySignersAddresses = transaction.secondarySignerAddresses ?? [];
+    const secondarySignersPublicKeys = args.secondarySignersPublicKeys ?? [];
+    const secondarySignersAuthenticators = secondarySignersPublicKeys.map((pk) => getAuthenticatorForSimulation(pk));
+    const feePayerAuthenticator = getAuthenticatorForSimulation(args.feePayerPublicKey);
 
-    const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
-      accountAuthenticator,
-      transaction.secondarySignerAddresses ?? [],
-      secondaryAccountAuthenticators,
+    transactionAuthenticator = new TransactionAuthenticatorFeePayer(
+      signerAuthenticator,
+      secondarySignersAddresses,
+      secondarySignersAuthenticators,
       {
         address: transaction.feePayerAddress,
         authenticator: feePayerAuthenticator,
       },
     );
-    return new SignedTransaction(transactionToSign.raw_txn, transactionAuthenticator).bcsToBytes();
-  }
-
-  // multi agent transaction
-  if (transaction.secondarySignerAddresses) {
-    const transactionToSign = new MultiAgentRawTransaction(
-      transaction.rawTransaction,
-      transaction.secondarySignerAddresses,
+  } else if (transaction.secondarySignerAddresses) {
+    const secondarySignersAddresses = transaction.secondarySignerAddresses;
+    const secondarySignersPublicKeys = args.secondarySignersPublicKeys ?? [];
+    const secondarySignersAuthenticators = secondarySignersPublicKeys.map((pk) => getAuthenticatorForSimulation(pk));
+    transactionAuthenticator = new TransactionAuthenticatorMultiAgent(
+      signerAuthenticator,
+      secondarySignersAddresses,
+      secondarySignersAuthenticators,
     );
-
-    let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
-
-    secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
-      getAuthenticatorForSimulation(publicKey),
-    );
-
-    const transactionAuthenticator = new TransactionAuthenticatorMultiAgent(
-      accountAuthenticator,
-      transaction.secondarySignerAddresses,
-      secondaryAccountAuthenticators,
-    );
-
-    return new SignedTransaction(transactionToSign.raw_txn, transactionAuthenticator).bcsToBytes();
-  }
-
-  // single signer raw transaction
-  let transactionAuthenticator;
-  if (accountAuthenticator instanceof AccountAuthenticatorEd25519) {
-    transactionAuthenticator = new TransactionAuthenticatorEd25519(
-      accountAuthenticator.public_key,
-      accountAuthenticator.signature,
-    );
-  } else if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
-    transactionAuthenticator = new TransactionAuthenticatorSingleSender(accountAuthenticator);
   } else {
-    throw new Error("Invalid public key");
+    transactionAuthenticator = new TransactionAuthenticatorSingleSender(signerAuthenticator);
   }
+
   return new SignedTransaction(transaction.rawTransaction, transactionAuthenticator).bcsToBytes();
 }
 
-export function getAuthenticatorForSimulation(publicKey: PublicKey) {
-  // TODO add support for AnyMultiKey
-  if (publicKey instanceof AnyPublicKey) {
-    if (publicKey.publicKey instanceof Ed25519PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
-    }
-    if (publicKey.publicKey instanceof Secp256k1PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
-    }
+export function getEmptySignature(publicKey: AnyPublicKey) {
+  if (publicKey.publicKey instanceof Ed25519PublicKey) {
+    AnySignature.fromSignature(new Ed25519Signature(new Uint8Array(64)));
+  }
+  if (publicKey.publicKey instanceof Secp256k1PublicKey) {
+    return AnySignature.fromSignature(new Secp256k1Signature(new Uint8Array(64)));
+  }
+  throw new Error("Unexpected public key type");
+}
+
+export function getAuthenticatorForSimulation(publicKey: PublicKeyInput) {
+  if (publicKey instanceof Ed25519PublicKey) {
+    // legacy code
+    return new AccountAuthenticatorEd25519(publicKey, new Ed25519Signature(new Uint8Array(64)));
   }
 
-  // legacy code
-  return new AccountAuthenticatorEd25519(
-    new Ed25519PublicKey(publicKey.toUint8Array()),
-    new Ed25519Signature(new Uint8Array(64)),
-  );
+  if (publicKey instanceof MultiEd25519PublicKey) {
+    const signersAuthenticators = publicKey.publicKeys.map(
+      (pk) => new AccountAuthenticatorEd25519(pk, new Ed25519Signature(new Uint8Array(64))),
+    );
+    return new AccountAuthenticatorMultiEd25519(publicKey, signersAuthenticators);
+  }
+
+  if (publicKey instanceof AnyPublicKey) {
+    const signature = getEmptySignature(publicKey);
+    return new AccountAuthenticatorSingleKey(publicKey, signature);
+  }
+
+  if (publicKey instanceof MultiKey) {
+    const signersAuthenticators = publicKey.publicKeys.map(
+      (pk) => new AccountAuthenticatorSingleKey(pk, getEmptySignature(pk)),
+    );
+    return new AccountAuthenticatorMultiKey(publicKey, signersAuthenticators);
+  }
+
+  throw new Error("Unsupported account type");
 }
 
 /**
@@ -415,31 +410,10 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  *
  * @return The signer AccountAuthenticator
  */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function sign(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
-
-  // get the signing message
   const message = generateSigningMessage(transaction);
-
-  // account.signMessage
-  const signerSignature = signer.sign(message);
-
-  // return account authentication
-  switch (signer.signingScheme) {
-    case SigningScheme.Ed25519:
-      return new AccountAuthenticatorEd25519(
-        new Ed25519PublicKey(signer.publicKey.toUint8Array()),
-        new Ed25519Signature(signerSignature.toUint8Array()),
-      );
-    case SigningScheme.SingleKey:
-      if (!AnyPublicKey.isPublicKey(signer.publicKey)) {
-        throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
-      }
-      return new AccountAuthenticatorSingleKey(signer.publicKey, new AnySignature(signerSignature));
-    // TODO support MultiEd25519
-    default:
-      throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
-  }
+  return signer.sign(message);
 }
 
 /**
@@ -452,45 +426,44 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
  * @returns A SignedTransaction
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
-  const { transaction, senderAuthenticator, feePayerAuthenticator, additionalSignersAuthenticators } = args;
+  const { transaction, senderAuthenticator, feePayerAuthenticator } = args;
+  const secondarySignersAddresses = transaction.secondarySignerAddresses ?? [];
+  const secondarySignersAuthenticators = args.additionalSignersAuthenticators ?? [];
 
-  const transactionToSubmit = deriveTransactionType(transaction);
+  if (transaction.feePayerAddress && !feePayerAuthenticator) {
+    throw new Error("Missing fee payer authenticator");
+  }
 
-  if (
-    (feePayerAuthenticator || additionalSignersAuthenticators) &&
-    (transactionToSubmit instanceof MultiAgentRawTransaction || transactionToSubmit instanceof FeePayerRawTransaction)
-  ) {
-    return generateMultiSignersSignedTransaction(
-      transactionToSubmit,
+  if (secondarySignersAddresses.length !== secondarySignersAuthenticators.length) {
+    throw new Error("Mismatched number of secondary signers authenticators");
+  }
+
+  let txnAuthenticator: TransactionAuthenticator;
+  if (feePayerAuthenticator) {
+    if (!transaction.feePayerAddress) {
+      throw new Error("Unexpected fee payer authenticator");
+    }
+
+    txnAuthenticator = new TransactionAuthenticatorFeePayer(
       senderAuthenticator,
-      feePayerAuthenticator,
-      additionalSignersAuthenticators,
+      secondarySignersAddresses,
+      secondarySignersAuthenticators,
+      {
+        address: transaction.feePayerAddress,
+        authenticator: feePayerAuthenticator,
+      },
     );
-  }
-
-  // submit single signer transaction
-
-  // check what instance is accountAuthenticator
-  if (senderAuthenticator instanceof AccountAuthenticatorEd25519 && transactionToSubmit instanceof RawTransaction) {
-    const transactionAuthenticator = new TransactionAuthenticatorEd25519(
-      senderAuthenticator.public_key,
-      senderAuthenticator.signature,
+  } else if (secondarySignersAuthenticators.length > 0) {
+    txnAuthenticator = new TransactionAuthenticatorMultiAgent(
+      senderAuthenticator,
+      secondarySignersAddresses,
+      secondarySignersAuthenticators,
     );
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
+  } else {
+    txnAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
   }
 
-  if (
-    (senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
-      senderAuthenticator instanceof AccountAuthenticatorMultiKey) &&
-    transactionToSubmit instanceof RawTransaction
-  ) {
-    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot generate a signed transaction, ${senderAuthenticator} is not a supported account authentication scheme`,
-  );
+  return new SignedTransaction(args.transaction.rawTransaction, txnAuthenticator).bcsToBytes();
 }
 
 /**
@@ -513,55 +486,6 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
   }
 
   return transaction.rawTransaction;
-}
-
-/**
- * Generate a multi signers signed transaction that can be submitted to chain
- *
- * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
- * @param senderAuthenticator The account authenticator of the transaction sender
- * @param secondarySignerAuthenticators The extra signers account Authenticators
- *
- * @returns A SignedTransaction
- */
-export function generateMultiSignersSignedTransaction(
-  transaction: MultiAgentRawTransaction | FeePayerRawTransaction,
-  senderAuthenticator: AccountAuthenticator,
-  feePayerAuthenticator?: AccountAuthenticator,
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>,
-) {
-  if (transaction instanceof FeePayerRawTransaction) {
-    if (!feePayerAuthenticator) {
-      throw new Error("Must provide a feePayerAuthenticator argument to generate a signed fee payer transaction");
-    }
-    const txAuthenticatorFeePayer = new TransactionAuthenticatorFeePayer(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-      {
-        address: transaction.fee_payer_address,
-        authenticator: feePayerAuthenticator,
-      },
-    );
-    return new SignedTransaction(transaction.raw_txn, txAuthenticatorFeePayer).bcsToBytes();
-  }
-  if (transaction instanceof MultiAgentRawTransaction) {
-    if (!additionalSignersAuthenticators) {
-      throw new Error(
-        "Must provide a additionalSignersAuthenticators argument to generate a signed multi agent transaction",
-      );
-    }
-    const multiAgentAuthenticator = new TransactionAuthenticatorMultiAgent(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-    );
-    return new SignedTransaction(transaction.raw_txn, multiAgentAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
-  );
 }
 
 export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {

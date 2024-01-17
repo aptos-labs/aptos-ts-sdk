@@ -5,8 +5,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
-import { AccountAddress, AccountAddressInput } from "../core";
-import { PublicKey } from "../core/crypto/asymmetricCrypto";
+import { AccountAddress, AccountAddressInput, PublicKeyInput } from "../core";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,
@@ -226,15 +225,15 @@ export type InputSimulateTransactionData = {
   /**
    * For a single signer transaction
    */
-  signerPublicKey: PublicKey;
+  signerPublicKey: PublicKeyInput;
   /**
    * For a fee payer or multi-agent transaction that requires additional signers in
    */
-  secondarySignersPublicKeys?: Array<PublicKey>;
+  secondarySignersPublicKeys?: PublicKeyInput[];
   /**
    * For a fee payer transaction (aka Sponsored Transaction)
    */
-  feePayerPublicKey?: PublicKey;
+  feePayerPublicKey?: PublicKeyInput;
   options?: InputSimulateTransactionOptions;
 };
 
