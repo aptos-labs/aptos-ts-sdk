@@ -13,6 +13,7 @@
  * The worker fires events for any submission and/or execution success and/or failure.
  */
 
+import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { waitForTransaction } from "../../internal/transaction";
@@ -22,9 +23,16 @@ import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData, S
 import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 
-const promiseFulfilledStatus = "fulfilled";
+export const promiseFulfilledStatus = "fulfilled";
 
-export class TransactionWorker {
+export enum TransactionWorkerEvents {
+  TransactionSent = "transactionSent",
+  TransactionSendFailed = "transactionsendFailed",
+  TransactionExecuted = "transactionExecuted",
+  TransactionExecutionFailed = "transactionexecutionFailed",
+  ExecutionFinish = "executionFinish",
+}
+export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   readonly aptosConfig: AptosConfig;
 
   readonly account: Account;
@@ -79,6 +87,7 @@ export class TransactionWorker {
     maximumInFlight: number = 100,
     sleepTime: number = 10,
   ) {
+    super();
     this.aptosConfig = aptosConfig;
     this.account = account;
     this.started = false;
@@ -101,7 +110,6 @@ export class TransactionWorker {
     try {
       /* eslint-disable no-constant-condition */
       while (true) {
-        if (this.transactionsQueue.isEmpty()) return;
         const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
@@ -157,12 +165,21 @@ export class TransactionWorker {
             // transaction sent to chain
             this.sentTransactions.push([sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
+            this.emit(
+              TransactionWorkerEvents.TransactionSent,
+              `transaction hash ${sentTransaction.value.hash} has been commited to chain`,
+            );
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
             // send transaction failed
             this.sentTransactions.push([sentTransaction.status, sequenceNumber, sentTransaction.reason]);
+            this.emit(
+              TransactionWorkerEvents.TransactionSendFailed,
+              `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
+            );
           }
         }
+        this.emit(TransactionWorkerEvents.ExecutionFinish, `execute ${sentTransactions.length} transactions finished`);
       }
     } catch (error: any) {
       if (error instanceof AsyncQueueCancelledError) {
@@ -188,9 +205,17 @@ export class TransactionWorker {
         if (executedTransaction.status === promiseFulfilledStatus) {
           // transaction executed to chain
           this.executedTransactions.push([executedTransaction.value.hash, sequenceNumber, null]);
+          this.emit(
+            TransactionWorkerEvents.TransactionExecuted,
+            `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
+          );
         } else {
           // transaction execution failed
           this.executedTransactions.push([executedTransaction.status, sequenceNumber, executedTransaction.reason]);
+          this.emit(
+            TransactionWorkerEvents.TransactionExecutionFailed,
+            `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
+          );
         }
       }
     } catch (error: any) {

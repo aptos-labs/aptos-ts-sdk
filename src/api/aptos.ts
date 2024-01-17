@@ -70,7 +70,7 @@ export interface Aptos
     FungibleAsset,
     General,
     Staking,
-    Omit<Transaction, "build" | "simulate" | "submit"> {}
+    Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,

@@ -25,6 +25,7 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  TransactionWorkerEvents,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
@@ -77,7 +78,18 @@ async function main() {
   }
 
   // batch mint token transactions
-  aptos.batchTransactionsForSingleAccount({ sender, data: payloads });
+  aptos.transaction.batch.forSingleAccount({ sender, data: payloads });
+
+  aptos.transaction.batch.on(TransactionWorkerEvents.ExecutionFinish, async (data: any) => {
+    // log event output
+    console.log(data);
+
+    // verify account sequence number
+    const account = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
+    console.log(`account sequence number is 101: ${account.sequence_number === "101"}`);
+
+    process.exit(0);
+  });
 }
 
 main();

@@ -26,6 +26,7 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  TransactionWorkerEvents,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
@@ -35,7 +36,7 @@ const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
 async function main() {
-  const accountsCount = 1;
+  const accountsCount = 2;
   const transactionsCount = 10;
   const totalTransactions = accountsCount * transactionsCount;
 
@@ -97,8 +98,25 @@ async function main() {
 
   console.log(`sends ${totalTransactions * senders.length} transactions to ${aptos.config.network}....`);
   // emit batch transactions
-  const promises = senders.map((sender) => aptos.batchTransactionsForSingleAccount({ sender, data: payloads }));
-  await Promise.all(promises);
+  senders.map((sender) => aptos.transaction.batch.forSingleAccount({ sender, data: payloads }));
+
+  aptos.transaction.batch.on(TransactionWorkerEvents.ExecutionFinish, async (data: any) => {
+    // log event output
+    console.log(data);
+
+    // verify accounts sequence number
+    const accounts = senders.map((sender) => aptos.getAccountInfo({ accountAddress: sender.accountAddress }));
+    const accountsData = await Promise.all(accounts);
+    accountsData.forEach((accountData) => {
+      console.log(
+        `account sequence number is ${(totalTransactions * senders.length) / 2}: ${
+          accountData.sequence_number === "20"
+        }`,
+      );
+    });
+
+    process.exit(0);
+  });
 }
 
 main();
