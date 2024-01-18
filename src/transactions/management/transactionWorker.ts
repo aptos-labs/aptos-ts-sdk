@@ -25,13 +25,35 @@ import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 
 export const promiseFulfilledStatus = "fulfilled";
 
-export enum TransactionWorkerEvents {
+export enum TransactionWorkerEventsEnum {
   TransactionSent = "transactionSent",
-  TransactionSendFailed = "transactionsendFailed",
+  TransactionSendFailed = "transactionSendFailed",
   TransactionExecuted = "transactionExecuted",
-  TransactionExecutionFailed = "transactionexecutionFailed",
+  TransactionExecutionFailed = "transactionExecutionFailed",
   ExecutionFinish = "executionFinish",
 }
+
+export interface TransactionWorkerEvents {
+  transactionSent: (data: SuccessEventData) => void;
+  transactionSendFailed: (data: FailureEventData) => void;
+  transactionExecuted: (data: SuccessEventData) => void;
+  transactionExecutionFailed: (data: FailureEventData) => void;
+  executionFinish: (data: ExecutionFinishEventData) => void;
+}
+
+export type ExecutionFinishEventData = {
+  message: string;
+};
+
+export type SuccessEventData = {
+  message: string;
+  transactionHash: string;
+};
+
+export type FailureEventData = {
+  message: string;
+  error: string;
+};
 export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   readonly aptosConfig: AptosConfig;
 
@@ -165,21 +187,23 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
             // transaction sent to chain
             this.sentTransactions.push([sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
-            this.emit(
-              TransactionWorkerEvents.TransactionSent,
-              `transaction hash ${sentTransaction.value.hash} has been commited to chain`,
-            );
+            this.emit(TransactionWorkerEventsEnum.TransactionSent, {
+              message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
+              transactionHash: sentTransaction.value.hash,
+            });
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
             // send transaction failed
             this.sentTransactions.push([sentTransaction.status, sequenceNumber, sentTransaction.reason]);
-            this.emit(
-              TransactionWorkerEvents.TransactionSendFailed,
-              `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
-            );
+            this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
+              message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
+              error: sentTransaction.reason,
+            });
           }
         }
-        this.emit(TransactionWorkerEvents.ExecutionFinish, `execute ${sentTransactions.length} transactions finished`);
+        this.emit(TransactionWorkerEventsEnum.ExecutionFinish, {
+          message: `execute ${sentTransactions.length} transactions finished`,
+        });
       }
     } catch (error: any) {
       if (error instanceof AsyncQueueCancelledError) {
@@ -205,17 +229,17 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
         if (executedTransaction.status === promiseFulfilledStatus) {
           // transaction executed to chain
           this.executedTransactions.push([executedTransaction.value.hash, sequenceNumber, null]);
-          this.emit(
-            TransactionWorkerEvents.TransactionExecuted,
-            `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
-          );
+          this.emit(TransactionWorkerEventsEnum.TransactionExecuted, {
+            message: `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
+            transactionHash: sentTransaction.value.hash,
+          });
         } else {
           // transaction execution failed
           this.executedTransactions.push([executedTransaction.status, sequenceNumber, executedTransaction.reason]);
-          this.emit(
-            TransactionWorkerEvents.TransactionExecutionFailed,
-            `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
-          );
+          this.emit(TransactionWorkerEventsEnum.TransactionExecutionFailed, {
+            message: `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
+            error: executedTransaction.reason,
+          });
         }
       }
     } catch (error: any) {

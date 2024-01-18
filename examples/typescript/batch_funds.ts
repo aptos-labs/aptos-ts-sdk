@@ -26,7 +26,7 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
-  TransactionWorkerEvents,
+  TransactionWorkerEventsEnum,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
@@ -100,9 +100,14 @@ async function main() {
   // emit batch transactions
   senders.map((sender) => aptos.transaction.batch.forSingleAccount({ sender, data: payloads }));
 
-  aptos.transaction.batch.on(TransactionWorkerEvents.ExecutionFinish, async (data: any) => {
+  aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+    console.log("message:", data.message);
+    console.log("transaction hash:", data.transactionHash);
+  });
+
+  aptos.transaction.batch.on(TransactionWorkerEventsEnum.ExecutionFinish, async (data) => {
     // log event output
-    console.log(data);
+    console.log(data.message);
 
     // verify accounts sequence number
     const accounts = senders.map((sender) => aptos.getAccountInfo({ accountAddress: sender.accountAddress }));

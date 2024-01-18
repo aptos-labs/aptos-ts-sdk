@@ -1,5 +1,5 @@
 import EventEmitter from "eventemitter3";
-import { TransactionWorker, TransactionWorkerEvents } from "../../transactions/management";
+import { TransactionWorkerEvents, TransactionWorker, TransactionWorkerEventsEnum } from "../../transactions/management";
 import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
 import { Account } from "../../core";
@@ -56,20 +56,20 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * TODO - should we ask events to listen to as an input?
    */
   private registerToEvents() {
-    this.transactionWorker.on(TransactionWorkerEvents.TransactionSent, async (data) => {
-      this.emit(TransactionWorkerEvents.TransactionSent, data);
+    this.transactionWorker.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+      this.emit(TransactionWorkerEventsEnum.TransactionSent, data);
     });
-    this.transactionWorker.on(TransactionWorkerEvents.TransactionSendFailed, async (data) => {
-      this.emit(TransactionWorkerEvents.TransactionSendFailed, data);
+    this.transactionWorker.on(TransactionWorkerEventsEnum.TransactionSendFailed, async (data) => {
+      this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, data);
     });
-    this.transactionWorker.on(TransactionWorkerEvents.TransactionExecuted, async (data) => {
-      this.emit(TransactionWorkerEvents.TransactionExecuted, data);
+    this.transactionWorker.on(TransactionWorkerEventsEnum.TransactionExecuted, async (data) => {
+      this.emit(TransactionWorkerEventsEnum.TransactionExecuted, data);
     });
-    this.transactionWorker.on(TransactionWorkerEvents.TransactionExecutionFailed, async (data) => {
-      this.emit(TransactionWorkerEvents.TransactionExecutionFailed, data);
+    this.transactionWorker.on(TransactionWorkerEventsEnum.TransactionExecutionFailed, async (data) => {
+      this.emit(TransactionWorkerEventsEnum.TransactionExecutionFailed, data);
     });
-    this.transactionWorker.on(TransactionWorkerEvents.ExecutionFinish, async (data) => {
-      this.emit(TransactionWorkerEvents.ExecutionFinish, data);
+    this.transactionWorker.on(TransactionWorkerEventsEnum.ExecutionFinish, async (data) => {
+      this.emit(TransactionWorkerEventsEnum.ExecutionFinish, data);
     });
   }
 
