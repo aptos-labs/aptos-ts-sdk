@@ -1,18 +1,5 @@
 /* eslint-disable no-await-in-loop */
 
-/**
- * TransactionWorker provides a simple framework for receiving payloads to be processed.
- *
- * Once one `start()` the process and pushes a new transaction, the worker acquires
- * the current account's next sequence number (by using the AccountSequenceNumber class),
- * generates a signed transaction and pushes an async submission process into the `outstandingTransactions` queue.
- * At the same time, the worker processes transactions by reading the `outstandingTransactions` queue
- * and submits the next transaction to chain, it
- * 1) waits for resolution of the submission process or get pre-execution validation error
- * and 2) waits for the resolution of the execution process or get an execution error.
- * The worker fires events for any submission and/or execution success and/or failure.
- */
-
 import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
@@ -25,14 +12,22 @@ import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 
 export const promiseFulfilledStatus = "fulfilled";
 
+// Event types the worker fires during execution and
+// the dapp can listen to
 export enum TransactionWorkerEventsEnum {
+  // fired after a transaction gets sent to the chain
   TransactionSent = "transactionSent",
+  // fired if there is an error sending the transaction to the chain
   TransactionSendFailed = "transactionSendFailed",
+  // fired when a single transaction has executed successfully
   TransactionExecuted = "transactionExecuted",
+  // fired if a single transaction fails in execution
   TransactionExecutionFailed = "transactionExecutionFailed",
+  // fired when the worker has finished its job / when the queue has been emptied
   ExecutionFinish = "executionFinish",
 }
 
+// Typed interface of the worker events
 export interface TransactionWorkerEvents {
   transactionSent: (data: SuccessEventData) => void;
   transactionSendFailed: (data: FailureEventData) => void;
@@ -41,19 +36,35 @@ export interface TransactionWorkerEvents {
   executionFinish: (data: ExecutionFinishEventData) => void;
 }
 
+// Type for when the worker has finished its job
 export type ExecutionFinishEventData = {
   message: string;
 };
 
+// Type for a success event
 export type SuccessEventData = {
   message: string;
   transactionHash: string;
 };
 
+// Type for a failure event
 export type FailureEventData = {
   message: string;
   error: string;
 };
+
+/**
+ * TransactionWorker provides a simple framework for receiving payloads to be processed.
+ *
+ * Once one `start()` the process and pushes a new transaction, the worker acquires
+ * the current account's next sequence number (by using the AccountSequenceNumber class),
+ * generates a signed transaction and pushes an async submission process into the `outstandingTransactions` queue.
+ * At the same time, the worker processes transactions by reading the `outstandingTransactions` queue
+ * and submits the next transaction to chain, it
+ * 1) waits for resolution of the submission process or get pre-execution validation error
+ * and 2) waits for the resolution of the execution process or get an execution error.
+ * The worker fires events for any submission and/or execution success and/or failure.
+ */
 export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   readonly aptosConfig: AptosConfig;
 

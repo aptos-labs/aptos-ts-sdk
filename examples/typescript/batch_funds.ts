@@ -30,7 +30,7 @@ import {
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.LOCAL;
 
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
@@ -119,7 +119,8 @@ async function main() {
         }`,
       );
     });
-
+    // worker finished execution, we can now unsubscribe from event listeners
+    aptos.transaction.batch.removeAllListeners();
     process.exit(0);
   });
 }
