@@ -10,7 +10,7 @@ const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 7777777;
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
-const config = new AptosConfig({ network: Network.LOCAL });
+const config = new AptosConfig({ network: Network.DEVNET });
 const aptos = new Aptos(config);
 const BOB_ADDR = "0x6c2fe73e11ed74b32a2f583f4df93190edd521d023925d148fbf7d66a2891835"
 
@@ -54,9 +54,14 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
     });
 
     const cred = await aptos.registerCredential(options)
+    const pubKey = aptos.parsePublicKey(cred);
+    const addr = await aptos.getPasskeyAccountAddress({ publicKey: pubKey.toString() });
+
+    console.log(addr.toString());
 
     setCredentialId(cred.rawId);
     setPublicKey(aptos.parsePublicKey(cred).toString());
+    console.log(cred)
     window.localStorage.setItem("credentialId", cred.rawId);
     window.localStorage.setItem("publicKey", aptos.parsePublicKey(cred).toString());
   };
@@ -126,7 +131,8 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
     const addr = await aptos.getPasskeyAccountAddress({publicKey})
 
-    const txn = await aptos.build.transaction({
+    console.log(aptos)
+    const txn = await aptos.build.simple({
       sender: addr,
       data: {
         function: "0x1::coin::transfer",
