@@ -11,8 +11,8 @@ import {
   getProcessorStatus,
   getTableItem,
   queryIndexer,
-  view,
 } from "../internal/general";
+import { view } from "../internal/view";
 import {
   AnyNumber,
   Block,
@@ -23,9 +23,9 @@ import {
   LedgerVersionArg,
   MoveValue,
   TableItemRequest,
-  InputViewRequestData,
 } from "../types";
 import { ProcessorType } from "../utils/const";
+import { InputViewFunctionData } from "../transactions";
 
 /**
  * A class to query all `General` Aptos related queries
@@ -137,7 +137,7 @@ export class General {
    * @returns an array of Move values
    */
   async view<T extends Array<MoveValue>>(args: {
-    payload: InputViewRequestData;
+    payload: InputViewFunctionData;
     options?: LedgerVersionArg;
   }): Promise<T> {
     return view<T>({ aptosConfig: this.config, ...args });

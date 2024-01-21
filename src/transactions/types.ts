@@ -102,6 +102,17 @@ export type InputGenerateTransactionPayloadDataWithRemoteABI =
   | InputEntryFunctionDataWithRemoteABI
   | InputMultiSigDataWithRemoteABI;
 
+export type InputGenerateViewFunctionPayloadWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+
+/**
+ * The data needed to generate an view Function payload
+ */
+export type InputViewFunctionData = {
+  function: MoveFunctionId;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  typeArguments?: Array<TypeTag | string>;
+};
+
 /**
  * The data needed to generate an Entry Function payload
  */
@@ -151,10 +162,17 @@ export type InputScriptData = {
  *
  * This is used to provide type checking and simple input conversion on ABI based transaction submission.
  */
-export type EntryFunctionABI = {
+export type FunctionABI = {
   typeParameters: Array<MoveFunctionGenericTypeParam>;
   parameters: Array<TypeTag>;
 };
+
+/**
+ * An alias for FunctionABI for backwards compatibility
+ *
+ * TODO: remove in future version
+ */
+export type EntryFunctionABI = FunctionABI;
 
 /**
  * Interface of the arguments to generate a single signer transaction.

@@ -412,3 +412,124 @@ export class MultiSigTransactionPayload extends Serializable {
     return new MultiSigTransactionPayload(EntryFunction.deserialize(deserializer));
   }
 }
+
+/**
+ * Representation of a EntryFunction that can serialized and deserialized
+ */
+export class ViewFunction {
+  public readonly module_name: ModuleId;
+
+  public readonly function_name: Identifier;
+
+  public readonly type_args: Array<TypeTag>;
+
+  public readonly args: Array<EntryFunctionArgument>;
+
+  /**
+   * Contains the payload to run a view function within a module.
+   * @param module_name Fully qualified module name in format "account_address::module_name" e.g. "0x1::coin"
+   * @param function_name The function name. e.g "balance"
+   * @param type_args Type arguments that move function requires.
+   *
+   * @example
+   * A coin transfer function has one type argument "CoinType".
+   * ```
+   * #[view]
+   * public fun balance<CoinType>(account: address)
+   * ```
+   * @param args arguments to the move function.
+   *
+   * @example
+   * A coin balance function has one argument "account".
+   * ```
+   * #[view]
+   * public fun balance<CoinType>(account: address)
+   * ```
+   */
+  constructor(
+    module_name: ModuleId,
+    function_name: Identifier,
+    type_args: Array<TypeTag>,
+    args: Array<EntryFunctionArgument>,
+  ) {
+    this.module_name = module_name;
+    this.function_name = function_name;
+    this.type_args = type_args;
+    this.args = args;
+  }
+
+  /**
+   * A helper function to build a ViewFunction payload from raw primitive values
+   *
+   * @param module_id Fully qualified module name in format "AccountAddress::module_id" e.g. "0x1::coin"
+   * @param function_name Function name
+   * @param type_args Type arguments that move function requires.
+   *
+   * @example
+   * A coin transfer function has one type argument "CoinType".
+   * ```
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * ```
+   * @param args Arguments to the move function.
+   *
+   * @example
+   * A coin transfer function has three arguments "from", "to" and "amount".
+   * ```
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * ```
+   * @returns ViewFunction
+   */
+  static build(
+    module_id: MoveModuleId,
+    function_name: string,
+    type_args: Array<TypeTag>,
+    args: Array<EntryFunctionArgument>,
+  ): ViewFunction {
+    return new ViewFunction(ModuleId.fromStr(module_id), new Identifier(function_name), type_args, args);
+  }
+
+  serialize(serializer: Serializer): void {
+    this.module_name.serialize(serializer);
+    this.function_name.serialize(serializer);
+    serializer.serializeVector<TypeTag>(this.type_args);
+    serializer.serializeU32AsUleb128(this.args.length);
+    this.args.forEach((item: EntryFunctionArgument) => {
+      item.serializeForEntryFunction(serializer);
+    });
+  }
+
+  /**
+   * Deserializes a view function payload with the arguments represented as ViewFunctionBytes instances.
+   * @see ViewFunctionBytes
+   *
+   * NOTE: When you deserialize an ViewFunction payload with this method, the view function
+   * arguments are populated into the deserialized instance as type-agnostic, raw fixed bytes
+   * in the form of the ViewFunctionBytes class.
+   *
+   * In order to correctly deserialize these arguments as their actual type representations, you
+   * must know the types of the arguments beforehand and deserialize them yourself individually.
+   *
+   * One way you could achieve this is by using the ABIs for an view function and deserializing each
+   * argument as its given, corresponding type.
+   *
+   * @param deserializer
+   * @returns A deserialized ViewFunction payload for a transaction.
+   *
+   */
+  static deserialize(deserializer: Deserializer): ViewFunction {
+    const module_name = ModuleId.deserialize(deserializer);
+    const function_name = Identifier.deserialize(deserializer);
+    const type_args = deserializer.deserializeVector(TypeTag);
+
+    const length = deserializer.deserializeUleb128AsU32();
+    const args: Array<EntryFunctionArgument> = new Array<EntryFunctionBytes>();
+
+    for (let i = 0; i < length; i += 1) {
+      const fixedBytesLength = deserializer.deserializeUleb128AsU32();
+      const fixedBytes = EntryFunctionBytes.deserialize(deserializer, fixedBytesLength);
+      args.push(fixedBytes);
+    }
+
+    return new ViewFunction(module_name, function_name, type_args, args);
+  }
+}

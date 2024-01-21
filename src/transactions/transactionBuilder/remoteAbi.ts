@@ -4,7 +4,7 @@
 import { parseTypeTag } from "../typeTag/parser";
 import { TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
-import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
+import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, FunctionABI } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { getModule } from "../../internal/account";
@@ -27,6 +27,7 @@ import {
   isString,
   throwTypeMismatch,
 } from "./helpers";
+import { MoveFunction } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -58,11 +59,9 @@ export async function fetchEntryFunctionAbi(
   moduleName: string,
   functionName: string,
   aptosConfig: AptosConfig,
-): Promise<EntryFunctionABI> {
+): Promise<FunctionABI> {
   // This fetch from the API is currently cached
-  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
-
-  const functionAbi = module.abi?.exposed_functions.find((func) => func.name === functionName);
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
 
   // If there's no ABI, then the function is invalid
   if (!functionAbi) {
@@ -88,6 +87,65 @@ export async function fetchEntryFunctionAbi(
 }
 
 /**
+ * Fetches the ABI for a view function from the module
+ *
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchViewFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<FunctionABI> {
+  // This fetch from the API is currently cached
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+
+  // If there's no ABI, then the function is invalid
+  if (!functionAbi) {
+    throw new Error(`Could not find view function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+  }
+
+  // Non-entry functions also can't be used
+  if (!functionAbi.is_view) {
+    throw new Error(`'${moduleAddress}::${moduleName}::${functionName}' is not an entry function`);
+  }
+
+  // Remove the signer arguments
+  const first = findFirstNonSignerArg(functionAbi);
+  const params: TypeTag[] = [];
+  for (let i = first; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
+}
+
+/**
+ * Fetches the ABI for an entry function from the module
+ *
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<MoveFunction | undefined> {
+  // This fetch from the API is currently cached
+  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+  return module.abi?.exposed_functions.find((func) => func.name === functionName);
+}
+
+/**
  * Converts a non-BCS encoded argument into BCS encoded, if necessary
  * @param functionName
  * @param functionAbi
@@ -96,7 +154,7 @@ export async function fetchEntryFunctionAbi(
  */
 export function convertArgument(
   functionName: string,
-  functionAbi: EntryFunctionABI,
+  functionAbi: FunctionABI,
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
   position: number,
   genericTypeParams: Array<TypeTag>,

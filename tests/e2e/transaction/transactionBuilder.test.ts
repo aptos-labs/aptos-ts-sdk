@@ -9,7 +9,7 @@ import {
   Network,
   U64,
   AccountAddress,
-  EntryFunctionABI,
+  FunctionABI,
   parseTypeTag,
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -97,7 +97,7 @@ describe("transaction builder", () => {
     });
   });
   describe("generate transaction payload with preset ABI", () => {
-    const functionAbi: EntryFunctionABI = {
+    const functionAbi: FunctionABI = {
       typeParameters: [],
       parameters: [parseTypeTag("address"), parseTypeTag("0x1::object::Object<T0>", { allowGenerics: true })],
     };

@@ -14,7 +14,6 @@ const {
 } = require("@aptos-labs/ts-sdk");
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
@@ -29,12 +28,21 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
  *
  */
 const balance = async (sdk, name, address) => {
-  let balance = await sdk.getAccountResource({ accountAddress: address, resourceType: COIN_STORE });
+  try {
+    const response = await sdk.view({
+      payload: {
+        function: "0x1::coin::balance",
+        typeArguments: [APTOS_COIN],
+        functionArguments: [address],
+      },
+    });
+    const amount = Number(response[0]);
 
-  let amount = Number(balance.coin.value);
-
-  console.log(`${name}'s balance is: ${amount}`);
-  return amount;
+    console.log(`${name}'s balance is: ${amount}`);
+    return amount;
+  } catch (e) {
+    return 0;
+  }
 };
 
 const example = async () => {

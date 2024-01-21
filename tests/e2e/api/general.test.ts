@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData, ProcessorType } from "../../../src";
+import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewFunctionData, ProcessorType } from "../../../src";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
@@ -101,7 +101,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
 
@@ -114,7 +114,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
 
@@ -127,7 +127,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::exists_at",
         functionArguments: ["0x1"],
       };
@@ -136,7 +136,7 @@ describe("general api", () => {
 
       expect(exists).toBe(true);
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::account::exists_at",
         functionArguments: ["0x12345"],
       };
@@ -150,7 +150,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x1"],
       };
@@ -159,7 +159,7 @@ describe("general api", () => {
 
       expect(BigInt(sequenceNumber)).toEqual(BigInt(0));
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::account::get_authentication_key",
         functionArguments: ["0x1"],
       };
@@ -173,7 +173,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::coin::symbol",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
       };
@@ -181,7 +181,7 @@ describe("general api", () => {
       const symbol = (await aptos.view<[string]>({ payload }))[0];
       expect(symbol).toEqual("APT");
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::coin::is_account_registered",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
         functionArguments: ["0x1"],
@@ -190,7 +190,7 @@ describe("general api", () => {
       const isRegistered = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
       expect(isRegistered).toEqual(false);
 
-      const payload3: InputViewRequestData = {
+      const payload3: InputViewFunctionData = {
         function: "0x1::coin::supply",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
         functionArguments: [],
@@ -204,7 +204,7 @@ describe("general api", () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x123456"],
       };

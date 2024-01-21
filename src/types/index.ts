@@ -19,6 +19,10 @@ export enum MimeType {
    * BCS representation, used for transaction submission in BCS input
    */
   BCS_SIGNED_TRANSACTION = "application/x.aptos.signed_transaction+bcs",
+  /**
+   * BCS representation, used for view function submission in BCS input
+   */
+  BCS_VIEW_FUNCTION = "application/x.aptos.view_function+bcs",
 }
 
 /**

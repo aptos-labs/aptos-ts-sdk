@@ -21,7 +21,6 @@ import {
   Account,
   Aptos,
   AptosConfig,
-  InputViewRequestData,
   Network,
   NetworkToNetworkName,
   MoveString,
@@ -30,6 +29,7 @@ import {
   TransactionPayloadMultiSig,
   MultiSig,
   AccountAddress,
+  InputViewFunctionData,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -90,7 +90,7 @@ const settingUpMultiSigAccount = async () => {
   // ===========================================================================================
   // Get the next multisig account address. This will be the same as the account address of the multisig account we'll
   // be creating.
-  const payload: InputViewRequestData = {
+  const payload: InputViewFunctionData = {
     function: "0x1::multisig_account::get_next_multisig_account_address",
     functionArguments: [owner1.accountAddress.toString()],
   };

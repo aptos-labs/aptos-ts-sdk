@@ -8,15 +8,13 @@ import {
   Account,
   AccountAddress,
   Aptos,
+  APTOS_COIN,
   AptosConfig,
   Network,
   NetworkToNetworkName,
   parseTypeTag,
 } from "@aptos-labs/ts-sdk";
 
-// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;
@@ -33,12 +31,15 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address,
-    resourceType: COIN_STORE,
+  const [amountStr] = await aptos.view<[string]>({
+    payload: {
+      function: "0x1::coin::balance",
+      typeArguments: [APTOS_COIN],
+      functionArguments: [address],
+    },
   });
-  const amount = Number(resource.coin.value);
+
+  const amount = Number(amountStr);
 
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
