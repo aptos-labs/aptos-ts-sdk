@@ -14,11 +14,10 @@ import {
   parseTypeTag,
   Network,
   NetworkToNetworkName,
+  APTOS_COIN,
 } from "@aptos-labs/ts-sdk";
 
-// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10;

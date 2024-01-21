@@ -4,6 +4,7 @@ import fs from "fs";
 import { AccountAddress } from "@aptos-labs/ts-sdk";
 
 /* eslint-disable no-console */
+
 /* eslint-disable max-len */
 
 /**
@@ -35,9 +36,7 @@ export function compilePackage(
 
 /**
  * A convenience function to get the compiled package metadataBytes and byteCode
- * @param packageDir
- * @param outputFile
- * @param namedAddresses
+ * @param filePath
  */
 export function getPackageBytesToPublish(filePath: string) {
   // current working directory - the root folder of this repo
@@ -51,4 +50,11 @@ export function getPackageBytesToPublish(filePath: string) {
   const byteCode = jsonData.args[1].value;
 
   return { metadataBytes, byteCode };
+}
+
+/**
+ * current time in seconds
+ */
+export function nowSeconds(): number {
+  return Date.now() / 1000;
 }

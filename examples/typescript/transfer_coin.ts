@@ -18,9 +18,9 @@ const aptos = new Aptos(config);
 
 /**
  * Prints the balance of an account
- * @param aptos
  * @param name
- * @param address
+ * @param accountAddress
+ * @param versionToWaitFor
  * @returns {Promise<number>}
  *
  */

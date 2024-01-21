@@ -154,7 +154,6 @@ const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: A
   return response.hash;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> => {
   await new Promise<void>((resolve) => {
     readline.question(

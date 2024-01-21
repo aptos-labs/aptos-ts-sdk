@@ -28,6 +28,7 @@ import {
   NetworkToNetworkName,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
+import { nowSeconds } from "./utils";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
@@ -39,7 +40,7 @@ async function main() {
   const transactionsCount = 10;
   const totalTransactions = accountsCount * transactionsCount;
 
-  const start = Date.now() / 1000; // current time in seconds
+  const start = nowSeconds();
 
   console.log("starting...");
   // create senders and recipients accounts
@@ -52,7 +53,7 @@ async function main() {
   for (const sender of senders) {
     console.log(sender.accountAddress.toString());
   }
-  let last = Date.now() / 1000;
+  let last = nowSeconds();
   console.log(
     `${senders.length} sender accounts and ${recipients.length} recipient accounts created in ${last - start} seconds`,
   );
@@ -68,8 +69,8 @@ async function main() {
 
   await Promise.all(funds);
 
-  console.log(`${funds.length} sender accounts funded in ${Date.now() / 1000 - last} seconds`);
-  last = Date.now() / 1000;
+  console.log(`${funds.length} sender accounts funded in ${nowSeconds() - last} seconds`);
+  last = nowSeconds();
 
   // read sender accounts
   const balances: Array<Promise<AccountData>> = [];
@@ -78,8 +79,8 @@ async function main() {
   }
   await Promise.all(balances);
 
-  console.log(`${balances.length} sender account balances checked in ${Date.now() / 1000 - last} seconds`);
-  last = Date.now() / 1000;
+  console.log(`${balances.length} sender account balances checked in ${nowSeconds() - last} seconds`);
+  last = nowSeconds();
 
   // create transactions
   const payloads: InputGenerateTransactionPayloadData[] = [];

@@ -10,6 +10,7 @@ import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
   Aptos,
+  APTOS_COIN,
   AptosConfig,
   Deserializer,
   Ed25519PrivateKey,
@@ -22,8 +23,7 @@ import {
 } from "@aptos-labs/ts-sdk";
 import nacl from "tweetnacl";
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const COLD_INITIAL_BALANCE = 100_000_000;
 const HOT_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 100;

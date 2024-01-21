@@ -11,9 +11,9 @@ const {
   Network,
   AccountAddress,
   U64,
+  APTOS_COIN,
 } = require("@aptos-labs/ts-sdk");
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
@@ -22,7 +22,7 @@ const APTOS_NETWORK = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network
 
 /**
  * Prints the balance of an account
- * @param aptos
+ * @param sdk
  * @param name
  * @param address
  * @returns {Promise<*>}

@@ -12,8 +12,7 @@
  */
 import "dotenv";
 import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
-// eslint-disable-next-line import/no-commonjs
-const superagent = require("superagent");
+import superagent from "superagent";
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -60,7 +59,7 @@ export async function superagentCustomClient<Req, Res>(
     method,
   };
 
-  const response = await superagent.get(`${url}?${params}`, request);
+  const response = (await superagent.get(`${url}?${params}`, request as any)) as any;
   return {
     status: response.status,
     statusText: response.statusText,
