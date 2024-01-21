@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Change `module` in `tsconfig.json` to `ES2020` to improve IDE support
+
 # 1.4.0 (2024-01-08)
 
 - Omit `"build" | "simulate" | "submit"` from `aptos` namespace

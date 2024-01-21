@@ -7,7 +7,7 @@
     "declarationMap": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "module": "esnext",
+    "module": "ES2020",
     "moduleDetection": "force",
     "moduleResolution": "node",
     "noImplicitAny": true,
