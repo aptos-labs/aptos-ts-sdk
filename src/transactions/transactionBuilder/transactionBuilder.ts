@@ -82,6 +82,7 @@ import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber, SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { WebAuthnSignature } from "../../core/crypto/webauthn";
+import { getSigningMessage } from "../../internal/transactionSubmission";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -464,14 +465,18 @@ export async function signWithPasskey(args: {
   transaction: AnyRawTransaction;
   timeout?: number;
   rpID?: string;
+  options?: {
+    allowCredentials?: PublicKeyCredentialDescriptor[]
+  }
 }): Promise<AccountAuthenticator> {
-  const { credentialId, publicKey, transaction, timeout, rpID } = args;
+  const { credentialId, publicKey, transaction, timeout, rpID, options } = args;
+  console.log("PublicKey", publicKey.toString());
 
   if (!(publicKey instanceof Secp256r1PublicKey)) {
     throw new Error("Unsupported public key for passkey signing.");
   }
 
-  const allowCredentials: PublicKeyCredentialDescriptor[] = [
+  const allowCredentials: PublicKeyCredentialDescriptor[] = options?.allowCredentials ?? [
     {
       type: "public-key",
       id: typeof credentialId === "string" ? isoBase64URL.toBuffer(credentialId) : credentialId,
@@ -479,32 +484,38 @@ export async function signWithPasskey(args: {
   ];
 
   // Get the signing message and hash it to create the challenge
-  const transactionToSign = deriveTransactionType(transaction);
-  const signingMessage = getSigningMessage(transactionToSign);
+  const transactionToSign: SimpleTransaction = { rawTransaction: deriveTransactionType(transaction) as RawTransaction };
+  const signingMessage = getSigningMessage({ transaction: transactionToSign as AnyRawTransaction });
   const challenge = sha3Hash(signingMessage);
 
-  const options = await generateAuthenticationOptions({
+  const authOptions = await generateAuthenticationOptions({
     allowCredentials,
     challenge,
     timeout,
     rpID,
     userVerification: "required",
   });
-  const authenticationResponse = await startAuthentication(options);
+  const authenticationResponse = await startAuthentication(authOptions);
 
   const authenticatorAssertionResponse = authenticationResponse.response;
+  console.log(authenticatorAssertionResponse);
 
   const { clientDataJSON, authenticatorData, signature } = authenticatorAssertionResponse;
 
+  console.log("DER Signature: ", signature)
   const signatureCompact = p256.Signature.fromDER(
     new Uint8Array(base64URLStringToBuffer(signature)),
   ).toCompactRawBytes();
+  
+  console.log("COMPACT Signature: ", new Hex(signatureCompact).toString());
 
   const webAuthnSignature = new WebAuthnSignature(
     new Secp256r1Signature(signatureCompact),
     isoBase64URL.toBuffer(authenticatorData),
     isoBase64URL.toBuffer(clientDataJSON),
   );
+
+  console.log("WEBAUTHN Signature: ", webAuthnSignature);
   return new AccountAuthenticatorSingleKey(new AnyPublicKey(publicKey), new AnySignature(webAuthnSignature));
 }
 
@@ -525,9 +536,9 @@ export function getAuthenticatorForWebAuthn(args: {
   clientDataJSON: HexInput;
 }): AccountAuthenticator {
   const { publicKey, signature, authenticatorData, clientDataJSON } = args;
-  let signatureObj: Signature;
+  let signatureObj: AnySignature;
   if (publicKey instanceof Secp256r1PublicKey) {
-    signatureObj = new Secp256r1Signature(signature);
+    signatureObj = new AnySignature(new Secp256r1Signature(signature));
   } else {
     throw new Error("Unsupported public key");
   }

@@ -13,7 +13,6 @@ import { ANS } from "./ans";
 import { PasskeysBrowser } from "./passkey";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
-import { PasskeysBrowser } from "./passkeysBrowser";
 
 /**
  * This class is the main entry point into Aptos's

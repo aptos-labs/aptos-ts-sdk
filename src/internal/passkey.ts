@@ -102,7 +102,7 @@ export async function verifyAuthenticationResponse(args: {
   authenticator: AuthenticatorDevice;
   requireUserVerification?: boolean;
   advancedFIDOConfig?: {
-      userVerification?: UserVerificationRequirement;
+    userVerification?: UserVerificationRequirement;
   };
 }): Promise<VerifiedAuthenticationResponse> {
 
@@ -124,10 +124,14 @@ export async function signAndSubmitWithPasskey(args: {
   transaction: AnyRawTransaction;
   timeout?: number;
   rpID?: string;
+  options?: {
+    allowCredentials?: PublicKeyCredentialDescriptor[]
+  }
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, transaction } = args;
 
   const authenticator = await signWithPasskey({ ...args });
+  console.log(authenticator);
   return submitTransaction({
     aptosConfig,
     transaction,

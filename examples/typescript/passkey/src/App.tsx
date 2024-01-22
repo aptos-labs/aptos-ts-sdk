@@ -1,47 +1,39 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
-import { AccountAddress, Aptos, AptosConfig,  parseTypeTag, Network, Secp256r1PublicKey,
-  U64, } from "@aptos-labs/ts-sdk";
+import { AccountAddress, Aptos, AptosConfig, DEFAULT_NETWORK, Network, Secp256r1PublicKey, postAptosFaucet } from "@aptos-labs/ts-sdk";
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-const ALICE_INITIAL_BALANCE = 100_000_000;
-const BOB_INITIAL_BALANCE = 100;
-const TRANSFER_AMOUNT = 7777777;
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
+// const config = new AptosConfig({ network: Network.LOCAL, fullnode: 'http://127.0.0.1:8080', faucet: 'http://127.0.0.1:8081' });
 const config = new AptosConfig({ network: Network.DEVNET });
 const aptos = new Aptos(config);
-const BOB_ADDR = "0x6c2fe73e11ed74b32a2f583f4df93190edd521d023925d148fbf7d66a2891835"
 
 function App() {
-  const [credentialId, setCredentialId] = useState<string | null>(
-    window.localStorage.getItem("credentialId")
-  );
+  const [credentialId, setCredentialId] = useState<string | null>(window.localStorage.getItem("credentialId"));
+  const [publicKey, setPublicKey] = useState<string | null>(window.localStorage.getItem("publicKey"));
+  const [recipientAddress, setRecipientAddress] = useState<string | null>(null);
+  const [sendAmount, setSendAmount] = useState<number>(0);
+  const [faucetIsLoading, setFaucetIsLoading] = useState<boolean>(false);
+  const [passkeyAddr, setPasskeyAddr] = useState<string | null>(null);
 
-  const [publicKey, setPublicKey] = useState<string | null>(
-    window.localStorage.getItem("publicKey")
-  );
+  /**
+   * Prints the balance of an account
+   * @param aptos
+   * @param name
+   * @param address
+   * @returns {Promise<*>}
+   *
+   */
+  const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+    type Coin = { coin: { value: string } };
+    const resource = await aptos.getAccountResource<Coin>({
+      accountAddress: address,
+      resourceType: COIN_STORE,
+    });
+    const amount = Number(resource.coin.value);
 
-/**
- * Prints the balance of an account
- * @param aptos
- * @param name
- * @param address
- * @returns {Promise<*>}
- *
- */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
-    accountAddress: address,
-    resourceType: COIN_STORE,
-  });
-  const amount = Number(resource.coin.value);
-
-  console.log(`${name}'s balance is: ${amount}`);
-  return amount;
-};
+    console.log(`${name}'s balance is: ${amount}`);
+    return amount;
+  };
 
   // Create the passkey via credential registration ceremony
   const createPasskey = async () => {
@@ -50,10 +42,10 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
       rpID: window.location.hostname,
       userName: "Andrew",
       userID: "andrew.apt",
-      authenticatorAttachment: "platform"
+      authenticatorAttachment: "platform",
     });
 
-    const cred = await aptos.registerCredential(options)
+    const cred = await aptos.registerCredential(options);
     const pubKey = aptos.parsePublicKey(cred);
     const addr = await aptos.getPasskeyAccountAddress({ publicKey: pubKey.toString() });
 
@@ -61,7 +53,8 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
     setCredentialId(cred.rawId);
     setPublicKey(aptos.parsePublicKey(cred).toString());
-    console.log(cred)
+    setPasskeyAddr(addr.toString());
+    console.log(cred);
     window.localStorage.setItem("credentialId", cred.rawId);
     window.localStorage.setItem("publicKey", aptos.parsePublicKey(cred).toString());
   };
@@ -72,26 +65,32 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
       return;
     }
 
-    const addr = await aptos.getPasskeyAccountAddress({publicKey})
+    setFaucetIsLoading(true);
 
-    await aptos.faucet.fundAccount({
-      accountAddress: addr.toUint8Array(),
-      amount: ALICE_INITIAL_BALANCE,
+    const addr = await aptos.getPasskeyAccountAddress({ publicKey });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
+      aptosConfig: new AptosConfig({
+        network: DEFAULT_NETWORK
+      }),
+      path: "fund",
+      body: {
+        address: AccountAddress.from(addr).toString(),
+        amount: 1e9,
+      },
+      originMethod: "fundAccount",
     });
+
+    const txnHash = data.txn_hashes[0];
+
+    const confirmedTxn = await aptos.waitForTransaction({ transactionHash: txnHash });
+    alert("Faucet 1 APT deposited, txn hash: " + confirmedTxn.hash);
 
     console.log("\n=== Balances ===\n");
     await balance(aptos, "Passkey Account", new AccountAddress(addr.toUint8Array()));
-  }
-
-  const fundBobAccount = async () => {
-    await aptos.faucet.fundAccount({
-      accountAddress: AccountAddress.fromString(BOB_ADDR),
-      amount: BOB_INITIAL_BALANCE,
-    });
-
-    console.log("\n=== Balances ===\n");
-    await balance(aptos, "Bob Account", AccountAddress.fromString(BOB_ADDR));
-  }
+    setFaucetIsLoading(false);
+  };
 
   const checkBalance = async () => {
     if (!publicKey) {
@@ -99,21 +98,13 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
       return;
     }
 
-    const addr = await aptos.getPasskeyAccountAddress({publicKey})
+    const addr = await aptos.getPasskeyAccountAddress({ publicKey });
 
     console.log("\n=== Balances ===\n");
     const bal = await balance(aptos, "Passkey Account", new AccountAddress(addr.toUint8Array()));
 
-    window.alert(bal);
-  }
-
-  const checkBobBalance = async () => {
-
-    console.log("\n=== Balances ===\n");
-    const bal = await balance(aptos, "Bob Account", AccountAddress.fromString(BOB_ADDR));
-
-    window.alert(bal);
-  }
+    window.alert(bal / 1e8 + " APT");
+  };
 
   /**
    * Use the passkey credential registered to the user to sign a coin transfer
@@ -129,59 +120,76 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
       return;
     }
 
-    const addr = await aptos.getPasskeyAccountAddress({publicKey})
+    const addr = await aptos.getPasskeyAccountAddress({ publicKey });
+    const recipient = AccountAddress.fromString(recipientAddress || "0x1");
 
-    console.log(aptos)
-    const txn = await aptos.build.simple({
+    const txn = await aptos.transferCoinTransaction({
       sender: addr,
-      data: {
-        function: "0x1::coin::transfer",
-        typeArguments: [parseTypeTag(APTOS_COIN)],
-        functionArguments: [AccountAddress.fromString(BOB_ADDR), new U64(TRANSFER_AMOUNT)],
-      },
+      recipient: recipient,
+      amount: sendAmount * 1e8,
     });
 
     console.log("\n=== Transfer transaction ===\n");
-    // const committedTxn = 
-      await aptos.signAndSubmitWithPasskey({ 
-        credentialId: credentialId, 
-        transaction: txn, 
-        publicKey: new Secp256r1PublicKey(publicKey),
-      });
+    const pendingTxn = await aptos.signAndSubmitWithPasskey({
+      credentialId: credentialId,
+      transaction: txn,
+      publicKey: new Secp256r1PublicKey(publicKey),
+      options: {}
+    });
+    console.log("PENDING TXN", pendingTxn);
+
+    const committedTxn = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    console.log("COMMITTED TXN", committedTxn);
 
     // This doesn't work until the indexer works for passkeys
     // await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
     // console.log(`Committed transaction: ${committedTxn.hash}`);
   };
 
+  const getAddress = async () => {
+    if (!credentialId) {
+      alert("No registered credential");
+      return;
+    }
+
+    if (!publicKey) {
+      alert("No registered publicKey");
+      return;
+    }
+
+    const addr = await aptos.getPasskeyAccountAddress({ publicKey: publicKey });
+    setPasskeyAddr(addr.toString());
+
+    alert(addr);
+  };
+
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
       <h1>Passkeys Demo</h1>
+      {passkeyAddr ? <p className="text-wrap">{"Your address: " + passkeyAddr}</p> : null}
+      {passkeyAddr ? (
+        <a
+          href={`https://explorer.aptoslabs.com/account/${passkeyAddr}/transactions?network=devnet`}
+          target="_blank"
+          className="text-wrap"
+        >
+          Explorer link
+        </a>
+      ) : null}
       <div className="card">
         <div className="comfy-row">
-          <button onClick={createPasskey}>Create credential</button>
-          <button onClick={fundAccount}>Fund Account</button>
+          <button onClick={createPasskey}>Create account</button>
+          <button onClick={fundAccount}>{faucetIsLoading ? "Loading..." : "Fund Account"}</button>
           <button onClick={checkBalance}>Check Balance</button>
-          <button onClick={signWithPasskey}>Sign with credential</button>
-          <button onClick={fundBobAccount}>Fund Bob Account</button>
-          <button onClick={checkBobBalance}>Check Bob's Balance</button>
+          <button onClick={getAddress}>Get address</button>
         </div>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <h3>Recipient address</h3>
+        <input value={recipientAddress || ""} onChange={(e) => setRecipientAddress(e.currentTarget.value)} />
+        <h3>Send amount (APT)</h3>
+        <input min="0" step="1" value={sendAmount} onChange={(e) => setSendAmount(Number(e.currentTarget.value))} />
         <p>rpId: {window.location.hostname}</p>
+        <button onClick={signWithPasskey}>Authenticate and pay</button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }

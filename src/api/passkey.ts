@@ -39,6 +39,9 @@ export class PasskeysBrowser {
     transaction: AnyRawTransaction;
     timeout?: number;
     rpID?: string;
+    options?: {
+      allowCredentials?: PublicKeyCredentialDescriptor[]
+    }
   }): Promise<PendingTransactionResponse> {
     return signAndSubmitWithPasskey({ aptosConfig: this.config, ...args });
   }

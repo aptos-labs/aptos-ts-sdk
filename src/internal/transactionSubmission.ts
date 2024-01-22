@@ -21,7 +21,7 @@ import {
   sign,
   generateSigningMessage,
 } from "../transactions/transactionBuilder/transactionBuilder";
-import {
+import type {
   InputGenerateTransactionData,
   AnyRawTransaction,
   InputSimulateTransactionData,
