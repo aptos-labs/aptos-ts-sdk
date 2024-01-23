@@ -144,7 +144,7 @@ export async function getProcessorStatus(args: {
   const { aptosConfig, processorType } = args;
 
   const whereCondition: { processor: { _eq: string } } = {
-    processor: { _eq: processorType.valueOf() },
+    processor: { _eq: processorType },
   };
 
   const graphqlQuery = {

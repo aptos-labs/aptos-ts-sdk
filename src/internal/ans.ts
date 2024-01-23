@@ -565,6 +565,6 @@ export async function renewDomain(args: {
 function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
   return {
     ...name,
-    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+    expiration_timestamp: new Date(name.expiration_timestamp),
   };
 }

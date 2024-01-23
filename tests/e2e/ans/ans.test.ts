@@ -478,7 +478,7 @@ describe("ANS", () => {
       );
 
       // Change the expiration date of the name to be tomorrow
-      const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
+      const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).getDate() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));
