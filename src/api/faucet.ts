@@ -5,7 +5,6 @@ import { fundAccount } from "../internal/faucet";
 import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
 import { AptosConfig } from "./aptosConfig";
-import { waitForIndexer } from "../internal/transaction";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
@@ -28,11 +27,6 @@ export class Faucet {
     options?: WaitForTransactionOptions;
   }): Promise<UserTransactionResponse> {
     const fundTxn = await fundAccount({ aptosConfig: this.config, ...args });
-
-    if (args.options?.waitForIndexer !== false) {
-      await waitForIndexer({ aptosConfig: this.config, minimumLedgerVersion: BigInt(fundTxn.version) });
-    }
-
     return fundTxn;
   }
 }
