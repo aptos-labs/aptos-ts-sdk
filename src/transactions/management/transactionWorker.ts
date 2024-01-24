@@ -1,5 +1,58 @@
 /* eslint-disable no-await-in-loop */
 
+import EventEmitter from "eventemitter3";
+import { AptosConfig } from "../../api/aptosConfig";
+import { Account } from "../../core";
+import { waitForTransaction } from "../../internal/transaction";
+import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
+import { PendingTransactionResponse, TransactionResponse } from "../../types";
+import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData, SimpleTransaction } from "../types";
+import { AccountSequenceNumber } from "./accountSequenceNumber";
+import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
+
+export const promiseFulfilledStatus = "fulfilled";
+
+// Event types the worker fires during execution and
+// the dapp can listen to
+export enum TransactionWorkerEventsEnum {
+  // fired after a transaction gets sent to the chain
+  TransactionSent = "transactionSent",
+  // fired if there is an error sending the transaction to the chain
+  TransactionSendFailed = "transactionSendFailed",
+  // fired when a single transaction has executed successfully
+  TransactionExecuted = "transactionExecuted",
+  // fired if a single transaction fails in execution
+  TransactionExecutionFailed = "transactionExecutionFailed",
+  // fired when the worker has finished its job / when the queue has been emptied
+  ExecutionFinish = "executionFinish",
+}
+
+// Typed interface of the worker events
+export interface TransactionWorkerEvents {
+  transactionSent: (data: SuccessEventData) => void;
+  transactionSendFailed: (data: FailureEventData) => void;
+  transactionExecuted: (data: SuccessEventData) => void;
+  transactionExecutionFailed: (data: FailureEventData) => void;
+  executionFinish: (data: ExecutionFinishEventData) => void;
+}
+
+// Type for when the worker has finished its job
+export type ExecutionFinishEventData = {
+  message: string;
+};
+
+// Type for a success event
+export type SuccessEventData = {
+  message: string;
+  transactionHash: string;
+};
+
+// Type for a failure event
+export type FailureEventData = {
+  message: string;
+  error: string;
+};
+
 /**
  * TransactionWorker provides a simple framework for receiving payloads to be processed.
  *
@@ -12,19 +65,7 @@
  * and 2) waits for the resolution of the execution process or get an execution error.
  * The worker fires events for any submission and/or execution success and/or failure.
  */
-
-import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../core";
-import { waitForTransaction } from "../../internal/transaction";
-import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
-import { PendingTransactionResponse, TransactionResponse } from "../../types";
-import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData, SimpleTransaction } from "../types";
-import { AccountSequenceNumber } from "./accountSequenceNumber";
-import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
-
-const promiseFulfilledStatus = "fulfilled";
-
-export class TransactionWorker {
+export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   readonly aptosConfig: AptosConfig;
 
   readonly account: Account;
@@ -79,6 +120,7 @@ export class TransactionWorker {
     maximumInFlight: number = 100,
     sleepTime: number = 10,
   ) {
+    super();
     this.aptosConfig = aptosConfig;
     this.account = account;
     this.started = false;
@@ -101,7 +143,6 @@ export class TransactionWorker {
     try {
       /* eslint-disable no-constant-condition */
       while (true) {
-        if (this.transactionsQueue.isEmpty()) return;
         const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
         if (sequenceNumber === null) return;
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
@@ -157,12 +198,23 @@ export class TransactionWorker {
             // transaction sent to chain
             this.sentTransactions.push([sentTransaction.value.hash, sequenceNumber, null]);
             // check sent transaction execution
+            this.emit(TransactionWorkerEventsEnum.TransactionSent, {
+              message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
+              transactionHash: sentTransaction.value.hash,
+            });
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
             // send transaction failed
             this.sentTransactions.push([sentTransaction.status, sequenceNumber, sentTransaction.reason]);
+            this.emit(TransactionWorkerEventsEnum.TransactionSendFailed, {
+              message: `failed to commit transaction ${this.sentTransactions.length} with error ${sentTransaction.reason}`,
+              error: sentTransaction.reason,
+            });
           }
         }
+        this.emit(TransactionWorkerEventsEnum.ExecutionFinish, {
+          message: `execute ${sentTransactions.length} transactions finished`,
+        });
       }
     } catch (error: any) {
       if (error instanceof AsyncQueueCancelledError) {
@@ -188,9 +240,17 @@ export class TransactionWorker {
         if (executedTransaction.status === promiseFulfilledStatus) {
           // transaction executed to chain
           this.executedTransactions.push([executedTransaction.value.hash, sequenceNumber, null]);
+          this.emit(TransactionWorkerEventsEnum.TransactionExecuted, {
+            message: `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
+            transactionHash: sentTransaction.value.hash,
+          });
         } else {
           // transaction execution failed
           this.executedTransactions.push([executedTransaction.status, sequenceNumber, executedTransaction.reason]);
+          this.emit(TransactionWorkerEventsEnum.TransactionExecutionFailed, {
+            message: `failed to execute transaction ${this.executedTransactions.length} with error ${executedTransaction.reason}`,
+            error: executedTransaction.reason,
+          });
         }
       }
     } catch (error: any) {
