@@ -338,7 +338,7 @@ describe("aptos request", () => {
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
-            expect(error.url).toBe(`${NetworkToIndexerAPI[config.network]}/`);
+            expect(error.url).toBe(`${NetworkToIndexerAPI[config.network]}`);
             expect(error.status).toBe(200);
             expect(error.statusText).toBe("OK");
             expect(error.data).toHaveProperty("errors");
