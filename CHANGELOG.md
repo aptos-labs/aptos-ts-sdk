@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.5.0 (2024-01-24)
+
 - Remove request URLs forward slash append
 - Add events to `TransactionWorker` module that dapps can listen to
 - Introduce `aptos.transaction.batch` namespace to handle batch transactions
