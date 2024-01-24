@@ -35,10 +35,10 @@ import {
   SimpleTransaction,
 } from "../transactions";
 import { AccountAddressInput, Account, PrivateKey } from "../core";
-import { TransactionWorker } from "../transactions/management";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
+import { TransactionManagement } from "./transactionSubmission/management";
 
 export class Transaction {
   readonly config: AptosConfig;
@@ -49,11 +49,14 @@ export class Transaction {
 
   readonly submit: Submit;
 
+  readonly batch: TransactionManagement;
+
   constructor(config: AptosConfig) {
     this.config = config;
     this.build = new Build(this.config);
     this.simulate = new Simulate(this.config);
     this.submit = new Submit(this.config);
+    this.batch = new TransactionManagement(this.config);
   }
 
   /**
@@ -263,6 +266,8 @@ export class Transaction {
   // TRANSACTION SUBMISSION //
 
   /**
+   * @deprecated Prefer to use `aptos.transaction.batch.forSingleAccount()`
+   *
    * Batch transactions for a single account.
    *
    * This function uses a transaction worker that receives payloads to be processed
@@ -285,14 +290,7 @@ export class Transaction {
   }): Promise<void> {
     try {
       const { sender, data, options } = args;
-      const transactionWorker = new TransactionWorker(this.config, sender);
-
-      transactionWorker.start();
-
-      for (const d of data) {
-        /* eslint-disable no-await-in-loop */
-        await transactionWorker.push(d, options);
-      }
+      this.batch.forSingleAccount({ sender, data, options });
     } catch (error: any) {
       throw new Error(`failed to submit transactions with error: ${error}`);
     }

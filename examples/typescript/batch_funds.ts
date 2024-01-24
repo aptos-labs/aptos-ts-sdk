@@ -26,16 +26,17 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  TransactionWorkerEventsEnum,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.LOCAL;
 
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
 async function main() {
-  const accountsCount = 1;
+  const accountsCount = 2;
   const transactionsCount = 10;
   const totalTransactions = accountsCount * transactionsCount;
 
@@ -97,8 +98,31 @@ async function main() {
 
   console.log(`sends ${totalTransactions * senders.length} transactions to ${aptos.config.network}....`);
   // emit batch transactions
-  const promises = senders.map((sender) => aptos.batchTransactionsForSingleAccount({ sender, data: payloads }));
-  await Promise.all(promises);
+  senders.map((sender) => aptos.transaction.batch.forSingleAccount({ sender, data: payloads }));
+
+  aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+    console.log("message:", data.message);
+    console.log("transaction hash:", data.transactionHash);
+  });
+
+  aptos.transaction.batch.on(TransactionWorkerEventsEnum.ExecutionFinish, async (data) => {
+    // log event output
+    console.log(data.message);
+
+    // verify accounts sequence number
+    const accounts = senders.map((sender) => aptos.getAccountInfo({ accountAddress: sender.accountAddress }));
+    const accountsData = await Promise.all(accounts);
+    accountsData.forEach((accountData) => {
+      console.log(
+        `account sequence number is ${(totalTransactions * senders.length) / 2}: ${
+          accountData.sequence_number === "20"
+        }`,
+      );
+    });
+    // worker finished execution, we can now unsubscribe from event listeners
+    aptos.transaction.batch.removeAllListeners();
+    process.exit(0);
+  });
 }
 
 main();
