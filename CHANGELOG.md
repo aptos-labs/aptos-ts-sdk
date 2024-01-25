@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Move eventemitter3 to runtime dependency
+
 # 1.5.0 (2024-01-24)
 
 - Remove request URLs forward slash append

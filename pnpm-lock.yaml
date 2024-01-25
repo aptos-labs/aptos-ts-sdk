@@ -20,6 +20,9 @@ dependencies:
   '@scure/bip39':
     specifier: ^1.2.1
     version: 1.2.1
+  eventemitter3:
+    specifier: ^5.0.1
+    version: 5.0.1
   form-data:
     specifier: ^4.0.0
     version: 4.0.0
@@ -79,9 +82,6 @@ devDependencies:
   eslint-plugin-import:
     specifier: ^2.29.0
     version: 2.29.0(@typescript-eslint/parser@6.14.0)(eslint@8.55.0)
-  eventemitter3:
-    specifier: ^5.0.1
-    version: 5.0.1
   graphql:
     specifier: ^16.8.1
     version: 16.8.1
@@ -4208,7 +4208,7 @@ packages:
 
   /eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
-    dev: true
+    dev: false
 
   /events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
