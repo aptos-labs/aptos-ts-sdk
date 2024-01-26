@@ -20,8 +20,9 @@ export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   creationNumber: AnyNumber;
+  options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
 }): Promise<GetEventsResponse> {
-  const { accountAddress, aptosConfig, creationNumber } = args;
+  const { accountAddress, aptosConfig, creationNumber, options } = args;
   const address = AccountAddress.from(accountAddress);
 
   const whereCondition: EventsBoolExp = {
@@ -29,7 +30,13 @@ export async function getAccountEventsByCreationNumber(args: {
     creation_number: { _eq: creationNumber },
   };
 
-  return getEvents({ aptosConfig, options: { where: whereCondition } });
+  const customOptions = {
+    where: whereCondition,
+    pagination: options,
+    orderBy: options?.orderBy,
+  };
+
+  return getEvents({ aptosConfig, options: customOptions });
 }
 
 export async function getAccountEventsByEventType(args: {
