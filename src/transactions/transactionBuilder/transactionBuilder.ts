@@ -76,7 +76,7 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
-import { OpenIdSignature, OpenIdSignatureOrZkProof, ZkIDSignature } from "../../core/crypto/zkid";
+import { OpenIdSignature, OpenIdSignatureOrZkProof, ZkIDPublicKey, ZkIDSignature } from "../../core/crypto/zkid";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -382,12 +382,19 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
-    if (publicKey.publicKey instanceof Ed25519PublicKey) {
+    if (publicKey.publicKey instanceof Ed25519PublicKey || publicKey.publicKey instanceof ZkIDPublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
     if (publicKey.publicKey instanceof Secp256k1PublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
     }
+  }
+
+  if (publicKey instanceof ZkIDPublicKey) {
+    return new AccountAuthenticatorSingleKey(
+      new AnyPublicKey(publicKey),
+      new AnySignature(new Ed25519Signature(new Uint8Array(64))),
+    );
   }
 
   // legacy code
