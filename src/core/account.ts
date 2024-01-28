@@ -3,6 +3,7 @@
 
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { base64url } from "jose";
+import { randomBytes } from "@noble/hashes/utils";
 import { AccountAddress } from "./accountAddress";
 import { AuthenticationKey } from "./authenticationKey";
 import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetricCrypto";
@@ -300,12 +301,12 @@ export class EphemeralAccount {
 
   readonly publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryTimestamp: bigint }) {
-    const { privateKey, expiryTimestamp } = args;
+  constructor(args: { privateKey: PrivateKey; expiryTimestamp: bigint; blinder?: HexInput }) {
+    const { privateKey, expiryTimestamp, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     this.expiryTimestamp = expiryTimestamp;
-    this.blinder = generateBlinder();
+    this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     this.nonce = this.generateNonce();
   }
 
@@ -343,14 +344,7 @@ export class EphemeralAccount {
 }
 
 function generateBlinder(): Uint8Array {
-  // Fix  blinder for testing
-  const uint8Array = new Uint8Array(31);
-  for (let i = 0; i < uint8Array.length; i += 1) {
-    uint8Array[i] = i;
-  }
-  // Todo - uncomment
-  // return randomBytes(31);
-  return uint8Array;
+  return randomBytes(31);
 }
 
 export class ZkIDAccount {
