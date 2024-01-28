@@ -47,13 +47,18 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({ network: APTOS_NETWORK });
+  const config = new AptosConfig(); // Default to devnet
   const aptos = new Aptos(config);
 
   // Create two accounts
-  const privateKey = new Ed25519PrivateKey("0x96d5a92a80455c520841d26d07b3b827f36ba0302839c23bb41df87eed3a88d4");
-  const expiryTimestamp = BigInt(1712413858);
-  const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp });
+  const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
+  const expiryTimestamp = BigInt(2000000000);
+  const blinder = new Uint8Array(31);
+  for (let i = 0; i < blinder.length; i += 1) {
+    blinder[i] = 0;
+  }
+  const pepper = blinder;  // Use 0 for both pepper and blinder for testing
+  const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp, blinder });
 
   console.log("=== Nonce ===\n");
   console.log(aliceEphem.nonce);
@@ -63,11 +68,7 @@ const example = async () => {
 
   const bob = Account.generate();
 
-  const jwtToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjliMDI4NWMzMWJmZDhiMDQwZTAzMTU3YjE5YzRlOTYwYmRjMTBjNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NjgwNTY1MzMyOTUtczM3b3RwNTZtZW4wNW00cHBidXJ1bzRzY2xrNmI1YTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NjgwNTY1MzMyOTUtczM3b3RwNTZtZW4wNW00cHBidXJ1bzRzY2xrNmI1YTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJlbWFpbCI6ImhlbGl1Y2h1YW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5vbmNlIjoiZnNQMDJOaVNoLXFRdzFtRUJxMnFpRVdDaUFQcUZDZ3BEODBEZDRxOFNoOCIsIm5iZiI6MTcwMjgwODkzNiwiaWF0IjoxNzAyODA5MjM2LCJleHAiOjE3MDI4MTI4MzYsImp0aSI6ImYxMGFmYmYwZTdiYjk3MmViOGZhNjNmMDI0OWIwYTM0YTIzMWZjNDAifQ.k8P2xxWMmv-QBArwlcefGDq3-456GXbjxIp6qtE3zOFbh9QZLt2Br1BHtouSnYL9wQxrS9FKV_CkYdx6d3bDPH4jyDDj1D3ji7X6r3GG03mqZ6mmaHLzKfNSnFqWwAYwvA0vj2puuGayjBQkCvvSsEjA5MmV3XuQSwvpjF1qbWhdu4dPXLlj5wyzJzHQX4mUcnMZ_b0lNw5eXAHSm7xF8t3Nt6PAH-xs3x3OTBD5TaOyV0GhCSYq4eHu4-WROI5g3I3zLRWSpoPL6TpkLHn0-TYMIB9BkPbLu4OJqhcRL041VoHZFI9Sx0K8IDhqHq9YA4m5LdtaTsqPQUP3wB8t6A"
-  const pepper = new Uint8Array([
-    242, 155, 63, 12, 138, 2, 229, 135, 201, 26, 85, 149, 1, 4, 91, 232, 46, 185, 141, 235, 156, 244, 218, 226, 81, 22,
-    225, 207, 203, 200, 5,
-  ]);
+  const jwtToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJ0ZXN0X2NsaWVudF9pZCIsInN1YiI6InRlc3RfYWNjb3VudCIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibm9uY2UiOiJFVVRhSE9HdDcwRTNxbk9QMUJibnUzbE03QjR5TTdzaHZTb1NvdXF1VVJ3IiwibmJmIjoxNzAyODA4OTM2LCJpYXQiOjE3MDQ5MDkyMzYsImV4cCI6MTcwNzgxMjgzNiwianRpIjoiZjEwYWZiZjBlN2JiOTcyZWI4ZmE2M2YwMjQ5YjBhMzRhMjMxZmM0MCJ9.CEgO4S7hRgASaINsGST5Ygtl_CY-mUn2GaQ6d7q9q1eGz1MjW0o0yusJQDU6Hi1nDfXlNSvCF2SgD9ayG3uDGC5-18H0AWo2QgyZ2rC_OUa36RCTmhdo-i_H8xmwPxa3yHZZsGC-gJy_vVX-rfMLIh-JgdIFFIzGVPN75MwXLP3bYUaB9Lw52g50rf_006Qg5ubkZ70I13vGUTVbRVWanQIN69naFqHreLCjVsGsEBVBoUtexZw6Ulr8s0VajBpcTUqlMvbvqMfQ33NXaBQYvu3YZivpkus8rcG_eAMrFbYFY9AZF7AaW2HUaYo5QjzMQDsIA1lpnAcOW3GzWvb0vw";
   const alice = await aptos.deriveAccountFromJWTAndEphemAccount({
     jwt: jwtToken,
     ephemeralAccount: aliceEphem,
