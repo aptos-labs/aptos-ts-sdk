@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { bytesToHex } from "@noble/curves/abstract/utils";
 import { PublicKey, Signature } from "./asymmetricCrypto";
 import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
@@ -47,7 +48,7 @@ export class ZkIDPublicKey extends PublicKey {
    * @returns string representation of the public key
    */
   toString(): string {
-    return this.toString();
+    return `${this.iss  }.${  bytesToHex(this.addressSeed)}`;
   }
 
   /**
