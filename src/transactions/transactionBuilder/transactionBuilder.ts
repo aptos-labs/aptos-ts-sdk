@@ -382,7 +382,11 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
-    if (publicKey.publicKey instanceof Ed25519PublicKey || publicKey.publicKey instanceof ZkIDPublicKey) {
+    if (publicKey.publicKey instanceof Ed25519PublicKey) {
+      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
+    }
+    if (publicKey.publicKey instanceof ZkIDPublicKey) {
+      // fix this to use zkid sig
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
     if (publicKey.publicKey instanceof Secp256k1PublicKey) {
@@ -390,6 +394,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     }
   }
 
+  // fix this to use zkid sig
   if (publicKey instanceof ZkIDPublicKey) {
     return new AccountAuthenticatorSingleKey(
       new AnyPublicKey(publicKey),

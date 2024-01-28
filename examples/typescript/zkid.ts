@@ -11,8 +11,6 @@ import {
   AptosConfig,
   Ed25519PrivateKey,
   EphemeralAccount,
-  Network,
-  NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
@@ -20,10 +18,7 @@ const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
-const TRANSFER_AMOUNT = 100;
-
-// Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.LOCAL;
+const TRANSFER_AMOUNT = 10_000;
 
 /**
  * Prints the balance of an account
@@ -62,9 +57,8 @@ const example = async () => {
 
   console.log("=== Nonce ===\n");
   console.log(aliceEphem.nonce);
-  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?state=%2Fhome&client_id=768056533295-s37otp56men05m4ppburuo4sclk6b5a2.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fzksend.com%2Fcallback&response_type=id_token&scope=openid%20email&nonce=${aliceEphem.nonce}&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow`;
-  // const aliceEphem =  EphemeralAccount.generate();
-  console.log(link);
+  // const link /= `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?state=%2Fhome&client_id=768056533295-s37otp56men05m4ppburuo4sclk6b5a2.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fzksend.com%2Fcallback&response_type=id_token&scope=openid%20email&nonce=${aliceEphem.nonce}&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow`;
+  // console.log(link);
 
   const bob = Account.generate();
 
@@ -84,12 +78,12 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  const aliceFundTxn = await aptos.faucet.fundAccount({
+  await aptos.faucet.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
     options: { waitForIndexer: false },
   });
-  const bobFundTxn = await aptos.faucet.fundAccount({
+  await aptos.faucet.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
     options: { waitForIndexer: false },
