@@ -75,7 +75,7 @@ export interface Aptos
     General,
     Staking,
     ZkID,
-    Omit<Transaction, "build" | "simulate" | "submit"> {}
+    Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,

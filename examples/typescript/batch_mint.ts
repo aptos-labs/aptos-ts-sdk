@@ -26,6 +26,7 @@ import {
   Network,
   NetworkToNetworkName,
   UserTransactionResponse,
+  TransactionWorkerEventsEnum,
 } from "@aptos-labs/ts-sdk";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -77,7 +78,20 @@ async function main() {
   }
 
   // batch mint token transactions
-  aptos.batchTransactionsForSingleAccount({ sender, data: payloads });
+  aptos.transaction.batch.forSingleAccount({ sender, data: payloads });
+
+  aptos.transaction.batch.on(TransactionWorkerEventsEnum.ExecutionFinish, async (data) => {
+    // log event output
+    console.log(data);
+
+    // verify account sequence number
+    const account = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
+    console.log(`account sequence number is 101: ${account.sequence_number === "101"}`);
+
+    // worker finished execution, we can now unsubscribe from event listeners
+    aptos.transaction.batch.removeAllListeners();
+    process.exit(0);
+  });
 }
 
 main();

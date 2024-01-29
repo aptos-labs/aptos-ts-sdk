@@ -4,6 +4,20 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add optional `options` param to `getAccountEventsByCreationNumber` query for paginations and order by
+
+# 1.5.1 (2024-01-24)
+
+- Move eventemitter3 to runtime dependency
+
+# 1.5.0 (2024-01-24)
+
+- Remove request URLs forward slash append
+- Add events to `TransactionWorker` module that dapps can listen to
+- Introduce `aptos.transaction.batch` namespace to handle batch transactions
+- Support `aptos.transaction.batch.forSingleAccount()` to send batch transactions for a single account
+- Label `aptos.batchTransactionsForSingleAccount()` as `deprecated` to prefer using `aptos.transaction.batch.forSingleAccount()`
+
 # 1.4.0 (2024-01-08)
 
 - Omit `"build" | "simulate" | "submit"` from `aptos` namespace
