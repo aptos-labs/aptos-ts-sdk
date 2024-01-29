@@ -4,6 +4,8 @@
  * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
  */
 
+import * as readline from "readline";
+
 import {
   Account,
   AccountAddress,
@@ -12,6 +14,7 @@ import {
   Ed25519PrivateKey,
   EphemeralAccount,
 } from "@aptos-labs/ts-sdk";
+import { promisify } from "util";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
@@ -19,6 +22,8 @@ const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
+
+const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJ0ZXN0X2NsaWVudF9pZCIsInN1YiI6InRlc3RfYWNjb3VudCIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibm9uY2UiOiJFVVRhSE9HdDcwRTNxbk9QMUJibnUzbE03QjR5TTdzaHZTb1NvdXF1VVJ3IiwibmJmIjoxNzAyODA4OTM2LCJpYXQiOjE3MDQ5MDkyMzYsImV4cCI6MTcwNzgxMjgzNiwianRpIjoiZjEwYWZiZjBlN2JiOTcyZWI4ZmE2M2YwMjQ5YjBhMzRhMjMxZmM0MCJ9.CEgO4S7hRgASaINsGST5Ygtl_CY-mUn2GaQ6d7q9q1eGz1MjW0o0yusJQDU6Hi1nDfXlNSvCF2SgD9ayG3uDGC5-18H0AWo2QgyZ2rC_OUa36RCTmhdo-i_H8xmwPxa3yHZZsGC-gJy_vVX-rfMLIh-JgdIFFIzGVPN75MwXLP3bYUaB9Lw52g50rf_006Qg5ubkZ70I13vGUTVbRVWanQIN69naFqHreLCjVsGsEBVBoUtexZw6Ulr8s0VajBpcTUqlMvbvqMfQ33NXaBQYvu3YZivpkus8rcG_eAMrFbYFY9AZF7AaW2HUaYo5QjzMQDsIA1lpnAcOW3GzWvb0vw";
 
 /**
  * Prints the balance of an account
@@ -52,21 +57,48 @@ const example = async () => {
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
   }
-  const pepper = blinder;  // Use 0 for both pepper and blinder for testing
   const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp, blinder });
 
-  console.log("=== Nonce ===\n");
-  console.log(aliceEphem.nonce);
-  // const link /= `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?state=%2Fhome&client_id=768056533295-s37otp56men05m4ppburuo4sclk6b5a2.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fzksend.com%2Fcallback&response_type=id_token&scope=openid%20email&nonce=${aliceEphem.nonce}&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow`;
-  // console.log(link);
+  console.log();
+  console.log("=== Get token via the below link ===");
+  console.log();
+
+  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=profile&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
+  console.log(link);
+  console.log();
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const questionAsync = promisify(rl.question).bind(rl);
+  
+  // eslint-disable-next-line consistent-return
+  async function getUserInput(): Promise<string> {
+    try {
+      const response = await questionAsync("Paste the JWT token (or press enter to use default test token): ");
+      if (response.trim() === "") {
+        console.log();
+        console.log("No jwt token inputted. Using test jwt token");
+        console.log();
+        rl.close();
+        return TEST_JWT
+      }
+      return response.trim()
+    } catch (error) {
+      rl.close();
+      console.error("Error reading user input:", error);
+    }
+  }
+
+  const jwt = await getUserInput();
 
   const bob = Account.generate();
 
-  const jwtToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJ0ZXN0X2NsaWVudF9pZCIsInN1YiI6InRlc3RfYWNjb3VudCIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibm9uY2UiOiJFVVRhSE9HdDcwRTNxbk9QMUJibnUzbE03QjR5TTdzaHZTb1NvdXF1VVJ3IiwibmJmIjoxNzAyODA4OTM2LCJpYXQiOjE3MDQ5MDkyMzYsImV4cCI6MTcwNzgxMjgzNiwianRpIjoiZjEwYWZiZjBlN2JiOTcyZWI4ZmE2M2YwMjQ5YjBhMzRhMjMxZmM0MCJ9.CEgO4S7hRgASaINsGST5Ygtl_CY-mUn2GaQ6d7q9q1eGz1MjW0o0yusJQDU6Hi1nDfXlNSvCF2SgD9ayG3uDGC5-18H0AWo2QgyZ2rC_OUa36RCTmhdo-i_H8xmwPxa3yHZZsGC-gJy_vVX-rfMLIh-JgdIFFIzGVPN75MwXLP3bYUaB9Lw52g50rf_006Qg5ubkZ70I13vGUTVbRVWanQIN69naFqHreLCjVsGsEBVBoUtexZw6Ulr8s0VajBpcTUqlMvbvqMfQ33NXaBQYvu3YZivpkus8rcG_eAMrFbYFY9AZF7AaW2HUaYo5QjzMQDsIA1lpnAcOW3GzWvb0vw";
   const alice = await aptos.deriveAccountFromJWTAndEphemAccount({
-    jwt: jwtToken,
+    jwt,
     ephemeralAccount: aliceEphem,
-    pepper,
   });
 
   console.log("=== Addresses ===\n");
@@ -95,7 +127,7 @@ const example = async () => {
   const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
   // Transfer between users
-  const txn = await aptos.transaction.build.simple({
+  const transaction = await aptos.transaction.build.simple({
     sender: alice.accountAddress,
     data: {
       function: "0x1::coin::transfer",
@@ -104,7 +136,7 @@ const example = async () => {
     },
   });
 
-  const committedTxn = await aptos.signAndSubmitWithOIDC({ signer: alice, transaction: txn, jwt: jwtToken });
+  const committedTxn = await aptos.signAndSubmitWithOIDC({ signer: alice, transaction, jwt });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);

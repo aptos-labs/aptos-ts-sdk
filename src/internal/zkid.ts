@@ -19,16 +19,15 @@ import { submitTransaction } from "./transactionSubmission";
 export async function getPepper(args: { aptosConfig: AptosConfig; jwt: string }): Promise<string> {
   const { aptosConfig, jwt } = args;
 
-  const { data } = await postAptosPepperService<any, { pepper_hex: string }>({
+  const { data } = await postAptosPepperService<any, { OK: {pepper_hexlified: string }}>({
     aptosConfig,
-    path: "",
+    path: "unencrypted",
     body: {
       jwt,
     },
     originMethod: "getPepper",
   });
-
-  return data.pepper_hex;
+  return data.OK.pepper_hexlified;
 }
 
 export async function deriveAccountFromJWTAndEphemAccount(args: {
