@@ -90,7 +90,8 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
       throw new AptosApiError(
         options,
         result,
-        indexerResponse.errors[0].message ?? `Unhandled Error ${response.status} : ${response.statusText}`,
+        `Indexer error: ${indexerResponse.errors[0].message}` ??
+          `Indexer unhandled Error ${response.status} : ${response.statusText}`,
       );
     }
     result.data = indexerResponse.data as Res;
@@ -112,5 +113,11 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     errorMessage = `Unhandled Error ${result.status} : ${result.statusText}`;
   }
 
-  throw new AptosApiError(options, result, errorMessage);
+  // Since we already checked if it is an Indexer request, here we can be sure
+  // it either Fullnode or Faucet request
+  throw new AptosApiError(
+    options,
+    result,
+    `${aptosConfig.isFullnodeRequest(url) ? "Fullnode" : "Faucet"} error: ${errorMessage}`,
+  );
 }

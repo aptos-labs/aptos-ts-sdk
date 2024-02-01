@@ -81,4 +81,22 @@ export class AptosConfig {
   isIndexerRequest(url: string): boolean {
     return NetworkToIndexerAPI[this.network] === url;
   }
+
+  /**
+   * Checks if the URL is a known fullnode endpoint
+   *
+   * @internal
+   * */
+  isFullnodeRequest(url: string): boolean {
+    return NetworkToNodeAPI[this.network] === url;
+  }
+
+  /**
+   * Checks if the URL is a known faucet endpoint
+   *
+   * @internal
+   * */
+  isFaucetRequest(url: string): boolean {
+    return NetworkToFaucetAPI[this.network] === url;
+  }
 }
