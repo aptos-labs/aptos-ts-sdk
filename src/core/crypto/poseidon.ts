@@ -45,14 +45,14 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
 export function hashASCIIStrToField(str: string, maxSizeBytes: number) {
   const textEncoder = new TextEncoder();
   const strBytes = textEncoder.encode(str);
-  return hashBytesNoLen(strBytes, maxSizeBytes);
+  return hashBytesWithLen(strBytes, maxSizeBytes);
 }
 
-function hashBytesNoLen(bytes: Uint8Array, maxSizeBytes: number) {
+function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number) {
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
   }
-  const packed = padAndPackBytesNoLen(bytes, maxSizeBytes);
+  const packed = padAndPackBytesWithLen(bytes, maxSizeBytes);
   return poseidonHash(packed);
 }
 
@@ -68,7 +68,7 @@ export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number):
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Input bytes of length ${bytes} is longer than ${maxSizeBytes}`);
   }
-  return [BigInt(bytes.length)].concat(padAndPackBytesNoLen(bytes, maxSizeBytes));
+  return padAndPackBytesNoLen(bytes, maxSizeBytes).concat([BigInt(bytes.length)]);
 }
 
 function packBytes(bytes: Uint8Array): bigint[] {
