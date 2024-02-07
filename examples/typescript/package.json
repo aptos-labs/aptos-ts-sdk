@@ -9,6 +9,7 @@
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
     "custom_client": "ts-node custom_client.ts",
+    "query_indexer": "ts-node query_indexer.ts",
     "swap": "ts-node swap.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
     "external_signing": "ts-node external_signing.ts",

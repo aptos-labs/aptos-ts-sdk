@@ -5,7 +5,12 @@ import { Account, Aptos, AptosConfig, Network } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
 // use it here since all tests use the same configuration
-const config = new AptosConfig({ network: Network.LOCAL });
+const config = new AptosConfig({
+  network: Network.CUSTOM,
+  fullnode: "https://fullnode.random.aptoslabs.com/v1",
+  faucet: "https://faucet.random.aptoslabs.com",
+  indexer: "https://indexer-randomnet.hasura.app/v1/graphql",
+});
 const aptos = new Aptos(config);
 
 // Disable these tests for now until we can test against LOCAL

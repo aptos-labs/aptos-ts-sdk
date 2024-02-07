@@ -335,7 +335,10 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
     originMethod: "getAccountOwnedTokensFromCollectionAddress",
   });
 
-  return data.current_token_ownerships_v2;
+  console.log(data);
+
+  // @ts-ignore
+  return data.data.current_token_ownerships_v2;
 }
 
 export async function getAccountCollectionsWithOwnedTokens(args: {
