@@ -7,3 +7,6 @@ export * from "./authenticationKey";
 export * from "./common";
 export * from "./crypto";
 export * from "./hex";
+export * from "./multiKeyAccount";
+export * from "./ephemeralAccount";
+export * from "./openIdAccount";

@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EphemeralAccount, ZkIDAccount } from "../core";
-import { deriveAccountFromJWTAndEphemAccount, getPepper, signAndSubmitWithOIDC } from "../internal/zkid";
-import { AnyRawTransaction } from "../transactions";
-import { HexInput, PendingTransactionResponse } from "../types";
+import { deriveAccountFromJWTAndEphemAccount, getPepper } from "../internal/zkid";
+import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -39,24 +38,5 @@ export class ZkID {
     pepper?: HexInput;
   }): Promise<ZkIDAccount> {
     return deriveAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * TODO
-   *
-   * @param args.signer
-   * @param args.transaction
-   * @param args.jwt jwt token
-   * @returns The submitted transaction
-   */
-  async signAndSubmitWithOIDC(args: {
-    signer: ZkIDAccount;
-    transaction: AnyRawTransaction;
-    jwt: string;
-  }): Promise<PendingTransactionResponse> {
-    return signAndSubmitWithOIDC({
-      aptosConfig: this.config,
-      ...args,
-    });
   }
 }

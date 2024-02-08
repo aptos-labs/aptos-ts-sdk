@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account } from "../core/account";
+import { Account, Signer } from "../core/account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -199,7 +199,7 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  *
  * @return The signer AccountAuthenticator
  */
-export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function signTransaction(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
   const accountAuthenticator = sign({ ...args });
   return accountAuthenticator;
 }
@@ -269,7 +269,7 @@ export async function submitTransaction(
 
 export async function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
-  signer: Account;
+  signer: Signer;
   transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;

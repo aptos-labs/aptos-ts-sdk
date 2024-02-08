@@ -11,10 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService } from "../client";
 import { EphemeralAccount, Hex, ZkIDAccount } from "../core";
-import { AnyRawTransaction } from "../transactions";
-import { signWithOIDC } from "../transactions/transactionBuilder/transactionBuilder";
-import { HexInput, PendingTransactionResponse } from "../types";
-import { submitTransaction } from "./transactionSubmission";
+import { HexInput } from "../types";
 
 export async function getPepper(args: { aptosConfig: AptosConfig; jwt: string }): Promise<string> {
   const { aptosConfig, jwt } = args;
@@ -47,21 +44,3 @@ export async function deriveAccountFromJWTAndEphemAccount(args: {
   return ZkIDAccount.fromJWT({ ...args, pepper });
 }
 
-export async function signAndSubmitWithOIDC(args: {
-  aptosConfig: AptosConfig;
-  signer: ZkIDAccount;
-  transaction: AnyRawTransaction;
-  jwt: string;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, transaction, jwt } = args;
-  const authenticator = signWithOIDC({
-    signer,
-    transaction,
-    jwt,
-  });
-  return submitTransaction({
-    aptosConfig,
-    transaction,
-    senderAuthenticator: authenticator,
-  });
-}

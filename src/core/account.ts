@@ -1,9 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { jwtDecode, JwtPayload } from "jwt-decode";
-import { base64url } from "jose";
-import { randomBytes } from "@noble/hashes/utils";
 import { AccountAddress } from "./accountAddress";
 import { AuthenticationKey } from "./authenticationKey";
 import { PrivateKey, PublicKey, Signature } from "./crypto/asymmetricCrypto";
@@ -15,37 +12,19 @@ import { Secp256k1PrivateKey, Secp256k1PublicKey } from "./crypto/secp256k1";
 import { Hex } from "./hex";
 import { GenerateAccount, HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
-import { computeAddressSeed, ZkIDPublicKey } from "./crypto/zkid";
-import { EphemeralPublicKey } from "./crypto/ephermeralPublicKey";
-import { bigIntToBytesLE, bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "./crypto/poseidon";
-import { EphemeralSignature } from "./crypto/ephemeralSignature";
 
-/**
- * Class for creating and managing account on Aptos network
- *
- * Use this class to create accounts, sign transactions, and more.
- * Note: Creating an account instance does not create the account on-chain.
- *
- * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
- * `Legacy` and `Unified` authentications.
- *
- * @Legacy includes `ED25519` and `MultiED25519`
- * @Unified includes `SingleSender` and `MultiSender`, where currently
- * `SingleSender` supports `ED25519` and `Secp256k1`, and `MultiSender` supports
- * `MultiED25519`.
- *
- * In TypeScript SDK, we support all of these options:
- *
- * @generate default to generate Legacy Ed25519 keys, with an optional `legacy` boolean argument
- * that lets you generate new keys conforming to the Unified authentication.
- *
- * @fromPrivateKey derives an account by a provided private key and address, with an optional
- * `legacy` boolean argument that lets you generate new keys conforming to the Unified authentication.
- *
- * @fromDerivationPath derives an account with bip44 path and mnemonics,
- *
- */
-export class Account {
+
+export interface Signer {
+  readonly publicKey: PublicKey;
+  readonly accountAddress: AccountAddress;
+  readonly signingScheme: SigningScheme;
+
+  sign(data: HexInput): Signature;
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean;
+}
+
+
+export class Account implements Signer{
   /**
    * Public key associated with the account
    */
@@ -287,143 +266,5 @@ export class Account {
     const { message, signature } = args;
     const rawMessage = Hex.fromHexInput(message).toUint8Array();
     return this.publicKey.verifySignature({ message: rawMessage, signature });
-  }
-}
-
-export class EphemeralAccount {
-  readonly blinder: Uint8Array;
-
-  readonly expiryTimestamp: bigint;
-
-  readonly nonce: string;
-
-  readonly privateKey: PrivateKey;
-
-  readonly publicKey: EphemeralPublicKey;
-
-  constructor(args: { privateKey: PrivateKey; expiryTimestamp: bigint; blinder?: HexInput }) {
-    const { privateKey, expiryTimestamp, blinder } = args;
-    this.privateKey = privateKey;
-    this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
-    this.expiryTimestamp = expiryTimestamp;
-    this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
-    this.nonce = this.generateNonce();
-  }
-
-  static generate(args?: GenerateAccount): EphemeralAccount {
-    let privateKey: PrivateKey;
-
-    switch (args?.scheme) {
-      case SigningSchemeInput.Ed25519:
-      default:
-        privateKey = Ed25519PrivateKey.generate();
-    }
-
-    const expiryTimestamp = BigInt(123); // TODO
-
-    return new EphemeralAccount({ privateKey, expiryTimestamp });
-  }
-
-  generateNonce(): string {
-    const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
-    fields.push(BigInt(this.expiryTimestamp))
-    fields.push(bytesToBigIntLE(this.blinder))
-    const nonceHash = poseidonHash(fields);
-    return base64url.encode(bigIntToBytesLE(nonceHash, 32));
-  }
-
-  /**
-   * Sign the given message with the private key.
-   *   *
-   * @param data in HexInput format
-   * @returns EphemeralSignature
-   */
-  sign(data: HexInput): EphemeralSignature {
-    return new EphemeralSignature(this.privateKey.sign(data));
-  }
-}
-
-function generateBlinder(): Uint8Array {
-  return randomBytes(31);
-}
-
-export class ZkIDAccount {
-  static readonly PEPPER_LENGTH: number = 31;
-
-  ephemeralAccount: EphemeralAccount;
-
-  publicKey: ZkIDPublicKey;
-
-  uidKey: string;
-
-  uidVal: string;
-
-  aud: string;
-
-  pepper: Uint8Array;
-
-  accountAddress: AccountAddress;
-
-  constructor(args: {
-    address?: AccountAddress;
-    ephemeralAccount: EphemeralAccount;
-    iss: string;
-    uidKey: string;
-    uidVal: string;
-    aud: string;
-    pepper: HexInput;
-  }) {
-    const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper } = args;
-    this.ephemeralAccount = ephemeralAccount;
-    const addressSeed = computeAddressSeed(args);
-    this.publicKey = new ZkIDPublicKey(iss, addressSeed);
-    const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
-    const derivedAddress = authKey.derivedAddress();
-    this.accountAddress = address ?? derivedAddress;
-    this.uidKey = uidKey;
-    this.uidVal = uidVal;
-    this.aud = aud;
-
-    const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
-    if (pepperBytes.length !== ZkIDAccount.PEPPER_LENGTH) {
-      throw new Error(`Pepper length in bytes should be ${ZkIDAccount.PEPPER_LENGTH}`);
-    }
-    this.pepper = pepperBytes;
-  }
-
-  /**
-   * Sign the given message with the private key.
-   *   *
-   * @param data in HexInput format
-   * @returns EphemeralSignature
-   */
-  sign(data: HexInput): EphemeralSignature {
-    return this.ephemeralAccount.sign(data);
-  }
-
-  static fromJWT(args: {
-    jwt: string;
-    ephemeralAccount: EphemeralAccount;
-    pepper: HexInput;
-    uidKey?: string;
-  }): ZkIDAccount {
-    const { jwt, ephemeralAccount, pepper } = args;
-    const uidKey = args.uidKey ?? "sub";
-
-    const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-    const iss = jwtPayload.iss!;
-    if (typeof jwtPayload.aud !== "string") {
-      throw new Error("aud was not found or an array of values");
-    }
-    const aud = jwtPayload.aud!;
-    const uidVal = jwtPayload[uidKey];
-    return new ZkIDAccount({
-      ephemeralAccount,
-      iss,
-      uidKey,
-      uidVal,
-      aud,
-      pepper,
-    });
   }
 }

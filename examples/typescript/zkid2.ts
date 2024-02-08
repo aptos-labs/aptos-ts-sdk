@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 
 /**
@@ -6,8 +8,9 @@
 
 import * as readline from "readline";
 
+import { promisify } from "util";
+import { randomBytes } from "crypto";
 import {
-  AccountAuthenticatorMultiKey,
   AuthenticationKey,
   AccountAddress,
   computeAddressSeed,
@@ -15,12 +18,11 @@ import {
   AptosConfig,
   Ed25519PrivateKey,
   EphemeralAccount,
-  signWithOIDC,
   ZkIDPublicKey,
   MultiKey,
   Network,
+  MultiKeyAccount,
 } from "../../dist/common";
-import { promisify } from "util";
 // import { AccountAuthenticatorMultiKey, AuthenticationKey, computeAddressSeed } from "../../dist/common";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
@@ -28,6 +30,7 @@ const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000_000;
 const TRANSFER_AMOUNT = 100_000_000;
+const TRANSFER_AMOUNT_WITH_FEE = TRANSFER_AMOUNT + 600;
 
 const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJ0ZXN0X2NsaWVudF9pZCIsInN1YiI6InRlc3RfYWNjb3VudCIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibm9uY2UiOiIxYlFsNF9YYzUtSXBDcFViS19BZVhwZ2Q2R1o0MGxVVjN1YjN5b19FTHhrIiwibmJmIjoxNzAyODA4OTM2LCJpYXQiOjE3MDQ5MDkyMzYsImV4cCI6MTcwNzgxMjgzNiwianRpIjoiZjEwYWZiZjBlN2JiOTcyZWI4ZmE2M2YwMjQ5YjBhMzRhMjMxZmM0MCJ9.oBdOiIUc-ioG2-sHV1hWDLjgk4NrVf3z6V-HmgbOrVAz3PV1CwdfyTXsmVaCqLzOHzcbFB6ZRDxShs3aR7PsqdlhI0Dh8WrfU8kBkyk1FAmx2nST4SoSJROXsnusaOpNFpgSl96Rq3SXgr-yPBE9dEwTfD00vq2gH_fH1JAIeJJhc6WicMcsEZ7iONT1RZOid_9FlDrg1GxlGtNmpn4nEAmIxqnT0JrCESiRvzmuuXUibwx9xvHgIxhyVuAA9amlzaD1DL6jEc5B_0YnGKN7DO_l2Hkj9MbQZvU0beR-Lfcz8jxCjojODTYmWgbtu5E7YWIyC6dsjiBnTxc-svCsmQ";
 
@@ -53,7 +56,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({network: Network.LOCAL}); // Default to devnet
+  const config = new AptosConfig({network: Network.DEVNET});
   const aptos = new Aptos(config);
 
   // Create two accounts
@@ -104,10 +107,10 @@ const example = async () => {
       const response = await questionAsync("Enter the bob's email address (the recipient): ");
       if (response.trim() === "") {
         console.log();
-        console.log("No jwt token inputted. Using test jwt token");
+        console.log("No email inputted. Using oliver.he@aptoslabs.com");
         console.log();
         // rl.close();
-        return TEST_JWT
+        return "oliver.he@aptoslabs.com"
       }
       return response.trim()
     } catch (error) {
@@ -132,7 +135,7 @@ const example = async () => {
   });
 
   const uidVal = bobEmail
-  const pepper = blinder;
+  const pepper = randomBytes(31);;
   const escrowAddressSeed = computeAddressSeed({
     uidKey,
     uidVal,
@@ -141,10 +144,8 @@ const example = async () => {
   });
   const escrowPublicKey = new ZkIDPublicKey(iss, escrowAddressSeed);
 
-  const mk = new MultiKey({publicKeys: [alice.publicKey, escrowPublicKey], signaturesRequired: 1})
-  const mkAddr = AuthenticationKey.fromPublicKey({ publicKey: mk} ).derivedAddress();;
-
-
+  const multiKey = new MultiKey({publicKeys: [alice.publicKey, escrowPublicKey], signaturesRequired: 1})
+  const mkAddr = AuthenticationKey.fromPublicKey({ publicKey: multiKey} ).derivedAddress();
 
   console.log("\n=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
@@ -175,13 +176,13 @@ const example = async () => {
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [APTOS_COIN],
-      functionArguments: [mkAddr, TRANSFER_AMOUNT + 800],
+      functionArguments: [mkAddr, TRANSFER_AMOUNT_WITH_FEE],
     },
   });
 
   console.log("\n=== Transferring ===\n");
 
-  const committedTxn = await aptos.signAndSubmitWithOIDC({ signer: alice, transaction, jwt });
+  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
@@ -190,17 +191,17 @@ const example = async () => {
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const newEscrowBalance = await balance(aptos, "escrow", mkAddr);
 
-  console.error("Amount transferred:", TRANSFER_AMOUNT+800);
-  console.error("Transfer fee:", aliceBalance - (newAliceBalance + TRANSFER_AMOUNT+800));
+  console.error("Amount transferred:", TRANSFER_AMOUNT_WITH_FEE);
+  console.error("Transfer fee:", aliceBalance - (newAliceBalance + TRANSFER_AMOUNT_WITH_FEE));
   console.error("");
 
 
 
-  const bobJWT = await getUserInput();
+  // const bobJWT = await getUserInput();
 
-  // const bobJWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg1ZTU1MTA3NDY2YjdlMjk4MzYxOTljNThjNzU4MWY1YjkyM2JlNDQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE2Mjc3NzI0NjA3NTIzNDIzMTIiLCJoZCI6ImFwdG9zbGFicy5jb20iLCJlbWFpbCI6Im9saXZlci5oZUBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJnTE50YmhqR3R1eVFrWUxkcEktSUVnIiwibm9uY2UiOiJFVVRhSE9HdDcwRTNxbk9QMUJibnUzbE03QjR5TTdzaHZTb1NvdXF1VVJ3IiwiaWF0IjoxNzA2NjQzMTE4LCJleHAiOjE3MDY2NDY3MTh9.xjZHnq0uTg3zULa75FJhL0G6CIFbGAU4SxgOShS6qNyjzc1FFjz6uYc6WI5Ye0ZoJzS_oQiXoCCKDEXFxgEc3WiwiEnhyrgJCMCrqOP8Tp3l_3czZ0W3zEfAgKb7cLuZVzUSuB8pwEIN6BDydLKzzWJv50FLG3WskrFX7jKS7FqLKvMi2-DGlspoS9G4a0T7FQwfQlQnx-pNhTyprYw871T7shktgXhjcdft4ICcZu9BOj2GK9mekm0Bjy5tU0-t5zqQg8nxmcqg5b6lERTySpbupKF6Pq54GPJi9wXQxNiFE3fGdGVfUoKmu1-pM03Az0Oqx8GY9JlADJU6katutA";
+  const bobJWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImJkYzRlMTA5ODE1ZjQ2OTQ2MGU2M2QzNGNkNjg0MjE1MTQ4ZDdiNTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE2Mjc3NzI0NjA3NTIzNDIzMTIiLCJoZCI6ImFwdG9zbGFicy5jb20iLCJlbWFpbCI6Im9saXZlci5oZUBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJqZmNIRFJDSzI0cUVZY2t4SzhGd0NRIiwibm9uY2UiOiIxYlFsNF9YYzUtSXBDcFViS19BZVhwZ2Q2R1o0MGxVVjN1YjN5b19FTHhrIiwiaWF0IjoxNzA3MzkxNjE0LCJleHAiOjE3MDczOTUyMTR9.jgdGz1GdwtUQ5q24IvgItBCd8cFmuUKO-zG5MwUQbP2V84H1Nk9ybWkXR1ffzr1JDU03yNvFjbqtKiRkO62X0DBphCnSnLEhAHE5PAqBt948y6f10pVDey56fhftIFaRgYQFTasDF0E75Gk1W8KPSP-ytwMfUwvNkZaFeGo_sVacIro0BgFN7Uy2QHInBhTMQXvO5xM4zc1oNoRB47s7nhXghGYOdT7wqJzIt1mZZmkb4XpnYPA0p_El9dAUNmWICw1vyLv2xEyz2r9Xm_Tx8gtD6SycZB3e0k3zbloRXC37rZ1Aok9-lvM-89Lk_CSqn95c-eUuUckU60JzEEpRHw";
 
-  const escrowZkID = await aptos.deriveAccountFromJWTAndEphemAccount({
+  const bobTempZkIDAccount = await aptos.deriveAccountFromJWTAndEphemAccount({
     jwt: bobJWT,
     uidKey,
     ephemeralAccount: aliceEphem,
@@ -213,6 +214,8 @@ const example = async () => {
     ephemeralAccount: aliceEphem,
   });
 
+  const escrowAccount = new MultiKeyAccount({ multiKey, signers: [bobTempZkIDAccount] })
+
   // Fund the accounts
   console.log("\n=== Funding Bob's account ===\n");
   await aptos.faucet.fundAccount({
@@ -223,10 +226,10 @@ const example = async () => {
 
   console.log("\n=== Balances ===\n");
   await balance(aptos, "Alice", alice.accountAddress);
-  const esc = await balance(aptos, "escrow", mkAddr);
+  const esc = await balance(aptos, "escrow", escrowAccount.accountAddress);
   await balance(aptos, "Bob", bobZkID.accountAddress);
 
-  const transaction2 = await aptos.transaction.build.simple({
+  const transferToBobTxn = await aptos.transaction.build.simple({
     sender: mkAddr,
     data: {
       function: "0x1::coin::transfer",
@@ -235,27 +238,10 @@ const example = async () => {
     },
   });
 
-  const bitmap = mk.createBitmap({ bits: [1] });
-
-  const account1Authenticator = signWithOIDC({
-    signer: escrowZkID,
-    transaction: transaction2,
-    jwt: bobJWT,
-  });
-
-  if (!account1Authenticator.isSingleKey()) {
-    throw new Error("Both AccountAuthenticators should be an instance of AccountAuthenticatorSingleKey");
-  }
-
-  const multiKeyAuth = new AccountAuthenticatorMultiKey(
-    mk,
-    [account1Authenticator.signature],
-    bitmap,
-  );
-
   console.log("\n=== Transferring ===\n");
 
-  const response = await aptos.transaction.submit.simple({ transaction:transaction2, senderAuthenticator: multiKeyAuth });
+  const response = await aptos.signAndSubmitTransaction({ signer: escrowAccount, transaction:transferToBobTxn });
+
   await aptos.waitForTransaction({
     transactionHash: response.hash,
   });
@@ -267,7 +253,6 @@ const example = async () => {
 
   console.error("Amount transferred:", TRANSFER_AMOUNT);
   console.error("Transfer fee:", esc - (esc2 + TRANSFER_AMOUNT));
-
 
   rl.close();
 };

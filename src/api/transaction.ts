@@ -34,7 +34,7 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AccountAddressInput, Account, PrivateKey } from "../core";
+import { AccountAddressInput, Account, PrivateKey, Signer } from "../core";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
@@ -312,7 +312,7 @@ export class Transaction {
    * @return PendingTransactionResponse
    */
   async signAndSubmitTransaction(args: {
-    signer: Account;
+    signer: Signer;
     transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     const { signer, transaction } = args;

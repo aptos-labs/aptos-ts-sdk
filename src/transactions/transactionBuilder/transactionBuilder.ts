@@ -8,8 +8,7 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account, ZkIDAccount } from "../../core/account";
+import { AccountAddress, AccountAddressInput, Hex, MultiKeyAccount, PublicKey, Signer, ZkIDAccount } from "../../core";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -76,7 +75,8 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
-import { OpenIdSignature, OpenIdSignatureOrZkProof, ZkIDPublicKey, ZkIDSignature } from "../../core/crypto/zkid";
+import { ZkIDPublicKey } from "../../core/crypto/zkid";
+import { MultiSignature } from "../../core/crypto/multiSignature";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -417,7 +417,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  *
  * @return The signer AccountAuthenticator
  */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+export function sign(args: { signer: Signer; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
 
   // get the signing message
@@ -435,44 +435,22 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
       );
     case SigningScheme.SingleKey:
       if (!AnyPublicKey.isPublicKey(signer.publicKey)) {
-        throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
+        // throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
+        return new AccountAuthenticatorSingleKey(new AnyPublicKey(signer.publicKey), new AnySignature(signerSignature));
       }
       return new AccountAuthenticatorSingleKey(signer.publicKey, new AnySignature(signerSignature));
+    case SigningScheme.MultiKey:
+        if (!MultiKeyAccount.isMultiKeySigner(signer)) {
+          throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
+        }
+        if (!MultiSignature.isMultiSig(signerSignature)) {
+          throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
+        }
+        return new AccountAuthenticatorMultiKey(signer.publicKey, signerSignature, signer.signaturesBitmap);
     // TODO support MultiEd25519
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
   }
-}
-
-export function signWithOIDC(args: {
-  signer: ZkIDAccount;
-  jwt: string;
-  transaction: AnyRawTransaction;
-}): AccountAuthenticator {
-  const { signer, jwt, transaction } = args;
-  jwt.split(".");
-  const [jwtHeader, jwtPayload, jwtSignature] = jwt.split(".");
-  const openIdSig = new OpenIdSignature({
-    jwtSignature,
-    jwtPayloadJson: jwtPayload,
-    uidKey: signer.uidKey,
-    epkBlinder: signer.ephemeralAccount.blinder,
-    pepper: signer.pepper,
-  });
-
-  const { expiryTimestamp } = signer.ephemeralAccount;
-  const ephemeralPublicKey = signer.ephemeralAccount.publicKey;
-  const message = generateSigningMessage(transaction);
-  const ephemeralSignature = signer.sign(message);
-  const zkid = new ZkIDSignature({
-    jwtHeader,
-    openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
-    expiryTimestamp,
-    ephemeralPublicKey,
-    ephemeralSignature,
-  });
-
-  return new AccountAuthenticatorSingleKey(new AnyPublicKey(signer.publicKey), new AnySignature(zkid));
 }
 
 /**

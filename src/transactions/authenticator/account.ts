@@ -10,12 +10,13 @@ import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey } from "../../core/crypto/multiKey";
+import { MultiSignature } from "../../core/crypto/multiSignature";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
   abstract getPublicKey(): PublicKey;
 
-  abstract getSignature(): Signature | Array<Signature>;
+  abstract getSignature(): Signature;
 
   abstract serialize(serializer: Serializer): void;
 
@@ -179,11 +180,11 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
 export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
   public readonly public_keys: MultiKey;
 
-  public readonly signatures: Array<AnySignature>;
+  public readonly signatures: MultiSignature;
 
   public readonly signatures_bitmap: Uint8Array;
 
-  constructor(public_keys: MultiKey, signatures: Array<AnySignature>, signatures_bitmap: Uint8Array) {
+  constructor(public_keys: MultiKey, signatures: MultiSignature, signatures_bitmap: Uint8Array) {
     super();
     this.public_keys = public_keys;
     this.signatures = signatures;
@@ -194,20 +195,20 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
     return this.public_keys;
   }
 
-  getSignature(): Array<AnySignature> {
+  getSignature(): MultiSignature {
     return this.signatures;
   }
 
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.MultiKey);
     this.public_keys.serialize(serializer);
-    serializer.serializeVector<AnySignature>(this.signatures);
+    this.signatures.serialize(serializer);
     serializer.serializeBytes(this.signatures_bitmap);
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorMultiKey {
     const public_keys = MultiKey.deserialize(deserializer);
-    const signatures = deserializer.deserializeVector(AnySignature);
+    const signatures = MultiSignature.deserialize(deserializer);
     const signatures_bitmap = deserializer.deserializeBytes();
     return new AccountAuthenticatorMultiKey(public_keys, signatures, signatures_bitmap);
   }

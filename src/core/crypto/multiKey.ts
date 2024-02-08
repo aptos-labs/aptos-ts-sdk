@@ -113,10 +113,27 @@ export class MultiKey extends PublicKey {
     serializer.serializeU8(this.signaturesRequired);
   }
 
+  getIndex(publicKey: PublicKey): number {
+
+    const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey)
+    const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
+
+    if (index !== -1) {
+        return index;
+    } 
+    throw new Error("Public key not found in MultiKey");
+  
+  }
+
   static deserialize(deserializer: Deserializer): MultiKey {
     const keys = deserializer.deserializeVector(AnyPublicKey);
     const signaturesRequired = deserializer.deserializeU8();
 
     return new MultiKey({ publicKeys: keys, signaturesRequired });
   }
+
+  static isMultiKey(publicKey: PublicKey): publicKey is MultiKey {
+    return publicKey instanceof MultiKey;
+  }
+
 }
