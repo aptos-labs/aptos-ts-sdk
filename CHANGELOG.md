@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.6.0 (2024-02-08)
+
 - Add optional `options` param to `getAccountEventsByCreationNumber` query for paginations and order by
 - Add more meaningful API error messages
 - Support automated account creation for sponsored transactions
