@@ -66,7 +66,7 @@ export class ZkIDPublicKey extends PublicKey {
 
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
-    serializer.serializeFixedBytes(this.addressSeed);
+    serializer.serializeBytes(this.addressSeed);
   }
 
   static deserialize(deserializer: Deserializer): ZkIDPublicKey {
@@ -177,6 +177,8 @@ export class OpenIdSignature extends Signature {
 
   readonly pepper: Uint8Array;
 
+  readonly overrideAudValue?: string;
+
   /**
    * Create a new Signature instance from a Uint8Array or String.
    *
@@ -188,14 +190,16 @@ export class OpenIdSignature extends Signature {
     uidKey?: string;
     epkBlinder: Uint8Array;
     pepper: Uint8Array;
+    overrideAudValue?: string;
   }) {
     super();
-    const { jwtSignature, uidKey, jwtPayloadJson, epkBlinder, pepper } = args;
+    const { jwtSignature, uidKey, jwtPayloadJson, epkBlinder, pepper, overrideAudValue } = args;
     this.jwtSignature = jwtSignature;
     this.jwtPayloadJson = jwtPayloadJson;
     this.uidKey = uidKey ?? "sub";
     this.epkBlinder = epkBlinder;
     this.pepper = pepper;
+    this.overrideAudValue = overrideAudValue;
   }
 
   /**
@@ -226,8 +230,9 @@ export class OpenIdSignature extends Signature {
     serializer.serializeStr(this.jwtSignature);
     serializer.serializeStr(this.jwtPayloadJson);
     serializer.serializeStr(this.uidKey);
-    serializer.serializeFixedBytes(this.epkBlinder);
+    serializer.serializeBytes(this.epkBlinder);
     serializer.serializeFixedBytes(this.pepper);
+    serializer.serializeOptionStr(this.overrideAudValue);
   }
 
   static deserialize(deserializer: Deserializer): OpenIdSignature {
