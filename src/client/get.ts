@@ -84,9 +84,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
   const out: any[] = [];
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    requestParams.start = cursor;
+  do {
     // eslint-disable-next-line no-await-in-loop
     const response = await get<Req, Res>({
       type: AptosApiType.FULLNODE,
@@ -106,9 +104,7 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     // adding these to the output of this function.
     delete response.headers;
     out.push(...response.data);
-    if (cursor === null || cursor === undefined) {
-      break;
-    }
-  }
+    requestParams.start = cursor;
+  } while (cursor !== null && cursor !== undefined);
   return out as Res;
 }
