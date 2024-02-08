@@ -5,6 +5,7 @@
 
 This is a repository of all Aptos TypeScript SDK documentation by version.
 
+- [Stable - @aptos-labs/ts-sdk-1.6.0](@aptos-labs/ts-sdk-1.6.0)
 - [Stable - @aptos-labs/ts-sdk-1.5.1](@aptos-labs/ts-sdk-1.5.1)
 - [Stable - @aptos-labs/ts-sdk-1.5.0](@aptos-labs/ts-sdk-1.5.0)
 - [Stable - @aptos-labs/ts-sdk-1.4.0](@aptos-labs/ts-sdk-1.4.0)
