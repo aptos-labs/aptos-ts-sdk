@@ -23,7 +23,7 @@ describe("aptos config", () => {
     expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.LOCAL]);
   });
 
-  test("it should set urls based on a given network", async () => {
+  test("it should set urls based on testnet", async () => {
     const settings: AptosSettings = {
       network: Network.TESTNET,
     };
@@ -32,6 +32,28 @@ describe("aptos config", () => {
     expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.TESTNET]);
     expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.TESTNET]);
     expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.TESTNET]);
+  });
+
+  test("it should set urls based on mainnet", async () => {
+    const settings: AptosSettings = {
+      network: Network.MAINNET,
+    };
+    const aptosConfig = new AptosConfig(settings);
+    expect(aptosConfig.network).toEqual("mainnet");
+    expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.MAINNET]);
+    expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.MAINNET]);
+    expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.MAINNET]);
+  });
+
+  test("it should set urls based on randomnet", async () => {
+    const settings: AptosSettings = {
+      network: Network.RANDOMNET,
+    };
+    const aptosConfig = new AptosConfig(settings);
+    expect(aptosConfig.network).toEqual("randomnet");
+    expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.RANDOMNET]);
+    expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.RANDOMNET]);
+    expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.RANDOMNET]);
   });
 
   test("it should have undefined urls when network is custom and no urls provided", async () => {
