@@ -74,7 +74,7 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { SigningScheme } from "../../types";
+import { AnyNumber, SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**
@@ -201,13 +201,9 @@ export async function generateRawTransaction(args: {
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
   options?: InputGenerateTransactionOptions;
+  feePayerAddress?: AccountAddressInput;
 }): Promise<RawTransaction> {
-  const { aptosConfig, sender, payload, options } = args;
-
-  const getSequenceNumber =
-    options?.accountSequenceNumber !== undefined
-      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
-      : getInfo({ aptosConfig, accountAddress: sender });
+  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
   const getChainId = NetworkToChainId[aptosConfig.network]
     ? Promise.resolve({ chain_id: NetworkToChainId[aptosConfig.network] })
@@ -217,9 +213,33 @@ export async function generateRawTransaction(args: {
     ? Promise.resolve({ gas_estimate: options.gasUnitPrice })
     : getGasPriceEstimation({ aptosConfig });
 
-  const [{ sequence_number: sequenceNumber }, { chain_id: chainId }, { gas_estimate: gasEstimate }] = await Promise.all(
-    [getSequenceNumber, getChainId, getGasUnitPrice],
-  );
+  const [{ chain_id: chainId }, { gas_estimate: gasEstimate }] = await Promise.all([getChainId, getGasUnitPrice]);
+
+  const getSequenceNumber =
+    options?.accountSequenceNumber !== undefined
+      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
+      : getInfo({ aptosConfig, accountAddress: sender });
+
+  let sequenceNumber: string | AnyNumber;
+
+  /**
+   * Check if is sponsored transaction to honor AIP-52
+   * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
+   */
+  if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
+    // Handle sponsored transaction generation with the option that
+    // the main signer has not been created on chain
+    try {
+      // Check if main signer has been created on chain, if not assign sequence number 0
+      const { sequence_number: seqNumber } = await getSequenceNumber;
+      sequenceNumber = seqNumber;
+    } catch (e: any) {
+      sequenceNumber = "0";
+    }
+  } else {
+    const { sequence_number: seqNumber } = await getSequenceNumber;
+    sequenceNumber = seqNumber;
+  }
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
@@ -271,13 +291,14 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * ```
  */
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
-  const { aptosConfig, sender, payload, options } = args;
+  const { aptosConfig, sender, payload, options, feePayerAddress } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
     aptosConfig,
     sender,
     payload,
     options,
+    feePayerAddress,
   });
 
   // if multi agent transaction

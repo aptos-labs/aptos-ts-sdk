@@ -14,7 +14,10 @@ import {
   AccountAuthenticatorMultiKey,
   RawTransaction,
   TransactionPayloadEntryFunction,
+  Bool,
+  MoveString,
 } from "../../../src";
+import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
@@ -723,6 +726,66 @@ describe("transaction submission", () => {
           additionalSignersAuthenticators: [secondarySignerAuthenticator],
         }),
       ).rejects.toThrow();
+    });
+  });
+  describe("sponsor transactions", () => {
+    test("submits simple sponsored transaction for an uncreated main signer account", async () => {
+      const uncreatedAccount = Account.generate();
+
+      // expect uncreatedAccount has not been created on chain
+      await expect(() =>
+        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
+      ).rejects.toThrow();
+      // TODO add local move entry function to support this test
+      const transaction = await aptos.transaction.build.simple({
+        sender: uncreatedAccount.accountAddress,
+        data: {
+          function: "0x4::aptos_token::create_collection",
+          functionArguments: [
+            // Do not change the order
+            new MoveString("args.description"),
+            new U64(MAX_U64_BIG_INT),
+            new MoveString("args.name"),
+            new MoveString("args.uri"),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new Bool(true),
+            new U64(0),
+            new U64(1),
+          ],
+        },
+        withFeePayer: true,
+      });
+      const senderAuthenticator = aptos.transaction.sign({ signer: uncreatedAccount, transaction });
+
+      const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+        signer: feePayerAccount,
+        transaction,
+      });
+
+      const response = await aptos.transaction.submit.simple({
+        transaction,
+        senderAuthenticator,
+        feePayerAuthenticator: feePayerSignerAuthenticator,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      // expect transaction is a sponsored transaction
+      expect(response.signature?.type).toBe("fee_payer_signature");
+
+      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+        accountAddress: uncreatedAccount.accountAddress,
+      });
+      // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
+      expect(uncreatedAccountInfo.sequence_number).toEqual("1");
     });
   });
 });

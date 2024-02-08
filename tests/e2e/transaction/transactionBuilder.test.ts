@@ -254,7 +254,11 @@ describe("transaction builder", () => {
   describe("generate transaction", () => {
     test("it returns a serialized raw transaction", async () => {
       const alice = Account.generate();
-      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      await aptos.fundAccount({
+        accountAddress: alice.accountAddress,
+        amount: FUND_AMOUNT,
+        options: { waitForIndexer: true },
+      });
       const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
         functionArguments: [
