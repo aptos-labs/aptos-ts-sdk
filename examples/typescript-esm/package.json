@@ -6,11 +6,13 @@
   "type": "module",
   "scripts": {
     "build": "pnpm _build:esm",
-    "_build:esm": "tsup simple_transfer.ts simple_sponsored_transaction.ts simple_digital_asset.ts multisig_v2.ts --platform node --format esm --dts --out-dir dist",
+    "_build:esm": "tsup simple_transfer.ts sponsored_transactions/simple_sponsored_transaction.ts sponsored_transactions/server_as_sponsor.ts simple_digital_asset.ts multisig_v2.ts sponsored_transactions/server_signs_and_submit.ts --platform node --format esm --dts --out-dir dist",
     "simple_transfer": "ts-node --esm dist/simple_transfer.js",
-    "simple_sponsored_transaction": "ts-node --esm dist/simple_sponsored_transaction.js",
+    "simple_sponsored_transaction": "ts-node --esm dist/sponsored_transactions/simple_sponsored_transaction.js",
     "simple_digital_asset": "pnpm run build && ts-node --esm dist/simple_digital_asset.js",
     "multisig_v2": "pnpm run build && ts-node --esm dist/multisig_v2.js",
+    "server_signs_and_submit": "pnpm run build && ts-node dist/sponsored_transactions/server_signs_and_submit.js",
+    "server_as_sponsor": "pnpm run build && ts-node dist/sponsored_transactions/server_as_sponsor.js",
     "test": "run-s build simple_transfer simple_sponsored_transaction"
   },
   "keywords": [],
