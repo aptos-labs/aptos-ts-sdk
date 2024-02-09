@@ -79,7 +79,7 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber, SigningScheme } from "../../types";
+import { AnyNumber, HexInput, SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { WebAuthnSignature } from "../../core/crypto/webauthn";
 import { getSigningMessage } from "../../internal/transactionSubmission";

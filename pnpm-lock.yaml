@@ -20,6 +20,15 @@ dependencies:
   '@scure/bip39':
     specifier: ^1.2.1
     version: 1.2.1
+  '@simplewebauthn/browser':
+    specifier: ^8.3.4
+    version: 8.3.4
+  '@simplewebauthn/server':
+    specifier: ^8.3.5
+    version: 8.3.5
+  base64url:
+    specifier: ^3.0.1
+    version: 3.0.1
   eventemitter3:
     specifier: ^5.0.1
     version: 5.0.1
@@ -2502,6 +2511,7 @@ packages:
 
   /@simplewebauthn/typescript-types@8.3.4:
     resolution: {integrity: sha512-38xtca0OqfRVNloKBrFB5LEM6PN5vzFbJG6rAutPVrtGHFYxPdiV3btYWq0eAZAZmP+dqFPYJxJWeJrGfmYHng==}
+    deprecated: This package has been renamed to @simplewebauthn/types. Please install @simplewebauthn/types instead to ensure you receive future updates.
     dev: false
 
   /@sinclair/typebox@0.27.8:
