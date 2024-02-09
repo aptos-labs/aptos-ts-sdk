@@ -108,8 +108,8 @@ export function computeAddressSeed(args: {
   const fields = [
     bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
     hashASCIIStrToField(aud, 4*31),
-    hashASCIIStrToField(uidVal, 4*31),
-    hashASCIIStrToField(uidKey, 2*31),
+    hashASCIIStrToField(uidVal, 11*31),
+    hashASCIIStrToField(uidKey, 1*31),
   ];
 
   return bigIntToBytesLE(poseidonHash(fields), ZkIDPublicKey.ADDRESS_SEED_LENGTH);
