@@ -103,42 +103,34 @@ describe("transaction builder", () => {
     };
 
     test("it generates a multi sig transaction payload", async () => {
-      const payload = generateTransactionPayloadWithABI(
-        {
-          multisigAddress: Account.generate().accountAddress,
-          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: ["0x1", "0x1"],
-        },
-        functionAbi,
-      );
+      const payload = generateTransactionPayloadWithABI({
+        multisigAddress: Account.generate().accountAddress,
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: ["0x1", "0x1"],
+        abi: functionAbi,
+      });
       expect(payload instanceof TransactionPayloadMultiSig).toBeTruthy();
     });
     test("it generates an entry function transaction payload", async () => {
-      const payload = generateTransactionPayloadWithABI(
-        {
-          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: ["0x1", "0x1"],
-        },
-        functionAbi,
-      );
+      const payload = generateTransactionPayloadWithABI({
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: ["0x1", "0x1"],
+        abi: functionAbi,
+      });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
     test("it generates an entry function transaction payload with mixed arguments", async () => {
-      const payload = generateTransactionPayloadWithABI(
-        {
-          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: [AccountAddress.ONE, "0x1"],
-        },
-        functionAbi,
-      );
+      const payload = generateTransactionPayloadWithABI({
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: [AccountAddress.ONE, "0x1"],
+        abi: functionAbi,
+      });
       expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
-      const payload2 = generateTransactionPayloadWithABI(
-        {
-          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: ["0x1", AccountAddress.ONE],
-        },
-        functionAbi,
-      );
+      const payload2 = generateTransactionPayloadWithABI({
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: ["0x1", AccountAddress.ONE],
+        abi: functionAbi,
+      });
       expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });
   });

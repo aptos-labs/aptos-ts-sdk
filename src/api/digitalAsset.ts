@@ -21,7 +21,7 @@ import {
   burnDigitalAssetTransaction,
   CreateCollectionOptions,
   createCollectionTransaction,
-  freezeDigitalAssetTransaferTransaction,
+  freezeDigitalAssetTransferTransaction,
   getCollectionData,
   getCollectionId,
   getCurrentDigitalAssetOwnership,
@@ -37,7 +37,7 @@ import {
   setDigitalAssetNameTransaction,
   setDigitalAssetURITransaction,
   transferDigitalAssetTransaction,
-  unfreezeDigitalAssetTransaferTransaction,
+  unfreezeDigitalAssetTransferTransaction,
   updateDigitalAssetPropertyTransaction,
   updateDigitalAssetTypedPropertyTransaction,
 } from "../internal/digitalAsset";
@@ -331,7 +331,7 @@ export class DigitalAsset {
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
   }) {
-    return freezeDigitalAssetTransaferTransaction({ aptosConfig: this.config, ...args });
+    return freezeDigitalAssetTransferTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -348,7 +348,7 @@ export class DigitalAsset {
     digitalAssetType?: MoveStructId;
     options?: InputGenerateTransactionOptions;
   }) {
-    return unfreezeDigitalAssetTransaferTransaction({ aptosConfig: this.config, ...args });
+    return unfreezeDigitalAssetTransferTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
