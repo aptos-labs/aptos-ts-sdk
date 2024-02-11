@@ -34,7 +34,14 @@ import {
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
 import { Account, AccountAddress } from "../core";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
+import {
+  EntryFunctionABI,
+  InputGenerateTransactionOptions,
+  parseTypeTag,
+  SimpleTransaction,
+  TypeTagAddress,
+  TypeTagU64,
+} from "../transactions";
 import { generateTransaction } from "./transactionSubmission";
 
 export async function getFungibleAssetMetadata(args: {
@@ -109,6 +116,11 @@ export async function getCurrentFungibleAssetBalances(args: {
   return data.current_fungible_asset_balances;
 }
 
+const faTransferAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [parseTypeTag("0x1::object::Object"), new TypeTagAddress(), new TypeTagU64()],
+};
+
 export async function transferFungibleAsset(args: {
   aptosConfig: AptosConfig;
   sender: Account;
@@ -118,15 +130,15 @@ export async function transferFungibleAsset(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, fungibleAssetMetadataAddress, recipient, amount, options } = args;
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
     data: {
       function: "0x1::primary_fungible_store::transfer",
       typeArguments: ["0x1::fungible_asset::Metadata"],
       functionArguments: [fungibleAssetMetadataAddress, recipient, amount],
+      abi: faTransferAbi,
     },
     options,
   });
-  return transaction;
 }

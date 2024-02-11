@@ -55,7 +55,6 @@ import {
   AnyTransactionPayloadInstance,
   AnyRawTransactionInstance,
   EntryFunctionArgumentTypes,
-  EntryFunctionABI,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
@@ -64,13 +63,13 @@ import {
   MultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
-  InputGenerateTransactionPayloadData,
-  InputEntryFunctionData,
-  InputMultiSigData,
   InputMultiSigDataWithRemoteABI,
   InputEntryFunctionDataWithRemoteABI,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
+  InputGenerateTransactionPayloadDataWithABI,
+  InputEntryFunctionDataWithABI,
+  InputMultiSigDataWithABI,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
@@ -117,25 +116,16 @@ export async function generateTransactionPayload(
     1000 * 60 * 5, // 5 minutes
   )();
 
-  return generateTransactionPayloadWithABI(args, functionAbi);
+  // Fill in the ABI
+  return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
 }
 
+export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
+export function generateTransactionPayloadWithABI(args: InputMultiSigDataWithABI): TransactionPayloadMultiSig;
 export function generateTransactionPayloadWithABI(
-  args: InputEntryFunctionData,
-  functionAbi: EntryFunctionABI,
-): TransactionPayloadEntryFunction;
-export function generateTransactionPayloadWithABI(
-  args: InputMultiSigData,
-  functionAbi: EntryFunctionABI,
-): TransactionPayloadMultiSig;
-export function generateTransactionPayloadWithABI(
-  args: InputGenerateTransactionPayloadData,
-  functionAbi: EntryFunctionABI,
+  args: InputGenerateTransactionPayloadDataWithABI,
 ): AnyTransactionPayloadInstance {
-  if (isScriptDataInput(args)) {
-    return generateTransactionPayloadScript(args);
-  }
-
+  const functionAbi = args.abi;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
   // Ensure that all type arguments are typed properly

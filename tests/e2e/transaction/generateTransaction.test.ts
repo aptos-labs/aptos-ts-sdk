@@ -10,6 +10,8 @@ import {
   TransactionPayloadScript,
   TransactionPayloadMultiSig,
   TransactionPayloadEntryFunction,
+  TypeTagU64,
+  TypeTagAddress,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { fundAccounts, singleSignerScriptBytecode } from "./helper";
@@ -62,6 +64,25 @@ describe("generate transaction", () => {
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recieverAccounts[0].accountAddress, 1],
+        },
+      });
+      expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();
+      const deserializer = new Deserializer(transaction.rawTransaction.bcsToBytes());
+      const deserializedTransaction = RawTransaction.deserialize(deserializer);
+      expect(deserializedTransaction instanceof RawTransaction).toBeTruthy();
+      expect(deserializedTransaction.payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+
+    test("it generates an entry function transaction with local ABI", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: senderAccount.accountAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [recieverAccounts[0].accountAddress, 1],
+          abi: {
+            typeParameters: [],
+            parameters: [new TypeTagAddress(), new TypeTagU64()],
+          },
         },
       });
       expect(transaction.rawTransaction instanceof RawTransaction).toBeTruthy();

@@ -109,7 +109,18 @@ export type InputEntryFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeTag | string>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  abi?: EntryFunctionABI;
 };
+
+export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataWithABI | InputMultiSigDataWithABI;
+
+export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
+  abi: EntryFunctionABI;
+};
+
+export type InputMultiSigDataWithABI = {
+  multisigAddress: AccountAddressInput;
+} & InputEntryFunctionDataWithABI;
 
 export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
 /**

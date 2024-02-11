@@ -20,6 +20,7 @@ import {
   generateSignedTransaction,
   sign,
   generateSigningMessage,
+  generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
@@ -33,9 +34,11 @@ import {
   InputGenerateSingleSignerRawTransactionData,
   MultiAgentTransaction,
   AnyTransactionPayloadInstance,
+  EntryFunctionABI,
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
+import { TypeTagU8, TypeTagVector } from "../transactions";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -105,17 +108,23 @@ export async function buildTransactionPayload(
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
   let payload: AnyTransactionPayloadInstance;
   if ("bytecode" in data) {
-    generateTransactionPayloadData = data;
-    payload = await generateTransactionPayload(generateTransactionPayloadData);
+    // TODO: Add ABI checking later
+    payload = await generateTransactionPayload(data);
   } else if ("multisigAddress" in data) {
-    generateTransactionPayloadData = {
-      aptosConfig,
-      multisigAddress: data.multisigAddress,
-      function: data.function,
-      functionArguments: data.functionArguments,
-      typeArguments: data.typeArguments,
-    };
-    payload = await generateTransactionPayload(generateTransactionPayloadData);
+    if (data.abi) {
+      payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
+    } else {
+      generateTransactionPayloadData = {
+        aptosConfig,
+        multisigAddress: data.multisigAddress,
+        function: data.function,
+        functionArguments: data.functionArguments,
+        typeArguments: data.typeArguments,
+      };
+      payload = await generateTransactionPayload(generateTransactionPayloadData);
+    }
+  } else if (data.abi) {
+    payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
   } else {
     generateTransactionPayloadData = {
       aptosConfig,
@@ -281,6 +290,11 @@ export async function signAndSubmitTransaction(args: {
   });
 }
 
+const packagePublishAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
+};
+
 export async function publicPackageTransaction(args: {
   aptosConfig: AptosConfig;
   account: AccountAddressInput;
@@ -292,17 +306,29 @@ export async function publicPackageTransaction(args: {
 
   const totalByteCode = moduleBytecode.map((bytecode) => MoveVector.U8(bytecode));
 
-  const transaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: AccountAddress.from(account),
     data: {
       function: "0x1::code::publish_package_txn",
       functionArguments: [MoveVector.U8(metadataBytes), new MoveVector(totalByteCode)],
+      abi: packagePublishAbi,
     },
     options,
   });
-  return transaction;
 }
+
+const rotateAuthKeyAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+  ],
+};
 
 /**
  * TODO: Need to refactor and move this function out of transactionSubmission
@@ -346,12 +372,12 @@ export async function rotateAuthKey(args: {
         MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
         MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
       ],
+      abi: rotateAuthKeyAbi,
     },
   });
-  const pendingTxn = await signAndSubmitTransaction({
+  return signAndSubmitTransaction({
     aptosConfig,
     signer: fromAccount,
     transaction: rawTxn,
   });
-  return pendingTxn;
 }

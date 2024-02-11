@@ -277,6 +277,10 @@ export class TypeTagVector extends TypeTag {
     super();
   }
 
+  static u8(): TypeTagVector {
+    return new TypeTagVector(new TypeTagU8());
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TypeTagVariants.Vector);
     this.value.serialize(serializer);

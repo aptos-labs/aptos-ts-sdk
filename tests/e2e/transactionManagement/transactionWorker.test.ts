@@ -5,6 +5,7 @@ import { Account } from "../../../src/core";
 import { Network } from "../../../src/utils/apiEndpoints";
 import { InputGenerateTransactionPayloadData } from "../../../src/transactions/types";
 import { TransactionWorker } from "../../../src/transactions/management/transactionWorker";
+import { TransactionResponseType, TypeTagAddress, TypeTagU64 } from "../../../src";
 
 const aptosConfig = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(aptosConfig);
@@ -72,7 +73,13 @@ describe("transactionWorker", () => {
         function: "0x1::aptos_account::transfer",
         functionArguments: [recipient.accountAddress, 1],
       };
-      const payloads = [...Array(5).fill(txn)];
+      // create 5 transactions with ABI
+      const txnWithAbi: InputGenerateTransactionPayloadData = {
+        function: "0x1::aptos_account::transfer",
+        functionArguments: [recipient.accountAddress, 1],
+        abi: { typeParameters: [], parameters: [new TypeTagAddress(), new TypeTagU64()] },
+      };
+      const payloads = [...Array(5).fill(txn), ...Array(5).fill(txnWithAbi)];
 
       // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
@@ -89,8 +96,19 @@ describe("transactionWorker", () => {
         const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
         // call done() when all asynchronous operations are finished
         done();
-        // expect sender sequence number to be 5
-        expect(accountData.sequence_number).toBe("5");
+        // expect sender sequence number to be 10
+        expect(accountData.sequence_number).toBe("10");
+
+        // Check all are successful
+        const txns = await aptos.getAccountTransactions({ accountAddress: sender.accountAddress });
+        txns.forEach((userTxn) => {
+          if (userTxn.type === TransactionResponseType.User) {
+            expect(userTxn.success).toBe(true);
+          } else {
+            // All of these should be user transactions, but in the event the API returns an invalid transaction
+            throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
+          }
+        });
       }, 1000 * 30);
     },
     longTestTimeout,

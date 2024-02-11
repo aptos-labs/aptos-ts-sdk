@@ -260,13 +260,19 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
 
   /**
    * Push transaction to the transactions queue
-   * @param payload Transaction payload
+   *
+   * @param transactionData Transaction payload
+   * @param transactionData.abi For all entry function payloads, the ABI to skip remote ABI lookups
+   * @param options.maxGasAmount Maximum gas amount for the transaction
+   * @param options.gasUnitPrice Gas unit price for the transaction
+   * @param options.expireTimestamp expiration timestamp on the transaction
+   * @param options.accountSequenceNumber the sequence number for the transaction
    */
   async push(
     transactionData: InputGenerateTransactionPayloadData,
     options?: InputGenerateTransactionOptions,
   ): Promise<void> {
-    await this.transactionsQueue.enqueue([transactionData, options]);
+    this.transactionsQueue.enqueue([transactionData, options]);
   }
 
   /**
@@ -278,14 +284,12 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
-    const transaction = await generateTransaction({
+    return generateTransaction({
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
       data: transactionData,
       options: { ...options, accountSequenceNumber: sequenceNumber },
     });
-
-    return transaction;
   }
 
   /**
