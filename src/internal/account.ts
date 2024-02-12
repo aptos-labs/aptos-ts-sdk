@@ -60,6 +60,8 @@ import {
 } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
+type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
+
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
@@ -525,7 +527,7 @@ export async function getAccountOwnedObjects(args: {
  */
 export async function deriveSignerFromPrivateKey(args: {
   aptosConfig: AptosConfig;
-  privateKey: Ed25519PrivateKey | Secp256k1PrivateKey;
+  privateKey: PrivateKeyInput;
 }): Promise<Signer> {
   const { aptosConfig, privateKey } = args;
   const singleKeySigner = new SingleKeySigner({ privateKey });
