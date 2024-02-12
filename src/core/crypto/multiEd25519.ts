@@ -192,7 +192,10 @@ export class MultiEd25519Signature extends Serializable {
    *
    * @param args.signatures A list of signatures
    * @param args.bitmap 4 bytes, at most 32 signatures are supported. If Nth bit value is `1`, the Nth
-   * signature should be provided in `signatures`. Bits are read from left to right
+   * signature should be provided in `signatures`. Bits are read from left to right.
+   * Alternatively, you can specify an array of bitmap positions.
+   * Valid position should range between 0 and 31.
+   * @see MultiEd25519Signature.createBitmap
    */
   constructor(args: { signatures: Ed25519Signature[]; bitmap: Uint8Array | number[] }) {
     super();
