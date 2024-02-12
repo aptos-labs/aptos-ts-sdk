@@ -40,6 +40,7 @@ import {
 } from "../authenticator/account";
 import {
   TransactionAuthenticator,
+  TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
   TransactionAuthenticatorSingleSender,
@@ -366,7 +367,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 
 export function getEmptySignature(publicKey: AnyPublicKey) {
   if (publicKey.publicKey instanceof Ed25519PublicKey) {
-    AnySignature.fromSignature(new Ed25519Signature(new Uint8Array(64)));
+    return AnySignature.fromSignature(new Ed25519Signature(new Uint8Array(64)));
   }
   if (publicKey.publicKey instanceof Secp256k1PublicKey) {
     return AnySignature.fromSignature(new Secp256k1Signature(new Uint8Array(64)));
@@ -458,6 +459,12 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
       senderAuthenticator,
       secondarySignersAddresses,
       secondarySignersAuthenticators,
+    );
+  } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
+    // TODO: we can probably remove this branch and just default to single sender
+    txnAuthenticator = new TransactionAuthenticatorEd25519(
+      senderAuthenticator.public_key,
+      senderAuthenticator.signature,
     );
   } else {
     txnAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
