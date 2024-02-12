@@ -34,7 +34,7 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AccountAddressInput, Ed25519Signer, Signer, SingleKeySigner } from "../core";
+import { AccountAddressInput, Ed25519Signer, Signer } from "../core";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
@@ -217,10 +217,7 @@ export class Transaction {
    *
    * @returns PendingTransactionResponse
    */
-  async rotateAuthKey(args: {
-    fromSigner: Ed25519Signer | SingleKeySigner;
-    toSigner: Ed25519Signer | SingleKeySigner;
-  }): Promise<TransactionResponse> {
+  async rotateAuthKey(args: { fromSigner: Ed25519Signer; toSigner: Ed25519Signer }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 
@@ -257,14 +254,12 @@ export class Transaction {
       throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
     }
 
-    const transactionWithAdjustedFeePayer: AnyRawTransaction = {
-      ...transaction,
-      feePayerAddress: signer.accountAddress,
-    };
+    // Set the feePayerAddress to the signer account address
+    transaction.feePayerAddress = signer.accountAddress;
 
     return signTransaction({
       signer,
-      transaction: transactionWithAdjustedFeePayer,
+      transaction,
     });
   }
 
