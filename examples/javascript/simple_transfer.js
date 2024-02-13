@@ -3,12 +3,12 @@
  */
 
 const {
-  Account,
   Aptos,
   AptosConfig,
   parseTypeTag,
   NetworkToNetworkName,
   Network,
+  Signer,
   AccountAddress,
   U64,
 } = require("@aptos-labs/ts-sdk");
@@ -45,8 +45,8 @@ const example = async () => {
   const sdk = new Aptos(config);
 
   // Create two accounts
-  let alice = Account.generate({ scheme: 0 });
-  let bob = Account.generate({ scheme: 0 });
+  let alice = Signer.generate();
+  let bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
