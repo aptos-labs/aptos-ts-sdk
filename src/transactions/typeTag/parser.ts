@@ -275,7 +275,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
 
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
-      if (!str.match(/.*:.*/)) {
+      if (!str.match(/:/)) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);
       }
 
