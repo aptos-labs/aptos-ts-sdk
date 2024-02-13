@@ -6,7 +6,7 @@
  */
 
 import "dotenv";
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Network, NetworkToNetworkName, Signer } from "@aptos-labs/ts-sdk";
 
 const INITIAL_BALANCE = 100_000_000;
 
@@ -21,8 +21,8 @@ const example = async () => {
   );
 
   // Create Alice and Bob accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
@@ -43,7 +43,7 @@ const example = async () => {
 
   // Create the collection
   const createCollectionTransaction = await aptos.createCollectionTransaction({
-    creator: alice,
+    creator: alice.accountAddress,
     description: collectionDescription,
     name: collectionName,
     uri: collectionURI,
@@ -68,7 +68,7 @@ const example = async () => {
   console.log("\n=== Alice Mints the digital asset ===\n");
 
   const mintTokenTransaction = await aptos.mintDigitalAssetTransaction({
-    creator: alice,
+    creator: alice.accountAddress,
     collection: collectionName,
     description: tokenDescription,
     name: tokenName,
@@ -89,7 +89,7 @@ const example = async () => {
   console.log("\n=== Transfer the digital asset to Bob ===\n");
 
   const transferTransaction = await aptos.transferDigitalAssetTransaction({
-    sender: alice,
+    sender: alice.accountAddress,
     digitalAssetAddress: alicesDigitalAsset[0].token_data_id,
     recipient: bob.accountAddress,
   });

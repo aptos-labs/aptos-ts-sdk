@@ -10,7 +10,6 @@
  */
 
 import {
-  Account,
   AccountAuthenticator,
   Aptos,
   AptosConfig,
@@ -18,6 +17,7 @@ import {
   Network,
   NetworkToNetworkName,
   RawTransaction,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 
 const INITIAL_BALANCE = 100_000_000;
@@ -31,7 +31,7 @@ const aptos = new Aptos(config);
 
 // The sponsor server gets the serialized transaction to sign as the fee payer
 const sendToTheSponsorServer = async (rawTransactionBytes: Uint8Array) => {
-  const sponsor = Account.generate();
+  const sponsor = Signer.generate();
   console.log(`Sponsor's address is: ${sponsor.accountAddress}`);
   await aptos.fundAccount({ accountAddress: sponsor.accountAddress, amount: INITIAL_BALANCE });
 
@@ -52,8 +52,8 @@ const sendToTheSponsorServer = async (rawTransactionBytes: Uint8Array) => {
 
 const example = async () => {
   // Create two accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);

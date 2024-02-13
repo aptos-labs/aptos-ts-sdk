@@ -18,7 +18,6 @@
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import {
-  Account,
   Aptos,
   AptosConfig,
   InputViewRequestData,
@@ -30,6 +29,7 @@ import {
   TransactionPayloadMultiSig,
   MultiSig,
   AccountAddress,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -40,21 +40,21 @@ const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
 // Generate 3 accounts that will be the owners of the multisig account.
-const owner1 = Account.generate();
-const owner2 = Account.generate();
-const owner3 = Account.generate();
+const owner1 = Signer.generate();
+const owner2 = Signer.generate();
+const owner3 = Signer.generate();
 
 // Global var to hold the created multi sig account address
 let multisigAddress: string;
 
 // Generate an account that will recieve coin from a transfer transaction
-const recipient = Account.generate();
+const recipient = Signer.generate();
 
 // Global var to hold the generated coin transfer transaction payload
 let transactionPayload: TransactionPayloadMultiSig;
 
 // Generate an account to add and then remove from the multi sig account
-const owner4 = Account.generate();
+const owner4 = Signer.generate();
 
 // HELPER FUNCTIONS //
 
@@ -400,7 +400,7 @@ const executeChangeSignatureThresholdTransaction = async () => {
   await aptos.waitForTransaction({ transactionHash: multisigTxExecution5Reponse.hash });
 };
 
-const rejectAndApprove = async (aprroveOwner: Account, rejectOwner: Account, transactionId: number): Promise<void> => {
+const rejectAndApprove = async (aprroveOwner: Signer, rejectOwner: Signer, transactionId: number): Promise<void> => {
   console.log("Owner 1 rejects but owner 3 approves.");
   const rejectTx = await aptos.transaction.build.simple({
     sender: aprroveOwner.accountAddress,

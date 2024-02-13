@@ -5,7 +5,6 @@
  */
 
 import {
-  Account,
   AccountAddress,
   Aptos,
   APTOS_COIN,
@@ -14,6 +13,7 @@ import {
   Network,
   NetworkToNetworkName,
   parseTypeTag,
+  Signer,
   SimpleTransaction,
   TypeTagAddress,
   TypeTagU64,
@@ -49,11 +49,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
   return amount;
 };
 
-async function timeSubmission(
-  aptos: Aptos,
-  signer: Account,
-  buildTxn: () => Promise<SimpleTransaction>,
-): Promise<void> {
+async function timeSubmission(aptos: Aptos, signer: Signer, buildTxn: () => Promise<SimpleTransaction>): Promise<void> {
   const start = Date.now();
   const rawTxn = await buildTxn();
   const buildTime = Date.now();
@@ -76,8 +72,8 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Create two accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);

@@ -7,7 +7,6 @@
  */
 
 import {
-  Account,
   AccountAddress,
   AccountAuthenticator,
   Aptos,
@@ -16,6 +15,7 @@ import {
   Network,
   NetworkToNetworkName,
   RawTransaction,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 
 const INITIAL_BALANCE = 100_000_000;
@@ -77,9 +77,9 @@ const sendToOtherServer = async (serializedData: SerializedData) => {
 
 const example = async () => {
   // Create two accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
-  const sponsor = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
+  const sponsor = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);

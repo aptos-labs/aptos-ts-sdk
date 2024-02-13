@@ -5,13 +5,13 @@
  */
 
 import {
-  Account,
   AccountAddress,
   Aptos,
   AptosConfig,
   Network,
   NetworkToNetworkName,
   parseTypeTag,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 
 // TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
@@ -52,8 +52,8 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Create two accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
