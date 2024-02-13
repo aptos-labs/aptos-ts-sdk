@@ -52,7 +52,7 @@ export class EphemeralAccount {
     fields.push(BigInt(this.expiryTimestamp))
     fields.push(bytesToBigIntLE(this.blinder))
     const nonceHash = poseidonHash(fields);
-    return base64url.encode(bigIntToBytesLE(nonceHash, 32));
+    return nonceHash.toString();
   }
 
   /**
