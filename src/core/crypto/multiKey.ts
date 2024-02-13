@@ -11,6 +11,7 @@ type PublicKeyInput = Ed25519PublicKey | Secp256k1PublicKey | AnyPublicKey;
 type SignatureInput = Ed25519Signature | Secp256k1Signature | AnySignature;
 
 /* eslint-disable no-bitwise */
+
 function bitCount(byte: number) {
   let n = byte;
   n -= (n >> 1) & 0x55555555;
@@ -20,6 +21,13 @@ function bitCount(byte: number) {
 
 /* eslint-enable no-bitwise */
 
+/**
+ * Represents the public key of a multi-agent account.
+ *
+ * The public keys of each individual agent can be any type of public key supported by Aptos.
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * `Legacy` and `Unified` authentication keys.
+ */
 export class MultiKey extends Serializable {
   /**
    * Authentication scheme
