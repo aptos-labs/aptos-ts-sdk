@@ -21,6 +21,13 @@ export type SingleKeySignerFromDerivationPathArgs = GenerateSingleKeySignerArgs 
   mnemonic: string;
 };
 
+/**
+ * Signer implementation for the SingleKey authentication scheme.
+ * This extends a SingleKeyAccount by adding signing capabilities through a private key.
+ * Currently, the only supported signature schemes are Ed25519 and Secp256k1.
+ *
+ * Note: Generating a signer instance does not create the account on-chain.
+ */
 export class SingleKeySigner extends SingleKeyAccount implements Signer {
   /**
    * Private key associated with the account

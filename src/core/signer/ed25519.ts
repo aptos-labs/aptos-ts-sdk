@@ -15,6 +15,12 @@ export interface Ed25519SignerFromDerivationPathArgs {
   mnemonic: string;
 }
 
+/**
+ * Signer implementation for the Ed25519 authentication scheme.
+ * This extends an Ed25519Account by adding signing capabilities through an Ed25519PrivateKey.
+ *
+ * Note: Generating a signer instance does not create the account on-chain.
+ */
 export class Ed25519Signer extends Ed25519Account implements Signer {
   /**
    * Private key associated with the account
