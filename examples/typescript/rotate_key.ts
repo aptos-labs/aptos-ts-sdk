@@ -1,6 +1,14 @@
 /* eslint-disable no-console */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import {
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Ed25519Signer,
+  Network,
+  NetworkToNetworkName,
+  Signer,
+} from "@aptos-labs/ts-sdk";
 
 const WIDTH = 16;
 
@@ -15,20 +23,14 @@ function truncate(address: AccountAddress): string {
     .substring(address.toString().length - 4, address.toString().length)}`;
 }
 
-function formatAccountInfo(account: Account): string {
-  const vals: any[] = [
-    account.accountAddress,
-    Account.authKey({ publicKey: account.publicKey }),
-    account.privateKey,
-    account.publicKey,
-  ];
-
+function formatSignerInfo(signer: Ed25519Signer): string {
+  const vals: any[] = [signer.accountAddress, signer.publicKey.authKey(), signer.privateKey, signer.publicKey];
   return vals.map((v) => truncate(v).padEnd(WIDTH)).join(" ");
 }
 
 (async () => {
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 1000000000 });
   await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 1000000000 });
@@ -39,15 +41,15 @@ function formatAccountInfo(account: Account): string {
     )} ${"Public Key".padEnd(WIDTH)}`,
   );
   console.log("---------------------------------------------------------------------------------");
-  console.log(`${"alice".padEnd(WIDTH)} ${formatAccountInfo(alice)}`);
-  console.log(`${"bob".padEnd(WIDTH)} ${formatAccountInfo(bob)}`);
+  console.log(`${"alice".padEnd(WIDTH)} ${formatSignerInfo(alice)}`);
+  console.log(`${"bob".padEnd(WIDTH)} ${formatSignerInfo(bob)}`);
   console.log("\n...rotating...".padStart(WIDTH));
 
   // Rotate the key!
-  await aptos.rotateAuthKey({ fromAccount: alice, toNewPrivateKey: bob.privateKey });
+  await aptos.rotateAuthKey({ fromSigner: alice, toSigner: bob });
 
-  const aliceNew = Account.fromPrivateKeyAndAddress({ privateKey: bob.privateKey, address: alice.accountAddress });
+  const aliceNew = Signer.fromPrivateKey({ privateKey: bob.privateKey, address: alice.accountAddress });
 
-  console.log(`\n${"alice".padEnd(WIDTH)} ${formatAccountInfo(aliceNew)}`);
-  console.log(`${"bob".padEnd(WIDTH)} ${formatAccountInfo(bob)}\n`);
+  console.log(`\n${"alice".padEnd(WIDTH)} ${formatSignerInfo(aliceNew)}`);
+  console.log(`${"bob".padEnd(WIDTH)} ${formatSignerInfo(bob)}\n`);
 })();

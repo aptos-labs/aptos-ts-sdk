@@ -10,8 +10,10 @@ import {
   InputViewRequestData,
   Network,
   NetworkToNetworkName,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
+
 /**
  * This example demonstrate how one can compile, deploy, and mint its own fungible asset (FA)
  * It uses the fa_coin.move module that can be found in the move folder
@@ -29,7 +31,7 @@ const aptos = new Aptos(config);
 
 /** Admin forcefully transfers the newly created coin to the specified receiver address */
 async function transferCoin(
-  admin: Account,
+  admin: Signer,
   fromAddress: AccountAddress,
   toAddress: AccountAddress,
   amount: AnyNumber,
@@ -49,7 +51,7 @@ async function transferCoin(
 }
 
 /** Admin mint the newly created coin to the specified receiver address */
-async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): Promise<string> {
+async function mintCoin(admin: Signer, receiver: Account, amount: AnyNumber): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
@@ -65,7 +67,7 @@ async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): P
 }
 
 /** Admin burns the newly created coin from the specified receiver address */
-async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: AnyNumber): Promise<string> {
+async function burnCoin(admin: Signer, fromAddress: AccountAddress, amount: AnyNumber): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
@@ -81,7 +83,7 @@ async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: Any
 }
 
 /** Admin freezes the primary fungible store of the specified account */
-async function freeze(admin: Account, targetAddress: AccountAddress): Promise<string> {
+async function freeze(admin: Signer, targetAddress: AccountAddress): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
@@ -97,7 +99,7 @@ async function freeze(admin: Account, targetAddress: AccountAddress): Promise<st
 }
 
 /** Admin unfreezes the primary fungible store of the specified account */
-async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<string> {
+async function unfreeze(admin: Signer, targetAddress: AccountAddress): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
@@ -136,9 +138,9 @@ async function getMetadata(admin: Account): Promise<string> {
 }
 
 async function main() {
-  const alice = Account.generate();
-  const bob = Account.generate();
-  const charlie = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
+  const charlie = Signer.generate();
 
   console.log("\n=== Addresses ===");
   console.log(`Alice: ${alice.accountAddress.toString()}`);
@@ -155,7 +157,7 @@ async function main() {
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
-    account: alice.accountAddress,
+    sender: alice.accountAddress,
     metadataBytes,
     moduleBytecode: byteCode,
   });
@@ -207,7 +209,7 @@ async function main() {
   /// Normal fungible asset transfer between primary stores
   console.log("Bob transfers 10 coins to Alice as the owner.");
   const transferFungibleAssetRawTransaction = await aptos.transferFungibleAsset({
-    sender: bob,
+    sender: bob.accountAddress,
     fungibleAssetMetadataAddress: AccountAddress.from(metadataAddress),
     recipient: alice.accountAddress,
     amount: 10,

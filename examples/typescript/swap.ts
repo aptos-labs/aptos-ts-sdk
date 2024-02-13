@@ -22,6 +22,7 @@ import {
   Network,
   NetworkToNetworkName,
   InputViewRequestData,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 import { createInterface } from "readline";
 // Default to devnet, but allow for overriding
@@ -49,7 +50,7 @@ const getOptimalLpAmount = async (
 const addLiquidity = async (
   aptos: Aptos,
   swap: AccountAddress,
-  deployer: Account,
+  deployer: Signer,
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<string> => {
@@ -69,7 +70,7 @@ const addLiquidity = async (
 const swapAssets = async (
   aptos: Aptos,
   swap: AccountAddress,
-  deployer: Account,
+  deployer: Signer,
   fromToken: AccountAddress,
   toToken: AccountAddress,
   amountIn: number,
@@ -123,7 +124,7 @@ const getFaBalance = async (aptos: Aptos, owner: Account, assetType: string): Pr
 const createLiquidityPool = async (
   aptos: Aptos,
   swap: AccountAddress,
-  deployer: Account,
+  deployer: Signer,
   dogCoinAddr: AccountAddress,
   catCoinAddr: AccountAddress,
 ): Promise<string> => {
@@ -140,7 +141,7 @@ const createLiquidityPool = async (
   return response.hash;
 };
 
-const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Account): Promise<string> => {
+const initLiquidityPool = async (aptos: Aptos, swap: AccountAddress, deployer: Signer): Promise<string> => {
   const rawTxn = await aptos.transaction.build.simple({
     sender: deployer.accountAddress,
     data: {
@@ -172,7 +173,7 @@ const createFungibleAsset = async (aptos: Aptos, admin: Account): Promise<void> 
 /**
  *  Admin mint the coin
  */
-const mintCoin = async (aptos: Aptos, admin: Account, amount: number | bigint, coinName: string): Promise<string> => {
+const mintCoin = async (aptos: Aptos, admin: Signer, amount: number | bigint, coinName: string): Promise<string> => {
   const rawTxn = await aptos.transaction.build.simple({
     sender: admin.accountAddress,
     data: {
@@ -206,7 +207,7 @@ const example = async () => {
   const aptos = new Aptos(aptosConfig);
   // Create three accounts
   const swapAddress = AccountAddress.from(process.argv[2]);
-  const admin = Account.fromPrivateKeyAndAddress({
+  const admin = Signer.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(process.argv[3]),
     address: swapAddress,
   });

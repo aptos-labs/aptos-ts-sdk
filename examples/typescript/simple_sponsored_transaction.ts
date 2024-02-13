@@ -6,7 +6,7 @@
  * with a sponsor account to pay for the gas fee
  */
 import "dotenv";
-import { Account, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Network, NetworkToNetworkName, Signer } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const SPONSOR_INITIAL_BALANCE = 100_000_000;
@@ -25,9 +25,9 @@ const example = async () => {
   const aptos = new Aptos(aptosConfig);
 
   // Create three accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
-  const sponsor = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
+  const sponsor = Signer.generate();
 
   // Variables to hold Alice and sponsor accounts address
   const aliceAddress = alice.accountAddress;

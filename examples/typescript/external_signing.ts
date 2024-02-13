@@ -18,7 +18,9 @@ import {
   Network,
   NetworkToNetworkName,
   RawTransaction,
+  Signer,
   Serializer,
+  Ed25519Signer,
 } from "@aptos-labs/ts-sdk";
 import nacl from "tweetnacl";
 
@@ -47,7 +49,7 @@ const balance = async (aptos: Aptos, account: Account, name: string): Promise<nu
  * Provides a mock "Cold wallet" that's signed externally from the SDK
  */
 class ExternalSigner {
-  private account: Account;
+  private signer: Ed25519Signer;
 
   private aptos: Aptos;
 
@@ -62,17 +64,17 @@ class ExternalSigner {
   constructor(name: string, initialBalance: number) {
     const config = new AptosConfig({ network: APTOS_NETWORK });
     this.aptos = new Aptos(config);
-    this.account = Account.generate();
+    this.signer = Signer.generate();
     this.name = name;
     this.initialBalance = initialBalance;
     this.isSetup = false;
     this.extractedPrivateKey = nacl.sign.keyPair.fromSeed(
-      this.account.privateKey.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH),
+      this.signer.privateKey.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH),
     );
   }
 
   address(): AccountAddress {
-    return this.account.accountAddress;
+    return this.signer.accountAddress;
   }
 
   /**
@@ -83,10 +85,10 @@ class ExternalSigner {
       throw new Error(`Tried to double setup ${this.name}`);
     }
 
-    console.log(`${this.name}'s address is: ${this.account.accountAddress}`);
+    console.log(`${this.name}'s address is: ${this.signer.accountAddress}`);
 
     const fundTxn = await this.aptos.fundAccount({
-      accountAddress: this.account.accountAddress,
+      accountAddress: this.signer.accountAddress,
       amount: this.initialBalance,
     });
     console.log(`${this.name}'s fund transaction: `, fundTxn);
@@ -94,7 +96,7 @@ class ExternalSigner {
   }
 
   async balance(): Promise<number> {
-    return balance(this.aptos, this.account, this.name);
+    return balance(this.aptos, this.signer, this.name);
   }
 
   /**
@@ -117,7 +119,7 @@ class ExternalSigner {
 
     // Construct the authenticator with the public key for the submission
     const authenticator = new AccountAuthenticatorEd25519(
-      this.account.publicKey as Ed25519PublicKey,
+      this.signer.publicKey as Ed25519PublicKey,
       new Ed25519Signature(signature),
     );
 
@@ -136,7 +138,7 @@ const example = async () => {
 
   // Create two accounts
   const cold = new ExternalSigner("Cold", COLD_INITIAL_BALANCE);
-  const hot = Account.generate();
+  const hot = Signer.generate();
   await aptos.fundAccount({ accountAddress: hot.accountAddress, amount: HOT_INITIAL_BALANCE });
 
   console.log("\n=== Funding accounts ===\n");

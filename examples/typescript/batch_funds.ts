@@ -19,13 +19,13 @@
  * Read more about it here {@link https://aptos.dev/guides/transaction-management}
  */
 import {
-  Account,
   AccountData,
   Aptos,
   AptosConfig,
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  Signer,
   TransactionWorkerEventsEnum,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
@@ -44,11 +44,11 @@ async function main() {
 
   console.log("starting...");
   // create senders and recipients accounts
-  const senders: Account[] = [];
-  const recipients: Account[] = [];
+  const senders: Signer[] = [];
+  const recipients: Signer[] = [];
   for (let i = 0; i < accountsCount; i += 1) {
-    senders.push(Account.generate());
-    recipients.push(Account.generate());
+    senders.push(Signer.generate());
+    recipients.push(Signer.generate());
   }
   for (const sender of senders) {
     console.log(sender.accountAddress.toString());
@@ -62,9 +62,7 @@ async function main() {
   const funds: Array<Promise<UserTransactionResponse>> = [];
 
   for (let i = 0; i < senders.length; i += 1) {
-    funds.push(
-      aptos.fundAccount({ accountAddress: senders[i].accountAddress.toStringWithoutPrefix(), amount: 10000000000 }),
-    );
+    funds.push(aptos.fundAccount({ accountAddress: senders[i].accountAddress, amount: 10000000000 }));
   }
 
   await Promise.all(funds);

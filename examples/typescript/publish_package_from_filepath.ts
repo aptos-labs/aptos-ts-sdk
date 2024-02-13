@@ -11,7 +11,7 @@
 /* eslint-disable max-len */
 
 import assert from "assert";
-import { Account, Aptos, AptosConfig, Hex, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, Hex, Network, NetworkToNetworkName, Signer } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -21,7 +21,7 @@ async function main() {
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
-  const alice = Account.generate();
+  const alice = Signer.generate();
 
   console.log("\n=== Addresses ===");
   console.log(`Alice: ${alice.accountAddress}`);
@@ -36,7 +36,7 @@ async function main() {
 
   console.log("\n===Publishing FAcoin package===");
   const transaction = await aptos.publishPackageTransaction({
-    account: alice.accountAddress,
+    sender: alice.accountAddress,
     metadataBytes,
     moduleBytecode: byteCode,
   });

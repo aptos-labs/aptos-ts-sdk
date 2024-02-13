@@ -19,7 +19,6 @@
  * Read more about it here {@link https://aptos.dev/guides/transaction-management}
  */
 import {
-  Account,
   Aptos,
   AptosConfig,
   InputGenerateTransactionPayloadData,
@@ -27,6 +26,7 @@ import {
   NetworkToNetworkName,
   UserTransactionResponse,
   TransactionWorkerEventsEnum,
+  Signer,
 } from "@aptos-labs/ts-sdk";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
@@ -37,7 +37,7 @@ const COLLECTION_NAME = "My batch collection!";
 const tokensToMint = 100;
 
 async function main() {
-  const sender: Account = Account.generate();
+  const sender = Signer.generate();
   console.log(`sender ${sender.accountAddress}`);
 
   // fund sender accounts
@@ -50,7 +50,7 @@ async function main() {
   // First need to create a collection on chain
   console.log("creating collection...");
   const transaction = await aptos.createCollectionTransaction({
-    creator: sender,
+    creator: sender.accountAddress,
     description: "Batch Collection",
     name: COLLECTION_NAME,
     uri: "http://aptos.dev",

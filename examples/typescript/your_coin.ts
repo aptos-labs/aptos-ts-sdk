@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName, Signer } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 /**
@@ -23,7 +23,7 @@ const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
 /** Register the receiver account to receive transfers for the new coin. */
-async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress): Promise<string> {
+async function registerCoin(receiver: Signer, coinTypeAddress: AccountAddress): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: receiver.accountAddress,
     data: {
@@ -40,11 +40,7 @@ async function registerCoin(receiver: Account, coinTypeAddress: AccountAddress):
 }
 
 /** Transfer the newly created coin to a specified receiver address */
-async function transferCoin(
-  sender: Account,
-  receiverAddress: AccountAddress,
-  amount: number | bigint,
-): Promise<string> {
+async function transferCoin(sender: Signer, receiverAddress: AccountAddress, amount: number | bigint): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: sender.accountAddress,
     data: {
@@ -61,7 +57,7 @@ async function transferCoin(
 }
 
 /** Mints amount of the newly created coin to a specified receiver address */
-async function mintCoin(minter: Account, receiverAddress: AccountAddress, amount: number): Promise<string> {
+async function mintCoin(minter: Signer, receiverAddress: AccountAddress, amount: number): Promise<string> {
   const transaction = await aptos.transaction.build.simple({
     sender: minter.accountAddress,
     data: {
@@ -89,8 +85,8 @@ const getBalance = async (accountAddress: AccountAddress, coinTypeAddress: Accou
 
 async function main() {
   // Create two accounts, Alice and Bob
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("\n=== Addresses ===");
   console.log(`Alice: ${alice.accountAddress.toString()}`);
@@ -109,7 +105,7 @@ async function main() {
 
   // Publish MoonCoin package to chain
   const transaction = await aptos.publishPackageTransaction({
-    account: alice.accountAddress,
+    sender: alice.accountAddress,
     metadataBytes,
     moduleBytecode: byteCode,
   });

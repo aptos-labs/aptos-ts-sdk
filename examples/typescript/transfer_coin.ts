@@ -5,7 +5,7 @@
  * Similar to ./simple_transfer.ts, but uses transferCoinTransaction to generate the transaction.
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import { AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName, Signer } from "@aptos-labs/ts-sdk";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
@@ -39,8 +39,8 @@ const example = async () => {
   );
 
   // Create two accounts
-  const alice = Account.generate();
-  const bob = Account.generate();
+  const alice = Signer.generate();
+  const bob = Signer.generate();
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
