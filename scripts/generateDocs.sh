@@ -30,7 +30,7 @@ else
   echo "Updating main docs page $INDEX_FILE with version $npm_package_version labeled with $LABEL";
 
   # This inserts it at the 7th line and is a hack because there are exactly 7 lines until the first SDK version in the file
-  FIRST_LINE=7
+  FIRST_LINE=8
   NEXT_LINE=$((FIRST_LINE + 1))
 
   # Add in the middle line the new version.
@@ -41,3 +41,8 @@ else
     tail -n +$NEXT_LINE $INDEX_FILE;
   } > $INDEX_FILE.tmp && mv $INDEX_FILE.tmp $INDEX_FILE
 fi
+
+# Now update the redirect
+REDIRECT_FILE='docs/@aptos-labs/ts-sdk-latest/index.html';
+$(sed -i.bak "s/- ts-sdk-.*/- ts-sdk-$npm_package_version/" $REDIRECT_FILE)
+echo "Updated redirect $REDIRECT_FILE with version $npm_package_version for latest";
