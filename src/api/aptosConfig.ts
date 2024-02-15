@@ -33,7 +33,15 @@ export class AptosConfig {
    */
   readonly indexer?: string;
 
+  /**
+   * Optional client config to set
+   */
   readonly clientConfig?: ClientConfig;
+
+  /**
+   * Asset uploader provider, default to "irys"
+   */
+  readonly assetUploaderProvider = "irys";
 
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? Network.DEVNET;
