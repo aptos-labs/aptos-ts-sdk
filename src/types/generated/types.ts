@@ -211,10 +211,13 @@ export type AccountTransactionsBoolExp = {
   _or?: InputMaybe<Array<AccountTransactionsBoolExp>>;
   account_address?: InputMaybe<StringComparisonExp>;
   coin_activities?: InputMaybe<CoinActivitiesBoolExp>;
+  coin_activities_aggregate?: InputMaybe<CoinActivitiesAggregateBoolExp>;
   delegated_staking_activities?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
   fungible_asset_activities?: InputMaybe<FungibleAssetActivitiesBoolExp>;
   token_activities?: InputMaybe<TokenActivitiesBoolExp>;
+  token_activities_aggregate?: InputMaybe<TokenActivitiesAggregateBoolExp>;
   token_activities_v2?: InputMaybe<TokenActivitiesV2BoolExp>;
+  token_activities_v2_aggregate?: InputMaybe<TokenActivitiesV2AggregateBoolExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
 };
 
@@ -473,9 +476,12 @@ export type AddressVersionFromEventsBoolExp = {
   _or?: InputMaybe<Array<AddressVersionFromEventsBoolExp>>;
   account_address?: InputMaybe<StringComparisonExp>;
   coin_activities?: InputMaybe<CoinActivitiesBoolExp>;
+  coin_activities_aggregate?: InputMaybe<CoinActivitiesAggregateBoolExp>;
   delegated_staking_activities?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
   token_activities?: InputMaybe<TokenActivitiesBoolExp>;
+  token_activities_aggregate?: InputMaybe<TokenActivitiesAggregateBoolExp>;
   token_activities_v2?: InputMaybe<TokenActivitiesV2BoolExp>;
+  token_activities_v2_aggregate?: InputMaybe<TokenActivitiesV2AggregateBoolExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
 };
 
@@ -680,9 +686,12 @@ export type AddressVersionFromMoveResourcesBoolExp = {
   _or?: InputMaybe<Array<AddressVersionFromMoveResourcesBoolExp>>;
   address?: InputMaybe<StringComparisonExp>;
   coin_activities?: InputMaybe<CoinActivitiesBoolExp>;
+  coin_activities_aggregate?: InputMaybe<CoinActivitiesAggregateBoolExp>;
   delegated_staking_activities?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
   token_activities?: InputMaybe<TokenActivitiesBoolExp>;
+  token_activities_aggregate?: InputMaybe<TokenActivitiesAggregateBoolExp>;
   token_activities_v2?: InputMaybe<TokenActivitiesV2BoolExp>;
+  token_activities_v2_aggregate?: InputMaybe<TokenActivitiesV2AggregateBoolExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
 };
 
@@ -922,6 +931,33 @@ export type CoinActivitiesAggregate = {
   nodes: Array<CoinActivities>;
 };
 
+export type CoinActivitiesAggregateBoolExp = {
+  bool_and?: InputMaybe<CoinActivitiesAggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<CoinActivitiesAggregateBoolExpBoolOr>;
+  count?: InputMaybe<CoinActivitiesAggregateBoolExpCount>;
+};
+
+export type CoinActivitiesAggregateBoolExpBoolAnd = {
+  arguments: CoinActivitiesSelectColumnCoinActivitiesAggregateBoolExpBoolAndArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CoinActivitiesBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CoinActivitiesAggregateBoolExpBoolOr = {
+  arguments: CoinActivitiesSelectColumnCoinActivitiesAggregateBoolExpBoolOrArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CoinActivitiesBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CoinActivitiesAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<CoinActivitiesSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CoinActivitiesBoolExp>;
+  predicate: IntComparisonExp;
+};
+
 /** aggregate fields of "coin_activities" */
 export type CoinActivitiesAggregateFields = {
   avg?: Maybe<CoinActivitiesAvgFields>;
@@ -988,6 +1024,7 @@ export type CoinActivitiesBoolExp = {
   activity_type?: InputMaybe<StringComparisonExp>;
   amount?: InputMaybe<NumericComparisonExp>;
   aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
+  aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   block_height?: InputMaybe<BigintComparisonExp>;
   coin_info?: InputMaybe<CoinInfosBoolExp>;
   coin_type?: InputMaybe<StringComparisonExp>;
@@ -1125,6 +1162,22 @@ export enum CoinActivitiesSelectColumn {
   TransactionTimestamp = "transaction_timestamp",
   /** column name */
   TransactionVersion = "transaction_version",
+}
+
+/** select "coin_activities_aggregate_bool_exp_bool_and_arguments_columns" columns of table "coin_activities" */
+export enum CoinActivitiesSelectColumnCoinActivitiesAggregateBoolExpBoolAndArgumentsColumns {
+  /** column name */
+  IsGasFee = "is_gas_fee",
+  /** column name */
+  IsTransactionSuccess = "is_transaction_success",
+}
+
+/** select "coin_activities_aggregate_bool_exp_bool_or_arguments_columns" columns of table "coin_activities" */
+export enum CoinActivitiesSelectColumnCoinActivitiesAggregateBoolExpBoolOrArgumentsColumns {
+  /** column name */
+  IsGasFee = "is_gas_fee",
+  /** column name */
+  IsTransactionSuccess = "is_transaction_success",
 }
 
 /** aggregate stddev on columns */
@@ -1681,6 +1734,7 @@ export type CurrentAnsLookupBoolExp = {
   _not?: InputMaybe<CurrentAnsLookupBoolExp>;
   _or?: InputMaybe<Array<CurrentAnsLookupBoolExp>>;
   all_token_ownerships?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
+  all_token_ownerships_aggregate?: InputMaybe<CurrentTokenOwnershipsAggregateBoolExp>;
   domain?: InputMaybe<StringComparisonExp>;
   expiration_timestamp?: InputMaybe<TimestampComparisonExp>;
   is_deleted?: InputMaybe<BooleanComparisonExp>;
@@ -1841,6 +1895,33 @@ export type CurrentAptosNamesAggregate = {
   nodes: Array<CurrentAptosNames>;
 };
 
+export type CurrentAptosNamesAggregateBoolExp = {
+  bool_and?: InputMaybe<CurrentAptosNamesAggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<CurrentAptosNamesAggregateBoolExpBoolOr>;
+  count?: InputMaybe<CurrentAptosNamesAggregateBoolExpCount>;
+};
+
+export type CurrentAptosNamesAggregateBoolExpBoolAnd = {
+  arguments: CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolAndArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CurrentAptosNamesAggregateBoolExpBoolOr = {
+  arguments: CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOrArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CurrentAptosNamesAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<CurrentAptosNamesSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentAptosNamesBoolExp>;
+  predicate: IntComparisonExp;
+};
+
 /** aggregate fields of "current_aptos_names" */
 export type CurrentAptosNamesAggregateFields = {
   avg?: Maybe<CurrentAptosNamesAvgFields>;
@@ -1998,6 +2079,22 @@ export enum CurrentAptosNamesSelectColumn {
   TokenName = "token_name",
   /** column name */
   TokenStandard = "token_standard",
+}
+
+/** select "current_aptos_names_aggregate_bool_exp_bool_and_arguments_columns" columns of table "current_aptos_names" */
+export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolAndArgumentsColumns {
+  /** column name */
+  IsActive = "is_active",
+  /** column name */
+  IsPrimary = "is_primary",
+}
+
+/** select "current_aptos_names_aggregate_bool_exp_bool_or_arguments_columns" columns of table "current_aptos_names" */
+export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOrArgumentsColumns {
+  /** column name */
+  IsActive = "is_active",
+  /** column name */
+  IsPrimary = "is_primary",
 }
 
 /** aggregate stddev on columns */
@@ -3098,6 +3195,7 @@ export type CurrentStakingPoolVoterBoolExp = {
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
   operator_address?: InputMaybe<StringComparisonExp>;
   operator_aptos_name?: InputMaybe<CurrentAptosNamesBoolExp>;
+  operator_aptos_name_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   staking_pool_address?: InputMaybe<StringComparisonExp>;
   voter_address?: InputMaybe<StringComparisonExp>;
 };
@@ -3399,6 +3497,7 @@ export type CurrentTokenDatasV2 = {
   current_collection?: Maybe<CurrentCollectionsV2>;
   /** An object relationship */
   current_token_ownership?: Maybe<CurrentTokenOwnershipsV2>;
+  decimals: Scalars["bigint"]["output"];
   description: Scalars["String"]["output"];
   is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
   largest_property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
@@ -3428,6 +3527,7 @@ export type CurrentTokenDatasV2BoolExp = {
   collection_id?: InputMaybe<StringComparisonExp>;
   current_collection?: InputMaybe<CurrentCollectionsV2BoolExp>;
   current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  decimals?: InputMaybe<BigintComparisonExp>;
   description?: InputMaybe<StringComparisonExp>;
   is_fungible_v2?: InputMaybe<BooleanComparisonExp>;
   largest_property_version_v1?: InputMaybe<NumericComparisonExp>;
@@ -3449,6 +3549,7 @@ export type CurrentTokenDatasV2OrderBy = {
   collection_id?: InputMaybe<OrderBy>;
   current_collection?: InputMaybe<CurrentCollectionsV2OrderBy>;
   current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2OrderBy>;
+  decimals?: InputMaybe<OrderBy>;
   description?: InputMaybe<OrderBy>;
   is_fungible_v2?: InputMaybe<OrderBy>;
   largest_property_version_v1?: InputMaybe<OrderBy>;
@@ -3467,6 +3568,8 @@ export type CurrentTokenDatasV2OrderBy = {
 export enum CurrentTokenDatasV2SelectColumn {
   /** column name */
   CollectionId = "collection_id",
+  /** column name */
+  Decimals = "decimals",
   /** column name */
   Description = "description",
   /** column name */
@@ -3504,6 +3607,7 @@ export type CurrentTokenDatasV2StreamCursorInput = {
 /** Initial value of the column from where the streaming should start */
 export type CurrentTokenDatasV2StreamCursorValueInput = {
   collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  decimals?: InputMaybe<Scalars["bigint"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   is_fungible_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
   largest_property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
@@ -3549,6 +3653,17 @@ export type CurrentTokenOwnershipsTokenPropertiesArgs = {
 export type CurrentTokenOwnershipsAggregate = {
   aggregate?: Maybe<CurrentTokenOwnershipsAggregateFields>;
   nodes: Array<CurrentTokenOwnerships>;
+};
+
+export type CurrentTokenOwnershipsAggregateBoolExp = {
+  count?: InputMaybe<CurrentTokenOwnershipsAggregateBoolExpCount>;
+};
+
+export type CurrentTokenOwnershipsAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<CurrentTokenOwnershipsSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentTokenOwnershipsBoolExp>;
+  predicate: IntComparisonExp;
 };
 
 /** aggregate fields of "current_token_ownerships" */
@@ -3861,6 +3976,33 @@ export type CurrentTokenOwnershipsV2Aggregate = {
   nodes: Array<CurrentTokenOwnershipsV2>;
 };
 
+export type CurrentTokenOwnershipsV2AggregateBoolExp = {
+  bool_and?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExpBoolOr>;
+  count?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExpCount>;
+};
+
+export type CurrentTokenOwnershipsV2AggregateBoolExpBoolAnd = {
+  arguments: CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2AggregateBoolExpBoolAndArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CurrentTokenOwnershipsV2AggregateBoolExpBoolOr = {
+  arguments: CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2AggregateBoolExpBoolOrArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type CurrentTokenOwnershipsV2AggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  predicate: IntComparisonExp;
+};
+
 /** aggregate fields of "current_token_ownerships_v2" */
 export type CurrentTokenOwnershipsV2AggregateFields = {
   avg?: Maybe<CurrentTokenOwnershipsV2AvgFields>;
@@ -3918,6 +4060,7 @@ export type CurrentTokenOwnershipsV2BoolExp = {
   _or?: InputMaybe<Array<CurrentTokenOwnershipsV2BoolExp>>;
   amount?: InputMaybe<NumericComparisonExp>;
   composed_nfts?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  composed_nfts_aggregate?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExp>;
   current_token_data?: InputMaybe<CurrentTokenDatasV2BoolExp>;
   is_fungible_v2?: InputMaybe<BooleanComparisonExp>;
   is_soulbound_v2?: InputMaybe<BooleanComparisonExp>;
@@ -4028,6 +4171,22 @@ export enum CurrentTokenOwnershipsV2SelectColumn {
   TokenPropertiesMutatedV1 = "token_properties_mutated_v1",
   /** column name */
   TokenStandard = "token_standard",
+}
+
+/** select "current_token_ownerships_v2_aggregate_bool_exp_bool_and_arguments_columns" columns of table "current_token_ownerships_v2" */
+export enum CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2AggregateBoolExpBoolAndArgumentsColumns {
+  /** column name */
+  IsFungibleV2 = "is_fungible_v2",
+  /** column name */
+  IsSoulboundV2 = "is_soulbound_v2",
+}
+
+/** select "current_token_ownerships_v2_aggregate_bool_exp_bool_or_arguments_columns" columns of table "current_token_ownerships_v2" */
+export enum CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2AggregateBoolExpBoolOrArgumentsColumns {
+  /** column name */
+  IsFungibleV2 = "is_fungible_v2",
+  /** column name */
+  IsSoulboundV2 = "is_soulbound_v2",
 }
 
 /** aggregate stddev on columns */
@@ -4495,6 +4654,192 @@ export type DelegatedStakingActivitiesVarianceOrderBy = {
   transaction_version?: InputMaybe<OrderBy>;
 };
 
+/** columns and relationships of "delegated_staking_pool_balances" */
+export type DelegatedStakingPoolBalances = {
+  active_table_handle: Scalars["String"]["output"];
+  inactive_table_handle: Scalars["String"]["output"];
+  operator_commission_percentage: Scalars["numeric"]["output"];
+  staking_pool_address: Scalars["String"]["output"];
+  total_coins: Scalars["numeric"]["output"];
+  total_shares: Scalars["numeric"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "delegated_staking_pool_balances" */
+export type DelegatedStakingPoolBalancesAggregate = {
+  aggregate?: Maybe<DelegatedStakingPoolBalancesAggregateFields>;
+  nodes: Array<DelegatedStakingPoolBalances>;
+};
+
+/** aggregate fields of "delegated_staking_pool_balances" */
+export type DelegatedStakingPoolBalancesAggregateFields = {
+  avg?: Maybe<DelegatedStakingPoolBalancesAvgFields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<DelegatedStakingPoolBalancesMaxFields>;
+  min?: Maybe<DelegatedStakingPoolBalancesMinFields>;
+  stddev?: Maybe<DelegatedStakingPoolBalancesStddevFields>;
+  stddev_pop?: Maybe<DelegatedStakingPoolBalancesStddevPopFields>;
+  stddev_samp?: Maybe<DelegatedStakingPoolBalancesStddevSampFields>;
+  sum?: Maybe<DelegatedStakingPoolBalancesSumFields>;
+  var_pop?: Maybe<DelegatedStakingPoolBalancesVarPopFields>;
+  var_samp?: Maybe<DelegatedStakingPoolBalancesVarSampFields>;
+  variance?: Maybe<DelegatedStakingPoolBalancesVarianceFields>;
+};
+
+/** aggregate fields of "delegated_staking_pool_balances" */
+export type DelegatedStakingPoolBalancesAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<DelegatedStakingPoolBalancesSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type DelegatedStakingPoolBalancesAvgFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "delegated_staking_pool_balances". All fields are combined with a logical 'AND'. */
+export type DelegatedStakingPoolBalancesBoolExp = {
+  _and?: InputMaybe<Array<DelegatedStakingPoolBalancesBoolExp>>;
+  _not?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+  _or?: InputMaybe<Array<DelegatedStakingPoolBalancesBoolExp>>;
+  active_table_handle?: InputMaybe<StringComparisonExp>;
+  inactive_table_handle?: InputMaybe<StringComparisonExp>;
+  operator_commission_percentage?: InputMaybe<NumericComparisonExp>;
+  staking_pool_address?: InputMaybe<StringComparisonExp>;
+  total_coins?: InputMaybe<NumericComparisonExp>;
+  total_shares?: InputMaybe<NumericComparisonExp>;
+  transaction_version?: InputMaybe<BigintComparisonExp>;
+};
+
+/** aggregate max on columns */
+export type DelegatedStakingPoolBalancesMaxFields = {
+  active_table_handle?: Maybe<Scalars["String"]["output"]>;
+  inactive_table_handle?: Maybe<Scalars["String"]["output"]>;
+  operator_commission_percentage?: Maybe<Scalars["numeric"]["output"]>;
+  staking_pool_address?: Maybe<Scalars["String"]["output"]>;
+  total_coins?: Maybe<Scalars["numeric"]["output"]>;
+  total_shares?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type DelegatedStakingPoolBalancesMinFields = {
+  active_table_handle?: Maybe<Scalars["String"]["output"]>;
+  inactive_table_handle?: Maybe<Scalars["String"]["output"]>;
+  operator_commission_percentage?: Maybe<Scalars["numeric"]["output"]>;
+  staking_pool_address?: Maybe<Scalars["String"]["output"]>;
+  total_coins?: Maybe<Scalars["numeric"]["output"]>;
+  total_shares?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** Ordering options when selecting data from "delegated_staking_pool_balances". */
+export type DelegatedStakingPoolBalancesOrderBy = {
+  active_table_handle?: InputMaybe<OrderBy>;
+  inactive_table_handle?: InputMaybe<OrderBy>;
+  operator_commission_percentage?: InputMaybe<OrderBy>;
+  staking_pool_address?: InputMaybe<OrderBy>;
+  total_coins?: InputMaybe<OrderBy>;
+  total_shares?: InputMaybe<OrderBy>;
+  transaction_version?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "delegated_staking_pool_balances" */
+export enum DelegatedStakingPoolBalancesSelectColumn {
+  /** column name */
+  ActiveTableHandle = "active_table_handle",
+  /** column name */
+  InactiveTableHandle = "inactive_table_handle",
+  /** column name */
+  OperatorCommissionPercentage = "operator_commission_percentage",
+  /** column name */
+  StakingPoolAddress = "staking_pool_address",
+  /** column name */
+  TotalCoins = "total_coins",
+  /** column name */
+  TotalShares = "total_shares",
+  /** column name */
+  TransactionVersion = "transaction_version",
+}
+
+/** aggregate stddev on columns */
+export type DelegatedStakingPoolBalancesStddevFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type DelegatedStakingPoolBalancesStddevPopFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type DelegatedStakingPoolBalancesStddevSampFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "delegated_staking_pool_balances" */
+export type DelegatedStakingPoolBalancesStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: DelegatedStakingPoolBalancesStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type DelegatedStakingPoolBalancesStreamCursorValueInput = {
+  active_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  inactive_table_handle?: InputMaybe<Scalars["String"]["input"]>;
+  operator_commission_percentage?: InputMaybe<Scalars["numeric"]["input"]>;
+  staking_pool_address?: InputMaybe<Scalars["String"]["input"]>;
+  total_coins?: InputMaybe<Scalars["numeric"]["input"]>;
+  total_shares?: InputMaybe<Scalars["numeric"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type DelegatedStakingPoolBalancesSumFields = {
+  operator_commission_percentage?: Maybe<Scalars["numeric"]["output"]>;
+  total_coins?: Maybe<Scalars["numeric"]["output"]>;
+  total_shares?: Maybe<Scalars["numeric"]["output"]>;
+  transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate var_pop on columns */
+export type DelegatedStakingPoolBalancesVarPopFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type DelegatedStakingPoolBalancesVarSampFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type DelegatedStakingPoolBalancesVarianceFields = {
+  operator_commission_percentage?: Maybe<Scalars["Float"]["output"]>;
+  total_coins?: Maybe<Scalars["Float"]["output"]>;
+  total_shares?: Maybe<Scalars["Float"]["output"]>;
+  transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** columns and relationships of "delegated_staking_pools" */
 export type DelegatedStakingPools = {
   /** An object relationship */
@@ -4799,6 +5144,7 @@ export type FungibleAssetActivitiesBoolExp = {
   metadata?: InputMaybe<FungibleAssetMetadataBoolExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
   owner_aptos_names?: InputMaybe<CurrentAptosNamesBoolExp>;
+  owner_aptos_names_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   storage_id?: InputMaybe<StringComparisonExp>;
   storage_refund_amount?: InputMaybe<NumericComparisonExp>;
   token_standard?: InputMaybe<StringComparisonExp>;
@@ -5618,6 +5964,40 @@ export type NftMarketplaceV2CurrentNftMarketplaceListings = {
   token_standard: Scalars["String"]["output"];
 };
 
+/** aggregated selection of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsAggregate = {
+  aggregate?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsAggregateFields>;
+  nodes: Array<NftMarketplaceV2CurrentNftMarketplaceListings>;
+};
+
+/** aggregate fields of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsAggregateFields = {
+  avg?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsAvgFields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsMaxFields>;
+  min?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsMinFields>;
+  stddev?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsStddevFields>;
+  stddev_pop?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsStddevPopFields>;
+  stddev_samp?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsStddevSampFields>;
+  sum?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsSumFields>;
+  var_pop?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsVarPopFields>;
+  var_samp?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsVarSampFields>;
+  variance?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListingsVarianceFields>;
+};
+
+/** aggregate fields of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsAvgFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_listings". All fields are combined with a logical 'AND'. */
 export type NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp = {
   _and?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>>;
@@ -5639,6 +6019,42 @@ export type NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp = {
   token_amount?: InputMaybe<NumericComparisonExp>;
   token_data_id?: InputMaybe<StringComparisonExp>;
   token_standard?: InputMaybe<StringComparisonExp>;
+};
+
+/** aggregate max on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsMaxFields = {
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id?: Maybe<Scalars["String"]["output"]>;
+  contract_address?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  fee_schedule_id?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  listing_id?: Maybe<Scalars["String"]["output"]>;
+  marketplace?: Maybe<Scalars["String"]["output"]>;
+  price?: Maybe<Scalars["numeric"]["output"]>;
+  seller?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsMinFields = {
+  coin_type?: Maybe<Scalars["String"]["output"]>;
+  collection_id?: Maybe<Scalars["String"]["output"]>;
+  contract_address?: Maybe<Scalars["String"]["output"]>;
+  entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
+  fee_schedule_id?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  listing_id?: Maybe<Scalars["String"]["output"]>;
+  marketplace?: Maybe<Scalars["String"]["output"]>;
+  price?: Maybe<Scalars["numeric"]["output"]>;
+  seller?: Maybe<Scalars["String"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+  token_data_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "nft_marketplace_v2.current_nft_marketplace_listings". */
@@ -5695,6 +6111,27 @@ export enum NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn {
   TokenStandard = "token_standard",
 }
 
+/** aggregate stddev on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsStddevFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsStddevPopFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsStddevSampFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** Streaming cursor of the table "nft_marketplace_v2_current_nft_marketplace_listings" */
 export type NftMarketplaceV2CurrentNftMarketplaceListingsStreamCursorInput = {
   /** Stream column input with initial value */
@@ -5720,6 +6157,34 @@ export type NftMarketplaceV2CurrentNftMarketplaceListingsStreamCursorValueInput 
   token_amount?: InputMaybe<Scalars["numeric"]["input"]>;
   token_data_id?: InputMaybe<Scalars["String"]["input"]>;
   token_standard?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsSumFields = {
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  price?: Maybe<Scalars["numeric"]["output"]>;
+  token_amount?: Maybe<Scalars["numeric"]["output"]>;
+};
+
+/** aggregate var_pop on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsVarPopFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsVarSampFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type NftMarketplaceV2CurrentNftMarketplaceListingsVarianceFields = {
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  price?: Maybe<Scalars["Float"]["output"]>;
+  token_amount?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_token_offers" */
@@ -6174,6 +6639,7 @@ export enum OrderBy {
 /** columns and relationships of "processor_status" */
 export type ProcessorStatus = {
   last_success_version: Scalars["bigint"]["output"];
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   last_updated: Scalars["timestamp"]["output"];
   processor: Scalars["String"]["output"];
 };
@@ -6184,6 +6650,7 @@ export type ProcessorStatusBoolExp = {
   _not?: InputMaybe<ProcessorStatusBoolExp>;
   _or?: InputMaybe<Array<ProcessorStatusBoolExp>>;
   last_success_version?: InputMaybe<BigintComparisonExp>;
+  last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
   last_updated?: InputMaybe<TimestampComparisonExp>;
   processor?: InputMaybe<StringComparisonExp>;
 };
@@ -6191,6 +6658,7 @@ export type ProcessorStatusBoolExp = {
 /** Ordering options when selecting data from "processor_status". */
 export type ProcessorStatusOrderBy = {
   last_success_version?: InputMaybe<OrderBy>;
+  last_transaction_timestamp?: InputMaybe<OrderBy>;
   last_updated?: InputMaybe<OrderBy>;
   processor?: InputMaybe<OrderBy>;
 };
@@ -6199,6 +6667,8 @@ export type ProcessorStatusOrderBy = {
 export enum ProcessorStatusSelectColumn {
   /** column name */
   LastSuccessVersion = "last_success_version",
+  /** column name */
+  LastTransactionTimestamp = "last_transaction_timestamp",
   /** column name */
   LastUpdated = "last_updated",
   /** column name */
@@ -6216,6 +6686,7 @@ export type ProcessorStatusStreamCursorInput = {
 /** Initial value of the column from where the streaming should start */
 export type ProcessorStatusStreamCursorValueInput = {
   last_success_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   last_updated?: InputMaybe<Scalars["timestamp"]["input"]>;
   processor?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -6525,6 +6996,12 @@ export type QueryRoot = {
   delegated_staking_activities: Array<DelegatedStakingActivities>;
   /** fetch data from the table: "delegated_staking_activities" using primary key columns */
   delegated_staking_activities_by_pk?: Maybe<DelegatedStakingActivities>;
+  /** fetch data from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances: Array<DelegatedStakingPoolBalances>;
+  /** fetch aggregated fields from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_aggregate: DelegatedStakingPoolBalancesAggregate;
+  /** fetch data from the table: "delegated_staking_pool_balances" using primary key columns */
+  delegated_staking_pool_balances_by_pk?: Maybe<DelegatedStakingPoolBalances>;
   /** fetch data from the table: "delegated_staking_pools" */
   delegated_staking_pools: Array<DelegatedStakingPools>;
   /** fetch data from the table: "delegated_staking_pools" using primary key columns */
@@ -6567,6 +7044,8 @@ export type QueryRoot = {
   nft_marketplace_v2_current_nft_marketplace_collection_offers_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
   nft_marketplace_v2_current_nft_marketplace_listings: Array<NftMarketplaceV2CurrentNftMarketplaceListings>;
+  /** fetch aggregated fields from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
+  nft_marketplace_v2_current_nft_marketplace_listings_aggregate: NftMarketplaceV2CurrentNftMarketplaceListingsAggregate;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_listings_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListings>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_token_offers" */
@@ -7069,6 +7548,27 @@ export type QueryRootDelegatedStakingActivitiesByPkArgs = {
   transaction_version: Scalars["bigint"]["input"];
 };
 
+export type QueryRootDelegatedStakingPoolBalancesArgs = {
+  distinct_on?: InputMaybe<Array<DelegatedStakingPoolBalancesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<DelegatedStakingPoolBalancesOrderBy>>;
+  where?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+};
+
+export type QueryRootDelegatedStakingPoolBalancesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<DelegatedStakingPoolBalancesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<DelegatedStakingPoolBalancesOrderBy>>;
+  where?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+};
+
+export type QueryRootDelegatedStakingPoolBalancesByPkArgs = {
+  staking_pool_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+};
+
 export type QueryRootDelegatedStakingPoolsArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingPoolsSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -7202,6 +7702,14 @@ export type QueryRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffersByPkAr
 };
 
 export type QueryRootNftMarketplaceV2CurrentNftMarketplaceListingsArgs = {
+  distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsOrderBy>>;
+  where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>;
+};
+
+export type QueryRootNftMarketplaceV2CurrentNftMarketplaceListingsAggregateArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -7424,29 +7932,29 @@ export type SubscriptionRoot = {
   account_transactions_aggregate: AccountTransactionsAggregate;
   /** fetch data from the table: "account_transactions" using primary key columns */
   account_transactions_by_pk?: Maybe<AccountTransactions>;
-  /** fetch data from the table in a streaming manner : "account_transactions" */
+  /** fetch data from the table in a streaming manner: "account_transactions" */
   account_transactions_stream: Array<AccountTransactions>;
   /** fetch data from the table: "address_events_summary" */
   address_events_summary: Array<AddressEventsSummary>;
-  /** fetch data from the table in a streaming manner : "address_events_summary" */
+  /** fetch data from the table in a streaming manner: "address_events_summary" */
   address_events_summary_stream: Array<AddressEventsSummary>;
   /** fetch data from the table: "address_version_from_events" */
   address_version_from_events: Array<AddressVersionFromEvents>;
   /** fetch aggregated fields from the table: "address_version_from_events" */
   address_version_from_events_aggregate: AddressVersionFromEventsAggregate;
-  /** fetch data from the table in a streaming manner : "address_version_from_events" */
+  /** fetch data from the table in a streaming manner: "address_version_from_events" */
   address_version_from_events_stream: Array<AddressVersionFromEvents>;
   /** fetch data from the table: "address_version_from_move_resources" */
   address_version_from_move_resources: Array<AddressVersionFromMoveResources>;
   /** fetch aggregated fields from the table: "address_version_from_move_resources" */
   address_version_from_move_resources_aggregate: AddressVersionFromMoveResourcesAggregate;
-  /** fetch data from the table in a streaming manner : "address_version_from_move_resources" */
+  /** fetch data from the table in a streaming manner: "address_version_from_move_resources" */
   address_version_from_move_resources_stream: Array<AddressVersionFromMoveResources>;
   /** fetch data from the table: "block_metadata_transactions" */
   block_metadata_transactions: Array<BlockMetadataTransactions>;
   /** fetch data from the table: "block_metadata_transactions" using primary key columns */
   block_metadata_transactions_by_pk?: Maybe<BlockMetadataTransactions>;
-  /** fetch data from the table in a streaming manner : "block_metadata_transactions" */
+  /** fetch data from the table in a streaming manner: "block_metadata_transactions" */
   block_metadata_transactions_stream: Array<BlockMetadataTransactions>;
   /** An array relationship */
   coin_activities: Array<CoinActivities>;
@@ -7454,91 +7962,91 @@ export type SubscriptionRoot = {
   coin_activities_aggregate: CoinActivitiesAggregate;
   /** fetch data from the table: "coin_activities" using primary key columns */
   coin_activities_by_pk?: Maybe<CoinActivities>;
-  /** fetch data from the table in a streaming manner : "coin_activities" */
+  /** fetch data from the table in a streaming manner: "coin_activities" */
   coin_activities_stream: Array<CoinActivities>;
   /** fetch data from the table: "coin_balances" */
   coin_balances: Array<CoinBalances>;
   /** fetch data from the table: "coin_balances" using primary key columns */
   coin_balances_by_pk?: Maybe<CoinBalances>;
-  /** fetch data from the table in a streaming manner : "coin_balances" */
+  /** fetch data from the table in a streaming manner: "coin_balances" */
   coin_balances_stream: Array<CoinBalances>;
   /** fetch data from the table: "coin_infos" */
   coin_infos: Array<CoinInfos>;
   /** fetch data from the table: "coin_infos" using primary key columns */
   coin_infos_by_pk?: Maybe<CoinInfos>;
-  /** fetch data from the table in a streaming manner : "coin_infos" */
+  /** fetch data from the table in a streaming manner: "coin_infos" */
   coin_infos_stream: Array<CoinInfos>;
   /** fetch data from the table: "coin_supply" */
   coin_supply: Array<CoinSupply>;
   /** fetch data from the table: "coin_supply" using primary key columns */
   coin_supply_by_pk?: Maybe<CoinSupply>;
-  /** fetch data from the table in a streaming manner : "coin_supply" */
+  /** fetch data from the table in a streaming manner: "coin_supply" */
   coin_supply_stream: Array<CoinSupply>;
   /** fetch data from the table: "collection_datas" */
   collection_datas: Array<CollectionDatas>;
   /** fetch data from the table: "collection_datas" using primary key columns */
   collection_datas_by_pk?: Maybe<CollectionDatas>;
-  /** fetch data from the table in a streaming manner : "collection_datas" */
+  /** fetch data from the table in a streaming manner: "collection_datas" */
   collection_datas_stream: Array<CollectionDatas>;
   /** fetch data from the table: "current_ans_lookup" */
   current_ans_lookup: Array<CurrentAnsLookup>;
   /** fetch data from the table: "current_ans_lookup" using primary key columns */
   current_ans_lookup_by_pk?: Maybe<CurrentAnsLookup>;
-  /** fetch data from the table in a streaming manner : "current_ans_lookup" */
+  /** fetch data from the table in a streaming manner: "current_ans_lookup" */
   current_ans_lookup_stream: Array<CurrentAnsLookup>;
   /** fetch data from the table: "current_ans_lookup_v2" */
   current_ans_lookup_v2: Array<CurrentAnsLookupV2>;
   /** fetch data from the table: "current_ans_lookup_v2" using primary key columns */
   current_ans_lookup_v2_by_pk?: Maybe<CurrentAnsLookupV2>;
-  /** fetch data from the table in a streaming manner : "current_ans_lookup_v2" */
+  /** fetch data from the table in a streaming manner: "current_ans_lookup_v2" */
   current_ans_lookup_v2_stream: Array<CurrentAnsLookupV2>;
   /** fetch data from the table: "current_aptos_names" */
   current_aptos_names: Array<CurrentAptosNames>;
   /** fetch aggregated fields from the table: "current_aptos_names" */
   current_aptos_names_aggregate: CurrentAptosNamesAggregate;
-  /** fetch data from the table in a streaming manner : "current_aptos_names" */
+  /** fetch data from the table in a streaming manner: "current_aptos_names" */
   current_aptos_names_stream: Array<CurrentAptosNames>;
   /** fetch data from the table: "current_coin_balances" */
   current_coin_balances: Array<CurrentCoinBalances>;
   /** fetch data from the table: "current_coin_balances" using primary key columns */
   current_coin_balances_by_pk?: Maybe<CurrentCoinBalances>;
-  /** fetch data from the table in a streaming manner : "current_coin_balances" */
+  /** fetch data from the table in a streaming manner: "current_coin_balances" */
   current_coin_balances_stream: Array<CurrentCoinBalances>;
   /** fetch data from the table: "current_collection_datas" */
   current_collection_datas: Array<CurrentCollectionDatas>;
   /** fetch data from the table: "current_collection_datas" using primary key columns */
   current_collection_datas_by_pk?: Maybe<CurrentCollectionDatas>;
-  /** fetch data from the table in a streaming manner : "current_collection_datas" */
+  /** fetch data from the table in a streaming manner: "current_collection_datas" */
   current_collection_datas_stream: Array<CurrentCollectionDatas>;
   /** fetch data from the table: "current_collection_ownership_v2_view" */
   current_collection_ownership_v2_view: Array<CurrentCollectionOwnershipV2View>;
   /** fetch aggregated fields from the table: "current_collection_ownership_v2_view" */
   current_collection_ownership_v2_view_aggregate: CurrentCollectionOwnershipV2ViewAggregate;
-  /** fetch data from the table in a streaming manner : "current_collection_ownership_v2_view" */
+  /** fetch data from the table in a streaming manner: "current_collection_ownership_v2_view" */
   current_collection_ownership_v2_view_stream: Array<CurrentCollectionOwnershipV2View>;
   /** fetch data from the table: "current_collections_v2" */
   current_collections_v2: Array<CurrentCollectionsV2>;
   /** fetch data from the table: "current_collections_v2" using primary key columns */
   current_collections_v2_by_pk?: Maybe<CurrentCollectionsV2>;
-  /** fetch data from the table in a streaming manner : "current_collections_v2" */
+  /** fetch data from the table in a streaming manner: "current_collections_v2" */
   current_collections_v2_stream: Array<CurrentCollectionsV2>;
   /** fetch data from the table: "current_delegated_staking_pool_balances" */
   current_delegated_staking_pool_balances: Array<CurrentDelegatedStakingPoolBalances>;
   /** fetch data from the table: "current_delegated_staking_pool_balances" using primary key columns */
   current_delegated_staking_pool_balances_by_pk?: Maybe<CurrentDelegatedStakingPoolBalances>;
-  /** fetch data from the table in a streaming manner : "current_delegated_staking_pool_balances" */
+  /** fetch data from the table in a streaming manner: "current_delegated_staking_pool_balances" */
   current_delegated_staking_pool_balances_stream: Array<CurrentDelegatedStakingPoolBalances>;
   /** fetch data from the table: "current_delegated_voter" */
   current_delegated_voter: Array<CurrentDelegatedVoter>;
   /** fetch data from the table: "current_delegated_voter" using primary key columns */
   current_delegated_voter_by_pk?: Maybe<CurrentDelegatedVoter>;
-  /** fetch data from the table in a streaming manner : "current_delegated_voter" */
+  /** fetch data from the table in a streaming manner: "current_delegated_voter" */
   current_delegated_voter_stream: Array<CurrentDelegatedVoter>;
   /** fetch data from the table: "current_delegator_balances" */
   current_delegator_balances: Array<CurrentDelegatorBalances>;
   /** fetch data from the table: "current_delegator_balances" using primary key columns */
   current_delegator_balances_by_pk?: Maybe<CurrentDelegatorBalances>;
-  /** fetch data from the table in a streaming manner : "current_delegator_balances" */
+  /** fetch data from the table in a streaming manner: "current_delegator_balances" */
   current_delegator_balances_stream: Array<CurrentDelegatorBalances>;
   /** fetch data from the table: "current_fungible_asset_balances" */
   current_fungible_asset_balances: Array<CurrentFungibleAssetBalances>;
@@ -7546,37 +8054,37 @@ export type SubscriptionRoot = {
   current_fungible_asset_balances_aggregate: CurrentFungibleAssetBalancesAggregate;
   /** fetch data from the table: "current_fungible_asset_balances" using primary key columns */
   current_fungible_asset_balances_by_pk?: Maybe<CurrentFungibleAssetBalances>;
-  /** fetch data from the table in a streaming manner : "current_fungible_asset_balances" */
+  /** fetch data from the table in a streaming manner: "current_fungible_asset_balances" */
   current_fungible_asset_balances_stream: Array<CurrentFungibleAssetBalances>;
   /** fetch data from the table: "current_objects" */
   current_objects: Array<CurrentObjects>;
   /** fetch data from the table: "current_objects" using primary key columns */
   current_objects_by_pk?: Maybe<CurrentObjects>;
-  /** fetch data from the table in a streaming manner : "current_objects" */
+  /** fetch data from the table in a streaming manner: "current_objects" */
   current_objects_stream: Array<CurrentObjects>;
   /** fetch data from the table: "current_staking_pool_voter" */
   current_staking_pool_voter: Array<CurrentStakingPoolVoter>;
   /** fetch data from the table: "current_staking_pool_voter" using primary key columns */
   current_staking_pool_voter_by_pk?: Maybe<CurrentStakingPoolVoter>;
-  /** fetch data from the table in a streaming manner : "current_staking_pool_voter" */
+  /** fetch data from the table in a streaming manner: "current_staking_pool_voter" */
   current_staking_pool_voter_stream: Array<CurrentStakingPoolVoter>;
   /** fetch data from the table: "current_table_items" */
   current_table_items: Array<CurrentTableItems>;
   /** fetch data from the table: "current_table_items" using primary key columns */
   current_table_items_by_pk?: Maybe<CurrentTableItems>;
-  /** fetch data from the table in a streaming manner : "current_table_items" */
+  /** fetch data from the table in a streaming manner: "current_table_items" */
   current_table_items_stream: Array<CurrentTableItems>;
   /** fetch data from the table: "current_token_datas" */
   current_token_datas: Array<CurrentTokenDatas>;
   /** fetch data from the table: "current_token_datas" using primary key columns */
   current_token_datas_by_pk?: Maybe<CurrentTokenDatas>;
-  /** fetch data from the table in a streaming manner : "current_token_datas" */
+  /** fetch data from the table in a streaming manner: "current_token_datas" */
   current_token_datas_stream: Array<CurrentTokenDatas>;
   /** fetch data from the table: "current_token_datas_v2" */
   current_token_datas_v2: Array<CurrentTokenDatasV2>;
   /** fetch data from the table: "current_token_datas_v2" using primary key columns */
   current_token_datas_v2_by_pk?: Maybe<CurrentTokenDatasV2>;
-  /** fetch data from the table in a streaming manner : "current_token_datas_v2" */
+  /** fetch data from the table in a streaming manner: "current_token_datas_v2" */
   current_token_datas_v2_stream: Array<CurrentTokenDatasV2>;
   /** fetch data from the table: "current_token_ownerships" */
   current_token_ownerships: Array<CurrentTokenOwnerships>;
@@ -7584,7 +8092,7 @@ export type SubscriptionRoot = {
   current_token_ownerships_aggregate: CurrentTokenOwnershipsAggregate;
   /** fetch data from the table: "current_token_ownerships" using primary key columns */
   current_token_ownerships_by_pk?: Maybe<CurrentTokenOwnerships>;
-  /** fetch data from the table in a streaming manner : "current_token_ownerships" */
+  /** fetch data from the table in a streaming manner: "current_token_ownerships" */
   current_token_ownerships_stream: Array<CurrentTokenOwnerships>;
   /** fetch data from the table: "current_token_ownerships_v2" */
   current_token_ownerships_v2: Array<CurrentTokenOwnershipsV2>;
@@ -7592,113 +8100,123 @@ export type SubscriptionRoot = {
   current_token_ownerships_v2_aggregate: CurrentTokenOwnershipsV2Aggregate;
   /** fetch data from the table: "current_token_ownerships_v2" using primary key columns */
   current_token_ownerships_v2_by_pk?: Maybe<CurrentTokenOwnershipsV2>;
-  /** fetch data from the table in a streaming manner : "current_token_ownerships_v2" */
+  /** fetch data from the table in a streaming manner: "current_token_ownerships_v2" */
   current_token_ownerships_v2_stream: Array<CurrentTokenOwnershipsV2>;
   /** fetch data from the table: "current_token_pending_claims" */
   current_token_pending_claims: Array<CurrentTokenPendingClaims>;
   /** fetch data from the table: "current_token_pending_claims" using primary key columns */
   current_token_pending_claims_by_pk?: Maybe<CurrentTokenPendingClaims>;
-  /** fetch data from the table in a streaming manner : "current_token_pending_claims" */
+  /** fetch data from the table in a streaming manner: "current_token_pending_claims" */
   current_token_pending_claims_stream: Array<CurrentTokenPendingClaims>;
   /** An array relationship */
   delegated_staking_activities: Array<DelegatedStakingActivities>;
   /** fetch data from the table: "delegated_staking_activities" using primary key columns */
   delegated_staking_activities_by_pk?: Maybe<DelegatedStakingActivities>;
-  /** fetch data from the table in a streaming manner : "delegated_staking_activities" */
+  /** fetch data from the table in a streaming manner: "delegated_staking_activities" */
   delegated_staking_activities_stream: Array<DelegatedStakingActivities>;
+  /** fetch data from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances: Array<DelegatedStakingPoolBalances>;
+  /** fetch aggregated fields from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_aggregate: DelegatedStakingPoolBalancesAggregate;
+  /** fetch data from the table: "delegated_staking_pool_balances" using primary key columns */
+  delegated_staking_pool_balances_by_pk?: Maybe<DelegatedStakingPoolBalances>;
+  /** fetch data from the table in a streaming manner: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_stream: Array<DelegatedStakingPoolBalances>;
   /** fetch data from the table: "delegated_staking_pools" */
   delegated_staking_pools: Array<DelegatedStakingPools>;
   /** fetch data from the table: "delegated_staking_pools" using primary key columns */
   delegated_staking_pools_by_pk?: Maybe<DelegatedStakingPools>;
-  /** fetch data from the table in a streaming manner : "delegated_staking_pools" */
+  /** fetch data from the table in a streaming manner: "delegated_staking_pools" */
   delegated_staking_pools_stream: Array<DelegatedStakingPools>;
   /** fetch data from the table: "delegator_distinct_pool" */
   delegator_distinct_pool: Array<DelegatorDistinctPool>;
   /** fetch aggregated fields from the table: "delegator_distinct_pool" */
   delegator_distinct_pool_aggregate: DelegatorDistinctPoolAggregate;
-  /** fetch data from the table in a streaming manner : "delegator_distinct_pool" */
+  /** fetch data from the table in a streaming manner: "delegator_distinct_pool" */
   delegator_distinct_pool_stream: Array<DelegatorDistinctPool>;
   /** fetch data from the table: "events" */
   events: Array<Events>;
   /** fetch data from the table: "events" using primary key columns */
   events_by_pk?: Maybe<Events>;
-  /** fetch data from the table in a streaming manner : "events" */
+  /** fetch data from the table in a streaming manner: "events" */
   events_stream: Array<Events>;
   /** An array relationship */
   fungible_asset_activities: Array<FungibleAssetActivities>;
   /** fetch data from the table: "fungible_asset_activities" using primary key columns */
   fungible_asset_activities_by_pk?: Maybe<FungibleAssetActivities>;
-  /** fetch data from the table in a streaming manner : "fungible_asset_activities" */
+  /** fetch data from the table in a streaming manner: "fungible_asset_activities" */
   fungible_asset_activities_stream: Array<FungibleAssetActivities>;
   /** fetch data from the table: "fungible_asset_metadata" */
   fungible_asset_metadata: Array<FungibleAssetMetadata>;
   /** fetch data from the table: "fungible_asset_metadata" using primary key columns */
   fungible_asset_metadata_by_pk?: Maybe<FungibleAssetMetadata>;
-  /** fetch data from the table in a streaming manner : "fungible_asset_metadata" */
+  /** fetch data from the table in a streaming manner: "fungible_asset_metadata" */
   fungible_asset_metadata_stream: Array<FungibleAssetMetadata>;
   /** fetch data from the table: "indexer_status" */
   indexer_status: Array<IndexerStatus>;
   /** fetch data from the table: "indexer_status" using primary key columns */
   indexer_status_by_pk?: Maybe<IndexerStatus>;
-  /** fetch data from the table in a streaming manner : "indexer_status" */
+  /** fetch data from the table in a streaming manner: "indexer_status" */
   indexer_status_stream: Array<IndexerStatus>;
   /** fetch data from the table: "ledger_infos" */
   ledger_infos: Array<LedgerInfos>;
   /** fetch data from the table: "ledger_infos" using primary key columns */
   ledger_infos_by_pk?: Maybe<LedgerInfos>;
-  /** fetch data from the table in a streaming manner : "ledger_infos" */
+  /** fetch data from the table in a streaming manner: "ledger_infos" */
   ledger_infos_stream: Array<LedgerInfos>;
   /** fetch data from the table: "move_resources" */
   move_resources: Array<MoveResources>;
   /** fetch aggregated fields from the table: "move_resources" */
   move_resources_aggregate: MoveResourcesAggregate;
-  /** fetch data from the table in a streaming manner : "move_resources" */
+  /** fetch data from the table in a streaming manner: "move_resources" */
   move_resources_stream: Array<MoveResources>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_auctions" */
   nft_marketplace_v2_current_nft_marketplace_auctions: Array<NftMarketplaceV2CurrentNftMarketplaceAuctions>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_auctions" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_auctions_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceAuctions>;
-  /** fetch data from the table in a streaming manner : "nft_marketplace_v2.current_nft_marketplace_auctions" */
+  /** fetch data from the table in a streaming manner: "nft_marketplace_v2.current_nft_marketplace_auctions" */
   nft_marketplace_v2_current_nft_marketplace_auctions_stream: Array<NftMarketplaceV2CurrentNftMarketplaceAuctions>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_collection_offers" */
   nft_marketplace_v2_current_nft_marketplace_collection_offers: Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_collection_offers" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_collection_offers_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceCollectionOffers>;
-  /** fetch data from the table in a streaming manner : "nft_marketplace_v2.current_nft_marketplace_collection_offers" */
+  /** fetch data from the table in a streaming manner: "nft_marketplace_v2.current_nft_marketplace_collection_offers" */
   nft_marketplace_v2_current_nft_marketplace_collection_offers_stream: Array<NftMarketplaceV2CurrentNftMarketplaceCollectionOffers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
   nft_marketplace_v2_current_nft_marketplace_listings: Array<NftMarketplaceV2CurrentNftMarketplaceListings>;
+  /** fetch aggregated fields from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
+  nft_marketplace_v2_current_nft_marketplace_listings_aggregate: NftMarketplaceV2CurrentNftMarketplaceListingsAggregate;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_listings_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceListings>;
-  /** fetch data from the table in a streaming manner : "nft_marketplace_v2.current_nft_marketplace_listings" */
+  /** fetch data from the table in a streaming manner: "nft_marketplace_v2.current_nft_marketplace_listings" */
   nft_marketplace_v2_current_nft_marketplace_listings_stream: Array<NftMarketplaceV2CurrentNftMarketplaceListings>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_token_offers" */
   nft_marketplace_v2_current_nft_marketplace_token_offers: Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_token_offers" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_token_offers_by_pk?: Maybe<NftMarketplaceV2CurrentNftMarketplaceTokenOffers>;
-  /** fetch data from the table in a streaming manner : "nft_marketplace_v2.current_nft_marketplace_token_offers" */
+  /** fetch data from the table in a streaming manner: "nft_marketplace_v2.current_nft_marketplace_token_offers" */
   nft_marketplace_v2_current_nft_marketplace_token_offers_stream: Array<NftMarketplaceV2CurrentNftMarketplaceTokenOffers>;
   /** fetch data from the table: "nft_marketplace_v2.nft_marketplace_activities" */
   nft_marketplace_v2_nft_marketplace_activities: Array<NftMarketplaceV2NftMarketplaceActivities>;
   /** fetch data from the table: "nft_marketplace_v2.nft_marketplace_activities" using primary key columns */
   nft_marketplace_v2_nft_marketplace_activities_by_pk?: Maybe<NftMarketplaceV2NftMarketplaceActivities>;
-  /** fetch data from the table in a streaming manner : "nft_marketplace_v2.nft_marketplace_activities" */
+  /** fetch data from the table in a streaming manner: "nft_marketplace_v2.nft_marketplace_activities" */
   nft_marketplace_v2_nft_marketplace_activities_stream: Array<NftMarketplaceV2NftMarketplaceActivities>;
   /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" */
   nft_metadata_crawler_parsed_asset_uris: Array<NftMetadataCrawlerParsedAssetUris>;
   /** fetch data from the table: "nft_metadata_crawler.parsed_asset_uris" using primary key columns */
   nft_metadata_crawler_parsed_asset_uris_by_pk?: Maybe<NftMetadataCrawlerParsedAssetUris>;
-  /** fetch data from the table in a streaming manner : "nft_metadata_crawler.parsed_asset_uris" */
+  /** fetch data from the table in a streaming manner: "nft_metadata_crawler.parsed_asset_uris" */
   nft_metadata_crawler_parsed_asset_uris_stream: Array<NftMetadataCrawlerParsedAssetUris>;
   /** fetch data from the table: "num_active_delegator_per_pool" */
   num_active_delegator_per_pool: Array<NumActiveDelegatorPerPool>;
-  /** fetch data from the table in a streaming manner : "num_active_delegator_per_pool" */
+  /** fetch data from the table in a streaming manner: "num_active_delegator_per_pool" */
   num_active_delegator_per_pool_stream: Array<NumActiveDelegatorPerPool>;
   /** fetch data from the table: "processor_status" */
   processor_status: Array<ProcessorStatus>;
   /** fetch data from the table: "processor_status" using primary key columns */
   processor_status_by_pk?: Maybe<ProcessorStatus>;
-  /** fetch data from the table in a streaming manner : "processor_status" */
+  /** fetch data from the table in a streaming manner: "processor_status" */
   processor_status_stream: Array<ProcessorStatus>;
   /** fetch data from the table: "proposal_votes" */
   proposal_votes: Array<ProposalVotes>;
@@ -7706,19 +8224,19 @@ export type SubscriptionRoot = {
   proposal_votes_aggregate: ProposalVotesAggregate;
   /** fetch data from the table: "proposal_votes" using primary key columns */
   proposal_votes_by_pk?: Maybe<ProposalVotes>;
-  /** fetch data from the table in a streaming manner : "proposal_votes" */
+  /** fetch data from the table in a streaming manner: "proposal_votes" */
   proposal_votes_stream: Array<ProposalVotes>;
   /** fetch data from the table: "table_items" */
   table_items: Array<TableItems>;
   /** fetch data from the table: "table_items" using primary key columns */
   table_items_by_pk?: Maybe<TableItems>;
-  /** fetch data from the table in a streaming manner : "table_items" */
+  /** fetch data from the table in a streaming manner: "table_items" */
   table_items_stream: Array<TableItems>;
   /** fetch data from the table: "table_metadatas" */
   table_metadatas: Array<TableMetadatas>;
   /** fetch data from the table: "table_metadatas" using primary key columns */
   table_metadatas_by_pk?: Maybe<TableMetadatas>;
-  /** fetch data from the table in a streaming manner : "table_metadatas" */
+  /** fetch data from the table in a streaming manner: "table_metadatas" */
   table_metadatas_stream: Array<TableMetadatas>;
   /** An array relationship */
   token_activities: Array<TokenActivities>;
@@ -7726,7 +8244,7 @@ export type SubscriptionRoot = {
   token_activities_aggregate: TokenActivitiesAggregate;
   /** fetch data from the table: "token_activities" using primary key columns */
   token_activities_by_pk?: Maybe<TokenActivities>;
-  /** fetch data from the table in a streaming manner : "token_activities" */
+  /** fetch data from the table in a streaming manner: "token_activities" */
   token_activities_stream: Array<TokenActivities>;
   /** An array relationship */
   token_activities_v2: Array<TokenActivitiesV2>;
@@ -7734,31 +8252,31 @@ export type SubscriptionRoot = {
   token_activities_v2_aggregate: TokenActivitiesV2Aggregate;
   /** fetch data from the table: "token_activities_v2" using primary key columns */
   token_activities_v2_by_pk?: Maybe<TokenActivitiesV2>;
-  /** fetch data from the table in a streaming manner : "token_activities_v2" */
+  /** fetch data from the table in a streaming manner: "token_activities_v2" */
   token_activities_v2_stream: Array<TokenActivitiesV2>;
   /** fetch data from the table: "token_datas" */
   token_datas: Array<TokenDatas>;
   /** fetch data from the table: "token_datas" using primary key columns */
   token_datas_by_pk?: Maybe<TokenDatas>;
-  /** fetch data from the table in a streaming manner : "token_datas" */
+  /** fetch data from the table in a streaming manner: "token_datas" */
   token_datas_stream: Array<TokenDatas>;
   /** fetch data from the table: "token_ownerships" */
   token_ownerships: Array<TokenOwnerships>;
   /** fetch data from the table: "token_ownerships" using primary key columns */
   token_ownerships_by_pk?: Maybe<TokenOwnerships>;
-  /** fetch data from the table in a streaming manner : "token_ownerships" */
+  /** fetch data from the table in a streaming manner: "token_ownerships" */
   token_ownerships_stream: Array<TokenOwnerships>;
   /** fetch data from the table: "tokens" */
   tokens: Array<Tokens>;
   /** fetch data from the table: "tokens" using primary key columns */
   tokens_by_pk?: Maybe<Tokens>;
-  /** fetch data from the table in a streaming manner : "tokens" */
+  /** fetch data from the table in a streaming manner: "tokens" */
   tokens_stream: Array<Tokens>;
   /** fetch data from the table: "user_transactions" */
   user_transactions: Array<UserTransactions>;
   /** fetch data from the table: "user_transactions" using primary key columns */
   user_transactions_by_pk?: Maybe<UserTransactions>;
-  /** fetch data from the table in a streaming manner : "user_transactions" */
+  /** fetch data from the table in a streaming manner: "user_transactions" */
   user_transactions_stream: Array<UserTransactions>;
 };
 
@@ -8380,6 +8898,33 @@ export type SubscriptionRootDelegatedStakingActivitiesStreamArgs = {
   where?: InputMaybe<DelegatedStakingActivitiesBoolExp>;
 };
 
+export type SubscriptionRootDelegatedStakingPoolBalancesArgs = {
+  distinct_on?: InputMaybe<Array<DelegatedStakingPoolBalancesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<DelegatedStakingPoolBalancesOrderBy>>;
+  where?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+};
+
+export type SubscriptionRootDelegatedStakingPoolBalancesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<DelegatedStakingPoolBalancesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<DelegatedStakingPoolBalancesOrderBy>>;
+  where?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+};
+
+export type SubscriptionRootDelegatedStakingPoolBalancesByPkArgs = {
+  staking_pool_address: Scalars["String"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+};
+
+export type SubscriptionRootDelegatedStakingPoolBalancesStreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<DelegatedStakingPoolBalancesStreamCursorInput>>;
+  where?: InputMaybe<DelegatedStakingPoolBalancesBoolExp>;
+};
+
 export type SubscriptionRootDelegatedStakingPoolsArgs = {
   distinct_on?: InputMaybe<Array<DelegatedStakingPoolsSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -8573,6 +9118,14 @@ export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceCollectionOffer
 };
 
 export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceListingsArgs = {
+  distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsOrderBy>>;
+  where?: InputMaybe<NftMarketplaceV2CurrentNftMarketplaceListingsBoolExp>;
+};
+
+export type SubscriptionRootNftMarketplaceV2CurrentNftMarketplaceListingsAggregateArgs = {
   distinct_on?: InputMaybe<Array<NftMarketplaceV2CurrentNftMarketplaceListingsSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -9104,6 +9657,17 @@ export type TokenActivitiesAggregate = {
   nodes: Array<TokenActivities>;
 };
 
+export type TokenActivitiesAggregateBoolExp = {
+  count?: InputMaybe<TokenActivitiesAggregateBoolExpCount>;
+};
+
+export type TokenActivitiesAggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<TokenActivitiesSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<TokenActivitiesBoolExp>;
+  predicate: IntComparisonExp;
+};
+
 /** aggregate fields of "token_activities" */
 export type TokenActivitiesAggregateFields = {
   avg?: Maybe<TokenActivitiesAvgFields>;
@@ -9168,7 +9732,9 @@ export type TokenActivitiesBoolExp = {
   _not?: InputMaybe<TokenActivitiesBoolExp>;
   _or?: InputMaybe<Array<TokenActivitiesBoolExp>>;
   aptos_names_owner?: InputMaybe<CurrentAptosNamesBoolExp>;
+  aptos_names_owner_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   aptos_names_to?: InputMaybe<CurrentAptosNamesBoolExp>;
+  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   coin_amount?: InputMaybe<NumericComparisonExp>;
   coin_type?: InputMaybe<StringComparisonExp>;
   collection_data_id_hash?: InputMaybe<StringComparisonExp>;
@@ -9532,6 +10098,33 @@ export type TokenActivitiesV2Aggregate = {
   nodes: Array<TokenActivitiesV2>;
 };
 
+export type TokenActivitiesV2AggregateBoolExp = {
+  bool_and?: InputMaybe<TokenActivitiesV2AggregateBoolExpBoolAnd>;
+  bool_or?: InputMaybe<TokenActivitiesV2AggregateBoolExpBoolOr>;
+  count?: InputMaybe<TokenActivitiesV2AggregateBoolExpCount>;
+};
+
+export type TokenActivitiesV2AggregateBoolExpBoolAnd = {
+  arguments: TokenActivitiesV2SelectColumnTokenActivitiesV2AggregateBoolExpBoolAndArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<TokenActivitiesV2BoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type TokenActivitiesV2AggregateBoolExpBoolOr = {
+  arguments: TokenActivitiesV2SelectColumnTokenActivitiesV2AggregateBoolExpBoolOrArgumentsColumns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<TokenActivitiesV2BoolExp>;
+  predicate: BooleanComparisonExp;
+};
+
+export type TokenActivitiesV2AggregateBoolExpCount = {
+  arguments?: InputMaybe<Array<TokenActivitiesV2SelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<TokenActivitiesV2BoolExp>;
+  predicate: IntComparisonExp;
+};
+
 /** aggregate fields of "token_activities_v2" */
 export type TokenActivitiesV2AggregateFields = {
   avg?: Maybe<TokenActivitiesV2AvgFields>;
@@ -9591,7 +10184,9 @@ export type TokenActivitiesV2BoolExp = {
   _or?: InputMaybe<Array<TokenActivitiesV2BoolExp>>;
   after_value?: InputMaybe<StringComparisonExp>;
   aptos_names_from?: InputMaybe<CurrentAptosNamesBoolExp>;
+  aptos_names_from_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   aptos_names_to?: InputMaybe<CurrentAptosNamesBoolExp>;
+  aptos_names_to_aggregate?: InputMaybe<CurrentAptosNamesAggregateBoolExp>;
   before_value?: InputMaybe<StringComparisonExp>;
   current_token_data?: InputMaybe<CurrentTokenDatasV2BoolExp>;
   entry_function_id_str?: InputMaybe<StringComparisonExp>;
@@ -9735,6 +10330,18 @@ export enum TokenActivitiesV2SelectColumn {
   TransactionVersion = "transaction_version",
   /** column name */
   Type = "type",
+}
+
+/** select "token_activities_v2_aggregate_bool_exp_bool_and_arguments_columns" columns of table "token_activities_v2" */
+export enum TokenActivitiesV2SelectColumnTokenActivitiesV2AggregateBoolExpBoolAndArgumentsColumns {
+  /** column name */
+  IsFungibleV2 = "is_fungible_v2",
+}
+
+/** select "token_activities_v2_aggregate_bool_exp_bool_or_arguments_columns" columns of table "token_activities_v2" */
+export enum TokenActivitiesV2SelectColumnTokenActivitiesV2AggregateBoolExpBoolOrArgumentsColumns {
+  /** column name */
+  IsFungibleV2 = "is_fungible_v2",
 }
 
 /** aggregate stddev on columns */

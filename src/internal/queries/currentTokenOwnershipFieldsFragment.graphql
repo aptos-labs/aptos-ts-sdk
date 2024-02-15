@@ -25,6 +25,7 @@ fragment CurrentTokenOwnershipFields on current_token_ownerships_v2 {
     token_properties
     token_standard
     token_uri
+    decimals
     current_collection {
       collection_id
       collection_name

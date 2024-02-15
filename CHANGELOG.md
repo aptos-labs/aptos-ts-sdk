@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `decimals` field to token data queries
+
 # 1.7.0 (2024-02-13)
 
 - Add ability to provide ABI to skip ABI fetch, and get roughly 50% performance improvement

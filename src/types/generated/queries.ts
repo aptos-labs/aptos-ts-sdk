@@ -60,6 +60,7 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
     token_properties
     token_standard
     token_uri
+    decimals
     current_collection {
       collection_id
       collection_name
@@ -433,6 +434,7 @@ export const GetTokenData = `
     token_properties
     token_standard
     token_uri
+    decimals
     current_collection {
       collection_id
       collection_name
