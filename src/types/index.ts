@@ -156,6 +156,8 @@ export type AptosSettings = {
 
   readonly pepper?: string;
 
+  readonly prover?: string;
+
   readonly clientConfig?: ClientConfig;
 
   readonly client?: Client;

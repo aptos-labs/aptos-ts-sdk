@@ -10,3 +10,4 @@ export * from "./hex";
 export * from "./multiKeyAccount";
 export * from "./ephemeralAccount";
 export * from "./openIdAccount";
+export * from "./zkIdAccount";

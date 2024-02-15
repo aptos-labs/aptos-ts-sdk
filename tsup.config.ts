@@ -13,7 +13,7 @@ const DEFAULT_CONFIG: Options = {
   bundle: true,
   clean: true, // clean up the dist folder
   dts: true, // generate dts files
-  minify: true,
+  minify: false,
   entry: ["src/index.ts"], // include all files under src
   skipNodeModulesBundle: true,
   sourcemap: true,

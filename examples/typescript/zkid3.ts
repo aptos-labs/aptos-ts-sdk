@@ -25,8 +25,9 @@ const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
 
-const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJ0ZXN0X2NsaWVudF9pZCIsInN1YiI6InRlc3RfYWNjb3VudCIsImVtYWlsIjoidGVzdEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibm9uY2UiOiIxYlFsNF9YYzUtSXBDcFViS19BZVhwZ2Q2R1o0MGxVVjN1YjN5b19FTHhrIiwibmJmIjoxNzAyODA4OTM2LCJpYXQiOjE3MDQ5MDkyMzYsImV4cCI6MTcwNzgxMjgzNiwianRpIjoiZjEwYWZiZjBlN2JiOTcyZWI4ZmE2M2YwMjQ5YjBhMzRhMjMxZmM0MCJ9.oBdOiIUc-ioG2-sHV1hWDLjgk4NrVf3z6V-HmgbOrVAz3PV1CwdfyTXsmVaCqLzOHzcbFB6ZRDxShs3aR7PsqdlhI0Dh8WrfU8kBkyk1FAmx2nST4SoSJROXsnusaOpNFpgSl96Rq3SXgr-yPBE9dEwTfD00vq2gH_fH1JAIeJJhc6WicMcsEZ7iONT1RZOid_9FlDrg1GxlGtNmpn4nEAmIxqnT0JrCESiRvzmuuXUibwx9xvHgIxhyVuAA9amlzaD1DL6jEc5B_0YnGKN7DO_l2Hkj9MbQZvU0beR-Lfcz8jxCjojODTYmWgbtu5E7YWIyC6dsjiBnTxc-svCsmQ";
+// const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3RfandrIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTM5OTAzMDcwODI4OTk3MTg3NzUiLCJoZCI6ImFwdG9zbGFicy5jb20iLCJlbWFpbCI6Im1pY2hhZWxAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiYnhJRVN1STU5SW9aYjVhbENBU3FCZyIsIm5hbWUiOiJNaWNoYWVsIFN0cmFrYSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKdlk0a1ZVQlJ0THhlMUlxS1dMNWk3dEJESnpGcDlZdVdWWE16d1BwYnM9czk2LWMiLCJnaXZlbl9uYW1lIjoiTWljaGFlbCIsImZhbWlseV9uYW1lIjoiU3RyYWthIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE3MDAyNTU5NDQsImV4cCI6MjcwMDI1OTU0NCwibm9uY2UiOiI5Mzc5OTY2MjUyMjQ4MzE1NTY1NTA5NzkwNjEzNDM5OTAyMDA1MTU4ODcxODE1NzA4ODczNjMyNDMxNjk4MTkzNDIxNzk1MDMzNDk4In0.JJNqnxZ_CbJm5htLRy9iR9OYFlKXB2ZyRa41HcS5PevwLWgGYS8co3WGwd312712kNZ8t8JXY651VW5YT57-BIVWTzPq4GhIXnS4nGc12IlNJtn5tmgIAeOfUVsLlITdu8jvdGp5lU3fJDCqlyczeFFhnbZ8irNHRr206hxrwLOMvMKq9VH4iMWl3HdDseJdKGNC-HBJ1U9ik6klAd4_pv9bfXzclpnEfLebr9RgITf7sBjHh2n-0k-EIZhxWra37EgU2sTG5oU1hkYbaLKwj8ZZYIbM4CNBlaKq__iE9tLZ2N_mRMG2oYcn7WlTiU2DOydzPUcSrO4jPU3PNgDpjQ";
 
+const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImVkODA2ZjE4NDJiNTg4MDU0YjE4YjY2OWRkMWEwOWE0ZjM2N2FmYzQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE2Mjc3NzI0NjA3NTIzNDIzMTIiLCJhdF9oYXNoIjoiSU5pMEVfSmhJQzhuMGhyODBVS0ctUSIsIm5vbmNlIjoiOTM3OTk2NjI1MjI0ODMxNTU2NTUwOTc5MDYxMzQzOTkwMjAwNTE1ODg3MTgxNTcwODg3MzYzMjQzMTY5ODE5MzQyMTc5NTAzMzQ5OCIsImlhdCI6MTcwNzkwNTA3NiwiZXhwIjoxNzA3OTA4Njc2fQ.VqdHZMKmSkWJ_WF1BAWASsna9HkjwmOdGRs15SRanAs4Gc3du7uq-As2D9FErORMu3zVjYCw9YW7V-u6uiZQ7ogjk2BOjm3LMJ5AQ3mXsKzorsfxyMk8Rq7LEo5-rzvJOOSinPG_rJ7AQGkjNQ0VXASa7olY4ND_Vhb7ptqG_owLXUBGI7-yi-K4pSQGaQtcUf5Pco5IJZ_W5u9mGrtxCeDaGVcjf9uzY7k4phBdw6u_Letv00iBjCDH0N1qztJqrgX1_4qUBu9rYYjTSJKjF_dPvMQUNvMCH4GXi2rXWjlqO_P71PDf6S9uswhjU6Oa3yVyLBylWz0i_-TugdNEjg"
 /**
  * Prints the balance of an account
  * @param aptos
@@ -50,22 +51,24 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 const example = async () => {
   // Setup the client
   const config = new AptosConfig({network: Network.LOCAL});
+  // const config = new AptosConfig();
+
   const aptos = new Aptos(config);
 
   // Create two accounts
-  const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
-  const expiryTimestamp = BigInt(1707812836);
+  const privateKey = new Ed25519PrivateKey("0x76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7");
+  const expiryTimestamp = BigInt(1900255944);
   const blinder = new Uint8Array(31);
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
   }
-  const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp, blinder });
+  const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp, blinder: "2a00000000000000000000000000000000000000000000000000000000000000" });
 
   console.log();
   console.log("=== Get token via the below link ===");
   console.log();
 
-  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=profile&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
+  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=openid&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
   console.log(link);
   console.log();
 
@@ -98,14 +101,19 @@ const example = async () => {
 
   const bob = Account.generate();
 
-  const alice = await aptos.deriveAccountFromJWTAndEphemAccount({
+  const alice = await aptos.deriveGrothAccountFromJWTAndEphemAccount({
     jwt,
     ephemeralAccount: aliceEphem,
+    pepper: "4c000000000000000000000000000000000000000000000000000000000000",
+    // extraFieldKey: "family_name"
   });
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
   console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
+  console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
+  console.log(`Alice's zkid is: ${alice.publicKey.addressSeed}`);
+  // console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
 
   console.log(`Bob's address is: ${bob.accountAddress}`);
 

@@ -16,6 +16,7 @@
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "zkid": "ts-node zkid.ts",
     "zkid2": "ts-node zkid2.ts",
+    "zkid3": "ts-node zkid3.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing"
   },
   "keywords": [],

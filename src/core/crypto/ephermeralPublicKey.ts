@@ -33,7 +33,7 @@ export class EphemeralPublicKey extends PublicKey {
    * @returns Uint8Array representation of the public key
    */
   toUint8Array(): Uint8Array {
-    return this.publicKey.toUint8Array();
+    return this.bcsToBytes();
   }
 
   /**
@@ -42,7 +42,7 @@ export class EphemeralPublicKey extends PublicKey {
    * @returns string representation of the public key
    */
   toString(): string {
-    return this.publicKey.toString();
+    return this.bcsToHex().toString()
   }
 
   /**

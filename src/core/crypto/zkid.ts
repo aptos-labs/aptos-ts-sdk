@@ -3,7 +3,7 @@
 
 import { bytesToHex } from "@noble/curves/abstract/utils";
 import { PublicKey, Signature } from "./asymmetricCrypto";
-import { Deserializer, Serializer } from "../../bcs";
+import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput, OpenIdSignatureOrZkProofVariant } from "../../types";
 import { EphemeralPublicKey } from "./ephermeralPublicKey";
@@ -145,6 +145,9 @@ export class OpenIdSignatureOrZkProof extends Signature {
     if (this.signature instanceof OpenIdSignature) {
       serializer.serializeU32AsUleb128(OpenIdSignatureOrZkProofVariant.OpenIdSignature);
       this.signature.serialize(serializer);
+    } else if (this.signature instanceof SignedGroth16Signature) {
+      serializer.serializeU32AsUleb128(OpenIdSignatureOrZkProofVariant.ZkProof);
+      this.signature.serialize(serializer);
     } else {
       throw new Error("Not a valid signature for zkID");
     }
@@ -161,6 +164,124 @@ export class OpenIdSignatureOrZkProof extends Signature {
         throw new Error(`Unknown variant index for OpenIdSignatureOrZkProofVariant: ${index}`);
     }
   }
+}
+
+export class Groth16Zkp extends Serializable{
+  a: Uint8Array;
+
+  b: Uint8Array;
+
+  c: Uint8Array;
+
+  constructor(args: {
+    a: HexInput,
+    b: HexInput,
+    c: HexInput,
+  }) {
+    super();
+    const { a, b, c } = args;
+    this.a = Hex.fromHexInput(a).toUint8Array();
+    this.b = Hex.fromHexInput(b).toUint8Array();
+    this.c = Hex.fromHexInput(c).toUint8Array();
+  }
+
+  toUint8Array(): Uint8Array {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return serializer.toUint8Array();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeFixedBytes(this.a); // Should this be fixedBytes??
+    serializer.serializeFixedBytes(this.b);
+    serializer.serializeFixedBytes(this.c);
+  }
+
+  static deserialize(deserializer: Deserializer): Groth16Zkp {
+    const a = deserializer.deserializeBytes();
+    const b = deserializer.deserializeBytes();
+    const c = deserializer.deserializeBytes();
+    return new Groth16Zkp({ a, b, c });
+  }
+}
+
+export class SignedGroth16Signature extends Signature {
+  readonly proof: Groth16Zkp;
+
+  readonly nonMalleabilitySignature: EphemeralSignature;
+
+  readonly trainingWheelsSignature?: EphemeralSignature;
+
+  readonly extraField: string;
+
+  readonly overrideAudVal?: string;
+
+
+  constructor(args: {
+    proof: Groth16Zkp;
+    nonMalleabilitySignature: EphemeralSignature;
+    trainingWheelsSignature?: EphemeralSignature;
+    extraField: string;
+    overrideAudVal?: string;
+  }) {
+    super();
+    const { proof, nonMalleabilitySignature, trainingWheelsSignature, extraField, overrideAudVal } = args;
+    this.proof = proof;
+    this.nonMalleabilitySignature = nonMalleabilitySignature;
+    this.trainingWheelsSignature = trainingWheelsSignature;
+    this.extraField = extraField;
+    this.overrideAudVal = overrideAudVal;
+  }
+
+  /**
+   * Get the signature in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the signature
+   */
+  toUint8Array(): Uint8Array {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return serializer.toUint8Array();
+  }
+
+  /**
+   * Get the signature as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the signature
+   */
+  toString(): string {
+    return this.toString();
+  }
+
+  serialize(serializer: Serializer): void {
+    this.proof.serialize(serializer);
+    this.nonMalleabilitySignature.serialize(serializer);
+    serializer.serializeU64(100255944); //todo
+    serializer.serializeStr(this.extraField);
+    serializer.serializeOptionStr(this.overrideAudVal);
+    serializer.serializeOption(this.trainingWheelsSignature);
+    
+  }
+
+  static deserialize(deserializer: Deserializer): SignedGroth16Signature {
+    const proof = Groth16Zkp.deserialize(deserializer);
+    const nonMalleabilitySignature = EphemeralSignature.deserialize(deserializer);
+    const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
+    const extraField = deserializer.deserializeStr();
+    return new SignedGroth16Signature({ proof, nonMalleabilitySignature, trainingWheelsSignature, extraField });
+  }
+
+  static load(deserializer: Deserializer): SignedGroth16Signature {
+    const proof = Groth16Zkp.deserialize(deserializer);
+    const nonMalleabilitySignature = EphemeralSignature.deserialize(deserializer);
+    const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
+    const extraField = deserializer.deserializeStr();
+    return new SignedGroth16Signature({ proof, nonMalleabilitySignature, trainingWheelsSignature, extraField });
+  }
+
+  // static isSignature(signature: Signature): signature is OpenIdSignature {
+  //   return signature instanceof OpenIdSignature;
+  // }
 }
 
 /**

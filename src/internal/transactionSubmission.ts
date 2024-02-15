@@ -19,7 +19,7 @@ import {
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
   sign,
-  generateSigningMessage,
+  generateSigningMessageForTransaction,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
@@ -181,7 +181,7 @@ function isMultiAgentTransactionInput(
  */
 export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
   const { transaction } = args;
-  return generateSigningMessage(transaction);
+  return generateSigningMessageForTransaction(transaction);
 }
 
 /**

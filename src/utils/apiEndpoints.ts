@@ -29,6 +29,14 @@ export const NetworkToPepperAPI: Record<string, string> = {
   local: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
 };
 
+const tempProver = "http://35.236.15.8:8080"
+export const NetworkToProverAPI: Record<string, string> = {
+  mainnet: tempProver,
+  testnet: tempProver,
+  devnet: tempProver,
+  local: tempProver,
+};
+
 export enum Network {
   MAINNET = "mainnet",
   TESTNET = "testnet",

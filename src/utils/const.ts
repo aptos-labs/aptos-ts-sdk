@@ -11,6 +11,7 @@ export enum AptosApiType {
   INDEXER,
   FAUCET,
   PEPPER,
+  PROVER,
 }
 
 export const DEFAULT_NETWORK = Network.DEVNET;
@@ -48,8 +49,8 @@ export const DEFAULT_TXN_TIMEOUT_SEC = 20;
  */
 export const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 
-export const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
-export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
+export const RAW_TRANSACTION_SALT = "RawTransaction";
+export const RAW_TRANSACTION_WITH_DATA_SALT = "RawTransactionWithData";
 
 /**
  * The list of supported Processor types for our indexer api.

@@ -8,7 +8,7 @@
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AccountAddress, AccountAddressInput, Hex, MultiKeyAccount, PublicKey, Signer, ZkIDAccount } from "../../core";
+import { AccountAddress, AccountAddressInput, Hex, MultiKeyAccount, PublicKey, Signer } from "../../core";
 import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
@@ -77,6 +77,7 @@ import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { ZkIDPublicKey } from "../../core/crypto/zkid";
 import { MultiSignature } from "../../core/crypto/multiSignature";
+import { Serializable } from "../../bcs";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -421,7 +422,7 @@ export function sign(args: { signer: Signer; transaction: AnyRawTransaction }): 
   const { signer, transaction } = args;
 
   // get the signing message
-  const message = generateSigningMessage(transaction);
+  const message = generateSigningMessageForTransaction(transaction);
 
   // account.signMessage
   const signerSignature = signer.sign(message);
@@ -575,27 +576,33 @@ export function generateMultiSignersSignedTransaction(
   );
 }
 
-export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
-  const rawTxn = deriveTransactionType(transaction);
+export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
   const hash = sha3Hash.create();
 
-  if (rawTxn instanceof RawTransaction) {
-    hash.update(RAW_TRANSACTION_SALT);
-  } else if (rawTxn instanceof MultiAgentRawTransaction) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else if (rawTxn instanceof FeePayerRawTransaction) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else {
-    throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
-  }
-
+  hash.update(`APTOS::${domainSeparator}`);
+  
   const prefix = hash.digest();
 
-  const body = rawTxn.bcsToBytes();
+  const body = bytes;
 
   const mergedArray = new Uint8Array(prefix.length + body.length);
   mergedArray.set(prefix);
   mergedArray.set(body, prefix.length);
 
   return mergedArray;
+}
+
+
+export function generateSigningMessageForSerializable(obj: Serializable): Uint8Array {
+  return generateSigningMessage(obj.bcsToBytes(), obj.constructor.name);
+}
+
+export function generateSigningMessageForTransaction(transaction: AnyRawTransaction): Uint8Array {
+  const rawTxn = deriveTransactionType(transaction);
+  if (rawTxn instanceof RawTransaction) {
+    return generateSigningMessage(rawTxn.bcsToBytes(),RAW_TRANSACTION_SALT);
+  } if (rawTxn instanceof MultiAgentRawTransaction || rawTxn instanceof FeePayerRawTransaction) {
+    return generateSigningMessage(rawTxn.bcsToBytes(),RAW_TRANSACTION_WITH_DATA_SALT);
+  }
+  throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
 }

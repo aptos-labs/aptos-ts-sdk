@@ -9,6 +9,7 @@ import {
   NetworkToIndexerAPI,
   Network,
   NetworkToPepperAPI,
+  NetworkToProverAPI,
 } from "../utils/apiEndpoints";
 import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
 
@@ -39,6 +40,11 @@ export class AptosConfig {
    */
   readonly pepper?: string;
 
+   /**
+   * The optional hardcoded prover service URL to send requests to instead of using the network
+   */
+   readonly prover?: string;
+
   /**
    * The optional hardcoded indexer URL to send requests to instead of using the network
    */
@@ -51,6 +57,7 @@ export class AptosConfig {
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
     this.pepper = settings?.pepper;
+    this.prover = settings?.prover;
     this.indexer = settings?.indexer;
     this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
@@ -84,6 +91,10 @@ export class AptosConfig {
         if (this.pepper !== undefined) return this.pepper;
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom pepper service url");
         return NetworkToPepperAPI[this.network];
+      case AptosApiType.PROVER:
+        if (this.prover !== undefined) return this.prover;
+        if (this.network === Network.CUSTOM) throw new Error("Please provide a custom prover service url");
+        return NetworkToProverAPI[this.network];
       default:
         throw Error(`apiType ${apiType} is not supported`);
     }
@@ -106,4 +117,13 @@ export class AptosConfig {
   isPepperServiceRequest(url: string): boolean {
     return NetworkToPepperAPI[this.network] === url;
   }
+
+    /**
+   * Checks if the URL is a known prover service endpoint
+   *
+   * @internal
+   * */
+    isProverServiceRequest(url: string): boolean {
+      return NetworkToProverAPI[this.network] === url;
+    }
 }
