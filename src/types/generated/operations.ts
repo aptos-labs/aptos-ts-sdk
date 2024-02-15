@@ -55,6 +55,7 @@ export type CurrentTokenOwnershipFieldsFragment = {
     token_properties: any;
     token_standard: string;
     token_uri: string;
+    decimals: any;
     current_collection?: {
       collection_id: string;
       collection_name: string;
@@ -211,6 +212,7 @@ export type GetAccountOwnedTokensQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
+      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -266,6 +268,7 @@ export type GetAccountOwnedTokensByTokenDataQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
+      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -321,6 +324,7 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
+      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -593,6 +597,7 @@ export type GetCurrentTokenOwnershipQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
+      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -635,6 +640,7 @@ export type GetTokenDataQuery = {
     token_properties: any;
     token_standard: string;
     token_uri: string;
+    decimals: any;
     current_collection?: {
       collection_id: string;
       collection_name: string;
