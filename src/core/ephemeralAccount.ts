@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { base64url } from "jose";
 import { randomBytes } from "@noble/hashes/utils";
 import { PrivateKey } from "./crypto/asymmetricCrypto";
 import { Ed25519PrivateKey } from "./crypto/ed25519";
@@ -10,7 +9,7 @@ import { Ed25519PrivateKey } from "./crypto/ed25519";
 import { Hex } from "./hex";
 import { GenerateAccount, HexInput, SigningSchemeInput } from "../types";
 import { EphemeralPublicKey } from "./crypto/ephermeralPublicKey";
-import { bigIntToBytesLE, bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "./crypto/poseidon";
+import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "./crypto/poseidon";
 import { EphemeralSignature } from "./crypto/ephemeralSignature";
 
 export class EphemeralAccount {
@@ -24,11 +23,13 @@ export class EphemeralAccount {
 
   readonly publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryTimestamp: bigint; blinder?: HexInput }) {
+  constructor(args: { privateKey: PrivateKey; expiryTimestamp?: bigint; blinder?: HexInput }) {
     const { privateKey, expiryTimestamp, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
-    this.expiryTimestamp = expiryTimestamp;
+    const currentDate = new Date();
+    const currentTimeInSeconds = Math.floor(currentDate.getTime() / 1000) + 10000;
+    this.expiryTimestamp = expiryTimestamp || BigInt(currentTimeInSeconds);
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     this.nonce = this.generateNonce();
   }
