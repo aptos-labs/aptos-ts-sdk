@@ -12,11 +12,11 @@ export interface SingleKeySignerConstructorArgs {
   address?: AccountAddressInput;
 }
 
-export interface GenerateSingleKeySignerArgs {
+export interface SingleKeySignerGenerateArgs {
   scheme?: SigningSchemeInput;
 }
 
-export type SingleKeySignerFromDerivationPathArgs = GenerateSingleKeySignerArgs & {
+export type SingleKeySignerFromDerivationPathArgs = SingleKeySignerGenerateArgs & {
   path: string;
   mnemonic: string;
 };
@@ -48,7 +48,7 @@ export class SingleKeySigner extends SingleKeyAccount implements Signer {
    * Default generation is using an Ed25519 key
    * @returns Account with the given signature scheme
    */
-  static generate(args: GenerateSingleKeySignerArgs = {}) {
+  static generate(args: SingleKeySignerGenerateArgs = {}) {
     const { scheme = SigningSchemeInput.Ed25519 } = args;
     let privateKey: PrivateKeyInput;
     switch (scheme) {

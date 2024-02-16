@@ -6,51 +6,51 @@ import { Ed25519PrivateKey } from "../crypto";
 import { Ed25519Signer } from "./ed25519";
 import { type PrivateKeyInput, SingleKeySigner } from "./singleKey";
 
-interface CreateEd25519SignerFromPrivateKeyArgs {
+export interface CreateEd25519SignerFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
   address?: AccountAddressInput;
   legacy?: true;
 }
 
-interface CreateEd25519SingleKeySignerFromPrivateKeyArgs {
+export interface CreateEd25519SingleKeySignerFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
   address?: AccountAddressInput;
   legacy: false;
 }
 
-interface CreateSingleKeySignerFromPrivateKeyArgs {
+export interface CreateSingleKeySignerFromPrivateKeyArgs {
   privateKey: Exclude<PrivateKeyInput, Ed25519PrivateKey>;
   address?: AccountAddressInput;
   legacy?: false;
 }
 
-interface CreateSignerFromPrivateKeyArgs {
+export interface CreateSignerFromPrivateKeyArgs {
   privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
   legacy?: boolean;
 }
 
-interface GenerateEd25519SignerArgs {
+export interface GenerateEd25519SignerArgs {
   scheme?: SigningSchemeInput.Ed25519;
   legacy?: true;
 }
 
-interface GenerateEd25519SingleKeySignerArgs {
+export interface GenerateEd25519SingleKeySignerArgs {
   scheme?: SigningSchemeInput.Ed25519;
   legacy: false;
 }
 
-interface GenerateSingleKeySignerArgs {
+export interface GenerateSingleKeySignerArgs {
   scheme: Exclude<SigningSchemeInput, SigningSchemeInput.Ed25519>;
   legacy?: false;
 }
 
-interface GenerateSignerArgs {
+export interface GenerateSignerArgs {
   scheme?: SigningSchemeInput;
   legacy?: boolean;
 }
 
-interface PrivateKeyFromDerivationPathArgs {
+export interface PrivateKeyFromDerivationPathArgs {
   path: string;
   mnemonic: string;
 }
