@@ -67,23 +67,22 @@ interface PrivateKeyFromDerivationPathArgs {
  * e.g. `Ed25519Signer` extends from `Ed25519Account`.
  *.
  * Note: Generating a signer instance does not create the account on-chain.
- *
- * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
- * `Legacy` and `Unified` authentications.
- *
- * @Legacy includes `ED25519` and `MultiED25519`
- * @Unified includes `SingleSender` and `MultiSender`, where currently
- * `SingleSender` supports `Ed25519` and `Secp256k1`, and `MultiSender` supports
- * `MultiED25519`.
  */
 export abstract class Signer extends Account {
   /**
-   * Sign a message with the signer's private key.
+   * Sign a message using the available signing capabilities.
    * @param message the signing message, as binary input
    * @return the AccountAuthenticator containing the signature, together with the account's public key
    */
   abstract sign(message: HexInput): AccountAuthenticator;
 
+  /**
+   * Creates a signer from the provided private key.
+   *
+   * @param args.privateKey a valid private key
+   * @param args.address the signer's address. If not provided, it will be derived from the public key.
+   * @param args.legacy Whether to use a legacy authentication scheme, when applicable
+   */
   static fromPrivateKey(args: CreateEd25519SignerFromPrivateKeyArgs): Ed25519Signer;
   static fromPrivateKey(args: CreateEd25519SingleKeySignerFromPrivateKeyArgs): SingleKeySigner;
   static fromPrivateKey(args: CreateSingleKeySignerFromPrivateKeyArgs): SingleKeySigner;
@@ -100,11 +99,10 @@ export abstract class Signer extends Account {
   }
 
   /**
-   * Generates a signer with a random private key and address.
-   * The default generation returns an Ed25519Signer
-   * @param args.scheme The signing scheme to use, to generate the private key
-   * @param args.legacy Whether to use a legacy or unified Ed25519 signer.
-   * @returns A signer compatible with the provided signing scheme
+   * Derives a signer from a randomly generated private key.
+   * @param args.scheme The signature scheme to use, to generate the private key
+   * @param args.legacy Whether to use a legacy authentication scheme, when applicable
+   * @returns A signer compatible with the provided signature scheme
    */
   static generate(args?: GenerateEd25519SignerArgs): Ed25519Signer;
   static generate(args: GenerateEd25519SingleKeySignerArgs): SingleKeySigner;
@@ -119,16 +117,13 @@ export abstract class Signer extends Account {
   }
 
   /**
-   * Derives an account with bip44 path and mnemonics,
+   * Derives an account with bip44 path and mnemonics
    *
-   * @param args.scheme The signing scheme to derive with
+   * @param args.scheme The signature scheme to derive the private key with
    * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
    * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
    * @param args.mnemonic the mnemonic seed phrase of the account
-   * to generating a Legacy Ed25519 keypair
-   *
-   * @returns Account
    */
   static fromDerivationPath(args: GenerateEd25519SignerArgs & PrivateKeyFromDerivationPathArgs): Ed25519Signer;
   static fromDerivationPath(

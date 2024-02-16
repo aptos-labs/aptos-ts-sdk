@@ -23,7 +23,7 @@ export type SingleKeySignerFromDerivationPathArgs = GenerateSingleKeySignerArgs 
 
 /**
  * Signer implementation for the SingleKey authentication scheme.
- * This extends a SingleKeyAccount by adding signing capabilities through a private key.
+ * This extends a SingleKeyAccount by adding signing capabilities through a valid private key.
  * Currently, the only supported signature schemes are Ed25519 and Secp256k1.
  *
  * Note: Generating a signer instance does not create the account on-chain.
@@ -44,9 +44,9 @@ export class SingleKeySigner extends SingleKeyAccount implements Signer {
   }
 
   /**
-   * Derives an account with random private key and address.
-   * Default generation is using a Ed25519 key
-   * @returns Account with the given signing scheme
+   * Derives an account from a randomly generated private key.
+   * Default generation is using an Ed25519 key
+   * @returns Account with the given signature scheme
    */
   static generate(args: GenerateSingleKeySignerArgs = {}) {
     const { scheme = SigningSchemeInput.Ed25519 } = args;
@@ -59,11 +59,20 @@ export class SingleKeySigner extends SingleKeyAccount implements Signer {
         privateKey = Secp256k1PrivateKey.generate();
         break;
       default:
-        throw new Error(`Unsupported scheme ${scheme}`);
+        throw new Error(`Unsupported signature scheme ${scheme}`);
     }
     return new SingleKeySigner({ privateKey });
   }
 
+  /**
+   * Derives an account with bip44 path and mnemonics,
+   *
+   * @param args.scheme The signature scheme to derive the private key with
+   * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
+   * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
+   * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
+   * @param args.mnemonic the mnemonic seed phrase of the account
+   */
   static fromDerivationPath(args: SingleKeySignerFromDerivationPathArgs) {
     const { scheme = SigningSchemeInput.Ed25519, path, mnemonic } = args;
     let privateKey: PrivateKeyInput;
@@ -75,7 +84,7 @@ export class SingleKeySigner extends SingleKeyAccount implements Signer {
         privateKey = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
         break;
       default:
-        throw new Error(`Unsupported scheme ${scheme}`);
+        throw new Error(`Unsupported signature scheme ${scheme}`);
     }
     return new SingleKeySigner({ privateKey });
   }

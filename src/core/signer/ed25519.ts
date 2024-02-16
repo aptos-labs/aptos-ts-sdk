@@ -17,7 +17,7 @@ export interface Ed25519SignerFromDerivationPathArgs {
 
 /**
  * Signer implementation for the Ed25519 authentication scheme.
- * This extends an Ed25519Account by adding signing capabilities through an Ed25519PrivateKey.
+ * This extends an {@link Ed25519Account} by adding signing capabilities through an {@link Ed25519PrivateKey}.
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
@@ -37,9 +37,7 @@ export class Ed25519Signer extends Ed25519Account implements Signer {
   }
 
   /**
-   * Derives an account with random private key and address.
-   * Default generation is using a Ed25519 key
-   * @returns Account with the given signing scheme
+   * Derives a signer from a randomly generated private key
    */
   static generate() {
     const privateKey = Ed25519PrivateKey.generate();
@@ -47,16 +45,11 @@ export class Ed25519Signer extends Ed25519Account implements Signer {
   }
 
   /**
-   * Derives an account with bip44 path and mnemonics,
+   * Derives an account with bip44 path and mnemonics
    *
-   * @param args.scheme The signing scheme to derive with
-   * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
-   * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
+   * @param args.path the BIP44 derive hardened path e.g. m/44'/637'/0'/0'/0'
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
    * @param args.mnemonic the mnemonic seed phrase of the account
-   * to generating a Legacy Ed25519 keypair
-   *
-   * @returns Ed25519Signer
    */
   static fromDerivationPath(args: Ed25519SignerFromDerivationPathArgs) {
     const { path, mnemonic } = args;
