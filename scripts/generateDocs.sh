@@ -43,6 +43,6 @@ else
 fi
 
 # Now update the redirect
-REDIRECT_FILE='docs/@aptos-labs/ts-sdk-latest/index.html';
+REDIRECT_FILE='docs/@aptos-labs/ts-sdk-latest/index.md';
 $(sed -i.bak "s/- ts-sdk-.*/- ts-sdk-$npm_package_version/" $REDIRECT_FILE)
 echo "Updated redirect $REDIRECT_FILE with version $npm_package_version for latest";
