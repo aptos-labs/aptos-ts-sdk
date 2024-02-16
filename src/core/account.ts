@@ -33,10 +33,11 @@ export enum AccountVariant {
 }
 
 /**
- * Class for creating and managing account on Aptos network
+ * Class for representing an Aptos account.
+ * An `Account` instance does not have signing capabilities. For that, please see {@link Signer}.
+ * Because of this, an `Account` is safe to serialize and pass around.
  *
  * Use this class to create accounts, verify signatures, and more.
- * Note: Creating an account instance does not create the account on-chain.
  *
  * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
  * `Legacy` and `Unified` authentications.
@@ -53,6 +54,12 @@ export abstract class Account extends Serializable {
     this.accountAddress = AccountAddress.from(address);
   }
 
+  /**
+   * Utility function for instantiating an account from a valid public key.
+   * @param args.publicKey the account's public key
+   * @param args.address the account's address. If not provided, it will be derived from the public key.
+   * Typically, passing the address explicitly is only required in case the authentication key has been rotated.
+   */
   static fromPublicKey(args: AccountConstructorArgs<ValidPublicKey>): Account {
     const { publicKey, address } = args;
     if (publicKey instanceof Ed25519PublicKey) {
@@ -71,11 +78,11 @@ export abstract class Account extends Serializable {
   }
 
   /**
-   * Verify the given message and signature with the public key.
+   * Verify the given message and signature with the account's public key.
    *
    * @param args.message raw message data in HexInput format
-   * @param args.signature signed message Signature
-   * @returns whether the signature is valid
+   * @param args.signature a message signature
+   * @returns whether the signature is verified against the message
    */
   abstract verifySignature(args: VerifySignatureArgs): boolean;
 
@@ -100,12 +107,18 @@ export abstract class Account extends Serializable {
   // endregion
 }
 
+/**
+ * Account implementation for the Ed25519 authentication scheme.
+ */
 export class Ed25519Account extends Account {
   /**
    * Account variant
    */
   public readonly variant = AccountVariant.Ed25519;
 
+  /**
+   * Account's public key
+   */
   public readonly publicKey: Ed25519PublicKey;
 
   constructor(args: AccountConstructorArgs<Ed25519PublicKey>) {
@@ -114,8 +127,6 @@ export class Ed25519Account extends Account {
     this.publicKey = publicKey;
   }
 
-  // verifySignature(args: VerifySignatureArgs<Ed25519Signature>): boolean;
-  // verifySignature(args: VerifySignatureArgs<Exclude<ValidSignature, Ed25519Signature>>): false;
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (signature instanceof Ed25519Signature) {
@@ -139,12 +150,18 @@ export class Ed25519Account extends Account {
   // endregion
 }
 
+/**
+ * Account implementation for the SingleKey authentication scheme.
+ */
 export class SingleKeyAccount extends Account {
   /**
    * Account variant
    */
   public readonly variant = AccountVariant.SingleKey;
 
+  /**
+   * Account's public key
+   */
   public readonly publicKey: AnyPublicKey;
 
   constructor(args: AccountConstructorArgs<AnyPublicKey>) {
@@ -153,8 +170,6 @@ export class SingleKeyAccount extends Account {
     this.publicKey = publicKey;
   }
 
-  // verifySignature(args: VerifySignatureArgs<AnySignature>): boolean;
-  // verifySignature(args: VerifySignatureArgs<Exclude<ValidSignature, AnySignature>>): false;
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (signature instanceof AnySignature) {
@@ -178,12 +193,18 @@ export class SingleKeyAccount extends Account {
   // endregion
 }
 
+/**
+ * Account implementation for the MultiEd25519 authentication scheme.
+ */
 export class MultiEd25519Account extends Account {
   /**
    * Account variant
    */
   public readonly variant = AccountVariant.MultiEd25519;
 
+  /**
+   * Account's public key
+   */
   public readonly publicKey: MultiEd25519PublicKey;
 
   constructor(args: AccountConstructorArgs<MultiEd25519PublicKey>) {
@@ -192,8 +213,6 @@ export class MultiEd25519Account extends Account {
     this.publicKey = publicKey;
   }
 
-  // verifySignature(args: VerifySignatureArgs<MultiEd25519Signature>): boolean;
-  // verifySignature(args: VerifySignatureArgs<Exclude<ValidSignature, MultiEd25519Signature>>): false;
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (signature instanceof MultiEd25519Signature) {
@@ -217,12 +236,18 @@ export class MultiEd25519Account extends Account {
   // endregion
 }
 
+/**
+ * Account implementation for the MultiKey authentication scheme.
+ */
 export class MultiKeyAccount extends Account {
   /**
    * Account variant
    */
   public readonly variant = AccountVariant.MultiKey;
 
+  /**
+   * Account's public key
+   */
   public readonly publicKey: MultiPublicKey;
 
   constructor(args: AccountConstructorArgs<MultiPublicKey>) {
@@ -231,8 +256,6 @@ export class MultiKeyAccount extends Account {
     this.publicKey = publicKey;
   }
 
-  // verifySignature(args: VerifySignatureArgs<MultiKeySignature>): boolean;
-  // verifySignature(args: VerifySignatureArgs<Exclude<ValidSignature, MultiKeySignature>>): false;
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (Array.isArray(signature)) {
