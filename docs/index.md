@@ -1,4 +1,7 @@
 ---
+title: Aptos TypeScript SDK Documentation (@aptos-labs/ts-sdk)
+redirect_from:
+  - /@aptos-labs
 ---
 
 ## SDK Versions

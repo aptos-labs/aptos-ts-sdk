@@ -1,5 +1,5 @@
 ---
-permalink: /ts-sdk-latest
-redirect_to:
-  - ../ts-sdk-1.7.0
+title: Latest Aptos TypeScript SDK Documentation
+permalink: /@aptos-labs/ts-sdk-latest
+redirect_to: /@aptos-labs/ts-sdk-1.7.0
 ---
