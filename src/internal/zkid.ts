@@ -11,7 +11,7 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
-import { EphemeralAccount, Groth16Zkp, GrothZkIDAccount, Hex, SignedGroth16Signature, ZkIDAccount } from "../core";
+import { EPK_LIFESPAN, EphemeralAccount, Groth16Zkp, GrothZkIDAccount, Hex, SignedGroth16Signature, ZkIDAccount } from "../core";
 import { EphemeralSignature } from "../core/crypto/ephemeralSignature";
 import { generateSigningMessage, generateSigningMessageForSerializable } from "../transactions";
 import { HexInput } from "../types";
@@ -44,7 +44,7 @@ export async function getProof(args: {
     epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
     epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
     exp_date: Number(ephemeralAccount.expiryTimestamp),
-    exp_horizon: 100255944,
+    exp_horizon: EPK_LIFESPAN,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
@@ -78,15 +78,9 @@ export async function getProof(args: {
     b: proofPoints.pi_b,
     c: proofPoints.pi_c,
   })
-  // const proof = new Groth16Zkp({
-  //   a: "bf8aba02e0821db3062d0cc7fdee9bce55c5c28922db27cc2b19521706f1652d",
-  //   b: "017320223b5dc3ba35ce3bec89ac3d6e8949b291fb1981a6fb79d74e7424281aa223c51100be0ad0c574392ca6c0edace986ed31c9e04534fb69898e1e040421",
-  //   c: "ac0ef3b351cf4a18cab69c2a25beca2d02a9cff8b5993df9e02a33e9fdc9a700",
-  // })
   const signMess = generateSigningMessage(proof.bcsToBytes(),"Groth16Zkp");
   const nonMalleabilitySignature = ephemeralAccount.sign(signMess);
   const signedProof = new SignedGroth16Signature({proof, nonMalleabilitySignature, extraField})
-  console.log(signedProof);
   return signedProof;
 }
 

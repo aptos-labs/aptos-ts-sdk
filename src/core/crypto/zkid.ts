@@ -10,6 +10,8 @@ import { EphemeralPublicKey } from "./ephermeralPublicKey";
 import { EphemeralSignature } from "./ephemeralSignature";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 
+export const EPK_LIFESPAN = 59200;
+
 /**
  * Represents the ZkIDPublicKey public key
  *
@@ -210,19 +212,20 @@ export class SignedGroth16Signature extends Signature {
 
   readonly nonMalleabilitySignature: EphemeralSignature;
 
-  readonly trainingWheelsSignature?: EphemeralSignature;
-
-  readonly extraField: string;
+  readonly extraField?: string;
 
   readonly overrideAudVal?: string;
+
+  readonly trainingWheelsSignature?: EphemeralSignature;
 
 
   constructor(args: {
     proof: Groth16Zkp;
     nonMalleabilitySignature: EphemeralSignature;
-    trainingWheelsSignature?: EphemeralSignature;
-    extraField: string;
+    extraField?: string;
     overrideAudVal?: string;
+    trainingWheelsSignature?: EphemeralSignature;
+
   }) {
     super();
     const { proof, nonMalleabilitySignature, trainingWheelsSignature, extraField, overrideAudVal } = args;
@@ -256,8 +259,8 @@ export class SignedGroth16Signature extends Signature {
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
     this.nonMalleabilitySignature.serialize(serializer);
-    serializer.serializeU64(100255944); //todo
-    serializer.serializeStr(this.extraField);
+    serializer.serializeU64(EPK_LIFESPAN);
+    serializer.serializeOptionStr(this.extraField);
     serializer.serializeOptionStr(this.overrideAudVal);
     serializer.serializeOption(this.trainingWheelsSignature);
     
