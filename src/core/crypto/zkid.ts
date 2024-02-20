@@ -10,7 +10,7 @@ import { EphemeralPublicKey } from "./ephermeralPublicKey";
 import { EphemeralSignature } from "./ephemeralSignature";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 
-export const EPK_LIFESPAN = 59200;
+export const EPK_LIFESPAN = 10000000;
 
 /**
  * Represents the ZkIDPublicKey public key
