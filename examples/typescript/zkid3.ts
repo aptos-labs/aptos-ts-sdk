@@ -55,9 +55,8 @@ const example = async () => {
 
   const aptos = new Aptos(config);
 
-  // Create two accounts//100000000000
   const privateKey = new Ed25519PrivateKey("0x76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7");
-  const expiryTimestamp = BigInt(1708221726);
+  const expiryTimestamp = BigInt(1709321726);
   const blinder = new Uint8Array(31);
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
