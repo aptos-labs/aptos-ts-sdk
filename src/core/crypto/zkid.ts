@@ -11,6 +11,13 @@ import { EphemeralSignature } from "./ephemeralSignature";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 
 export const EPK_LIFESPAN = 10000000;
+export const MAX_AUD_VAL_BYTES = 120;
+export const MAX_UID_KEY_BYTES = 30;
+export const MAX_UID_VAL_BYTES = 330;
+export const MAX_ISS_VAL_BYTES = 120;
+export const MAX_EXTRA_FIELD_BYTES = 350;
+export const MAX_JWT_HEADER_B64_BYTES = 300;
+export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
  * Represents the ZkIDPublicKey public key
@@ -109,9 +116,9 @@ export function computeAddressSeed(args: {
 
   const fields = [
     bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
-    hashASCIIStrToField(aud, 4*31),
-    hashASCIIStrToField(uidVal, 11*31),
-    hashASCIIStrToField(uidKey, 1*31),
+    hashASCIIStrToField(aud, MAX_AUD_VAL_BYTES),
+    hashASCIIStrToField(uidVal, MAX_UID_VAL_BYTES),
+    hashASCIIStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
   return bigIntToBytesLE(poseidonHash(fields), ZkIDPublicKey.ADDRESS_SEED_LENGTH);
