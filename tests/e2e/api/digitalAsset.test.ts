@@ -128,31 +128,31 @@ describe("DigitalAsset", () => {
   });
 
   test("it freezes transfer ability", async () => {
-    const transaction = await aptos.freezeDigitalAssetTransaferTransaction({
+    const transaction = await aptos.freezeDigitalAssetTransferTransaction({
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it unfreezes transfer ability", async () => {
-    const transaction = await aptos.unfreezeDigitalAssetTransaferTransaction({
+    const transaction = await aptos.unfreezeDigitalAssetTransferTransaction({
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
-  test("it sets digital asset descripion", async () => {
+  test("it sets digital asset description", async () => {
     const transaction = await aptos.setDigitalAssetDescriptionTransaction({
       creator,
       description: "my new description",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it sets digital asset name", async () => {
@@ -161,8 +161,8 @@ describe("DigitalAsset", () => {
       name: "my new name",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it sets digital asset uri", async () => {
@@ -171,8 +171,8 @@ describe("DigitalAsset", () => {
       uri: "my.new.uri",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it adds digital asset property", async () => {
@@ -183,8 +183,8 @@ describe("DigitalAsset", () => {
       propertyValue: true,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it updates digital asset property", async () => {
@@ -195,8 +195,8 @@ describe("DigitalAsset", () => {
       propertyValue: false,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it removes digital asset property", async () => {
@@ -207,8 +207,8 @@ describe("DigitalAsset", () => {
       propertyValue: true,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it adds typed digital asset property", async () => {
@@ -219,8 +219,8 @@ describe("DigitalAsset", () => {
       propertyValue: "hello",
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it updates typed digital asset property", async () => {
@@ -231,8 +231,8 @@ describe("DigitalAsset", () => {
       propertyValue: 2,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 
   test("it mints soul bound token", async () => {
@@ -275,25 +275,25 @@ describe("DigitalAsset", () => {
   });
 
   test("it transfers digital asset ownership", async () => {
-    const digitalAssetReciever = Account.generate();
-    await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
+    const digitalAssetReceiver = Account.generate();
+    await aptos.fundAccount({ accountAddress: digitalAssetReceiver.accountAddress, amount: FUND_AMOUNT });
 
     const transaction = await aptos.transferDigitalAssetTransaction({
       sender: creator,
       digitalAssetAddress: tokenAddress,
-      recipient: digitalAssetReciever.accountAddress,
+      recipient: digitalAssetReceiver.accountAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    const res = await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    const res = await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
 
     const tokenData = (
       await aptos.getOwnedDigitalAssets({
-        ownerAddress: digitalAssetReciever.accountAddress,
+        ownerAddress: digitalAssetReceiver.accountAddress,
         minimumLedgerVersion: BigInt(res.version),
       })
     )[0];
     expect(tokenData.token_data_id).toEqual(tokenAddress);
-    expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
+    expect(tokenData.owner_address).toEqual(digitalAssetReceiver.accountAddress.toString());
   });
 
   test("it burns digital asset", async () => {
@@ -301,7 +301,7 @@ describe("DigitalAsset", () => {
       creator,
       digitalAssetAddress: tokenAddress,
     });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+    const committedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+    await aptos.waitForTransaction({ transactionHash: committedTransaction.hash });
   });
 });

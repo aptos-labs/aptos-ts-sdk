@@ -147,7 +147,7 @@ export class AccountSequenceNumber {
   }
 
   /**
-   * Synchronizes local sequence number with the seqeunce number on chain for this account.
+   * Synchronizes local sequence number with the sequence number on chain for this account.
    *
    * Poll the network until all submitted transactions have either been committed or until
    * the maximum wait time has elapsed

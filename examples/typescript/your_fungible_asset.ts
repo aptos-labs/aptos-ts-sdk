@@ -171,7 +171,7 @@ async function main() {
   const metadataAddress = await getMetadata(alice);
   console.log("metadata address:", metadataAddress);
 
-  console.log("All the balances in this exmaple refer to balance in primary fungible stores of each account.");
+  console.log("All the balances in this example refer to balance in primary fungible stores of each account.");
   console.log(`Alice's initial FACoin balance: ${await getFaBalance(alice, metadataAddress)}.`);
   console.log(`Bob's initial FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
   console.log(`Charlie's initial balance: ${await await getFaBalance(charlie, metadataAddress)}.`);

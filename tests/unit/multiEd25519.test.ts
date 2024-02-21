@@ -65,8 +65,8 @@ describe("MultiPublicKey", () => {
 
     const serializer = new Serializer();
     serializer.serialize(pubKeyMultiSig);
-    const deserialzed = MultiEd25519PublicKey.deserialize(new Deserializer(serializer.toUint8Array()));
-    expect(new Hex(deserialzed.toUint8Array())).toEqual(new Hex(pubKeyMultiSig.toUint8Array()));
+    const deserialized = MultiEd25519PublicKey.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(new Hex(deserialized.toUint8Array())).toEqual(new Hex(pubKeyMultiSig.toUint8Array()));
   });
 });
 
@@ -100,8 +100,8 @@ describe("MultiSignature", () => {
 
     const serializer = new Serializer();
     serializer.serialize(multisig);
-    const deserialzed = MultiEd25519Signature.deserialize(new Deserializer(serializer.toUint8Array()));
-    expect(Hex.fromHexInput(deserialzed.toUint8Array())).toEqual(Hex.fromHexInput(multisig.toUint8Array()));
+    const deserialized = MultiEd25519Signature.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(Hex.fromHexInput(deserialized.toUint8Array())).toEqual(Hex.fromHexInput(multisig.toUint8Array()));
   });
 
   it("should creates a valid bitmap", () => {

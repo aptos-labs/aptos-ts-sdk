@@ -515,7 +515,7 @@ export async function getAccountOwnedObjects(args: {
  * NOTE: There is a potential issue once unified single signer scheme will be adopted
  * by the community.
  *
- * Becuase on could create 2 accounts with the same private key with this new authenticator type,
+ * Because on could create 2 accounts with the same private key with this new authenticator type,
  * we’ll need to determine the order in which we lookup the accounts. First unified
  * scheme and then legacy scheme vs first legacy scheme and then unified scheme.
  *

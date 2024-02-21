@@ -94,7 +94,7 @@ const example = async () => {
   // Bob should have the transfer amount
   if (bobBalanceAfter[0].amount !== TRANSFER_AMOUNT) throw new Error("Bob's balance after transfer is incorrect");
 
-  // Alice should have the initial balance minus tranfer amount
+  // Alice should have the initial balance minus transfer amount
   if (aliceBalanceAfter[0].amount !== ALICE_INITIAL_BALANCE - TRANSFER_AMOUNT)
     throw new Error("Alice's balance after transfer is incorrect");
 

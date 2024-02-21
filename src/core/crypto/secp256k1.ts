@@ -244,7 +244,7 @@ export class Secp256k1Signature extends Signature {
 
     const hex = Hex.fromHexInput(hexInput);
     if (hex.toUint8Array().length !== Secp256k1Signature.LENGTH) {
-      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}, recieved ${hex.toUint8Array().length}`);
+      throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}, received ${hex.toUint8Array().length}`);
     }
     this.data = hex;
   }

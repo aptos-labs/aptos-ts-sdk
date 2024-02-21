@@ -236,7 +236,7 @@ const example = async () => {
   console.log(`Admin's Cat coin balance: ${await getFaBalance(aptos, admin, catCoinAddr.toString())}.`);
 
   console.log("\n====== Create Liquidity Pool ======\n");
-  console.log("initializing Lquidity Pool......");
+  console.log("initializing Liquidity Pool......");
   await initLiquidityPool(aptos, swapAddress, admin);
   console.log("Creating liquidity pool......");
   await createLiquidityPool(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr);
@@ -247,7 +247,7 @@ const example = async () => {
   console.log("Done.");
 
   console.log("\n====== Swap 100 Dog coins for Cat coins ======\n");
-  console.log("Swaping 100 Dog coin to Cat coin......");
+  console.log("Swapping 100 Dog coin to Cat coin......");
   await swapAssets(aptos, swapAddress, admin, dogCoinAddr, catCoinAddr, 100, 1, admin.accountAddress);
   console.log("Swap finished.");
 

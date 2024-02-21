@@ -113,7 +113,7 @@ const privateKey = new Secp256k1PrivateKey("mySecp256k1privatekeystring");
 
 // create an AccountAddress instance from the account address string
 const address = AccountAddress.from("myaccountaddressstring");
-// Derieve an account from private key and address
+// Derive an account from private key and address
 const account = await Account.fromPrivateKeyAndAddress({ privateKey, address });
 ```
 
@@ -172,7 +172,7 @@ const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice,
 ## Documentation and examples
 
 - For full SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/new-ts-sdk/)
-- For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
+- For reference documentation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
 - For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing

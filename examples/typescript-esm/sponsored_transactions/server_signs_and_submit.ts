@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 /**
- * This example demostrates how one can generate and sign a transaction
+ * This example demonstrates how one can generate and sign a transaction
  * on one server (for example, frontend) and have it serialized and send
  * it to another server (for example, backend) to deserialize and submit.
  */

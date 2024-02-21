@@ -17,7 +17,7 @@ const aptos = new Aptos(config);
 
 const example = async () => {
   console.log(
-    "This example will create and fund Alice and Bob, then Alice account will create a collection and a digital asset in that collection and tranfer it to Bob.",
+    "This example will create and fund Alice and Bob, then Alice account will create a collection and a digital asset in that collection and transfer it to Bob.",
   );
 
   // Create Alice and Bob accounts

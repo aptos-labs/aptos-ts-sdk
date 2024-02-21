@@ -67,7 +67,7 @@ describe("account sequence number", () => {
   );
 
   it(
-    "includes updated on-chain sequnce number in local sequence number",
+    "includes updated on-chain sequence number in local sequence number",
     async () => {
       const previousSeqNum = "5";
       getAccountInfoSpy.mockResolvedValue({

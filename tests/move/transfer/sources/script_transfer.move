@@ -5,9 +5,9 @@ script {
   fun single_transfer(
     sender: &signer,
     amount: u64,
-    reciever: address,
+    receiver: address,
   ) {
     let coin = coin::withdraw<aptos_coin::AptosCoin>(sender, amount);
-    coin::deposit(reciever, coin);
+    coin::deposit(receiver, coin);
   }
 }
