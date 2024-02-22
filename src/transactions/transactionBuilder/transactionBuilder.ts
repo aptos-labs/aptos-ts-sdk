@@ -10,8 +10,7 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
-import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
-import { AnySignature } from "../../core/crypto/anySignature";
+import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
@@ -73,7 +72,7 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber, SigningScheme } from "../../types";
+import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 
 /**

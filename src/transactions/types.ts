@@ -6,7 +6,7 @@ import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStru
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
 import { FixedBytes } from "../bcs/serializable/fixedBytes";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { PublicKey } from "../core/crypto/asymmetricCrypto";
+import { PublicKey } from "../core/crypto";
 import {
   MultiAgentRawTransaction,
   FeePayerRawTransaction,

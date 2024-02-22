@@ -4,7 +4,7 @@
 import { Serializer, Serializable } from "../../bcs/serializer";
 import { AccountAddress } from "../../core/accountAddress";
 import { AnyNumber } from "../../types";
-import { PublicKey } from "../../core/crypto/asymmetricCrypto";
+import { PublicKey } from "../../core/crypto";
 import { MoveString, MoveVector, U64, U8 } from "../../bcs";
 
 /**
