@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable max-len */
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable max-len */
 
 import {
   ValidatorTransactionResponse,
@@ -127,7 +127,7 @@ describe("transaction response types", () => {
     } satisfies ValidatorTransactionResponse;
   });
 
-  test("it tests a sample block_metadata JSON response satisfies ValidatorTransactionResponse", async () => {
+  test("it tests a sample block_metadata JSON response satisfies BlockMetadataTransactionResponse", async () => {
     const txn = {
       version: "2",
       hash: "0x55ac208f0e48f428f210125fcb7c21507f2ea3077a6526824d10a2511a9da188",
