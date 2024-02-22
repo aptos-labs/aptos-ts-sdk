@@ -51,7 +51,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({network: Network.LOCAL});
+  const config = new AptosConfig({network: Network.DEVNET});
   // const config = new AptosConfig();
 
   const aptos = new Aptos(config);
