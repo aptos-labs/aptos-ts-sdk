@@ -348,7 +348,7 @@ export type UserTransactionResponse = {
   hash: string;
   state_change_hash: string;
   event_root_hash: string;
-  state_checkpoint_hash?: string;
+  state_checkpoint_hash: string | null;
   gas_used: string;
   /**
    * Whether the transaction was successful
@@ -411,7 +411,7 @@ export type BlockMetadataTransactionResponse = {
   hash: string;
   state_change_hash: string;
   event_root_hash: string;
-  state_checkpoint_hash?: string;
+  state_checkpoint_hash: string | null;
   gas_used: string;
   /**
    * Whether the transaction was successful
@@ -451,7 +451,7 @@ export type StateCheckpointTransactionResponse = {
   hash: string;
   state_change_hash: string;
   event_root_hash: string;
-  state_checkpoint_hash?: string;
+  state_checkpoint_hash: string | null;
   gas_used: string;
   /**
    * Whether the transaction was successful
@@ -475,7 +475,7 @@ export type ValidatorTransactionResponse = {
   hash: string;
   state_change_hash: string;
   event_root_hash: string;
-  state_checkpoint_hash?: string;
+  state_checkpoint_hash: string | null;
   gas_used: string;
   /**
    * Whether the transaction was successful
