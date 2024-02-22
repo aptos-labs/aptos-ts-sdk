@@ -289,6 +289,7 @@ export enum TransactionResponseType {
   Genesis = "genesis_transaction",
   BlockMetadata = "block_metadata_transaction",
   StateCheckpoint = "state_checkpoint_transaction",
+  Validator = "validator_transaction",
 }
 
 export type TransactionResponse = PendingTransactionResponse | CommittedTransactionResponse;
@@ -296,7 +297,8 @@ export type CommittedTransactionResponse =
   | UserTransactionResponse
   | GenesisTransactionResponse
   | BlockMetadataTransactionResponse
-  | StateCheckpointTransactionResponse;
+  | StateCheckpointTransactionResponse
+  | ValidatorTransactionResponse;
 
 export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
   return response.type === TransactionResponseType.Pending;
@@ -320,6 +322,12 @@ export function isStateCheckpointTransactionResponse(
   response: TransactionResponse,
 ): response is StateCheckpointTransactionResponse {
   return response.type === TransactionResponseType.StateCheckpoint;
+}
+
+export function isValidatorTransactionResponse(
+  response: TransactionResponse,
+): response is ValidatorTransactionResponse {
+  return response.type === TransactionResponseType.Validator;
 }
 
 export type PendingTransactionResponse = {
@@ -458,6 +466,34 @@ export type StateCheckpointTransactionResponse = {
    * Final state of resources changed by the transaction
    */
   changes: Array<WriteSetChange>;
+  timestamp: string;
+};
+
+export type ValidatorTransactionResponse = {
+  type: TransactionResponseType.Validator;
+  version: string;
+  hash: string;
+  state_change_hash: string;
+  event_root_hash: string;
+  state_checkpoint_hash?: string;
+  gas_used: string;
+  /**
+   * Whether the transaction was successful
+   */
+  success: boolean;
+  /**
+   * The VM status of the transaction, can tell useful information in a failure
+   */
+  vm_status: string;
+  accumulator_root_hash: string;
+  /**
+   * Final state of resources changed by the transaction
+   */
+  changes: Array<WriteSetChange>;
+  /**
+   * The events emitted by the validator transaction
+   */
+  events: Array<Event>;
   timestamp: string;
 };
 
