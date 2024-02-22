@@ -206,7 +206,7 @@ const example = async () => {
   const aptos = new Aptos(aptosConfig);
   // Create three accounts
   const swapAddress = AccountAddress.from(process.argv[2]);
-  const admin = Account.fromPrivateKeyAndAddress({
+  const admin = Account.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(process.argv[3]),
     address: swapAddress,
   });

@@ -274,7 +274,7 @@ describe("account api", () => {
 
       // lookup original account address
       const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-        authenticationKey: Account.authKey({ publicKey: rotateToPrivateKey.publicKey() }).derivedAddress(),
+        authenticationKey: rotateToPrivateKey.publicKey().authKey().derivedAddress(),
         minimumLedgerVersion: BigInt(response.version),
       });
 

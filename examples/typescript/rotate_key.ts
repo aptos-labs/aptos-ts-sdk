@@ -1,6 +1,14 @@
 /* eslint-disable no-console */
 
-import { Account, AccountAddress, Aptos, AptosConfig, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
+import {
+  Account,
+  AccountAddress,
+  Aptos,
+  AptosConfig,
+  Ed25519Account,
+  Network,
+  NetworkToNetworkName,
+} from "@aptos-labs/ts-sdk";
 
 const WIDTH = 16;
 
@@ -15,14 +23,8 @@ function truncate(address: AccountAddress): string {
     .substring(address.toString().length - 4, address.toString().length)}`;
 }
 
-function formatAccountInfo(account: Account): string {
-  const vals: any[] = [
-    account.accountAddress,
-    Account.authKey({ publicKey: account.publicKey }),
-    account.privateKey,
-    account.publicKey,
-  ];
-
+function formatAccountInfo(account: Ed25519Account): string {
+  const vals: any[] = [account.accountAddress, account.publicKey.authKey(), account.privateKey, account.publicKey];
   return vals.map((v) => truncate(v).padEnd(WIDTH)).join(" ");
 }
 
@@ -46,7 +48,7 @@ function formatAccountInfo(account: Account): string {
   // Rotate the key!
   await aptos.rotateAuthKey({ fromAccount: alice, toNewPrivateKey: bob.privateKey });
 
-  const aliceNew = Account.fromPrivateKeyAndAddress({ privateKey: bob.privateKey, address: alice.accountAddress });
+  const aliceNew = Account.fromPrivateKey({ privateKey: bob.privateKey, address: alice.accountAddress });
 
   console.log(`\n${"alice".padEnd(WIDTH)} ${formatAccountInfo(aliceNew)}`);
   console.log(`${"bob".padEnd(WIDTH)} ${formatAccountInfo(bob)}\n`);

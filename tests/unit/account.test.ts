@@ -8,9 +8,11 @@ import {
   Ed25519PublicKey,
   Secp256k1PrivateKey,
   Secp256k1PublicKey,
-  SigningScheme,
+  SigningScheme as AuthenticationKeyScheme,
   SigningSchemeInput,
   AnyPublicKey,
+  Ed25519Account,
+  SingleKeyAccount,
 } from "../../src";
 
 import {
@@ -27,23 +29,23 @@ describe("Account", () => {
     it("should create an instance of Account with a legacy ED25519 when nothing is specified", () => {
       // Account with Legacy Ed25519 scheme
       const edAccount = Account.generate();
-      expect(edAccount).toBeInstanceOf(Account);
+      expect(edAccount).toBeInstanceOf(Ed25519Account);
       expect(edAccount.publicKey).toBeInstanceOf(Ed25519PublicKey);
-      expect(edAccount.signingScheme).toEqual(SigningScheme.Ed25519);
+      expect(edAccount.signingScheme).toEqual(AuthenticationKeyScheme.Ed25519);
     });
     it("should create an instance of Account with a Single Sender ED25519 when scheme and legacy specified", () => {
       // Account with SingleKey Ed25519 scheme
       const edAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-      expect(edAccount).toBeInstanceOf(Account);
+      expect(edAccount).toBeInstanceOf(SingleKeyAccount);
       expect(edAccount.publicKey).toBeInstanceOf(AnyPublicKey);
-      expect(edAccount.signingScheme).toEqual(SigningScheme.SingleKey);
+      expect(edAccount.signingScheme).toEqual(AuthenticationKeyScheme.SingleKey);
     });
     it("should create an instance of Account when Secp256k1 scheme is specified", () => {
       // Account with SingleKey Secp256k1 scheme
       const secpAccount = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-      expect(secpAccount).toBeInstanceOf(Account);
+      expect(secpAccount).toBeInstanceOf(SingleKeyAccount);
       expect(secpAccount.publicKey).toBeInstanceOf(AnyPublicKey);
-      expect(secpAccount.signingScheme).toEqual(SigningScheme.SingleKey);
+      expect(secpAccount.signingScheme).toEqual(AuthenticationKeyScheme.SingleKey);
     });
   });
   describe("fromPrivateKeyAndAddress", () => {
@@ -51,14 +53,10 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!Ed25519PublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an Ed25519PublicKey");
-      }
-      if (!Ed25519PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not an Ed25519PrivateKey");
-      }
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: true });
+      expect(newAccount).toBeInstanceOf(Ed25519Account);
+      expect(newAccount.publicKey).toBeInstanceOf(Ed25519PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Ed25519PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
       expect(newAccount.publicKey.toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
@@ -68,19 +66,13 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: false });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!AnyPublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an AnyPublicKey");
-      }
-      if (!newAccount.publicKey.isEd25519()) {
-        throw new Error("Public key is not an AnyPublicKey Ed25519PublicKey");
-      }
-      if (!Ed25519PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not an Ed25519PrivateKey");
-      }
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: false });
+      expect(newAccount).toBeInstanceOf(SingleKeyAccount);
+      expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+      expect(newAccount.publicKey.publicKey).toBeInstanceOf(Ed25519PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Ed25519PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
-      expect(newAccount.publicKey.toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
+      expect(newAccount.publicKey.publicKey.toString()).toEqual(publicKey);
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
 
@@ -88,19 +80,13 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const newAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!AnyPublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an AnyPublicKey");
-      }
-      if (!newAccount.publicKey.isSecp256k1PublicKey()) {
-        throw new Error("Public key is not a Secp256k1PublicKey");
-      }
-      if (!Secp256k1PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not a Secp256k1PrivateKey");
-      }
+      const newAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
+      expect(newAccount).toBeInstanceOf(SingleKeyAccount);
+      expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+      expect(newAccount.publicKey.publicKey).toBeInstanceOf(Secp256k1PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Secp256k1PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
-      expect(newAccount.publicKey.toString()).toEqual(new Secp256k1PublicKey(publicKey).toString());
+      expect(newAccount.publicKey.publicKey.toString()).toEqual(publicKey);
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
   });
@@ -110,13 +96,9 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const newAccount = Account.fromPrivateKey({ privateKey });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!Ed25519PublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an Ed25519PublicKey");
-      }
-      if (!Ed25519PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not an Ed25519PrivateKey");
-      }
+      expect(newAccount).toBeInstanceOf(Ed25519Account);
+      expect(newAccount.publicKey).toBeInstanceOf(Ed25519PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Ed25519PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
       expect(newAccount.publicKey.toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
@@ -126,18 +108,12 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const newAccount = Account.fromPrivateKey({ privateKey, legacy: false });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!AnyPublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an AnyPublicKey");
-      }
-      if (!newAccount.publicKey.isEd25519()) {
-        throw new Error("Public key is not an AnyPublicKey Ed25519PublicKey");
-      }
-      if (!Ed25519PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not an Ed25519PrivateKey");
-      }
+      expect(newAccount).toBeInstanceOf(SingleKeyAccount);
+      expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+      expect((newAccount.publicKey as AnyPublicKey).publicKey).toBeInstanceOf(Ed25519PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Ed25519PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
-      expect(newAccount.publicKey.toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
+      expect(newAccount.publicKey.publicKey.toString()).toEqual(new Ed25519PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
 
@@ -145,18 +121,12 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, publicKey, address } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
       const newAccount = Account.fromPrivateKey({ privateKey });
-      expect(newAccount).toBeInstanceOf(Account);
-      if (!AnyPublicKey.isPublicKey(newAccount.publicKey)) {
-        throw new Error("Public key is not an AnyPublicKey");
-      }
-      if (!newAccount.publicKey.isSecp256k1PublicKey()) {
-        throw new Error("Public key is not an AnyPublicKey Secp256k1PublicKey");
-      }
-      if (!Secp256k1PrivateKey.isPrivateKey(newAccount.privateKey)) {
-        throw new Error("Public key is not an Secp256k1PrivateKey");
-      }
+      expect(newAccount).toBeInstanceOf(SingleKeyAccount);
+      expect(newAccount.publicKey).toBeInstanceOf(AnyPublicKey);
+      expect((newAccount.publicKey as AnyPublicKey).publicKey).toBeInstanceOf(Secp256k1PublicKey);
+      expect(newAccount.privateKey).toBeInstanceOf(Secp256k1PrivateKey);
       expect(newAccount.privateKey.toString()).toEqual(privateKey.toString());
-      expect(newAccount.publicKey.toString()).toEqual(new Secp256k1PublicKey(publicKey).toString());
+      expect(newAccount.publicKey.publicKey.toString()).toEqual(new Secp256k1PublicKey(publicKey).toString());
       expect(newAccount.accountAddress.toString()).toEqual(address);
     });
   });
@@ -198,9 +168,9 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const secpAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress });
+      const secpAccount = Account.fromPrivateKey({ privateKey, address: accountAddress });
       const signature = secpAccount.sign(messageEncoded);
-      expect(signature.toString()).toEqual(signatureHex);
+      expect(signature.signature.toString()).toEqual(signatureHex);
       expect(secpAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
 
@@ -208,9 +178,9 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded } = singleSignerED25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const edAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: false });
+      const edAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: false });
       const signature = edAccount.sign(messageEncoded);
-      expect(signature.toString()).toEqual(signatureHex);
+      expect(signature.signature.toString()).toEqual(signatureHex);
       expect(edAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
 
@@ -218,7 +188,7 @@ describe("Account", () => {
       const { privateKey: privateKeyBytes, address, signedMessage, message } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);
       const accountAddress = AccountAddress.from(address);
-      const legacyEdAccount = Account.fromPrivateKeyAndAddress({ privateKey, address: accountAddress, legacy: true });
+      const legacyEdAccount = Account.fromPrivateKey({ privateKey, address: accountAddress, legacy: true });
       const signature = legacyEdAccount.sign(message);
       expect(signature.toString()).toEqual(signedMessage);
       expect(legacyEdAccount.verifySignature({ message, signature })).toBeTruthy();
@@ -228,7 +198,7 @@ describe("Account", () => {
   it("should return the authentication key for a public key", () => {
     const { publicKey: publicKeyBytes, address } = ed25519;
     const publicKey = new Ed25519PublicKey(publicKeyBytes);
-    const authKey = Account.authKey({ publicKey });
+    const authKey = publicKey.authKey();
     expect(authKey.derivedAddress().toString()).toBe(address);
   });
 });
