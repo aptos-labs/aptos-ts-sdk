@@ -421,24 +421,7 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
   const message = generateSigningMessage(transaction);
 
   // account.signMessage
-  const signerSignature = signer.sign(message);
-
-  // return account authentication
-  switch (signer.signingScheme) {
-    case SigningScheme.Ed25519:
-      return new AccountAuthenticatorEd25519(
-        new Ed25519PublicKey(signer.publicKey.toUint8Array()),
-        new Ed25519Signature(signerSignature.toUint8Array()),
-      );
-    case SigningScheme.SingleKey:
-      if (!AnyPublicKey.isPublicKey(signer.publicKey)) {
-        throw new Error(`Cannot sign transaction, public key does not match ${signer.signingScheme}`);
-      }
-      return new AccountAuthenticatorSingleKey(signer.publicKey, new AnySignature(signerSignature));
-    // TODO support MultiEd25519
-    default:
-      throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
-  }
+  return signer.signWithAuthenticator(message);
 }
 
 /**

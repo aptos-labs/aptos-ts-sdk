@@ -548,7 +548,10 @@ export async function deriveAccountFromPrivateKey(args: {
       return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
     }
     // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
+    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+      publicKey: publicKey.publicKey as Ed25519PublicKey,
+      scheme: SigningScheme.Ed25519,
+    });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
       const address = legacyAuthKey.derivedAddress();
