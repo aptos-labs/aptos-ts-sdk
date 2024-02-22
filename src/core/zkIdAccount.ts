@@ -19,7 +19,7 @@ import {
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
-export class GrothZkIDAccount implements Signer {
+export class OidbAccount implements Signer {
   static readonly PEPPER_LENGTH: number = 31;
 
   ephemeralAccount: EphemeralAccount;
@@ -68,8 +68,8 @@ export class GrothZkIDAccount implements Signer {
 
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
-    if (pepperBytes.length !== GrothZkIDAccount.PEPPER_LENGTH) {
-      throw new Error(`Pepper length in bytes should be ${GrothZkIDAccount.PEPPER_LENGTH}`);
+    if (pepperBytes.length !== OidbAccount.PEPPER_LENGTH) {
+      throw new Error(`Pepper length in bytes should be ${OidbAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
   }
@@ -100,7 +100,7 @@ export class GrothZkIDAccount implements Signer {
     ephemeralAccount: EphemeralAccount;
     pepper: HexInput;
     uidKey?: string;
-  }): GrothZkIDAccount {
+  }): OidbAccount {
     const { proof, jwt, ephemeralAccount, pepper } = args;
     const jwtHeader = jwt.split(".")[0];
     const uidKey = args.uidKey ?? "sub";
@@ -112,7 +112,7 @@ export class GrothZkIDAccount implements Signer {
     }
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
-    return new GrothZkIDAccount({
+    return new OidbAccount({
       proof,
       ephemeralAccount,
       iss,

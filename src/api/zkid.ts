@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralAccount, GrothZkIDAccount, ZkIDAccount } from "../core";
-import { deriveAccountFromJWTAndEphemAccount, deriveGrothAccountFromJWTAndEphemAccount, getPepper } from "../internal/zkid";
+import { EphemeralAccount, OidbAccount, ZkIDAccount } from "../core";
+import { deriveAccountFromJWTAndEphemAccount, deriveOidbAccountFromJWTAndEphemAccount, getPepper } from "../internal/zkid";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -49,13 +49,13 @@ export class ZkID {
    * @param args.pepper
    * @returns
    */
-    async deriveGrothAccountFromJWTAndEphemAccount(args: {
+    async deriveOidbAccountFromJWTAndEphemAccount(args: {
       jwt: string;
       ephemeralAccount: EphemeralAccount;
       uidKey?: string;
       pepper?: HexInput;
       extraFieldKey?: string
-    }): Promise<GrothZkIDAccount> {
-      return deriveGrothAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
+    }): Promise<OidbAccount> {
+      return deriveOidbAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
     }
 }

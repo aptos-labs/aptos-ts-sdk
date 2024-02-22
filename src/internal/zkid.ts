@@ -8,12 +8,11 @@
  * faucet namespace and without having a dependency cycle error.
  */
 
-import { JwtPayload, jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_LIFESPAN, EphemeralAccount, Groth16Zkp, GrothZkIDAccount, Hex, SignedGroth16Signature, ZkIDAccount } from "../core";
-import { EphemeralSignature } from "../core/crypto/ephemeralSignature";
-import { generateSigningMessage, generateSigningMessageForSerializable } from "../transactions";
+import { EPK_LIFESPAN, EphemeralAccount, Groth16Zkp, OidbAccount, Hex, SignedGroth16Signature, ZkIDAccount } from "../core";
+import { generateSigningMessage } from "../transactions";
 import { HexInput } from "../types";
 
 export async function getPepper(args: { aptosConfig: AptosConfig; jwt: string }): Promise<string> {
@@ -49,9 +48,9 @@ export async function getProof(args: {
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
   };
-  const jsonString = JSON.stringify(json);
+  // const jsonString = JSON.stringify(json);
 
-  console.log(jsonString);
+  // console.log(jsonString);
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
   const extraFieldVal = jwtPayload[extraFieldKey2];
   const extraField = `"${extraFieldKey2}":"${extraFieldVal}",`;
@@ -68,8 +67,8 @@ export async function getProof(args: {
     originMethod: "getProof",
   });
 
-  console.log(data.data.proof);
-  console.log(data.data.public_inputs_hash);
+  // console.log(data.data.proof);
+  // console.log(data.data.public_inputs_hash);
 
   const proofPoints = data.data.proof
 
@@ -101,14 +100,14 @@ export async function deriveAccountFromJWTAndEphemAccount(args: {
   return ZkIDAccount.fromJWT({ ...args, pepper });
 }
 
-export async function deriveGrothAccountFromJWTAndEphemAccount(args: {
+export async function deriveOidbAccountFromJWTAndEphemAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralAccount: EphemeralAccount;
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
-}): Promise<GrothZkIDAccount> {
+}): Promise<OidbAccount> {
   let { pepper } = args;
   if (pepper === undefined) {
     const pepperResult = await getPepper(args);
@@ -122,6 +121,6 @@ export async function deriveGrothAccountFromJWTAndEphemAccount(args: {
 
 
   const proof = await getProof({...args, pepper});
-  return GrothZkIDAccount.fromJWTAndProof({ ...args, proof, pepper })
+  return OidbAccount.fromJWTAndProof({ ...args, proof, pepper })
 }
 
