@@ -25,8 +25,8 @@ export async function getModuleEventsByEventType(args: {
 
   const whereCondition: EventsBoolExp = {
     account_address: { _eq: "0x0000000000000000000000000000000000000000000000000000000000000000" },
-    creation_number: { _eq: 0 },
-    sequence_number: { _eq: 0 },
+    creation_number: { _eq: "0" },
+    sequence_number: { _eq: "0" },
     indexed_type: { _eq: eventType },
   };
 
