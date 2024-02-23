@@ -16,6 +16,29 @@ import { GetEvents } from "../types/generated/queries";
 import { EventsBoolExp } from "../types/generated/types";
 import { queryIndexer } from "./general";
 
+export async function getModuleEventsByEventType(args: {
+  aptosConfig: AptosConfig;
+  eventType: MoveStructId;
+  options?: PaginationArgs & OrderByArg<GetEventsResponse[0]>;
+}): Promise<GetEventsResponse> {
+  const { aptosConfig, eventType, options } = args;
+
+  const whereCondition: EventsBoolExp = {
+    account_address: { _eq: "0x0000000000000000000000000000000000000000000000000000000000000000" },
+    creation_number: { _eq: 0 },
+    sequence_number: { _eq: 0 },
+    indexed_type: { _eq: eventType },
+  };
+
+  const customOptions = {
+    where: whereCondition,
+    pagination: options,
+    orderBy: options?.orderBy,
+  };
+
+  return getEvents({ aptosConfig, options: customOptions });
+}
+
 export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;

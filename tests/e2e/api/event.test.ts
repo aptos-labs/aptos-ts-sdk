@@ -5,6 +5,20 @@ import { Account, Aptos, AptosConfig, Network } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 describe("Event", () => {
+  test("it should get transaction fee statement module event by event type", async () => {
+    const config = new AptosConfig({ network: Network.LOCAL });
+    const aptos = new Aptos(config);
+
+    const testAccount = Account.generate();
+    await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
+
+    const events = await aptos.getModuleEventsByEventType({
+      eventType: "0x1::transaction_fee::FeeStatement",
+    });
+
+    expect(events[0].type).toEqual("0x1::transaction_fee::FeeStatement");
+  });
+
   test("it should get fund event by creation number and address", async () => {
     const config = new AptosConfig({ network: Network.LOCAL });
     const aptos = new Aptos(config);
