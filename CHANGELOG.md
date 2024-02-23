@@ -5,7 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Add `decimals` field to token data queries
-- Add support for `validator_transaction` type introduced in 1.10.
+- Add support for `validator_transaction` type introduced in 1.10
+- Add `getModuleEventsByEventType` API
 
 # 1.7.0 (2024-02-13)
 
