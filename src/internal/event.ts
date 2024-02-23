@@ -13,8 +13,15 @@ import { AccountAddress, AccountAddressInput } from "../core";
 import { AnyNumber, GetEventsResponse, PaginationArgs, MoveStructId, OrderByArg, WhereArg } from "../types";
 import { GetEventsQuery } from "../types/generated/operations";
 import { GetEvents } from "../types/generated/queries";
-import { EventsBoolExp } from "../types/generated/types";
+import { EventsBoolExp, InputMaybe } from "../types/generated/types";
 import { queryIndexer } from "./general";
+
+const MAX_EVENT_TYPE_LENGTH = 300;
+const checkEventTypeLength = (eventType?: InputMaybe<string>) => {
+  if (eventType && eventType.length > MAX_EVENT_TYPE_LENGTH) {
+    throw new Error(`Event type length exceeds the maximum length of ${MAX_EVENT_TYPE_LENGTH}`);
+  }
+};
 
 export async function getModuleEventsByEventType(args: {
   aptosConfig: AptosConfig;
@@ -90,6 +97,8 @@ export async function getEvents(args: {
   options?: PaginationArgs & OrderByArg<GetEventsResponse[0]> & WhereArg<EventsBoolExp>;
 }): Promise<GetEventsResponse> {
   const { aptosConfig, options } = args;
+  // eslint-disable-next-line no-underscore-dangle
+  checkEventTypeLength(options?.where?.indexed_type?._eq);
 
   const graphqlQuery = {
     query: GetEvents,
