@@ -10,11 +10,12 @@
     "transfer_coin": "ts-node transfer_coin.ts",
     "custom_client": "ts-node custom_client.ts",
     "swap": "ts-node swap.ts",
+    "sign_struct": "ts-node sign_struct.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
     "external_signing": "ts-node external_signing.ts",
     "your_coin": "ts-node your_coin.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
-    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing"
+    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct"
   },
   "keywords": [],
   "author": "",
