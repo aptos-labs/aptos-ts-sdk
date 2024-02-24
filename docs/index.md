@@ -6,10 +6,10 @@ redirect_from:
 
 ## SDK Versions
 
-- [Stable - @aptos-labs/ts-sdk-1.8.0](@aptos-labs/ts-sdk-1.8.0)
 This is a repository of all Aptos TypeScript SDK documentation by version.
 
 - [Latest](@aptos-labs/ts-sdk-latest)
+- [Stable - @aptos-labs/ts-sdk-1.8.0](@aptos-labs/ts-sdk-1.8.0)
 - [Stable - @aptos-labs/ts-sdk-1.7.0](@aptos-labs/ts-sdk-1.7.0)
 - [Stable - @aptos-labs/ts-sdk-1.6.0](@aptos-labs/ts-sdk-1.6.0)
 - [Stable - @aptos-labs/ts-sdk-1.5.1](@aptos-labs/ts-sdk-1.5.1)
