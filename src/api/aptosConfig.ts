@@ -4,7 +4,7 @@
 import aptosClient from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client } from "../types";
 import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
-import { AptosApiType, DEFAULT_NETWORK } from "../utils/const";
+import { AptosApiType } from "../utils/const";
 
 /**
  * This class holds the config information for the SDK client instance.
@@ -36,7 +36,7 @@ export class AptosConfig {
   readonly clientConfig?: ClientConfig;
 
   constructor(settings?: AptosSettings) {
-    this.network = settings?.network ?? DEFAULT_NETWORK;
+    this.network = settings?.network ?? Network.DEVNET;
     this.fullnode = settings?.fullnode;
     this.faucet = settings?.faucet;
     this.indexer = settings?.indexer;

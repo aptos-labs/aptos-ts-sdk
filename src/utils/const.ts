@@ -1,8 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Network } from "./apiEndpoints";
-
 /**
  * Type of API endpoint for request routing
  */
@@ -11,8 +9,6 @@ export enum AptosApiType {
   INDEXER,
   FAUCET,
 }
-
-export const DEFAULT_NETWORK = Network.DEVNET;
 
 /**
  * The default max gas amount when none is given.
