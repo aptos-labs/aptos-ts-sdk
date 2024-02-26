@@ -20,7 +20,7 @@ import {
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
-export class OidbAccount implements Signer {
+export class KeylessAccount implements Signer {
   static readonly PEPPER_LENGTH: number = 31;
 
   ephemeralAccount: EphemeralAccount;
@@ -69,8 +69,8 @@ export class OidbAccount implements Signer {
 
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
-    if (pepperBytes.length !== OidbAccount.PEPPER_LENGTH) {
-      throw new Error(`Pepper length in bytes should be ${OidbAccount.PEPPER_LENGTH}`);
+    if (pepperBytes.length !== KeylessAccount.PEPPER_LENGTH) {
+      throw new Error(`Pepper length in bytes should be ${KeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
   }
@@ -139,7 +139,7 @@ export class OidbAccount implements Signer {
     ephemeralAccount: EphemeralAccount;
     pepper: HexInput;
     uidKey?: string;
-  }): OidbAccount {
+  }): KeylessAccount {
     const { proof, jwt, ephemeralAccount, pepper } = args;
     const uidKey = args.uidKey ?? "sub";
 
@@ -150,7 +150,7 @@ export class OidbAccount implements Signer {
     }
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
-    return new OidbAccount({
+    return new KeylessAccount({
       proof,
       ephemeralAccount,
       iss,

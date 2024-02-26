@@ -17,7 +17,7 @@ import {
   EPK_LIFESPAN,
   EphemeralAccount,
   Groth16Zkp,
-  OidbAccount,
+  KeylessAccount,
   Hex,
   SignedGroth16Signature,
   ZkIDAccount,
@@ -157,14 +157,14 @@ export async function deriveAccountFromJWTAndEphemAccount(args: {
   return ZkIDAccount.fromJWT({ ...args, pepper });
 }
 
-export async function deriveOidbAccount(args: {
+export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralAccount: EphemeralAccount;
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
-}): Promise<OidbAccount> {
+}): Promise<KeylessAccount> {
   let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
@@ -173,5 +173,5 @@ export async function deriveOidbAccount(args: {
   }
 
   const proof = await getProof({ ...args, pepper });
-  return OidbAccount.fromJWTAndProof({ ...args, proof, pepper });
+  return KeylessAccount.fromJWTAndProof({ ...args, proof, pepper });
 }

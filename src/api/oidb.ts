@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralAccount, OidbAccount, ZkIDAccount } from "../core";
-import { deriveAccountFromJWTAndEphemAccount, deriveOidbAccount, getPepper } from "../internal/oidb";
+import { EphemeralAccount, KeylessAccount, ZkIDAccount } from "../core";
+import { deriveAccountFromJWTAndEphemAccount, deriveKeylessAccount, getPepper } from "../internal/oidb";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -49,13 +49,13 @@ export class OIDB {
    * @param args.pepper
    * @returns
    */
-    async deriveOidbAccount(args: {
+    async deriveKeylessAccount(args: {
       jwt: string;
       ephemeralAccount: EphemeralAccount;
       uidKey?: string;
       pepper?: HexInput;
       extraFieldKey?: string
-    }): Promise<OidbAccount> {
-      return deriveOidbAccount({ aptosConfig: this.config, ...args });
+    }): Promise<KeylessAccount> {
+      return deriveKeylessAccount({ aptosConfig: this.config, ...args });
     }
 }

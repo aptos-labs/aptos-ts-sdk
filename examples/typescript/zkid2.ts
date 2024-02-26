@@ -129,7 +129,7 @@ const example = async () => {
 
   // const bobEmail = "oliver.he@aptoslabs.com";
 
-  const alice = await aptos.deriveOidbAccount({
+  const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralAccount: aliceEphem,
   });
@@ -201,7 +201,7 @@ const example = async () => {
 
   const bobJWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU1YzE4OGE4MzU0NmZjMTg4ZTUxNTc2YmE3MjgzNmUwNjAwZThiNzMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJlbWFpbCI6ImhlbGl1Y2h1YW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJ1OGZIRGY1ME1WUkhMYTZYeXFmeFZnIiwibm9uY2UiOiIxMDE3MTg3NDI5NjYzNzY0MDIyMzkyNTM5Nzc4NjU1MzQwMzE0MjA3OTM5MTI0ODAxNDIwOTI2NTYzMzk3NTMzNjg2MzQ4NDk3MDEzMSIsImlhdCI6MTcwODkyMzcyMSwiZXhwIjoxNzA4OTI3MzIxfQ.LAz0lt-mZU3u7uaFbghW7WYlQCVBovhXfOf_N_32Kmy7lNUA22xomgTuhDNFJpQ80sBHhRf42e-Zsy4uPjvQR2obTzNPaXCJ_L_zMUKrOtWoNTmQIBETbxMKeZw0UXmL7EWODcQ4urFj1vDIOmWphmtFaJorozBBdqcUoDDbkt16hO411Iuv4Be4zh5CA7iqXZrt5f1jyhf4nIf6vcwNGzngdf1Kh9cUNVCVAppDoldMUR3Gwfi92NBugafnO_mt4n-dhsP5AdzM5bKg7AanQcFjCXN6EFp_lhKCnMZR2dYgpIquwIi6HEMNSnl0_65jgxGgO3TW1cfgAKKlF9gsIw";
   
-  const bobTempZkIDAccount = await aptos.deriveOidbAccount({
+  const bobTempZkIDAccount = await aptos.deriveKeylessAccount({
     jwt: bobJWT,
     uidKey,
     ephemeralAccount: aliceEphem,

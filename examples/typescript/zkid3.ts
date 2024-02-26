@@ -100,7 +100,7 @@ const example = async () => {
 
   const bob = Account.generate();
 
-  const alice = await aptos.deriveOidbAccount({
+  const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralAccount: aliceEphem,
     // pepper: "4c000000000000000000000000000000000000000000000000000000000000",
