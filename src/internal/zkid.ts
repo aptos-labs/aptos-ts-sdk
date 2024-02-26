@@ -67,7 +67,7 @@ export async function getPepper(args: {
 
   const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
     aptosConfig,
-    path: "vuf-pub-key",
+    path: "vrf-pub-key",
     originMethod: "getPepper",
   });
 
