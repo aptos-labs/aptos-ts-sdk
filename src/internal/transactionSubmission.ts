@@ -22,7 +22,7 @@ import {
   generateSigningMessage,
   generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
-import {
+import type {
   InputGenerateTransactionData,
   AnyRawTransaction,
   InputSimulateTransactionData,

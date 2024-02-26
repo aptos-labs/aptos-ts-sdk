@@ -7,6 +7,10 @@
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
+import { p256 } from "@noble/curves/p256";
+import { base64URLStringToBuffer, startAuthentication } from "@simplewebauthn/browser";
+import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { Account } from "../../core/account";
@@ -14,6 +18,7 @@ import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
 import { AnySignature } from "../../core/crypto/anySignature";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
+import { Secp256r1PublicKey, Secp256r1Signature } from "../../core/crypto/secp256r1";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
@@ -73,8 +78,10 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber, SigningScheme } from "../../types";
+import { AnyNumber, HexInput, SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { WebAuthnSignature } from "../../core/crypto/webauthn";
+import { getSigningMessage } from "../../internal/transactionSubmission";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -440,6 +447,93 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
     default:
       throw new Error(`Cannot sign transaction, signing scheme ${signer.signingScheme} not supported`);
   }
+}
+
+export async function signWithPasskey(args: {
+  publicKey: PublicKey;
+  credentialId: string | Uint8Array;
+  transaction: AnyRawTransaction;
+  timeout?: number;
+  rpID?: string;
+  options?: {
+    allowCredentials?: PublicKeyCredentialDescriptor[]
+  }
+}): Promise<AccountAuthenticator> {
+  const { credentialId, publicKey, transaction, timeout, rpID, options } = args;
+  console.log("PublicKey", publicKey.toString());
+
+  if (!(publicKey instanceof Secp256r1PublicKey)) {
+    throw new Error("Unsupported public key for passkey signing.");
+  }
+
+  const allowCredentials: PublicKeyCredentialDescriptor[] = options?.allowCredentials ?? [
+    {
+      type: "public-key",
+      id: typeof credentialId === "string" ? isoBase64URL.toBuffer(credentialId) : credentialId,
+    },
+  ];
+
+  // Get the signing message and hash it to create the challenge
+  const transactionToSign: SimpleTransaction = { rawTransaction: deriveTransactionType(transaction) as RawTransaction };
+  const signingMessage = getSigningMessage({ transaction: transactionToSign as AnyRawTransaction });
+  const challenge = sha3Hash(signingMessage);
+
+  const authOptions = await generateAuthenticationOptions({
+    allowCredentials,
+    challenge,
+    timeout,
+    rpID,
+    userVerification: "required",
+  });
+  const authenticationResponse = await startAuthentication(authOptions);
+
+  const authenticatorAssertionResponse = authenticationResponse.response;
+  console.log(authenticatorAssertionResponse);
+
+  const { clientDataJSON, authenticatorData, signature } = authenticatorAssertionResponse;
+
+  console.log("DER Signature: ", signature)
+  const signatureCompact = p256.Signature.fromDER(
+    new Uint8Array(base64URLStringToBuffer(signature)),
+  ).toCompactRawBytes();
+  
+  console.log("COMPACT Signature: ", new Hex(signatureCompact).toString());
+
+  const webAuthnSignature = new WebAuthnSignature(
+    new Secp256r1Signature(signatureCompact),
+    isoBase64URL.toBuffer(authenticatorData),
+    isoBase64URL.toBuffer(clientDataJSON),
+  );
+
+  console.log("WEBAUTHN Signature: ", webAuthnSignature);
+  return new AccountAuthenticatorSingleKey(new AnyPublicKey(publicKey), new AnySignature(webAuthnSignature));
+}
+
+/**
+ * Creates and returns the Authenticator for passkey signed transactions.
+ *
+ * @param args.publicKey The public key of the passkey credential.
+ * @param args.signature The P256signature which is the signed challenge.
+ * @param args.authenticatorData The AuthenticatorData of the assertion.
+ * @param args.clientDataJSON The clientDataJSON of the assertion.
+ *
+ * @return The signer AccountAuthenticator
+ */
+export function getAuthenticatorForWebAuthn(args: {
+  publicKey: PublicKey;
+  signature: HexInput;
+  authenticatorData: HexInput;
+  clientDataJSON: HexInput;
+}): AccountAuthenticator {
+  const { publicKey, signature, authenticatorData, clientDataJSON } = args;
+  let signatureObj: AnySignature;
+  if (publicKey instanceof Secp256r1PublicKey) {
+    signatureObj = new AnySignature(new Secp256r1Signature(signature));
+  } else {
+    throw new Error("Unsupported public key");
+  }
+  const webAuthnSignature = new WebAuthnSignature(signatureObj, authenticatorData, clientDataJSON);
+  return new AccountAuthenticatorSingleKey(new AnyPublicKey(publicKey), new AnySignature(webAuthnSignature));
 }
 
 /**
