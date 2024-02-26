@@ -75,7 +75,7 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
-import { ZkIDPublicKey } from "../../core/crypto/zkid";
+import { OidbPublicKey } from "../../core/crypto/oidb";
 import { MultiSignature } from "../../core/crypto/multiSignature";
 import { Serializable } from "../../bcs";
 
@@ -386,8 +386,8 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     if (publicKey.publicKey instanceof Ed25519PublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
-    if (publicKey.publicKey instanceof ZkIDPublicKey) {
-      // fix this to use zkid sig
+    if (publicKey.publicKey instanceof OidbPublicKey) {
+      // fix this to use oidb sig
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
     if (publicKey.publicKey instanceof Secp256k1PublicKey) {
@@ -395,8 +395,8 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     }
   }
 
-  // fix this to use zkid sig
-  if (publicKey instanceof ZkIDPublicKey) {
+  // fix this to use oidb sig
+  if (publicKey instanceof OidbPublicKey) {
     return new AccountAuthenticatorSingleKey(
       new AnyPublicKey(publicKey),
       new AnySignature(new Ed25519Signature(new Uint8Array(64))),

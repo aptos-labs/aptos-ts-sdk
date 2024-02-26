@@ -25,7 +25,7 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 export const NetworkToPepperAPI: Record<string, string> = {
   mainnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
   testnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
-  devnet: "http://127.0.0.1:8000",
+  devnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
   local: "http://127.0.0.1:8000",
 };
 

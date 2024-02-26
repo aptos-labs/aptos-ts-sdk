@@ -20,11 +20,11 @@ export const MAX_JWT_HEADER_B64_BYTES = 300;
 export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
- * Represents the ZkIDPublicKey public key
+ * Represents the OidbPublicKey public key
  *
- * ZkIDPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
+ * OidbPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
  */
-export class ZkIDPublicKey extends PublicKey {
+export class OidbPublicKey extends PublicKey {
   static readonly ADDRESS_SEED_LENGTH: number = 32;
 
   readonly iss: string;
@@ -34,8 +34,8 @@ export class ZkIDPublicKey extends PublicKey {
   constructor(iss: string, addressSeed: HexInput) {
     super();
     const addressSeedBytes = Hex.fromHexInput(addressSeed).toUint8Array();
-    if (addressSeedBytes.length !== ZkIDPublicKey.ADDRESS_SEED_LENGTH) {
-      throw new Error(`Address seed length in bytes should be ${ZkIDPublicKey.ADDRESS_SEED_LENGTH}`);
+    if (addressSeedBytes.length !== OidbPublicKey.ADDRESS_SEED_LENGTH) {
+      throw new Error(`Address seed length in bytes should be ${OidbPublicKey.ADDRESS_SEED_LENGTH}`);
     }
 
     this.iss = iss;
@@ -68,7 +68,7 @@ export class ZkIDPublicKey extends PublicKey {
    * @returns true if the signature is valid
    */
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-  verifySignature(args: { message: HexInput; signature: ZkIDSignature }): boolean {
+  verifySignature(args: { message: HexInput; signature: OidbSignature }): boolean {
     // TODO
     return true;
   }
@@ -78,20 +78,20 @@ export class ZkIDPublicKey extends PublicKey {
     serializer.serializeBytes(this.addressSeed);
   }
 
-  static deserialize(deserializer: Deserializer): ZkIDPublicKey {
+  static deserialize(deserializer: Deserializer): OidbPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
-    return new ZkIDPublicKey(iss, addressSeed);
+    return new OidbPublicKey(iss, addressSeed);
   }
 
-  static load(deserializer: Deserializer): ZkIDPublicKey {
+  static load(deserializer: Deserializer): OidbPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
-    return new ZkIDPublicKey(iss, addressSeed);
+    return new OidbPublicKey(iss, addressSeed);
   }
 
-  static isPublicKey(publicKey: PublicKey): publicKey is ZkIDPublicKey {
-    return publicKey instanceof ZkIDPublicKey;
+  static isPublicKey(publicKey: PublicKey): publicKey is OidbPublicKey {
+    return publicKey instanceof OidbPublicKey;
   }
 
   static create(args: {
@@ -100,9 +100,9 @@ export class ZkIDPublicKey extends PublicKey {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-  }): ZkIDPublicKey {
+  }): OidbPublicKey {
     computeAddressSeed(args);
-    return new ZkIDPublicKey(args.iss,computeAddressSeed(args));
+    return new OidbPublicKey(args.iss,computeAddressSeed(args));
   }
 }
 
@@ -121,7 +121,7 @@ export function computeAddressSeed(args: {
     hashASCIIStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
-  return bigIntToBytesLE(poseidonHash(fields), ZkIDPublicKey.ADDRESS_SEED_LENGTH);
+  return bigIntToBytesLE(poseidonHash(fields), OidbPublicKey.ADDRESS_SEED_LENGTH);
 }
 
 export class OpenIdSignatureOrZkProof extends Signature {
@@ -158,7 +158,7 @@ export class OpenIdSignatureOrZkProof extends Signature {
       serializer.serializeU32AsUleb128(OpenIdSignatureOrZkProofVariant.ZkProof);
       this.signature.serialize(serializer);
     } else {
-      throw new Error("Not a valid signature for zkID");
+      throw new Error("Not a valid OIDB signature");
     }
   }
 
@@ -295,7 +295,7 @@ export class SignedGroth16Signature extends Signature {
 }
 
 /**
- * A OpenId signature which contains the private inputs to a ZkID proof.
+ * A OpenId signature which contains the private inputs to an OIDB proof.
  */
 export class OpenIdSignature extends Signature {
   readonly jwtSignature: string;
@@ -392,7 +392,7 @@ export class OpenIdSignature extends Signature {
 /**
  * A signature of a message signed via OIDC that uses proofs or the jwt token to authenticate.
  */
-export class ZkIDSignature extends Signature {
+export class OidbSignature extends Signature {
   readonly openIdSignatureOrZkProof: OpenIdSignatureOrZkProof;
 
   readonly jwtHeader: string;
@@ -450,13 +450,13 @@ export class ZkIDSignature extends Signature {
     this.ephemeralSignature.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): ZkIDSignature {
+  static deserialize(deserializer: Deserializer): OidbSignature {
     const jwtHeader = deserializer.deserializeStr();
     const expiryTimestamp = deserializer.deserializeU64();
     const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
-    return new ZkIDSignature({
+    return new OidbSignature({
       jwtHeader,
       expiryTimestamp,
       openIdSignatureOrZkProof,
@@ -465,13 +465,13 @@ export class ZkIDSignature extends Signature {
     });
   }
 
-  static load(deserializer: Deserializer): ZkIDSignature {
+  static load(deserializer: Deserializer): OidbSignature {
     const jwtHeader = deserializer.deserializeStr();
     const expiryTimestamp = deserializer.deserializeU64();
     const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
-    return new ZkIDSignature({
+    return new OidbSignature({
       jwtHeader,
       expiryTimestamp,
       openIdSignatureOrZkProof,
@@ -480,7 +480,7 @@ export class ZkIDSignature extends Signature {
     });
   }
 
-  static isSignature(signature: Signature): signature is ZkIDSignature {
-    return signature instanceof ZkIDSignature;
+  static isSignature(signature: Signature): signature is OidbSignature {
+    return signature instanceof OidbSignature;
   }
 }

@@ -107,13 +107,13 @@ export enum AccountAuthenticatorVariant {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
-  ZkID = 3,
+  OIDB = 3,
 }
 
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
-  ZkID = 3,
+  OIDB = 3,
 }
 
 export enum EphemeralPublicKeyVariant {

@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EphemeralAccount, OidbAccount, ZkIDAccount } from "../core";
-import { deriveAccountFromJWTAndEphemAccount, deriveOidbAccountFromJWTAndEphemAccount, getPepper } from "../internal/zkid";
+import { deriveAccountFromJWTAndEphemAccount, deriveOidbAccount, getPepper } from "../internal/oidb";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
- * A class to query all `ZkID` related queries on Aptos.
+ * A class to query all `OIDB` related queries on Aptos.
  */
-export class ZkID {
+export class OIDB {
   constructor(readonly config: AptosConfig) {}
 
   /**
@@ -40,7 +40,7 @@ export class ZkID {
     return deriveAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
   }
 
-    /**
+  /**
    * TODO
    *
    * @param args.jwt jwt token
@@ -49,13 +49,13 @@ export class ZkID {
    * @param args.pepper
    * @returns
    */
-    async deriveOidbAccountFromJWTAndEphemAccount(args: {
+    async deriveOidbAccount(args: {
       jwt: string;
       ephemeralAccount: EphemeralAccount;
       uidKey?: string;
       pepper?: HexInput;
       extraFieldKey?: string
     }): Promise<OidbAccount> {
-      return deriveOidbAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
+      return deriveOidbAccount({ aptosConfig: this.config, ...args });
     }
 }

@@ -14,8 +14,9 @@ import {
   computeAddressSeed, 
   OpenIdSignatureOrZkProof, 
   SignedGroth16Signature, 
-  ZkIDPublicKey, 
-  ZkIDSignature } from "./crypto/zkid";
+  OidbPublicKey, 
+  OidbSignature, 
+  OpenIdSignature} from "./crypto/oidb";
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
@@ -24,7 +25,7 @@ export class OidbAccount implements Signer {
 
   ephemeralAccount: EphemeralAccount;
 
-  publicKey: ZkIDPublicKey;
+  publicKey: OidbPublicKey;
 
   uidKey: string;
 
@@ -40,7 +41,7 @@ export class OidbAccount implements Signer {
 
   signingScheme: SigningScheme;
 
-  jwtHeader: string;
+  jwt: string;
 
   constructor(args: {
     address?: AccountAddress;
@@ -51,12 +52,12 @@ export class OidbAccount implements Signer {
     aud: string;
     pepper: HexInput;
     proof: SignedGroth16Signature;
-    jwtHeader: string;
+    jwt: string;
   }) {
-    const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper, proof, jwtHeader } = args;
+    const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper, proof, jwt } = args;
     this.ephemeralAccount = ephemeralAccount;
     const addressSeed = computeAddressSeed(args);
-    this.publicKey = new ZkIDPublicKey(iss, addressSeed);
+    this.publicKey = new OidbPublicKey(iss, addressSeed);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
     const derivedAddress = authKey.derivedAddress();
     this.accountAddress = address ?? derivedAddress;
@@ -64,7 +65,7 @@ export class OidbAccount implements Signer {
     this.uidVal = uidVal;
     this.aud = aud;
     this.proof = proof;
-    this.jwtHeader = jwtHeader
+    this.jwt = jwt
 
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
@@ -75,18 +76,56 @@ export class OidbAccount implements Signer {
   }
 
   sign(data: HexInput): Signature {
-
+    const jwtHeader = this.jwt.split(".")[0];
     const { expiryTimestamp } = this.ephemeralAccount;
     const ephemeralPublicKey = this.ephemeralAccount.publicKey;
     const ephemeralSignature = this.ephemeralAccount.sign(data);
-    const zkid = new ZkIDSignature({
-      jwtHeader: this.jwtHeader,
+    const oidbSig = new OidbSignature({
+      jwtHeader,
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
       expiryTimestamp,
       ephemeralPublicKey,
       ephemeralSignature,
     });
-    return zkid
+    return oidbSig
+  }
+
+  signWithZkProof(data: HexInput): Signature {
+    const jwtHeader = this.jwt.split(".")[0];
+    const { expiryTimestamp } = this.ephemeralAccount;
+    const ephemeralPublicKey = this.ephemeralAccount.publicKey;
+    const ephemeralSignature = this.ephemeralAccount.sign(data);
+    const oidbSig = new OidbSignature({
+      jwtHeader,
+      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
+      expiryTimestamp,
+      ephemeralPublicKey,
+      ephemeralSignature,
+    });
+    return oidbSig
+  }
+
+  signWithOpenIdSignature(data: HexInput): Signature {
+    const [jwtHeader, jwtPayload, jwtSignature] = this.jwt.split(".");
+    const openIdSig = new OpenIdSignature({
+      jwtSignature,
+      jwtPayloadJson: jwtPayload,
+      uidKey: this.uidKey,
+      epkBlinder: this.ephemeralAccount.blinder,
+      pepper: this.pepper,
+    });
+
+    const { expiryTimestamp } = this.ephemeralAccount;
+    const ephemeralPublicKey = this.ephemeralAccount.publicKey;
+    const ephemeralSignature = this.ephemeralAccount.sign(data);
+    const oidbSig = new OidbSignature({
+      jwtHeader,
+      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
+      expiryTimestamp,
+      ephemeralPublicKey,
+      ephemeralSignature,
+    });
+    return oidbSig
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
@@ -102,7 +141,6 @@ export class OidbAccount implements Signer {
     uidKey?: string;
   }): OidbAccount {
     const { proof, jwt, ephemeralAccount, pepper } = args;
-    const jwtHeader = jwt.split(".")[0];
     const uidKey = args.uidKey ?? "sub";
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
@@ -120,7 +158,7 @@ export class OidbAccount implements Signer {
       uidVal,
       aud,
       pepper,
-      jwtHeader
+      jwt
     });
   }
 }

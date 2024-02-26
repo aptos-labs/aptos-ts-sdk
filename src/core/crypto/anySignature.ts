@@ -3,7 +3,7 @@ import { AnySignatureVariant } from "../../types";
 import { Signature } from "./asymmetricCrypto";
 import { Ed25519Signature } from "./ed25519";
 import { Secp256k1Signature } from "./secp256k1";
-import { ZkIDSignature } from "./zkid";
+import { OidbSignature } from "./oidb";
 
 export class AnySignature extends Signature {
   public readonly signature: Signature;
@@ -38,8 +38,8 @@ export class AnySignature extends Signature {
     } else if (this.signature instanceof Secp256k1Signature) {
       serializer.serializeU32AsUleb128(AnySignatureVariant.Secp256k1);
       this.signature.serialize(serializer);
-    } else if (this.signature instanceof ZkIDSignature) {
-      serializer.serializeU32AsUleb128(AnySignatureVariant.ZkID);
+    } else if (this.signature instanceof OidbSignature) {
+      serializer.serializeU32AsUleb128(AnySignatureVariant.OIDB);
       this.signature.serialize(serializer);
     } else {
       throw new Error("Unknown signature type");
@@ -53,8 +53,8 @@ export class AnySignature extends Signature {
         return new AnySignature(Ed25519Signature.load(deserializer));
       case AnySignatureVariant.Secp256k1:
         return new AnySignature(Secp256k1Signature.load(deserializer));
-      case AnySignatureVariant.ZkID:
-        return new AnySignature(ZkIDSignature.load(deserializer));
+      case AnySignatureVariant.OIDB:
+        return new AnySignature(OidbSignature.load(deserializer));
       default:
         throw new Error(`Unknown variant index for AnySignature: ${index}`);
     }

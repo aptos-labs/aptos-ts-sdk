@@ -10,4 +10,4 @@ export * from "./multiSignature";
 export * from "./hdKey";
 export * from "./anyPublicKey";
 export * from "./anySignature";
-export * from "./zkid";
+export * from "./oidb";

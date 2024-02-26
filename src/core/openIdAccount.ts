@@ -10,7 +10,7 @@ import { Signature } from "./crypto/asymmetricCrypto";
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
-import { computeAddressSeed, OpenIdSignature, OpenIdSignatureOrZkProof, ZkIDPublicKey, ZkIDSignature } from "./crypto/zkid";
+import { computeAddressSeed, OpenIdSignature, OpenIdSignatureOrZkProof, OidbPublicKey, OidbSignature } from "./crypto/oidb";
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
@@ -19,7 +19,7 @@ export class ZkIDAccount implements Signer {
 
   ephemeralAccount: EphemeralAccount;
 
-  publicKey: ZkIDPublicKey;
+  publicKey: OidbPublicKey;
 
   uidKey: string;
 
@@ -48,7 +48,7 @@ export class ZkIDAccount implements Signer {
     const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper, jwt } = args;
     this.ephemeralAccount = ephemeralAccount;
     const addressSeed = computeAddressSeed(args);
-    this.publicKey = new ZkIDPublicKey(iss, addressSeed);
+    this.publicKey = new OidbPublicKey(iss, addressSeed);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
     const derivedAddress = authKey.derivedAddress();
     this.accountAddress = address ?? derivedAddress;
@@ -78,37 +78,14 @@ export class ZkIDAccount implements Signer {
     const { expiryTimestamp } = this.ephemeralAccount;
     const ephemeralPublicKey = this.ephemeralAccount.publicKey;
     const ephemeralSignature = this.ephemeralAccount.sign(data);
-    const zkid = new ZkIDSignature({
+    const oidbSig = new OidbSignature({
       jwtHeader,
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
       expiryTimestamp,
       ephemeralPublicKey,
       ephemeralSignature,
     });
-    return zkid
-  }
-
-  sign2(data: HexInput): Signature {
-    const [jwtHeader, jwtPayload, jwtSignature] = this.jwt.split(".");
-    const openIdSig = new OpenIdSignature({
-      jwtSignature,
-      jwtPayloadJson: jwtPayload,
-      uidKey: this.uidKey,
-      epkBlinder: this.ephemeralAccount.blinder,
-      pepper: this.pepper,
-    });
-
-    const { expiryTimestamp } = this.ephemeralAccount;
-    const ephemeralPublicKey = this.ephemeralAccount.publicKey;
-    const ephemeralSignature = this.ephemeralAccount.sign(data);
-    const zkid = new ZkIDSignature({
-      jwtHeader,
-      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
-      expiryTimestamp,
-      ephemeralPublicKey,
-      ephemeralSignature,
-    });
-    return zkid
+    return oidbSig
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this

@@ -3,7 +3,7 @@
 
 /**
  * This file contains the underlying implementations for exposed API surface in
- * the {@link api/zkid}. By moving the methods out into a separate file,
+ * the {@link api/oidb}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
  */
@@ -30,7 +30,7 @@ function getPepperInput(args: {jwt: string, uidKey?: string}): ProjPointType<big
   const {jwt, uidKey } = args;
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
   const serializer = new Serializer();
-  serializer.serializeStr(jwtPayload.iss); // Should this be fixedBytes??
+  serializer.serializeStr(jwtPayload.iss);
   serializer.serializeStr(jwtPayload.aud);
   serializer.serializeStr(jwtPayload[uidKey || "sub"]);
   serializer.serializeStr(uidKey || "sub");
@@ -102,8 +102,8 @@ export async function getProof(args: {
     jwt_b64: jwt,
     epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
     epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
-    exp_date: Number(ephemeralAccount.expiryTimestamp),
-    exp_horizon: EPK_LIFESPAN,
+    epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
+    epk_expiry_horizon_secs: EPK_LIFESPAN,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
@@ -157,7 +157,7 @@ export async function deriveAccountFromJWTAndEphemAccount(args: {
   return ZkIDAccount.fromJWT({ ...args, pepper });
 }
 
-export async function deriveOidbAccountFromJWTAndEphemAccount(args: {
+export async function deriveOidbAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralAccount: EphemeralAccount;
