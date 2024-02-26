@@ -302,6 +302,32 @@ export async function getCollectionData(args: {
   return data.current_collections_v2[0];
 }
 
+export async function getCollectionDataByCollectionId(args: {
+  aptosConfig: AptosConfig;
+  collectionId: AccountAddressInput;
+}): Promise<GetCollectionDataResponse> {
+  const { aptosConfig, collectionId } = args;
+  const address = AccountAddress.from(collectionId);
+
+  const whereCondition: any = {
+    collection_id: { _eq: address.toStringLong() },
+  };
+
+  const graphqlQuery = {
+    query: GetCollectionData,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+  const data = await queryIndexer<GetCollectionDataQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getCollectionData",
+  });
+
+  return data.current_collections_v2[0];
+}
+
 export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
