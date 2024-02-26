@@ -310,7 +310,7 @@ export async function getCollectionDataByCollectionId(args: {
   const address = AccountAddress.from(collectionId);
 
   const whereCondition: any = {
-    collection_id: { _eq: address },
+    collection_id: { _eq: address.toStringLong() },
   };
 
   const graphqlQuery = {
