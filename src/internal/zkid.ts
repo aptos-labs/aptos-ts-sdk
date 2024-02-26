@@ -46,13 +46,14 @@ export async function getPepper(args: {
   ephemeralAccount: EphemeralAccount;
   uidKey?: string;
 }): Promise<Uint8Array> {
-  const { aptosConfig, jwt, ephemeralAccount } = args;
+  const { aptosConfig, jwt, ephemeralAccount, uidKey } = args;
 
   const body = {
       jwt_b64: jwt,
       epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
       epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
       epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
+      uid_key: uidKey,
   };
   const jsonString = JSON.stringify(body);
   console.log(jsonString);
@@ -81,9 +82,6 @@ export async function getPepper(args: {
   const hash = sha3Hash.create();
   hash.update(pepperBase);
   const hashDigest = hash.digest();
-  console.log("pepper");
-  console.log(Hex.fromHexInput(hashDigest).toStringWithoutPrefix());
-
 
   const pepper = Hex.fromHexInput(hashDigest).toUint8Array().slice(0, 31)
 
