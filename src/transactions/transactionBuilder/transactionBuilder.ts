@@ -75,7 +75,7 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { SigningScheme } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
-import { OidbPublicKey } from "../../core/crypto/oidb";
+import { KeylessPublicKey } from "../../core/crypto/oidb";
 import { MultiSignature } from "../../core/crypto/multiSignature";
 import { Serializable } from "../../bcs";
 
@@ -386,7 +386,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     if (publicKey.publicKey instanceof Ed25519PublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
-    if (publicKey.publicKey instanceof OidbPublicKey) {
+    if (publicKey.publicKey instanceof KeylessPublicKey) {
       // fix this to use oidb sig
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
@@ -396,7 +396,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   }
 
   // fix this to use oidb sig
-  if (publicKey instanceof OidbPublicKey) {
+  if (publicKey instanceof KeylessPublicKey) {
     return new AccountAuthenticatorSingleKey(
       new AnyPublicKey(publicKey),
       new AnySignature(new Ed25519Signature(new Uint8Array(64))),

@@ -10,7 +10,7 @@ import { Signature } from "./crypto/asymmetricCrypto";
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
 import { AnyPublicKey } from "./crypto/anyPublicKey";
-import { computeAddressSeed, OpenIdSignature, OpenIdSignatureOrZkProof, OidbPublicKey, OidbSignature } from "./crypto/oidb";
+import { computeAddressSeed, OpenIdSignature, OpenIdSignatureOrZkProof, KeylessPublicKey, OidbSignature } from "./crypto/oidb";
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
@@ -19,7 +19,7 @@ export class ZkIDAccount implements Signer {
 
   ephemeralAccount: EphemeralAccount;
 
-  publicKey: OidbPublicKey;
+  publicKey: KeylessPublicKey;
 
   uidKey: string;
 
@@ -48,7 +48,7 @@ export class ZkIDAccount implements Signer {
     const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper, jwt } = args;
     this.ephemeralAccount = ephemeralAccount;
     const addressSeed = computeAddressSeed(args);
-    this.publicKey = new OidbPublicKey(iss, addressSeed);
+    this.publicKey = new KeylessPublicKey(iss, addressSeed);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
     const derivedAddress = authKey.derivedAddress();
     this.accountAddress = address ?? derivedAddress;

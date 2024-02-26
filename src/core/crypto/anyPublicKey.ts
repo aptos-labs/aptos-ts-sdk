@@ -4,7 +4,7 @@ import { AnySignature } from "./anySignature";
 import { PublicKey } from "./asymmetricCrypto";
 import { Ed25519PublicKey } from "./ed25519";
 import { Secp256k1PublicKey } from "./secp256k1";
-import { OidbPublicKey } from "./oidb";
+import { KeylessPublicKey } from "./oidb";
 
 /**
  * Represents any public key supported by Aptos.
@@ -62,7 +62,7 @@ export class AnyPublicKey extends PublicKey {
     } else if (this.publicKey instanceof Secp256k1PublicKey) {
       serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256k1);
       this.publicKey.serialize(serializer);
-    } else if (this.publicKey instanceof OidbPublicKey) {
+    } else if (this.publicKey instanceof KeylessPublicKey) {
       serializer.serializeU32AsUleb128(AnyPublicKeyVariant.OIDB);
       this.publicKey.serialize(serializer);
     } else {
@@ -78,7 +78,7 @@ export class AnyPublicKey extends PublicKey {
       case AnyPublicKeyVariant.Secp256k1:
         return new AnyPublicKey(Secp256k1PublicKey.load(deserializer));
       case AnyPublicKeyVariant.OIDB:
-        return new AnyPublicKey(OidbPublicKey.load(deserializer));
+        return new AnyPublicKey(KeylessPublicKey.load(deserializer));
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${index}`);
     }
@@ -88,8 +88,8 @@ export class AnyPublicKey extends PublicKey {
     return publicKey instanceof AnyPublicKey;
   }
 
-  isOIDB(): this is OidbPublicKey {
-    return this.publicKey instanceof OidbPublicKey;
+  isOIDB(): this is KeylessPublicKey {
+    return this.publicKey instanceof KeylessPublicKey;
   }
 
   isEd25519(): this is Ed25519PublicKey {

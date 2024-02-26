@@ -20,11 +20,11 @@ export const MAX_JWT_HEADER_B64_BYTES = 300;
 export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
- * Represents the OidbPublicKey public key
+ * Represents the KeylessPublicKey public key
  *
- * OidbPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
+ * KeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
  */
-export class OidbPublicKey extends PublicKey {
+export class KeylessPublicKey extends PublicKey {
   static readonly ADDRESS_SEED_LENGTH: number = 32;
 
   readonly iss: string;
@@ -34,8 +34,8 @@ export class OidbPublicKey extends PublicKey {
   constructor(iss: string, addressSeed: HexInput) {
     super();
     const addressSeedBytes = Hex.fromHexInput(addressSeed).toUint8Array();
-    if (addressSeedBytes.length !== OidbPublicKey.ADDRESS_SEED_LENGTH) {
-      throw new Error(`Address seed length in bytes should be ${OidbPublicKey.ADDRESS_SEED_LENGTH}`);
+    if (addressSeedBytes.length !== KeylessPublicKey.ADDRESS_SEED_LENGTH) {
+      throw new Error(`Address seed length in bytes should be ${KeylessPublicKey.ADDRESS_SEED_LENGTH}`);
     }
 
     this.iss = iss;
@@ -78,20 +78,20 @@ export class OidbPublicKey extends PublicKey {
     serializer.serializeBytes(this.addressSeed);
   }
 
-  static deserialize(deserializer: Deserializer): OidbPublicKey {
+  static deserialize(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
-    return new OidbPublicKey(iss, addressSeed);
+    return new KeylessPublicKey(iss, addressSeed);
   }
 
-  static load(deserializer: Deserializer): OidbPublicKey {
+  static load(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
-    return new OidbPublicKey(iss, addressSeed);
+    return new KeylessPublicKey(iss, addressSeed);
   }
 
-  static isPublicKey(publicKey: PublicKey): publicKey is OidbPublicKey {
-    return publicKey instanceof OidbPublicKey;
+  static isPublicKey(publicKey: PublicKey): publicKey is KeylessPublicKey {
+    return publicKey instanceof KeylessPublicKey;
   }
 
   static create(args: {
@@ -100,9 +100,9 @@ export class OidbPublicKey extends PublicKey {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-  }): OidbPublicKey {
+  }): KeylessPublicKey {
     computeAddressSeed(args);
-    return new OidbPublicKey(args.iss,computeAddressSeed(args));
+    return new KeylessPublicKey(args.iss,computeAddressSeed(args));
   }
 }
 
@@ -121,7 +121,7 @@ export function computeAddressSeed(args: {
     hashASCIIStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
-  return bigIntToBytesLE(poseidonHash(fields), OidbPublicKey.ADDRESS_SEED_LENGTH);
+  return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ADDRESS_SEED_LENGTH);
 }
 
 export class OpenIdSignatureOrZkProof extends Signature {

@@ -18,7 +18,7 @@ import {
   AptosConfig,
   Ed25519PrivateKey,
   EphemeralAccount,
-  OidbPublicKey,
+  KeylessPublicKey,
   MultiKey,
   Network,
   MultiKeyAccount,
@@ -142,7 +142,7 @@ const example = async () => {
     aud,
     pepper,
   });
-  const escrowPublicKey = new OidbPublicKey(iss, escrowAddressSeed);
+  const escrowPublicKey = new KeylessPublicKey(iss, escrowAddressSeed);
 
   const multiKey = new MultiKey({publicKeys: [alice.publicKey, escrowPublicKey], signaturesRequired: 1})
   const mkAddr = AuthenticationKey.fromPublicKey({ publicKey: multiKey} ).derivedAddress();

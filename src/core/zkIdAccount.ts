@@ -14,7 +14,7 @@ import {
   computeAddressSeed, 
   OpenIdSignatureOrZkProof, 
   SignedGroth16Signature, 
-  OidbPublicKey, 
+  KeylessPublicKey, 
   OidbSignature, 
   OpenIdSignature} from "./crypto/oidb";
 import { EphemeralAccount } from "./ephemeralAccount";
@@ -25,7 +25,7 @@ export class KeylessAccount implements Signer {
 
   ephemeralAccount: EphemeralAccount;
 
-  publicKey: OidbPublicKey;
+  publicKey: KeylessPublicKey;
 
   uidKey: string;
 
@@ -57,7 +57,7 @@ export class KeylessAccount implements Signer {
     const { address, ephemeralAccount, iss, uidKey, uidVal, aud, pepper, proof, jwt } = args;
     this.ephemeralAccount = ephemeralAccount;
     const addressSeed = computeAddressSeed(args);
-    this.publicKey = new OidbPublicKey(iss, addressSeed);
+    this.publicKey = new KeylessPublicKey(iss, addressSeed);
     const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
     const derivedAddress = authKey.derivedAddress();
     this.accountAddress = address ?? derivedAddress;
