@@ -53,5 +53,27 @@ describe("Collection", () => {
 
     const address = await aptos.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
+
+    // Query again using the collection id should return the same data
+    const data2 = await aptos.getCollectionDataByCollectionId({
+      collectionId: address,
+      minimumLedgerVersion: BigInt(response.version),
+    });
+
+    expect(data2.collection_name).toEqual(collectionName);
+    expect(data2.creator_address).toEqual(creatorAddress.toString());
+    expect(data2.description).toEqual(collectionDescription);
+    expect(data2.uri).toEqual(collectionUri);
+    expect(data2.current_supply).toEqual(0);
+    expect(data2.mutable_description).toEqual(true);
+    expect(data2.mutable_uri).toEqual(true);
+    expect(data2.token_standard).toEqual("v2");
+
+    expect(data2).toHaveProperty("max_supply");
+    expect(data2).toHaveProperty("collection_id");
+    expect(data2).toHaveProperty("last_transaction_timestamp");
+    expect(data2).toHaveProperty("last_transaction_version");
+    expect(data2).toHaveProperty("table_handle_v1");
+    expect(data2).toHaveProperty("total_minted_v2");
   });
 });

@@ -23,6 +23,7 @@ import {
   createCollectionTransaction,
   freezeDigitalAssetTransferTransaction,
   getCollectionData,
+  getCollectionDataByCollectionId,
   getCollectionId,
   getCurrentDigitalAssetOwnership,
   getDigitalAssetActivity,
@@ -75,6 +76,25 @@ export class DigitalAsset {
       processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
     return getCollectionData({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries data of a specific collection by the collection ID.
+   *
+   * @param args.collectionId the ID of the collection, it's the same thing as the address of the collection object
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @returns GetCollectionDataResponse response type
+   */
+  async getCollectionDataByCollectionId(args: {
+    collectionId: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<GetCollectionDataResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
+    });
+    return getCollectionDataByCollectionId({ aptosConfig: this.config, ...args });
   }
 
   /**
