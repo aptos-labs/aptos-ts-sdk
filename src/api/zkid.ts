@@ -18,7 +18,7 @@ export class ZkID {
    * @param args.jwt jwt token
    * @returns The pepper
    */
-  async getPepper(args: { jwt: string }): Promise<string> {
+  async getPepper(args: { jwt: string, ephemeralAccount: EphemeralAccount; }): Promise<Uint8Array> {
     return getPepper({ aptosConfig: this.config, ...args });
   }
 
