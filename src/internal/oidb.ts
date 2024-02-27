@@ -45,8 +45,9 @@ export async function getPepper(args: {
   jwt: string;
   ephemeralAccount: EphemeralAccount;
   uidKey?: string;
+  verify?: boolean;
 }): Promise<Uint8Array> {
-  const { aptosConfig, jwt, ephemeralAccount, uidKey } = args;
+  const { aptosConfig, jwt, ephemeralAccount, uidKey, verify } = args;
 
   const body = {
       jwt_b64: jwt,
@@ -66,17 +67,17 @@ export async function getPepper(args: {
   console.log(data);
   const pepperBase = Hex.fromHexInput(data.pepper_key_hex_string).toUint8Array();
 
-  const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
-    aptosConfig,
-    path: "vrf-pub-key",
-    originMethod: "getPepper",
-  });
-
-  const publicKeyFromService = bls.G2.ProjectivePoint.fromHex(pubKeyResponse.vrf_public_key_hex_string);
-
-  const pepperVerified = bls.verifyShortSignature(pepperBase, getPepperInput(args), publicKeyFromService);
-  if (!pepperVerified) {
-    throw new Error("Unable to verify");
+  if (verify) {
+    const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
+      aptosConfig,
+      path: "vrf-pub-key",
+      originMethod: "getPepper",
+    });
+    const publicKeyFromService = bls.G2.ProjectivePoint.fromHex(pubKeyResponse.vrf_public_key_hex_string);
+    const pepperVerified = bls.verifyShortSignature(pepperBase, getPepperInput(args), publicKeyFromService);
+    if (!pepperVerified) {
+      throw new Error("Unable to verify");
+    }
   }
 
   const hash = sha3Hash.create();
@@ -127,6 +128,7 @@ export async function getProof(args: {
     body: json,
     originMethod: "getProof",
   });
+  console.log(data);
 
   const proofPoints = data.data.proof;
 
