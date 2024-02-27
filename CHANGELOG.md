@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.9.0 (2024-02-27)
+
 - Add `getCollectionByCollectionId` API
 - Changed `Account` into an abstract class, and defined strongly-typed specializations.
 
