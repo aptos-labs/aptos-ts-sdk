@@ -1,16 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  AuthenticationKey,
-  Deserializer,
-  Ed25519PublicKey,
-  HexInput,
-  MultiEd25519PublicKey,
-  PublicKey,
-  Serializer,
-  Signature,
-} from "../../src";
+import { AuthenticationKey, Deserializer, Ed25519PublicKey, MultiEd25519PublicKey, Serializer } from "../../src";
 import { ed25519, multiEd25519PkTestObject } from "./helper";
 
 describe("AuthenticationKey", () => {
@@ -29,7 +20,7 @@ describe("AuthenticationKey", () => {
 
   it("should create AuthenticationKey from Ed25519PublicKey", () => {
     const publicKey = new Ed25519PublicKey(ed25519.publicKey);
-    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
+    const authKey = publicKey.authKey();
     expect(authKey).toBeInstanceOf(AuthenticationKey);
     expect(authKey.data.toString()).toEqual(ed25519.authKey);
   });
@@ -46,9 +37,7 @@ describe("AuthenticationKey", () => {
       threshold: multiEd25519PkTestObject.threshold,
     });
 
-    const authKey = AuthenticationKey.fromPublicKey({
-      publicKey: pubKeyMultiSig,
-    });
+    const authKey = pubKeyMultiSig.authKey();
     expect(authKey).toBeInstanceOf(AuthenticationKey);
     expect(authKey.data.toString()).toEqual("0xa81cfac3df59920593ff417b45fc347ead3d88f8e25112c0488d34d7c9eb20af");
   });
@@ -57,39 +46,6 @@ describe("AuthenticationKey", () => {
     const authKey = new AuthenticationKey({ data: ed25519.authKey });
     const accountAddress = authKey.derivedAddress();
     expect(accountAddress.toString()).toEqual(ed25519.authKey);
-  });
-
-  it("should throw an error on an unsupported key", () => {
-    class NewPublicKey extends PublicKey {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-      deserialize(deserializer: Deserializer): PublicKey {
-        throw new Error("Not implemented");
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-      serialize(serializer: Serializer): void {
-        throw new Error("Not implemented");
-      }
-
-      // eslint-disable-next-line class-methods-use-this
-      toUint8Array(): Uint8Array {
-        throw new Error("Not implemented");
-      }
-
-      // eslint-disable-next-line class-methods-use-this
-      toString(): string {
-        throw new Error("Not implemented");
-      }
-
-      // eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-unused-vars
-      verifySignature(args: { message: HexInput; signature: Signature }): boolean {
-        throw new Error("Not implemented");
-      }
-    }
-
-    expect(() => AuthenticationKey.fromPublicKey({ publicKey: new NewPublicKey() })).toThrowError(
-      "No supported authentication scheme for public key",
-    );
   });
 
   it("should serialize correctly", () => {

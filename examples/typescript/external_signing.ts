@@ -13,12 +13,12 @@ import {
   AptosConfig,
   Deserializer,
   Ed25519PrivateKey,
-  Ed25519PublicKey,
   Ed25519Signature,
   Network,
   NetworkToNetworkName,
   RawTransaction,
   Serializer,
+  Ed25519Account,
 } from "@aptos-labs/ts-sdk";
 import nacl from "tweetnacl";
 
@@ -47,7 +47,7 @@ const balance = async (aptos: Aptos, account: Account, name: string): Promise<nu
  * Provides a mock "Cold wallet" that's signed externally from the SDK
  */
 class ExternalSigner {
-  private account: Account;
+  private account: Ed25519Account;
 
   private aptos: Aptos;
 
@@ -116,10 +116,7 @@ class ExternalSigner {
     const signature = nacl.sign.detached(signingMessage, this.extractedPrivateKey.secretKey);
 
     // Construct the authenticator with the public key for the submission
-    const authenticator = new AccountAuthenticatorEd25519(
-      this.account.publicKey as Ed25519PublicKey,
-      new Ed25519Signature(signature),
-    );
+    const authenticator = new AccountAuthenticatorEd25519(this.account.publicKey, new Ed25519Signature(signature));
 
     const serializer = new Serializer();
     authenticator.serialize(serializer);

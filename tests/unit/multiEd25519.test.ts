@@ -12,7 +12,70 @@ import {
 } from "../../src";
 import { multiEd25519PkTestObject, multiEd25519SigTestObject } from "./helper";
 
-describe("MultiPublicKey", () => {
+describe("MultiEd25519PublicKey", () => {
+  it("should verify the signature correctly", () => {
+    const publicKeys = [
+      "98e12a20fc5f4de3c9b075399dc5cba113307a1b3a913847932b2374c5fbc2f9",
+      "ab2ef6bdaf26dbb9df86640ebe6ca197529e2a53495d6daca8ec6c14eefb3f5d",
+      "5224654234c2de966f6c190670cde06ba68f3ce27598a5c9c00d92070934d0ec",
+    ].map((pk) => new Ed25519PublicKey(pk));
+
+    const signingMessage = "0xdeadbeef";
+
+    /* eslint-disable max-len */
+    const signatures = [
+      "10f88e602b0b6b248ad25b64b8071db3c8cfea55f0bad95b1c7815f885358f0fa0d765213c378079dbd5befdf5a1efabc5b48a54c59b90f55dd0e3bc3975eb09",
+      "ee818fda2af9528386b08f8489094634ff5e9f61ca5a87702d8d545df0892867e17ec43b06eede4b6bf7039d97165cc1fed147bb4ca8412fe6003279831b9c0a",
+      "d94428f514ce5b60ed7849041a485b9fecd8d4d639bfba59364e231a71352122568b3a5d0b701750eb7362f1ef94fb7ce60b0ce4977575f8f6f6927311cc160d",
+    ].map((sig) => new Ed25519Signature(sig));
+    /* eslint-enable max-len */
+
+    const multiEd25519PublicKey = new MultiEd25519PublicKey({
+      publicKeys,
+      threshold: 2,
+    });
+
+    expect(
+      multiEd25519PublicKey.verifySignature({
+        message: signingMessage,
+        signature: new MultiEd25519Signature({
+          signatures: [signatures[0], signatures[1]],
+          bitmap: [0, 1],
+        }),
+      }),
+    ).toBeTruthy();
+
+    expect(
+      multiEd25519PublicKey.verifySignature({
+        message: signingMessage,
+        signature: new MultiEd25519Signature({
+          signatures: [signatures[1], signatures[2]],
+          bitmap: [1, 2],
+        }),
+      }),
+    ).toBeTruthy();
+
+    expect(
+      multiEd25519PublicKey.verifySignature({
+        message: signingMessage,
+        signature: new MultiEd25519Signature({
+          signatures: [signatures[0], signatures[2]],
+          bitmap: [0, 2],
+        }),
+      }),
+    ).toBeTruthy();
+
+    expect(
+      multiEd25519PublicKey.verifySignature({
+        message: signingMessage,
+        signature: new MultiEd25519Signature({
+          signatures: [signatures[0], signatures[1]],
+          bitmap: [0, 2],
+        }),
+      }),
+    ).toBeFalsy();
+  });
+
   it("should convert to Uint8Array correctly", async () => {
     const publicKey1 = "b9c6ee1630ef3e711144a648db06bbb2284f7274cfbee53ffcee503cc1a49200";
     const publicKey2 = "aef3f4a4b8eca1dfc343361bf8e436bd42de9259c04b8314eb8e2054dd6e82ab";
@@ -70,7 +133,7 @@ describe("MultiPublicKey", () => {
   });
 });
 
-describe("MultiSignature", () => {
+describe("MultiEd25519Signature", () => {
   it("should serializes to bytes correctly", async () => {
     const edSigsArray = [];
     for (let i = 0; i < multiEd25519SigTestObject.signatures.length; i += 1) {
@@ -100,8 +163,8 @@ describe("MultiSignature", () => {
 
     const serializer = new Serializer();
     serializer.serialize(multisig);
-    const deserialzed = MultiEd25519Signature.deserialize(new Deserializer(serializer.toUint8Array()));
-    expect(Hex.fromHexInput(deserialzed.toUint8Array())).toEqual(Hex.fromHexInput(multisig.toUint8Array()));
+    const deserialized = MultiEd25519Signature.deserialize(new Deserializer(serializer.toUint8Array()));
+    expect(Hex.fromHexInput(deserialized.toUint8Array())).toEqual(Hex.fromHexInput(multisig.toUint8Array()));
   });
 
   it("should creates a valid bitmap", () => {

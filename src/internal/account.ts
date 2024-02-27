@@ -12,7 +12,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../core/account";
-import { PrivateKey } from "../core/crypto/asymmetricCrypto";
+import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
@@ -54,7 +54,6 @@ import {
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
-import { AnyPublicKey } from "../core/crypto/anyPublicKey";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 
 export async function getInfo(args: {
@@ -549,7 +548,10 @@ export async function deriveAccountFromPrivateKey(args: {
       return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
     }
     // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.Ed25519 });
+    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+      publicKey: publicKey.publicKey as Ed25519PublicKey,
+      scheme: SigningScheme.Ed25519,
+    });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
       const address = legacyAuthKey.derivedAddress();

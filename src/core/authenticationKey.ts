@@ -3,13 +3,9 @@
 
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AccountAddress } from "./accountAddress";
-import { PublicKey } from "./crypto/asymmetricCrypto";
-import { Ed25519PublicKey } from "./crypto/ed25519";
-import { MultiEd25519PublicKey } from "./crypto/multiEd25519";
+import type { AccountPublicKey } from "./crypto";
 import { Hex } from "./hex";
-import { AuthenticationKeyScheme, HexInput, SigningScheme } from "../types";
-import { AnyPublicKey } from "./crypto/anyPublicKey";
-import { MultiKey } from "./crypto/multiKey";
+import { AuthenticationKeyScheme, HexInput } from "../types";
 import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 
@@ -65,41 +61,27 @@ export class AuthenticationKey extends Serializable {
     return this.data.toUint8Array();
   }
 
+  static fromSchemeAndBytes(args: { scheme: AuthenticationKeyScheme; input: HexInput }): AuthenticationKey {
+    const { scheme, input } = args;
+    const inputBytes = Hex.fromHexInput(input).toUint8Array();
+    const hashInput = new Uint8Array([...inputBytes, scheme]);
+    const hash = sha3Hash.create();
+    hash.update(hashInput);
+    const hashDigest = hash.digest();
+    return new AuthenticationKey({ data: hashDigest });
+  }
+
   /**
+   * @deprecated Use `fromPublicKey` instead
    * Derives an AuthenticationKey from the public key seed bytes and an explicit derivation scheme.
    *
    * This facilitates targeting a specific scheme for deriving an authentication key from a public key.
    *
    * @param args - the public key and scheme to use for the derivation
    */
-  public static fromPublicKeyAndScheme(args: { publicKey: PublicKey; scheme: AuthenticationKeyScheme }) {
-    const { publicKey, scheme } = args;
-    let authKeyBytes: Uint8Array;
-
-    switch (scheme) {
-      case SigningScheme.MultiKey:
-      case SigningScheme.SingleKey: {
-        const singleKeyBytes = publicKey.bcsToBytes();
-        authKeyBytes = new Uint8Array([...singleKeyBytes, scheme]);
-        break;
-      }
-
-      case SigningScheme.Ed25519:
-      case SigningScheme.MultiEd25519: {
-        const ed25519PublicKeyBytes = publicKey.toUint8Array();
-        const inputBytes = Hex.fromHexInput(ed25519PublicKeyBytes).toUint8Array();
-        authKeyBytes = new Uint8Array([...inputBytes, scheme]);
-        break;
-      }
-
-      default:
-        throw new Error(`Scheme ${scheme} is not supported`);
-    }
-
-    const hash = sha3Hash.create();
-    hash.update(authKeyBytes);
-    const hashDigest = hash.digest();
-    return new AuthenticationKey({ data: hashDigest });
+  public static fromPublicKeyAndScheme(args: { publicKey: AccountPublicKey; scheme: AuthenticationKeyScheme }) {
+    const { publicKey } = args;
+    return publicKey.authKey();
   }
 
   /**
@@ -109,25 +91,9 @@ export class AuthenticationKey extends Serializable {
    * @param args.publicKey
    * @returns AuthenticationKey
    */
-  static fromPublicKey(args: { publicKey: PublicKey }): AuthenticationKey {
+  static fromPublicKey(args: { publicKey: AccountPublicKey }): AuthenticationKey {
     const { publicKey } = args;
-
-    let scheme: number;
-    if (publicKey instanceof Ed25519PublicKey) {
-      // for legacy support
-      scheme = SigningScheme.Ed25519.valueOf();
-    } else if (publicKey instanceof MultiEd25519PublicKey) {
-      // for legacy support
-      scheme = SigningScheme.MultiEd25519.valueOf();
-    } else if (publicKey instanceof AnyPublicKey) {
-      scheme = SigningScheme.SingleKey.valueOf();
-    } else if (publicKey instanceof MultiKey) {
-      scheme = SigningScheme.MultiKey.valueOf();
-    } else {
-      throw new Error("No supported authentication scheme for public key");
-    }
-
-    return AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme });
+    return publicKey.authKey();
   }
 
   /**

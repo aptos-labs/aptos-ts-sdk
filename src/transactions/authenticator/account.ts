@@ -4,8 +4,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { Serializer, Deserializer, Serializable } from "../../bcs";
-import { AnyPublicKey } from "../../core/crypto/anyPublicKey";
-import { AnySignature } from "../../core/crypto/anySignature";
+import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey } from "../../core/crypto/multiKey";

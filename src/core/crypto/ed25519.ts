@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import nacl from "tweetnacl";
-import { PublicKey, PrivateKey, Signature } from "./asymmetricCrypto";
 import { Deserializer } from "../../bcs/deserializer";
-import { Serializer } from "../../bcs/serializer";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
+import { PrivateKey } from "./privateKey";
+import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { Signature } from "./signature";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -18,7 +21,7 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
  * Ed25519 scheme is represented in the SDK as `Legacy authentication key` and also
  * as `AnyPublicKey` that represents any `Unified authentication key`
  */
-export class Ed25519PublicKey extends PublicKey {
+export class Ed25519PublicKey extends AccountPublicKey {
   /**
    * Length of an Ed25519 public key
    */
@@ -45,6 +48,32 @@ export class Ed25519PublicKey extends PublicKey {
     this.key = hex;
   }
 
+  // region AccountPublicKey
+
+  /**
+   * Verifies a signed data with a public key
+   * @param args.message a signed message
+   * @param args.signature the signature of the message
+   */
+  verifySignature(args: VerifySignatureArgs): boolean {
+    const { message, signature } = args;
+    if (!(signature instanceof Ed25519Signature)) {
+      return false;
+    }
+
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = signature.toUint8Array();
+    const publicKeyBytes = this.key.toUint8Array();
+    return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+  }
+
+  authKey(): AuthenticationKey {
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: AuthenticationKeyScheme.Ed25519,
+      input: this.toUint8Array(),
+    });
+  }
+
   /**
    * Get the public key in bytes (Uint8Array).
    *
@@ -54,26 +83,9 @@ export class Ed25519PublicKey extends PublicKey {
     return this.key.toUint8Array();
   }
 
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return this.key.toString();
-  }
+  // endregion
 
-  /**
-   * Verifies a signed data with a public key
-   * @param args.message a signed message
-   * @param args.signature the signature of the message
-   */
-  verifySignature(args: { message: HexInput; signature: Ed25519Signature }): boolean {
-    const { message, signature } = args;
-    const rawMessage = Hex.fromHexInput(message).toUint8Array();
-    const rawSignature = signature.toUint8Array();
-    return nacl.sign.detached.verify(rawMessage, rawSignature, this.key.toUint8Array());
-  }
+  // region Serializable
 
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.key.toUint8Array());
@@ -84,13 +96,12 @@ export class Ed25519PublicKey extends PublicKey {
     return new Ed25519PublicKey(bytes);
   }
 
-  static load(deserializer: Deserializer): Ed25519PublicKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519PublicKey(bytes);
-  }
+  // endregion
 
-  // TODO(greg): Currently, we can't put this on the abstract type, because of a circular dependency
-  static isPublicKey(publicKey: PublicKey): publicKey is Ed25519PublicKey {
+  /**
+   * @deprecated use `instanceof Ed25519PublicKey` instead.
+   */
+  static isPublicKey(publicKey: AccountPublicKey): publicKey is Ed25519PublicKey {
     return publicKey instanceof Ed25519PublicKey;
   }
 }
@@ -98,7 +109,7 @@ export class Ed25519PublicKey extends PublicKey {
 /**
  * Represents the private key of an Ed25519 key pair.
  */
-export class Ed25519PrivateKey extends PrivateKey {
+export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Length of an Ed25519 private key
    */
@@ -115,6 +126,8 @@ export class Ed25519PrivateKey extends PrivateKey {
    * @private
    */
   private readonly signingKeyPair: nacl.SignKeyPair;
+
+  // region Constructors
 
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
@@ -134,45 +147,6 @@ export class Ed25519PrivateKey extends PrivateKey {
   }
 
   /**
-   * Get the private key in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the private key
-   */
-  toUint8Array(): Uint8Array {
-    return this.signingKeyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH);
-  }
-
-  /**
-   * Get the private key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the private key
-   */
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
-  }
-
-  /**
-   * Sign the given message with the private key.
-   *
-   * @param message in HexInput format
-   * @returns Signature
-   */
-  sign(message: HexInput): Ed25519Signature {
-    const hex = Hex.fromHexInput(message);
-    const signature = nacl.sign.detached(hex.toUint8Array(), this.signingKeyPair.secretKey);
-    return new Ed25519Signature(signature);
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.toUint8Array());
-  }
-
-  static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519PrivateKey(bytes);
-  }
-
-  /**
    * Generate a new random private key.
    *
    * @returns Ed25519PrivateKey
@@ -180,16 +154,6 @@ export class Ed25519PrivateKey extends PrivateKey {
   static generate(): Ed25519PrivateKey {
     const keyPair = nacl.sign.keyPair();
     return new Ed25519PrivateKey(keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH));
-  }
-
-  /**
-   * Derive the Ed25519PublicKey for this private key.
-   *
-   * @returns Ed25519PublicKey
-   */
-  publicKey(): Ed25519PublicKey {
-    const bytes = this.signingKeyPair.publicKey;
-    return new Ed25519PublicKey(bytes);
   }
 
   /**
@@ -232,6 +196,68 @@ export class Ed25519PrivateKey extends PrivateKey {
     return new Ed25519PrivateKey(privateKey);
   }
 
+  // endregion
+
+  // region PrivateKey
+
+  /**
+   * Derive the Ed25519PublicKey for this private key.
+   *
+   * @returns Ed25519PublicKey
+   */
+  publicKey(): Ed25519PublicKey {
+    const bytes = this.signingKeyPair.publicKey;
+    return new Ed25519PublicKey(bytes);
+  }
+
+  /**
+   * Sign the given message with the private key.
+   *
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(message: HexInput): Ed25519Signature {
+    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const signatureBytes = nacl.sign.detached(messageBytes, this.signingKeyPair.secretKey);
+    return new Ed25519Signature(signatureBytes);
+  }
+
+  /**
+   * Get the private key in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the private key
+   */
+  toUint8Array(): Uint8Array {
+    return this.signingKeyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH);
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key
+   */
+  toString(): string {
+    return Hex.fromHexInput(this.toUint8Array()).toString();
+  }
+
+  // endregion
+
+  // region Serializable
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.toUint8Array());
+  }
+
+  static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
+    const bytes = deserializer.deserializeBytes();
+    return new Ed25519PrivateKey(bytes);
+  }
+
+  // endregion
+
+  /**
+   * @deprecated use `instanceof Ed25519PrivateKey` instead.
+   */
   static isPrivateKey(privateKey: PrivateKey): privateKey is Ed25519PrivateKey {
     return privateKey instanceof Ed25519PrivateKey;
   }
@@ -252,33 +278,28 @@ export class Ed25519Signature extends Signature {
    */
   private readonly data: Hex;
 
+  // region Constructors
+
   constructor(hexInput: HexInput) {
     super();
-    const hex = Hex.fromHexInput(hexInput);
-    if (hex.toUint8Array().length !== Ed25519Signature.LENGTH) {
+    const data = Hex.fromHexInput(hexInput);
+    if (data.toUint8Array().length !== Ed25519Signature.LENGTH) {
       throw new Error(`Signature length should be ${Ed25519Signature.LENGTH}`);
     }
-
-    this.data = hex;
+    this.data = data;
   }
 
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
+  // endregion
+
+  // region Signature
+
   toUint8Array(): Uint8Array {
     return this.data.toUint8Array();
   }
 
-  /**
-   * Get the signature as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the signature
-   */
-  toString(): string {
-    return this.data.toString();
-  }
+  // endregion
+
+  // region Serializable
 
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.data.toUint8Array());
@@ -289,12 +310,5 @@ export class Ed25519Signature extends Signature {
     return new Ed25519Signature(bytes);
   }
 
-  static load(deserializer: Deserializer): Ed25519Signature {
-    const bytes = deserializer.deserializeBytes();
-    return new Ed25519Signature(bytes);
-  }
-
-  static isSignature(signature: Signature): signature is Ed25519Signature {
-    return signature instanceof Ed25519Signature;
-  }
+  // endregion
 }
