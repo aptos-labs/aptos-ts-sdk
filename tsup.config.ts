@@ -28,16 +28,6 @@ const DEFAULT_CONFIG: Options = {
   },
 };
 
-// Browser config, uses iife
-const IIFE_CONFIG: MandatoryOptions = {
-  ...DEFAULT_CONFIG,
-  format: "iife",
-  globalName: "aptosSDK",
-  outDir: "dist/browser",
-  platform: "browser",
-  splitting: false,
-};
-
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
@@ -55,4 +45,4 @@ const ESM_CONFIG: MandatoryOptions = {
   platform: "node",
 };
 
-export default defineConfig([IIFE_CONFIG, COMMON_CONFIG, ESM_CONFIG]);
+export default defineConfig([COMMON_CONFIG, ESM_CONFIG]);

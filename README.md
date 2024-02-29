@@ -31,7 +31,7 @@ Install with your favorite package manager such as npm, yarn, or pnpm:
 pnpm install @aptos-labs/ts-sdk
 ```
 
-##### For use in a browser
+##### For use in a browser (<= 1.9.1 version only)
 
 You can add the SDK to your web application using a script tag:
 
