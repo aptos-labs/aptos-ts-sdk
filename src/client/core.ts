@@ -101,6 +101,10 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     return result;
   }
 
+  if (aptosConfig.isPepperServiceRequest(url)) {
+    throw new AptosApiError(options, result, `${response.data}`);
+  }
+
   let errorMessage: string;
 
   if (result && result.data && "message" in result.data && "error_code" in result.data) {

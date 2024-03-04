@@ -107,13 +107,6 @@ export interface PrivateKeyFromDerivationPathArgs {
  */
 export abstract class Account {
   /**
-   * Private key associated with the account.
-   * Note: this will be removed in the next major release,
-   *  as not all accounts have a private key.
-   */
-  abstract readonly privateKey: PrivateKey;
-
-  /**
    * Public key associated with the account
    */
   abstract readonly publicKey: AccountPublicKey;

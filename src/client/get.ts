@@ -77,6 +77,12 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
   return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
 }
 
+export async function getAptosPepperService<Req extends {}, Res extends {}>(
+  options: GetAptosRequestOptions,
+): Promise<AptosResponse<Req, Res>> {
+  return get<Req, Res>({ ...options, type: AptosApiType.PEPPER });
+}
+
 /// This function is a helper for paginating using a function wrapping an API
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
