@@ -51,21 +51,21 @@ export async function getPepper(args: {
 
   const body = {
       jwt_b64: jwt,
-      epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
-      epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
-      epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
+      epk: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
+      exp_date_secs: Number(ephemeralAccount.expiryTimestamp),
+      epk_blinder: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
       uid_key: uidKey,
   };
   const jsonString = JSON.stringify(body);
   console.log(jsonString);
-  const { data } = await postAptosPepperService<any, { pepper_key_hex_string: string }>({
+  const { data } = await postAptosPepperService<any, { signature: string }>({
     aptosConfig,
-    path: "",
+    path: "fetch",
     body,
     originMethod: "getPepper",
   });
   console.log(data);
-  const pepperBase = Hex.fromHexInput(data.pepper_key_hex_string).toUint8Array();
+  const pepperBase = Hex.fromHexInput(data.signature).toUint8Array();
 
   if (verify) {
     const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
@@ -101,10 +101,10 @@ export async function getProof(args: {
   const extraFieldKey2 = extraFieldKey || "iss";
   const json = {
     jwt_b64: jwt,
-    epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
-    epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
-    epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
-    epk_expiry_horizon_secs: EPK_LIFESPAN,
+    epk: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
+    epk_blinder: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
+    exp_date_secs: Number(ephemeralAccount.expiryTimestamp),
+    exp_horizon_secs: EPK_LIFESPAN,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
@@ -121,7 +121,7 @@ export async function getProof(args: {
 
   const { data } = await postAptosProvingService<
     any,
-    { data: { proof: { pi_a: string; pi_b: string; pi_c: string }; public_inputs_hash: string } }
+    { proof: { a: string; b: string; c: string }; public_inputs_hash: string }
   >({
     aptosConfig,
     path: "prove",
@@ -130,12 +130,12 @@ export async function getProof(args: {
   });
   console.log(data);
 
-  const proofPoints = data.data.proof;
+  const proofPoints = data.proof;
 
   const proof = new Groth16Zkp({
-    a: proofPoints.pi_a,
-    b: proofPoints.pi_b,
-    c: proofPoints.pi_c,
+    a: proofPoints.a,
+    b: proofPoints.b,
+    c: proofPoints.c,
   });
   const signMess = generateSigningMessage(proof.bcsToBytes(), "Groth16Zkp");
   const nonMalleabilitySignature = ephemeralAccount.sign(signMess);

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { jwtDecode, JwtPayload } from "jwt-decode";
+import { decode } from "base-64";
 import { AccountAddress } from "./accountAddress";
 import { AuthenticationKey } from "./authenticationKey";
 import { Signature } from "./crypto/asymmetricCrypto";
-
 
 import { Hex } from "./hex";
 import { HexInput, SigningScheme } from "../types";
@@ -20,6 +20,18 @@ import {
 import { EphemeralAccount } from "./ephemeralAccount";
 import { Signer } from "./account";
 
+function base64UrlDecode(base64Url: string): string {
+  // Replace base64url-specific characters
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+
+  // Pad the string with '=' characters if needed
+  const paddedBase64 = base64 + "==".substring(0, (3 - base64.length % 3) % 3);
+
+  // Decode the base64 string using the base-64 library
+  const decodedString = decode(paddedBase64);
+
+  return decodedString;
+}
 export class KeylessAccount implements Signer {
   static readonly PEPPER_LENGTH: number = 31;
 
@@ -77,11 +89,12 @@ export class KeylessAccount implements Signer {
 
   sign(data: HexInput): Signature {
     const jwtHeader = this.jwt.split(".")[0];
+
     const { expiryTimestamp } = this.ephemeralAccount;
     const ephemeralPublicKey = this.ephemeralAccount.publicKey;
     const ephemeralSignature = this.ephemeralAccount.sign(data);
     const oidbSig = new OidbSignature({
-      jwtHeader,
+      jwtHeader: base64UrlDecode(jwtHeader),
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
       expiryTimestamp,
       ephemeralPublicKey,

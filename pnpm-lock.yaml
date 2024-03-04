@@ -20,6 +20,9 @@ dependencies:
   '@scure/bip39':
     specifier: ^1.2.1
     version: 1.2.1
+  base-64:
+    specifier: ^1.0.0
+    version: 1.0.0
   eventemitter3:
     specifier: ^5.0.1
     version: 5.0.1
@@ -61,6 +64,9 @@ devDependencies:
   '@graphql-codegen/typescript-operations':
     specifier: ^4.0.1
     version: 4.0.1(graphql@16.8.1)
+  '@types/base-64':
+    specifier: ^1.0.2
+    version: 1.0.2
   '@types/jest':
     specifier: ^29.5.11
     version: 29.5.11
@@ -2461,6 +2467,10 @@ packages:
       '@babel/types': 7.23.0
     dev: true
 
+  /@types/base-64@1.0.2:
+    resolution: {integrity: sha512-uPgKMmM9fmn7I+Zi6YBqctOye4SlJsHKcisjHIMWpb2YKZRc36GpKyNuQ03JcT+oNXg1m7Uv4wU94EVltn8/cw==}
+    dev: true
+
   /@types/cacheable-request@6.0.3:
     resolution: {integrity: sha512-IQ3EbTzGxIigb1I3qPZc1rWJnH0BmSKv5QYTalEwweFvyBDLSAe24zP0le/hyi7ecGfZVlIVAg4BZqb8WBwKqw==}
     dependencies:
@@ -3219,6 +3229,10 @@ packages:
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
     dev: true
+
+  /base-64@1.0.0:
+    resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
+    dev: false
 
   /base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}

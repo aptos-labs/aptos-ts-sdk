@@ -23,17 +23,17 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 };
 
 export const NetworkToPepperAPI: Record<string, string> = {
-  mainnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
-  testnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
-  devnet: "https://aptos-zkid-pepper-service-6vgsvc5oma-uc.a.run.app",
+  mainnet: "https://pepper.keyless.mainnet.aptoslabs.com/v0",
+  testnet: "https://pepper.keyless.testnet.aptoslabs.com/v0",
+  devnet: "https://pepper.keyless.devnet.aptoslabs.com/v0",
   local: "http://127.0.0.1:8000",
 };
 
 export const NetworkToProverAPI: Record<string, string> = {
-  mainnet: "TODO",
-  testnet: "https://prover-service-image-c6wgp6n6ia-uc.a.run.app",
-  devnet: "https://prover-service-image-c6wgp6n6ia-uc.a.run.app",
-  local: "http://35.236.15.8:8080",
+  mainnet: "https://prover.keyless.mainnet.aptoslabs.com/v0",
+  testnet: "https://prover.keyless.testnet.aptoslabs.com/v0",
+  devnet: "https://prover.keyless.devnet.aptoslabs.com/v0",
+  local: "https://prover.keyless.devnet.aptoslabs.com/v0",
 };
 
 export enum Network {
