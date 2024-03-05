@@ -1,4 +1,6 @@
-import { FundResponse, IAssetUploader, UploadResponse, NodeIrys, CreateAndUploadOptions } from "./type";
+import type { NodeIrys } from "@irys/sdk/build/cjs/node/irys";
+import { CreateAndUploadOptions } from "@irys/sdk/build/cjs/common/types";
+import { FundResponse, IAssetUploader, UploadResponse } from "./types";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { Network } from "../../utils";
@@ -22,6 +24,7 @@ export class IrysAssetUploader implements IAssetUploader {
   static async init(config: AptosConfig) {
     try {
       const irys = await import("@irys/sdk");
+      console.log("irys", irys);
       return new IrysAssetUploader(config, irys.default);
     } catch (e: any) {
       throw new Error("To use the Irys service, please install the `@irys/sdk` package");
@@ -40,7 +43,7 @@ export class IrysAssetUploader implements IAssetUploader {
         // those and it is recommended to simply use node1
         return { irysNode: "node1", providerUrl: Network.MAINNET };
       default:
-        throw new Error("Unsopported network");
+        throw new Error("Unsupported network");
     }
   }
 
@@ -49,6 +52,7 @@ export class IrysAssetUploader implements IAssetUploader {
       throw new Error("Irys has not been initialized");
     }
     const { irysNode, providerUrl } = this.resolveProvider();
+    console.log("this.irysApp", this.irysApp);
     const irys = this.irysApp.init({
       url: irysNode, // Irys node
       token: "aptos", // Token used for payment and signing
@@ -79,7 +83,7 @@ export class IrysAssetUploader implements IAssetUploader {
     try {
       return await irys.upload(data, options);
     } catch (e) {
-      throw new Error(`Error funding data to irys ${e}`);
+      throw new Error(`Error uploading data to irys ${e}`);
     }
   }
 

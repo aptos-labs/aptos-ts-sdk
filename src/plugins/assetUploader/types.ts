@@ -1,8 +1,7 @@
-import { FundResponse, UploadResponse, CreateAndUploadOptions } from "@irys/sdk/build/cjs/common/types";
-import type { NodeIrys } from "@irys/sdk/build/cjs/node/irys";
+import { FundResponse, UploadResponse } from "@irys/sdk/build/cjs/common/types";
 import { Account } from "../../core";
 
-export { FundResponse, UploadResponse, NodeIrys, CreateAndUploadOptions };
+export { FundResponse, UploadResponse };
 
 /**
  * Shared interface for asset uploader providers to implement

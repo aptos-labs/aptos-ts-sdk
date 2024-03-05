@@ -1,7 +1,7 @@
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { IrysAssetUploader } from "./irys";
-import { FundResponse, IAssetUploader, UploadResponse } from "./type";
+import { FundResponse, IAssetUploader, UploadResponse } from "./types";
 
 export class AssetUploader {
   readonly config: AptosConfig;
