@@ -10,9 +10,9 @@ export const NetworkToIndexerAPI: Record<string, string> = {
 };
 
 export const NetworkToNodeAPI: Record<string, string> = {
-  mainnet: "https://fullnode.mainnet.aptoslabs.com/v1",
-  testnet: "https://fullnode.testnet.aptoslabs.com/v1",
-  devnet: "https://fullnode.devnet.aptoslabs.com/v1",
+  mainnet: "https://api.mainnet.aptoslabs.com/v1",
+  testnet: "https://api.testnet.aptoslabs.com/v1",
+  devnet: "https://api.devnet.aptoslabs.com/v1",
   randomnet: "https://fullnode.random.aptoslabs.com/v1",
   local: "http://127.0.0.1:8080/v1",
 };
