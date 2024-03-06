@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Deprecate`] IIFE build support
+- Use node API via API Gateway
 
 # 1.9.1 (2024-02-28)
 
