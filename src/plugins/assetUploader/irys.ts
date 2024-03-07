@@ -15,6 +15,25 @@ import { Network } from "../../utils";
  * Irys asset uploader.
  *
  * This module uses the Irys SDK {@link https://docs.irys.xyz/developer-docs/irys-sdk}
+ *
+ * NOTE: Some limitation and potential issues may appear when using Irys
+ *
+ * Peer Dependencies:
+ * When it comes to peer dependencies, It is a bit tricky with all the different web app frameworks
+ * and the bundle tool each uses. If you experience any error like "coult not resolve @irys/sdk",
+ * manually install the @irys/sdk package.
+ *
+ * Polyfill Nodejs:
+ * Irys expects web apps to polyfill nodejs modules (i.e inject node modules code into a browser env).
+ * If you want to use Irys and have installed the @irys/sdk package, you should polyfill nodejs.
+ * Can follow Irys documentation around it:
+ * Add polyfill to create-react-app {@link https://docs.irys.xyz/hands-on/tutorials/react}
+ * Add polyfill to Vite app {@link https://docs.irys.xyz/hands-on/tutorials/vite}
+ *
+ * WebIrys module vs NodeIrys module:
+ * Irys uses different modules to node and browser envs. That means functions expect different
+ * argument inputs based on the env. We have documented it on the function code-doc.
+ *
  */
 export class IrysAssetUploader implements IAssetUploader {
   readonly config: AptosConfig;
