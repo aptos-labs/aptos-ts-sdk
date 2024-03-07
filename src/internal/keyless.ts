@@ -15,8 +15,10 @@ import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
 import {
   EPK_LIFESPAN,
+  EphemeralAccount,
   Groth16Zkp,
   Hex,
+  KeylessAccount,
   SignedGroth16Signature,
 } from "../core";
 import { generateSigningMessage } from "../transactions";

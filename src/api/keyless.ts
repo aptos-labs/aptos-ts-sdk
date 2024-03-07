@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { deriveAccountFromJWTAndEphemAccount, deriveKeylessAccount, getPepper } from "../internal/keyless";
+import { EphemeralAccount, KeylessAccount } from "../core";
+import { deriveKeylessAccount, getPepper } from "../internal/keyless";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -19,24 +20,6 @@ export class Keyless {
    */
   async getPepper(args: { jwt: string, ephemeralAccount: EphemeralAccount; }): Promise<Uint8Array> {
     return getPepper({ aptosConfig: this.config, ...args });
-  }
-
-  /**
-   * TODO
-   *
-   * @param args.jwt jwt token
-   * @param args.ephemeralAccount
-   * @param args.uidKey
-   * @param args.pepper
-   * @returns
-   */
-  async deriveAccountFromJWTAndEphemAccount(args: {
-    jwt: string;
-    ephemeralAccount: EphemeralAccount;
-    uidKey?: string;
-    pepper?: HexInput;
-  }): Promise<ZkIDAccount> {
-    return deriveAccountFromJWTAndEphemAccount({ aptosConfig: this.config, ...args });
   }
 
   /**
