@@ -10,3 +10,4 @@ export * from "./transactions";
 export * from "./transactions/management";
 export * from "./types";
 export * from "./utils";
+export * from "./plugins";

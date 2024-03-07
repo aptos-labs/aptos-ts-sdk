@@ -58,7 +58,16 @@
     "form-data": "^4.0.0",
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
-    "poseidon-lite": "^0.2.0"
+    "poseidon-lite": "^0.2.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "peerDependencies": {
+    "@irys/sdk": ">=0.1.15"
+  },
+  "peerDependenciesMeta": {
+    "@irys/sdk": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babel/traverse": "^7.23.6",
@@ -90,7 +99,8 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
     "typedoc": "^0.25.4",
-    "typescript": "^5.3.3"
+    "typescript": "5.3.3",
+    "@irys/sdk": "0.1.15"
   },
   "version": "1.9.1-tmp.0"
 }

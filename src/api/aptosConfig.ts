@@ -12,6 +12,7 @@ import {
   NetworkToProverAPI,
 } from "../utils/apiEndpoints";
 import { AptosApiType } from "../utils/const";
+import { AssetUploaderProvider } from "../plugins/assetUploader/types";
 
 /**
  * This class holds the config information for the SDK client instance.

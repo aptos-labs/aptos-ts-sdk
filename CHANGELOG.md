@@ -155,6 +155,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Deprecate`] IIFE build support
 - Use node API via API Gateway
 - [`Fix`] Filter `getCurrentDigitalAssetOwnership` where amount > 0
+- Add generic `AssetUploader` module support
+- Integrate `Irys` asset uploader provider as an optional dependency
 
 # 1.9.1 (2024-02-28)
 
