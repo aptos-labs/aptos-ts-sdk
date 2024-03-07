@@ -1,0 +1,20 @@
+env:
+  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+name: "Check SDK versions match"
+on:
+  pull_request:
+    branches: [main]
+    types: [labeled, opened, synchronize, reopened, auto_merge_enabled]
+  push:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.GIT_SHA }}
+      - uses: ./.github/actions/run-check-version
