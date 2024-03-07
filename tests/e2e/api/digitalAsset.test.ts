@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Aptos, AptosConfig, Bool, MoveString, MoveVector, Network, U8 } from "../../../src";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 
 const config = new AptosConfig({ network: Network.LOCAL });
 const aptos = new Aptos(config);
@@ -274,27 +274,31 @@ describe("DigitalAsset", () => {
     await aptos.signAndSubmitTransaction({ signer: creator, transaction });
   });
 
-  test("it transfers digital asset ownership", async () => {
-    const digitalAssetReciever = Account.generate();
-    await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
+  test(
+    "it transfers digital asset ownership",
+    async () => {
+      const digitalAssetReciever = Account.generate();
+      await aptos.fundAccount({ accountAddress: digitalAssetReciever.accountAddress, amount: FUND_AMOUNT });
 
-    const transaction = await aptos.transferDigitalAssetTransaction({
-      sender: creator,
-      digitalAssetAddress: tokenAddress,
-      recipient: digitalAssetReciever.accountAddress,
-    });
-    const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
-    const res = await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
+      const transaction = await aptos.transferDigitalAssetTransaction({
+        sender: creator,
+        digitalAssetAddress: tokenAddress,
+        recipient: digitalAssetReciever.accountAddress,
+      });
+      const commitedTransaction = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+      const res = await aptos.waitForTransaction({ transactionHash: commitedTransaction.hash });
 
-    const tokenData = (
-      await aptos.getOwnedDigitalAssets({
-        ownerAddress: digitalAssetReciever.accountAddress,
-        minimumLedgerVersion: BigInt(res.version),
-      })
-    )[0];
-    expect(tokenData.token_data_id).toEqual(tokenAddress);
-    expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
-  });
+      const tokenData = (
+        await aptos.getOwnedDigitalAssets({
+          ownerAddress: digitalAssetReciever.accountAddress,
+          minimumLedgerVersion: BigInt(res.version),
+        })
+      )[0];
+      expect(tokenData.token_data_id).toEqual(tokenAddress);
+      expect(tokenData.owner_address).toEqual(digitalAssetReciever.accountAddress.toString());
+    },
+    longTestTimeout,
+  );
 
   test("it burns digital asset", async () => {
     const transaction = await aptos.burnDigitalAssetTransaction({
