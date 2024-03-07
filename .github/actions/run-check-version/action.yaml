@@ -1,6 +1,6 @@
-name: "Lint SDK Code"
+name: "Check SDK versions match"
 description: |
-  Run eslint on the codebase to ensure consistency
+  Run check-version to ensure versions match when the target branch is main
 
 runs:
   using: composite
@@ -14,6 +14,6 @@ runs:
       with:
         version: 8.9.0
 
-    # Run eslint
-    - run: pnpm install --frozen-lockfile && pnpm lint
+    # Run version check
+    - run: pnpm check-version
       shell: bash
