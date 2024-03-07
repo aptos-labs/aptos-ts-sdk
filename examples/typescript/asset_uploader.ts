@@ -23,14 +23,14 @@ const example = async () => {
   // Upload file
   const uploadFileResponse = await assetUploader.uploadFile({
     account,
-    filePathToUpload: "<path-to-file>",
+    file: "/Users/maayansavir/Desktop/pfp.jpeg",
   });
   console.log("uploadFileResponse", uploadFileResponse);
 
   // Upload folder
   const uploadFolderResponse = await assetUploader.uploadFolder({
     account,
-    folderToUpload: "<path-to-folder>",
+    folder: "/Users/maayansavir/Desktop/test-apps/web-app",
   });
   console.log("uploadFolderResponse", uploadFolderResponse);
   process.exit(0);

@@ -1,7 +1,7 @@
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { IrysAssetUploader } from "./irys";
-import { FundResponse, IAssetUploader, UploadResponse } from "./types";
+import { FundResponse, IAssetUploader, UploadResponse, TaggedFile, AssetUploaderProvider } from "./types";
 
 export class AssetUploader {
   readonly config: AptosConfig;
@@ -13,9 +13,14 @@ export class AssetUploader {
     this.assetUploader = assetUploader;
   }
 
+  /**
+   * Static init function to initialize an AssetUploader instance
+   *
+   * @param config AptosConfig
+   */
   static async init(config: AptosConfig) {
     switch (config.assetUploaderProvider) {
-      case "irys": {
+      case AssetUploaderProvider.Irys: {
         const assetUploader = await IrysAssetUploader.init(config);
         return new AssetUploader(config, assetUploader);
       }
@@ -52,11 +57,11 @@ export class AssetUploader {
    * Upload a file
    *
    * @param args.account The account to sign and pay the upload file transaction with
-   * @param args.filePathToUpload The file to upload as the file path
+   * @param args.file The file to upload as the file path
    *
    * @return UploadResponse
    */
-  async uploadFile(args: { account: Account; filePathToUpload: string; options?: any }): Promise<UploadResponse> {
+  async uploadFile(args: { account: Account; file: string | File; options?: any }): Promise<UploadResponse> {
     return this.assetUploader.uploadFile({ ...args });
   }
 
@@ -64,13 +69,13 @@ export class AssetUploader {
    * Upload a folder
    *
    * @param args.account The account to sign and pay the upload folder transaction with
-   * @param args.folderToUpload The folder to upload as the folder path
+   * @param args.folder The folder to upload as the folder path
    *
    * @return UploadResponse | undefined
    */
   async uploadFolder(args: {
     account: Account;
-    folderToUpload: string;
+    folder: string | TaggedFile[];
     options?: any;
   }): Promise<UploadResponse | undefined> {
     return this.assetUploader.uploadFolder({ ...args });

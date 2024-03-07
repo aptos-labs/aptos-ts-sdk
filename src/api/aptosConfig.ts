@@ -5,6 +5,7 @@ import aptosClient from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client } from "../types";
 import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
 import { AptosApiType } from "../utils/const";
+import { AssetUploaderProvider } from "../plugins/assetUploader/types";
 
 /**
  * This class holds the config information for the SDK client instance.
@@ -41,7 +42,7 @@ export class AptosConfig {
   /**
    * Asset uploader provider, default to "irys"
    */
-  readonly assetUploaderProvider = "irys";
+  readonly assetUploaderProvider = AssetUploaderProvider.Irys;
 
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? Network.DEVNET;
