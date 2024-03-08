@@ -7,7 +7,7 @@ import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { MultiKey } from "../../core/crypto/multiKey";
+import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
@@ -149,28 +149,24 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
 export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
   public readonly public_keys: MultiKey;
 
-  public readonly signatures: Array<AnySignature>;
+  public readonly signatures: MultiKeySignature;
 
-  public readonly signatures_bitmap: Uint8Array;
 
-  constructor(public_keys: MultiKey, signatures: Array<AnySignature>, signatures_bitmap: Uint8Array) {
+  constructor(public_keys: MultiKey, signatures: MultiKeySignature) {
     super();
     this.public_keys = public_keys;
     this.signatures = signatures;
-    this.signatures_bitmap = signatures_bitmap;
   }
 
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.MultiKey);
     this.public_keys.serialize(serializer);
-    serializer.serializeVector<AnySignature>(this.signatures);
-    serializer.serializeBytes(this.signatures_bitmap);
+    this.signatures.serialize(serializer);
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorMultiKey {
     const public_keys = MultiKey.deserialize(deserializer);
-    const signatures = deserializer.deserializeVector(AnySignature);
-    const signatures_bitmap = deserializer.deserializeBytes();
-    return new AccountAuthenticatorMultiKey(public_keys, signatures, signatures_bitmap);
+    const signatures = MultiKeySignature.deserialize(deserializer);
+    return new AccountAuthenticatorMultiKey(public_keys, signatures);
   }
 }

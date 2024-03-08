@@ -6,7 +6,7 @@ import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, OpenIdSignatureOrZkProofVariant, SigningScheme } from "../../types";
+import { HexInput, EphemeralCertificate, SigningScheme } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
@@ -160,10 +160,10 @@ export class OpenIdSignatureOrZkProof extends Signature {
 
   serialize(serializer: Serializer): void {
     if (this.signature instanceof OpenIdSignature) {
-      serializer.serializeU32AsUleb128(OpenIdSignatureOrZkProofVariant.OpenIdSignature);
+      serializer.serializeU32AsUleb128(EphemeralCertificate.OpenIdSignature);
       this.signature.serialize(serializer);
     } else if (this.signature instanceof SignedGroth16Signature) {
-      serializer.serializeU32AsUleb128(OpenIdSignatureOrZkProofVariant.ZkProof);
+      serializer.serializeU32AsUleb128(EphemeralCertificate.ZkProof);
       this.signature.serialize(serializer);
     } else {
       throw new Error("Not a valid OIDB signature");
@@ -173,12 +173,12 @@ export class OpenIdSignatureOrZkProof extends Signature {
   static deserialize(deserializer: Deserializer): OpenIdSignatureOrZkProof {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
-      // case OpenIdSignatureOrZkProofVariant.ZkProof:
-      //   return new AnySignature(Ed25519Signature.load(deserializer));
-      case OpenIdSignatureOrZkProofVariant.OpenIdSignature:
+      case EphemeralCertificate.ZkProof:
+        return new OpenIdSignatureOrZkProof(SignedGroth16Signature.load(deserializer));
+      case EphemeralCertificate.OpenIdSignature:
         return new OpenIdSignatureOrZkProof(OpenIdSignature.load(deserializer));
       default:
-        throw new Error(`Unknown variant index for OpenIdSignatureOrZkProofVariant: ${index}`);
+        throw new Error(`Unknown variant index for EphemeralCertificate: ${index}`);
     }
   }
 }

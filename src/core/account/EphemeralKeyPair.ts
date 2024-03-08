@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../crypto/poseidon";
 import { GenerateAccount, HexInput, SigningSchemeInput } from "../../types";
 
-export class EphemeralAccount {
+export class EphemeralKeyPair {
   readonly blinder: Uint8Array;
 
   readonly expiryTimestamp: bigint;
@@ -31,7 +31,7 @@ export class EphemeralAccount {
     this.nonce = this.generateNonce();
   }
 
-  static generate(args?: GenerateAccount): EphemeralAccount {
+  static generate(args?: GenerateAccount): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
@@ -42,7 +42,7 @@ export class EphemeralAccount {
 
     const expiryTimestamp = BigInt(123); // TODO
 
-    return new EphemeralAccount({ privateKey, expiryTimestamp });
+    return new EphemeralKeyPair({ privateKey, expiryTimestamp });
   }
 
   generateNonce(): string {

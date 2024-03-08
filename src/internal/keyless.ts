@@ -13,58 +13,51 @@ import { bls12_381 as bls } from "@noble/curves/bls12-381";
 import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
-import {
-  EPK_LIFESPAN,
-  EphemeralAccount,
-  Groth16Zkp,
-  Hex,
-  KeylessAccount,
-  SignedGroth16Signature,
-} from "../core";
+import { EPK_LIFESPAN, EphemeralKeyPair, Groth16Zkp, KeylessAccount, Hex, SignedGroth16Signature } from "../core";
 import { generateSigningMessage } from "../transactions";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
 
-function getPepperInput(args: {jwt: string, uidKey?: string}): ProjPointType<bigint> {
-  const {jwt, uidKey } = args;
+function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<bigint> {
+  const { jwt, uidKey } = args;
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
   const serializer = new Serializer();
   serializer.serializeStr(jwtPayload.iss);
   serializer.serializeStr(jwtPayload.aud);
   serializer.serializeStr(jwtPayload[uidKey || "sub"]);
   serializer.serializeStr(uidKey || "sub");
-  const serial = serializer.toUint8Array()
+  const serial = serializer.toUint8Array();
   const mess = bls.G1.hashToCurve(serial, { DST: "APTOS_OIDB_VUF_SCHEME0_DST" }).toAffine();
   const pp = bls.G1.ProjectivePoint.fromAffine(mess);
-  return pp
+  return pp;
 }
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
   jwt: string;
-  ephemeralAccount: EphemeralAccount;
+  ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
   verify?: boolean;
 }): Promise<Uint8Array> {
-  const { aptosConfig, jwt, ephemeralAccount, uidKey, verify } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, uidKey, verify } = args;
 
   const body = {
-      jwt_b64: jwt,
-      epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
-      epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
-      epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
-      uid_key: uidKey,
+    jwt_b64: jwt,
+    epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
+    exp_date_secs: Number(ephemeralKeyPair.expiryTimestamp),
+    epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
+    uid_key: uidKey,
   };
   const jsonString = JSON.stringify(body);
   console.log(jsonString);
-  const { data } = await postAptosPepperService<any, { pepper_key_hex_string: string }>({
+  const { data } = await postAptosPepperService<any, { signature: string }>({
     aptosConfig,
-    path: "",
+    path: "fetch",
     body,
     originMethod: "getPepper",
   });
   console.log(data);
-  const pepperBase = Hex.fromHexInput(data.pepper_key_hex_string).toUint8Array();
+  const pepperBase = Hex.fromHexInput(data.signature).toUint8Array();
 
   if (verify) {
     const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
@@ -83,7 +76,7 @@ export async function getPepper(args: {
   hash.update(pepperBase);
   const hashDigest = hash.digest();
 
-  const pepper = Hex.fromHexInput(hashDigest).toUint8Array().slice(0, 31)
+  const pepper = Hex.fromHexInput(hashDigest).toUint8Array().slice(0, 31);
 
   return pepper;
 }
@@ -91,19 +84,19 @@ export async function getPepper(args: {
 export async function getProof(args: {
   aptosConfig: AptosConfig;
   jwt: string;
-  ephemeralAccount: EphemeralAccount;
+  ephemeralKeyPair: EphemeralKeyPair;
   pepper: HexInput;
   uidKey?: string;
   extraFieldKey?: string;
 }): Promise<SignedGroth16Signature> {
-  const { aptosConfig, jwt, ephemeralAccount, pepper, uidKey, extraFieldKey } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey, extraFieldKey } = args;
   const extraFieldKey2 = extraFieldKey || "iss";
   const json = {
     jwt_b64: jwt,
-    epk_hex_string: ephemeralAccount.publicKey.bcsToHex().toStringWithoutPrefix(),
-    epk_blinder_hex_string: Hex.fromHexInput(ephemeralAccount.blinder).toStringWithoutPrefix(),
-    epk_expiry_time_secs: Number(ephemeralAccount.expiryTimestamp),
-    epk_expiry_horizon_secs: EPK_LIFESPAN,
+    epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
+    epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
+    exp_date_secs: Number(ephemeralKeyPair.expiryTimestamp),
+    exp_horizon_secs: EPK_LIFESPAN,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
@@ -120,7 +113,7 @@ export async function getProof(args: {
 
   const { data } = await postAptosProvingService<
     any,
-    { data: { proof: { pi_a: string; pi_b: string; pi_c: string }; public_inputs_hash: string } }
+    { proof: { a: string; b: string; c: string }; public_inputs_hash: string }
   >({
     aptosConfig,
     path: "prove",
@@ -129,15 +122,15 @@ export async function getProof(args: {
   });
   console.log(data);
 
-  const proofPoints = data.data.proof;
+  const proofPoints = data.proof;
 
   const proof = new Groth16Zkp({
-    a: proofPoints.pi_a,
-    b: proofPoints.pi_b,
-    c: proofPoints.pi_c,
+    a: proofPoints.a,
+    b: proofPoints.b,
+    c: proofPoints.c,
   });
   const signMess = generateSigningMessage(proof.bcsToBytes(), "Groth16Zkp");
-  const nonMalleabilitySignature = ephemeralAccount.sign(signMess);
+  const nonMalleabilitySignature = ephemeralKeyPair.sign(signMess);
   const signedProof = new SignedGroth16Signature({ proof, nonMalleabilitySignature, extraField });
   return signedProof;
 }
@@ -145,7 +138,7 @@ export async function getProof(args: {
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
-  ephemeralAccount: EphemeralAccount;
+  ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;

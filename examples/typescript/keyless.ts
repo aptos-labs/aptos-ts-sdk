@@ -13,7 +13,7 @@ import {
   Aptos,
   AptosConfig,
   Ed25519PrivateKey,
-  EphemeralAccount,
+  EphemeralKeyPair,
   Network
 } from "@aptos-labs/ts-sdk";
 import { promisify } from "util";
@@ -60,7 +60,7 @@ const example = async () => {
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
   }
-  const aliceEphem = new EphemeralAccount({ privateKey, expiryTimestamp, blinder });
+  const aliceEphem = new EphemeralKeyPair({ privateKey, expiryTimestamp, blinder });
 
   console.log();
   console.log("=== Get token via the below link ===");
@@ -102,7 +102,7 @@ const example = async () => {
 
   const alice = await aptos.deriveKeylessAccount({
     jwt,
-    ephemeralAccount: aliceEphem,
+    ephemeralKeyPair: aliceEphem,
     // pepper: "4c000000000000000000000000000000000000000000000000000000000000",
     // extraFieldKey: "family_name"
   });

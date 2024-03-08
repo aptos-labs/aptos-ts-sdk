@@ -15,7 +15,8 @@
     "external_signing": "ts-node external_signing.ts",
     "your_coin": "ts-node your_coin.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
-    "zkid3": "ts-node keyless.ts",
+    "keyless": "ts-node keyless.ts",
+    "keyless_escrow": "ts-node keyless_escrow.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct"
   },
   "keywords": [],
