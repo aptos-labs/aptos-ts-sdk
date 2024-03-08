@@ -48,15 +48,15 @@ export async function getPepper(args: {
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
-  const jsonString = JSON.stringify(body);
-  console.log(jsonString);
+  // const jsonString = JSON.stringify(body);
+  // console.log(jsonString);
   const { data } = await postAptosPepperService<any, { signature: string }>({
     aptosConfig,
     path: "fetch",
     body,
     originMethod: "getPepper",
   });
-  console.log(data);
+  // console.log(data);
   const pepperBase = Hex.fromHexInput(data.signature).toUint8Array();
 
   if (verify) {
@@ -101,8 +101,8 @@ export async function getProof(args: {
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
   };
-  const jsonString = JSON.stringify(json);
-  console.log(jsonString);
+  // const jsonString = JSON.stringify(json);
+  // console.log(jsonString);
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
   const extraFieldVal = jwtPayload[extraFieldKey2];
   const extraField = `"${extraFieldKey2}":"${extraFieldVal}",`;
@@ -120,7 +120,7 @@ export async function getProof(args: {
     body: json,
     originMethod: "getProof",
   });
-  console.log(data);
+  // console.log(data);
 
   const proofPoints = data.proof;
 
