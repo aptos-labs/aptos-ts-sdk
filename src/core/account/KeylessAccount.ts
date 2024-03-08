@@ -99,32 +99,16 @@ export class KeylessAccount implements Account {
 
   sign(data: HexInput): Signature {
     const jwtHeader = this.jwt.split(".")[0];
-    const { expiryTimestamp } = this.ephemeralKeyPair;
+    const { expiryDateSecs } = this.ephemeralKeyPair;
     const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
-    const oidbSig = new KeylessSignature({
+    return new KeylessSignature({
       jwtHeader: base64UrlDecode(jwtHeader),
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
-      expiryTimestamp,
+      expiryDateSecs,
       ephemeralPublicKey,
       ephemeralSignature,
     });
-    return oidbSig;
-  }
-
-  signWithZkProof(data: HexInput): Signature {
-    const jwtHeader = this.jwt.split(".")[0];
-    const { expiryTimestamp } = this.ephemeralKeyPair;
-    const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
-    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
-    const oidbSig = new KeylessSignature({
-      jwtHeader: base64UrlDecode(jwtHeader),
-      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
-      expiryTimestamp,
-      ephemeralPublicKey,
-      ephemeralSignature,
-    });
-    return oidbSig;
   }
 
   signWithOpenIdSignature(data: HexInput): Signature {
@@ -137,17 +121,16 @@ export class KeylessAccount implements Account {
       pepper: this.pepper,
     });
 
-    const { expiryTimestamp } = this.ephemeralKeyPair;
+    const { expiryDateSecs } = this.ephemeralKeyPair;
     const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
-    const oidbSig = new KeylessSignature({
+    return new KeylessSignature({
       jwtHeader,
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
-      expiryTimestamp,
+      expiryDateSecs,
       ephemeralPublicKey,
       ephemeralSignature,
     });
-    return oidbSig;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this

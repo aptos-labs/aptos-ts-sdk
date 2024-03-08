@@ -55,12 +55,12 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
-  const expiryTimestamp = BigInt(1718911224);
+  const expiryDateSecs = BigInt(1718911224);
   const blinder = new Uint8Array(31);
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
   }
-  const aliceEphem = new EphemeralKeyPair({ privateKey, expiryTimestamp, blinder });
+  const aliceEphem = new EphemeralKeyPair({ privateKey, expiryDateSecs, blinder });
 
   console.log();
   console.log("=== Get token via the below link ===");

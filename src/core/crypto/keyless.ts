@@ -405,7 +405,7 @@ export class KeylessSignature extends Signature {
 
   readonly jwtHeader: string;
 
-  readonly expiryTimestamp: bigint;
+  readonly expiryDateSecs: bigint;
 
   readonly ephemeralPublicKey: EphemeralPublicKey;
 
@@ -419,15 +419,15 @@ export class KeylessSignature extends Signature {
   constructor(args: {
     jwtHeader: string;
     openIdSignatureOrZkProof: OpenIdSignatureOrZkProof;
-    expiryTimestamp: bigint;
+    expiryDateSecs: bigint;
     ephemeralPublicKey: EphemeralPublicKey;
     ephemeralSignature: EphemeralSignature;
   }) {
     super();
-    const { jwtHeader, openIdSignatureOrZkProof, expiryTimestamp, ephemeralPublicKey, ephemeralSignature } = args;
+    const { jwtHeader, openIdSignatureOrZkProof, expiryDateSecs, ephemeralPublicKey, ephemeralSignature } = args;
     this.jwtHeader = jwtHeader;
     this.openIdSignatureOrZkProof = openIdSignatureOrZkProof;
-    this.expiryTimestamp = expiryTimestamp;
+    this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
   }
@@ -453,20 +453,20 @@ export class KeylessSignature extends Signature {
   serialize(serializer: Serializer): void {
     this.openIdSignatureOrZkProof.serialize(serializer);
     serializer.serializeStr(this.jwtHeader);
-    serializer.serializeU64(this.expiryTimestamp);
+    serializer.serializeU64(this.expiryDateSecs);
     this.ephemeralPublicKey.serialize(serializer);
     this.ephemeralSignature.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): KeylessSignature {
     const jwtHeader = deserializer.deserializeStr();
-    const expiryTimestamp = deserializer.deserializeU64();
+    const expiryDateSecs = deserializer.deserializeU64();
     const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryTimestamp,
+      expiryDateSecs,
       openIdSignatureOrZkProof,
       ephemeralPublicKey,
       ephemeralSignature,
@@ -475,13 +475,13 @@ export class KeylessSignature extends Signature {
 
   static load(deserializer: Deserializer): KeylessSignature {
     const jwtHeader = deserializer.deserializeStr();
-    const expiryTimestamp = deserializer.deserializeU64();
+    const expiryDateSecs = deserializer.deserializeU64();
     const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryTimestamp,
+      expiryDateSecs,
       openIdSignatureOrZkProof,
       ephemeralPublicKey,
       ephemeralSignature,

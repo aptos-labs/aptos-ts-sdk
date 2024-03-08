@@ -44,7 +44,7 @@ export async function getPepper(args: {
   const body = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
-    exp_date_secs: Number(ephemeralKeyPair.expiryTimestamp),
+    exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
@@ -95,7 +95,7 @@ export async function getProof(args: {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
-    exp_date_secs: Number(ephemeralKeyPair.expiryTimestamp),
+    exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
     exp_horizon_secs: EPK_LIFESPAN,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey2,

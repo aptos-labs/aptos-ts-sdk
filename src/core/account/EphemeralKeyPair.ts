@@ -12,7 +12,7 @@ import { GenerateAccount, HexInput, SigningSchemeInput } from "../../types";
 export class EphemeralKeyPair {
   readonly blinder: Uint8Array;
 
-  readonly expiryTimestamp: bigint;
+  readonly expiryDateSecs: bigint;
 
   readonly nonce: string;
 
@@ -20,13 +20,13 @@ export class EphemeralKeyPair {
 
   readonly publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryTimestamp?: bigint; blinder?: HexInput }) {
-    const { privateKey, expiryTimestamp, blinder } = args;
+  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint; blinder?: HexInput }) {
+    const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     const currentDate = new Date();
-    const currentTimeInSeconds = Math.floor(currentDate.getTime() / 1000) + 10000;
-    this.expiryTimestamp = expiryTimestamp || BigInt(currentTimeInSeconds);
+    const currentTimeInSeconds = Math.floor(currentDate.getTime() / 1000) + 100000;
+    this.expiryDateSecs = expiryDateSecs || BigInt(currentTimeInSeconds);
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     this.nonce = this.generateNonce();
   }
@@ -40,14 +40,12 @@ export class EphemeralKeyPair {
         privateKey = Ed25519PrivateKey.generate();
     }
 
-    const expiryTimestamp = BigInt(123); // TODO
-
-    return new EphemeralKeyPair({ privateKey, expiryTimestamp });
+    return new EphemeralKeyPair({ privateKey });
   }
 
   generateNonce(): string {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
-    fields.push(BigInt(this.expiryTimestamp))
+    fields.push(BigInt(this.expiryDateSecs))
     fields.push(bytesToBigIntLE(this.blinder))
     const nonceHash = poseidonHash(fields);
     return nonceHash.toString();
