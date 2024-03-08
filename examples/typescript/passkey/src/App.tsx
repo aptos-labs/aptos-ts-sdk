@@ -1,11 +1,8 @@
 import { useState } from "react";
 import "./App.css";
-import { AccountAddress, Aptos, AptosConfig, DEFAULT_NETWORK, Network, Secp256r1PublicKey, postAptosFaucet } from "@aptos-labs/ts-sdk";
+import { AccountAddress, Aptos, AptosConfig, Network, Secp256r1PublicKey, postAptosFaucet } from "@aptos-labs/ts-sdk";
 
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
-// const config = new AptosConfig({ network: Network.LOCAL, fullnode: 'http://127.0.0.1:8080', faucet: 'http://127.0.0.1:8081' });
-const config = new AptosConfig({ network: Network.DEVNET });
-const aptos = new Aptos(config);
 
 function App() {
   const [credentialId, setCredentialId] = useState<string | null>(window.localStorage.getItem("credentialId"));
@@ -14,6 +11,10 @@ function App() {
   const [sendAmount, setSendAmount] = useState<number>(0);
   const [faucetIsLoading, setFaucetIsLoading] = useState<boolean>(false);
   const [passkeyAddr, setPasskeyAddr] = useState<string | null>(null);
+  const [currentNetwork, setCurrentNetwork] = useState<Network>(Network.DEVNET);
+
+  const config = new AptosConfig({ network: currentNetwork });
+  const aptos = new Aptos(config);
 
   /**
    * Prints the balance of an account
@@ -71,9 +72,7 @@ function App() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await postAptosFaucet<any, { txn_hashes: Array<string> }>({
-      aptosConfig: new AptosConfig({
-        network: DEFAULT_NETWORK
-      }),
+      aptosConfig: config,
       path: "fund",
       body: {
         address: AccountAddress.from(addr).toString(),
@@ -163,13 +162,21 @@ function App() {
     alert(addr);
   };
 
+  const switchNetwork: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    if (Object.values(Network).includes(event.target.value as Network)) {
+      setCurrentNetwork(event.target.value as Network);
+    } else {
+      alert("Error: Incorrect network selected");
+    }
+  }
+
   return (
     <>
       <h1>Passkeys Demo</h1>
       {passkeyAddr ? <p className="text-wrap">{"Your address: " + passkeyAddr}</p> : null}
       {passkeyAddr ? (
         <a
-          href={`https://explorer.aptoslabs.com/account/${passkeyAddr}/transactions?network=devnet`}
+          href={`https://explorer.aptoslabs.com/account/${passkeyAddr}/transactions?network=${currentNetwork}`}
           target="_blank"
           className="text-wrap"
         >
@@ -182,6 +189,10 @@ function App() {
           <button onClick={fundAccount}>{faucetIsLoading ? "Loading..." : "Fund Account"}</button>
           <button onClick={checkBalance}>Check Balance</button>
           <button onClick={getAddress}>Get address</button>
+          <select name="network" id="network" onChange={switchNetwork} value={currentNetwork}>
+            <option value={Network.DEVNET}>{Network.DEVNET}</option>
+            <option value={Network.TESTNET}>{Network.TESTNET}</option>
+          </select>
         </div>
         <h3>Recipient address</h3>
         <input value={recipientAddress || ""} onChange={(e) => setRecipientAddress(e.currentTarget.value)} />
