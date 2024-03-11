@@ -13,10 +13,11 @@ import { bls12_381 as bls } from "@noble/curves/bls12-381";
 import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_LIFESPAN, EphemeralKeyPair, Groth16Zkp, KeylessAccount, Hex, SignedGroth16Signature } from "../core";
+import { EPK_LIFESPAN, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
 import { generateSigningMessage } from "../transactions";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
+import { EphemeralKeyPair, KeylessAccount } from "../account";
 
 function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<bigint> {
   const { jwt, uidKey } = args;
@@ -129,9 +130,7 @@ export async function getProof(args: {
     b: proofPoints.b,
     c: proofPoints.c,
   });
-  const signMess = generateSigningMessage(proof.bcsToBytes(), "Groth16Zkp");
-  const nonMalleabilitySignature = ephemeralKeyPair.sign(signMess);
-  const signedProof = new SignedGroth16Signature({ proof, nonMalleabilitySignature, extraField });
+  const signedProof = new SignedGroth16Signature({ proof, extraField });
   return signedProof;
 }
 

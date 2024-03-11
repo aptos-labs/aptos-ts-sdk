@@ -1,12 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { bytesToHex } from "@noble/curves/abstract/utils";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, EphemeralCertificate, SigningScheme } from "../../types";
+import { HexInput, EphemeralCertificate, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
@@ -44,9 +43,12 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 
   authKey(): AuthenticationKey {
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Keyless);
+    serializer.serializeFixedBytes(this.bcsToBytes());
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: SigningScheme.SingleKey,
-      input: this.toUint8Array(),
+      input: serializer.toUint8Array(),
     });
   }
 
@@ -56,7 +58,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @returns Uint8Array representation of the public key
    */
   toUint8Array(): Uint8Array {
-    return this.addressSeed; // TODO
+    return this.bcsToBytes();
   }
 
   /**
@@ -65,7 +67,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @returns string representation of the public key
    */
   toString(): string {
-    return `${this.iss  }.${  bytesToHex(this.addressSeed)}`;
+    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   /**
@@ -209,6 +211,7 @@ export class Groth16Zkp extends Serializable{
   }
 
   serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(0);
     serializer.serializeFixedBytes(this.a); // Should this be fixedBytes??
     serializer.serializeFixedBytes(this.b);
     serializer.serializeFixedBytes(this.c);
@@ -225,8 +228,6 @@ export class Groth16Zkp extends Serializable{
 export class SignedGroth16Signature extends Signature {
   readonly proof: Groth16Zkp;
 
-  readonly nonMalleabilitySignature: EphemeralSignature;
-
   readonly extraField?: string;
 
   readonly overrideAudVal?: string;
@@ -236,16 +237,14 @@ export class SignedGroth16Signature extends Signature {
 
   constructor(args: {
     proof: Groth16Zkp;
-    nonMalleabilitySignature: EphemeralSignature;
     extraField?: string;
     overrideAudVal?: string;
     trainingWheelsSignature?: EphemeralSignature;
 
   }) {
     super();
-    const { proof, nonMalleabilitySignature, trainingWheelsSignature, extraField, overrideAudVal } = args;
+    const { proof, trainingWheelsSignature, extraField, overrideAudVal } = args;
     this.proof = proof;
-    this.nonMalleabilitySignature = nonMalleabilitySignature;
     this.trainingWheelsSignature = trainingWheelsSignature;
     this.extraField = extraField;
     this.overrideAudVal = overrideAudVal;
@@ -273,7 +272,6 @@ export class SignedGroth16Signature extends Signature {
 
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
-    this.nonMalleabilitySignature.serialize(serializer);
     serializer.serializeU64(EPK_LIFESPAN);
     serializer.serializeOptionStr(this.extraField);
     serializer.serializeOptionStr(this.overrideAudVal);
@@ -283,18 +281,16 @@ export class SignedGroth16Signature extends Signature {
 
   static deserialize(deserializer: Deserializer): SignedGroth16Signature {
     const proof = Groth16Zkp.deserialize(deserializer);
-    const nonMalleabilitySignature = EphemeralSignature.deserialize(deserializer);
     const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
     const extraField = deserializer.deserializeStr();
-    return new SignedGroth16Signature({ proof, nonMalleabilitySignature, trainingWheelsSignature, extraField });
+    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField });
   }
 
   static load(deserializer: Deserializer): SignedGroth16Signature {
     const proof = Groth16Zkp.deserialize(deserializer);
-    const nonMalleabilitySignature = EphemeralSignature.deserialize(deserializer);
     const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
     const extraField = deserializer.deserializeStr();
-    return new SignedGroth16Signature({ proof, nonMalleabilitySignature, trainingWheelsSignature, extraField });
+    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField });
   }
 
   // static isSignature(signature: Signature): signature is OpenIdSignature {

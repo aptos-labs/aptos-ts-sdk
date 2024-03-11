@@ -101,6 +101,10 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     return result;
   }
 
+  if (result.status >= 500) {
+    throw new AptosApiError(options, result, `${response.data}`);
+  }
+
   if (aptosConfig.isPepperServiceRequest(url)) {
     throw new AptosApiError(options, result, `${response.data}`);
   }

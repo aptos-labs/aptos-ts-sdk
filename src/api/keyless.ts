@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralKeyPair, KeylessAccount } from "../core";
+import { EphemeralKeyPair, KeylessAccount } from "../account";
 import { deriveKeylessAccount, getPepper } from "../internal/keyless";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";

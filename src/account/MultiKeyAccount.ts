@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "./Account";
-import { MultiKey, MultiKeySignature, PublicKey, Signature } from "../crypto";
-import { AccountAddress } from "../accountAddress";
-import { HexInput, SigningScheme } from "../../types";
-import { AccountAuthenticatorMultiKey } from "../../transactions";
+import { MultiKey, MultiKeySignature, PublicKey, Signature } from "../core/crypto";
+import { AccountAddress } from "../core/accountAddress";
+import { HexInput, SigningScheme } from "../types";
+import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
+import { AnyRawTransaction } from "../transactions/types";
 
 
 export class MultiKeyAccount implements Account {
@@ -69,8 +70,8 @@ export class MultiKeyAccount implements Account {
     return account instanceof MultiKeyAccount;
   }
 
-  signWithAuthenticator(message: HexInput): AccountAuthenticatorMultiKey {
-    return new AccountAuthenticatorMultiKey(this.publicKey, this.sign(message));
+  signWithAuthenticator(transaction: AnyRawTransaction) {
+    return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
   /**
@@ -85,6 +86,14 @@ export class MultiKeyAccount implements Account {
     const signatures = [];
     for (const signer of this.signers) {
       signatures.push(signer.sign(data));
+    }
+    return new MultiKeySignature({signatures, bitmap: this.signaturesBitmap});
+  }
+
+  signTransaction(transaction: AnyRawTransaction) {
+    const signatures = [];
+    for (const signer of this.signers) {
+      signatures.push(signer.signTransaction(transaction));
     }
     return new MultiKeySignature({signatures, bitmap: this.signaturesBitmap});
   }

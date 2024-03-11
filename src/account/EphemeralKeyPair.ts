@@ -4,10 +4,10 @@
 import { randomBytes } from "@noble/hashes/utils";
 
 
-import { Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey} from "../crypto";
-import { Hex } from "../hex";
-import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../crypto/poseidon";
-import { GenerateAccount, HexInput, SigningSchemeInput } from "../../types";
+import { Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey} from "../core/crypto";
+import { Hex } from "../core/hex";
+import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
+import { GenerateAccount, HexInput, SigningSchemeInput } from "../types";
 
 export class EphemeralKeyPair {
   readonly blinder: Uint8Array;

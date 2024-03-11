@@ -6,10 +6,8 @@
  * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
@@ -20,8 +18,6 @@ import { NetworkToChainId } from "../../utils/apiEndpoints";
 import {
   DEFAULT_MAX_GAS_AMOUNT,
   DEFAULT_TXN_EXP_SEC_FROM_NOW,
-  RAW_TRANSACTION_SALT,
-  RAW_TRANSACTION_WITH_DATA_SALT,
 } from "../../utils/const";
 import {
   AccountAuthenticator,
@@ -52,7 +48,6 @@ import { SignedTransaction } from "../instances/signedTransaction";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
-  AnyRawTransactionInstance,
   EntryFunctionArgumentTypes,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
@@ -74,7 +69,7 @@ import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./r
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
-import { Serializable } from "../../bcs";
+import { deriveTransactionType } from "./signingMessage";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -408,24 +403,6 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
 }
 
 /**
- * Sign a transaction that can later be submitted to chain
- *
- * @param args.signer The signer account to sign the transaction
- * @param args.transaction A aptos transaction type to sign
- *
- * @return The signer AccountAuthenticator
- */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-  const { signer, transaction } = args;
-
-  // get the signing message
-  const message = generateSigningMessageForTransaction(transaction);
-
-  // account.signMessage
-  return signer.signWithAuthenticator(message);
-}
-
-/**
  * Prepare a transaction to be submitted to chain
  *
  * @param args.transaction A aptos transaction type
@@ -477,28 +454,6 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 }
 
 /**
- * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
- *
- * @param transaction A aptos transaction type
- *
- * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
- */
-export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  if (transaction.feePayerAddress) {
-    return new FeePayerRawTransaction(
-      transaction.rawTransaction,
-      transaction.secondarySignerAddresses ?? [],
-      transaction.feePayerAddress,
-    );
-  }
-  if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
-  }
-
-  return transaction.rawTransaction;
-}
-
-/**
  * Generate a multi signers signed transaction that can be submitted to chain
  *
  * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
@@ -546,34 +501,3 @@ export function generateMultiSignersSignedTransaction(
     `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
   );
 }
-
-export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
-  const hash = sha3Hash.create();
-
-  hash.update(`APTOS::${domainSeparator}`);
-  
-  const prefix = hash.digest();
-
-  const body = bytes;
-
-  const mergedArray = new Uint8Array(prefix.length + body.length);
-  mergedArray.set(prefix);
-  mergedArray.set(body, prefix.length);
-
-  return mergedArray;
-}
-
-export function generateSigningMessageForSerializable(obj: Serializable): Uint8Array {
-  return generateSigningMessage(obj.bcsToBytes(), obj.constructor.name);
-}
-
-export function generateSigningMessageForTransaction(transaction: AnyRawTransaction): Uint8Array {
-  const rawTxn = deriveTransactionType(transaction);
-  if (rawTxn instanceof RawTransaction) {
-    return generateSigningMessage(rawTxn.bcsToBytes(),RAW_TRANSACTION_SALT);
-  } if (rawTxn instanceof MultiAgentRawTransaction || rawTxn instanceof FeePayerRawTransaction) {
-    return generateSigningMessage(rawTxn.bcsToBytes(),RAW_TRANSACTION_WITH_DATA_SALT);
-  }
-  throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
-}
-

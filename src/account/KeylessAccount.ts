@@ -3,9 +3,8 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { decode } from "base-64";
-import { HexInput, SigningScheme } from "../../types";
-import { AccountAddress } from "../accountAddress";
-import { AuthenticationKey } from "../authenticationKey";
+import { HexInput, SigningScheme } from "../types";
+import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
   AnySignature,
@@ -16,12 +15,15 @@ import {
   Signature,
   SignedGroth16Signature,
   computeAddressSeed,
-} from "../crypto";
+} from "../core/crypto";
 
 import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
-import { Hex } from "../hex";
-import { AccountAuthenticatorSingleKey } from "../../transactions/authenticator/account";
+import { Hex } from "../core/hex";
+import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
+import { Serializer } from "../bcs";
+import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
+import { AnyRawTransaction } from "../transactions/types";
 
 function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
@@ -74,9 +76,7 @@ export class KeylessAccount implements Account {
     this.ephemeralKeyPair = ephemeralKeyPair;
     const addressSeed = computeAddressSeed(args);
     this.publicKey = new KeylessPublicKey(iss, addressSeed);
-    const authKey = AuthenticationKey.fromPublicKey({ publicKey: new AnyPublicKey(this.publicKey) });
-    const derivedAddress = authKey.derivedAddress();
-    this.accountAddress = address ?? derivedAddress;
+    this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
     this.aud = aud;
@@ -91,8 +91,9 @@ export class KeylessAccount implements Account {
     this.pepper = pepperBytes;
   }
 
-  signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
-    const signature = new AnySignature(this.sign(message));
+  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
+    const raw  = deriveTransactionType(transaction);
+    const signature = new AnySignature(this.sign(raw.bcsToBytes()));
     const publicKey = new AnyPublicKey(this.publicKey);
     return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
@@ -101,7 +102,14 @@ export class KeylessAccount implements Account {
     const jwtHeader = this.jwt.split(".")[0];
     const { expiryDateSecs } = this.ephemeralKeyPair;
     const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
-    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
+
+    const serializer = new Serializer();
+    serializer.serializeFixedBytes(Hex.fromHexInput(data).toUint8Array())
+    serializer.serializeOption(this.proof.proof);
+    const signMess = generateSigningMessage(serializer.toUint8Array(), "TransactionAndProof");
+
+    const ephemeralSignature = this.ephemeralKeyPair.sign(signMess);
+
     return new KeylessSignature({
       jwtHeader: base64UrlDecode(jwtHeader),
       openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
@@ -109,6 +117,11 @@ export class KeylessAccount implements Account {
       ephemeralPublicKey,
       ephemeralSignature,
     });
+  }
+
+  signTransaction(transaction: AnyRawTransaction): Signature {
+    const raw  = deriveTransactionType(transaction);
+    return this.sign(raw.bcsToBytes())
   }
 
   signWithOpenIdSignature(data: HexInput): Signature {
