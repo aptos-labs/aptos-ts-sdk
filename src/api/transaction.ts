@@ -156,7 +156,7 @@ export class Transaction {
   /**
    * Gives an estimate of the gas unit price required to get a
    * transaction on chain in a reasonable amount of time.
-   * For more information {@link https://fullnode.mainnet.aptoslabs.com/v1/spec#/operations/estimate_gas_price}
+   * For more information {@link https://api.mainnet.aptoslabs.com/v1/spec#/operations/estimate_gas_price}
    *
    * @returns Object holding the outputs of the estimate gas API
    * @example

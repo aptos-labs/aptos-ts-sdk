@@ -233,7 +233,7 @@ export interface Client {
 /**
  * The API request type
  *
- * @param url - the url to make the request to, i.e https://fullnode.aptoslabs.devnet.com/v1
+ * @param url - the url to make the request to, i.e https://fullnode.devnet.aptoslabs.com/v1
  * @param method - the request method "GET" | "POST"
  * @param endpoint (optional) - the endpoint to make the request to, i.e transactions
  * @param body (optional) - the body of the request
