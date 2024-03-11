@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.10.0 (2024-03-11)
+
 - [`Deprecate`] IIFE build support
 - Use node API via API Gateway
 - [`Fix`] Filter `getCurrentDigitalAssetOwnership` where amount > 0
