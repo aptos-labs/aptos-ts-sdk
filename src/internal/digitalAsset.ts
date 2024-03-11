@@ -114,6 +114,7 @@ export async function getCurrentDigitalAssetOwnership(args: {
 
   const whereCondition: CurrentTokenOwnershipsV2BoolExp = {
     token_data_id: { _eq: AccountAddress.from(digitalAssetAddress).toStringLong() },
+    amount: { _gt: 0 },
   };
 
   const graphqlQuery = {
