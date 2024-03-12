@@ -5,7 +5,7 @@ import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 
 /**
- * Represents any public key supported by Aptos.
+ * Represents ephemeral keys and signatures for Aptos Keyless accounts.
  *
  * TODO
  */

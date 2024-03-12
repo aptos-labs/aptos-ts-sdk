@@ -14,10 +14,10 @@ import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
 import { EPK_LIFESPAN, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
-import { generateSigningMessage } from "../transactions";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
 import { EphemeralKeyPair, KeylessAccount } from "../account";
+import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
 function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<bigint> {
   const { jwt, uidKey } = args;
@@ -51,7 +51,7 @@ export async function getPepper(args: {
   };
   // const jsonString = JSON.stringify(body);
   // console.log(jsonString);
-  const { data } = await postAptosPepperService<any, { signature: string }>({
+  const { data } = await postAptosPepperService<any, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
     body,
@@ -114,7 +114,7 @@ export async function getProof(args: {
 
   const { data } = await postAptosProvingService<
     any,
-    { proof: { a: string; b: string; c: string }; public_inputs_hash: string }
+    ProverResponse
   >({
     aptosConfig,
     path: "prove",

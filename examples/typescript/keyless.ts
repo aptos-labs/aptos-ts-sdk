@@ -50,7 +50,6 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 const example = async () => {
   // Setup the client
   const config = new AptosConfig({network: Network.LOCAL});
-  // const config = new AptosConfig();
 
   const aptos = new Aptos(config);
 
@@ -99,12 +98,11 @@ const example = async () => {
   const jwt = await getUserInput();
 
   const bob = Account.generate();
+  const sponsor = Account.generate();
 
   const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
-    // pepper: "4c000000000000000000000000000000000000000000000000000000000000",
-    // extraFieldKey: "family_name"
   });
 
   console.log("=== Addresses ===\n");
@@ -129,15 +127,22 @@ const example = async () => {
     amount: BOB_INITIAL_BALANCE,
     options: { waitForIndexer: false },
   });
+  await aptos.faucet.fundAccount({
+    accountAddress: sponsor.accountAddress,
+    amount: ALICE_INITIAL_BALANCE,
+    options: { waitForIndexer: false },
+  });
 
   // // Show the balances
   console.log("\n=== Balances ===\n");
   const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const sponsorBalance = await balance(aptos, "Sponsor", sponsor.accountAddress);
 
   // Transfer between users
   const transaction = await aptos.transaction.build.simple({
     sender: alice.accountAddress,
+    withFeePayer: true,
     data: {
       function: "0x1::coin::transfer",
       typeArguments: [APTOS_COIN],
@@ -145,7 +150,20 @@ const example = async () => {
     },
   });
 
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+  // Alice signs
+  const senderSignature = aptos.transaction.sign({ signer: alice, transaction });
+
+  // Sponsor signs
+  const sponsorSignature = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
+
+  // Submit the transaction to chain
+  const committedTxn = await aptos.transaction.submit.simple({
+    transaction,
+    senderAuthenticator: senderSignature,
+    feePayerAuthenticator: sponsorSignature,
+  });
+
+  // const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
@@ -153,12 +171,16 @@ const example = async () => {
   console.log("\n=== Balances after transfer ===\n");
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const newBobBalance = await balance(aptos, "Bob", bob.accountAddress);
+  const newSponsorBalance = await balance(aptos, "Sponsor", sponsor.accountAddress);
 
   // Bob should have the transfer amount
   if (TRANSFER_AMOUNT !== newBobBalance - bobBalance) throw new Error("Bob's balance after transfer is incorrect");
 
-  // Alice should have the remainder minus gas
-  if (TRANSFER_AMOUNT >= aliceBalance - newAliceBalance) throw new Error("Alice's balance after transfer is incorrect");
+  // Alice should have the transfer amount as the fee was sponsored.
+  if (TRANSFER_AMOUNT !== aliceBalance - newAliceBalance) throw new Error("Alice's balance after transfer is incorrect");
+
+  // Alice should have the transfer amount as the fee was sponsored.
+  if (sponsorBalance <= newSponsorBalance)  throw new Error("Sponsor's balance after transfer is incorrect");
 };
 
 example();
