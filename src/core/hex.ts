@@ -131,8 +131,11 @@ export class Hex {
    * @returns Hex
    */
   static fromHexInput(hexInput: HexInput): Hex {
-    if (hexInput instanceof Uint8Array) return new Hex(hexInput);
-    return Hex.fromString(hexInput);
+    // Note we have to be more defensive here, since Javascript doesn't have the concept of types
+    if (typeof hexInput === "string") {
+      return Hex.fromString(hexInput);
+    }
+    return new Hex(hexInput);
   }
 
   // ===

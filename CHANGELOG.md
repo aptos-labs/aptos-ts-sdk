@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Ensure that hex input strings are loaded as strings in Javascript
+
 # 1.10.0 (2024-03-11)
 
 - [`Deprecate`] IIFE build support

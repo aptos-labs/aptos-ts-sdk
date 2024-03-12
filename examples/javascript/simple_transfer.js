@@ -56,7 +56,7 @@ const example = async () => {
   console.log("\n=== Funding accounts ===\n");
 
   const aliceFundTxn = await sdk.fundAccount({
-    accountAddress: alice.accountAddress,
+    accountAddress: alice.accountAddress.toString(),
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
