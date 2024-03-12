@@ -7,7 +7,7 @@ import { Serializer, Deserializer, Serializable } from "../../bcs";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
-import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
+import { MultiKey, MultiSignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
@@ -149,10 +149,9 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
 export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
   public readonly public_keys: MultiKey;
 
-  public readonly signatures: MultiKeySignature;
+  public readonly signatures: MultiSignature;
 
-
-  constructor(public_keys: MultiKey, signatures: MultiKeySignature) {
+  constructor(public_keys: MultiKey, signatures: MultiSignature) {
     super();
     this.public_keys = public_keys;
     this.signatures = signatures;
@@ -166,7 +165,7 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
 
   static load(deserializer: Deserializer): AccountAuthenticatorMultiKey {
     const public_keys = MultiKey.deserialize(deserializer);
-    const signatures = MultiKeySignature.deserialize(deserializer);
+    const signatures = MultiSignature.deserialize(deserializer);
     return new AccountAuthenticatorMultiKey(public_keys, signatures);
   }
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "./Account";
-import { MultiKey, MultiKeySignature, PublicKey, Signature } from "../core/crypto";
+import { MultiKey, MultiSignature, PublicKey, Signature } from "../core/crypto";
 import { AccountAddress } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
@@ -82,12 +82,12 @@ export class MultiKeyAccount implements Account {
    * @param data in HexInput format
    * @returns Signature
    */
-  sign(data: HexInput): MultiKeySignature {
+  sign(data: HexInput): MultiSignature {
     const signatures = [];
     for (const signer of this.signers) {
       signatures.push(signer.sign(data));
     }
-    return new MultiKeySignature({signatures, bitmap: this.signaturesBitmap});
+    return new MultiSignature({signatures, bitmap: this.signaturesBitmap});
   }
 
   signTransaction(transaction: AnyRawTransaction) {
@@ -95,7 +95,7 @@ export class MultiKeyAccount implements Account {
     for (const signer of this.signers) {
       signatures.push(signer.signTransaction(transaction));
     }
-    return new MultiKeySignature({signatures, bitmap: this.signaturesBitmap});
+    return new MultiSignature({signatures, bitmap: this.signaturesBitmap});
   }
 
   /**

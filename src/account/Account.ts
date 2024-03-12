@@ -216,9 +216,9 @@ export abstract class Account {
   }
 
   /**
-   * Sign a message using the available signing capabilities.
-   * @param message the signing message, as binary input
-   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   * Sign a transaction using the available signing capabilities.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature og the transaction, together with the account's public key
    */
   abstract signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
 
