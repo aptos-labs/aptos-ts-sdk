@@ -19,6 +19,16 @@ import { Serializer } from "../bcs";
 import { EphemeralKeyPair, KeylessAccount } from "../account";
 import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
+const APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST = "APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST"
+
+function stringToUint8Array(str: string): Uint8Array {
+  const encoder = new TextEncoder();
+  return encoder.encode(str);
+}
+
+const PINKAS_VUF_SECRET_KEY_BASE_AFFINE = bls.G2.hashToCurve(
+  stringToUint8Array("APTOS_KEYLESS_PEPPER_PINKAS_VUF_SECRET_KEY_BASE"), { DST: APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST }).toAffine();
+
 function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<bigint> {
   const { jwt, uidKey } = args;
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
@@ -28,8 +38,8 @@ function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<b
   serializer.serializeStr(jwtPayload[uidKey || "sub"]);
   serializer.serializeStr(uidKey || "sub");
   const serial = serializer.toUint8Array();
-  const mess = bls.G1.hashToCurve(serial, { DST: "APTOS_OIDB_VUF_SCHEME0_DST" }).toAffine();
-  const pp = bls.G1.ProjectivePoint.fromAffine(mess);
+  const msg = bls.G1.hashToCurve(serial, { DST: "APTOS_PEPPER_SERVICE_BLS12381_VUF_DST" }).toAffine();
+  const pp = bls.G1.ProjectivePoint.fromAffine(msg);
   return pp;
 }
 
@@ -49,15 +59,13 @@ export async function getPepper(args: {
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
-  // const jsonString = JSON.stringify(body);
-  // console.log(jsonString);
   const { data } = await postAptosPepperService<any, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
     body,
     originMethod: "getPepper",
+    overrides: { WITH_CREDENTIALS: false },
   });
-  // console.log(data);
   const pepperBase = Hex.fromHexInput(data.signature).toUint8Array();
 
   if (verify) {
@@ -72,9 +80,14 @@ export async function getPepper(args: {
       throw new Error("Unable to verify");
     }
   }
-
+  // This takes the BLS VUF H(m)^sk and transforms it into a Pinkas VUF e(H(m), g_3^sk), where g_3 is the base of the secret key (computed pseudo-randomly via hash-to-curve).
+  // This gives us the freedom of either decentralizing the pepper service as a BLS-based MPC or on top of the validators, by reusing the Pinkas WVUF-based randomness infrastructure.
+  const newPepperBase = bls.pairing(
+    bls.G1.ProjectivePoint.fromHex(pepperBase), 
+    bls.G2.ProjectivePoint.fromAffine(PINKAS_VUF_SECRET_KEY_BASE_AFFINE)
+  );
   const hash = sha3Hash.create();
-  hash.update(pepperBase);
+  hash.update(bls.fields.Fp12.toBytes(newPepperBase));
   const hashDigest = hash.digest();
 
   const pepper = Hex.fromHexInput(hashDigest).toUint8Array().slice(0, 31);
@@ -102,8 +115,6 @@ export async function getProof(args: {
     extra_field: extraFieldKey2,
     uid_key: uidKey || "sub",
   };
-  // const jsonString = JSON.stringify(json);
-  // console.log(jsonString);
   const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
   const extraFieldVal = jwtPayload[extraFieldKey2];
   const extraField = `"${extraFieldKey2}":"${extraFieldVal}",`;
@@ -120,8 +131,8 @@ export async function getProof(args: {
     path: "prove",
     body: json,
     originMethod: "getProof",
+    overrides: { WITH_CREDENTIALS: false },
   });
-  // console.log(data);
 
   const proofPoints = data.proof;
 
