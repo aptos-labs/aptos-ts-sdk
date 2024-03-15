@@ -159,7 +159,7 @@ export class General {
   /**
    * A generic function for retrieving data from Aptos Indexer.
    * For more detailed queries specification see
-   * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://indexer.mainnet.aptoslabs.com/v1/graphql}
+   * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
    *
    * @param args.query.query A GraphQL query
    * @param args.query.variables The variables for the query
