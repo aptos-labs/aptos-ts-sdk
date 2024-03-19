@@ -112,7 +112,7 @@ export class KeylessPublicKey extends AccountPublicKey {
     pepper: HexInput;
   }): KeylessPublicKey {
     computeAddressSeed(args);
-    return new KeylessPublicKey(args.iss,computeAddressSeed(args));
+    return new KeylessPublicKey(args.iss, computeAddressSeed(args));
   }
 }
 
@@ -185,18 +185,14 @@ export class OpenIdSignatureOrZkProof extends Signature {
   }
 }
 
-export class Groth16Zkp extends Serializable{
+export class Groth16Zkp extends Serializable {
   a: Uint8Array;
 
   b: Uint8Array;
 
   c: Uint8Array;
 
-  constructor(args: {
-    a: HexInput,
-    b: HexInput,
-    c: HexInput,
-  }) {
+  constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
     super();
     const { a, b, c } = args;
     this.a = Hex.fromHexInput(a).toUint8Array();
@@ -211,16 +207,19 @@ export class Groth16Zkp extends Serializable{
   }
 
   serialize(serializer: Serializer): void {
+    // There's currently only one variant
     serializer.serializeU32AsUleb128(0);
-    serializer.serializeFixedBytes(this.a); // Should this be fixedBytes??
+    serializer.serializeFixedBytes(this.a);
     serializer.serializeFixedBytes(this.b);
     serializer.serializeFixedBytes(this.c);
   }
 
   static deserialize(deserializer: Deserializer): Groth16Zkp {
-    const a = deserializer.deserializeBytes();
-    const b = deserializer.deserializeBytes();
-    const c = deserializer.deserializeBytes();
+    // Ignored, as there's currently only one possible ZKP variant
+    deserializer.deserializeUleb128AsU32();
+    const a = deserializer.deserializeFixedBytes(32);
+    const b = deserializer.deserializeFixedBytes(64);
+    const c = deserializer.deserializeFixedBytes(32);
     return new Groth16Zkp({ a, b, c });
   }
 }
@@ -228,23 +227,25 @@ export class Groth16Zkp extends Serializable{
 export class SignedGroth16Signature extends Signature {
   readonly proof: Groth16Zkp;
 
+  readonly expHorizonSecs: bigint;
+
   readonly extraField?: string;
 
   readonly overrideAudVal?: string;
 
   readonly trainingWheelsSignature?: EphemeralSignature;
 
-
   constructor(args: {
     proof: Groth16Zkp;
+    expHorizonSecs?: bigint;
     extraField?: string;
     overrideAudVal?: string;
     trainingWheelsSignature?: EphemeralSignature;
-
   }) {
     super();
-    const { proof, trainingWheelsSignature, extraField, overrideAudVal } = args;
+    const { proof, expHorizonSecs = BigInt(EPK_LIFESPAN), trainingWheelsSignature, extraField, overrideAudVal } = args;
     this.proof = proof;
+    this.expHorizonSecs = expHorizonSecs;
     this.trainingWheelsSignature = trainingWheelsSignature;
     this.extraField = extraField;
     this.overrideAudVal = overrideAudVal;
@@ -272,25 +273,31 @@ export class SignedGroth16Signature extends Signature {
 
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
-    serializer.serializeU64(EPK_LIFESPAN);
+    serializer.serializeU64(this.expHorizonSecs);
     serializer.serializeOptionStr(this.extraField);
     serializer.serializeOptionStr(this.overrideAudVal);
     serializer.serializeOption(this.trainingWheelsSignature);
-    
   }
 
   static deserialize(deserializer: Deserializer): SignedGroth16Signature {
     const proof = Groth16Zkp.deserialize(deserializer);
-    const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
-    const extraField = deserializer.deserializeStr();
-    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField });
+    const expHorizonSecs = deserializer.deserializeU64();
+    const hasExtraField = deserializer.deserializeUleb128AsU32();
+    const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
+    const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
+    const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
+    const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
+    return new SignedGroth16Signature({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
 
   static load(deserializer: Deserializer): SignedGroth16Signature {
     const proof = Groth16Zkp.deserialize(deserializer);
-    const trainingWheelsSignature = EphemeralSignature.deserialize(deserializer);
-    const extraField = deserializer.deserializeStr();
-    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField });
+    const hasExtraField = deserializer.deserializeUleb128AsU32();
+    const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
+    const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
+    const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
+    const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
+    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField, overrideAudVal });
   }
 
   // static isSignature(signature: Signature): signature is OpenIdSignature {
@@ -304,9 +311,9 @@ export class SignedGroth16Signature extends Signature {
 export class OpenIdSignature extends Signature {
   readonly jwtSignature: string;
 
-  readonly uidKey: string;
-
   readonly jwtPayloadJson: string;
+
+  readonly uidKey: string;
 
   readonly epkBlinder: Uint8Array;
 
@@ -365,7 +372,7 @@ export class OpenIdSignature extends Signature {
     serializer.serializeStr(this.jwtSignature);
     serializer.serializeStr(this.jwtPayloadJson);
     serializer.serializeStr(this.uidKey);
-    serializer.serializeBytes(this.epkBlinder);
+    serializer.serializeFixedBytes(this.epkBlinder);
     serializer.serializeFixedBytes(this.pepper);
     serializer.serializeOptionStr(this.overrideAudValue);
   }
@@ -376,7 +383,9 @@ export class OpenIdSignature extends Signature {
     const uidKey = deserializer.deserializeStr();
     const epkBlinder = deserializer.deserializeFixedBytes(31);
     const pepper = deserializer.deserializeFixedBytes(31);
-    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper });
+    const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
+    const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
+    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
   }
 
   static load(deserializer: Deserializer): OpenIdSignature {
@@ -385,7 +394,9 @@ export class OpenIdSignature extends Signature {
     const uidKey = deserializer.deserializeStr();
     const epkBlinder = deserializer.deserializeFixedBytes(31);
     const pepper = deserializer.deserializeFixedBytes(31);
-    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper });
+    const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
+    const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
+    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
   }
 
   static isSignature(signature: Signature): signature is OpenIdSignature {
@@ -455,9 +466,9 @@ export class KeylessSignature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): KeylessSignature {
+    const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
     const expiryDateSecs = deserializer.deserializeU64();
-    const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
