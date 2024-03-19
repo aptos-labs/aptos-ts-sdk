@@ -292,12 +292,13 @@ export class SignedGroth16Signature extends Signature {
 
   static load(deserializer: Deserializer): SignedGroth16Signature {
     const proof = Groth16Zkp.deserialize(deserializer);
+    const expHorizonSecs = deserializer.deserializeU64();
     const hasExtraField = deserializer.deserializeUleb128AsU32();
     const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
     const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
     const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
     const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
-    return new SignedGroth16Signature({ proof, trainingWheelsSignature, extraField, overrideAudVal });
+    return new SignedGroth16Signature({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
 
   // static isSignature(signature: Signature): signature is OpenIdSignature {
