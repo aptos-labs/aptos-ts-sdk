@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - Use indexer API via API Gateway
+- Add signers to entry function ABI for future signature count checking
 
 # 1.10.0 (2024-03-11)
 
