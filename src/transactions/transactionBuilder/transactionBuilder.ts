@@ -10,15 +10,11 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import {
-  DEFAULT_MAX_GAS_AMOUNT,
-  DEFAULT_TXN_EXP_SEC_FROM_NOW,
-} from "../../utils/const";
+import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -387,12 +383,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
-    if (publicKey.publicKey instanceof Ed25519PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
-    }
-    if (publicKey.publicKey instanceof Secp256k1PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
-    }
+    return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
   }
 
   // legacy code
