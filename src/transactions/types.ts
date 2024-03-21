@@ -152,6 +152,7 @@ export type InputScriptData = {
  * This is used to provide type checking and simple input conversion on ABI based transaction submission.
  */
 export type EntryFunctionABI = {
+  signers?: number;
   typeParameters: Array<MoveFunctionGenericTypeParam>;
   parameters: Array<TypeTag>;
 };
