@@ -139,9 +139,21 @@ export class MultiKey extends AccountPublicKey {
 
     return bitmap;
   }
+
+  getIndex(publicKey: PublicKey): number {
+
+    const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey)
+    const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
+
+    if (index !== -1) {
+        return index;
+    } 
+    throw new Error("Public key not found in MultiKey");
+  
+  }
 }
 
-export class MultiKeySignature extends Signature {
+export class MultiSignature extends Signature {
   /**
    * Number of bytes in the bitmap representing who signed the transaction (32-bits)
    */
@@ -150,7 +162,7 @@ export class MultiKeySignature extends Signature {
   /**
    * Maximum number of Ed25519 signatures supported
    */
-  static MAX_SIGNATURES_SUPPORTED = MultiKeySignature.BITMAP_LEN * 8;
+  static MAX_SIGNATURES_SUPPORTED = MultiSignature.BITMAP_LEN * 8;
 
   /**
    * The list of underlying Ed25519 signatures
@@ -178,8 +190,8 @@ export class MultiKeySignature extends Signature {
     super();
     const { signatures, bitmap } = args;
 
-    if (signatures.length > MultiKeySignature.MAX_SIGNATURES_SUPPORTED) {
-      throw new Error(`The number of signatures cannot be greater than ${MultiKeySignature.MAX_SIGNATURES_SUPPORTED}`);
+    if (signatures.length > MultiSignature.MAX_SIGNATURES_SUPPORTED) {
+      throw new Error(`The number of signatures cannot be greater than ${MultiSignature.MAX_SIGNATURES_SUPPORTED}`);
     }
 
     // Make sure that all signatures are normalized to the SingleKey authentication scheme
@@ -188,9 +200,9 @@ export class MultiKeySignature extends Signature {
     );
 
     if (!(bitmap instanceof Uint8Array)) {
-      this.bitmap = MultiKeySignature.createBitmap({ bits: bitmap });
-    } else if (bitmap.length !== MultiKeySignature.BITMAP_LEN) {
-      throw new Error(`"bitmap" length should be ${MultiKeySignature.BITMAP_LEN}`);
+      this.bitmap = MultiSignature.createBitmap({ bits: bitmap });
+    } else if (bitmap.length !== MultiSignature.BITMAP_LEN) {
+      throw new Error(`"bitmap" length should be ${MultiSignature.BITMAP_LEN}`);
     } else {
       this.bitmap = bitmap;
     }
@@ -226,8 +238,8 @@ export class MultiKeySignature extends Signature {
     const dupCheckSet = new Set();
 
     bits.forEach((bit: number) => {
-      if (bit >= MultiKeySignature.MAX_SIGNATURES_SUPPORTED) {
-        throw new Error(`Cannot have a signature larger than ${MultiKeySignature.MAX_SIGNATURES_SUPPORTED - 1}.`);
+      if (bit >= MultiSignature.MAX_SIGNATURES_SUPPORTED) {
+        throw new Error(`Cannot have a signature larger than ${MultiSignature.MAX_SIGNATURES_SUPPORTED - 1}.`);
       }
 
       if (dupCheckSet.has(bit)) {
@@ -265,7 +277,7 @@ export class MultiKeySignature extends Signature {
     serializer.serializeBytes(this.bitmap);
   }
 
-  static deserialize(deserializer: Deserializer): MultiKeySignature {
+  static deserialize(deserializer: Deserializer): MultiSignature {
     const bitmap = deserializer.deserializeBytes();
     const nSignatures = bitmap.reduce((acc, byte) => acc + bitCount(byte), 0);
     const signatures: AnySignature[] = [];
@@ -273,7 +285,7 @@ export class MultiKeySignature extends Signature {
       const signature = AnySignature.deserialize(deserializer);
       signatures.push(signature);
     }
-    return new MultiKeySignature({ signatures, bitmap });
+    return new MultiSignature({ signatures, bitmap });
   }
 
   // endregion

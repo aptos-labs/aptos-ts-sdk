@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../core/account";
+import { Account } from "../account";
 import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
 import { getTableItem, queryIndexer } from "./general";
 import {

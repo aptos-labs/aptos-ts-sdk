@@ -316,6 +316,24 @@ export class Serializer {
       item.serialize(this);
     });
   }
+
+  serializeOption<T extends Serializable>(value?: T): void {
+    if (value === undefined) {
+      this.serializeU32AsUleb128(0);
+    } else {
+      this.serializeU32AsUleb128(1);
+      value.serialize(this);
+    }
+  }
+
+  serializeOptionStr(value?: string): void {
+    if (value === undefined) {
+      this.serializeU32AsUleb128(0);
+    } else {
+      this.serializeU32AsUleb128(1);
+      this.serializeStr(value);
+    }
+  }
 }
 
 export function ensureBoolean(value: unknown): asserts value is boolean {

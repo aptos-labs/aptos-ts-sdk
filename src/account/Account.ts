@@ -1,10 +1,11 @@
-import type { AccountAuthenticator } from "../../transactions/authenticator/account";
-import { HexInput, SigningScheme, SigningSchemeInput } from "../../types";
-import type { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { AuthenticationKey } from "../authenticationKey";
-import { AccountPublicKey, Ed25519PrivateKey, PrivateKey, Signature, VerifySignatureArgs } from "../crypto";
+import type { AccountAuthenticator } from "../transactions/authenticator/account";
+import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
+import type { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { AuthenticationKey } from "../core/authenticationKey";
+import { AccountPublicKey, Ed25519PrivateKey, PrivateKey, Signature, VerifySignatureArgs } from "../core/crypto";
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
+import { AnyRawTransaction } from "../transactions/types";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.
@@ -106,13 +107,6 @@ export interface PrivateKeyFromDerivationPathArgs {
  * Note: Generating an account instance does not create the account on-chain.
  */
 export abstract class Account {
-  /**
-   * Private key associated with the account.
-   * Note: this will be removed in the next major release,
-   *  as not all accounts have a private key.
-   */
-  abstract readonly privateKey: PrivateKey;
-
   /**
    * Public key associated with the account
    */
@@ -222,11 +216,11 @@ export abstract class Account {
   }
 
   /**
-   * Sign a message using the available signing capabilities.
-   * @param message the signing message, as binary input
-   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   * Sign a transaction using the available signing capabilities.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature og the transaction, together with the account's public key
    */
-  abstract signWithAuthenticator(message: HexInput): AccountAuthenticator;
+  abstract signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
 
   /**
    * Sign the given message with the private key.
@@ -234,6 +228,8 @@ export abstract class Account {
    * @returns AccountSignature
    */
   abstract sign(message: HexInput): Signature;
+
+  abstract signTransaction(transaction: AnyRawTransaction): Signature;
 
   /**
    * @param args.message raw message data in HexInput format

@@ -1,8 +1,10 @@
-import { AccountAuthenticatorSingleKey } from "../../transactions/authenticator/account";
-import { type HexInput, SigningScheme, SigningSchemeInput } from "../../types";
-import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKey, Secp256k1PrivateKey } from "../crypto";
+import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
+import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKey, Secp256k1PrivateKey } from "../core/crypto";
 import type { Account } from "./Account";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
+import { AnyRawTransaction } from "../transactions/types";
 
 export interface SingleKeySignerConstructorArgs {
   privateKey: PrivateKey;
@@ -106,14 +108,18 @@ export class SingleKeyAccount implements Account {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(message: HexInput) {
-    const innerSignature = this.privateKey.sign(message);
+  signWithAuthenticator(transaction: AnyRawTransaction) {
+    const innerSignature = this.sign(generateSigningMessageForTransaction(transaction));
     const signature = new AnySignature(innerSignature);
     return new AccountAuthenticatorSingleKey(this.publicKey, signature);
   }
 
   sign(message: HexInput) {
-    return this.signWithAuthenticator(message).signature;
+    return this.privateKey.sign(message);
+  }
+
+  signTransaction(transaction: AnyRawTransaction) {
+    return this.sign(generateSigningMessageForTransaction(transaction))
   }
 
   // endregion

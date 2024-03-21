@@ -33,7 +33,7 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
-import { Account, AccountAddress } from "../core";
+import { AccountAddress } from "../core";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -43,6 +43,7 @@ import {
   TypeTagU64,
 } from "../transactions";
 import { generateTransaction } from "./transactionSubmission";
+import { Account } from "../account";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;

@@ -34,11 +34,12 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AccountAddressInput, Account, PrivateKey } from "../core";
+import { AccountAddressInput, PrivateKey } from "../core";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
+import { Account } from "../account/Account";
 
 export class Transaction {
   readonly config: AptosConfig;

@@ -13,7 +13,7 @@ import {
   PaginationArgs,
   TokenStandardArg,
 } from "../types";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
@@ -45,6 +45,7 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
+import { Account } from "../account";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.

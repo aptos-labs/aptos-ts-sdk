@@ -2,7 +2,7 @@
 
 import EventEmitter from "eventemitter3";
 import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../core";
+import { Account } from "../../account";
 import { waitForTransaction } from "../../internal/transaction";
 import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
 import { PendingTransactionResponse, TransactionResponse } from "../../types";

@@ -1,8 +1,10 @@
-import { AccountAuthenticatorEd25519 } from "../../transactions/authenticator/account";
-import { HexInput, SigningScheme } from "../../types";
-import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../crypto";
+import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account";
+import { HexInput, SigningScheme } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/crypto";
 import type { Account } from "./Account";
+import { AnyRawTransaction } from "../transactions/types";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 
 export interface Ed25519SignerConstructorArgs {
   privateKey: Ed25519PrivateKey;
@@ -75,13 +77,17 @@ export class Ed25519Account implements Account {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(message: HexInput) {
-    const signature = this.privateKey.sign(message);
+  signWithAuthenticator(transaction: AnyRawTransaction) {
+    const signature = this.privateKey.sign(generateSigningMessageForTransaction(transaction));
     return new AccountAuthenticatorEd25519(this.publicKey, signature);
   }
 
   sign(message: HexInput) {
-    return this.signWithAuthenticator(message).signature;
+    return this.privateKey.sign(message);
+  }
+
+  signTransaction(transaction: AnyRawTransaction) {
+    return this.sign(generateSigningMessageForTransaction(transaction))
   }
 
   // endregion

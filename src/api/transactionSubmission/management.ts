@@ -2,7 +2,7 @@ import EventEmitter from "eventemitter3";
 import { TransactionWorkerEvents, TransactionWorker, TransactionWorkerEventsEnum } from "../../transactions/management";
 import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";
-import { Account } from "../../core";
+import { Account } from "../../account";
 
 export class TransactionManagement extends EventEmitter<TransactionWorkerEvents> {
   account!: Account;

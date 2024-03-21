@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account } from "../core/account";
+import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -18,8 +18,6 @@ import {
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
-  sign,
-  generateSigningMessage,
   generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
@@ -38,7 +36,7 @@ import {
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
-import { TypeTagU8, TypeTagVector } from "../transactions";
+import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -190,7 +188,7 @@ function isMultiAgentTransactionInput(
  */
 export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
   const { transaction } = args;
-  return generateSigningMessage(transaction);
+  return generateSigningMessageForTransaction(transaction);
 }
 
 /**
@@ -209,8 +207,8 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  * @return The signer AccountAuthenticator
  */
 export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-  const accountAuthenticator = sign({ ...args });
-  return accountAuthenticator;
+  const { signer, transaction } = args;
+  return signer.signWithAuthenticator(transaction);
 }
 
 /**
