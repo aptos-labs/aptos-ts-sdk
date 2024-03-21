@@ -50,7 +50,7 @@ export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
  * The list of supported Processor types for our indexer api.
  *
  * These can be found from the processor_status table in the indexer database.
- * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://indexer.mainnet.aptoslabs.com/v1/graphql}
+ * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
  */
 export enum ProcessorType {
   ACCOUNT_TRANSACTION_PROCESSOR = "account_transactions_processor",

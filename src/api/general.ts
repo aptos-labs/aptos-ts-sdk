@@ -108,7 +108,7 @@ export class General {
    * @param args.data Object that describes table item
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
    *
-   * @example https://fullnode.devnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::coin::CoinInfo%3C0x1::aptos_coin::AptosCoin%3E
+   * @example https://api.devnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::coin::CoinInfo%3C0x1::aptos_coin::AptosCoin%3E
    * {
    *  data.key_type = "address" // Move type of table key
    *  data.value_type = "u128" // Move type of table value
@@ -159,7 +159,7 @@ export class General {
   /**
    * A generic function for retrieving data from Aptos Indexer.
    * For more detailed queries specification see
-   * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://indexer.mainnet.aptoslabs.com/v1/graphql}
+   * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
    *
    * @param args.query.query A GraphQL query
    * @param args.query.variables The variables for the query

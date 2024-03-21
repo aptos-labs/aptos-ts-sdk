@@ -3,6 +3,13 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Use indexer API via API Gateway
+
+# 1.10.0 (2024-03-11)
+
+- [`Deprecate`] IIFE build support
+- Use node API via API Gateway
+- [`Fix`] Filter `getCurrentDigitalAssetOwnership` where amount > 0
 
 - [`Breaking`] Change `ViewFunctionPayload` to `ViewFunctionData`, allowing view functions to take advantage of automatic ABI type conversion
 - 
