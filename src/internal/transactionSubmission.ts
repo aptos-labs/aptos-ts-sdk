@@ -20,7 +20,6 @@ import {
   generateSignedTransaction,
   sign,
   generateSigningMessage,
-  generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
@@ -111,20 +110,14 @@ export async function buildTransactionPayload(
     // TODO: Add ABI checking later
     payload = await generateTransactionPayload(data);
   } else if ("multisigAddress" in data) {
-    if (data.abi) {
-      payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
-    } else {
-      generateTransactionPayloadData = {
-        aptosConfig,
-        multisigAddress: data.multisigAddress,
-        function: data.function,
-        functionArguments: data.functionArguments,
-        typeArguments: data.typeArguments,
-      };
-      payload = await generateTransactionPayload(generateTransactionPayloadData);
-    }
-  } else if (data.abi) {
-    payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
+    generateTransactionPayloadData = {
+      aptosConfig,
+      multisigAddress: data.multisigAddress,
+      function: data.function,
+      functionArguments: data.functionArguments,
+      typeArguments: data.typeArguments,
+    };
+    payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else {
     generateTransactionPayloadData = {
       aptosConfig,

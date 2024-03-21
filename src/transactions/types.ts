@@ -147,14 +147,41 @@ export type InputScriptData = {
 };
 
 /**
+ * The data needed to generate an View Function payload
+ */
+export type InputViewFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeTag | string>;
+  functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  abi?: ViewFunctionABI;
+};
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+
+export type InputViewFunctionDataWithABI = Omit<InputViewFunctionData, "abi"> & {
+  abi: ViewFunctionABI;
+};
+
+export type FunctionABI = {
+  typeParameters: Array<MoveFunctionGenericTypeParam>;
+  parameters: Array<TypeTag>;
+};
+
+/**
  * Interface of an Entry function's ABI.
  *
  * This is used to provide type checking and simple input conversion on ABI based transaction submission.
  */
-export type EntryFunctionABI = {
+export type EntryFunctionABI = FunctionABI & {
   signers?: number;
-  typeParameters: Array<MoveFunctionGenericTypeParam>;
-  parameters: Array<TypeTag>;
+};
+
+/**
+ * Interface of an View function's ABI.
+ *
+ * This is used to provide type checking and simple input conversion on ABI based transaction submission.
+ */
+export type ViewFunctionABI = FunctionABI & {
+  returnTypes: Array<TypeTag>;
 };
 
 /**
