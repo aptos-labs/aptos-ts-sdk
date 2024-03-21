@@ -67,8 +67,8 @@ export async function post<Req extends {}, Res extends {}>(
       originMethod,
       path,
       body,
-      contentType: contentType?.valueOf(),
-      acceptType: acceptType?.valueOf(),
+      contentType,
+      acceptType,
       params,
       overrides: {
         ...aptosConfig.clientConfig,
