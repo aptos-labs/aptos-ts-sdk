@@ -5,6 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 - Use indexer API via API Gateway
 - Add signers to entry function ABI for future signature count checking
+- [`Breaking`] Add type-safe view functions with ABI support
+- Turn off code splitting on CJS
 
 # 1.10.0 (2024-03-11)
 

@@ -69,8 +69,10 @@ import {
   InputGenerateTransactionPayloadDataWithABI,
   InputEntryFunctionDataWithABI,
   InputMultiSigDataWithABI,
+  InputViewFunctionDataWithRemoteABI,
+  InputViewFunctionDataWithABI,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
@@ -108,12 +110,15 @@ export async function generateTransactionPayload(
 
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  // We fetch the entry function ABI, and then pretend that we already had the ABI
-  const functionAbi = await memoizeAsync(
-    async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
-    `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
+  let functionAbi = args.abi;
+  if (!functionAbi) {
+    // We fetch the entry function ABI, and then pretend that we already had the ABI
+    functionAbi = await memoizeAsync(
+      async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
+      `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
+  }
 
   // Fill in the ABI
   return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
@@ -168,6 +173,54 @@ export function generateTransactionPayloadWithABI(
 
   // Otherwise send as an entry function
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
+}
+
+export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  let functionAbi = args.abi;
+  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  if (!functionAbi) {
+    functionAbi = await memoizeAsync(
+      async () => fetchViewFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
+      `view-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
+  }
+
+  // Fill in the ABI
+  return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
+}
+
+export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
+  const functionAbi = args.abi;
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  // Ensure that all type arguments are typed properly
+  const typeArguments = standardizeTypeTags(args.typeArguments);
+
+  // Check the type argument count against the ABI
+  if (typeArguments.length !== functionAbi.typeParameters.length) {
+    throw new Error(
+      `Type argument count mismatch, expected ${functionAbi.typeParameters.length}, received ${typeArguments.length}`,
+    );
+  }
+
+  // Check all BCS types, and convert any non-BCS types
+  const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
+    convertArgument(args.function, functionAbi, arg, i, typeArguments),
+  );
+
+  // Check that all arguments are accounted for
+  if (functionArguments.length !== functionAbi.parameters.length) {
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
+    );
+  }
+
+  // Generate entry function payload
+  return EntryFunction.build(`${moduleAddress}::${moduleName}`, functionName, typeArguments, functionArguments);
 }
 
 function generateTransactionPayloadScript(args: InputScriptData) {

@@ -19,6 +19,7 @@ export enum MimeType {
    * BCS representation, used for transaction submission in BCS input
    */
   BCS_SIGNED_TRANSACTION = "application/x.aptos.signed_transaction+bcs",
+  BCS_VIEW_FUNCTION = "application/x.aptos.view_function+bcs",
 }
 
 /**
@@ -988,33 +989,7 @@ export type Block = {
   transactions?: Array<TransactionResponse>;
 };
 
-/**
- * The data needed to generate a View Request payload
- */
-export type InputViewRequestData = {
-  function: MoveFunctionId;
-  typeArguments?: Array<MoveStructId>;
-  functionArguments?: Array<MoveValue>;
-};
-
 // REQUEST TYPES
-
-/**
- * View request for the Move view function API
- *
- * `type MoveFunctionId = ${string}::${string}::${string}`;
- */
-export type ViewRequest = {
-  function: MoveFunctionId;
-  /**
-   * Type arguments of the function
-   */
-  typeArguments: Array<MoveStructId>;
-  /**
-   * Arguments of the function
-   */
-  functionArguments: Array<MoveValue>;
-};
 
 /**
  * Table Item request for the GetTableItem API
