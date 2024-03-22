@@ -179,7 +179,7 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
   let functionAbi = args.abi;
-  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  // If ABI was not provided, we fetch the entry function ABI, and then pretend that we already had the ABI
   if (!functionAbi) {
     functionAbi = await memoizeAsync(
       async () => fetchViewFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
