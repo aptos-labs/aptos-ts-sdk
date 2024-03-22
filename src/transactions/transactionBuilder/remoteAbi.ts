@@ -104,7 +104,7 @@ export async function fetchEntryFunctionAbi(
 }
 
 /**
- * Fetches the ABI for an entry function from the module
+ * Fetches the ABI for a view function from the module
  *
  * @param moduleAddress
  * @param moduleName
