@@ -33,6 +33,7 @@ import {
   isString,
   throwTypeMismatch,
 } from "./helpers";
+import { MoveFunction } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -56,11 +57,15 @@ export async function fetchFunctionAbi(
   moduleName: string,
   functionName: string,
   aptosConfig: AptosConfig,
-) {
+): Promise<MoveFunction | undefined> {
   // This fetch from the API is currently cached
   const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
 
-  return module.abi?.exposed_functions.find((func) => func.name === functionName);
+  if (module.abi) {
+    return module.abi.exposed_functions.find((func) => func.name === functionName);
+  }
+
+  return undefined;
 }
 
 /**

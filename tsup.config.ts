@@ -34,7 +34,6 @@ const COMMON_CONFIG: MandatoryOptions = {
   format: "cjs",
   outDir: "dist/common",
   platform: "node",
-  splitting: false,
 };
 
 // ESM config
