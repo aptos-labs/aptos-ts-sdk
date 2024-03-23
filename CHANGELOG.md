@@ -3,7 +3,11 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
 - Use indexer API via API Gateway
+- Add support to allow setting per-backend (fullnode, indexer, faucet) configuration
+- [`Breaking`] `AUTH_TOKEN` client config moved to be under `faucetConfig` property
+- Handle `Unauthorized` server error
 
 # 1.10.0 (2024-03-11)
 

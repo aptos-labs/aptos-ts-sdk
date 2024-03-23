@@ -63,53 +63,6 @@ describe("aptos request", () => {
     );
   });
 
-  describe("token", () => {
-    test(
-      "should not set auth_token for full node requests",
-      async () => {
-        try {
-          const response = await aptosRequest(
-            {
-              url: `${NetworkToNodeAPI[config.network]}`,
-              method: "GET",
-              path: "accounts/0x1",
-              overrides: { AUTH_TOKEN: "my-token" },
-              originMethod: "test when token is set",
-            },
-            config,
-          );
-          expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
-        } catch (error: any) {
-          // should not get here
-          expect(true).toBe(false);
-        }
-      },
-      longTestTimeout,
-    );
-
-    test(
-      "when token is not set",
-      async () => {
-        try {
-          const response = await aptosRequest(
-            {
-              url: `${NetworkToNodeAPI[config.network]}`,
-              method: "GET",
-              path: "accounts/0x1",
-              originMethod: "test when token is not set",
-            },
-            config,
-          );
-          expect(response.config.headers).not.toHaveProperty("authorization", "Bearer my-token");
-        } catch (error: any) {
-          // should not get here
-          expect(true).toBe(false);
-        }
-      },
-      longTestTimeout,
-    );
-  });
-
   describe("api key", () => {
     test(
       "should set api_token for full node requests",

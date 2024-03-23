@@ -74,7 +74,18 @@ export async function get<Req extends {}, Res extends {}>(
 export async function getAptosFullNode<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
+  const { aptosConfig } = options;
+
+  return get<Req, Res>({
+    ...options,
+    type: AptosApiType.FULLNODE,
+    overrides: {
+      ...aptosConfig.clientConfig,
+      ...aptosConfig.fullnodeConfig,
+      ...options.overrides,
+      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
+    },
+  });
 }
 
 /// This function is a helper for paginating using a function wrapping an API
