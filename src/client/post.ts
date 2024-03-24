@@ -73,6 +73,7 @@ export async function post<Req extends {}, Res extends {}>(
       overrides,
     },
     aptosConfig,
+    options.type,
   );
 }
 
