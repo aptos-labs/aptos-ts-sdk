@@ -8,6 +8,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support to allow setting per-backend (fullnode, indexer, faucet) configuration
 - [`Breaking`] `AUTH_TOKEN` client config moved to be under `faucetConfig` property
 - Handle `Unauthorized` server error
+- Add function to create object address locally
+- Add function to create token object address locally
 
 # 1.10.0 (2024-03-11)
 
