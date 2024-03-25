@@ -76,8 +76,8 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 
 ```ts
 const account = Account.generate(); // defaults to Legacy Ed25519
-const account = Account.generate({ scheme: SingingSchemeInput.Secp256k1 }); // Single Sender Secp256k1
-const account = Account.generate({ scheme: SingingSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
+const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa }); // Single Sender Secp256k1
+const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
 ```
 
 #### Derive from private key
