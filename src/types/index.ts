@@ -142,6 +142,12 @@ export type AptosSettings = {
   readonly clientConfig?: ClientConfig;
 
   readonly client?: Client;
+
+  readonly fullnodeConfig?: FullNodeConfig;
+
+  readonly indexerConfig?: IndexerConfig;
+
+  readonly faucetConfig?: FaucetConfig;
 };
 
 /**
@@ -174,16 +180,44 @@ export interface WhereArg<T extends {}> {
 /**
  * A configuration object we can pass with the request to the server.
  *
- * @param AUTH_TOKEN - an auth token to send with a faucet request
  * @param API_KEY - api key generated from developer portal {@link https://developers.aptoslabs.com/manage/api-keys}}
  * @param HEADERS - extra headers we want to send with the request
  * @param WITH_CREDENTIALS - whether to carry cookies. By default, it is set to true and cookies will be sent
  */
-export type ClientConfig = {
-  AUTH_TOKEN?: string;
-  API_KEY?: string;
-  HEADERS?: Record<string, string | number | boolean>;
+export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;
+  API_KEY?: string;
+};
+
+/**
+ * A Fullnode only configuration object
+ *
+ * @param HEADERS - extra headers we want to send with the request
+ */
+export type FullNodeConfig = ClientHeadersType;
+
+/**
+ * An Indexer only configuration object
+ *
+ * @param HEADERS - extra headers we want to send with the request
+ */
+export type IndexerConfig = ClientHeadersType;
+
+/**
+ * A Faucet only configuration object
+ *
+ * @param HEADERS - extra headers we want to send with the request
+ * @param AUTH_TOKEN - an auth token to send with a faucet request
+ */
+export type FaucetConfig = ClientHeadersType & {
+  AUTH_TOKEN?: string;
+};
+
+/**
+ * General type definition for client HEADERS
+ */
+export type ClientHeadersType = {
+  HEADERS?: Record<string, string | number | boolean>;
 };
 
 export interface ClientRequest<Req> {
@@ -192,7 +226,7 @@ export interface ClientRequest<Req> {
   body?: Req;
   contentType?: string;
   params?: any;
-  overrides?: ClientConfig;
+  overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
   headers?: Record<string, any>;
 }
 
@@ -232,7 +266,7 @@ export type AptosRequest = {
   acceptType?: string;
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   originMethod?: string;
-  overrides?: ClientConfig;
+  overrides?: ClientConfig & FullNodeConfig & IndexerConfig & FaucetConfig;
 };
 
 /**

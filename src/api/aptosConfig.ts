@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import aptosClient from "@aptos-labs/aptos-client";
-import { AptosSettings, ClientConfig, Client } from "../types";
+import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig } from "../types";
 import { NetworkToNodeAPI, NetworkToFaucetAPI, NetworkToIndexerAPI, Network } from "../utils/apiEndpoints";
 import { AptosApiType } from "../utils/const";
 
@@ -10,7 +10,9 @@ import { AptosApiType } from "../utils/const";
  * This class holds the config information for the SDK client instance.
  */
 export class AptosConfig {
-  /** The Network that this SDK is associated with. Defaults to DEVNET */
+  /**
+   * The Network that this SDK is associated with. Defaults to DEVNET
+   */
   readonly network: Network;
 
   /**
@@ -33,7 +35,25 @@ export class AptosConfig {
    */
   readonly indexer?: string;
 
+  /**
+   * Optional client configurations
+   */
   readonly clientConfig?: ClientConfig;
+
+  /**
+   * Optional specific Fullnode configurations
+   */
+  readonly fullnodeConfig?: FullNodeConfig;
+
+  /**
+   * Optional specific Indexer configurations
+   */
+  readonly indexerConfig?: IndexerConfig;
+
+  /**
+   * Optional specific Faucet configurations
+   */
+  readonly faucetConfig?: FaucetConfig;
 
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? Network.DEVNET;
@@ -42,6 +62,9 @@ export class AptosConfig {
     this.indexer = settings?.indexer;
     this.client = settings?.client ?? { provider: aptosClient };
     this.clientConfig = settings?.clientConfig ?? {};
+    this.fullnodeConfig = settings?.fullnodeConfig ?? {};
+    this.indexerConfig = settings?.indexerConfig ?? {};
+    this.faucetConfig = settings?.faucetConfig ?? {};
   }
 
   /**
