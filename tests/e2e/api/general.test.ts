@@ -103,8 +103,6 @@ describe("general api", () => {
 
       const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
-        typeArguments: [],
-        functionArguments: [],
       };
 
       const chainId = (await aptos.view({ payload }))[0];
@@ -118,8 +116,6 @@ describe("general api", () => {
 
       const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
-        typeArguments: [],
-        functionArguments: [],
       };
 
       const chainId = (await aptos.view<[number]>({ payload }))[0];
@@ -133,7 +129,6 @@ describe("general api", () => {
 
       const payload: InputViewFunctionData = {
         function: "0x1::account::exists_at",
-        typeArguments: [],
         functionArguments: ["0x1"],
       };
 
@@ -143,7 +138,6 @@ describe("general api", () => {
 
       const payload2: InputViewFunctionData = {
         function: "0x1::account::exists_at",
-        typeArguments: [],
         functionArguments: ["0x12345"],
       };
 
@@ -158,7 +152,6 @@ describe("general api", () => {
 
       const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
-        typeArguments: [],
         functionArguments: ["0x1"],
       };
 
@@ -168,7 +161,6 @@ describe("general api", () => {
 
       const payload2: InputViewFunctionData = {
         function: "0x1::account::get_authentication_key",
-        typeArguments: [],
         functionArguments: ["0x1"],
       };
 
@@ -184,7 +176,6 @@ describe("general api", () => {
       const payload: InputViewFunctionData = {
         function: "0x1::coin::symbol",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
-        functionArguments: [],
       };
 
       const symbol = (await aptos.view<[string]>({ payload }))[0];
@@ -202,7 +193,6 @@ describe("general api", () => {
       const payload3: InputViewFunctionData = {
         function: "0x1::coin::supply",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
-        functionArguments: [],
       };
 
       const supply = (await aptos.view<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];

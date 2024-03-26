@@ -71,6 +71,7 @@ import {
   InputMultiSigDataWithABI,
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
+  FunctionABI,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
@@ -107,18 +108,17 @@ export async function generateTransactionPayload(
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
-
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  let functionAbi = args.abi;
-  if (!functionAbi) {
-    // We fetch the entry function ABI, and then pretend that we already had the ABI
-    functionAbi = await memoizeAsync(
-      async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
-      `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
-      1000 * 60 * 5, // 5 minutes
-    )();
-  }
+  const functionAbi = await fetchAbi({
+    key: "entry-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchEntryFunctionAbi,
+  });
 
   // Fill in the ABI
   return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
@@ -178,15 +178,15 @@ export function generateTransactionPayloadWithABI(
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  let functionAbi = args.abi;
-  // If ABI was not provided, we fetch the entry function ABI, and then pretend that we already had the ABI
-  if (!functionAbi) {
-    functionAbi = await memoizeAsync(
-      async () => fetchViewFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
-      `view-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
-      1000 * 60 * 5, // 5 minutes
-    )();
-  }
+  const functionAbi = await fetchAbi({
+    key: "view-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchViewFunctionAbi,
+  });
 
   // Fill in the ABI
   return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
@@ -207,9 +207,8 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   }
 
   // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
-    convertArgument(args.function, functionAbi, arg, i, typeArguments),
-  );
+  const functionArguments: Array<EntryFunctionArgumentTypes> =
+    args?.functionArguments?.map((arg, i) => convertArgument(args.function, functionAbi, arg, i, typeArguments)) ?? [];
 
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {
@@ -622,4 +621,43 @@ export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Arr
   mergedArray.set(body, prefix.length);
 
   return mergedArray;
+}
+
+/**
+ * Fetches and caches ABIs with allowing for pass-through on provided ABIs
+ * @param key
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ * @param abi
+ * @param fetch
+ */
+async function fetchAbi<T extends FunctionABI>({
+  key,
+  moduleAddress,
+  moduleName,
+  functionName,
+  aptosConfig,
+  abi,
+  fetch,
+}: {
+  key: string;
+  moduleAddress: string;
+  moduleName: string;
+  functionName: string;
+  aptosConfig: AptosConfig;
+  abi?: T;
+  fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
+}): Promise<T> {
+  if (abi) {
+    return abi;
+  }
+
+  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  return memoizeAsync(
+    async () => fetch(moduleAddress, moduleName, functionName, aptosConfig),
+    `${key}-${aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
 }

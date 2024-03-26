@@ -147,20 +147,28 @@ export type InputScriptData = {
 };
 
 /**
- * The data needed to generate an View Function payload
+ * The data needed to generate a View Function payload
  */
 export type InputViewFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeTag | string>;
-  functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   abi?: ViewFunctionABI;
 };
+
+/**
+ * Data needed to generate a view function payload and fetch the remote ABI
+ */
 export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
 
-export type InputViewFunctionDataWithABI = Omit<InputViewFunctionData, "abi"> & {
-  abi: ViewFunctionABI;
-};
+/**
+ * Data needed to generate a view function, with an already fetched ABI
+ */
+export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
 
+/**
+ * Data need for a generic function ABI, both view and entry
+ */
 export type FunctionABI = {
   typeParameters: Array<MoveFunctionGenericTypeParam>;
   parameters: Array<TypeTag>;

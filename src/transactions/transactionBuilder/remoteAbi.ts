@@ -52,6 +52,13 @@ export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Ar
   );
 }
 
+/**
+ * Fetches a function ABI from the on-chain module ABI.  It doesn't validate whether it's a view or entry function.
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
 export async function fetchFunctionAbi(
   moduleAddress: string,
   moduleName: string,
@@ -129,16 +136,18 @@ export async function fetchViewFunctionAbi(
     throw new Error(`Could not find view function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
   }
 
-  // Non-view functions also can't be used
+  // Non-view functions can't be used
   if (!functionAbi.is_view) {
     throw new Error(`'${moduleAddress}::${moduleName}::${functionName}' is not an view function`);
   }
 
+  // Type tag parameters for the function
   const params: TypeTag[] = [];
   for (let i = 0; i < functionAbi.params.length; i += 1) {
     params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
   }
 
+  // The return types of the view function
   const returnTypes: TypeTag[] = [];
   for (let i = 0; i < functionAbi.return.length; i += 1) {
     returnTypes.push(parseTypeTag(functionAbi.return[i], { allowGenerics: true }));
