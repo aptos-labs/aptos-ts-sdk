@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add function to create token object address locally
 - Add signers to entry function ABI for future signature count checking
 - [`Breaking`] Add type-safe view functions with ABI support
+- [`Fix`] ANS `getName` and `getDomainSubdomains` now appropriately ignores invalid and expired names
 
 # 1.10.0 (2024-03-11)
 
