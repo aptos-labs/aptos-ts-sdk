@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.11.0 (2024-03-26)
+
 - Use indexer API via API Gateway
 - Add support to allow setting per-backend (fullnode, indexer, faucet) configuration
 - [`Breaking`] `AUTH_TOKEN` client config moved to be under `faucetConfig` property
