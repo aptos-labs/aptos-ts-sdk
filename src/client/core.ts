@@ -4,7 +4,8 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
 import { VERSION } from "../version";
-import { AptosRequest, MimeType, ClientRequest, ClientResponse, Client, AnyNumber } from "../types";
+import { AnyNumber, AptosRequest, Client, ClientRequest, ClientResponse, MimeType } from "../types";
+import { AptosApiType } from "../utils";
 
 /**
  * Meaningful errors map
@@ -63,6 +64,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
 export async function aptosRequest<Req extends {}, Res extends {}>(
   options: AptosRequest,
   aptosConfig: AptosConfig,
+  apiType: AptosApiType,
 ): Promise<AptosResponse<Req, Res>> {
   const { url, path } = options;
   const fullUrl = path ? `${url}/${path}` : url;
@@ -85,7 +87,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 
   // to support both fullnode and indexer responses,
   // check if it is an indexer query, and adjust response.data
-  if (aptosConfig.isIndexerRequest(url)) {
+  if (apiType === AptosApiType.INDEXER) {
     const indexerResponse = result.data as any;
     // Handle Indexer general errors
     if (indexerResponse.errors) {
@@ -115,11 +117,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     errorMessage = `Unhandled Error ${result.status} : ${result.statusText}`;
   }
 
-  // Since we already checked if it is an Indexer request, here we can be sure
-  // it either Fullnode or Faucet request
-  throw new AptosApiError(
-    options,
-    result,
-    `${aptosConfig.isFullnodeRequest(url) ? "Fullnode" : "Faucet"} error: ${errorMessage}`,
-  );
+  // We have to explicitly check for all request types, because if the error is a non-indexer error, but
+  // comes from an indexer request (e.g. 404), we'll need to mention it appropriately
+  throw new AptosApiError(options, result, `${apiType} error: ${errorMessage}`);
 }
