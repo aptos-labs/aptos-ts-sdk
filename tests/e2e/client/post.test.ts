@@ -3,10 +3,10 @@ import {
   GraphqlQuery,
   postAptosIndexer,
   postAptosFullNode,
-  ViewRequest,
   U8,
   postAptosFaucet,
   Account,
+  InputViewFunctionData,
 } from "../../../src";
 import { GetChainTopUserTransactionsQuery } from "../../../src/types/generated/operations";
 import { GetChainTopUserTransactions } from "../../../src/types/generated/queries";
@@ -54,7 +54,7 @@ describe("post request", () => {
   describe("fullnode", () => {
     test("it sets correct headers on post request", async () => {
       try {
-        await postAptosFullNode<ViewRequest, U8>({
+        await postAptosFullNode<InputViewFunctionData, U8>({
           aptosConfig,
           originMethod: "testPostFullnodeQuery",
           path: "view",
