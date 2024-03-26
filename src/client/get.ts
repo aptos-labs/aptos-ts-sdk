@@ -59,8 +59,8 @@ export async function get<Req extends {}, Res extends {}>(
       method: "GET",
       originMethod,
       path,
-      contentType: contentType?.valueOf(),
-      acceptType: acceptType?.valueOf(),
+      contentType,
+      acceptType,
       params,
       overrides: {
         ...aptosConfig.clientConfig,

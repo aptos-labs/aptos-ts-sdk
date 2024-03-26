@@ -69,8 +69,11 @@ import {
   InputGenerateTransactionPayloadDataWithABI,
   InputEntryFunctionDataWithABI,
   InputMultiSigDataWithABI,
+  InputViewFunctionDataWithRemoteABI,
+  InputViewFunctionDataWithABI,
+  FunctionABI,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
@@ -105,15 +108,17 @@ export async function generateTransactionPayload(
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
-
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  // We fetch the entry function ABI, and then pretend that we already had the ABI
-  const functionAbi = await memoizeAsync(
-    async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
-    `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
+  const functionAbi = await fetchAbi({
+    key: "entry-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchEntryFunctionAbi,
+  });
 
   // Fill in the ABI
   return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
@@ -168,6 +173,53 @@ export function generateTransactionPayloadWithABI(
 
   // Otherwise send as an entry function
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
+}
+
+export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  const functionAbi = await fetchAbi({
+    key: "view-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchViewFunctionAbi,
+  });
+
+  // Fill in the ABI
+  return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
+}
+
+export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
+  const functionAbi = args.abi;
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  // Ensure that all type arguments are typed properly
+  const typeArguments = standardizeTypeTags(args.typeArguments);
+
+  // Check the type argument count against the ABI
+  if (typeArguments.length !== functionAbi.typeParameters.length) {
+    throw new Error(
+      `Type argument count mismatch, expected ${functionAbi.typeParameters.length}, received ${typeArguments.length}`,
+    );
+  }
+
+  // Check all BCS types, and convert any non-BCS types
+  const functionArguments: Array<EntryFunctionArgumentTypes> =
+    args?.functionArguments?.map((arg, i) => convertArgument(args.function, functionAbi, arg, i, typeArguments)) ?? [];
+
+  // Check that all arguments are accounted for
+  if (functionArguments.length !== functionAbi.parameters.length) {
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
+    );
+  }
+
+  // Generate entry function payload
+  return EntryFunction.build(`${moduleAddress}::${moduleName}`, functionName, typeArguments, functionArguments);
 }
 
 function generateTransactionPayloadScript(args: InputScriptData) {
@@ -569,4 +621,43 @@ export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Arr
   mergedArray.set(body, prefix.length);
 
   return mergedArray;
+}
+
+/**
+ * Fetches and caches ABIs with allowing for pass-through on provided ABIs
+ * @param key
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ * @param abi
+ * @param fetch
+ */
+async function fetchAbi<T extends FunctionABI>({
+  key,
+  moduleAddress,
+  moduleName,
+  functionName,
+  aptosConfig,
+  abi,
+  fetch,
+}: {
+  key: string;
+  moduleAddress: string;
+  moduleName: string;
+  functionName: string;
+  aptosConfig: AptosConfig;
+  abi?: T;
+  fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
+}): Promise<T> {
+  if (abi) {
+    return abi;
+  }
+
+  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  return memoizeAsync(
+    async () => fetch(moduleAddress, moduleName, functionName, aptosConfig),
+    `${key}-${aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
 }

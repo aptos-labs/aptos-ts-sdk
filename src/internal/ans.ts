@@ -11,12 +11,13 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, MoveValue, OrderByArg, PaginationArgs, WhereArg } from "../types";
+import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types";
 import { Network } from "../utils/apiEndpoints";
-import { queryIndexer, view } from "./general";
+import { queryIndexer } from "./general";
+import { view } from "./view";
 import { generateTransaction } from "./transactionSubmission";
 
 export const VALIDATION_RULES_DESCRIPTION = [
@@ -85,12 +86,6 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] });
-const None = (): MoveValue => ({ vec: [] });
-// != here is intentional, we want to check for null and undefined
-// eslint-disable-next-line eqeqeq
-const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
-
 const unwrapOption = <T>(option: any): T | undefined => {
   if (!!option && typeof option === "object" && "vec" in option && Array.isArray(option.vec)) {
     return option.vec[0];
@@ -108,7 +103,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_owner_addr`,
-      functionArguments: [domainName, Option(subdomainName)],
+      functionArguments: [domainName, subdomainName],
     },
   });
 
@@ -219,7 +214,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
       aptosConfig,
       payload: {
         function: `${routerAddress}::router::get_expiration`,
-        functionArguments: [domainName, Option(subdomainName)],
+        functionArguments: [domainName, subdomainName],
       },
     });
 
@@ -303,7 +298,7 @@ export async function getTargetAddress(args: {
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_target_addr`,
-      functionArguments: [domainName, Option(subdomainName)],
+      functionArguments: [domainName, subdomainName],
     },
   });
 
@@ -570,6 +565,6 @@ export async function renewDomain(args: {
 function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
   return {
     ...name,
-    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+    expiration_timestamp: new Date(name.expiration_timestamp).getTime(),
   };
 }
