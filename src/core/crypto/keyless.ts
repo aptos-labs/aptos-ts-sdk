@@ -10,7 +10,7 @@ import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 
-export const EPK_LIFESPAN = 10000000;
+export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
 export const MAX_UID_KEY_BYTES = 30;
 export const MAX_UID_VAL_BYTES = 330;
@@ -243,7 +243,7 @@ export class SignedGroth16Signature extends Signature {
     trainingWheelsSignature?: EphemeralSignature;
   }) {
     super();
-    const { proof, expHorizonSecs = BigInt(EPK_LIFESPAN), trainingWheelsSignature, extraField, overrideAudVal } = args;
+    const { proof, expHorizonSecs = BigInt(EPK_HORIZON_SECS), trainingWheelsSignature, extraField, overrideAudVal } = args;
     this.proof = proof;
     this.expHorizonSecs = expHorizonSecs;
     this.trainingWheelsSignature = trainingWheelsSignature;

@@ -13,7 +13,7 @@ import { bls12_381 as bls } from "@noble/curves/bls12-381";
 import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_LIFESPAN, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
+import { EPK_HORIZON_SECS, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
 import { EphemeralKeyPair, KeylessAccount } from "../account";
@@ -59,6 +59,9 @@ export async function getPepper(args: {
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
+  // const jsonString = JSON.stringify(body);
+
+  // console.log(jsonString);
   const { data } = await postAptosPepperService<any, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
@@ -104,25 +107,27 @@ export async function getProof(args: {
   extraFieldKey?: string;
 }): Promise<SignedGroth16Signature> {
   const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey, extraFieldKey } = args;
-  const extraFieldKey2 = extraFieldKey || "iss";
+  const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
+  let extraField;
+  if (extraFieldKey) {
+    const extraFieldVal = jwtPayload[extraFieldKey];
+    extraField = `"${extraFieldKey}":"${extraFieldVal}",`;
+  }
   const json = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
-    exp_horizon_secs: EPK_LIFESPAN,
+    exp_horizon_secs: EPK_HORIZON_SECS,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
-    extra_field: extraFieldKey2,
+    extra_field: extraFieldKey,
     uid_key: uidKey || "sub",
   };
-  const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
-  const extraFieldVal = jwtPayload[extraFieldKey2];
-  const extraField = `"${extraFieldKey2}":"${extraFieldVal}",`;
-  // console.log(extraField);
-  if (typeof jwtPayload.aud !== "string") {
-    throw new Error("aud was not found or an array of values");
-  }
 
+  // const jsonString = JSON.stringify(json);
+
+  // console.log(jsonString);
+  
   const { data } = await postAptosProvingService<
     any,
     ProverResponse
@@ -135,7 +140,6 @@ export async function getProof(args: {
   });
 
   const proofPoints = data.proof;
-
   const proof = new Groth16Zkp({
     a: proofPoints.a,
     b: proofPoints.b,
