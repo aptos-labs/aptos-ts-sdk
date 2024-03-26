@@ -340,6 +340,7 @@ export async function getName(args: {
   const where: CurrentAptosNamesBoolExp = {
     domain: { _eq: domainName },
     subdomain: { _eq: subdomainName },
+    is_active: { _eq: true },
   };
 
   const data = await queryIndexer<GetNamesQuery>({
@@ -487,6 +488,7 @@ export async function getDomainSubdomains(
           ...(args.options?.where ?? {}),
           domain: { _eq: domain },
           subdomain: { _neq: "" },
+          is_active: { _eq: true },
         },
       },
     },
