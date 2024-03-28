@@ -17,7 +17,6 @@ import {
   Deserializer,
   Network,
   NetworkToNetworkName,
-  RawTransaction,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 
@@ -48,7 +47,7 @@ const sendToTheSponsorServer = async (transactionBytes: Uint8Array) => {
 
   const sponsorAuthBytes = sponsorAuth.bcsToBytes();
 
-  return sponsorAuthBytes;
+  return { sponsorAuthBytes, signedTransaction: transaction };
 };
 
 const example = async () => {
@@ -83,14 +82,14 @@ const example = async () => {
   const senderAuth = aptos.transaction.sign({ signer: alice, transaction });
 
   // Send the serialized transaction to the sponsor server to sign
-  const sponsorAuthBytes = await sendToTheSponsorServer(transaction.bcsToBytes());
+  const { sponsorAuthBytes, signedTransaction } = await sendToTheSponsorServer(transaction.bcsToBytes());
 
   // deserialize fee payer authenticator
-  const deserializer3 = new Deserializer(sponsorAuthBytes);
-  const feePayerAuthenticator = AccountAuthenticator.deserialize(deserializer3);
+  const deserializer = new Deserializer(sponsorAuthBytes);
+  const feePayerAuthenticator = AccountAuthenticator.deserialize(deserializer);
 
   const response = await aptos.transaction.submit.simple({
-    transaction,
+    transaction: signedTransaction,
     senderAuthenticator: senderAuth,
     feePayerAuthenticator,
   });

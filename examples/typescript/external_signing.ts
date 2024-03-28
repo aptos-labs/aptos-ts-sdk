@@ -16,8 +16,6 @@ import {
   Ed25519Signature,
   Network,
   NetworkToNetworkName,
-  RawTransaction,
-  Serializer,
   Ed25519Account,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
