@@ -94,7 +94,10 @@ const unwrapOption = <T>(option: any): T | undefined => {
   return undefined;
 };
 
-export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: string }): Promise<string | undefined> {
+export async function getOwnerAddress(args: {
+  aptosConfig: AptosConfig;
+  name: string;
+}): Promise<AccountAddress | undefined> {
   const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -109,7 +112,7 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.from(owner).toString() : undefined;
+  return owner ? AccountAddress.from(owner) : undefined;
 }
 
 export interface RegisterNameParameters {
@@ -289,7 +292,7 @@ export async function setPrimaryName(args: {
 export async function getTargetAddress(args: {
   aptosConfig: AptosConfig;
   name: string;
-}): Promise<MoveAddressType | undefined> {
+}): Promise<AccountAddress | undefined> {
   const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -303,7 +306,7 @@ export async function getTargetAddress(args: {
   });
 
   const target = unwrapOption<MoveAddressType>(res[0]);
-  return target ? AccountAddress.from(target).toString() : undefined;
+  return target ? AccountAddress.from(target) : undefined;
 }
 
 export async function setTargetAddress(args: {
