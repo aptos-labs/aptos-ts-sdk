@@ -19,6 +19,7 @@ import {
   RawTransaction,
   Serializer,
   Ed25519Account,
+  SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 import nacl from "tweetnacl";
 
@@ -105,11 +106,10 @@ class ExternalSigner {
     // Sending the full transaction as BCS encoded, allows for full text viewing of the transaction on the signer.
     // However, this is not required, and the signer could just send the signing message.
     const deserializer = new Deserializer(encodedTransaction);
-    const rawTransaction = RawTransaction.deserialize(deserializer);
+    const transaction = SimpleTransaction.deserialize(deserializer);
 
     // Some changes to make it signable, this would need more logic for fee payer or additional signers
     // TODO: Make BCS handle any object type?
-    const transaction = { rawTransaction };
     const signingMessage = this.aptos.getSigningMessage({ transaction });
 
     // Pretend that it's an external signer that only knows bytes using a raw crypto library
@@ -118,9 +118,7 @@ class ExternalSigner {
     // Construct the authenticator with the public key for the submission
     const authenticator = new AccountAuthenticatorEd25519(this.account.publicKey, new Ed25519Signature(signature));
 
-    const serializer = new Serializer();
-    authenticator.serialize(serializer);
-    return serializer.toUint8Array();
+    return authenticator.bcsToBytes();
   }
 }
 
@@ -158,13 +156,9 @@ const example = async () => {
   });
 
   // Send the transaction to external signer to sign
-  const serializer = new Serializer();
-  simpleTransaction.rawTransaction.serialize(serializer);
-  const rawTransactionBytes = serializer.toUint8Array();
-
   // We're going to pretend that the network call is just an external function call
   console.log("\n=== Signing ===\n");
-  const authenticatorBytes = cold.sign(rawTransactionBytes);
+  const authenticatorBytes = cold.sign(simpleTransaction.bcsToBytes());
   const deserializer = new Deserializer(authenticatorBytes);
   const authenticator = AccountAuthenticator.deserialize(deserializer);
 

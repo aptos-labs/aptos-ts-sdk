@@ -26,18 +26,18 @@ import {
   AnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
-  SimpleTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
   InputGenerateMultiAgentRawTransactionData,
   InputGenerateSingleSignerRawTransactionData,
-  MultiAgentTransaction,
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
 import { TypeTagU8, TypeTagVector } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
 /**
  * We are defining function signatures, each with its specific input and output.

@@ -7,6 +7,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Change `getOwnerAddress` and `getTargetAddress` return type to `AccountAddress`
 - Add `message` input type verification on `sign` and `verifySignature` functions and convert it into a correct type if needed
 - [`Breaking`] Change `fromString` to `fromHexString` on `Hex` class
+- Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
+- [`Breaking] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
 
 # 1.11.0 (2024-03-26)
 
