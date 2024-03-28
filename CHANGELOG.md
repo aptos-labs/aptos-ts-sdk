@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Breaking`] Change `getOwnerAddress` and `getTargetAddress` return type to `AccountAddress`
+
 # 1.11.0 (2024-03-26)
 
 - Use indexer API via API Gateway
