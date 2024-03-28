@@ -10,7 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
@@ -19,6 +19,7 @@ import { Network } from "../utils/apiEndpoints";
 import { queryIndexer } from "./general";
 import { view } from "./view";
 import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 export const VALIDATION_RULES_DESCRIPTION = [
   "A name must be between 3 and 63 characters long,",

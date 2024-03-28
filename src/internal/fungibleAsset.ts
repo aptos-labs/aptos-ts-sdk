@@ -38,11 +38,11 @@ import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
   parseTypeTag,
-  SimpleTransaction,
   TypeTagAddress,
   TypeTagU64,
 } from "../transactions";
 import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;

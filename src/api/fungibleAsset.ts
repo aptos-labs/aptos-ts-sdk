@@ -24,7 +24,8 @@ import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { Account, AccountAddress } from "../core";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
+import { InputGenerateTransactionOptions } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to query all `FungibleAsset` related queries on Aptos.

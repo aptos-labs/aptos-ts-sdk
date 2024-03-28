@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
+- [`Breaking] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
+
 # 1.11.0 (2024-03-26)
 
 - Use indexer API via API Gateway
