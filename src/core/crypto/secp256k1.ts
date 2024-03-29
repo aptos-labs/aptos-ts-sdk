@@ -11,6 +11,7 @@ import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
+import { convertMessage } from "./utils";
 
 /**
  * Represents the Secp256k1 ecdsa public key
@@ -46,8 +47,8 @@ export class Secp256k1PublicKey extends PublicKey {
     if (!(signature instanceof Secp256k1Signature)) {
       return false;
     }
-
-    const messageBytes = Hex.fromHexInput(message).toUint8Array();
+    const messageToVerify = convertMessage(message);
+    const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
     return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array());
@@ -169,7 +170,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @returns Signature
    */
   sign(message: HexInput): Secp256k1Signature {
-    const messageBytes = Hex.fromHexInput(message);
+    const messageToSign = convertMessage(message);
+    const messageBytes = Hex.fromHexInput(messageToSign);
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
     const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array());
     return new Secp256k1Signature(signature.toCompactRawBytes());

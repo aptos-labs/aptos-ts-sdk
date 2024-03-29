@@ -31,10 +31,10 @@ describe("Ed25519PublicKey", () => {
 
   it("should verify the signature correctly", () => {
     const pubKey = new Ed25519PublicKey(ed25519.publicKey);
-    const signature = new Ed25519Signature(ed25519.signedMessage);
+    const signature = new Ed25519Signature(ed25519.signatureHex);
 
     // Verify with correct signed message
-    expect(pubKey.verifySignature({ message: ed25519.message, signature })).toBe(true);
+    expect(pubKey.verifySignature({ message: ed25519.messageEncoded, signature })).toBe(true);
 
     // Verify with incorrect signed message
     const incorrectSignedMessage =
@@ -43,7 +43,7 @@ describe("Ed25519PublicKey", () => {
     const invalidSignature = new Ed25519Signature(incorrectSignedMessage);
     expect(
       pubKey.verifySignature({
-        message: ed25519.message,
+        message: ed25519.messageEncoded,
         signature: invalidSignature,
       }),
     ).toBe(false);
@@ -111,8 +111,8 @@ describe("PrivateKey", () => {
 
   it("should sign the message correctly", () => {
     const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
-    const signedMessage = privateKey.sign(ed25519.message);
-    expect(signedMessage.toString()).toEqual(ed25519.signedMessage);
+    const signedMessage = privateKey.sign(ed25519.messageEncoded);
+    expect(signedMessage.toString()).toEqual(ed25519.signatureHex);
   });
 
   it("should serialize correctly", () => {
@@ -184,9 +184,9 @@ describe("PrivateKey", () => {
 describe("Signature", () => {
   it("should create an instance correctly without error", () => {
     // Create from string
-    const signatureStr = new Ed25519Signature(ed25519.signedMessage);
+    const signatureStr = new Ed25519Signature(ed25519.signatureHex);
     expect(signatureStr).toBeInstanceOf(Ed25519Signature);
-    expect(signatureStr.toString()).toEqual(ed25519.signedMessage);
+    expect(signatureStr.toString()).toEqual(ed25519.signatureHex);
 
     // Create from Uint8Array
     const signatureValue = new Uint8Array(Ed25519Signature.LENGTH);
@@ -203,28 +203,27 @@ describe("Signature", () => {
   });
 
   it("should serialize correctly", () => {
-    const signature = new Ed25519Signature(ed25519.signedMessage);
+    const signature = new Ed25519Signature(ed25519.signatureHex);
     const serializer = new Serializer();
     signature.serialize(serializer);
-
     const expectedUint8Array = new Uint8Array([
-      64, 197, 222, 158, 64, 172, 0, 179, 113, 205, 131, 177, 193, 151, 250, 91, 102, 91, 116, 73, 179, 60, 211, 205,
-      211, 5, 187, 120, 34, 46, 6, 166, 113, 164, 150, 37, 171, 154, 234, 138, 3, 157, 75, 183, 14, 39, 87, 104, 8, 77,
-      98, 176, 148, 188, 27, 49, 150, 79, 35, 87, 183, 193, 175, 126, 13,
+      64, 158, 101, 61, 86, 160, 146, 71, 87, 11, 177, 116, 163, 137, 232, 91, 146, 38, 171, 213, 196, 3, 234, 108, 80,
+      75, 56, 102, 38, 161, 69, 21, 140, 212, 239, 214, 111, 197, 224, 113, 192, 225, 149, 56, 169, 106, 5, 221, 189,
+      162, 77, 60, 81, 225, 230, 169, 218, 204, 107, 177, 206, 119, 92, 206, 7,
     ]);
     expect(serializer.toUint8Array()).toEqual(expectedUint8Array);
   });
 
   it("should deserialize correctly", () => {
     const serializedSignature = new Uint8Array([
-      64, 197, 222, 158, 64, 172, 0, 179, 113, 205, 131, 177, 193, 151, 250, 91, 102, 91, 116, 73, 179, 60, 211, 205,
-      211, 5, 187, 120, 34, 46, 6, 166, 113, 164, 150, 37, 171, 154, 234, 138, 3, 157, 75, 183, 14, 39, 87, 104, 8, 77,
-      98, 176, 148, 188, 27, 49, 150, 79, 35, 87, 183, 193, 175, 126, 13,
+      64, 158, 101, 61, 86, 160, 146, 71, 87, 11, 177, 116, 163, 137, 232, 91, 146, 38, 171, 213, 196, 3, 234, 108, 80,
+      75, 56, 102, 38, 161, 69, 21, 140, 212, 239, 214, 111, 197, 224, 113, 192, 225, 149, 56, 169, 106, 5, 221, 189,
+      162, 77, 60, 81, 225, 230, 169, 218, 204, 107, 177, 206, 119, 92, 206, 7,
     ]);
     const deserializer = new Deserializer(serializedSignature);
     const signature = Ed25519Signature.deserialize(deserializer);
 
-    expect(signature.toString()).toEqual(ed25519.signedMessage);
+    expect(signature.toString()).toEqual(ed25519.signatureHex);
   });
 
   it("should serialize and deserialize correctly", () => {

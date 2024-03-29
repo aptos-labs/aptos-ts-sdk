@@ -32,7 +32,7 @@ describe("Secp256k1PublicKey", () => {
     const signature = new Secp256k1Signature(secp256k1TestObject.signatureHex);
 
     // Convert message to hex
-    const hexMsg = Hex.fromString(secp256k1TestObject.messageEncoded);
+    const hexMsg = Hex.fromHexString(secp256k1TestObject.messageEncoded);
 
     // Verify with correct signed message
     expect(pubKey.verifySignature({ message: hexMsg.toUint8Array(), signature })).toBe(true);
@@ -63,7 +63,7 @@ describe("Secp256k1PublicKey", () => {
   it("should deserialize correctly", () => {
     const serializedPublicKeyStr =
       "0x4104acdd16651b839c24665b7e2033b55225f384554949fef46c397b5275f37f6ee95554d70fb5d9f93c5831ebf695c7206e7477ce708f03ae9bb2862dc6c9e033ea";
-    const serializedPublicKey = Hex.fromString(serializedPublicKeyStr).toUint8Array();
+    const serializedPublicKey = Hex.fromHexString(serializedPublicKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPublicKey);
     const publicKey = Secp256k1PublicKey.deserialize(deserializer);
 
@@ -79,7 +79,7 @@ describe("Secp256k1PrivateKey", () => {
     expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
 
     // Create from Uint8Array
-    const hexUint8Array = Hex.fromString(secp256k1TestObject.privateKey).toUint8Array();
+    const hexUint8Array = Hex.fromHexString(secp256k1TestObject.privateKey).toUint8Array();
     const privateKey2 = new Secp256k1PrivateKey(hexUint8Array);
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
     expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
@@ -110,7 +110,7 @@ describe("Secp256k1PrivateKey", () => {
 
   it("should deserialize correctly", () => {
     const serializedPrivateKeyStr = "0x20d107155adf816a0a94c6db3c9489c13ad8a1eda7ada2e558ba3bfa47c020347e";
-    const serializedPrivateKey = Hex.fromString(serializedPrivateKeyStr).toUint8Array();
+    const serializedPrivateKey = Hex.fromHexString(serializedPrivateKeyStr).toUint8Array();
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Secp256k1PrivateKey.deserialize(deserializer);
 
@@ -177,7 +177,7 @@ describe("Secp256k1Signature", () => {
   it("should deserialize correctly", () => {
     const serializedSignature =
       "0x40d0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca";
-    const serializedSignatureUint8Array = Hex.fromString(serializedSignature).toUint8Array();
+    const serializedSignatureUint8Array = Hex.fromHexString(serializedSignature).toUint8Array();
     const deserializer = new Deserializer(serializedSignatureUint8Array);
     const signature = Secp256k1Signature.deserialize(deserializer);
 

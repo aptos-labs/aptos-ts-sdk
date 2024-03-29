@@ -44,9 +44,10 @@ export const ed25519 = {
   publicKey: "0xde19e5d1880cac87d57484ce9ed2e84cf0f9599f12e7cc3a52e4e7657a763f2c",
   authKey: "0x978c213990c4833df71548df7ce49d54c759d6b6d932de22b24d56060b7af2aa",
   address: "0x978c213990c4833df71548df7ce49d54c759d6b6d932de22b24d56060b7af2aa",
-  message: "0x7777",
-  signedMessage:
-    "0xc5de9e40ac00b371cd83b1c197fa5b665b7449b33cd3cdd305bb78222e06a671a49625ab9aea8a039d4bb70e275768084d62b094bc1b31964f2357b7c1af7e0d",
+  messageEncoded: "68656c6c6f20776f726c64",
+  stringMessage: "hello world",
+  signatureHex:
+    "0x9e653d56a09247570bb174a389e85b9226abd5c403ea6c504b386626a145158cd4efd66fc5e071c0e19538a96a05ddbda24d3c51e1e6a9dacc6bb1ce775cce07",
 };
 
 export const multiEd25519PkTestObject = {
@@ -76,7 +77,8 @@ export const secp256k1TestObject = {
     "0x04acdd16651b839c24665b7e2033b55225f384554949fef46c397b5275f37f6ee95554d70fb5d9f93c5831ebf695c7206e7477ce708f03ae9bb2862dc6c9e033ea",
   address: "0x5792c985bc96f436270bd2a3c692210b09c7febb8889345ceefdbae4bacfe498",
   authKey: "0x5792c985bc96f436270bd2a3c692210b09c7febb8889345ceefdbae4bacfe498",
-  messageEncoded: "68656c6c6f20776f726c64", // "hello world"
+  messageEncoded: "68656c6c6f20776f726c64",
+  stringMessage: "hello world",
   signatureHex:
     "0xd0d634e843b61339473b028105930ace022980708b2855954b977da09df84a770c0b68c29c8ca1b5409a5085b0ec263be80e433c83fcf6debb82f3447e71edca",
 };
