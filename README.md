@@ -5,7 +5,9 @@
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
 ### Reference Docs
-[Read the latest reference documentation here.](https://aptos-labs.github.io/aptos-ts-sdk/@aptos-labs/ts-sdk-latest)
+ 1. For SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/new-ts-sdk/)
+ 2. For detailed reference documentation you can search, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
+ 3. For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Latest Version
 
@@ -171,12 +173,6 @@ const transaction = await aptos.transferCoinTransaction({
 
 const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
-
-## Documentation and examples
-
-- For full SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/new-ts-sdk/)
-- For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
-- For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
 
