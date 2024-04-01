@@ -4,6 +4,9 @@
 [![Discord][discord-image]][discord-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
+### Reference Docs
+[Read the latest reference documentation here.](https://aptos-labs.github.io/aptos-ts-sdk/@aptos-labs/ts-sdk-latest)
+
 ### Latest Version
 
 [![NPM Package Version][npm-image-version]][npm-url]
