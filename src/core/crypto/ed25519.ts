@@ -11,7 +11,7 @@ import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSee
 import { PrivateKey } from "./privateKey";
 import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
-import { convertMessage } from "./utils";
+import { convertSigningMessage } from "./utils";
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -61,7 +61,7 @@ export class Ed25519PublicKey extends AccountPublicKey {
     if (!(signature instanceof Ed25519Signature)) {
       return false;
     }
-    const messageToVerify = convertMessage(message);
+    const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
@@ -214,11 +214,11 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Sign the given message with the private key.
    *
-   * @param message a message as a Hex string or Uint8Array
+   * @param message a message as a string or Uint8Array
    * @returns Signature
    */
   sign(message: HexInput): Ed25519Signature {
-    const messageToSign = convertMessage(message);
+    const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
     const signatureBytes = nacl.sign.detached(messageBytes, this.signingKeyPair.secretKey);
     return new Ed25519Signature(signatureBytes);

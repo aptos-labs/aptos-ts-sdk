@@ -6,9 +6,9 @@ import { Hex } from "../hex";
  *
  * @param message a message as a string or Uint8Array
  *
- * @returns a valid HexInput - Hex string or Uint8Array
+ * @returns a valid HexInput - string or Uint8Array
  */
-export const convertMessage = (message: HexInput): HexInput => {
+export const convertSigningMessage = (message: HexInput): HexInput => {
   // if message is of type string, verify it is a valid Hex string
   if (typeof message === "string") {
     const isValid = Hex.isValid(message);
