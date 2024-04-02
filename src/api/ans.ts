@@ -23,8 +23,9 @@ import {
   GetDomainSubdomainsArgs,
 } from "../internal/ans";
 import { GetANSNameResponse } from "../types";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to handle all `ANS` operations

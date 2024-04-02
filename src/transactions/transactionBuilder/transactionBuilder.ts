@@ -57,9 +57,7 @@ import {
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
-  SimpleTransaction,
   InputGenerateTransactionOptions,
-  MultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
   InputMultiSigDataWithRemoteABI,
@@ -77,6 +75,8 @@ import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardi
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { SimpleTransaction } from "../instances/simpleTransaction";
+import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -347,17 +347,14 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     const signers: Array<AccountAddress> =
       args.secondarySignerAddresses?.map((signer) => AccountAddress.from(signer)) ?? [];
 
-    return {
-      rawTransaction: rawTxn,
-      secondarySignerAddresses: signers,
-      feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
-    };
+    return new MultiAgentTransaction(
+      rawTxn,
+      signers,
+      args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
+    );
   }
   // return the raw transaction
-  return {
-    rawTransaction: rawTxn,
-    feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
-  };
+  return new SimpleTransaction(rawTxn, args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined);
 }
 
 /**

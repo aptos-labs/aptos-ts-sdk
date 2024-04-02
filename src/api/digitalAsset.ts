@@ -14,7 +14,7 @@ import {
   TokenStandardArg,
 } from "../types";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
   addDigitalAssetTypedPropertyTransaction,
@@ -45,6 +45,7 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.
