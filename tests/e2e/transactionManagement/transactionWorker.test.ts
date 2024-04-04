@@ -1,14 +1,11 @@
 import { longTestTimeout } from "../../unit/helper";
-import { Aptos } from "../../../src/api/aptos";
-import { AptosConfig } from "../../../src/api/aptosConfig";
 import { Account } from "../../../src/core";
-import { Network } from "../../../src/utils/apiEndpoints";
 import { InputGenerateTransactionPayloadData } from "../../../src/transactions/types";
 import { TransactionWorker } from "../../../src/transactions/management/transactionWorker";
 import { TransactionResponseType, TypeTagAddress, TypeTagU64 } from "../../../src";
+import { getAptosClient } from "../helper";
 
-const aptosConfig = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(aptosConfig);
+const { aptos, config: aptosConfig } = getAptosClient();
 
 const sender = Account.generate();
 const recipient = Account.generate();

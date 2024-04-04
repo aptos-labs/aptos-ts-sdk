@@ -1,7 +1,4 @@
 import {
-  AptosConfig,
-  Network,
-  Aptos,
   Account,
   Deserializer,
   U64,
@@ -11,10 +8,10 @@ import {
   AccountAuthenticatorSingleKey,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
 
 describe("sign transaction", () => {
   const contractPublisherAccount = Account.generate();

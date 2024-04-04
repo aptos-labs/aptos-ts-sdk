@@ -1,10 +1,10 @@
-import { AptosConfig, Network, Aptos, Account, U64, SigningSchemeInput } from "../../../src";
+import { Account, U64, SigningSchemeInput } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
 describe("transaction simulation", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos } = getAptosClient();
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
   const legacyED25519SenderAccount = Account.generate();

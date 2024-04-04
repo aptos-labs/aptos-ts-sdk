@@ -13,14 +13,14 @@ import {
 } from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
+import { getAptosClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
 
 describe("ANS", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos, config } = getAptosClient();
 
   let changeExpirationDate: (
     tokenMode: 0 | 1,
