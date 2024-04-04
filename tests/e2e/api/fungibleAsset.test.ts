@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network, APTOS_COIN } from "../../../src";
+import { Account, APTOS_COIN } from "../../../src";
+import { getAptosClient } from "../helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
 
 describe("FungibleAsset", () => {
   test("it should fetch fungible asset metadata", async () => {

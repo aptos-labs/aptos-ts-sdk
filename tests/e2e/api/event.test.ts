@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Account } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 describe("Event", () => {
   test("it should get transaction fee statement module event by event type", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
@@ -20,8 +20,7 @@ describe("Event", () => {
   });
 
   test("it should get fund event by creation number and address", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
     await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
@@ -35,8 +34,7 @@ describe("Event", () => {
   });
 
   test("it should get fund event by event type and address", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
     await aptos.fundAccount({
@@ -53,8 +51,7 @@ describe("Event", () => {
   });
 
   test("it should get all events", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
     await aptos.fundAccount({
@@ -70,8 +67,7 @@ describe("Event", () => {
   test(
     "it should filter events",
     async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
       const testAccount1 = Account.generate();
       const testAccount2 = Account.generate();

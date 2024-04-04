@@ -10,8 +10,9 @@ import {
 } from "../../../src";
 import { GetChainTopUserTransactionsQuery } from "../../../src/types/generated/operations";
 import { GetChainTopUserTransactions } from "../../../src/types/generated/queries";
+import { getAptosClient } from "../helper";
 
-const aptosConfig = new AptosConfig({
+const partialConfig = new AptosConfig({
   clientConfig: {
     HEADERS: { clientConfig: "clientConfig-header" },
     API_KEY: "api-key",
@@ -20,6 +21,7 @@ const aptosConfig = new AptosConfig({
   indexerConfig: { HEADERS: { indexerHeader: "indexer-header" } },
   faucetConfig: { HEADERS: { faucetHeader: "faucet-header" }, AUTH_TOKEN: "auth-token" },
 });
+const { config: aptosConfig } = getAptosClient(partialConfig);
 
 // All tests are expected to catch becuase server call will fail
 // due to a fake API_KEY. But that is ok because we just want

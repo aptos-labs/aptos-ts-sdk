@@ -1,29 +1,31 @@
 import {
   Account,
-  Aptos,
   AptosApiError,
   AptosApiType,
-  AptosConfig,
   aptosRequest,
   generateSignedTransaction,
   GraphqlQuery,
-  Network,
   NetworkToIndexerAPI,
   NetworkToNodeAPI,
   U64,
 } from "../../../src";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { singleSignerScriptBytecode } from "../transaction/helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
+const { aptos, config } = getAptosClient();
+
+const fullnodeUrl = config.fullnode ?? NetworkToNodeAPI[config.network];
+const indexerUrl = config.indexer ?? NetworkToIndexerAPI[config.network];
+
+const dummyKey = "aptoslabs_secret1";
 
 describe("aptos request", () => {
   describe("headers", () => {
     test(
       "call should include all expected headers",
       async () => {
-        const aptos = new Aptos(config);
         const sender = Account.generate();
         const receiverAccounts = Account.generate();
         await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 100_000_000 });
@@ -42,7 +44,7 @@ describe("aptos request", () => {
         try {
           const response = await aptosRequest(
             {
-              url: `${NetworkToNodeAPI[config.network]}`,
+              url: fullnodeUrl,
               method: "POST",
               path: "transactions",
               body: signedTransaction,
@@ -72,16 +74,16 @@ describe("aptos request", () => {
         try {
           const response = await aptosRequest(
             {
-              url: `${NetworkToNodeAPI[config.network]}`,
+              url: fullnodeUrl,
               method: "GET",
               path: "accounts/0x1",
-              overrides: { API_KEY: "my-api-key" },
+              overrides: { API_KEY: dummyKey },
               originMethod: "test when token is set",
             },
             config,
             AptosApiType.FULLNODE,
           );
-          expect(response.config.headers).toHaveProperty("authorization", "Bearer my-api-key");
+          expect(response.config.headers).toHaveProperty("authorization", `Bearer ${dummyKey}`);
         } catch (error: any) {
           // should not get here
           expect(true).toBe(false);
@@ -99,7 +101,7 @@ describe("aptos request", () => {
           try {
             const response = await aptosRequest(
               {
-                url: `${NetworkToNodeAPI[config.network]}`,
+                url: fullnodeUrl,
                 method: "GET",
                 path: "accounts/0x1",
                 originMethod: "test fullnode 200 status",
@@ -127,7 +129,7 @@ describe("aptos request", () => {
           try {
             await aptosRequest(
               {
-                url: `${NetworkToNodeAPI[config.network]}`,
+                url: fullnodeUrl,
                 method: "GET",
                 path: "transactions/by_hash/0x123",
                 originMethod: "test 400 status",
@@ -137,7 +139,7 @@ describe("aptos request", () => {
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
-            expect(error.url).toBe(`${NetworkToNodeAPI[config.network]}/transactions/by_hash/0x123`);
+            expect(error.url).toBe(`${fullnodeUrl}/transactions/by_hash/0x123`);
             expect(error.status).toBe(400);
             expect(error.statusText).toBe("Bad Request");
             expect(error.data).toEqual({
@@ -148,7 +150,7 @@ describe("aptos request", () => {
               vm_error_code: null,
             });
             expect(error.request).toEqual({
-              url: `${NetworkToNodeAPI[config.network]}`,
+              url: `${fullnodeUrl}`,
               method: "GET",
               originMethod: "test 400 status",
               path: "transactions/by_hash/0x123",
@@ -163,7 +165,7 @@ describe("aptos request", () => {
           try {
             await aptosRequest(
               {
-                url: `${NetworkToNodeAPI[config.network]}`,
+                url: `${fullnodeUrl}`,
                 method: "GET",
                 path: "transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea",
                 originMethod: "test 404 status",
@@ -174,9 +176,7 @@ describe("aptos request", () => {
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
             expect(error.url).toBe(
-              `${
-                NetworkToNodeAPI[config.network]
-              }/transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea`,
+              `${fullnodeUrl}/transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea`,
             );
             expect(error.status).toBe(404);
             expect(error.statusText).toBe("Not Found");
@@ -187,7 +187,7 @@ describe("aptos request", () => {
               vm_error_code: null,
             });
             expect(error.request).toEqual({
-              url: `${NetworkToNodeAPI[config.network]}`,
+              url: `${fullnodeUrl}`,
               method: "GET",
               originMethod: "test 404 status",
               path: "transactions/by_hash/0x23851af73879128b541bafad4b49d0b6f1ac0d49ed2400632d247135fbca7bea",
@@ -203,7 +203,7 @@ describe("aptos request", () => {
           try {
             await aptosRequest(
               {
-                url: `${NetworkToNodeAPI[config.network]}`,
+                url: `${fullnodeUrl}`,
                 method: "POST",
                 path: "transactions",
                 body: new Uint8Array([1, 2, 3]),
@@ -215,7 +215,7 @@ describe("aptos request", () => {
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
-            expect(error.url).toBe(`${NetworkToNodeAPI[config.network]}/transactions`);
+            expect(error.url).toBe(`${fullnodeUrl}/transactions`);
             expect(error.status).toBe(400);
             expect(error.statusText).toBe("Bad Request");
             expect(error.data).toEqual({
@@ -224,7 +224,7 @@ describe("aptos request", () => {
               vm_error_code: null,
             });
             expect(error.request).toEqual({
-              url: `${NetworkToNodeAPI[config.network]}`,
+              url: `${fullnodeUrl}`,
               method: "POST",
               originMethod: "test transaction submission error",
               path: "transactions",
@@ -253,7 +253,7 @@ describe("aptos request", () => {
             };
             const response = await aptosRequest(
               {
-                url: `${NetworkToIndexerAPI[config.network]}`,
+                url: `${indexerUrl}`,
                 method: "POST",
                 body: query,
                 originMethod: "test indexer 200 status",
@@ -290,7 +290,7 @@ describe("aptos request", () => {
             };
             await aptosRequest(
               {
-                url: `${NetworkToIndexerAPI[config.network]}`,
+                url: `${indexerUrl}`,
                 method: "POST",
                 body: query,
                 originMethod: "test indexer 400 status",
@@ -300,7 +300,7 @@ describe("aptos request", () => {
             );
           } catch (error: any) {
             expect(error).toBeInstanceOf(AptosApiError);
-            expect(error.url).toBe(`${NetworkToIndexerAPI[config.network]}`);
+            expect(error.url).toBe(`${indexerUrl}`);
             expect(error.status).toBe(200);
             expect(error.statusText).toBe("OK");
             expect(error.data).toHaveProperty("errors");
@@ -311,7 +311,7 @@ describe("aptos request", () => {
               },
             ]);
             expect(error.request).toEqual({
-              url: `${NetworkToIndexerAPI[config.network]}`,
+              url: `${indexerUrl}`,
               method: "POST",
               originMethod: "test indexer 400 status",
               body: {

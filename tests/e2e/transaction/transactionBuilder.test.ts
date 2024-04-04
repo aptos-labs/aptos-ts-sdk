@@ -3,10 +3,7 @@
 
 import {
   Account,
-  Aptos,
-  AptosConfig,
   Deserializer,
-  Network,
   U64,
   AccountAddress,
   EntryFunctionABI,
@@ -30,10 +27,11 @@ import {
   SignedTransaction,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage } from "./helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos, config } = getAptosClient();
+
 /* eslint-disable max-len */
 describe("transaction builder", () => {
   // TODO: The example function deployed here has all the arguments backwards from normal transfers, we should fix that

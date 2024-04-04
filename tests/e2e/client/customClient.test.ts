@@ -1,7 +1,4 @@
 import {
-  AptosConfig,
-  Aptos,
-  Network,
   getAptosFullNode,
   Account,
   postAptosFaucet,
@@ -11,23 +8,22 @@ import {
   generateSignedTransaction,
 } from "../../../src";
 import { customClient } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 describe("custom client", () => {
   test("it uses default client when it doesnt set in AptosConfig", () => {
-    const config = new AptosConfig();
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     expect(aptos.config.client.provider).toBeInstanceOf(Function);
     expect(aptos.config.client.provider.name).toBe("aptosClient");
   });
   test("it uses a custom client set in AptosConfig", () => {
-    const config = new AptosConfig({ client: { provider: customClient } });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient({ client: { provider: customClient } });
     expect(aptos.config.client.provider).toBeInstanceOf(Function);
     expect(aptos.config.client.provider.name).toBe("customClient");
   });
 
   test("it uses custom client for fetch queries", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
+    const { config } = getAptosClient({ client: { provider: customClient } });
     const response = await getAptosFullNode<{ headers?: { customClient?: any } }, {}>({
       aptosConfig: config,
       originMethod: "getInfo",
@@ -37,7 +33,7 @@ describe("custom client", () => {
   });
 
   test("it uses custom client for post queries", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
+    const { config } = getAptosClient({ client: { provider: customClient } });
     const account = Account.generate();
     const response = await postAptosFaucet<{ headers?: { customClient?: any } }, {}>({
       aptosConfig: config,
@@ -52,8 +48,7 @@ describe("custom client", () => {
   });
 
   test("it uses custom client for transaction submission", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL, client: { provider: customClient } });
-    const aptos = new Aptos(config);
+    const { aptos, config } = getAptosClient({ client: { provider: customClient } });
     const account = Account.generate();
     const recipient = Account.generate();
     await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });

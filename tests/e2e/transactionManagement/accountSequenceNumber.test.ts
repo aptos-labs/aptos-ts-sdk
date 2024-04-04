@@ -1,14 +1,10 @@
 import { longTestTimeout } from "../../unit/helper";
-import { Aptos } from "../../../src/api/aptos";
-import { AptosConfig } from "../../../src/api/aptosConfig";
 import { Account } from "../../../src/core";
 import * as AccountQueries from "../../../src/internal/account";
-
-import { Network } from "../../../src/utils/apiEndpoints";
 import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber";
+import { getAptosClient } from "../helper";
 
-const aptosConfig = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(aptosConfig);
+const { aptos, config: aptosConfig } = getAptosClient();
 
 const account = Account.generate();
 
