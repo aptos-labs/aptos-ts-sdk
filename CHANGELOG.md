@@ -8,7 +8,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `message` input type verification on `sign` and `verifySignature` functions and convert it into a correct type if needed
 - [`Breaking`] Change `fromString` to `fromHexString` on `Hex` class
 - Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
-- [`Breaking] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
+- [`Breaking`] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
+- Adds `getUserTransactionHash` which can generate a transaction hash after signing, but before submission.t 
 
 # 1.11.0 (2024-03-26)
 

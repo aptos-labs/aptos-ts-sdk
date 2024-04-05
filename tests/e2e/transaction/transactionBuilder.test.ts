@@ -25,6 +25,7 @@ import {
   generateTransactionPayloadWithABI,
   sign,
   SignedTransaction,
+  generateUserTransactionHash,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -550,6 +551,102 @@ describe("transaction builder", () => {
       const deserializer = new Deserializer(bcsTransaction);
       const signedTransaction = SignedTransaction.deserialize(deserializer);
       expect(signedTransaction instanceof SignedTransaction).toBeTruthy();
+    });
+  });
+
+  describe("generateUserTransactionHash", () => {
+    test("it generates a single signer signed transaction hash", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const transaction = await aptos.coin.transferCoinTransaction({
+        sender: alice.accountAddress,
+        recipient: "0x1",
+        amount: 1,
+      });
+
+      const senderAuthenticator = sign({ signer: alice, transaction });
+
+      // Generate hash
+      const signedTxnInput = {
+        transaction,
+        senderAuthenticator,
+      };
+      const transactionHash = generateUserTransactionHash(signedTxnInput);
+
+      // Submit transaction
+      const submitted = await aptos.transaction.submit.simple(signedTxnInput);
+
+      expect(submitted.hash).toBe(transactionHash);
+    });
+
+    test("it generates a multi agent signed transaction", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const bob = await Account.generate();
+      await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 1 });
+      const payload = await generateTransactionPayload({
+        aptosConfig: config,
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: [1, bob.accountAddress],
+      });
+      const transaction = await buildTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+        secondarySignerAddresses: [bob.accountAddress],
+      });
+      const senderAuthenticator = sign({ signer: alice, transaction });
+      const secondaryAuthenticator = sign({
+        signer: bob,
+        transaction,
+      });
+      // Generate hash
+      const signedTxnInput = {
+        transaction,
+        senderAuthenticator,
+        additionalSignersAuthenticators: [secondaryAuthenticator],
+      };
+      const transactionHash = generateUserTransactionHash(signedTxnInput);
+
+      // Submit transaction
+      const submitted = await aptos.transaction.submit.multiAgent(signedTxnInput);
+      expect(submitted.hash).toBe(transactionHash);
+    });
+
+    test("it generates a fee payer signed transaction", async () => {
+      const alice = Account.generate();
+      const bob = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const transaction = await aptos.transaction.build.simple({
+        sender: bob.accountAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: ["0x1", 1],
+        },
+        withFeePayer: true,
+      });
+
+      // Bob signs without knowing the fee payer
+      const senderAuthenticator = sign({
+        signer: bob,
+        transaction,
+      });
+      // Alice signs after putting themselves in as fee payer
+      transaction.feePayerAddress = alice.accountAddress;
+      const feePayerAuthenticator = sign({ signer: alice, transaction });
+
+      // Generate hash
+      const signedTxnInput = {
+        transaction,
+        senderAuthenticator,
+        feePayerAuthenticator,
+      };
+      const transactionHash = generateUserTransactionHash(signedTxnInput);
+
+      // Submit transaction
+      const submitted = await aptos.transaction.submit.simple(signedTxnInput);
+
+      expect(submitted.hash).toBe(transactionHash);
     });
   });
   describe("deriveTransactionType", () => {

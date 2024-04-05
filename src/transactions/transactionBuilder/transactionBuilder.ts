@@ -525,6 +525,36 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 }
 
 /**
+ * Hashes the set of values with a SHA-3 256 hash
+ * @param input array of UTF-8 strings or Uint8array byte arrays
+ */
+export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
+  const hash = sha3Hash.create();
+  for (const item of input) {
+    hash.update(item);
+  }
+  return hash.digest();
+}
+
+/**
+ * The domain separated prefix for hashing transacitons
+ */
+const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
+
+/**
+ * Generates a user transaction hash for the given transaction payload.  It must already have an authenticator
+ * @param args InputSubmitTransactionData
+ */
+export function generateUserTransactionHash(args: InputSubmitTransactionData): string {
+  const signedTransaction = generateSignedTransaction(args);
+
+  // Transaction signature is defined as, the domain separated prefix based on struct (Transaction)
+  // Then followed by the type of the transaction for the enum, UserTransaction is 0
+  // Then followed by BCS encoded bytes of the signed transaction
+  return new Hex(hashValues([TRANSACTION_PREFIX, new Uint8Array([0]), signedTransaction])).toString();
+}
+
+/**
  * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
  *
  * @param transaction A aptos transaction type
