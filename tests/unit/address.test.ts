@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { AccountAddress } from "../../src";
-import { createTokenAddress, createObjectAddress } from "../../src/core/account/utils/address";
+import { createTokenAddress, createObjectAddress, createResourceAddress } from "../../src/core/account/utils/address";
 
 describe("address", () => {
   /**
@@ -36,5 +36,18 @@ describe("address", () => {
     const tokenName = "Nami #5962";
     const address = createTokenAddress(creatorAddress, collectionName, tokenName);
     expect(address.toString()).toEqual("0x44697f48d1e1a899953b4ea6c03a92c567f3741f0b415a74d1c23cdf141368be");
+  });
+
+  /**
+   * Reference: {@link https://explorer.aptoslabs.com/account/0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c/modules/view/create_resource/create_resource?network=testnet}
+   * creatorAddr = 0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c
+   * seed = "create_resource::create_resource"
+   * Expect = 0x764cb760889d5ab6caabf0594d82adfbf0c0076f36268563e5209fa3734d7f3e
+   */
+  test("create resource account address", () => {
+    const creatorAddress = AccountAddress.from("0x41e724e1d4fce6472ffcb5c9886770893eb49489e3f531d0aa97bf951e66d70c");
+    const seed = Buffer.from("create_resource::create_resource", "utf8");
+    const address = createResourceAddress(creatorAddress, seed);
+    expect(address.toString()).toEqual("0x764cb760889d5ab6caabf0594d82adfbf0c0076f36268563e5209fa3734d7f3e");
   });
 });
