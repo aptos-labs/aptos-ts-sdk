@@ -21,6 +21,24 @@ export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8A
 };
 
 /**
+ * Creates an resource address from creator address and seed
+ *
+ * @param creatorAddress The creator account address
+ * @param seed The seed in either Uint8Array | string type
+ *
+ * @returns The resource account address
+ */
+export const createResourceAddress = (creatorAddress: AccountAddress, seed: Uint8Array | string): AccountAddress => {
+  const creatorBytes = creatorAddress.bcsToBytes();
+
+  const seedBytes = typeof seed === "string" ? Buffer.from(seed, "utf8") : seed;
+
+  const bytes = new Uint8Array([...creatorBytes, ...seedBytes, DeriveScheme.DeriveResourceAccountAddress]);
+
+  return new AccountAddress(sha3_256(bytes));
+};
+
+/**
  * Creates a token object address from creator address, collection name and token name
  *
  * @param creatorAddress The token creator account address
