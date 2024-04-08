@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
 - [`Breaking`] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
 - Adds `getUserTransactionHash` which can generate a transaction hash after signing, but before submission.t 
+- Add function to create resource address locally
 
 # 1.11.0 (2024-03-26)
 

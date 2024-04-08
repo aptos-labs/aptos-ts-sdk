@@ -23,7 +23,7 @@ export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8A
 /**
  * Creates an resource address from creator address and seed
  *
- * @param creatorAddress The object creator account address
+ * @param creatorAddress The creator account address
  * @param seed The seed in either Uint8Array | string type
  *
  * @returns The resource account address
