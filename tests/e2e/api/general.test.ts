@@ -1,42 +1,38 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, GraphqlQuery, InputViewRequestData, ProcessorType } from "../../../src";
+import { AptosConfig, Aptos, Network, GraphqlQuery, ProcessorType, InputViewFunctionData } from "../../../src";
+import { getAptosClient } from "../helper";
 
 describe("general api", () => {
   test("it fetches ledger info", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const ledgerInfo = await aptos.getLedgerInfo();
     expect(ledgerInfo.chain_id).toBe(4);
   });
 
   test("it fetches chain id", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const chainId = await aptos.getChainId();
     expect(chainId).toBe(4);
   });
 
   test("it fetches block data by block height", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const blockHeight = 1;
     const blockData = await aptos.getBlockByHeight({ blockHeight });
     expect(blockData.block_height).toBe(blockHeight.toString());
   });
 
   test("it fetches block data by block version", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const blockVersion = 1;
     const blockData = await aptos.getBlockByVersion({ ledgerVersion: blockVersion });
     expect(blockData.block_height).toBe(blockVersion.toString());
   });
 
   test("it fetches table item data", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     type Supply = {
       supply: {
         vec: [
@@ -96,12 +92,12 @@ describe("general api", () => {
     const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 3 });
     expect(topUserTransactions.length).toEqual(3);
   });
+
   describe("View functions", () => {
     test("it fetches view function data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
 
@@ -111,10 +107,9 @@ describe("general api", () => {
     });
 
     test("it fetches view function with a type", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
 
@@ -124,10 +119,9 @@ describe("general api", () => {
     });
 
     test("it fetches view function with bool", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::exists_at",
         functionArguments: ["0x1"],
       };
@@ -136,7 +130,7 @@ describe("general api", () => {
 
       expect(exists).toBe(true);
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::account::exists_at",
         functionArguments: ["0x12345"],
       };
@@ -147,10 +141,9 @@ describe("general api", () => {
     });
 
     test("it fetches view function with address input and different output types", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x1"],
       };
@@ -159,7 +152,7 @@ describe("general api", () => {
 
       expect(BigInt(sequenceNumber)).toEqual(BigInt(0));
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::account::get_authentication_key",
         functionArguments: ["0x1"],
       };
@@ -170,10 +163,9 @@ describe("general api", () => {
     });
 
     test("it fetches view functions with generics", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::coin::symbol",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
       };
@@ -181,7 +173,7 @@ describe("general api", () => {
       const symbol = (await aptos.view<[string]>({ payload }))[0];
       expect(symbol).toEqual("APT");
 
-      const payload2: InputViewRequestData = {
+      const payload2: InputViewFunctionData = {
         function: "0x1::coin::is_account_registered",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
         functionArguments: ["0x1"],
@@ -190,10 +182,9 @@ describe("general api", () => {
       const isRegistered = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
       expect(isRegistered).toEqual(false);
 
-      const payload3: InputViewRequestData = {
+      const payload3: InputViewFunctionData = {
         function: "0x1::coin::supply",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
-        functionArguments: [],
       };
 
       const supply = (await aptos.view<[{ vec: [string] }]>({ payload: payload3 }))[0].vec[0];
@@ -201,10 +192,9 @@ describe("general api", () => {
     });
 
     test("view functions that fail in the VM fail here", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
 
-      const payload: InputViewRequestData = {
+      const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x123456"],
       };
@@ -214,8 +204,7 @@ describe("general api", () => {
   });
 
   test("it should get the processor statuses for one", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
 
     const processor = await aptos.getProcessorStatus(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
     expect(processor.processor).toEqual(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);

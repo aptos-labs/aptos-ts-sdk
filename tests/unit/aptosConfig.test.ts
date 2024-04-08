@@ -91,4 +91,22 @@ describe("aptos config", () => {
     expect(aptosConfig.faucet).toBe("my-faucet-url");
     expect(aptosConfig.indexer).toBe("my-indexer-url");
   });
+
+  test("it sets the correct configs", () => {
+    const aptosConfig = new AptosConfig({
+      clientConfig: {
+        HEADERS: { clientConfig: "header" },
+        API_KEY: "api-key",
+      },
+      faucetConfig: { HEADERS: { faucet: "header" }, AUTH_TOKEN: "auth-token" },
+      indexerConfig: { HEADERS: { indexer: "header" } },
+      fullnodeConfig: { HEADERS: { fullnode: "header" } },
+    });
+
+    expect(aptosConfig.clientConfig?.HEADERS).toStrictEqual({ clientConfig: "header" });
+    expect(aptosConfig.clientConfig?.API_KEY).toStrictEqual("api-key");
+    expect(aptosConfig.faucetConfig).toStrictEqual({ HEADERS: { faucet: "header" }, AUTH_TOKEN: "auth-token" });
+    expect(aptosConfig.indexerConfig).toStrictEqual({ HEADERS: { indexer: "header" } });
+    expect(aptosConfig.fullnodeConfig).toStrictEqual({ HEADERS: { fullnode: "header" } });
+  });
 });

@@ -67,32 +67,71 @@ export async function post<Req extends {}, Res extends {}>(
       originMethod,
       path,
       body,
-      contentType: contentType?.valueOf(),
-      acceptType: acceptType?.valueOf(),
+      contentType,
+      acceptType,
       params,
-      overrides: {
-        ...aptosConfig.clientConfig,
-        ...overrides,
-      },
+      overrides,
     },
     aptosConfig,
+    options.type,
   );
 }
 
 export async function postAptosFullNode<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
+  const { aptosConfig } = options;
+
+  return post<Req, Res>({
+    ...options,
+    type: AptosApiType.FULLNODE,
+    overrides: {
+      ...aptosConfig.clientConfig,
+      ...aptosConfig.fullnodeConfig,
+      ...options.overrides,
+      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
+    },
+  });
 }
 
 export async function postAptosIndexer<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.INDEXER });
+  const { aptosConfig } = options;
+
+  return post<Req, Res>({
+    ...options,
+    type: AptosApiType.INDEXER,
+    overrides: {
+      ...aptosConfig.clientConfig,
+      ...aptosConfig.indexerConfig,
+      ...options.overrides,
+      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.indexerConfig?.HEADERS },
+    },
+  });
 }
 
 export async function postAptosFaucet<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return post<Req, Res>({ ...options, type: AptosApiType.FAUCET });
+  const { aptosConfig } = options;
+  // Faucet does not support API_KEY
+  // Create a new object with the desired modification
+  const modifiedAptosConfig = {
+    ...aptosConfig,
+    clientConfig: { ...aptosConfig.clientConfig },
+  };
+  // Delete API_KEY config
+  delete modifiedAptosConfig?.clientConfig?.API_KEY;
+
+  return post<Req, Res>({
+    ...options,
+    type: AptosApiType.FAUCET,
+    overrides: {
+      ...modifiedAptosConfig.clientConfig,
+      ...modifiedAptosConfig.faucetConfig,
+      ...options.overrides,
+      HEADERS: { ...modifiedAptosConfig.clientConfig?.HEADERS, ...modifiedAptosConfig.faucetConfig?.HEADERS },
+    },
+  });
 }

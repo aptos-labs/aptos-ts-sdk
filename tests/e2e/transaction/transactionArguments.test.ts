@@ -3,9 +3,6 @@
 
 import {
   Account,
-  AptosConfig,
-  Network,
-  Aptos,
   AccountAddress,
   Bool,
   U128,
@@ -33,6 +30,7 @@ import {
   MAX_U64_BIG_INT,
   MAX_U8_NUMBER,
 } from "../../../src/bcs/consts";
+import { getAptosClient } from "../helper";
 import {
   fundAccounts,
   rawTransactionHelper,
@@ -53,8 +51,7 @@ jest.setTimeout(10000);
 // `sender_address: address` or all of the `&signer` addresses: `signer_addresses: vector<address>`
 
 describe("various transaction arguments", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos } = getAptosClient();
   const senderAccount = Account.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
     legacy: false,

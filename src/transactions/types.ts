@@ -18,6 +18,8 @@ import {
 import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId } from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
+import { SimpleTransaction } from "./instances/simpleTransaction";
+import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
 
 /**
  * Entry function arguments to be used when building a raw transaction using remote ABI
@@ -147,13 +149,49 @@ export type InputScriptData = {
 };
 
 /**
+ * The data needed to generate a View Function payload
+ */
+export type InputViewFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeTag | string>;
+  functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  abi?: ViewFunctionABI;
+};
+
+/**
+ * Data needed to generate a view function payload and fetch the remote ABI
+ */
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+
+/**
+ * Data needed to generate a view function, with an already fetched ABI
+ */
+export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
+
+/**
+ * Data need for a generic function ABI, both view and entry
+ */
+export type FunctionABI = {
+  typeParameters: Array<MoveFunctionGenericTypeParam>;
+  parameters: Array<TypeTag>;
+};
+
+/**
  * Interface of an Entry function's ABI.
  *
  * This is used to provide type checking and simple input conversion on ABI based transaction submission.
  */
-export type EntryFunctionABI = {
-  typeParameters: Array<MoveFunctionGenericTypeParam>;
-  parameters: Array<TypeTag>;
+export type EntryFunctionABI = FunctionABI & {
+  signers?: number;
+};
+
+/**
+ * Interface of an View function's ABI.
+ *
+ * This is used to provide type checking and simple input conversion on ABI based transaction submission.
+ */
+export type ViewFunctionABI = FunctionABI & {
+  returnTypes: Array<TypeTag>;
 };
 
 /**
@@ -187,29 +225,6 @@ export interface InputGenerateMultiAgentRawTransactionArgs {
 export type InputGenerateRawTransactionArgs =
   | InputGenerateSingleSignerRawTransactionArgs
   | InputGenerateMultiAgentRawTransactionArgs;
-
-/**
- * Interface that holds the return data when generating a single signer transaction
- *
- * @param rawTransaction a bcs serialized raw transaction
- */
-export interface SimpleTransaction {
-  rawTransaction: RawTransaction;
-  feePayerAddress?: AccountAddress;
-  secondarySignerAddresses?: undefined;
-}
-
-/**
- * Interface that holds the return data when generating a multi-agent transaction.
- *
- * @param rawTransaction a bcs serialized raw transaction
- * @param secondarySignerAddresses secondary signer addresses for multi-agent transaction
- */
-export interface MultiAgentTransaction {
-  rawTransaction: RawTransaction;
-  secondarySignerAddresses: AccountAddress[];
-  feePayerAddress?: AccountAddress;
-}
 
 /**
  * Unified type that holds all the return interfaces when generating different transaction types

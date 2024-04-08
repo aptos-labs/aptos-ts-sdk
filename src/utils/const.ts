@@ -5,9 +5,9 @@
  * Type of API endpoint for request routing
  */
 export enum AptosApiType {
-  FULLNODE,
-  INDEXER,
-  FAUCET,
+  FULLNODE = "Fullnode",
+  INDEXER = "Indexer",
+  FAUCET = "Faucet",
 }
 
 /**

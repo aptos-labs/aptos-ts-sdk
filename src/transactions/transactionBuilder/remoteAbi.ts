@@ -4,7 +4,13 @@
 import { parseTypeTag } from "../typeTag/parser";
 import { TypeTag, TypeTagStruct } from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
-import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, EntryFunctionABI } from "../types";
+import {
+  EntryFunctionArgumentTypes,
+  SimpleEntryFunctionArgumentTypes,
+  EntryFunctionABI,
+  ViewFunctionABI,
+  FunctionABI,
+} from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { getModule } from "../../internal/account";
@@ -27,6 +33,7 @@ import {
   isString,
   throwTypeMismatch,
 } from "./helpers";
+import { MoveFunction } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -46,6 +53,29 @@ export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Ar
 }
 
 /**
+ * Fetches a function ABI from the on-chain module ABI.  It doesn't validate whether it's a view or entry function.
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<MoveFunction | undefined> {
+  // This fetch from the API is currently cached
+  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+
+  if (module.abi) {
+    return module.abi.exposed_functions.find((func) => func.name === functionName);
+  }
+
+  return undefined;
+}
+
+/**
  * Fetches the ABI for an entry function from the module
  *
  * @param moduleAddress
@@ -59,10 +89,7 @@ export async function fetchEntryFunctionAbi(
   functionName: string,
   aptosConfig: AptosConfig,
 ): Promise<EntryFunctionABI> {
-  // This fetch from the API is currently cached
-  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
-
-  const functionAbi = module.abi?.exposed_functions.find((func) => func.name === functionName);
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
 
   // If there's no ABI, then the function is invalid
   if (!functionAbi) {
@@ -75,15 +102,61 @@ export async function fetchEntryFunctionAbi(
   }
 
   // Remove the signer arguments
-  const first = findFirstNonSignerArg(functionAbi);
+  const numSigners = findFirstNonSignerArg(functionAbi);
   const params: TypeTag[] = [];
-  for (let i = first; i < functionAbi.params.length; i += 1) {
+  for (let i = numSigners; i < functionAbi.params.length; i += 1) {
     params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  return {
+    signers: numSigners,
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
+}
+
+/**
+ * Fetches the ABI for a view function from the module
+ *
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchViewFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<ViewFunctionABI> {
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+
+  // If there's no ABI, then the function is invalid
+  if (!functionAbi) {
+    throw new Error(`Could not find view function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+  }
+
+  // Non-view functions can't be used
+  if (!functionAbi.is_view) {
+    throw new Error(`'${moduleAddress}::${moduleName}::${functionName}' is not an view function`);
+  }
+
+  // Type tag parameters for the function
+  const params: TypeTag[] = [];
+  for (let i = 0; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  // The return types of the view function
+  const returnTypes: TypeTag[] = [];
+  for (let i = 0; i < functionAbi.return.length; i += 1) {
+    returnTypes.push(parseTypeTag(functionAbi.return[i], { allowGenerics: true }));
   }
 
   return {
     typeParameters: functionAbi.generic_type_params,
     parameters: params,
+    returnTypes,
   };
 }
 
@@ -96,7 +169,7 @@ export async function fetchEntryFunctionAbi(
  */
 export function convertArgument(
   functionName: string,
-  functionAbi: EntryFunctionABI,
+  functionAbi: FunctionABI,
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
   position: number,
   genericTypeParams: Array<TypeTag>,

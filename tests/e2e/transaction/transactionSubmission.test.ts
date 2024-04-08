@@ -3,9 +3,6 @@
 
 import {
   Account,
-  AptosConfig,
-  Network,
-  Aptos,
   U64,
   Deserializer,
   SigningSchemeInput,
@@ -18,10 +15,11 @@ import {
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
+
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });

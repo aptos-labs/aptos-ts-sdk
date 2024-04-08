@@ -3,7 +3,8 @@
 
 import { AccountAddressInput } from "../core";
 import { transferCoinTransaction } from "../internal/coin";
-import { SimpleTransaction, InputGenerateTransactionOptions } from "../transactions/types";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AnyNumber, MoveStructId } from "../types";
 import { AptosConfig } from "./aptosConfig";
 

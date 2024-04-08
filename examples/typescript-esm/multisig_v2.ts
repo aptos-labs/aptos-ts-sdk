@@ -21,7 +21,6 @@ import {
   Account,
   Aptos,
   AptosConfig,
-  InputViewRequestData,
   Network,
   NetworkToNetworkName,
   MoveString,
@@ -30,6 +29,8 @@ import {
   TransactionPayloadMultiSig,
   MultiSig,
   AccountAddress,
+  InputViewFunctionData,
+  SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -90,7 +91,7 @@ const settingUpMultiSigAccount = async () => {
   // ===========================================================================================
   // Get the next multisig account address. This will be the same as the account address of the multisig account we'll
   // be creating.
-  const payload: InputViewRequestData = {
+  const payload: InputViewFunctionData = {
     function: "0x1::multisig_account::get_next_multisig_account_address",
     functionArguments: [owner1.accountAddress.toString()],
   };
@@ -168,10 +169,12 @@ const executeMultiSigTransferTransaction = async () => {
     payload: transactionPayload,
   });
 
-  const owner2Authenticator = aptos.transaction.sign({ signer: owner2, transaction: { rawTransaction } });
+  const transaction = new SimpleTransaction(rawTransaction);
+
+  const owner2Authenticator = aptos.transaction.sign({ signer: owner2, transaction });
   const transferTransactionReponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator,
-    transaction: { rawTransaction },
+    transaction,
   });
   await aptos.waitForTransaction({ transactionHash: transferTransactionReponse.hash });
 };
@@ -225,13 +228,15 @@ const executeMultiSigTransferTransactionWithPayloadHash = async () => {
     payload: transactionPayload,
   });
 
+  const transaction = new SimpleTransaction(createTransactionWithHashRawTransaction);
+
   const owner2Authenticator2 = aptos.transaction.sign({
     signer: owner2,
-    transaction: { rawTransaction: createTransactionWithHashRawTransaction },
+    transaction,
   });
   const multisigTxExecution2Reponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator2,
-    transaction: { rawTransaction: createTransactionWithHashRawTransaction },
+    transaction,
   });
   await aptos.waitForTransaction({ transactionHash: multisigTxExecution2Reponse.hash });
 };
@@ -280,13 +285,15 @@ const executeAddingAnOwnerToMultiSigAccountTransaction = async () => {
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
 
+  const transaction = new SimpleTransaction(multisigTxExecution3);
+
   const owner2Authenticator3 = aptos.transaction.sign({
     signer: owner2,
-    transaction: { rawTransaction: multisigTxExecution3 },
+    transaction,
   });
   const multisigTxExecution3Reponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator3,
-    transaction: { rawTransaction: multisigTxExecution3 },
+    transaction,
   });
   await aptos.waitForTransaction({ transactionHash: multisigTxExecution3Reponse.hash });
 };
@@ -334,13 +341,16 @@ const executeRemovingAnOwnerToMultiSigAccount = async () => {
     sender: owner2.accountAddress,
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
+
+  const transaction = new SimpleTransaction(multisigTxExecution4);
+
   const owner2Authenticator4 = aptos.transaction.sign({
     signer: owner2,
-    transaction: { rawTransaction: multisigTxExecution4 },
+    transaction,
   });
   const multisigTxExecution4Reponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator4,
-    transaction: { rawTransaction: multisigTxExecution4 },
+    transaction,
   });
   await aptos.waitForTransaction({ transactionHash: multisigTxExecution4Reponse.hash });
 };
@@ -389,13 +399,15 @@ const executeChangeSignatureThresholdTransaction = async () => {
     payload: new TransactionPayloadMultiSig(new MultiSig(AccountAddress.fromString(multisigAddress))),
   });
 
+  const transaction = new SimpleTransaction(multisigTxExecution5);
+
   const owner2Authenticator5 = aptos.transaction.sign({
     signer: owner2,
-    transaction: { rawTransaction: multisigTxExecution5 },
+    transaction,
   });
   const multisigTxExecution5Reponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator5,
-    transaction: { rawTransaction: multisigTxExecution5 },
+    transaction,
   });
   await aptos.waitForTransaction({ transactionHash: multisigTxExecution5Reponse.hash });
 };

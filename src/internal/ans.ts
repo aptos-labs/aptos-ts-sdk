@@ -10,14 +10,16 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, AccountAddress, AccountAddressInput } from "../core";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
-import { GetANSNameResponse, MoveAddressType, MoveValue, OrderByArg, PaginationArgs, WhereArg } from "../types";
+import { InputGenerateTransactionOptions } from "../transactions/types";
+import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
 import { GetNames } from "../types/generated/queries";
 import { CurrentAptosNamesBoolExp } from "../types/generated/types";
 import { Network } from "../utils/apiEndpoints";
-import { queryIndexer, view } from "./general";
+import { queryIndexer } from "./general";
+import { view } from "./view";
 import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 export const VALIDATION_RULES_DESCRIPTION = [
   "A name must be between 3 and 63 characters long,",
@@ -85,12 +87,6 @@ function getRouterAddress(aptosConfig: AptosConfig): string {
   return address;
 }
 
-const Some = <T>(value: T): MoveValue => ({ vec: [value] });
-const None = (): MoveValue => ({ vec: [] });
-// != here is intentional, we want to check for null and undefined
-// eslint-disable-next-line eqeqeq
-const Option = <T>(value: T | undefined | null): MoveValue => (value != undefined ? Some(value) : None());
-
 const unwrapOption = <T>(option: any): T | undefined => {
   if (!!option && typeof option === "object" && "vec" in option && Array.isArray(option.vec)) {
     return option.vec[0];
@@ -99,7 +95,10 @@ const unwrapOption = <T>(option: any): T | undefined => {
   return undefined;
 };
 
-export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: string }): Promise<string | undefined> {
+export async function getOwnerAddress(args: {
+  aptosConfig: AptosConfig;
+  name: string;
+}): Promise<AccountAddress | undefined> {
   const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -108,13 +107,13 @@ export async function getOwnerAddress(args: { aptosConfig: AptosConfig; name: st
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_owner_addr`,
-      functionArguments: [domainName, Option(subdomainName)],
+      functionArguments: [domainName, subdomainName],
     },
   });
 
   const owner = unwrapOption<MoveAddressType>(res[0]);
 
-  return owner ? AccountAddress.from(owner).toString() : undefined;
+  return owner ? AccountAddress.from(owner) : undefined;
 }
 
 export interface RegisterNameParameters {
@@ -219,7 +218,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
       aptosConfig,
       payload: {
         function: `${routerAddress}::router::get_expiration`,
-        functionArguments: [domainName, Option(subdomainName)],
+        functionArguments: [domainName, subdomainName],
       },
     });
 
@@ -294,7 +293,7 @@ export async function setPrimaryName(args: {
 export async function getTargetAddress(args: {
   aptosConfig: AptosConfig;
   name: string;
-}): Promise<MoveAddressType | undefined> {
+}): Promise<AccountAddress | undefined> {
   const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -303,12 +302,12 @@ export async function getTargetAddress(args: {
     aptosConfig,
     payload: {
       function: `${routerAddress}::router::get_target_addr`,
-      functionArguments: [domainName, Option(subdomainName)],
+      functionArguments: [domainName, subdomainName],
     },
   });
 
   const target = unwrapOption<MoveAddressType>(res[0]);
-  return target ? AccountAddress.from(target).toString() : undefined;
+  return target ? AccountAddress.from(target) : undefined;
 }
 
 export async function setTargetAddress(args: {
@@ -345,6 +344,7 @@ export async function getName(args: {
   const where: CurrentAptosNamesBoolExp = {
     domain: { _eq: domainName },
     subdomain: { _eq: subdomainName },
+    is_active: { _eq: true },
   };
 
   const data = await queryIndexer<GetNamesQuery>({
@@ -492,6 +492,7 @@ export async function getDomainSubdomains(
           ...(args.options?.where ?? {}),
           domain: { _eq: domain },
           subdomain: { _neq: "" },
+          is_active: { _eq: true },
         },
       },
     },
@@ -570,6 +571,6 @@ export async function renewDomain(args: {
 function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
   return {
     ...name,
-    expiration_timestamp: new Date(name.expiration_timestamp).valueOf(),
+    expiration_timestamp: new Date(name.expiration_timestamp).getTime(),
   };
 }

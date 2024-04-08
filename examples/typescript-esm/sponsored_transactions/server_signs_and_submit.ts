@@ -8,14 +8,13 @@
 
 import {
   Account,
-  AccountAddress,
   AccountAuthenticator,
   Aptos,
   AptosConfig,
   Deserializer,
   Network,
   NetworkToNetworkName,
-  RawTransaction,
+  SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
 
 const INITIAL_BALANCE = 100_000_000;
@@ -27,43 +26,22 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
-type SerializedData = {
-  rawTransactionBytes: Uint8Array;
-  feePayerAddressByes: Uint8Array;
-  serializedSenderAuthenticatorBytes: Uint8Array;
-  serializedFeePayerAuthenticatorBytes: Uint8Array;
-};
-
-const sendToOtherServer = async (serializedData: SerializedData) => {
-  const {
-    rawTransactionBytes,
-    feePayerAddressByes,
-    serializedSenderAuthenticatorBytes,
-    serializedFeePayerAuthenticatorBytes,
-  } = serializedData;
-
-  // deserialize raw transaction
-  const deserializer = new Deserializer(rawTransactionBytes);
-  const rawTransaction = RawTransaction.deserialize(deserializer);
+const sendToOtherServer = async (
+  serializedTransaction: Uint8Array,
+  senderAuth: Uint8Array,
+  sponsorAuth: Uint8Array,
+) => {
+  // deserialize transaction
+  const deserializer = new Deserializer(serializedTransaction);
+  const transaction = SimpleTransaction.deserialize(deserializer);
 
   // deserialize sender authenticator
-  const deserializer2 = new Deserializer(serializedSenderAuthenticatorBytes);
+  const deserializer2 = new Deserializer(senderAuth);
   const senderAuthenticator = AccountAuthenticator.deserialize(deserializer2);
 
   // deserialize fee payer authenticator
-  const deserializer3 = new Deserializer(serializedFeePayerAuthenticatorBytes);
+  const deserializer3 = new Deserializer(sponsorAuth);
   const feePayerAuthenticator = AccountAuthenticator.deserialize(deserializer3);
-
-  // deserialize fee payer address
-  const deserializer4 = new Deserializer(feePayerAddressByes);
-  const feePayerAddress = AccountAddress.deserialize(deserializer4);
-
-  // The transaction to submit. The transaction is the `rawTransaction` and
-  // doesnt have the fee payer address info so we need to assign it here
-  const transaction = {
-    rawTransaction,
-    feePayerAddress,
-  };
 
   const response = await aptos.transaction.submit.simple({
     transaction,
@@ -113,26 +91,8 @@ const example = async () => {
   // Sponsor signs
   const sponsorAuth = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
 
-  // Serialize data
-
-  /**
-   * the generated `transaction` is of a simple type and can't be
-   * bcs serialized. Therefore we serialize the `rawTransaction` and
-   * the `sponsor.accountAddress` separately and send it to the server.
-   */
-  const rawTransactionBytes = transaction.rawTransaction.bcsToBytes();
-  const feePayerAddressByes = sponsor.accountAddress.bcsToBytes();
-  const serializedSenderAuthenticatorBytes = senderAuth.bcsToBytes();
-  const serializedFeePayerAuthenticatorBytes = sponsorAuth.bcsToBytes();
-
-  const serializedData = {
-    rawTransactionBytes,
-    feePayerAddressByes,
-    serializedSenderAuthenticatorBytes,
-    serializedFeePayerAuthenticatorBytes,
-  };
-
-  await sendToOtherServer(serializedData);
+  // Send serialized data to server
+  await sendToOtherServer(transaction.bcsToBytes(), senderAuth.bcsToBytes(), sponsorAuth.bcsToBytes());
 };
 
 example();

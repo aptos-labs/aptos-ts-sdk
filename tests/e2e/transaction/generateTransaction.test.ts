@@ -1,7 +1,4 @@
 import {
-  AptosConfig,
-  Network,
-  Aptos,
   Account,
   Deserializer,
   U64,
@@ -14,11 +11,11 @@ import {
   TypeTagAddress,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 import { fundAccounts, singleSignerScriptBytecode } from "./helper";
 
 describe("generate transaction", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos } = getAptosClient();
   const senderAccount = Account.generate();
   const recieverAccounts = [Account.generate(), Account.generate()];
   const secondarySignerAccount = Account.generate();

@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Network } from "../../../src";
+import { Account } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 // use it here since all tests use the same configuration
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
 
 // Disable these tests for now until we can test against LOCAL
 describe("Collection", () => {

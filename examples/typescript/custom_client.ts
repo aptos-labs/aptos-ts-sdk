@@ -32,7 +32,12 @@ export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<
     method,
   };
 
-  const response = await fetch(`${url}?${params}`, request);
+  let path = url;
+  if (params) {
+    path = `${url}?${params}`;
+  }
+
+  const response = await fetch(path, request);
   const data = await response.json();
   return {
     status: response.status,
@@ -60,7 +65,12 @@ export async function superagentCustomClient<Req, Res>(
     method,
   };
 
-  const response = await superagent.get(`${url}?${params}`, request);
+  let path = url;
+  if (params) {
+    path = `${url}?${params}`;
+  }
+
+  const response = await superagent.get(path, request);
   return {
     status: response.status,
     statusText: response.statusText,
@@ -92,6 +102,9 @@ const example = async () => {
 
     const chainInfo = await aptos.getLedgerInfo();
     console.log(`${JSON.stringify(chainInfo)}`);
+
+    const latestVersion = await aptos.getIndexerLastSuccessVersion();
+    console.log(`Latest indexer version: ${latestVersion}`);
   }
 
   // Call the inner functions

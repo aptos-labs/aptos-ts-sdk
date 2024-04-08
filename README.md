@@ -4,6 +4,11 @@
 [![Discord][discord-image]][discord-url]
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
+### Reference Docs
+ 1. For SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/new-ts-sdk/)
+ 2. For detailed reference documentation you can search, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
+ 3. For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
+
 ### Latest Version
 
 [![NPM Package Version][npm-image-version]][npm-url]
@@ -76,8 +81,8 @@ const modules = await aptos.getAccountModules({ accountAddress: "0x123" });
 
 ```ts
 const account = Account.generate(); // defaults to Legacy Ed25519
-const account = Account.generate({ scheme: SingingSchemeInput.Secp256k1 }); // Single Sender Secp256k1
-const account = Account.generate({ scheme: SingingSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
+const account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa }); // Single Sender Secp256k1
+const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false }); // Single Sender Ed25519
 ```
 
 #### Derive from private key
@@ -168,12 +173,6 @@ const transaction = await aptos.transferCoinTransaction({
 
 const pendingTransaction = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 ```
-
-## Documentation and examples
-
-- For full SDK documentation, check out the [TypeScript SDK documentation](https://aptos.dev/sdks/new-ts-sdk/)
-- For reference documenation, check out the [API reference documentation](https://aptos-labs.github.io/aptos-ts-sdk/) for the associated version.
-- For in-depth examples, check out the [examples](./examples) folder with ready-made `package.json` files to get you going quickly!
 
 ### Testing
 

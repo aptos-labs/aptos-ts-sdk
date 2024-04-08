@@ -26,19 +26,19 @@ test("converts hex bytes input into hex data", () => {
 });
 
 test("converts hex string input into hex data", () => {
-  const hex = Hex.fromString(mockHex.withPrefix);
+  const hex = Hex.fromHexString(mockHex.withPrefix);
   expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("accepts hex string input without prefix", () => {
-  const hex = Hex.fromString(mockHex.withoutPrefix);
+  const hex = Hex.fromHexString(mockHex.withoutPrefix);
   expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
 
 test("accepts hex string with prefix", () => {
-  const hex = Hex.fromString(mockHex.withPrefix);
+  const hex = Hex.fromHexString(mockHex.withPrefix);
   expect(hex instanceof Hex).toBeTruthy();
   expect(hex.toUint8Array()).toEqual(mockHex.bytes);
 });
@@ -61,23 +61,23 @@ test("converts hex bytes to string without 0x prefix", () => {
 });
 
 test("throws when parsing invalid hex char", () => {
-  expect(() => Hex.fromString("0xzyzz")).toThrow(
+  expect(() => Hex.fromHexString("0xzyzz")).toThrow(
     // eslint-disable-next-line quotes
     'Hex string contains invalid hex characters: hex string expected, got non-hex character "zy" at index 0',
   );
 });
 
 test("throws when parsing hex of length zero", () => {
-  expect(() => Hex.fromString("0x")).toThrow(
+  expect(() => Hex.fromHexString("0x")).toThrow(
     "Hex string is too short, must be at least 1 char long, excluding the optional leading 0x.",
   );
-  expect(() => Hex.fromString("")).toThrow(
+  expect(() => Hex.fromHexString("")).toThrow(
     "Hex string is too short, must be at least 1 char long, excluding the optional leading 0x.",
   );
 });
 
 test("throws when parsing hex of invalid length", () => {
-  expect(() => Hex.fromString("0x1")).toThrow("Hex string must be an even number of hex characters.");
+  expect(() => Hex.fromHexString("0x1")).toThrow("Hex string must be an even number of hex characters.");
 });
 
 test("isValid returns true when parsing valid string", () => {
@@ -95,7 +95,7 @@ test("isValid returns false when parsing hex of invalid length", () => {
 });
 
 test("compares equality with equals as expected", () => {
-  const hexOne = Hex.fromString("0x11");
-  const hexTwo = Hex.fromString("0x11");
+  const hexOne = Hex.fromHexString("0x11");
+  const hexTwo = Hex.fromHexString("0x11");
   expect(hexOne.equals(hexTwo)).toBeTruthy();
 });

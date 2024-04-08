@@ -137,12 +137,12 @@ describe("MultiEd25519Signature", () => {
   it("should serializes to bytes correctly", async () => {
     const edSigsArray = [];
     for (let i = 0; i < multiEd25519SigTestObject.signatures.length; i += 1) {
-      edSigsArray.push(new Ed25519Signature(Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
+      edSigsArray.push(new Ed25519Signature(Hex.fromHexString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
     }
 
     const multisig = new MultiEd25519Signature({
       signatures: edSigsArray,
-      bitmap: Hex.fromString(multiEd25519SigTestObject.bitmap).toUint8Array(),
+      bitmap: Hex.fromHexString(multiEd25519SigTestObject.bitmap).toUint8Array(),
     });
 
     expect(Hex.fromHexInput(multisig.toUint8Array()).toStringWithoutPrefix()).toEqual(
@@ -153,12 +153,12 @@ describe("MultiEd25519Signature", () => {
   it("should deserializes from bytes correctly", async () => {
     const edSigsArray = [];
     for (let i = 0; i < multiEd25519SigTestObject.signatures.length; i += 1) {
-      edSigsArray.push(new Ed25519Signature(Hex.fromString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
+      edSigsArray.push(new Ed25519Signature(Hex.fromHexString(multiEd25519SigTestObject.signatures[i]).toUint8Array()));
     }
 
     const multisig = new MultiEd25519Signature({
       signatures: edSigsArray,
-      bitmap: Hex.fromString(multiEd25519SigTestObject.bitmap).toUint8Array(),
+      bitmap: Hex.fromHexString(multiEd25519SigTestObject.bitmap).toUint8Array(),
     });
 
     const serializer = new Serializer();
