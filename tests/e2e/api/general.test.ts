@@ -174,13 +174,13 @@ describe("general api", () => {
       expect(symbol).toEqual("APT");
 
       const payload2: InputViewFunctionData = {
-        function: "0x1::coin::is_account_registered",
+        function: "0x1::coin::decimals",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
-        functionArguments: ["0x1"],
+        functionArguments: [],
       };
 
-      const isRegistered = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
-      expect(isRegistered).toEqual(false);
+      const decimals = (await aptos.view<[number]>({ payload: payload2 }))[0];
+      expect(decimals).toEqual(8);
 
       const payload3: InputViewFunctionData = {
         function: "0x1::coin::supply",
