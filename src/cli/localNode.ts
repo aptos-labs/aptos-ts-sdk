@@ -3,7 +3,7 @@ import kill from "tree-kill";
 import { sleep } from "../utils/helpers";
 
 export class LocalNode {
-  readonly MAXIMUM_WAIT_TIME_SEC = 30;
+  readonly MAXIMUM_WAIT_TIME_SEC = 75;
 
   readonly READINESS_ENDPOINT = "http://127.0.0.1:8070/";
 
