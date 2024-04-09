@@ -75,6 +75,22 @@ export async function fetchFunctionAbi(
   return undefined;
 }
 
+export async function fetchStructAbi(
+  moduleAddress: string,
+  moduleName: string,
+  structName: string,
+  aptosConfig: AptosConfig,
+) {
+  // This fetch from the API is currently cached
+  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+
+  if (module.abi) {
+    return module.abi.structs.find((struct) => struct.name === structName);
+  }
+
+  return undefined;
+}
+
 /**
  * Fetches the ABI for an entry function from the module
  *
@@ -157,6 +173,30 @@ export async function fetchViewFunctionAbi(
     typeParameters: functionAbi.generic_type_params,
     parameters: params,
     returnTypes,
+  };
+}
+
+export async function fetchStructFieldsAbi(
+  moduleAddress: string,
+  moduleName: string,
+  structName: string,
+  aptosConfig: AptosConfig,
+) {
+  const structAbi = await fetchStructAbi(moduleAddress, moduleName, structName, aptosConfig);
+
+  // If there's no ABI, then the function is invalid
+  if (!structAbi) {
+    throw new Error(`Could not find Struct ABI for '${moduleAddress}::${moduleName}::${structName}'`);
+  }
+
+  const params: TypeTag[] = [];
+  for (let i = 0; i < structAbi.fields.length; i += 1) {
+    params.push(parseTypeTag(structAbi.fields[i].type, { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: structAbi.generic_type_params,
+    parameters: params,
   };
 }
 

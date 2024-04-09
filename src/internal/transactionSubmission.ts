@@ -10,9 +10,9 @@ import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account } from "../core/account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { PrivateKey } from "../core/crypto";
+import { PrivateKey, Signature } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
+import { ProofChallenge, RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
   buildTransaction,
   generateTransactionPayload,
@@ -208,6 +208,13 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
   return accountAuthenticator;
 }
 
+export function signProofChallenge(args: { challenge: ProofChallenge; signer: Account }): Signature {
+  const { challenge, signer } = args;
+  const challengeHex = challenge.bcsToBytes();
+  const signature = signer.sign(challengeHex);
+  return signature;
+}
+
 /**
  * Simulates a transaction before singing it.
  *
@@ -350,6 +357,7 @@ export async function rotateAuthKey(args: {
 
   // Sign the challenge
   const challengeHex = challenge.bcsToBytes();
+
   const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
   const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
 
