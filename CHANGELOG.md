@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.12.2 (2024-04-10)
+
+- Revert export `LocalNode` module
+
 # 1.12.1 (2024-04-09)
 
 - Export `LocalNode` module
