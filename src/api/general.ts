@@ -3,7 +3,6 @@
 
 import { AptosConfig } from "./aptosConfig";
 import {
-  createProofChallenge,
   getBlockByHeight,
   getBlockByVersion,
   getChainTopUserTransactions,
@@ -22,12 +21,11 @@ import {
   GraphqlQuery,
   LedgerInfo,
   LedgerVersionArg,
-  MoveFunctionId,
   MoveValue,
   TableItemRequest,
 } from "../types";
 import { ProcessorType } from "../utils/const";
-import { InputViewFunctionData, ProofChallenge } from "../transactions";
+import { InputViewFunctionData } from "../transactions";
 
 /**
  * A class to query all `General` Aptos related queries
@@ -225,12 +223,5 @@ export class General {
    */
   async getProcessorStatus(processorType: ProcessorType): Promise<GetProcessorStatusResponse[0]> {
     return getProcessorStatus({ aptosConfig: this.config, processorType });
-  }
-
-  async createProofChallenge(args: { struct: MoveFunctionId; data: Array<any> }): Promise<ProofChallenge> {
-    return createProofChallenge({
-      config: this.config,
-      ...args,
-    });
   }
 }

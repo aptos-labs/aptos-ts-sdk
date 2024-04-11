@@ -9,13 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveString } from "../bcs";
 import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
-import { AccountAddress } from "../core";
-import { getFunctionParts } from "../transactions/transactionBuilder/helpers";
-import { fetchStructFieldsAbi, convertArgument } from "../transactions/transactionBuilder/remoteAbi";
-import { ProofChallenge } from "../transactions/instances";
-import { EntryFunctionArgumentTypes } from "../transactions/types";
 import {
   AnyNumber,
   Block,
@@ -24,7 +18,6 @@ import {
   GraphqlQuery,
   LedgerInfo,
   LedgerVersionArg,
-  MoveFunctionId,
   TableItemRequest,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
@@ -168,34 +161,4 @@ export async function getProcessorStatus(args: {
   });
 
   return data.processor_status[0];
-}
-
-export async function createProofChallenge(args: {
-  config: AptosConfig;
-  struct: MoveFunctionId;
-  data: Array<any>;
-}): Promise<ProofChallenge> {
-  const { config, struct, data } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(struct);
-  const structFieldsAbi = await fetchStructFieldsAbi(moduleAddress, moduleName, functionName, config);
-
-  // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> =
-    data.map((arg, i) => convertArgument(functionName, structFieldsAbi, arg, i, structFieldsAbi.parameters)) ?? [];
-
-  // Check that all arguments are accounted for
-  if (functionArguments.length !== structFieldsAbi.parameters.length) {
-    throw new Error(
-      // eslint-disable-next-line max-len
-      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${structFieldsAbi.parameters.length} but got ${functionArguments.length}`,
-    );
-  }
-
-  const challenge = new ProofChallenge([
-    AccountAddress.from(moduleAddress),
-    new MoveString(moduleName),
-    new MoveString(functionName),
-    ...functionArguments,
-  ]);
-  return challenge;
 }

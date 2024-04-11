@@ -7,21 +7,6 @@ import { AnyNumber } from "../../types";
 import { PublicKey } from "../../core/crypto";
 import { MoveString, MoveVector, U64, U8 } from "../../bcs";
 
-export class ProofChallenge extends Serializable {
-  public readonly data: Serializable[];
-
-  constructor(data: Serializable[]) {
-    super();
-    this.data = data;
-  }
-
-  serialize(serializer: Serializer): void {
-    this.data.forEach((data) => {
-      serializer.serialize(data);
-    });
-  }
-}
-
 /**
  * Representation of the challenge which is needed to sign by owner of the account
  * to rotate the authentication key.

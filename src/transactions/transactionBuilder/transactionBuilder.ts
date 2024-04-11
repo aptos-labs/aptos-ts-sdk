@@ -71,12 +71,22 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
+  SimpleEntryFunctionArgumentTypes,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import {
+  convertArgument,
+  fetchEntryFunctionAbi,
+  fetchStructFieldsAbi,
+  fetchViewFunctionAbi,
+  standardizeTypeTags,
+} from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
+import { AnyNumber, MoveFunctionId } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { ProofChallenge } from "../instances/proofChallenge";
+import { MoveString } from "../../bcs";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -648,4 +658,35 @@ async function fetchAbi<T extends FunctionABI>({
     `${key}-${aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
     1000 * 60 * 5, // 5 minutes
   )();
+}
+
+export async function generateProofChallenge(args: {
+  config: AptosConfig;
+  struct: MoveFunctionId;
+  data: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+}) {
+  const { config, struct, data } = args;
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(struct);
+  const structFieldsAbi = await fetchStructFieldsAbi(moduleAddress, moduleName, functionName, config);
+
+  // Check all BCS types, and convert any non-BCS types
+  // TODO repeated code, move to a central place
+  const functionArguments: Array<EntryFunctionArgumentTypes> =
+    data.map((arg, i) => convertArgument(functionName, structFieldsAbi, arg, i, structFieldsAbi.parameters)) ?? [];
+
+  // Check that all arguments are accounted for
+  if (functionArguments.length !== structFieldsAbi.parameters.length) {
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${structFieldsAbi.parameters.length} but got ${functionArguments.length}`,
+    );
+  }
+
+  const challenge = new ProofChallenge([
+    AccountAddress.from(moduleAddress),
+    new MoveString(moduleName),
+    new MoveString(functionName),
+    ...functionArguments,
+  ]);
+  return challenge;
 }

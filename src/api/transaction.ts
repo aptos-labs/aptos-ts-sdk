@@ -25,7 +25,6 @@ import {
   publicPackageTransaction,
   rotateAuthKey,
   signAndSubmitTransaction,
-  signProofChallenge,
   signTransaction,
 } from "../internal/transactionSubmission";
 import {
@@ -33,9 +32,8 @@ import {
   AnyRawTransaction,
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
-  ProofChallenge,
 } from "../transactions";
-import { AccountAddressInput, Account, PrivateKey, Signature } from "../core";
+import { AccountAddressInput, Account, PrivateKey } from "../core";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
@@ -305,13 +303,6 @@ export class Transaction {
     return signTransaction({
       signer,
       transaction,
-    });
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  signProofChallenge(args: { challenge: ProofChallenge; signer: Account }): Signature {
-    return signProofChallenge({
-      ...args,
     });
   }
 
