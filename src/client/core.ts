@@ -26,11 +26,12 @@ const errors: Record<number, string> = {
  * returns the response.
  */
 export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
-  const { url, method, body, contentType, params, overrides } = options;
+  const { url, method, body, contentType, params, overrides, originMethod } = options;
   const headers: Record<string, string | AnyNumber | boolean | undefined> = {
     ...overrides?.HEADERS,
     "x-aptos-client": `aptos-typescript-sdk/${VERSION}`,
     "content-type": contentType ?? MimeType.JSON,
+    "x-aptos-typescript-sdk-origin-method": originMethod,
   };
 
   if (overrides?.AUTH_TOKEN) {
