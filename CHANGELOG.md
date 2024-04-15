@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `getAccountAllTransactionVersions` which returns versions of all transactions related to the given address.
+- Update the behavior of existing `getAccountTransactions` so it returns all transactions related to given address instead of only ones sent by address. This makes the result has same length as calling `getAccountTransactionsCount`.
+
 # 1.13.1 (2024-04-23)
 
 - [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
@@ -34,8 +37,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Breaking`] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
 - Adds `getUserTransactionHash` which can generate a transaction hash after signing, but before submission
 - Add function to create resource address locally
-- Add `getAccountAllTransactionVersions` which returns versions of all transactions related to the given address.
-- Update the behavior of existing `getAccountTransactions` so it returns all transactions related to given address instead of only ones sent by address. This makes the result has same length as calling `getAccountTransactionsCount`.
 
 # 1.11.0 (2024-03-26)
 
