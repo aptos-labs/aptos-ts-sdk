@@ -1875,6 +1875,7 @@ export type CurrentAnsLookupV2StreamCursorValueInput = {
 /** columns and relationships of "current_aptos_names" */
 export type CurrentAptosNames = {
   domain?: Maybe<Scalars["String"]["output"]>;
+  domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
   expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   is_active?: Maybe<Scalars["Boolean"]["output"]>;
@@ -1885,6 +1886,7 @@ export type CurrentAptosNames = {
   owner_address?: Maybe<Scalars["String"]["output"]>;
   registered_address?: Maybe<Scalars["String"]["output"]>;
   subdomain?: Maybe<Scalars["String"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["bigint"]["output"]>;
   token_name?: Maybe<Scalars["String"]["output"]>;
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
@@ -1961,11 +1963,13 @@ export type CurrentAptosNamesAggregateOrderBy = {
 /** aggregate avg on columns */
 export type CurrentAptosNamesAvgFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesAvgOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** Boolean expression to filter rows from the table "current_aptos_names". All fields are combined with a logical 'AND'. */
@@ -1974,6 +1978,7 @@ export type CurrentAptosNamesBoolExp = {
   _not?: InputMaybe<CurrentAptosNamesBoolExp>;
   _or?: InputMaybe<Array<CurrentAptosNamesBoolExp>>;
   domain?: InputMaybe<StringComparisonExp>;
+  domain_expiration_timestamp?: InputMaybe<TimestampComparisonExp>;
   domain_with_suffix?: InputMaybe<StringComparisonExp>;
   expiration_timestamp?: InputMaybe<TimestampComparisonExp>;
   is_active?: InputMaybe<BooleanComparisonExp>;
@@ -1983,6 +1988,7 @@ export type CurrentAptosNamesBoolExp = {
   owner_address?: InputMaybe<StringComparisonExp>;
   registered_address?: InputMaybe<StringComparisonExp>;
   subdomain?: InputMaybe<StringComparisonExp>;
+  subdomain_expiration_policy?: InputMaybe<BigintComparisonExp>;
   token_name?: InputMaybe<StringComparisonExp>;
   token_standard?: InputMaybe<StringComparisonExp>;
 };
@@ -1990,12 +1996,14 @@ export type CurrentAptosNamesBoolExp = {
 /** aggregate max on columns */
 export type CurrentAptosNamesMaxFields = {
   domain?: Maybe<Scalars["String"]["output"]>;
+  domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
   expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
   registered_address?: Maybe<Scalars["String"]["output"]>;
   subdomain?: Maybe<Scalars["String"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["bigint"]["output"]>;
   token_name?: Maybe<Scalars["String"]["output"]>;
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
@@ -2003,12 +2011,14 @@ export type CurrentAptosNamesMaxFields = {
 /** order by max() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesMaxOrderBy = {
   domain?: InputMaybe<OrderBy>;
+  domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
   expiration_timestamp?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
   owner_address?: InputMaybe<OrderBy>;
   registered_address?: InputMaybe<OrderBy>;
   subdomain?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
   token_name?: InputMaybe<OrderBy>;
   token_standard?: InputMaybe<OrderBy>;
 };
@@ -2016,12 +2026,14 @@ export type CurrentAptosNamesMaxOrderBy = {
 /** aggregate min on columns */
 export type CurrentAptosNamesMinFields = {
   domain?: Maybe<Scalars["String"]["output"]>;
+  domain_expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   domain_with_suffix?: Maybe<Scalars["String"]["output"]>;
   expiration_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
   registered_address?: Maybe<Scalars["String"]["output"]>;
   subdomain?: Maybe<Scalars["String"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["bigint"]["output"]>;
   token_name?: Maybe<Scalars["String"]["output"]>;
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
@@ -2029,12 +2041,14 @@ export type CurrentAptosNamesMinFields = {
 /** order by min() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesMinOrderBy = {
   domain?: InputMaybe<OrderBy>;
+  domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
   expiration_timestamp?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
   owner_address?: InputMaybe<OrderBy>;
   registered_address?: InputMaybe<OrderBy>;
   subdomain?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
   token_name?: InputMaybe<OrderBy>;
   token_standard?: InputMaybe<OrderBy>;
 };
@@ -2042,6 +2056,7 @@ export type CurrentAptosNamesMinOrderBy = {
 /** Ordering options when selecting data from "current_aptos_names". */
 export type CurrentAptosNamesOrderBy = {
   domain?: InputMaybe<OrderBy>;
+  domain_expiration_timestamp?: InputMaybe<OrderBy>;
   domain_with_suffix?: InputMaybe<OrderBy>;
   expiration_timestamp?: InputMaybe<OrderBy>;
   is_active?: InputMaybe<OrderBy>;
@@ -2051,6 +2066,7 @@ export type CurrentAptosNamesOrderBy = {
   owner_address?: InputMaybe<OrderBy>;
   registered_address?: InputMaybe<OrderBy>;
   subdomain?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
   token_name?: InputMaybe<OrderBy>;
   token_standard?: InputMaybe<OrderBy>;
 };
@@ -2059,6 +2075,8 @@ export type CurrentAptosNamesOrderBy = {
 export enum CurrentAptosNamesSelectColumn {
   /** column name */
   Domain = "domain",
+  /** column name */
+  DomainExpirationTimestamp = "domain_expiration_timestamp",
   /** column name */
   DomainWithSuffix = "domain_with_suffix",
   /** column name */
@@ -2075,6 +2093,8 @@ export enum CurrentAptosNamesSelectColumn {
   RegisteredAddress = "registered_address",
   /** column name */
   Subdomain = "subdomain",
+  /** column name */
+  SubdomainExpirationPolicy = "subdomain_expiration_policy",
   /** column name */
   TokenName = "token_name",
   /** column name */
@@ -2100,31 +2120,37 @@ export enum CurrentAptosNamesSelectColumnCurrentAptosNamesAggregateBoolExpBoolOr
 /** aggregate stddev on columns */
 export type CurrentAptosNamesStddevFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesStddevOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate stddev_pop on columns */
 export type CurrentAptosNamesStddevPopFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesStddevPopOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate stddev_samp on columns */
 export type CurrentAptosNamesStddevSampFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesStddevSampOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** Streaming cursor of the table "current_aptos_names" */
@@ -2138,6 +2164,7 @@ export type CurrentAptosNamesStreamCursorInput = {
 /** Initial value of the column from where the streaming should start */
 export type CurrentAptosNamesStreamCursorValueInput = {
   domain?: InputMaybe<Scalars["String"]["input"]>;
+  domain_expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   domain_with_suffix?: InputMaybe<Scalars["String"]["input"]>;
   expiration_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   is_active?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -2146,6 +2173,7 @@ export type CurrentAptosNamesStreamCursorValueInput = {
   owner_address?: InputMaybe<Scalars["String"]["input"]>;
   registered_address?: InputMaybe<Scalars["String"]["input"]>;
   subdomain?: InputMaybe<Scalars["String"]["input"]>;
+  subdomain_expiration_policy?: InputMaybe<Scalars["bigint"]["input"]>;
   token_name?: InputMaybe<Scalars["String"]["input"]>;
   token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -2153,41 +2181,49 @@ export type CurrentAptosNamesStreamCursorValueInput = {
 /** aggregate sum on columns */
 export type CurrentAptosNamesSumFields = {
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** order by sum() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesSumOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate var_pop on columns */
 export type CurrentAptosNamesVarPopFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesVarPopOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate var_samp on columns */
 export type CurrentAptosNamesVarSampFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesVarSampOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** aggregate variance on columns */
 export type CurrentAptosNamesVarianceFields = {
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+  subdomain_expiration_policy?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "current_aptos_names" */
 export type CurrentAptosNamesVarianceOrderBy = {
   last_transaction_version?: InputMaybe<OrderBy>;
+  subdomain_expiration_policy?: InputMaybe<OrderBy>;
 };
 
 /** columns and relationships of "current_coin_balances" */
@@ -3495,8 +3531,10 @@ export type CurrentTokenDatasV2 = {
   collection_id: Scalars["String"]["output"];
   /** An object relationship */
   current_collection?: Maybe<CurrentCollectionsV2>;
-  /** An object relationship */
-  current_token_ownership?: Maybe<CurrentTokenOwnershipsV2>;
+  /** An array relationship */
+  current_token_ownerships: Array<CurrentTokenOwnershipsV2>;
+  /** An aggregate relationship */
+  current_token_ownerships_aggregate: CurrentTokenOwnershipsV2Aggregate;
   decimals: Scalars["bigint"]["output"];
   description: Scalars["String"]["output"];
   is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
@@ -3513,6 +3551,24 @@ export type CurrentTokenDatasV2 = {
 };
 
 /** columns and relationships of "current_token_datas_v2" */
+export type CurrentTokenDatasV2CurrentTokenOwnershipsArgs = {
+  distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
+  where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+};
+
+/** columns and relationships of "current_token_datas_v2" */
+export type CurrentTokenDatasV2CurrentTokenOwnershipsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentTokenOwnershipsV2SelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentTokenOwnershipsV2OrderBy>>;
+  where?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+};
+
+/** columns and relationships of "current_token_datas_v2" */
 export type CurrentTokenDatasV2TokenPropertiesArgs = {
   path?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -3526,7 +3582,8 @@ export type CurrentTokenDatasV2BoolExp = {
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
   collection_id?: InputMaybe<StringComparisonExp>;
   current_collection?: InputMaybe<CurrentCollectionsV2BoolExp>;
-  current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  current_token_ownerships?: InputMaybe<CurrentTokenOwnershipsV2BoolExp>;
+  current_token_ownerships_aggregate?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExp>;
   decimals?: InputMaybe<BigintComparisonExp>;
   description?: InputMaybe<StringComparisonExp>;
   is_fungible_v2?: InputMaybe<BooleanComparisonExp>;
@@ -3548,7 +3605,7 @@ export type CurrentTokenDatasV2OrderBy = {
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisOrderBy>;
   collection_id?: InputMaybe<OrderBy>;
   current_collection?: InputMaybe<CurrentCollectionsV2OrderBy>;
-  current_token_ownership?: InputMaybe<CurrentTokenOwnershipsV2OrderBy>;
+  current_token_ownerships_aggregate?: InputMaybe<CurrentTokenOwnershipsV2AggregateOrderBy>;
   decimals?: InputMaybe<OrderBy>;
   description?: InputMaybe<OrderBy>;
   is_fungible_v2?: InputMaybe<OrderBy>;
@@ -3938,6 +3995,7 @@ export type CurrentTokenOwnershipsV2 = {
   is_soulbound_v2?: Maybe<Scalars["Boolean"]["output"]>;
   last_transaction_timestamp: Scalars["timestamp"]["output"];
   last_transaction_version: Scalars["bigint"]["output"];
+  non_transferrable_by_owner?: Maybe<Scalars["Boolean"]["output"]>;
   owner_address: Scalars["String"]["output"];
   property_version_v1: Scalars["numeric"]["output"];
   storage_id: Scalars["String"]["output"];
@@ -4066,6 +4124,7 @@ export type CurrentTokenOwnershipsV2BoolExp = {
   is_soulbound_v2?: InputMaybe<BooleanComparisonExp>;
   last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
+  non_transferrable_by_owner?: InputMaybe<BooleanComparisonExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
   property_version_v1?: InputMaybe<NumericComparisonExp>;
   storage_id?: InputMaybe<StringComparisonExp>;
@@ -4136,6 +4195,7 @@ export type CurrentTokenOwnershipsV2OrderBy = {
   is_soulbound_v2?: InputMaybe<OrderBy>;
   last_transaction_timestamp?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
+  non_transferrable_by_owner?: InputMaybe<OrderBy>;
   owner_address?: InputMaybe<OrderBy>;
   property_version_v1?: InputMaybe<OrderBy>;
   storage_id?: InputMaybe<OrderBy>;
@@ -4158,6 +4218,8 @@ export enum CurrentTokenOwnershipsV2SelectColumn {
   /** column name */
   LastTransactionVersion = "last_transaction_version",
   /** column name */
+  NonTransferrableByOwner = "non_transferrable_by_owner",
+  /** column name */
   OwnerAddress = "owner_address",
   /** column name */
   PropertyVersionV1 = "property_version_v1",
@@ -4179,6 +4241,8 @@ export enum CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2Aggregat
   IsFungibleV2 = "is_fungible_v2",
   /** column name */
   IsSoulboundV2 = "is_soulbound_v2",
+  /** column name */
+  NonTransferrableByOwner = "non_transferrable_by_owner",
 }
 
 /** select "current_token_ownerships_v2_aggregate_bool_exp_bool_or_arguments_columns" columns of table "current_token_ownerships_v2" */
@@ -4187,6 +4251,8 @@ export enum CurrentTokenOwnershipsV2SelectColumnCurrentTokenOwnershipsV2Aggregat
   IsFungibleV2 = "is_fungible_v2",
   /** column name */
   IsSoulboundV2 = "is_soulbound_v2",
+  /** column name */
+  NonTransferrableByOwner = "non_transferrable_by_owner",
 }
 
 /** aggregate stddev on columns */
@@ -4246,6 +4312,7 @@ export type CurrentTokenOwnershipsV2StreamCursorValueInput = {
   is_soulbound_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
   last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  non_transferrable_by_owner?: InputMaybe<Scalars["Boolean"]["input"]>;
   owner_address?: InputMaybe<Scalars["String"]["input"]>;
   property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
   storage_id?: InputMaybe<Scalars["String"]["input"]>;
@@ -7072,6 +7139,10 @@ export type QueryRoot = {
   proposal_votes_aggregate: ProposalVotesAggregate;
   /** fetch data from the table: "proposal_votes" using primary key columns */
   proposal_votes_by_pk?: Maybe<ProposalVotes>;
+  /** fetch data from the table: "signatures" */
+  signatures: Array<Signatures>;
+  /** fetch data from the table: "signatures" using primary key columns */
+  signatures_by_pk?: Maybe<Signatures>;
   /** fetch data from the table: "table_items" */
   table_items: Array<TableItems>;
   /** fetch data from the table: "table_items" using primary key columns */
@@ -7802,6 +7873,21 @@ export type QueryRootProposalVotesByPkArgs = {
   voter_address: Scalars["String"]["input"];
 };
 
+export type QueryRootSignaturesArgs = {
+  distinct_on?: InputMaybe<Array<SignaturesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<SignaturesOrderBy>>;
+  where?: InputMaybe<SignaturesBoolExp>;
+};
+
+export type QueryRootSignaturesByPkArgs = {
+  is_sender_primary: Scalars["Boolean"]["input"];
+  multi_agent_index: Scalars["bigint"]["input"];
+  multi_sig_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+};
+
 export type QueryRootTableItemsArgs = {
   distinct_on?: InputMaybe<Array<TableItemsSelectColumn>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -7923,6 +8009,108 @@ export type QueryRootUserTransactionsArgs = {
 
 export type QueryRootUserTransactionsByPkArgs = {
   version: Scalars["bigint"]["input"];
+};
+
+/** columns and relationships of "signatures" */
+export type Signatures = {
+  is_sender_primary: Scalars["Boolean"]["output"];
+  multi_agent_index: Scalars["bigint"]["output"];
+  multi_sig_index: Scalars["bigint"]["output"];
+  public_key: Scalars["String"]["output"];
+  public_key_indices: Scalars["jsonb"]["output"];
+  signature: Scalars["String"]["output"];
+  signer: Scalars["String"]["output"];
+  threshold: Scalars["bigint"]["output"];
+  transaction_block_height: Scalars["bigint"]["output"];
+  transaction_version: Scalars["bigint"]["output"];
+  type: Scalars["String"]["output"];
+};
+
+/** columns and relationships of "signatures" */
+export type SignaturesPublicKeyIndicesArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "signatures". All fields are combined with a logical 'AND'. */
+export type SignaturesBoolExp = {
+  _and?: InputMaybe<Array<SignaturesBoolExp>>;
+  _not?: InputMaybe<SignaturesBoolExp>;
+  _or?: InputMaybe<Array<SignaturesBoolExp>>;
+  is_sender_primary?: InputMaybe<BooleanComparisonExp>;
+  multi_agent_index?: InputMaybe<BigintComparisonExp>;
+  multi_sig_index?: InputMaybe<BigintComparisonExp>;
+  public_key?: InputMaybe<StringComparisonExp>;
+  public_key_indices?: InputMaybe<JsonbComparisonExp>;
+  signature?: InputMaybe<StringComparisonExp>;
+  signer?: InputMaybe<StringComparisonExp>;
+  threshold?: InputMaybe<BigintComparisonExp>;
+  transaction_block_height?: InputMaybe<BigintComparisonExp>;
+  transaction_version?: InputMaybe<BigintComparisonExp>;
+  type?: InputMaybe<StringComparisonExp>;
+};
+
+/** Ordering options when selecting data from "signatures". */
+export type SignaturesOrderBy = {
+  is_sender_primary?: InputMaybe<OrderBy>;
+  multi_agent_index?: InputMaybe<OrderBy>;
+  multi_sig_index?: InputMaybe<OrderBy>;
+  public_key?: InputMaybe<OrderBy>;
+  public_key_indices?: InputMaybe<OrderBy>;
+  signature?: InputMaybe<OrderBy>;
+  signer?: InputMaybe<OrderBy>;
+  threshold?: InputMaybe<OrderBy>;
+  transaction_block_height?: InputMaybe<OrderBy>;
+  transaction_version?: InputMaybe<OrderBy>;
+  type?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "signatures" */
+export enum SignaturesSelectColumn {
+  /** column name */
+  IsSenderPrimary = "is_sender_primary",
+  /** column name */
+  MultiAgentIndex = "multi_agent_index",
+  /** column name */
+  MultiSigIndex = "multi_sig_index",
+  /** column name */
+  PublicKey = "public_key",
+  /** column name */
+  PublicKeyIndices = "public_key_indices",
+  /** column name */
+  Signature = "signature",
+  /** column name */
+  Signer = "signer",
+  /** column name */
+  Threshold = "threshold",
+  /** column name */
+  TransactionBlockHeight = "transaction_block_height",
+  /** column name */
+  TransactionVersion = "transaction_version",
+  /** column name */
+  Type = "type",
+}
+
+/** Streaming cursor of the table "signatures" */
+export type SignaturesStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: SignaturesStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type SignaturesStreamCursorValueInput = {
+  is_sender_primary?: InputMaybe<Scalars["Boolean"]["input"]>;
+  multi_agent_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  multi_sig_index?: InputMaybe<Scalars["bigint"]["input"]>;
+  public_key?: InputMaybe<Scalars["String"]["input"]>;
+  public_key_indices?: InputMaybe<Scalars["jsonb"]["input"]>;
+  signature?: InputMaybe<Scalars["String"]["input"]>;
+  signer?: InputMaybe<Scalars["String"]["input"]>;
+  threshold?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_block_height?: InputMaybe<Scalars["bigint"]["input"]>;
+  transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  type?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type SubscriptionRoot = {
@@ -8226,6 +8414,12 @@ export type SubscriptionRoot = {
   proposal_votes_by_pk?: Maybe<ProposalVotes>;
   /** fetch data from the table in a streaming manner: "proposal_votes" */
   proposal_votes_stream: Array<ProposalVotes>;
+  /** fetch data from the table: "signatures" */
+  signatures: Array<Signatures>;
+  /** fetch data from the table: "signatures" using primary key columns */
+  signatures_by_pk?: Maybe<Signatures>;
+  /** fetch data from the table in a streaming manner: "signatures" */
+  signatures_stream: Array<Signatures>;
   /** fetch data from the table: "table_items" */
   table_items: Array<TableItems>;
   /** fetch data from the table: "table_items" using primary key columns */
@@ -9258,6 +9452,27 @@ export type SubscriptionRootProposalVotesStreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<ProposalVotesStreamCursorInput>>;
   where?: InputMaybe<ProposalVotesBoolExp>;
+};
+
+export type SubscriptionRootSignaturesArgs = {
+  distinct_on?: InputMaybe<Array<SignaturesSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<SignaturesOrderBy>>;
+  where?: InputMaybe<SignaturesBoolExp>;
+};
+
+export type SubscriptionRootSignaturesByPkArgs = {
+  is_sender_primary: Scalars["Boolean"]["input"];
+  multi_agent_index: Scalars["bigint"]["input"];
+  multi_sig_index: Scalars["bigint"]["input"];
+  transaction_version: Scalars["bigint"]["input"];
+};
+
+export type SubscriptionRootSignaturesStreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<SignaturesStreamCursorInput>>;
+  where?: InputMaybe<SignaturesBoolExp>;
 };
 
 export type SubscriptionRootTableItemsArgs = {

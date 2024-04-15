@@ -22,6 +22,7 @@ import {
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
+  getAccountAllTransactionVersions,
   getAccountCoinAmount,
   getAccountCoinsCount,
   getAccountCoinsData,
@@ -137,6 +138,27 @@ export class Account {
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
     return getTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Queries account's all transaction versions given an account address
+   *
+   * Note: This returns both the transaction sent by the account and the transaction received by the account.
+   *
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number transaction to start returning results from
+   * @param args.options.limit The number of results to return
+   *
+   * @returns The account transaction versions
+   */
+  async getAccountAllTransactionVersions(args: {
+    accountAddress: AccountAddressInput;
+    options?: PaginationArgs;
+  }): Promise<AnyNumber[]> {
+    return getAccountAllTransactionVersions({
       aptosConfig: this.config,
       ...args,
     });

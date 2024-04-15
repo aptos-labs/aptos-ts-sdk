@@ -60,7 +60,6 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
     token_properties
     token_standard
     token_uri
-    decimals
     current_collection {
       collection_id
       collection_name
@@ -77,6 +76,18 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
       total_minted_v2
       uri
     }
+  }
+}
+    `;
+export const GetAccountAllTransactionVersions = `
+    query getAccountAllTransactionVersions($where_condition: account_transactions_bool_exp!, $offset: Int, $limit: Int) {
+  account_transactions(
+    where: $where_condition
+    order_by: {transaction_version: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    transaction_version
   }
 }
     `;
@@ -465,6 +476,20 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    getAccountAllTransactionVersions(
+      variables: Types.GetAccountAllTransactionVersionsQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAccountAllTransactionVersionsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAccountAllTransactionVersionsQuery>(GetAccountAllTransactionVersions, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAccountAllTransactionVersions",
+        "query",
+      );
+    },
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,

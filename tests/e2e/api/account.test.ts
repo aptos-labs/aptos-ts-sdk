@@ -109,32 +109,61 @@ describe("account api", () => {
     test("it fetches account transactions", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
-      const senderAccount = Account.generate();
+      const alice = Account.generate();
       await aptos.fundAccount({
-        accountAddress: senderAccount.accountAddress,
+        accountAddress: alice.accountAddress,
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      const rawTxn = await aptos.transaction.build.simple({
-        sender: senderAccount.accountAddress,
+      await aptos.fundAccount({
+        accountAddress: bob.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      const rawTxn1 = await aptos.transaction.build.simple({
+        sender: alice.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [bob.accountAddress, new U64(10)],
         },
       });
-      const authenticator = aptos.transaction.sign({
-        signer: senderAccount,
-        transaction: rawTxn,
+      const authenticator1 = aptos.transaction.sign({
+        signer: alice,
+        transaction: rawTxn1,
       });
-      const response = await aptos.transaction.submit.simple({
-        transaction: rawTxn,
-        senderAuthenticator: authenticator,
+      const response1 = await aptos.transaction.submit.simple({
+        transaction: rawTxn1,
+        senderAuthenticator: authenticator1,
       });
-      const txn = await aptos.waitForTransaction({ transactionHash: response.hash });
-      const accountTransactions = await aptos.getAccountTransactions({
-        accountAddress: senderAccount.accountAddress,
+      const txn1 = await aptos.waitForTransaction({ transactionHash: response1.hash });
+      const rawTxn2 = await aptos.transaction.build.simple({
+        sender: bob.accountAddress,
+        data: {
+          function: "0x1::aptos_account::transfer",
+          functionArguments: [alice.accountAddress, new U64(10)],
+        },
       });
-      expect(accountTransactions[0]).toStrictEqual(txn);
+      const authenticator2 = aptos.transaction.sign({
+        signer: bob,
+        transaction: rawTxn2,
+      });
+      const response2 = await aptos.transaction.submit.simple({
+        transaction: rawTxn2,
+        senderAuthenticator: authenticator2,
+      });
+      const txn2 = await aptos.waitForTransaction({ transactionHash: response2.hash });
+      const aliceTransactions = await aptos.getAccountTransactions({
+        accountAddress: alice.accountAddress,
+      });
+      const bobAccountTransactions = await aptos.getAccountTransactions({
+        accountAddress: bob.accountAddress,
+      });
+      // getAccountTransactions returns all txs related to the account in descending order
+      // both alice and bob's third tx is the fund tx
+      // therefore, the first tx is alice transfers to bob and second tx is bob transfers to alice
+      expect(aliceTransactions[0]).toStrictEqual(txn2);
+      expect(aliceTransactions[1]).toStrictEqual(txn1);
+      expect(bobAccountTransactions[0]).toStrictEqual(txn2);
+      expect(bobAccountTransactions[1]).toStrictEqual(txn1);
     });
 
     test("it fetches account transactions count", async () => {

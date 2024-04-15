@@ -16,6 +16,7 @@ import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
+  AnyNumber,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedObjectsResponse,
@@ -32,6 +33,7 @@ import {
   WhereArg,
 } from "../types";
 import {
+  GetAccountAllTransactionVersionsQuery,
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
@@ -42,6 +44,7 @@ import {
   GetAccountTransactionsCountQuery,
 } from "../types/generated/operations";
 import {
+  GetAccountAllTransactionVersions,
   GetAccountCoinsCount,
   GetAccountCoinsData,
   GetAccountCollectionsWithOwnedTokens,
@@ -54,6 +57,7 @@ import {
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { getTransactionByVersion } from "./transaction";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -136,12 +140,45 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  return paginateWithCursor<{}, TransactionResponse[]>({
+  // TODO: Ideally indexer should provide one API that returns all transactions details in one go
+  // But now we have to query all transaction versions first and then query each transaction by version
+  const versions = await getAccountAllTransactionVersions({ aptosConfig, accountAddress, options });
+  const results = [];
+  for (const version of versions) {
+    const tx = getTransactionByVersion({ aptosConfig, ledgerVersion: version });
+    results.push(tx);
+  }
+  return Promise.all(results);
+}
+
+export async function getAccountAllTransactionVersions(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: PaginationArgs;
+}): Promise<AnyNumber[]> {
+  const { aptosConfig, accountAddress, options } = args;
+  const address = AccountAddress.from(accountAddress).toStringLong();
+
+  const whereCondition: { account_address: { _eq: string } } = {
+    account_address: { _eq: address },
+  };
+
+  const graphqlQuery = {
+    query: GetAccountAllTransactionVersions,
+    variables: {
+      where_condition: whereCondition,
+      offset: options?.offset,
+      limit: options?.limit,
+    },
+  };
+
+  const data = await queryIndexer<GetAccountAllTransactionVersionsQuery>({
     aptosConfig,
-    originMethod: "getTransactions",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
-    params: { start: options?.offset, limit: options?.limit },
+    query: graphqlQuery,
+    originMethod: "getAccountAllTransactionVersions",
   });
+
+  return data.account_transactions.map((tx) => tx.transaction_version);
 }
 
 export async function getResources(args: {

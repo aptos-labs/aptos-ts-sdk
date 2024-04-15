@@ -55,7 +55,6 @@ export type CurrentTokenOwnershipFieldsFragment = {
     token_properties: any;
     token_standard: string;
     token_uri: string;
-    decimals: any;
     current_collection?: {
       collection_id: string;
       collection_name: string;
@@ -74,6 +73,14 @@ export type CurrentTokenOwnershipFieldsFragment = {
     } | null;
   } | null;
 };
+
+export type GetAccountAllTransactionVersionsQueryVariables = Types.Exact<{
+  where_condition: Types.AccountTransactionsBoolExp;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+}>;
+
+export type GetAccountAllTransactionVersionsQuery = { account_transactions: Array<{ transaction_version: any }> };
 
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
   address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
@@ -212,7 +219,6 @@ export type GetAccountOwnedTokensQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -268,7 +274,6 @@ export type GetAccountOwnedTokensByTokenDataQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -324,7 +329,6 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -597,7 +601,6 @@ export type GetCurrentTokenOwnershipQuery = {
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
       current_collection?: {
         collection_id: string;
         collection_name: string;
