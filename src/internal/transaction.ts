@@ -97,6 +97,19 @@ export async function isTransactionPending(args: {
   }
 }
 
+async function longWaitForTransaction(args: {
+  aptosConfig: AptosConfig;
+  transactionHash: HexInput;
+}): Promise<TransactionResponse> {
+  const { aptosConfig, transactionHash } = args;
+  const { data } = await getAptosFullNode<{}, TransactionResponse>({
+    aptosConfig,
+    path: `transactions/wait_by_hash/${transactionHash}`,
+    originMethod: "waitTransactionByHash",
+  });
+  return data;
+}
+
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
@@ -108,6 +121,8 @@ export async function waitForTransaction(args: {
 
   let isPending = true;
   let timeElapsed = 0;
+  let longWaitOnce = false;
+  let isFirstTry = true;
   let lastTxn: TransactionResponse | undefined;
   let lastError: AptosApiError | undefined;
   let backoffIntervalMs = 200;
@@ -118,8 +133,16 @@ export async function waitForTransaction(args: {
       break;
     }
     try {
-      // eslint-disable-next-line no-await-in-loop
-      lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+      if (!isFirstTry && !longWaitOnce) {
+        // We are greedy, hence do a 'long wait' once to shave off latencies resulting from polling with backoff
+        longWaitOnce = true;
+        // eslint-disable-next-line no-await-in-loop
+        lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
+      } else {
+        isFirstTry = false;
+        // eslint-disable-next-line no-await-in-loop
+        lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+      }
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
 
