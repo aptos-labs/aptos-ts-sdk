@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account } from "../account";
+import { Account, KeylessAccount, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -280,6 +280,9 @@ export async function signAndSubmitTransaction(args: {
   transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;
+  if (signer instanceof KeylessAccount || signer instanceof MultiKeyAccount) {
+    await signer.waitForProofFetch();
+  }
   const authenticator = signTransaction({ signer, transaction });
   return submitTransaction({
     aptosConfig,

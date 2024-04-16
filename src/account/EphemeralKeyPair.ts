@@ -4,10 +4,10 @@
 import { randomBytes } from "@noble/hashes/utils";
 
 
-import { Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey} from "../core/crypto";
+import { EPK_HORIZON_SECS, Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey} from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { GenerateAccount, HexInput, SigningSchemeInput } from "../types";
+import { HexInput, SigningSchemeInput } from "../types";
 
 export class EphemeralKeyPair {
   readonly blinder: Uint8Array;
@@ -24,14 +24,12 @@ export class EphemeralKeyPair {
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
-    const currentDate = new Date();
-    const currentTimeInSeconds = Math.floor(currentDate.getTime() / 1000) + 100000;
-    this.expiryDateSecs = expiryDateSecs || BigInt(currentTimeInSeconds);
+    this.expiryDateSecs = expiryDateSecs || BigInt(floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS));
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     this.nonce = this.generateNonce();
   }
 
-  static generate(args?: GenerateAccount): EphemeralKeyPair {
+  static generate(args?: {scheme: SigningSchemeInput}): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
@@ -64,4 +62,17 @@ export class EphemeralKeyPair {
 
 function generateBlinder(): Uint8Array {
   return randomBytes(31);
+}
+
+function currentTimeInSeconds(): number {
+  return Math.floor(new Date().getTime() / 1000)
+}
+
+function floorToWholeHour(timestampInSeconds: number): number {
+  const date = new Date(timestampInSeconds * 1000);
+  // Reset minutes and seconds to zero
+  date.setMinutes(0);
+  date.setSeconds(0);
+  date.setMilliseconds(0);
+  return Math.floor(date.getTime() / 1000);
 }

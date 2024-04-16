@@ -3,6 +3,7 @@ import { EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { Hex } from "../hex";
 
 /**
  * Represents ephemeral keys and signatures for Aptos Keyless accounts.
@@ -117,6 +118,12 @@ export class EphemeralSignature extends Signature {
    */
   toString(): string {
     return this.signature.toString();
+  }
+
+  static fromHex(hexInput: HexInput): EphemeralSignature {
+    const data = Hex.fromHexInput(hexInput);
+    const deserializer = new Deserializer(data.toUint8Array());
+    return EphemeralSignature.deserialize(deserializer);
   }
 
   serialize(serializer: Serializer): void {

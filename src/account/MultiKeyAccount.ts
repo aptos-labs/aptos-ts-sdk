@@ -7,7 +7,7 @@ import { AccountAddress } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-
+import { KeylessAccount } from "./KeylessAccount";
 
 export class MultiKeyAccount implements Account {
   /**
@@ -42,28 +42,30 @@ export class MultiKeyAccount implements Account {
    * This method is private because it should only be called by the factory static methods.
    * @returns Account
    */
-   constructor(args: { multiKey: MultiKey; signers: Account[] }) {
+  constructor(args: { multiKey: MultiKey; signers: Account[] }) {
     const { multiKey, signers } = args;
 
     this.publicKey = multiKey;
-    this.signers = signers
+    this.signers = signers;
     this.signingScheme = SigningScheme.MultiKey;
 
     this.accountAddress = this.publicKey.authKey().derivedAddress();
 
-    const bits : number[] = [];
+    const bits: number[] = [];
     for (const signer of signers) {
       bits.push(this.publicKey.getIndex(signer.publicKey));
     }
-    this.signaturesBitmap = this.publicKey.createBitmap({bits});
+    this.signaturesBitmap = this.publicKey.createBitmap({ bits });
   }
 
-  static fromPublicKeysAndSigners(
-    args: { publicKeys: PublicKey[]; signaturesRequired: number; signers: Account[] }
-  ): MultiKeyAccount {
+  static fromPublicKeysAndSigners(args: {
+    publicKeys: PublicKey[];
+    signaturesRequired: number;
+    signers: Account[];
+  }): MultiKeyAccount {
     const { publicKeys, signaturesRequired, signers } = args;
-    const multiKey = new MultiKey({publicKeys, signaturesRequired})
-    return new MultiKeyAccount({multiKey, signers})
+    const multiKey = new MultiKey({ publicKeys, signaturesRequired });
+    return new MultiKeyAccount({ multiKey, signers });
   }
 
   static isMultiKeySigner(account: Account): account is MultiKeyAccount {
@@ -72,6 +74,13 @@ export class MultiKeyAccount implements Account {
 
   signWithAuthenticator(transaction: AnyRawTransaction) {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
+  }
+
+  async waitForProofFetch() {
+    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
+    await Promise.all(
+      keylessSigners.filter((signer) => signer.proof instanceof Promise).map( (signer) => signer.proof),
+    );
   }
 
   /**
@@ -87,7 +96,7 @@ export class MultiKeyAccount implements Account {
     for (const signer of this.signers) {
       signatures.push(signer.sign(data));
     }
-    return new MultiSignature({signatures, bitmap: this.signaturesBitmap});
+    return new MultiSignature({ signatures, bitmap: this.signaturesBitmap });
   }
 
   signTransaction(transaction: AnyRawTransaction) {
@@ -95,7 +104,7 @@ export class MultiKeyAccount implements Account {
     for (const signer of this.signers) {
       signatures.push(signer.signTransaction(transaction));
     }
-    return new MultiSignature({signatures, bitmap: this.signaturesBitmap});
+    return new MultiSignature({ signatures, bitmap: this.signaturesBitmap });
   }
 
   /**

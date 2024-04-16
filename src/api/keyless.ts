@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralKeyPair, KeylessAccount } from "../account";
+import { EphemeralKeyPair, KeylessAccount, MultiKeyAccount } from "../account";
 import { deriveKeylessAccount, getPepper } from "../internal/keyless";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
@@ -36,8 +36,10 @@ export class Keyless {
       ephemeralKeyPair: EphemeralKeyPair;
       uidKey?: string;
       pepper?: HexInput;
-      extraFieldKey?: string
-    }): Promise<KeylessAccount> {
+      extraFieldKey?: string;
+      disableConnect?: boolean;
+      fetchProofAsync?: boolean;
+    }): Promise<KeylessAccount | MultiKeyAccount> {
       return deriveKeylessAccount({ aptosConfig: this.config, ...args });
     }
 }

@@ -7,19 +7,26 @@
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
  */
-import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { jwtDecode } from "jwt-decode";
 import { bls12_381 as bls } from "@noble/curves/bls12-381";
 import { ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosPepperService, postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_HORIZON_SECS, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
+import {
+  APTOS_BIP44_DEFAULT_DERIVATION_PATH,
+  EPK_HORIZON_SECS,
+  EphemeralSignature,
+  Groth16Zkp,
+  Hex,
+  MultiKey,
+  SignedGroth16Signature,
+} from "../core";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
-import { EphemeralKeyPair, KeylessAccount } from "../account";
+import { EphemeralKeyPair, KeylessAccount, MultiKeyAccount } from "../account";
 import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
-const APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST = "APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST"
+const APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST = "APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST";
 
 function stringToUint8Array(str: string): Uint8Array {
   const encoder = new TextEncoder();
@@ -27,7 +34,9 @@ function stringToUint8Array(str: string): Uint8Array {
 }
 
 const PINKAS_VUF_SECRET_KEY_BASE_AFFINE = bls.G2.hashToCurve(
-  stringToUint8Array("APTOS_KEYLESS_PEPPER_PINKAS_VUF_SECRET_KEY_BASE"), { DST: APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST }).toAffine();
+  stringToUint8Array("APTOS_KEYLESS_PEPPER_PINKAS_VUF_SECRET_KEY_BASE"),
+  { DST: APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST },
+).toAffine();
 
 function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<bigint> {
   const { jwt, uidKey } = args;
@@ -43,14 +52,31 @@ function getPepperInput(args: { jwt: string; uidKey?: string }): ProjPointType<b
   return pp;
 }
 
+async function verifyPepperBase(args: {
+  aptosConfig: AptosConfig;
+  pepperInput: ProjPointType<bigint>;
+  pepperBase: Uint8Array;
+}): Promise<boolean> {
+  const { aptosConfig, pepperInput, pepperBase } = args;
+  const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
+    aptosConfig,
+    path: "vrf-pub-key",
+    originMethod: "getPepper",
+  });
+  const publicKeyFromService = bls.G2.ProjectivePoint.fromHex(pubKeyResponse.vrf_public_key_hex_string);
+  return bls.verifyShortSignature(pepperBase, pepperInput, publicKeyFromService);
+}
+
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
+  derivationPath?: string;
   verify?: boolean;
 }): Promise<Uint8Array> {
   const { aptosConfig, jwt, ephemeralKeyPair, uidKey, verify } = args;
+  let { derivationPath } = args;
 
   const body = {
     jwt_b64: jwt,
@@ -59,9 +85,7 @@ export async function getPepper(args: {
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
-  // const jsonString = JSON.stringify(body);
-
-  // console.log(jsonString);
+  // console.log(JSON.stringify(body));
   const { data } = await postAptosPepperService<any, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
@@ -72,13 +96,7 @@ export async function getPepper(args: {
   const pepperBase = Hex.fromHexInput(data.signature).toUint8Array();
 
   if (verify) {
-    const { data: pubKeyResponse } = await getAptosPepperService<any, { vrf_public_key_hex_string: string }>({
-      aptosConfig,
-      path: "vrf-pub-key",
-      originMethod: "getPepper",
-    });
-    const publicKeyFromService = bls.G2.ProjectivePoint.fromHex(pubKeyResponse.vrf_public_key_hex_string);
-    const pepperVerified = bls.verifyShortSignature(pepperBase, getPepperInput(args), publicKeyFromService);
+    const pepperVerified = verifyPepperBase({ aptosConfig, pepperBase, pepperInput: getPepperInput(args) });
     if (!pepperVerified) {
       throw new Error("Unable to verify");
     }
@@ -86,16 +104,15 @@ export async function getPepper(args: {
   // This takes the BLS VUF H(m)^sk and transforms it into a Pinkas VUF e(H(m), g_3^sk), where g_3 is the base of the secret key (computed pseudo-randomly via hash-to-curve).
   // This gives us the freedom of either decentralizing the pepper service as a BLS-based MPC or on top of the validators, by reusing the Pinkas WVUF-based randomness infrastructure.
   const newPepperBase = bls.pairing(
-    bls.G1.ProjectivePoint.fromHex(pepperBase), 
-    bls.G2.ProjectivePoint.fromAffine(PINKAS_VUF_SECRET_KEY_BASE_AFFINE)
+    bls.G1.ProjectivePoint.fromHex(pepperBase),
+    bls.G2.ProjectivePoint.fromAffine(PINKAS_VUF_SECRET_KEY_BASE_AFFINE),
   );
-  const hash = sha3Hash.create();
-  hash.update(bls.fields.Fp12.toBytes(newPepperBase));
-  const hashDigest = hash.digest();
 
-  const pepper = Hex.fromHexInput(hashDigest).toUint8Array().slice(0, 31);
-
-  return pepper;
+  if (derivationPath === undefined) {
+    derivationPath = APTOS_BIP44_DEFAULT_DERIVATION_PATH;
+  }
+  const pepper = KeylessAccount.fromDerivationPath(derivationPath, bls.fields.Fp12.toBytes(newPepperBase));
+  return pepper.slice(0, 31);
 }
 
 export async function getProof(args: {
@@ -124,14 +141,7 @@ export async function getProof(args: {
     uid_key: uidKey || "sub",
   };
 
-  // const jsonString = JSON.stringify(json);
-
-  // console.log(jsonString);
-  
-  const { data } = await postAptosProvingService<
-    any,
-    ProverResponse
-  >({
+  const { data } = await postAptosProvingService<any, ProverResponse>({
     aptosConfig,
     path: "prove",
     body: json,
@@ -145,7 +155,12 @@ export async function getProof(args: {
     b: proofPoints.b,
     c: proofPoints.c,
   });
-  const signedProof = new SignedGroth16Signature({ proof, extraField });
+
+  const signedProof = new SignedGroth16Signature({
+    proof,
+    extraField,
+    trainingWheelsSignature: EphemeralSignature.fromHex(data.training_wheels_signature),
+  });
   return signedProof;
 }
 
@@ -156,14 +171,35 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
-}): Promise<KeylessAccount> {
-  let { pepper } = args;
+  disableConnect?: boolean;
+  fetchProofAsync?: boolean;
+}): Promise<KeylessAccount | MultiKeyAccount> {
+  const { fetchProofAsync } = args;
+  let { pepper, disableConnect } = args;
+
+  if (pepper || disableConnect) {
+    disableConnect = true;
+  }
   if (pepper === undefined) {
     pepper = await getPepper(args);
   } else if (Hex.fromHexInput(pepper).toUint8Array().length !== 31) {
     throw new Error("Pepper needs to be 31 bytes");
   }
 
-  const proof = await getProof({ ...args, pepper });
-  return KeylessAccount.fromJWTAndProof({ ...args, proof, pepper });
+  const proofPromise = getProof({ ...args, pepper });
+  const proof = fetchProofAsync ? proofPromise : await proofPromise;
+
+  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proofFetcherOrData: proof, pepper });
+
+  if (disableConnect === true) {
+    return keylessAccount;
+  }
+
+  const aptosConnectPublicKey = keylessAccount.deriveAptosConnectPublicKey();
+
+  const multiKey = new MultiKey({
+    publicKeys: [keylessAccount.publicKey, aptosConnectPublicKey],
+    signaturesRequired: 1,
+  });
+  return new MultiKeyAccount({ multiKey, signers: [keylessAccount] });
 }

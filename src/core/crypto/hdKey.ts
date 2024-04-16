@@ -4,6 +4,7 @@
 import { hmac } from "@noble/hashes/hmac";
 import { sha512 } from "@noble/hashes/sha512";
 import * as bip39 from "@scure/bip39";
+import { HexInput } from "../../types";
 
 export type DerivedKeys = {
   key: Uint8Array;
@@ -15,6 +16,7 @@ export type DerivedKeys = {
  */
 export const APTOS_HARDENED_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
 export const APTOS_BIP44_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+\/[0-9]+$/;
+export const APTOS_BIP44_DEFAULT_DERIVATION_PATH = "m/44'/637'/0'/0'/0'";
 
 /**
  * A list of supported key types and associated seeds
@@ -90,6 +92,35 @@ const removeApostrophes = (val: string): string => val.replace("'", "");
  * @param path
  */
 export const splitPath = (path: string): Array<string> => path.split("/").slice(1).map(removeApostrophes);
+
+/**
+ * @param path the BIP44 path
+ * @param seed the seed phrase created by the mnemonics
+ * @param offset the offset used for key derivation, defaults to 0x80000000
+ * @returns
+ */
+export function fromDerivationPath(
+  path: string,
+  hashSeed: HexInput,
+  seed: Uint8Array,
+  offset = HARDENED_OFFSET,
+): Uint8Array {
+  if (offset === HARDENED_OFFSET && !isValidHardenedPath(path)) {
+    throw new Error(`Invalid hardened derivation path ${path}`);
+  } else if (offset !== HARDENED_OFFSET && !isValidBIP44Path(path)) {
+    throw new Error(`Invalid derivation path ${path}`);
+  }
+  const { key, chainCode } = deriveKey(hashSeed, seed);
+
+  const segments = splitPath(path).map((el) => parseInt(el, 10));
+
+  // Derive the child key based on the path
+  const { key: privateKey } = segments.reduce((parentKeys, segment) => CKDPriv(parentKeys, segment + offset), {
+    key,
+    chainCode,
+  });
+  return privateKey;
+}
 
 /**
  * Normalizes the mnemonic by removing extra whitespace and making it lowercase
