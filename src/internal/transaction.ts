@@ -121,28 +121,53 @@ export async function waitForTransaction(args: {
 
   let isPending = true;
   let timeElapsed = 0;
-  let longWaitOnce = false;
-  let isFirstTry = true;
   let lastTxn: TransactionResponse | undefined;
   let lastError: AptosApiError | undefined;
   let backoffIntervalMs = 200;
   const backoffMultiplier = 1.5;
 
+  function handleAPIError(e: any) {
+    // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
+    const isAptosApiError = e instanceof AptosApiError;
+    if (!isAptosApiError) {
+      throw e; // This would be unexpected
+    }
+    lastError = e;
+    const isRequestError = e.status !== 404 && e.status >= 400 && e.status < 500;
+    if (isRequestError) {
+      throw e;
+    }
+  }
+
+  // check to see if the txn is already on the blockchain
+  try {
+    // eslint-disable-next-line no-await-in-loop
+    lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+    isPending = lastTxn.type === TransactionResponseType.Pending;
+  } catch (e) {
+    handleAPIError(e);
+  }
+
+  // If the transaction is pending, we do a long wait once to avoid polling
+  if (isPending) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
+      isPending = lastTxn.type === TransactionResponseType.Pending;
+    } catch (e) {
+      handleAPIError(e);
+    }
+    timeElapsed = 1; // Long wait takes about 1 second
+  }
+
+  // Now we do polling to see if the transaction is still pending
   while (isPending) {
     if (timeElapsed >= timeoutSecs) {
       break;
     }
     try {
-      if (!isFirstTry && !longWaitOnce) {
-        // We are greedy, hence do a 'long wait' once to shave off latencies resulting from polling with backoff
-        longWaitOnce = true;
-        // eslint-disable-next-line no-await-in-loop
-        lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
-      } else {
-        isFirstTry = false;
-        // eslint-disable-next-line no-await-in-loop
-        lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
-      }
+      // eslint-disable-next-line no-await-in-loop
+      lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
 
       isPending = lastTxn.type === TransactionResponseType.Pending;
 
@@ -150,16 +175,7 @@ export async function waitForTransaction(args: {
         break;
       }
     } catch (e) {
-      // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
-      const isAptosApiError = e instanceof AptosApiError;
-      if (!isAptosApiError) {
-        throw e; // This would be unexpected
-      }
-      lastError = e;
-      const isRequestError = e.status !== 404 && e.status >= 400 && e.status < 500;
-      if (isRequestError) {
-        throw e;
-      }
+      handleAPIError(e);
     }
     // eslint-disable-next-line no-await-in-loop
     await sleep(backoffIntervalMs);
