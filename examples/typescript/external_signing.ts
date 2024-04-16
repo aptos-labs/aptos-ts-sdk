@@ -3,7 +3,7 @@
 /**
  * This example shows an example of how one might send transactions elsewhere to be signed outside the SDK.
  */
-
+import { ed25519 } from "@noble/curves/ed25519";
 import {
   Account,
   AccountAddress,
@@ -12,14 +12,12 @@ import {
   Aptos,
   AptosConfig,
   Deserializer,
-  Ed25519PrivateKey,
   Ed25519Signature,
   Network,
   NetworkToNetworkName,
   Ed25519Account,
   SimpleTransaction,
 } from "@aptos-labs/ts-sdk";
-import nacl from "tweetnacl";
 
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
@@ -56,7 +54,7 @@ class ExternalSigner {
 
   public isSetup: boolean;
 
-  private extractedPrivateKey: nacl.SignKeyPair;
+  private extractedPrivateKey: Uint8Array;
 
   constructor(name: string, initialBalance: number) {
     const config = new AptosConfig({ network: APTOS_NETWORK });
@@ -65,9 +63,7 @@ class ExternalSigner {
     this.name = name;
     this.initialBalance = initialBalance;
     this.isSetup = false;
-    this.extractedPrivateKey = nacl.sign.keyPair.fromSeed(
-      this.account.privateKey.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH),
-    );
+    this.extractedPrivateKey = this.account.privateKey.toUint8Array();
   }
 
   address(): AccountAddress {
@@ -111,7 +107,7 @@ class ExternalSigner {
     const signingMessage = this.aptos.getSigningMessage({ transaction });
 
     // Pretend that it's an external signer that only knows bytes using a raw crypto library
-    const signature = nacl.sign.detached(signingMessage, this.extractedPrivateKey.secretKey);
+    const signature = ed25519.sign(signingMessage, this.extractedPrivateKey);
 
     // Construct the authenticator with the public key for the submission
     const authenticator = new AccountAuthenticatorEd25519(this.account.publicKey, new Ed25519Signature(signature));

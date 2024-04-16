@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import nacl from "tweetnacl";
+import { ed25519 } from "@noble/curves/ed25519";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
@@ -65,7 +65,8 @@ export class Ed25519PublicKey extends AccountPublicKey {
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
-    return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+
+    return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
 
   authKey(): AuthenticationKey {
@@ -126,7 +127,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * The Ed25519 signing key
    * @private
    */
-  private readonly signingKeyPair: nacl.SignKeyPair;
+  private readonly signingKey: Hex;
 
   // region Constructors
 
@@ -144,7 +145,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
     }
 
     // Create keyPair from Private key in Uint8Array format
-    this.signingKeyPair = nacl.sign.keyPair.fromSeed(privateKeyHex.toUint8Array().slice(0, Ed25519PrivateKey.LENGTH));
+    this.signingKey = privateKeyHex;
   }
 
   /**
@@ -153,8 +154,8 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @returns Ed25519PrivateKey
    */
   static generate(): Ed25519PrivateKey {
-    const keyPair = nacl.sign.keyPair();
-    return new Ed25519PrivateKey(keyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH));
+    const keyPair = ed25519.utils.randomPrivateKey();
+    return new Ed25519PrivateKey(keyPair);
   }
 
   /**
@@ -207,7 +208,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @returns Ed25519PublicKey
    */
   publicKey(): Ed25519PublicKey {
-    const bytes = this.signingKeyPair.publicKey;
+    const bytes = ed25519.getPublicKey(this.signingKey.toUint8Array());
     return new Ed25519PublicKey(bytes);
   }
 
@@ -220,7 +221,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   sign(message: HexInput): Ed25519Signature {
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign).toUint8Array();
-    const signatureBytes = nacl.sign.detached(messageBytes, this.signingKeyPair.secretKey);
+    const signatureBytes = ed25519.sign(messageBytes, this.signingKey.toUint8Array());
     return new Ed25519Signature(signatureBytes);
   }
 
@@ -230,7 +231,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @returns Uint8Array representation of the private key
    */
   toUint8Array(): Uint8Array {
-    return this.signingKeyPair.secretKey.slice(0, Ed25519PrivateKey.LENGTH);
+    return this.signingKey.toUint8Array();
   }
 
   /**
@@ -239,7 +240,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @returns string representation of the private key
    */
   toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
+    return this.signingKey.toString();
   }
 
   // endregion
