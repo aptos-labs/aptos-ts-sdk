@@ -3,6 +3,7 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
 
 # 1.12.2 (2024-04-10)
 
