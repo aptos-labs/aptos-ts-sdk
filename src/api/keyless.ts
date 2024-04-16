@@ -1,10 +1,27 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralKeyPair, KeylessAccount, MultiKeyAccount } from "../account";
+import { Account, EphemeralKeyPair, KeylessAccount, MultiKeyAccount } from "../account";
 import { deriveKeylessAccount, getPepper } from "../internal/keyless";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
+
+interface BaseDeriveKeylessAccountArgs {
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  uidKey?: string;
+  pepper?: HexInput;
+  extraFieldKey?: string;
+  fetchProofAsync?: boolean;
+}
+
+interface DeriveKeylessAccountArgs extends BaseDeriveKeylessAccountArgs {
+  disableConnect: true;
+}
+
+interface DeriveKeylessAccountWithConnectArgs extends BaseDeriveKeylessAccountArgs {
+  disableConnect?: boolean;
+}
 
 /**
  * A class to query all `OIDB` related queries on Aptos.
@@ -22,24 +39,17 @@ export class Keyless {
     return getPepper({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * TODO
-   *
-   * @param args.jwt jwt token
-   * @param args.ephemeralKeyPair
-   * @param args.uidKey
-   * @param args.pepper
-   * @returns
-   */
-    async deriveKeylessAccount(args: {
-      jwt: string;
-      ephemeralKeyPair: EphemeralKeyPair;
-      uidKey?: string;
-      pepper?: HexInput;
-      extraFieldKey?: string;
-      disableConnect?: boolean;
-      fetchProofAsync?: boolean;
-    }): Promise<KeylessAccount | MultiKeyAccount> {
-      return deriveKeylessAccount({ aptosConfig: this.config, ...args });
-    }
+  async deriveKeylessAccount(args: DeriveKeylessAccountArgs): Promise<KeylessAccount>;
+  async deriveKeylessAccount(args: DeriveKeylessAccountWithConnectArgs): Promise<MultiKeyAccount>;
+  async deriveKeylessAccount(args: {
+    jwt: string;
+    ephemeralKeyPair: EphemeralKeyPair;
+    uidKey?: string;
+    pepper?: HexInput;
+    extraFieldKey?: string;
+    disableConnect?: boolean;
+    fetchProofAsync?: boolean;
+  }): Promise<Account> {
+    return deriveKeylessAccount({ aptosConfig: this.config, ...args });
+  }
 }
