@@ -39,7 +39,7 @@ export async function getModuleEventsByEventType(args: {
 
   const customOptions = {
     where: whereCondition,
-    pagination: options,
+    limit: options?.limit,
     orderBy: options?.orderBy,
   };
 
@@ -62,7 +62,7 @@ export async function getAccountEventsByCreationNumber(args: {
 
   const customOptions = {
     where: whereCondition,
-    pagination: options,
+    limit: options?.limit,
     orderBy: options?.orderBy,
   };
 
@@ -85,7 +85,7 @@ export async function getAccountEventsByEventType(args: {
 
   const customOptions = {
     where: whereCondition,
-    pagination: options,
+    limit: options?.limit,
     orderBy: options?.orderBy,
   };
 
