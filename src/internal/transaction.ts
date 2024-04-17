@@ -97,7 +97,7 @@ export async function isTransactionPending(args: {
   }
 }
 
-async function longWaitForTransaction(args: {
+export async function longWaitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
 }): Promise<TransactionResponse> {
@@ -105,7 +105,7 @@ async function longWaitForTransaction(args: {
   const { data } = await getAptosFullNode<{}, TransactionResponse>({
     aptosConfig,
     path: `transactions/wait_by_hash/${transactionHash}`,
-    originMethod: "waitTransactionByHash",
+    originMethod: "longWaitForTransaction",
   });
   return data;
 }
