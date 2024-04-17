@@ -24,6 +24,8 @@
         "default": "./dist/esm/index.mjs"
       }
     },
+    "./dist/common/cli/index.js": "./dist/common/cli/index.js",
+    "./dist/esm/cli/index.mjs": "./dist/esm/cli/index.mjs",
     "./package.json": "./package.json"
   },
   "files": [
