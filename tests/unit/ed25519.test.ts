@@ -49,6 +49,16 @@ describe("Ed25519PublicKey", () => {
     ).toBe(false);
   });
 
+  it("should fail malleable signatures", () => {
+    const signature = new Ed25519Signature(
+      // eslint-disable-next-line max-len
+      "ad0828843228048fee9ead35cf0decc8155342e967993851f70bfc0bb9e97719a094c6f956e5cd65872fa769e7dce26f6e637eb4ff70c3f6aafc5f06fbc300ad",
+    );
+
+    // Verify with malleable message
+    expect(signature.checkSMalleability()).toBe(false);
+  });
+
   it("should serialize correctly", () => {
     const publicKey = new Ed25519PublicKey(ed25519.publicKey);
     const serializer = new Serializer();

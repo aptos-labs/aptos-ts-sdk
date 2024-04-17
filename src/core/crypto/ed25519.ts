@@ -14,6 +14,14 @@ import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
 /**
+ * L is the value that greater than or equal to will produce a non-canonical signature, and must be rejected
+ */
+const L: number[] = [
+  0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10,
+];
+
+/**
  * Represents the public key of an Ed25519 key pair.
  *
  * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
@@ -65,6 +73,10 @@ export class Ed25519PublicKey extends AccountPublicKey {
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
+    // Also verify malleability
+    if (!signature.checkSMalleability()) {
+      return false;
+    }
 
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
@@ -311,6 +323,24 @@ export class Ed25519Signature extends Signature {
   static deserialize(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
+  }
+
+  /**
+   * Checks if an ED25519 signature is non-canonical.
+   */
+  checkSMalleability(): boolean {
+    const s = this.toUint8Array().slice(32);
+
+    for (let i = s.length - 1; i >= 0; i -= 1) {
+      if (s[i] < L[i]) {
+        return true;
+      }
+      if (s[i] > L[i]) {
+        return false;
+      }
+    }
+    // As this stage S == L which implies a non-canonical S.
+    return false;
   }
 
   // endregion
