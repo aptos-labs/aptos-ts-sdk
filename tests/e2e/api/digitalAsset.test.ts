@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Aptos, AptosConfig, Bool, MoveString, MoveVector, Network, U8 } from "../../../src";
+import { Account, Bool, MoveString, MoveVector, U8 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
 
 const collectionName = "Test Collection";
 const collectionDescription = "My new collection!";
@@ -56,6 +56,8 @@ async function setupToken(): Promise<string> {
     })
   )[0].current_token_data?.token_data_id!;
 }
+
+jest.setTimeout(20000);
 
 describe("DigitalAsset", () => {
   let tokenAddress: string;

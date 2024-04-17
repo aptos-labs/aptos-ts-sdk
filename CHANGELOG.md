@@ -4,6 +4,36 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.12.2 (2024-04-10)
+
+- Revert export `LocalNode` module
+
+# 1.12.1 (2024-04-09)
+
+- Export `LocalNode` module
+
+# 1.12.0 (2024-04-08)
+
+- [`Breaking`] Change `getOwnerAddress` and `getTargetAddress` return type to `AccountAddress`
+- Add `message` input type verification on `sign` and `verifySignature` functions and convert it into a correct type if needed
+- [`Breaking`] Change `fromString` to `fromHexString` on `Hex` class
+- Introduce Serializable `SimpleTransaction` and `MultiAgentTransaction` modules
+- [`Breaking`] Change any generate transaction function to return `SimpleTransaction` or `MultiAgentTransaction` instance
+- Adds `getUserTransactionHash` which can generate a transaction hash after signing, but before submission
+- Add function to create resource address locally
+
+# 1.11.0 (2024-03-26)
+
+- Use indexer API via API Gateway
+- Add support to allow setting per-backend (fullnode, indexer, faucet) configuration
+- [`Breaking`] `AUTH_TOKEN` client config moved to be under `faucetConfig` property
+- Handle `Unauthorized` server error
+- Add function to create object address locally
+- Add function to create token object address locally
+- Add signers to entry function ABI for future signature count checking
+- [`Breaking`] Add type-safe view functions with ABI support
+- [`Fix`] ANS `getName` and `getDomainSubdomains` now appropriately ignores invalid and expired names
+
 # 1.10.0 (2024-03-11)
 
 - [`Deprecate`] IIFE build support

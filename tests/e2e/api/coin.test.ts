@@ -8,6 +8,7 @@ import {
   TransactionPayloadEntryFunction,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 describe("coin", () => {
   test("it generates a transfer coin transaction with AptosCoin coin type", async () => {
@@ -41,8 +42,7 @@ describe("coin", () => {
   });
 
   test("it generates a transfer coin transaction with a custom coin type", async () => {
-    const config = new AptosConfig({ network: Network.LOCAL });
-    const aptos = new Aptos(config);
+    const { aptos } = getAptosClient();
     const sender = Account.generate();
     const recipient = Account.generate();
     await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: FUND_AMOUNT });
@@ -74,8 +74,7 @@ describe("coin", () => {
   test(
     "it transfers APT coin amount from sender to recipient",
     async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const sender = Account.generate();
       const recipient = Account.generate();
 

@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, Account, TransactionResponse, U64 } from "../../../src";
+import { Account, TransactionResponse, U64 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 // use it here since all tests use the same configuration
-const config = new AptosConfig({ network: Network.LOCAL });
-const aptos = new Aptos(config);
+const { aptos } = getAptosClient();
 
 describe("transaction api", () => {
   test("it queries for the network estimated gas price", async () => {

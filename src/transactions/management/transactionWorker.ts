@@ -6,9 +6,10 @@ import { Account } from "../../account";
 import { waitForTransaction } from "../../internal/transaction";
 import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
 import { PendingTransactionResponse, TransactionResponse } from "../../types";
-import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData, SimpleTransaction } from "../types";
+import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData } from "../types";
 import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
+import { SimpleTransaction } from "../instances/simpleTransaction";
 
 export const promiseFulfilledStatus = "fulfilled";
 

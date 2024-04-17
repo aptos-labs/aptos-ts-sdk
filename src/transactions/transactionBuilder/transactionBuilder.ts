@@ -48,9 +48,7 @@ import {
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
   InputGenerateSingleSignerRawTransactionArgs,
-  SimpleTransaction,
   InputGenerateTransactionOptions,
-  MultiAgentTransaction,
   InputScriptData,
   InputSimulateTransactionData,
   InputMultiSigDataWithRemoteABI,
@@ -60,11 +58,16 @@ import {
   InputGenerateTransactionPayloadDataWithABI,
   InputEntryFunctionDataWithABI,
   InputMultiSigDataWithABI,
+  InputViewFunctionDataWithRemoteABI,
+  InputViewFunctionDataWithABI,
+  FunctionABI,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { SimpleTransaction } from "../instances/simpleTransaction";
+import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 import { deriveTransactionType } from "./signingMessage";
 
 /**
@@ -97,15 +100,17 @@ export async function generateTransactionPayload(
   if (isScriptDataInput(args)) {
     return generateTransactionPayloadScript(args);
   }
-
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  // We fetch the entry function ABI, and then pretend that we already had the ABI
-  const functionAbi = await memoizeAsync(
-    async () => fetchEntryFunctionAbi(moduleAddress, moduleName, functionName, args.aptosConfig),
-    `entry-function-${args.aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
+  const functionAbi = await fetchAbi({
+    key: "entry-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchEntryFunctionAbi,
+  });
 
   // Fill in the ABI
   return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
@@ -160,6 +165,53 @@ export function generateTransactionPayloadWithABI(
 
   // Otherwise send as an entry function
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
+}
+
+export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  const functionAbi = await fetchAbi({
+    key: "view-function",
+    moduleAddress,
+    moduleName,
+    functionName,
+    aptosConfig: args.aptosConfig,
+    abi: args.abi,
+    fetch: fetchViewFunctionAbi,
+  });
+
+  // Fill in the ABI
+  return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
+}
+
+export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
+  const functionAbi = args.abi;
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  // Ensure that all type arguments are typed properly
+  const typeArguments = standardizeTypeTags(args.typeArguments);
+
+  // Check the type argument count against the ABI
+  if (typeArguments.length !== functionAbi.typeParameters.length) {
+    throw new Error(
+      `Type argument count mismatch, expected ${functionAbi.typeParameters.length}, received ${typeArguments.length}`,
+    );
+  }
+
+  // Check all BCS types, and convert any non-BCS types
+  const functionArguments: Array<EntryFunctionArgumentTypes> =
+    args?.functionArguments?.map((arg, i) => convertArgument(args.function, functionAbi, arg, i, typeArguments)) ?? [];
+
+  // Check that all arguments are accounted for
+  if (functionArguments.length !== functionAbi.parameters.length) {
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Too few arguments for '${moduleAddress}::${moduleName}::${functionName}', expected ${functionAbi.parameters.length} but got ${functionArguments.length}`,
+    );
+  }
+
+  // Generate entry function payload
+  return EntryFunction.build(`${moduleAddress}::${moduleName}`, functionName, typeArguments, functionArguments);
 }
 
 function generateTransactionPayloadScript(args: InputScriptData) {
@@ -287,17 +339,14 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
     const signers: Array<AccountAddress> =
       args.secondarySignerAddresses?.map((signer) => AccountAddress.from(signer)) ?? [];
 
-    return {
-      rawTransaction: rawTxn,
-      secondarySignerAddresses: signers,
-      feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
-    };
+    return new MultiAgentTransaction(
+      rawTxn,
+      signers,
+      args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
+    );
   }
   // return the raw transaction
-  return {
-    rawTransaction: rawTxn,
-    feePayerAddress: args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined,
-  };
+  return new SimpleTransaction(rawTxn, args.feePayerAddress ? AccountAddress.from(args.feePayerAddress) : undefined);
 }
 
 /**
@@ -445,6 +494,36 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 }
 
 /**
+ * Hashes the set of values with a SHA-3 256 hash
+ * @param input array of UTF-8 strings or Uint8array byte arrays
+ */
+export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
+  const hash = sha3Hash.create();
+  for (const item of input) {
+    hash.update(item);
+  }
+  return hash.digest();
+}
+
+/**
+ * The domain separated prefix for hashing transacitons
+ */
+const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
+
+/**
+ * Generates a user transaction hash for the given transaction payload.  It must already have an authenticator
+ * @param args InputSubmitTransactionData
+ */
+export function generateUserTransactionHash(args: InputSubmitTransactionData): string {
+  const signedTransaction = generateSignedTransaction(args);
+
+  // Transaction signature is defined as, the domain separated prefix based on struct (Transaction)
+  // Then followed by the type of the transaction for the enum, UserTransaction is 0
+  // Then followed by BCS encoded bytes of the signed transaction
+  return new Hex(hashValues([TRANSACTION_PREFIX, new Uint8Array([0]), signedTransaction])).toString();
+}
+
+/**
  * Generate a multi signers signed transaction that can be submitted to chain
  *
  * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
@@ -491,4 +570,43 @@ export function generateMultiSignersSignedTransaction(
   throw new Error(
     `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
   );
+}
+
+/**
+ * Fetches and caches ABIs with allowing for pass-through on provided ABIs
+ * @param key
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ * @param abi
+ * @param fetch
+ */
+async function fetchAbi<T extends FunctionABI>({
+  key,
+  moduleAddress,
+  moduleName,
+  functionName,
+  aptosConfig,
+  abi,
+  fetch,
+}: {
+  key: string;
+  moduleAddress: string;
+  moduleName: string;
+  functionName: string;
+  aptosConfig: AptosConfig;
+  abi?: T;
+  fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
+}): Promise<T> {
+  if (abi) {
+    return abi;
+  }
+
+  // We fetch the entry function ABI, and then pretend that we already had the ABI
+  return memoizeAsync(
+    async () => fetch(moduleAddress, moduleName, functionName, aptosConfig),
+    `${key}-${aptosConfig.network}-${moduleAddress}-${moduleName}-${functionName}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
 }

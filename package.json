@@ -89,5 +89,5 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.3.3"
   },
-  "version": "1.10.0-zeta.6"
+  "version": "1.12.2-zeta.0"
 }

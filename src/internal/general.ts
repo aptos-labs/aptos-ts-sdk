@@ -18,10 +18,7 @@ import {
   GraphqlQuery,
   LedgerInfo,
   LedgerVersionArg,
-  MoveValue,
   TableItemRequest,
-  ViewRequest,
-  InputViewRequestData,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -82,27 +79,6 @@ export async function getTableItem<T>(args: {
     body: data,
   });
   return response.data as T;
-}
-
-export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: {
-  aptosConfig: AptosConfig;
-  payload: InputViewRequestData;
-  options?: LedgerVersionArg;
-}): Promise<T> {
-  const { aptosConfig, payload, options } = args;
-  const { data } = await postAptosFullNode<ViewRequest, MoveValue[]>({
-    aptosConfig,
-    originMethod: "view",
-    path: "view",
-    params: { ledger_version: options?.ledgerVersion },
-    body: {
-      function: payload.function,
-      type_arguments: payload.typeArguments ?? [],
-      arguments: payload.functionArguments ?? [],
-    },
-  });
-
-  return data as T;
 }
 
 export async function getChainTopUserTransactions(args: {
@@ -168,7 +144,7 @@ export async function getProcessorStatus(args: {
   const { aptosConfig, processorType } = args;
 
   const whereCondition: { processor: { _eq: string } } = {
-    processor: { _eq: processorType.valueOf() },
+    processor: { _eq: processorType },
   };
 
   const graphqlQuery = {

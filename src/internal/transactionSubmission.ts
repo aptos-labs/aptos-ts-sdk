@@ -25,18 +25,18 @@ import {
   AnyRawTransaction,
   InputSimulateTransactionData,
   InputGenerateTransactionOptions,
-  SimpleTransaction,
   InputGenerateTransactionPayloadDataWithRemoteABI,
   InputSubmitTransactionData,
   InputGenerateMultiAgentRawTransactionData,
   InputGenerateSingleSignerRawTransactionData,
-  MultiAgentTransaction,
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
 import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -109,20 +109,14 @@ export async function buildTransactionPayload(
     // TODO: Add ABI checking later
     payload = await generateTransactionPayload(data);
   } else if ("multisigAddress" in data) {
-    if (data.abi) {
-      payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
-    } else {
-      generateTransactionPayloadData = {
-        aptosConfig,
-        multisigAddress: data.multisigAddress,
-        function: data.function,
-        functionArguments: data.functionArguments,
-        typeArguments: data.typeArguments,
-      };
-      payload = await generateTransactionPayload(generateTransactionPayloadData);
-    }
-  } else if (data.abi) {
-    payload = generateTransactionPayloadWithABI({ abi: data.abi, ...data });
+    generateTransactionPayloadData = {
+      aptosConfig,
+      multisigAddress: data.multisigAddress,
+      function: data.function,
+      functionArguments: data.functionArguments,
+      typeArguments: data.typeArguments,
+    };
+    payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else {
     generateTransactionPayloadData = {
       aptosConfig,
@@ -366,9 +360,9 @@ export async function rotateAuthKey(args: {
     data: {
       function: "0x1::account::rotate_authentication_key",
       functionArguments: [
-        new U8(fromAccount.signingScheme.valueOf()), // from scheme
+        new U8(fromAccount.signingScheme), // from scheme
         MoveVector.U8(fromAccount.publicKey.toUint8Array()),
-        new U8(newAccount.signingScheme.valueOf()), // to scheme
+        new U8(newAccount.signingScheme), // to scheme
         MoveVector.U8(newAccount.publicKey.toUint8Array()),
         MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
         MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),

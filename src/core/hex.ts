@@ -37,7 +37,7 @@ export enum HexInvalidReason {
  * with a leading 0x prefix, regardless of what the input format was.
  *
  * These are some other ways to chain the functions together:
- * - `Hex.fromString({ hexInput: "0x1f" }).toUint8Array()`
+ * - `Hex.fromHexString({ hexInput: "0x1f" }).toUint8Array()`
  * - `new Hex([1, 3]).toStringWithoutPrefix()`
  */
 export class Hex {
@@ -95,7 +95,7 @@ export class Hex {
    *
    * @returns Hex
    */
-  static fromString(str: string): Hex {
+  static fromHexString(str: string): Hex {
     let input = str;
 
     if (input.startsWith("0x")) {
@@ -132,7 +132,7 @@ export class Hex {
    */
   static fromHexInput(hexInput: HexInput): Hex {
     if (hexInput instanceof Uint8Array) return new Hex(hexInput);
-    return Hex.fromString(hexInput);
+    return Hex.fromHexString(hexInput);
   }
 
   // ===
@@ -150,7 +150,7 @@ export class Hex {
    */
   static isValid(str: string): ParsingResult<HexInvalidReason> {
     try {
-      Hex.fromString(str);
+      Hex.fromHexString(str);
       return { valid: true };
     } catch (error: any) {
       return {

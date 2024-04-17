@@ -7,7 +7,7 @@ import {
   AnyNumber,
   Aptos,
   AptosConfig,
-  InputViewRequestData,
+  InputViewFunctionData,
   Network,
   NetworkToNetworkName,
 } from "@aptos-labs/ts-sdk";
@@ -127,7 +127,7 @@ const getFaBalance = async (owner: Account, assetType: string): Promise<number> 
 
 /** Return the address of the managed fungible asset that's created when this module is deployed */
 async function getMetadata(admin: Account): Promise<string> {
-  const payload: InputViewRequestData = {
+  const payload: InputViewFunctionData = {
     function: `${admin.accountAddress}::fa_coin::get_metadata`,
     functionArguments: [],
   };

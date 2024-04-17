@@ -11,7 +11,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Bool, MoveString, MoveVector, U64 } from "../bcs";
 import { AccountAddress, AccountAddressInput } from "../core";
-import { EntryFunctionABI, InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
+import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import {
   AnyNumber,
   GetCollectionDataResponse,
@@ -54,6 +54,7 @@ import {
   TypeTagVector,
 } from "../transactions";
 import { Account } from "../account";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 // A property type map for the user input and what Move expects
 const PropertyTypeMap = {

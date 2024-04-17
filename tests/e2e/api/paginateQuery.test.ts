@@ -1,8 +1,7 @@
-import { AptosConfig, Network, Aptos } from "../../../src";
+import { getAptosClient } from "../helper";
 
 describe("PaginateQuery", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos } = getAptosClient();
 
   test("it should paginate correctly on indexer queries", async () => {
     const events = await aptos.getEvents();

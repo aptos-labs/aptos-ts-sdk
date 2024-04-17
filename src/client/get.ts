@@ -59,8 +59,8 @@ export async function get<Req extends {}, Res extends {}>(
       method: "GET",
       originMethod,
       path,
-      contentType: contentType?.valueOf(),
-      acceptType: acceptType?.valueOf(),
+      contentType,
+      acceptType,
       params,
       overrides: {
         ...aptosConfig.clientConfig,
@@ -68,13 +68,25 @@ export async function get<Req extends {}, Res extends {}>(
       },
     },
     aptosConfig,
+    options.type,
   );
 }
 
 export async function getAptosFullNode<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
-  return get<Req, Res>({ ...options, type: AptosApiType.FULLNODE });
+  const { aptosConfig } = options;
+
+  return get<Req, Res>({
+    ...options,
+    type: AptosApiType.FULLNODE,
+    overrides: {
+      ...aptosConfig.clientConfig,
+      ...aptosConfig.fullnodeConfig,
+      ...options.overrides,
+      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
+    },
+  });
 }
 
 export async function getAptosPepperService<Req extends {}, Res extends {}>(

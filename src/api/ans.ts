@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
   getExpiration,
@@ -22,9 +22,10 @@ import {
   getDomainSubdomains,
   GetDomainSubdomainsArgs,
 } from "../internal/ans";
-import { GetANSNameResponse, MoveAddressType } from "../types";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions/types";
+import { GetANSNameResponse } from "../types";
+import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
+import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { Account } from "../account";
 
 /**
@@ -44,9 +45,9 @@ export class ANS {
    *
    * @param args.name - A string of the name to retrieve
    *
-   * @returns MoveAddressType if the name is owned, undefined otherwise
+   * @returns AccountAddress if the name is owned, undefined otherwise
    */
-  async getOwnerAddress(args: { name: string }): Promise<MoveAddressType | undefined> {
+  async getOwnerAddress(args: { name: string }): Promise<AccountAddress | undefined> {
     return getOwnerAddress({ aptosConfig: this.config, ...args });
   }
 
@@ -79,9 +80,9 @@ export class ANS {
    *
    * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
    *
-   * @returns MoveAddressType if the name has a target, undefined otherwise
+   * @returns AccountAddress if the name has a target, undefined otherwise
    */
-  async getTargetAddress(args: { name: string }): Promise<MoveAddressType | undefined> {
+  async getTargetAddress(args: { name: string }): Promise<AccountAddress | undefined> {
     return getTargetAddress({ aptosConfig: this.config, ...args });
   }
 

@@ -1,17 +1,26 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Aptos, Network, Account, AnyRawTransaction, U8, AptosConfig, GetANSNameResponse } from "../../../src";
+import {
+  Aptos,
+  Network,
+  Account,
+  AnyRawTransaction,
+  U8,
+  AptosConfig,
+  GetANSNameResponse,
+  AccountAddress,
+} from "../../../src";
 import { isValidANSName } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
+import { getAptosClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
 
 // This isn't great, we should look into deploying outside the test
 jest.setTimeout(20000);
 
 describe("ANS", () => {
-  const config = new AptosConfig({ network: Network.LOCAL });
-  const aptos = new Aptos(config);
+  const { aptos, config } = getAptosClient();
 
   let changeExpirationDate: (
     tokenMode: 0 | 1,
@@ -212,7 +221,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.getOwnerAddress({ name });
-      expect(owner).toEqual(alice.accountAddress.toString());
+      expect(owner?.toString()).toEqual(alice.accountAddress.toString());
     });
 
     test("it mints a domain name and gives it to the specified address", async () => {
@@ -230,7 +239,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.getOwnerAddress({ name });
-      expect(owner).toEqual(bob.accountAddress.toString());
+      expect(owner?.toString()).toEqual(bob.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the sender", async () => {
@@ -254,7 +263,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
-      expect(owner).toEqual(alice.accountAddress.toString());
+      expect(owner?.toString()).toEqual(alice.accountAddress.toString());
     });
 
     test("it mints a subdomain name and gives it to the specified address", async () => {
@@ -284,7 +293,7 @@ describe("ANS", () => {
       );
 
       const owner = await aptos.getOwnerAddress({ name: `${subdomainName}.${domainName}` });
-      expect(owner).toEqual(bob.accountAddress.toString());
+      expect(owner?.toString()).toEqual(bob.accountAddress.toString());
     });
   });
 
@@ -293,7 +302,7 @@ describe("ANS", () => {
     let bob: Account;
     let domainName: string;
     let subdomainName: string;
-    let addr: string | undefined;
+    let addr: AccountAddress | undefined;
 
     beforeEach(async () => {
       alice = Account.generate();
@@ -327,7 +336,7 @@ describe("ANS", () => {
       );
 
       addr = await aptos.getTargetAddress({ name });
-      expect(addr).toEqual(alice.accountAddress.toString());
+      expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
       await signAndSubmit(
         alice,
@@ -338,7 +347,7 @@ describe("ANS", () => {
         }),
       );
       addr = await aptos.getTargetAddress({ name });
-      expect(addr).toEqual(bob.accountAddress.toString());
+      expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
 
     test("it sets and gets the target address for a subdomain", async () => {
@@ -363,7 +372,7 @@ describe("ANS", () => {
       );
 
       addr = await aptos.getTargetAddress({ name });
-      expect(addr).toEqual(alice.accountAddress.toString());
+      expect(addr?.toString()).toEqual(alice.accountAddress.toString());
 
       await signAndSubmit(
         alice,
@@ -374,7 +383,7 @@ describe("ANS", () => {
         }),
       );
       addr = await aptos.getTargetAddress({ name });
-      expect(addr).toEqual(bob.accountAddress.toString());
+      expect(addr?.toString()).toEqual(bob.accountAddress.toString());
     });
   });
 
@@ -478,7 +487,7 @@ describe("ANS", () => {
       );
 
       // Change the expiration date of the name to be tomorrow
-      const newExpirationDate = Math.floor(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).valueOf() / 1000);
+      const newExpirationDate = Math.floor(new Date(Date.now() + 24 * 60 * 60 * 1000).getTime() / 1000);
       await changeExpirationDate(1, newExpirationDate, name);
 
       await signAndSubmit(alice, await aptos.renewDomain({ name, sender: alice }));

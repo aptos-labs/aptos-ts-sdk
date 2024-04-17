@@ -19,9 +19,9 @@ import {
   Aptos,
   AptosConfig,
   Ed25519PrivateKey,
+  InputViewFunctionData,
   Network,
   NetworkToNetworkName,
-  InputViewRequestData,
 } from "@aptos-labs/ts-sdk";
 import { createInterface } from "readline";
 // Default to devnet, but allow for overriding
@@ -38,7 +38,7 @@ const getOptimalLpAmount = async (
   token1Addr: AccountAddress,
   token2Addr: AccountAddress,
 ): Promise<void> => {
-  const payload: InputViewRequestData = {
+  const payload: InputViewFunctionData = {
     function: `${swap.toString()}::router::optimal_liquidity_amounts`,
     functionArguments: [token1Addr, token2Addr, false, "200000", "300000", "200", "300"],
   };

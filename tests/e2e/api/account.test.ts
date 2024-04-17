@@ -11,14 +11,14 @@ import {
   SigningSchemeInput,
   U64,
 } from "../../../src";
+import { getAptosClient } from "../helper";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
 
   describe("fetch data", () => {
     test("it fetches account data", async () => {
-      const config = new AptosConfig({ network: Network.LOCAL });
-      const aptos = new Aptos(config);
+      const { aptos } = getAptosClient();
       const data = await aptos.getAccountInfo({
         accountAddress: "0x1",
       });
