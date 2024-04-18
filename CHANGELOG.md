@@ -7,6 +7,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Include `x-aptos-typescript-sdk-origin-method` header on server request
 
+- Export `LocalNode` module using the module relative path
+
 # 1.12.2 (2024-04-10)
 
 - Revert export `LocalNode` module
