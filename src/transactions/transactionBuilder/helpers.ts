@@ -11,6 +11,21 @@ import {
 import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { MoveFunction, MoveFunctionId } from "../../types";
+import {
+  TypeTag,
+  TypeTagAddress,
+  TypeTagBool,
+  TypeTagGeneric,
+  TypeTagSigner,
+  TypeTagStruct,
+  TypeTagU128,
+  TypeTagU16,
+  TypeTagU256,
+  TypeTagU32,
+  TypeTagU64,
+  TypeTagU8,
+  TypeTagVector,
+} from "../typeTag";
 
 export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
   return typeof arg === "boolean";
@@ -127,4 +142,52 @@ export function getFunctionParts(functionArg: MoveFunctionId) {
   const moduleName = funcNameParts[1];
   const functionName = funcNameParts[2];
   return { moduleAddress, moduleName, functionName };
+}
+
+export function isTypeTagBool(param: TypeTag): boolean {
+  return param instanceof TypeTagBool;
+}
+
+export function isTypeTagAddress(param: TypeTag): boolean {
+  return param instanceof TypeTagAddress;
+}
+
+export function isTypeTagGeneric(param: TypeTag): boolean {
+  return param instanceof TypeTagGeneric;
+}
+
+export function isTypeTagSigner(param: TypeTag): boolean {
+  return param instanceof TypeTagSigner;
+}
+
+export function isTypeTagVector(param: TypeTag): boolean {
+  return param instanceof TypeTagVector;
+}
+
+export function isTypeTagStruct(param: TypeTag): boolean {
+  return param instanceof TypeTagStruct;
+}
+
+export function isTypeTagU8(param: TypeTag): boolean {
+  return param instanceof TypeTagU8;
+}
+
+export function isTypeTagU16(param: TypeTag): boolean {
+  return param instanceof TypeTagU16;
+}
+
+export function isTypeTagU32(param: TypeTag): boolean {
+  return param instanceof TypeTagU32;
+}
+
+export function isTypeTagU64(param: TypeTag): boolean {
+  return param instanceof TypeTagU64;
+}
+
+export function isTypeTagU128(param: TypeTag): boolean {
+  return param instanceof TypeTagU128;
+}
+
+export function isTypeTagU256(param: TypeTag): boolean {
+  return param instanceof TypeTagU256;
 }

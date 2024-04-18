@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Signature } from "../core";
-import { createProofChallenge, signProofChallenge } from "../internal/proofChallenge";
+import { createProofChallenge, getProofChallenge, signProofChallenge } from "../internal/proofChallenge";
 import { MoveFunctionId } from "../types";
 import { AptosConfig } from "./aptosConfig";
 import { ProofChallenge as ProofChallengeInstance } from "../transactions/instances/proofChallenge";
@@ -31,6 +31,20 @@ export class ProofChallenge {
     data: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   }): Promise<ProofChallengeInstance> {
     return createProofChallenge({
+      config: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Get the proog challenge in a human readable format
+   *
+   * @param args.struct The struct name
+   * @param args.data The serialized challenge
+   * @returns
+   */
+  async getProofChallenge(args: { struct: MoveFunctionId; data: Uint8Array }) {
+    return getProofChallenge({
       config: this.config,
       ...args,
     });

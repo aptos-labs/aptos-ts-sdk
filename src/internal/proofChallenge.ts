@@ -1,6 +1,11 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Account, Signature } from "../core";
-import { EntryFunctionArgumentTypes, SimpleEntryFunctionArgumentTypes, generateProofChallenge } from "../transactions";
+import {
+  EntryFunctionArgumentTypes,
+  SimpleEntryFunctionArgumentTypes,
+  deserializeProofChallenge,
+  generateProofChallenge,
+} from "../transactions";
 import { ProofChallenge } from "../transactions/instances/proofChallenge";
 import { MoveFunctionId } from "../types";
 
@@ -10,6 +15,11 @@ export async function createProofChallenge(args: {
   data: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
 }): Promise<ProofChallenge> {
   const challenge = generateProofChallenge({ ...args });
+  return challenge;
+}
+
+export async function getProofChallenge(args: { config: AptosConfig; struct: MoveFunctionId; data: Uint8Array }) {
+  const challenge = deserializeProofChallenge({ ...args });
   return challenge;
 }
 
