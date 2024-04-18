@@ -447,7 +447,7 @@ export async function mintSoulBoundTransaction(args: {
   description: string;
   name: string;
   uri: string;
-  recipient: AccountAddress;
+  recipient: AccountAddressInput;
   propertyKeys?: Array<string>;
   propertyTypes?: Array<PropertyType>;
   propertyValues?: Array<PropertyValue>;

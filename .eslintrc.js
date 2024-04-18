@@ -16,7 +16,7 @@ module.exports = {
   plugins: ["@typescript-eslint"],
   rules: {
     quotes: ["error", "double"],
-    "max-len": ["error", 130],
+    "max-len": ["error", 140],
     "import/extensions": ["error", "never"],
     "import/no-commonjs": ["error", { allowRequire: false, allowPrimitiveModules: false }],
     "import/no-extraneous-dependencies": [

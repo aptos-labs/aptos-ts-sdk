@@ -33,7 +33,7 @@ import {
   FungibleAssetActivitiesBoolExp,
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
-import { Account, AccountAddress } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -124,8 +124,8 @@ const faTransferAbi: EntryFunctionABI = {
 export async function transferFungibleAsset(args: {
   aptosConfig: AptosConfig;
   sender: Account;
-  fungibleAssetMetadataAddress: AccountAddress;
-  recipient: AccountAddress;
+  fungibleAssetMetadataAddress: AccountAddressInput;
+  recipient: AccountAddressInput;
   amount: AnyNumber;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {

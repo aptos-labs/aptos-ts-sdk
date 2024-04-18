@@ -23,6 +23,9 @@ export class Event {
   /**
    * Get module events by event type
    *
+   * @example
+   * const events = await aptos.getModuleEventsByEventType({eventType:"0x1::transaction_fee::FeeStatement"})
+   *
    * @param args.eventType - The event type
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
@@ -43,6 +46,9 @@ export class Event {
 
   /**
    * Get events by creation number and an account address
+   *
+   * @example
+   * const events = await aptos.getAccountEventsByCreationNumber({accountAddress:"0x123",creationNumber: 0})
    *
    * @param args.accountAddress - The account address
    * @param args.creationNumber - The event creation number
@@ -65,6 +71,9 @@ export class Event {
 
   /**
    * Get events by event type and an account address
+   *
+   * @example
+   * const events = await aptos.getAccountEventsByEventType({accountAddress:"0x123",eventType: "0x1::transaction_fee::FeeStatement"})
    *
    * @param args.accountAddress - The account address
    * @param args.eventType - The event type
@@ -90,15 +99,11 @@ export class Event {
    * Get all events
    *
    * An optional `where` can be passed in to filter out the response.
-   *@param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @example
-   * ```
-   * { where:
-   *  {
-   *   transaction_version: { _eq: 123456 },
-   *  }
-   * }
-   * ```
+   * const events = await aptos.getEvents()
+   * // with filtering
+   * const events = await aptos.getEvents({options: { where: { account_address: { _eq: "0x123" } } }});
    *
    * @returns GetEventsQuery response type
    */

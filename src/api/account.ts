@@ -99,7 +99,9 @@ export class Account {
    *
    * @returns Account module
    *
-   * @example An example of an account module
+   * @example
+   * const module = await aptos.getAccountModule({accountAddress:"0x456"})
+   * // An example of an account module response
    * ```
    * {
    *    bytecode: "0xa11ceb0b0600000006010002030206050807070f0d081c200",
@@ -120,6 +122,9 @@ export class Account {
    *
    * Note: In order to get all account transactions, this function may call the API
    * multiple times as it auto paginates.
+   *
+   * @example
+   * const transactions = await aptos.getAccountTransactions({accountAddress:"0x456"})
    *
    * @param args.accountAddress Aptos account address
    * @param args.options.offset The number transaction to start returning results from
@@ -142,6 +147,9 @@ export class Account {
    *
    * Note: In order to get all account resources, this function may call the API
    * multiple times as it auto paginates.
+   *
+   * @example
+   * const resources = await aptos.getAccountResources({accountAddress:"0x456"})
    *
    * @param args.accountAddress Aptos account address
    * @param args.options.offset The number resource to start returning results from
@@ -167,12 +175,9 @@ export class Account {
    *
    * @returns Account resource
    *
-   * @example An example of an account resource
-   * ```
-   * {
-   *    value: 6
-   * }
-   * ```
+   * @example
+   * const resource = await aptos.getAccountResource({accountAddress:"0x456"})
+   *
    */
   async getAccountResource<T extends {} = any>(args: {
     accountAddress: AccountAddressInput;
@@ -186,6 +191,9 @@ export class Account {
    * Looks up the account address for a given authentication key
    *
    * This handles both if the account's authentication key has been rotated or not.
+   *
+   * @example
+   * const accountAddress = await aptos.lookupOriginalAccountAddress({authenticationKey:account.accountAddress})
    *
    * @param args.authenticationKey The authentication key
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -202,6 +210,9 @@ export class Account {
 
   /**
    * Queries the current count of tokens owned by an account
+   *
+   * @example
+   * const tokensCount = await aptos.getAccountTokensCount({accountAddress:"0x456"})
    *
    * @param args.accountAddress The account address
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -227,6 +238,9 @@ export class Account {
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
+   *
+   * @example
+   * const accountOwnedTokens = await aptos.getAccountOwnedTokens({accountAddress:"0x456"})
    *
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -257,6 +271,9 @@ export class Account {
    *
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
+   *
+   * @example
+   * const accountOwnedTokens = await aptos.getAccountOwnedTokensFromCollectionAddress({accountAddress:"0x123", collectionAddress:"0x456"})
    *
    * @param args.accountAddress The account address we want to get the tokens for
    * @param args.collectionAddress The address of the collection being queried
@@ -290,6 +307,9 @@ export class Account {
    * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
    * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
    *
+   * @example
+   * const accountCollectionsWithOwnedTokens = await aptos.getAccountCollectionsWithOwnedTokens({accountAddress:"0x123"})
+   *
    * @param args.accountAddress The account address we want to get the collections for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.options.tokenStandard The NFT standard to query for
@@ -317,6 +337,9 @@ export class Account {
   /**
    * Queries the current count of transactions submitted by an account
    *
+   * @example
+   * const accountTransactionsCount = await aptos.getAccountTransactionsCount({accountAddress:"0x123"})
+   *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current count of transactions made by an account
@@ -338,6 +361,9 @@ export class Account {
 
   /**
    * Queries an account's coins data
+   *
+   * @example
+   * const accountCoinsData = await aptos.getAccountCoinsData({accountAddress:"0x123"})
    *
    * @param args.accountAddress The account address we want to get the coins data for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -368,6 +394,9 @@ export class Account {
   /**
    * Queries the current count of an account's coins aggregated
    *
+   * @example
+   * const accountCoinsCount = await aptos.getAccountCoinsCount({accountAddress:"0x123"})
+   *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current count of the aggregated count of all account's coins
@@ -387,6 +416,9 @@ export class Account {
   /**
    * Queries the account's APT amount
    *
+   * @example
+   * const accountAPTAmount = await aptos.getAccountAPTAmount({accountAddress:"0x123"})
+   *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current amount of account's APT
@@ -400,6 +432,9 @@ export class Account {
 
   /**
    * Queries the account's coin amount by the coin type
+   *
+   * @example
+   * const accountCoinAmount = await aptos.getAccountCoinAmount({accountAddress:"0x123", coinType:"0x1::aptos_coin::AptosCoin"})
    *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.coinType The coin type to query
@@ -421,6 +456,9 @@ export class Account {
 
   /**
    * Queries an account's owned objects
+   *
+   * @example
+   * const accountOwnedObjects = await aptos.getAccountOwnedObjects({accountAddress:"0x123"})
    *
    * @param args.accountAddress The account address we want to get the objects for
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -455,6 +493,9 @@ export class Account {
    * If the privateKey is a ED25519 type, it looks up the authentication key on chain, and uses it to resolve
    * whether it is a Legacy ED25519 key or a Unified ED25519 key. It then derives the account based
    * on that.
+   *
+   * @example
+   * const account = await aptos.deriveAccountFromPrivateKey({privateKey:new Ed25519PrivateKey("0x123")})
    *
    * @param args.privateKey An account private key
    * @returns Account type

@@ -63,6 +63,9 @@ export class Transaction {
    * Queries on-chain transactions. This function will not return pending
    * transactions. For that, use `getTransactionsByHash`.
    *
+   * @example
+   * const transactions = await aptos.getTransactions()
+   *
    * @param args.options.offset The number transaction to start with
    * @param args.options.limit Number of results to return
    *
@@ -78,6 +81,9 @@ export class Transaction {
   /**
    * Queries on-chain transaction by version. This function will not return pending transactions.
    *
+   * @example
+   * const transaction = await aptos.getTransactions({ledgerVersion:1})
+   *
    * @param args.ledgerVersion - Transaction version is an unsigned 64-bit number.
    * @returns On-chain transaction. Only on-chain transactions have versions, so this
    * function cannot be used to query pending transactions.
@@ -91,6 +97,10 @@ export class Transaction {
 
   /**
    * Queries on-chain transaction by transaction hash. This function will return pending transactions.
+   *
+   * @example
+   * const transaction = await aptos.getTransactionByHash({transactionHash:"0x123"})
+   *
    * @param args.transactionHash - Transaction hash should be hex-encoded bytes string with 0x prefix.
    * @returns Transaction from mempool (pending) or on-chain (committed) transaction
    */
@@ -109,6 +119,9 @@ export class Transaction {
    * 1. Create a hash message from the bytes: "Aptos::Transaction" bytes + the BCS-serialized Transaction bytes.
    * 2. Apply hash algorithm SHA3-256 to the hash message bytes.
    * 3. Hex-encode the hash bytes with 0x prefix.
+   *
+   * @example
+   * const isPendingTransaction = await aptos.isPendingTransaction({transactionHash:"0x123"})
    *
    * @param args.transactionHash A hash of transaction
    * @returns `true` if transaction is in pending state and `false` otherwise
@@ -135,6 +148,8 @@ export class Transaction {
    * 4. Transaction does not move past the pending state within `args.options.timeoutSecs` seconds.
    *    - The function will throw a WaitForTransactionError
    *
+   * @example
+   * const transaction = await aptos.waitForTransaction({transactionHash:"0x123"})
    *
    * @param args.transactionHash The hash of a transaction previously submitted to the blockchain.
    * @param args.options.timeoutSecs Timeout in seconds. Defaults to 20 seconds.
@@ -158,14 +173,9 @@ export class Transaction {
    * For more information {@link https://api.mainnet.aptoslabs.com/v1/spec#/operations/estimate_gas_price}
    *
    * @returns Object holding the outputs of the estimate gas API
+   *
    * @example
-   * ```
-   * {
-   *  gas_estimate: number;
-   *  deprioritized_gas_estimate?: number;
-   *  prioritized_gas_estimate?: number;
-   * }
-   * ```
+   * const gasPrice = await aptos.waitForTransaction()
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
     return getGasPriceEstimation({
@@ -178,6 +188,11 @@ export class Transaction {
    *
    * This allows a user to sign a transaction using their own preferred signing method, and
    * then submit it to the network.
+   *
+   * @example
+   * const transaction = await aptos.transaction.build.simple({...})
+   * const message = await aptos.getSigningMessage({transaction})
+   *
    * @param args.transaction A raw transaction for signing elsewhere
    */
   // eslint-disable-next-line class-methods-use-this
@@ -191,6 +206,13 @@ export class Transaction {
    * To get the `metadataBytes` and `byteCode`, can compile using Aptos CLI with command
    * `aptos move compile --save-metadata ...`,
    * For more info {@link https://aptos.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
+   *
+   * @example
+   * const transaction = await aptos.publishPackageTransaction({
+   *  account: alice,
+   *  metadataBytes,
+   *  moduleBytecode: [byteCode],
+   * })
    *
    * @param args.account The publisher account
    * @param args.metadataBytes The package metadata bytes
@@ -212,6 +234,13 @@ export class Transaction {
    * the account.
    * Note: Only legacy Ed25519 scheme is supported for now.
    * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}
+   *
+   * @example
+   * const response = await aptos.rotateAuthKey({
+   *  fromAccount: alice,
+   *  toNewPrivateKey: new ED25519PublicKey("0x123"),
+   * })
+   *
    * @param args.fromAccount The account to rotate the auth key for
    * @param args.toNewPrivateKey The new private key to rotate to
    *
@@ -223,6 +252,13 @@ export class Transaction {
 
   /**
    * Sign a transaction that can later be submitted to chain
+   *
+   * @example
+   * const transaction = await aptos.transaction.build.simple({...})
+   * const transaction = await aptos.transaction.sign({
+   *  signer: alice,
+   *  transaction
+   * })
    *
    * @param args.signer The signer account
    * @param args.transaction A raw transaction to sign on
@@ -238,6 +274,13 @@ export class Transaction {
 
   /**
    * Sign a transaction as a fee payer that can later be submitted to chain
+   *
+   * @example
+   * const transaction = await aptos.transaction.build.simple({...})
+   * const transaction = await aptos.transaction.signAsFeePayer({
+   *  signer: alice,
+   *  transaction
+   * })
    *
    * @param args.signer The fee payer signer account
    * @param args.transaction A raw transaction to sign on
@@ -301,13 +344,13 @@ export class Transaction {
    *
    * @param args.signer The signer account to sign the transaction
    * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
-   * ```
-   * {
-   *  rawTransaction: RawTransaction,
-   *  secondarySignerAddresses? : Array<AccountAddress>,
-   *  feePayerAddress?: AccountAddress
-   * }
-   * ```
+   *
+   * @example
+   * const transaction = await aptos.transaction.build.simple({...})
+   * const transaction = await aptos.signAndSubmitTransaction({
+   *  signer: alice,
+   *  transaction
+   * })
    *
    * @return PendingTransactionResponse
    */
