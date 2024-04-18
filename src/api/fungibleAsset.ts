@@ -23,7 +23,7 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
-import { Account, AccountAddress } from "../core";
+import { Account, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
@@ -36,7 +36,11 @@ export class FungibleAsset {
   /**
    * Queries all fungible asset metadata.
    *
+   * @example
+   * const fungibleAsset = await aptos.getFungibleAssetMetadata()
+   *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.options Optional configuration for pagination and filtering
    *
    * @returns A list of fungible asset metadata
    */
@@ -56,6 +60,9 @@ export class FungibleAsset {
    * Queries a fungible asset metadata
    *
    * This query returns the fungible asset metadata for a specific fungible asset.
+   *
+   * @example
+   * const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({assetType:"0x123::test_coin::TestCoin"})
    *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @param args.assetType The asset type of the fungible asset.
@@ -89,7 +96,11 @@ export class FungibleAsset {
   /**
    * Queries all fungible asset activities
    *
+   * @example
+   * const fungibleAssetActivities = await aptos.getFungibleAssetActivities()
+   *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.options Optional configuration for pagination and filtering
    *
    * @returns A list of fungible asset metadata
    */
@@ -108,7 +119,11 @@ export class FungibleAsset {
   /**
    * Queries all fungible asset balances
    *
+   * @example
+   * const fungibleAssetBalances = await aptos.getCurrentFungibleAssetBalances()
+   *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.options Optional configuration for pagination and filtering
    *
    * @returns A list of fungible asset metadata
    */
@@ -125,9 +140,17 @@ export class FungibleAsset {
   }
 
   /**
-   *  Transfer `amount` of fungible asset from sender's primary store to recipient's primary store.
+   * Transfer `amount` of fungible asset from sender's primary store to recipient's primary store.
    *
    * Use this method to transfer any fungible asset including fungible token.
+   *
+   * @example
+   * const transaction = await aptos.transferFungibleAsset({
+   *  sender: alice,
+   *  fungibleAssetMetadataAddress: "0x123",
+   *  recipient: "0x456",
+   *  amount: 5
+   * })
    *
    * @param sender The sender account
    * @param fungibleAssetMetadataAddress The fungible asset account address.
@@ -139,8 +162,8 @@ export class FungibleAsset {
    */
   async transferFungibleAsset(args: {
     sender: Account;
-    fungibleAssetMetadataAddress: AccountAddress;
-    recipient: AccountAddress;
+    fungibleAssetMetadataAddress: AccountAddressInput;
+    recipient: AccountAddressInput;
     amount: AnyNumber;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {

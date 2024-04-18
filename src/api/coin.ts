@@ -17,6 +17,13 @@ export class Coin {
   /**
    * Generate a transfer coin transaction that can be simulated and/or signed and submitted
    *
+   * @example
+   * const transferCoinTransaction = await aptos.transferCoinTransaction({
+   * sender: "0x123",
+   * recipient:"0x456",
+   * amount: 10,
+   * })
+   *
    * @param args.sender The sender account
    * @param args.recipient The recipient address
    * @param args.amount The amount to transfer
