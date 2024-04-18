@@ -5,6 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 - [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
 
+- Include `x-aptos-typescript-sdk-origin-method` header on server request
+
 # 1.12.2 (2024-04-10)
 
 - Revert export `LocalNode` module

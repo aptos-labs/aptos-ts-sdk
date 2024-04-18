@@ -58,6 +58,10 @@ describe("aptos request", () => {
           expect(response.config.headers).toHaveProperty("x-aptos-client", `aptos-typescript-sdk/${VERSION}`);
           expect(response.config.headers).toHaveProperty("my", "header");
           expect(response.config.headers).toHaveProperty("content-type", "application/x.aptos.signed_transaction+bcs");
+          expect(response.config.headers).toHaveProperty(
+            "x-aptos-typescript-sdk-origin-method",
+            "test request includes all headers",
+          );
         } catch (error: any) {
           // should not get here
           // eslint-disable-next-line no-console
