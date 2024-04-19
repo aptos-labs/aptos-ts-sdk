@@ -4,7 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 - [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
-- Fix ed25519 signatures to ensure for canonical signatures to prevent malleability
+- Fix ed25519 signature verification to ensure for canonical signatures to prevent malleability
 
 # 1.12.2 (2024-04-10)
 

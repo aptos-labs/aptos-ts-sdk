@@ -74,7 +74,7 @@ export class Ed25519PublicKey extends AccountPublicKey {
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
     // Also verify malleability
-    if (!signature.checkSMalleability()) {
+    if (!signature.isCanonicalSignature()) {
       return false;
     }
 
@@ -327,8 +327,11 @@ export class Ed25519Signature extends Signature {
 
   /**
    * Checks if an ED25519 signature is non-canonical.
+   *
+   * Comes from Aptos Core
+   * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
    */
-  checkSMalleability(): boolean {
+  isCanonicalSignature(): boolean {
     const s = this.toUint8Array().slice(32);
 
     for (let i = s.length - 1; i >= 0; i -= 1) {
