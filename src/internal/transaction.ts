@@ -141,7 +141,6 @@ export async function waitForTransaction(args: {
 
   // check to see if the txn is already on the blockchain
   try {
-    // eslint-disable-next-line no-await-in-loop
     lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
     isPending = lastTxn.type === TransactionResponseType.Pending;
   } catch (e) {
@@ -150,14 +149,14 @@ export async function waitForTransaction(args: {
 
   // If the transaction is pending, we do a long wait once to avoid polling
   if (isPending) {
+    const startTime = performance.now();
     try {
-      // eslint-disable-next-line no-await-in-loop
       lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
       isPending = lastTxn.type === TransactionResponseType.Pending;
     } catch (e) {
       handleAPIError(e);
     }
-    timeElapsed = 1; // Long wait takes about 1 second
+    timeElapsed = (performance.now() - startTime) / 1000;
   }
 
   // Now we do polling to see if the transaction is still pending
