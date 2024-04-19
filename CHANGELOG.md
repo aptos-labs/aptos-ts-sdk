@@ -10,6 +10,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Export `LocalNode` module using the module relative path
 
+- Change the `waitForTransaction` SDK API to try long poll
+
 # 1.12.2 (2024-04-10)
 
 - Revert export `LocalNode` module
