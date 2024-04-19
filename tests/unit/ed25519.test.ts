@@ -49,6 +49,22 @@ describe("Ed25519PublicKey", () => {
     ).toBe(false);
   });
 
+  it("should fail malleable signatures", () => {
+    // Here we make a signature exactly with the L
+    const signature = new Ed25519Signature(
+      // eslint-disable-next-line max-len
+      "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010",
+    );
+    expect(signature.isCanonicalSignature()).toBe(false);
+
+    // We now check with L + 1
+    const signature2 = new Ed25519Signature(
+      // eslint-disable-next-line max-len
+      "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000011",
+    );
+    expect(signature2.isCanonicalSignature()).toBe(false);
+  });
+
   it("should serialize correctly", () => {
     const publicKey = new Ed25519PublicKey(ed25519.publicKey);
     const serializer = new Serializer();
