@@ -149,14 +149,14 @@ export async function waitForTransaction(args: {
 
   // If the transaction is pending, we do a long wait once to avoid polling
   if (isPending) {
-    const startTime = performance.now();
+    const startTime = Date.now();
     try {
       lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
       isPending = lastTxn.type === TransactionResponseType.Pending;
     } catch (e) {
       handleAPIError(e);
     }
-    timeElapsed = (performance.now() - startTime) / 1000;
+    timeElapsed = (Date.now() - startTime) / 1000;
   }
 
   // Now we do polling to see if the transaction is still pending
