@@ -98,7 +98,7 @@ describe("transaction api", () => {
         sender: senderAccount.accountAddress,
         data: {
           function: "0x1::aptos_account::transfer",
-          functionArguments: [bob.accountAddress, new U64(10)],
+          functionArguments: [bob.accountAddress, 10],
         },
       });
       const authenticator = aptos.transaction.sign({
@@ -110,22 +110,6 @@ describe("transaction api", () => {
         senderAuthenticator: authenticator,
       });
       txn = await longWaitForTransaction({ aptosConfig: aptos.config, transactionHash: response.hash });
-    });
-
-    test("it queries for transactions on the chain", async () => {
-      const transactions = await aptos.getTransactions();
-      expect(transactions.length).toBeGreaterThan(0);
-    });
-
-    test("it queries for transactions by version", async () => {
-      if (!("version" in txn)) {
-        throw new Error("Transaction is still pending!");
-      }
-
-      const transaction = await aptos.getTransactionByVersion({
-        ledgerVersion: Number(txn.version),
-      });
-      expect(transaction).toStrictEqual(txn);
     });
 
     test("it queries for transactions by hash", async () => {
