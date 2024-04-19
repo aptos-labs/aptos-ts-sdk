@@ -3,13 +3,13 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
+# 1.13.0 (2024-04-19)
+
 - [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
 - Fix ed25519 signature verification to ensure for canonical signatures to prevent malleability
-
 - Include `x-aptos-typescript-sdk-origin-method` header on server request
-
 - Export `LocalNode` module using the module relative path
-
 - Change the `waitForTransaction` SDK API to try long poll
 
 # 1.12.2 (2024-04-10)
