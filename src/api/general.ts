@@ -42,7 +42,9 @@ export class General {
    *
    * @returns Aptos Ledger Info
    *
-   * @example An example of the returned data
+   * @example
+   * const ledgerInfo = await aptos.getLedgerInfo()
+   * // an example of the returned data
    * ```
    * {
    * "chain_id": 4,
@@ -64,6 +66,9 @@ export class General {
   /**
    * Queries for the chain id
    *
+   * @example
+   * const chainId = await aptos.getChainId()
+   *
    * @returns The chain id
    */
   async getChainId(): Promise<number> {
@@ -73,6 +78,9 @@ export class General {
 
   /**
    * Queries for block by transaction version
+   *
+   * @example
+   * const block = await aptos.getBlockByVersion({ledgerVersion:5})
    *
    * @param args.ledgerVersion Ledger version to lookup block information for
    * @param args.options.withTransactions If set to true, include all transactions in the block
@@ -92,6 +100,9 @@ export class General {
   /**
    * Get block by block height
    *
+   * @example
+   * const block = await aptos.getBlockByVersion({blockHeight:5})
+   *
    * @param args.blockHeight Block height to lookup.  Starts at 0
    * @param args.options.withTransactions If set to true, include all transactions in the block
    *
@@ -104,16 +115,20 @@ export class General {
   /**
    * Queries for a table item for a table identified by the handle and the key for the item.
    * Key and value types need to be passed in to help with key serialization and value deserialization.
+   *
+   * @example https://api.devnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::coin::CoinInfo%3C0x1::aptos_coin::AptosCoin%3E
+   * const tableItem = await aptos.getTableItem({
+   *  handle: "0x123",
+   *  data: {
+   *   key_type: "address", // Move type of table key
+   *   value_type: "u128", // Move type of table value
+   *   key: "0x619dc29a0aac8fa146714058e8dd6d2d0f3bdf5f6331907bf91f3acd81e6935" // Value of table key
+   *  },
+   * })
+   *
    * @param args.handle A pointer to where that table is stored
    * @param args.data Object that describes table item
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   *
-   * @example https://api.devnet.aptoslabs.com/v1/accounts/0x1/resource/0x1::coin::CoinInfo%3C0x1::aptos_coin::AptosCoin%3E
-   * {
-   *  data.key_type = "address" // Move type of table key
-   *  data.value_type = "u128" // Move type of table value
-   *  data.key = "0x619dc29a0aac8fa146714058e8dd6d2d0f3bdf5f6331907bf91f3acd81e6935" // Value of table key
-   * }
    *
    * @returns Table item value rendered in JSON
    */
@@ -125,14 +140,15 @@ export class General {
    * Queries for a Move view function
    * @param args.payload Payload for the view function
    * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   *
    * @example
-   * `
-   * const payload: ViewRequest = {
-   *  function: "0x1::coin::balance",
-   *  typeArguments: ["0x1::aptos_coin::AptosCoin"],
-   *  functionArguments: [accountAddress],
-   * };
-   * `
+   * const data = await aptos.view({
+   *  payload: {
+   *   function: "0x1::coin::balance",
+   *   typeArguments: ["0x1::aptos_coin::AptosCoin"],
+   *   functionArguments: [accountAddress],
+   *  }
+   * })
    *
    * @returns an array of Move values
    */
@@ -145,6 +161,9 @@ export class General {
 
   /**
    * Queries top user transactions
+   *
+   * @example
+   * const topUserTransactions = await aptos.getChainTopUserTransactions({limit:5})
    *
    * @param args.limit The number of transactions to return
    * @returns GetChainTopUserTransactionsResponse
@@ -161,18 +180,16 @@ export class General {
    * For more detailed queries specification see
    * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
    *
+   * @example
+   * const topUserTransactions = await aptos.queryIndexer({
+   *  query: `query MyQuery {
+   *   ledger_infos {
+   *     chain_id
+   *   }}`;
+   * })
+   *
    * @param args.query.query A GraphQL query
    * @param args.query.variables The variables for the query
-   * @example
-   * ```
-   * {
-   *  query: `query MyQuery {
-        ledger_infos {
-          chain_id
-        }
-      }`;
-   * }
-   * ```
    *
    * @return The provided T type
    */
@@ -187,6 +204,9 @@ export class General {
    * Queries for the last successful indexer version
    *
    * This is useful to tell what ledger version the indexer is updated to, as it can be behind the full nodes.
+   *
+   * @example
+   * const version = await aptos.getIndexerLastSuccessVersion()
    */
   async getIndexerLastSuccessVersion(): Promise<bigint> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
@@ -194,6 +214,9 @@ export class General {
 
   /**
    * Query the processor status for a specific processor type.
+   *
+   * @example
+   * const status = await aptos.getProcessorStatus({processorType:"account_transactions_processor"})
    *
    * @param processorType The processor type to query
    * @returns

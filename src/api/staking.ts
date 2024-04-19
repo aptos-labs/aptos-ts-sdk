@@ -21,6 +21,9 @@ export class Staking {
   /**
    * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
+   * @example
+   * const delegators = await aptos.getNumberOfDelegators({poolAddress:"0x123"})
+   *
    * @param args.poolAddress Pool address
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns The number of delegators for the given pool
@@ -40,6 +43,9 @@ export class Staking {
   /**
    * Queries current number of delegators in a pool.  Throws an error if the pool is not found.
    *
+   * @example
+   * const delegators = await aptos.getNumberOfDelegatorsForAllPools()
+   *
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetNumberOfDelegatorsForAllPoolsResponse response type
    */
@@ -57,6 +63,9 @@ export class Staking {
 
   /**
    * Queries delegated staking activities
+   *
+   * @example
+   * const delegators = await aptos.getDelegatedStakingActivities({delegatorAddress:"0x123",poolAddress:"0x456"})
    *
    * @param args.delegatorAddress Delegator address
    * @param args.poolAddress Pool address

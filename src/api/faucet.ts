@@ -17,6 +17,9 @@ export class Faucet {
    * This creates an account if it does not exist and mints the specified amount of
    * coins into that account
    *
+   * @example
+   * const transaction = await aptos.fundAccount({accountAddress:"0x123", amount: 100})
+   *
    * @param args.accountAddress Address of the account to fund
    * @param args.amount Amount of tokens to fund the account with
    * @param args.options Configuration options for waitForTransaction
