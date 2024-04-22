@@ -54,13 +54,13 @@ async function timeSubmission(
   signer: Account,
   buildTxn: () => Promise<SimpleTransaction>,
 ): Promise<void> {
-  const start = Date.now();
+  const start = performance.now();
   const rawTxn = await buildTxn();
-  const buildTime = Date.now();
+  const buildTime = performance.now();
   const submittedTxn = await aptos.signAndSubmitTransaction({ signer, transaction: rawTxn });
-  const submitTime = Date.now();
+  const submitTime = performance.now();
   await aptos.waitForTransaction({ transactionHash: submittedTxn.hash });
-  const endTime = Date.now();
+  const endTime = performance.now();
   const builtLatency = buildTime - start;
   const submitLatency = submitTime - start;
   const e2eLatency = endTime - start;

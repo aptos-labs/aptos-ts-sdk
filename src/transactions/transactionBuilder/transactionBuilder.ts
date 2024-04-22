@@ -121,7 +121,7 @@ export async function generateTransactionPayload(
   });
 
   // Fill in the ABI
-  return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
+  return generateTransactionPayloadWithABI({ ...args, abi: functionAbi });
 }
 
 export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
@@ -246,20 +246,31 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
-  const getChainId = NetworkToChainId[aptosConfig.network]
-    ? Promise.resolve({ chain_id: NetworkToChainId[aptosConfig.network] })
-    : getLedgerInfo({ aptosConfig });
+  const getChainId = async () => {
+    if (NetworkToChainId[aptosConfig.network]) {
+      return { chainId: NetworkToChainId[aptosConfig.network] };
+    }
+    const info = await getLedgerInfo({ aptosConfig });
+    return { chainId: info.chain_id };
+  };
 
-  const getGasUnitPrice = options?.gasUnitPrice
-    ? Promise.resolve({ gas_estimate: options.gasUnitPrice })
-    : getGasPriceEstimation({ aptosConfig });
+  const getGasUnitPrice = async () => {
+    if (options?.gasUnitPrice) {
+      return { gasEstimate: options.gasUnitPrice };
+    }
+    const estimation = await getGasPriceEstimation({ aptosConfig });
+    return { gasEstimate: estimation.gas_estimate };
+  };
 
-  const [{ chain_id: chainId }, { gas_estimate: gasEstimate }] = await Promise.all([getChainId, getGasUnitPrice]);
+  const [{ chainId }, { gasEstimate }] = await Promise.all([getChainId(), getGasUnitPrice()]);
 
-  const getSequenceNumber =
-    options?.accountSequenceNumber !== undefined
-      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
-      : getInfo({ aptosConfig, accountAddress: sender });
+  const getSequenceNumber = async () => {
+    if (options?.accountSequenceNumber !== undefined) {
+      return options.accountSequenceNumber;
+    }
+
+    return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
+  };
 
   let sequenceNumber: string | AnyNumber;
 
@@ -272,14 +283,12 @@ export async function generateRawTransaction(args: {
     // the main signer has not been created on chain
     try {
       // Check if main signer has been created on chain, if not assign sequence number 0
-      const { sequence_number: seqNumber } = await getSequenceNumber;
-      sequenceNumber = seqNumber;
+      sequenceNumber = await getSequenceNumber();
     } catch (e: any) {
       sequenceNumber = "0";
     }
   } else {
-    const { sequence_number: seqNumber } = await getSequenceNumber;
-    sequenceNumber = seqNumber;
+    sequenceNumber = await getSequenceNumber();
   }
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
@@ -677,7 +686,7 @@ async function fetchAbi<T extends FunctionABI>({
   abi?: T;
   fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
 }): Promise<T> {
-  if (abi) {
+  if (abi !== undefined) {
     return abi;
   }
 

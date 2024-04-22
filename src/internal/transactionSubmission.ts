@@ -102,10 +102,10 @@ export async function buildTransactionPayload(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyTransactionPayloadInstance> {
   const { aptosConfig, data } = args;
-
   // Merge in aptosConfig for remote ABI on non-script payloads
   let generateTransactionPayloadData: InputGenerateTransactionPayloadDataWithRemoteABI;
   let payload: AnyTransactionPayloadInstance;
+
   if ("bytecode" in data) {
     // TODO: Add ABI checking later
     payload = await generateTransactionPayload(data);
@@ -116,6 +116,7 @@ export async function buildTransactionPayload(
       function: data.function,
       functionArguments: data.functionArguments,
       typeArguments: data.typeArguments,
+      abi: data.abi,
     };
     payload = await generateTransactionPayload(generateTransactionPayloadData);
   } else {
@@ -124,6 +125,7 @@ export async function buildTransactionPayload(
       function: data.function,
       functionArguments: data.functionArguments,
       typeArguments: data.typeArguments,
+      abi: data.abi,
     };
     payload = await generateTransactionPayload(generateTransactionPayloadData);
   }

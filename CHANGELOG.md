@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
+
 # 1.13.0 (2024-04-19)
 
 - [`Breaking`] Change ed25519 library to be `@noble/curves/ed25519`
