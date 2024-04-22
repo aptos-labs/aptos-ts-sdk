@@ -37,11 +37,10 @@ export class ANS {
   /**
    * Retrieve the owner address of a domain name or subdomain name from the contract.
    *
-   * ```ts
+   * @example
    * // Will return the owner address of "test.aptos.apt" or undefined
    * const owner = await aptos.getOwnerAddress({name: "test.aptos"})
    * // owner = 0x123...
-   * ```
    *
    * @param args.name - A string of the name to retrieve
    *
@@ -54,11 +53,10 @@ export class ANS {
   /**
    * Retrieve the expiration time of a domain name or subdomain name from the contract.
    *
-   * ```ts
+   * @example
    * // Will return the expiration of "test.aptos.apt" or undefined
    * const exp = await aptos.getExpiration({name: "test.aptos"})
    * // new Date(exp) would give you the date in question: 2021-01-01T00:00:00.000Z
-   * ```
    *
    * @param args.name - A string of the name to retrieve
    *
@@ -73,10 +71,9 @@ export class ANS {
    * address the name points to for use on chain. Note, the target address can
    * point to addresses that are not the owner of the name
    *
-   * ```ts
+   * @example
    * const targetAddr = await aptos.getTargetAddress({name: "test.aptos"})
    * // targetAddr = 0x123...
-   * ```
    *
    * @param args.name - A string of the name: primary, primary.apt, secondary.primary, secondary.primary.apt, etc.
    *
@@ -91,11 +88,10 @@ export class ANS {
    * address the name points to for use on chain. Note, the target address can
    * point to addresses that are not the owner of the name
    *
-   * ```ts
+   * @example
    * await aptos.setTargetAddress({sender: alice, name: "test.aptos", address: bob.accountAddress})
    * const address = await aptos.getTargetAddress({name: "test.aptos"})
    * // address = bob.accountAddress
-   * ```
    *
    * @param args.name - A string of the name: test.aptos.apt, test.apt, test, test.aptos, etc.
    * @param args.address - A AccountAddressInput of the address to set the domain or subdomain to
@@ -116,10 +112,9 @@ export class ANS {
    * multiple names that target it, but only a single name that is primary. An
    * account also may not have a primary name.
    *
-   * ```ts
+   * @example
    * const name = await aptos.getPrimaryName({address: alice.accountAddress})
    * // name = test.aptos
-   * ```
    *
    * @param args.address - A AccountAddressInput (address) of the account
    *
@@ -134,11 +129,10 @@ export class ANS {
    * multiple names that target it, but only a single name that is primary. An
    * account also may not have a primary name.
    *
-   * ```ts
+   * @example
    * await aptos.setPrimaryName({sender: alice, name: "test.aptos"})
    * const primaryName = await aptos.getPrimaryName({address: alice.accountAddress})
    * // primaryName = test.aptos
-   * ```
    *
    * @param args.sender - The sender account
    * @param args.name - A string of the name: test, test.apt, test.aptos, test.aptos.apt, etc.
@@ -156,7 +150,7 @@ export class ANS {
   /**
    * Registers a new name
    *
-   * ```ts
+   * @example
    * // An example of registering a subdomain name assuming def.apt is already registered
    * // and belongs to the sender alice.
    *  const txn = aptos.registerName({
@@ -167,7 +161,6 @@ export class ANS {
    *      expirationDate: Date.now() + 30 * 24 * 60 * 60 * 1000,
    *    },
    *  });
-   * ```
    *
    * @param args.sender - The sender account
    * @param args.name - A string of the name to register. This can be inclusive or exclusive of the .apt suffix.
@@ -197,10 +190,9 @@ export class ANS {
    *
    * Note: If a domain name was minted with V1 of the contract, it will automatically be upgraded to V2 via this transaction.
    *
-   * ```ts
+   * @example
    * await aptos.renewDomain({sender: alice, name: "test"})
    * // test.apt will be renewed for one year
-   * ```
    *
    * @param args.sender - The sender account
    * @param args.name - A string of the domain the subdomain will be under. The signer must be the domain owner.

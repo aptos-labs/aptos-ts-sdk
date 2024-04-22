@@ -15,6 +15,10 @@ import { AptosApiType } from "../utils/const";
 
 /**
  * This class holds the config information for the SDK client instance.
+ *
+ * @example
+ *
+ * const aptosConfig = new AptosConfig({network:Network.TESTNET})
  */
 export class AptosConfig {
   /**

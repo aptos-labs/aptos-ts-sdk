@@ -26,7 +26,7 @@
     "dotenv": "^16.3.1",
     "npm-run-all": "latest",
     "superagent": "^8.1.2",
-    "tweetnacl": "^1.0.3"
+    "@noble/curves": "^1.4.0"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."

@@ -41,7 +41,11 @@ export class Secp256k1PublicKey extends PublicKey {
   }
 
   // region PublicKey
-
+  /**
+   * Verifies a Secp256k1 signature against the public key
+   *
+   * Note signatures are validated to be canonical as a malleability check
+   */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
     if (!(signature instanceof Secp256k1Signature)) {
@@ -51,7 +55,7 @@ export class Secp256k1PublicKey extends PublicKey {
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
-    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array());
+    return secp256k1.verify(signatureBytes, messageSha3Bytes, this.key.toUint8Array(), { lowS: true });
   }
 
   toUint8Array(): Uint8Array {
@@ -166,6 +170,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Sign the given message with the private key.
    *
+   * Note: signatures are canonical, and non-malleable
+   *
    * @param message a message as a string or Uint8Array
    * @returns Signature
    */
@@ -173,7 +179,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign);
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
-    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array());
+    const signature = secp256k1.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true });
     return new Secp256k1Signature(signature.toCompactRawBytes());
   }
 

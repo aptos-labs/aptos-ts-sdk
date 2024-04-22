@@ -244,6 +244,7 @@ export type ClientHeadersType = {
 export interface ClientRequest<Req> {
   url: string;
   method: "GET" | "POST";
+  originMethod?: string;
   body?: Req;
   contentType?: string;
   params?: any;

@@ -20,6 +20,10 @@ import { Keyless } from "./keyless";
  *
  * To use the SDK, create a new Aptos instance to get access
  * to all the sdk functionality.
+ *
+ * @example
+ *
+ * const aptos = new Aptos();
  */
 export class Aptos {
   readonly config: AptosConfig;

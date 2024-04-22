@@ -97,6 +97,19 @@ export async function isTransactionPending(args: {
   }
 }
 
+export async function longWaitForTransaction(args: {
+  aptosConfig: AptosConfig;
+  transactionHash: HexInput;
+}): Promise<TransactionResponse> {
+  const { aptosConfig, transactionHash } = args;
+  const { data } = await getAptosFullNode<{}, TransactionResponse>({
+    aptosConfig,
+    path: `transactions/wait_by_hash/${transactionHash}`,
+    originMethod: "longWaitForTransaction",
+  });
+  return data;
+}
+
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
   transactionHash: HexInput;
@@ -113,6 +126,40 @@ export async function waitForTransaction(args: {
   let backoffIntervalMs = 200;
   const backoffMultiplier = 1.5;
 
+  function handleAPIError(e: any) {
+    // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
+    const isAptosApiError = e instanceof AptosApiError;
+    if (!isAptosApiError) {
+      throw e; // This would be unexpected
+    }
+    lastError = e;
+    const isRequestError = e.status !== 404 && e.status >= 400 && e.status < 500;
+    if (isRequestError) {
+      throw e;
+    }
+  }
+
+  // check to see if the txn is already on the blockchain
+  try {
+    lastTxn = await getTransactionByHash({ aptosConfig, transactionHash });
+    isPending = lastTxn.type === TransactionResponseType.Pending;
+  } catch (e) {
+    handleAPIError(e);
+  }
+
+  // If the transaction is pending, we do a long wait once to avoid polling
+  if (isPending) {
+    const startTime = Date.now();
+    try {
+      lastTxn = await longWaitForTransaction({ aptosConfig, transactionHash });
+      isPending = lastTxn.type === TransactionResponseType.Pending;
+    } catch (e) {
+      handleAPIError(e);
+    }
+    timeElapsed = (Date.now() - startTime) / 1000;
+  }
+
+  // Now we do polling to see if the transaction is still pending
   while (isPending) {
     if (timeElapsed >= timeoutSecs) {
       break;
@@ -127,16 +174,7 @@ export async function waitForTransaction(args: {
         break;
       }
     } catch (e) {
-      // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
-      const isAptosApiError = e instanceof AptosApiError;
-      if (!isAptosApiError) {
-        throw e; // This would be unexpected
-      }
-      lastError = e;
-      const isRequestError = e.status !== 404 && e.status >= 400 && e.status < 500;
-      if (isRequestError) {
-        throw e;
-      }
+      handleAPIError(e);
     }
     // eslint-disable-next-line no-await-in-loop
     await sleep(backoffIntervalMs);

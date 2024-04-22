@@ -4,7 +4,6 @@ import type { Options, Format } from "tsup";
 // Ensure that these option fields are not undefined
 type MandatoryOptions = Options & {
   outDir: string;
-  platform: string;
   format: Format | Format[];
 };
 
@@ -19,6 +18,7 @@ const DEFAULT_CONFIG: Options = {
   sourcemap: true,
   splitting: true,
   target: "es2020",
+  platform: "node",
   env: {
     APTOS_NETWORK: process.env.APTOS_NETWORK ?? "Devnet",
     ANS_TEST_ACCOUNT_PRIVATE_KEY:
@@ -31,9 +31,9 @@ const DEFAULT_CONFIG: Options = {
 // Common.js config
 const COMMON_CONFIG: MandatoryOptions = {
   ...DEFAULT_CONFIG,
+  entry: ["src/index.ts", "src/cli/index.ts"],
   format: "cjs",
   outDir: "dist/common",
-  platform: "node",
 };
 
 // ESM config
@@ -42,7 +42,6 @@ const ESM_CONFIG: MandatoryOptions = {
   entry: ["src/**/*.ts"],
   format: "esm",
   outDir: "dist/esm",
-  platform: "node",
 };
 
 export default defineConfig([COMMON_CONFIG, ESM_CONFIG]);

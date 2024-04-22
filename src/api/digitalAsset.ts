@@ -60,6 +60,9 @@ export class DigitalAsset {
    * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
    * can pass an optional `tokenStandard` parameter to query a specific standard
    *
+   * @example
+   * const collection = await aptos.getCollectionData({creatorAddress:"0x123",collectionName:"myCollection"})
+   *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -83,6 +86,9 @@ export class DigitalAsset {
   /**
    * Queries data of a specific collection by the collection ID.
    *
+   * @example
+   * const collection = await aptos.getCollectionDataByCollectionId({collectionId:"0x123"})
+   *
    * @param args.collectionId the ID of the collection, it's the same thing as the address of the collection object
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetCollectionDataResponse response type
@@ -104,6 +110,9 @@ export class DigitalAsset {
    *
    * This is the same as the collection's object address in V2, but V1 does
    * not use objects, and does not have an address
+   *
+   * @example
+   * const collection = await aptos.getCollectionId({creatorAddress:"0x123",collectionName:"myCollection"})
    *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
@@ -128,6 +137,9 @@ export class DigitalAsset {
   /**
    * Gets digital asset data given the address of a digital asset.
    *
+   * @example
+   * const digitalAsset = await aptos.getDigitalAssetData({digitalAssetAddress:"0x123"})
+   *
    * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns GetTokenDataResponse containing relevant data to the digital asset.
@@ -146,6 +158,9 @@ export class DigitalAsset {
 
   /**
    * Gets digital asset ownership data given the address of a digital asset.
+   *
+   * @example
+   * const digitalAssetOwner = await aptos.getCurrentDigitalAssetOwnership({digitalAssetAddress:"0x123"})
    *
    * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -166,6 +181,9 @@ export class DigitalAsset {
 
   /**
    * Gets the digital assets that the given address owns.
+   *
+   * @example
+   * const digitalAssets = await aptos.getOwnedDigitalAssets({ownerAddress:"0x123"})
    *
    * @param args.ownerAddress The address of the owner
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -188,6 +206,9 @@ export class DigitalAsset {
   /**
    * Gets the activity data given the address of a digital asset.
    *
+   * @example
+   * const digitalAssetActivity = await aptos.getDigitalAssetActivity({digitalAssetAddress:"0x123"})
+   *
    * @param args.tokenAddress The address of the digital asset
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    *
@@ -208,6 +229,14 @@ export class DigitalAsset {
 
   /**
    * Creates a new collection within the specified account
+   *
+   * @example
+   * const transaction = await aptos.createCollectionTransaction({
+   *  creator: alice,
+   *  description: "collectionDescription",
+   *  name: "collectionName",
+   *  uri: "collection-uri.com",
+   * });
    *
    * @param args.creator the account of the collection's creator
    * @param args.description the description of the collection
@@ -247,6 +276,15 @@ export class DigitalAsset {
   /**
    * Create a transaction to mint a digital asset into the creators account within an existing collection.
    *
+   * @example
+   * const transaction = await aptos.mintDigitalAssetTransaction({
+   *  creator: alice,
+   *  description: "collectionDescription",
+   *  collection: "collectionName",
+   *  name: "digitalAssetName",
+   *  uri: "digital-asset-uri.com",
+   * });
+   *
    * @param args.creator the creator of the collection
    * @param args.collection the name of the collection the digital asset belongs to
    * @param args.description the description of the digital asset
@@ -275,6 +313,13 @@ export class DigitalAsset {
    * We can transfer a digital asset only when the digital asset is not frozen
    * (i.e. owner transfer is not disabled such as for soul bound digital assets)
    *
+   * @example
+   * const transaction = await aptos.transferDigitalAssetTransaction({
+   *  sender: alice,
+   *  digitalAssetAddress: "0x123",
+   *  recipient: "0x456",
+   * });
+   *
    * @param args.sender The sender account of the current digital asset owner
    * @param args.digitalAssetAddress The digital asset address
    * @param args.recipient The recipient account address
@@ -295,6 +340,16 @@ export class DigitalAsset {
   /**
    * Mint a soul bound digital asset into a recipient's account
    *
+   * @example
+   * const transaction = await aptos.mintSoulBoundTransaction({
+   *  account: alice,
+   *  collection: "collectionName",
+   *  description: "collectionDescription",
+   *  name: "digitalAssetName",
+   *  uri: "digital-asset-uri.com",
+   *  recipient: "0x123"
+   * });
+   *
    * @param args.account The account that mints the digital asset
    * @param args.collection The collection name that the digital asset belongs to
    * @param args.description The digital asset description
@@ -313,7 +368,7 @@ export class DigitalAsset {
     description: string;
     name: string;
     uri: string;
-    recipient: AccountAddress;
+    recipient: AccountAddressInput;
     propertyKeys?: Array<string>;
     propertyTypes?: Array<PropertyType>;
     propertyValues?: Array<PropertyValue>;
@@ -324,6 +379,12 @@ export class DigitalAsset {
 
   /**
    * Burn a digital asset by its creator
+   *
+   * @example
+   * const transaction = await aptos.burnDigitalAssetTransaction({
+   *  creator: alice,
+   *  digitalAssetAddress: "0x123",
+   * });
    *
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
@@ -342,6 +403,12 @@ export class DigitalAsset {
   /**
    * Freeze digital asset transfer ability
    *
+   * @example
+   * const transaction = await aptos.freezeDigitalAssetTransaferTransaction({
+   *  creator: alice,
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
    *
@@ -359,6 +426,12 @@ export class DigitalAsset {
   /**
    * Unfreeze digital asset transfer ability
    *
+   * @example
+   * const transaction = await aptos.unfreezeDigitalAssetTransaferTransaction({
+   *  creator: alice,
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.creator The creator account
    * @param args.digitalAssetAddress The digital asset address
    *
@@ -375,6 +448,13 @@ export class DigitalAsset {
 
   /**
    * Set the digital asset description
+   *
+   * @example
+   * const transaction = await aptos.setDigitalAssetDescriptionTransaction({
+   *  creator: alice,
+   *  description: "digitalAssetDescription",
+   *  digitalAssetAddress: "0x123",
+   * });
    *
    * @param args.creator The creator account
    * @param args.description The digital asset description
@@ -395,6 +475,13 @@ export class DigitalAsset {
   /**
    * Set the digital asset name
    *
+   * @example
+   * const transaction = await aptos.setDigitalAssetNameTransaction({
+   *  creator: alice,
+   *  name: "digitalAssetName",
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.creator The creator account
    * @param args.name The digital asset name
    * @param args.digitalAssetAddress The digital asset address
@@ -414,6 +501,13 @@ export class DigitalAsset {
   /**
    * Set the digital asset name
    *
+   * @example
+   * const transaction = await aptos.setDigitalAssetURITransaction({
+   *  creator: alice,
+   *  uri: "digital-asset-uri.com",
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.creator The creator account
    * @param args.uri The digital asset uri
    * @param args.digitalAssetAddress The digital asset address
@@ -432,6 +526,15 @@ export class DigitalAsset {
 
   /**
    * Add a digital asset property
+   *
+   * @example
+   * const transaction = await aptos.addDigitalAssetPropertyTransaction({
+   *  creator: alice,
+   *  propertyKey: "newKey",
+   *  propertyType: "BOOLEAN",
+   *  propertyValue: true,
+   *  digitalAssetAddress: "0x123",
+   * });
    *
    * @param args.account The account that mints the digital asset
    * @param args.digitalAssetAddress The digital asset address
@@ -456,6 +559,15 @@ export class DigitalAsset {
   /**
    * Remove a digital asset property
    *
+   * @example
+   * const transaction = await aptos.removeDigitalAssetPropertyTransaction({
+   *  creator: alice,
+   *  propertyKey: "newKey",
+   *  propertyType: "BOOLEAN",
+   *  propertyValue: true,
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.account The account that mints the digital asset
    * @param args.digitalAssetAddress The digital asset address
    * @param args.propertyKey The property key for storing on-chain properties
@@ -478,6 +590,15 @@ export class DigitalAsset {
 
   /**
    * Update a digital asset property
+   *
+   * @example
+   * const transaction = await aptos.updateDigitalAssetPropertyTransaction({
+   *  creator: alice,
+   *  propertyKey: "newKey",
+   *  propertyType: "BOOLEAN",
+   *  propertyValue: false,
+   *  digitalAssetAddress: "0x123",
+   * });
    *
    * @param args.account The account that mints the digital asset
    * @param args.digitalAssetAddress The digital asset address
@@ -502,6 +623,15 @@ export class DigitalAsset {
   /**
    * Add a typed digital asset property
    *
+   * @example
+   * const transaction = await aptos.addDigitalAssetTypedPropertyTransaction({
+   *  creator: alice,
+   *  propertyKey: "typedKey",
+   *  propertyType: "STRING",
+   *  propertyValue: "hello",
+   *  digitalAssetAddress: "0x123",
+   * });
+   *
    * @param args.account The account that mints the digital asset
    * @param args.digitalAssetAddress The digital asset address
    * @param args.propertyKey The property key for storing on-chain properties
@@ -524,6 +654,15 @@ export class DigitalAsset {
 
   /**
    * Update a typed digital asset property
+   *
+   * @example
+   * const transaction = await aptos.updateDigitalAssetTypedPropertyTransaction({
+   *  creator: alice,
+   *  propertyKey: "typedKey",
+   *  propertyType: "U8",
+   *  propertyValue: 2,
+   *  digitalAssetAddress: "0x123",
+   * });
    *
    * @param args.account The account that mints the digital asset
    * @param args.digitalAssetAddress The digital asset address

@@ -27,7 +27,6 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
-  SigningScheme,
   TokenStandardArg,
   TransactionResponse,
   WhereArg,
@@ -528,16 +527,15 @@ export async function deriveAccountFromPrivateKey(args: {
 
   if (privateKey instanceof Secp256k1PrivateKey) {
     // private key is secp256k1, therefore we know it for sure uses a single signer key
-    const authKey = AuthenticationKey.fromPublicKeyAndScheme({ publicKey, scheme: SigningScheme.SingleKey });
+    const authKey = AuthenticationKey.fromPublicKey({ publicKey });
     const address = authKey.derivedAddress();
-    return Account.fromPrivateKeyAndAddress({ privateKey, address });
+    return Account.fromPrivateKey({ privateKey, address });
   }
 
   if (privateKey instanceof Ed25519PrivateKey) {
     // lookup single sender ed25519
-    const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+    const singleSenderTransactionAuthenticatorAuthKey = AuthenticationKey.fromPublicKey({
       publicKey,
-      scheme: SigningScheme.SingleKey,
     });
     const isSingleSenderTransactionAuthenticator = await isAccountExist({
       authKey: singleSenderTransactionAuthenticatorAuthKey,
@@ -545,17 +543,16 @@ export async function deriveAccountFromPrivateKey(args: {
     });
     if (isSingleSenderTransactionAuthenticator) {
       const address = singleSenderTransactionAuthenticatorAuthKey.derivedAddress();
-      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: false });
+      return Account.fromPrivateKey({ privateKey, address, legacy: false });
     }
     // lookup legacy ed25519
-    const legacyAuthKey = AuthenticationKey.fromPublicKeyAndScheme({
+    const legacyAuthKey = AuthenticationKey.fromPublicKey({
       publicKey: publicKey.publicKey as Ed25519PublicKey,
-      scheme: SigningScheme.Ed25519,
     });
     const isLegacyEd25519 = await isAccountExist({ authKey: legacyAuthKey, aptosConfig });
     if (isLegacyEd25519) {
       const address = legacyAuthKey.derivedAddress();
-      return Account.fromPrivateKeyAndAddress({ privateKey, address, legacy: true });
+      return Account.fromPrivateKey({ privateKey, address, legacy: true });
     }
   }
   // if we are here, it means we couldn't find an address with an
