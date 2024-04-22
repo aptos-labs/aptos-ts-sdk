@@ -6,6 +6,7 @@
  * It holds different operations to generate a transaction payload, a raw transaction,
  * and a signed transaction that can be simulated, signed and submitted to chain.
  */
+import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";

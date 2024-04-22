@@ -18,7 +18,6 @@ import {
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
-  generateTransactionPayloadWithABI,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
