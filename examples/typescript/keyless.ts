@@ -111,7 +111,7 @@ const example = async () => {
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
   console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's zkid is: ${alice.publicKey.addressSeed}`);
+  // console.log(`Alice's zkid is: ${alice.publicKey.addressSeed}`);
   // console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
 
   console.log(`Bob's address is: ${bob.accountAddress}`);
