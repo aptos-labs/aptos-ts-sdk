@@ -73,7 +73,6 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
@@ -121,7 +120,7 @@ export async function generateTransactionPayload(
   });
 
   // Fill in the ABI
-  return generateTransactionPayloadWithABI({ abi: functionAbi, ...args });
+  return generateTransactionPayloadWithABI({ ...args, abi: functionAbi });
 }
 
 export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
@@ -246,41 +245,53 @@ export async function generateRawTransaction(args: {
 }): Promise<RawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
 
-  const getChainId = NetworkToChainId[aptosConfig.network]
-    ? Promise.resolve({ chain_id: NetworkToChainId[aptosConfig.network] })
-    : getLedgerInfo({ aptosConfig });
-
-  const getGasUnitPrice = options?.gasUnitPrice
-    ? Promise.resolve({ gas_estimate: options.gasUnitPrice })
-    : getGasPriceEstimation({ aptosConfig });
-
-  const [{ chain_id: chainId }, { gas_estimate: gasEstimate }] = await Promise.all([getChainId, getGasUnitPrice]);
-
-  const getSequenceNumber =
-    options?.accountSequenceNumber !== undefined
-      ? Promise.resolve({ sequence_number: options.accountSequenceNumber })
-      : getInfo({ aptosConfig, accountAddress: sender });
-
-  let sequenceNumber: string | AnyNumber;
-
-  /**
-   * Check if is sponsored transaction to honor AIP-52
-   * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
-   */
-  if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
-    // Handle sponsored transaction generation with the option that
-    // the main signer has not been created on chain
-    try {
-      // Check if main signer has been created on chain, if not assign sequence number 0
-      const { sequence_number: seqNumber } = await getSequenceNumber;
-      sequenceNumber = seqNumber;
-    } catch (e: any) {
-      sequenceNumber = "0";
+  const getChainId = async () => {
+    if (NetworkToChainId[aptosConfig.network]) {
+      return { chainId: NetworkToChainId[aptosConfig.network] };
     }
-  } else {
-    const { sequence_number: seqNumber } = await getSequenceNumber;
-    sequenceNumber = seqNumber;
-  }
+    const info = await getLedgerInfo({ aptosConfig });
+    return { chainId: info.chain_id };
+  };
+
+  const getGasUnitPrice = async () => {
+    if (options?.gasUnitPrice) {
+      return { gasEstimate: options.gasUnitPrice };
+    }
+    const estimation = await getGasPriceEstimation({ aptosConfig });
+    return { gasEstimate: estimation.gas_estimate };
+  };
+
+  const getSequenceNumberForAny = async () => {
+    const getSequenceNumber = async () => {
+      if (options?.accountSequenceNumber !== undefined) {
+        return options.accountSequenceNumber;
+      }
+
+      return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
+    };
+
+    /**
+     * Check if is sponsored transaction to honor AIP-52
+     * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
+     */
+    if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
+      // Handle sponsored transaction generation with the option that
+      // the main signer has not been created on chain
+      try {
+        // Check if main signer has been created on chain, if not assign sequence number 0
+        return await getSequenceNumber();
+      } catch (e: any) {
+        return 0;
+      }
+    } else {
+      return getSequenceNumber();
+    }
+  };
+  const [{ chainId }, { gasEstimate }, sequenceNumber] = await Promise.all([
+    getChainId(),
+    getGasUnitPrice(),
+    getSequenceNumberForAny(),
+  ]);
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
@@ -677,7 +688,7 @@ async function fetchAbi<T extends FunctionABI>({
   abi?: T;
   fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
 }): Promise<T> {
-  if (abi) {
+  if (abi !== undefined) {
     return abi;
   }
 
