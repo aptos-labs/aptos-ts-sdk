@@ -73,7 +73,6 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { AnyNumber } from "../../types";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
@@ -262,34 +261,37 @@ export async function generateRawTransaction(args: {
     return { gasEstimate: estimation.gas_estimate };
   };
 
-  const [{ chainId }, { gasEstimate }] = await Promise.all([getChainId(), getGasUnitPrice()]);
+  const getSequenceNumberForAny = async () => {
+    const getSequenceNumber = async () => {
+      if (options?.accountSequenceNumber !== undefined) {
+        return options.accountSequenceNumber;
+      }
 
-  const getSequenceNumber = async () => {
-    if (options?.accountSequenceNumber !== undefined) {
-      return options.accountSequenceNumber;
+      return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
+    };
+
+    /**
+     * Check if is sponsored transaction to honor AIP-52
+     * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
+     */
+    if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
+      // Handle sponsored transaction generation with the option that
+      // the main signer has not been created on chain
+      try {
+        // Check if main signer has been created on chain, if not assign sequence number 0
+        return await getSequenceNumber();
+      } catch (e: any) {
+        return 0;
+      }
+    } else {
+      return getSequenceNumber();
     }
-
-    return (await getInfo({ aptosConfig, accountAddress: sender })).sequence_number;
   };
-
-  let sequenceNumber: string | AnyNumber;
-
-  /**
-   * Check if is sponsored transaction to honor AIP-52
-   * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
-   */
-  if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
-    // Handle sponsored transaction generation with the option that
-    // the main signer has not been created on chain
-    try {
-      // Check if main signer has been created on chain, if not assign sequence number 0
-      sequenceNumber = await getSequenceNumber();
-    } catch (e: any) {
-      sequenceNumber = "0";
-    }
-  } else {
-    sequenceNumber = await getSequenceNumber();
-  }
+  const [{ chainId }, { gasEstimate }, sequenceNumber] = await Promise.all([
+    getChainId(),
+    getGasUnitPrice(),
+    getSequenceNumberForAny(),
+  ]);
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),

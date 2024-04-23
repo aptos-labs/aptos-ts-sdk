@@ -57,15 +57,20 @@ async function timeSubmission(
   const start = performance.now();
   const rawTxn = await buildTxn();
   const buildTime = performance.now();
-  const submittedTxn = await aptos.signAndSubmitTransaction({ signer, transaction: rawTxn });
+  const senderAuthenticator = await aptos.sign({ signer, transaction: rawTxn });
+  const signTime = performance.now();
+  const submittedTxn = await aptos.transaction.submit.simple({ transaction: rawTxn, senderAuthenticator });
   const submitTime = performance.now();
   await aptos.waitForTransaction({ transactionHash: submittedTxn.hash });
   const endTime = performance.now();
   const builtLatency = buildTime - start;
-  const submitLatency = submitTime - start;
+  const signLatency = signTime - buildTime;
+  const submitLatency = submitTime - signTime;
   const e2eLatency = endTime - start;
 
-  console.log(`Time for building: ${builtLatency}ms | submission: ${submitLatency}ms | total E2E: ${e2eLatency}ms`);
+  console.log(
+    `Time for building: ${builtLatency}ms | signing ${signLatency}ms submission: ${submitLatency}ms | total E2E: ${e2eLatency}ms`,
+  );
 }
 
 const example = async () => {
