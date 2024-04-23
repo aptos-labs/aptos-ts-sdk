@@ -4,8 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.13.1 (2024-04-23)
+
 - [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
-- Peformance improvements to transaction build times
+- Performance improvements to transaction build times
 
 # 1.13.0 (2024-04-19)
 
