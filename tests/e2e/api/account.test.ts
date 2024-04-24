@@ -115,10 +115,6 @@ describe("account api", () => {
         amount: FUND_AMOUNT,
       });
       const bob = Account.generate();
-      await aptos.fundAccount({
-        accountAddress: bob.accountAddress,
-        amount: FUND_AMOUNT,
-      });
       const rawTxn = await aptos.transaction.build.simple({
         sender: senderAccount.accountAddress,
         data: {
