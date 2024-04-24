@@ -140,8 +140,20 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  // TODO: Ideally indexer should provide one API that returns all transactions details in one go
-  // But now we have to query all transaction versions first and then query each transaction by version
+  return paginateWithCursor<{}, TransactionResponse[]>({
+    aptosConfig,
+    originMethod: "getTransactions",
+    path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
+    params: { start: options?.offset, limit: options?.limit },
+  });
+}
+
+export async function getAllTransactions(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: PaginationArgs;
+}): Promise<TransactionResponse[]> {
+  const { aptosConfig, accountAddress, options } = args;
   const versions = await getAccountAllTransactionVersions({ aptosConfig, accountAddress, options });
   const results = [];
   for (const version of versions) {
@@ -301,10 +313,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-    {
-      owner_address: { _eq: address },
-      amount: { _gt: 0 },
-    };
+  {
+    owner_address: { _eq: address },
+    amount: { _gt: 0 },
+  };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
