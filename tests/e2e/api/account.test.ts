@@ -184,7 +184,9 @@ describe("account api", () => {
       const txn2 = await aptos.waitForTransaction({ transactionHash: response2.hash });
 
       // sleep for 500 ms to ensure the txns are in the ledger
-      const _ = await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500);
+      });
 
       const aliceTransactions = await aptos.getAllAccountTransactions({
         accountAddress: alice.accountAddress,
