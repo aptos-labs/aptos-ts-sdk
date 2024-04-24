@@ -140,8 +140,6 @@ export async function getTransactions(args: {
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  // TODO: Ideally indexer should provide one API that returns all transactions details in one go
-  // But now we have to query all transaction versions first and then query each transaction by version
   const versions = await getAccountAllTransactionVersions({ aptosConfig, accountAddress, options });
   const results = [];
   for (const version of versions) {
