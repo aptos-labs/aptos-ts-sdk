@@ -363,6 +363,7 @@ export type GetAccountTransactionsCountQuery = {
   account_transactions_aggregate: { aggregate?: { count: number } | null };
 };
 
+export type GetAllAccountTransactionVersionsQueryVariables = Types.Exact<{
   where_condition: Types.AccountTransactionsBoolExp;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;

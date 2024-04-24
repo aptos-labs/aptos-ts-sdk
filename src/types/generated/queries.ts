@@ -80,7 +80,6 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
   }
 }
     `;
-export const GetAccountAllTransactionVersions = `
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
