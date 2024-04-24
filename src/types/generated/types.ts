@@ -98,6 +98,8 @@ export type AccountTransactions = {
   /** An aggregate relationship */
   token_activities_v2_aggregate: TokenActivitiesV2Aggregate;
   transaction_version: Scalars["bigint"]["output"];
+  /** An object relationship */
+  user_transaction?: Maybe<UserTransactions>;
 };
 
 /** columns and relationships of "account_transactions" */
@@ -219,6 +221,7 @@ export type AccountTransactionsBoolExp = {
   token_activities_v2?: InputMaybe<TokenActivitiesV2BoolExp>;
   token_activities_v2_aggregate?: InputMaybe<TokenActivitiesV2AggregateBoolExp>;
   transaction_version?: InputMaybe<BigintComparisonExp>;
+  user_transaction?: InputMaybe<UserTransactionsBoolExp>;
 };
 
 /** aggregate max on columns */
@@ -242,6 +245,7 @@ export type AccountTransactionsOrderBy = {
   token_activities_aggregate?: InputMaybe<TokenActivitiesAggregateOrderBy>;
   token_activities_v2_aggregate?: InputMaybe<TokenActivitiesV2AggregateOrderBy>;
   transaction_version?: InputMaybe<OrderBy>;
+  user_transaction?: InputMaybe<UserTransactionsOrderBy>;
 };
 
 /** select columns of table "account_transactions" */

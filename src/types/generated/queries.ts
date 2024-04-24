@@ -81,17 +81,6 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
 }
     `;
 export const GetAccountAllTransactionVersions = `
-    query getAccountAllTransactionVersions($where_condition: account_transactions_bool_exp!, $offset: Int, $limit: Int) {
-  account_transactions(
-    where: $where_condition
-    order_by: {transaction_version: desc}
-    limit: $limit
-    offset: $offset
-  ) {
-    transaction_version
-  }
-}
-    `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
@@ -245,6 +234,18 @@ export const GetAccountTransactionsCount = `
     aggregate {
       count
     }
+  }
+}
+    `;
+export const GetAllAccountTransactionVersions = `
+    query getAllAccountTransactionVersions($where_condition: account_transactions_bool_exp!, $offset: Int, $limit: Int) {
+  account_transactions(
+    where: $where_condition
+    order_by: {transaction_version: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    transaction_version
   }
 }
     `;
@@ -477,20 +478,6 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    getAccountAllTransactionVersions(
-      variables: Types.GetAccountAllTransactionVersionsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetAccountAllTransactionVersionsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountAllTransactionVersionsQuery>(GetAccountAllTransactionVersions, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountAllTransactionVersions",
-        "query",
-      );
-    },
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -616,6 +603,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getAccountTransactionsCount",
+        "query",
+      );
+    },
+    getAllAccountTransactionVersions(
+      variables: Types.GetAllAccountTransactionVersionsQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAllAccountTransactionVersionsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAllAccountTransactionVersionsQuery>(GetAllAccountTransactionVersions, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAllAccountTransactionVersions",
         "query",
       );
     },

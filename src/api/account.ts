@@ -22,7 +22,7 @@ import {
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
-  getAccountAllTransactionVersions,
+  GetAllAccountTransactionVersions,
   getAccountCoinAmount,
   getAccountCoinsCount,
   getAccountCoinsData,
@@ -32,7 +32,7 @@ import {
   getAccountOwnedTokensFromCollectionAddress,
   getAccountTokensCount,
   getAccountTransactionsCount,
-  getAccountAllTransactions,
+  getAllAccountTransactions,
   getInfo,
   getModule,
   getModules,
@@ -151,7 +151,7 @@ export class Account {
    * multiple times as it auto paginates.
    *
    * @example
-   * const transactions = await aptos.getAccountAllTransactions({accountAddress:"0x456"})
+   * const transactions = await aptos.getAllAccountTransactions({accountAddress:"0x456"})
    *
    * @param args.accountAddress Aptos account address
    * @param args.options.offset The number transaction to start returning results from
@@ -159,21 +159,20 @@ export class Account {
    *
    * @returns The account transactions
    */
-  async getAccountAllTransactions(args: {
+  async getAllAccountTransactions(args: {
     accountAddress: AccountAddressInput;
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
-    return getAccountAllTransactions({
+    return getAllAccountTransactions({
       aptosConfig: this.config,
       ...args,
     });
   }
 
-
   /**
    * Queries account's all transaction versions given an account address
    *
-   * Note: This returns both the transaction sent by the account and the transaction received by the account.
+   * Note: This returns both the transaction sent by the account and received by the account.
    *
    * @param args.accountAddress Aptos account address
    * @param args.options.offset The number transaction to start returning results from
@@ -181,11 +180,11 @@ export class Account {
    *
    * @returns The account transaction versions
    */
-  async getAccountAllTransactionVersions(args: {
+  async GetAllAccountTransactionVersions(args: {
     accountAddress: AccountAddressInput;
     options?: PaginationArgs;
   }): Promise<AnyNumber[]> {
-    return getAccountAllTransactionVersions({
+    return GetAllAccountTransactionVersions({
       aptosConfig: this.config,
       ...args,
     });

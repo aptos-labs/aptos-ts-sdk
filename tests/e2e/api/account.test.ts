@@ -186,12 +186,17 @@ describe("account api", () => {
         senderAuthenticator: authenticator2,
       });
       const txn2 = await aptos.waitForTransaction({ transactionHash: response2.hash });
-      const aliceTransactions = await aptos.getAccountAllTransactions({
+
+      // sleep for 500 ms to ensure the txns are in the ledger
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const aliceTransactions = await aptos.getAllAccountTransactions({
         accountAddress: alice.accountAddress,
       });
-      const bobAccountTransactions = await aptos.getAccountAllTransactions({
+      const bobAccountTransactions = await aptos.getAllAccountTransactions({
         accountAddress: bob.accountAddress,
       });
+
       // getAccountAllTransactions returns all txs related to the account in descending order
       // both alice and bob's third tx is the fund tx
       // therefore, the first tx is alice transfers to bob and second tx is bob transfers to alice

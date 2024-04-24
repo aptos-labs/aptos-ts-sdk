@@ -33,7 +33,7 @@ import {
   WhereArg,
 } from "../types";
 import {
-  GetAccountAllTransactionVersionsQuery,
+  GetAllAccountTransactionVersionsQuery,
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
@@ -44,7 +44,7 @@ import {
   GetAccountTransactionsCountQuery,
 } from "../types/generated/operations";
 import {
-  GetAccountAllTransactionVersions,
+  GetAllAccountTransactionVersions as GetAllAccountTransactionVersionsGql,
   GetAccountCoinsCount,
   GetAccountCoinsData,
   GetAccountCollectionsWithOwnedTokens,
@@ -148,13 +148,13 @@ export async function getTransactions(args: {
   });
 }
 
-export async function getAccountAllTransactions(args: {
+export async function getAllAccountTransactions(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs;
 }): Promise<TransactionResponse[]> {
   const { aptosConfig, accountAddress, options } = args;
-  const versions = await getAccountAllTransactionVersions({ aptosConfig, accountAddress, options });
+  const versions = await GetAllAccountTransactionVersions({ aptosConfig, accountAddress, options });
   const results = [];
   for (const version of versions) {
     const tx = getTransactionByVersion({ aptosConfig, ledgerVersion: version });
@@ -163,7 +163,7 @@ export async function getAccountAllTransactions(args: {
   return Promise.all(results);
 }
 
-export async function getAccountAllTransactionVersions(args: {
+export async function GetAllAccountTransactionVersions(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs;
@@ -176,7 +176,7 @@ export async function getAccountAllTransactionVersions(args: {
   };
 
   const graphqlQuery = {
-    query: GetAccountAllTransactionVersions,
+    query: GetAllAccountTransactionVersionsGql,
     variables: {
       where_condition: whereCondition,
       offset: options?.offset,
@@ -184,10 +184,10 @@ export async function getAccountAllTransactionVersions(args: {
     },
   };
 
-  const data = await queryIndexer<GetAccountAllTransactionVersionsQuery>({
+  const data = await queryIndexer<GetAllAccountTransactionVersionsQuery>({
     aptosConfig,
     query: graphqlQuery,
-    originMethod: "getAccountAllTransactionVersions",
+    originMethod: "GetAllAccountTransactionVersions",
   });
 
   return data.account_transactions.map((tx) => tx.transaction_version);
@@ -313,10 +313,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-  {
-    owner_address: { _eq: address },
-    amount: { _gt: 0 },
-  };
+    {
+      owner_address: { _eq: address },
+      amount: { _gt: 0 },
+    };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
