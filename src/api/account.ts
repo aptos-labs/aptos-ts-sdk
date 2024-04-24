@@ -120,7 +120,7 @@ export class Account {
   }
 
   /**
-   * Queries account transactions given an account address
+   * Queries account transactions sent by a given account address
    *
    * Note: In order to get all account transactions, this function may call the API
    * multiple times as it auto paginates.
@@ -144,8 +144,8 @@ export class Account {
     });
   }
 
-    /**
-   * Queries account transactions given an account address
+  /**
+   * Queries account transactions related to a given account address
    *
    * Note: In order to get all account transactions, this function may call the API
    * multiple times as it auto paginates.
