@@ -148,7 +148,7 @@ export async function getTransactions(args: {
   });
 }
 
-export async function getAllTransactions(args: {
+export async function getAccountAllTransactions(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   options?: PaginationArgs;

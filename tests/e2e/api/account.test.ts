@@ -186,13 +186,13 @@ describe("account api", () => {
         senderAuthenticator: authenticator2,
       });
       const txn2 = await aptos.waitForTransaction({ transactionHash: response2.hash });
-      const aliceTransactions = await aptos.getAllAccountTransactions({
+      const aliceTransactions = await aptos.getAccountAllTransactions({
         accountAddress: alice.accountAddress,
       });
-      const bobAccountTransactions = await aptos.getAllAccountTransactions({
+      const bobAccountTransactions = await aptos.getAccountAllTransactions({
         accountAddress: bob.accountAddress,
       });
-      // getAllAccountTransactions returns all txs related to the account in descending order
+      // getAccountAllTransactions returns all txs related to the account in descending order
       // both alice and bob's third tx is the fund tx
       // therefore, the first tx is alice transfers to bob and second tx is bob transfers to alice
       expect(aliceTransactions[0]).toStrictEqual(txn2);

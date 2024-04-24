@@ -32,7 +32,7 @@ import {
   getAccountOwnedTokensFromCollectionAddress,
   getAccountTokensCount,
   getAccountTransactionsCount,
-  getAllTransactions,
+  getAccountAllTransactions,
   getInfo,
   getModule,
   getModules,
@@ -151,7 +151,7 @@ export class Account {
    * multiple times as it auto paginates.
    *
    * @example
-   * const transactions = await aptos.getAllAccountTransactions({accountAddress:"0x456"})
+   * const transactions = await aptos.getAccountAllTransactions({accountAddress:"0x456"})
    *
    * @param args.accountAddress Aptos account address
    * @param args.options.offset The number transaction to start returning results from
@@ -159,11 +159,11 @@ export class Account {
    *
    * @returns The account transactions
    */
-  async getAllAccountTransactions(args: {
+  async getAccountAllTransactions(args: {
     accountAddress: AccountAddressInput;
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
-    return getAllTransactions({
+    return getAccountAllTransactions({
       aptosConfig: this.config,
       ...args,
     });
