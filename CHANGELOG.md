@@ -5,7 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Add `getAccountAllTransactionVersions` which returns versions of all transactions related to the given address.
-- Add `getAllAccountTransactions` which returns all transactions related to given address instead of only ones sent by address. This makes the result has same length as calling `getAccountTransactionsCount`.
+- Add `getAccountAllTransactions` which returns all transactions related to given address instead of only ones sent by address. This makes the result has same length as calling `getAccountTransactionsCount`.
 
 # 1.13.1 (2024-04-23)
 
