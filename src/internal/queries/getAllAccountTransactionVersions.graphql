@@ -1,0 +1,10 @@
+query getAllAccountTransactionVersions($where_condition: account_transactions_bool_exp!, $offset: Int, $limit: Int) {
+  account_transactions(
+    where: $where_condition
+    order_by: { transaction_version: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    transaction_version
+  }
+}

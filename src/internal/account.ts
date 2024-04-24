@@ -16,6 +16,7 @@ import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
 import { getTableItem, queryIndexer } from "./general";
 import {
   AccountData,
+  AnyNumber,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedObjectsResponse,
@@ -32,6 +33,7 @@ import {
   WhereArg,
 } from "../types";
 import {
+  GetAllAccountTransactionVersionsQuery,
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
@@ -42,6 +44,7 @@ import {
   GetAccountTransactionsCountQuery,
 } from "../types/generated/operations";
 import {
+  GetAllAccountTransactionVersions as GetAllAccountTransactionVersionsGql,
   GetAccountCoinsCount,
   GetAccountCoinsData,
   GetAccountCollectionsWithOwnedTokens,
@@ -54,6 +57,7 @@ import {
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { getTransactionByVersion } from "./transaction";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -142,6 +146,51 @@ export async function getTransactions(args: {
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/transactions`,
     params: { start: options?.offset, limit: options?.limit },
   });
+}
+
+export async function getAllAccountTransactions(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: PaginationArgs;
+}): Promise<TransactionResponse[]> {
+  const { aptosConfig, accountAddress, options } = args;
+  const versions = await GetAllAccountTransactionVersions({ aptosConfig, accountAddress, options });
+  const results = [];
+  for (const version of versions) {
+    const tx = getTransactionByVersion({ aptosConfig, ledgerVersion: version });
+    results.push(tx);
+  }
+  return Promise.all(results);
+}
+
+export async function GetAllAccountTransactionVersions(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: PaginationArgs;
+}): Promise<AnyNumber[]> {
+  const { aptosConfig, accountAddress, options } = args;
+  const address = AccountAddress.from(accountAddress).toStringLong();
+
+  const whereCondition: { account_address: { _eq: string } } = {
+    account_address: { _eq: address },
+  };
+
+  const graphqlQuery = {
+    query: GetAllAccountTransactionVersionsGql,
+    variables: {
+      where_condition: whereCondition,
+      offset: options?.offset,
+      limit: options?.limit,
+    },
+  };
+
+  const data = await queryIndexer<GetAllAccountTransactionVersionsQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "GetAllAccountTransactionVersions",
+  });
+
+  return data.account_transactions.map((tx) => tx.transaction_version);
 }
 
 export async function getResources(args: {

@@ -22,6 +22,7 @@ import {
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
+  GetAllAccountTransactionVersions,
   getAccountCoinAmount,
   getAccountCoinsCount,
   getAccountCoinsData,
@@ -31,6 +32,7 @@ import {
   getAccountOwnedTokensFromCollectionAddress,
   getAccountTokensCount,
   getAccountTransactionsCount,
+  getAllAccountTransactions,
   getInfo,
   getModule,
   getModules,
@@ -118,7 +120,7 @@ export class Account {
   }
 
   /**
-   * Queries account transactions given an account address
+   * Queries account transactions sent by a given account address
    *
    * Note: In order to get all account transactions, this function may call the API
    * multiple times as it auto paginates.
@@ -137,6 +139,52 @@ export class Account {
     options?: PaginationArgs;
   }): Promise<TransactionResponse[]> {
     return getTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Queries account transactions related to a given account address
+   *
+   * Note: In order to get all account transactions, this function may call the API
+   * multiple times as it auto paginates.
+   *
+   * @example
+   * const transactions = await aptos.getAllAccountTransactions({accountAddress:"0x456"})
+   *
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number transaction to start returning results from
+   * @param args.options.limit The number of results to return
+   *
+   * @returns The account transactions
+   */
+  async getAllAccountTransactions(args: {
+    accountAddress: AccountAddressInput;
+    options?: PaginationArgs;
+  }): Promise<TransactionResponse[]> {
+    return getAllAccountTransactions({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
+  /**
+   * Queries account's all transaction versions given an account address
+   *
+   * Note: This returns both the transaction sent by the account and received by the account.
+   *
+   * @param args.accountAddress Aptos account address
+   * @param args.options.offset The number transaction to start returning results from
+   * @param args.options.limit The number of results to return
+   *
+   * @returns The account transaction versions
+   */
+  async GetAllAccountTransactionVersions(args: {
+    accountAddress: AccountAddressInput;
+    options?: PaginationArgs;
+  }): Promise<AnyNumber[]> {
+    return GetAllAccountTransactionVersions({
       aptosConfig: this.config,
       ...args,
     });
