@@ -37,7 +37,11 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
 export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
   const hash = sha3Hash.create();
 
-  hash.update(`APTOS::${domainSeparator}`);
+  if (!domainSeparator.startsWith("APTOS::")) {
+    throw new Error(`Domain separator needs to start with 'APTOS::'.  Provided - ${domainSeparator}`);
+  }
+
+  hash.update(domainSeparator);
 
   const prefix = hash.digest();
 
