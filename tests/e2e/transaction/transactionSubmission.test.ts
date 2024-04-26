@@ -8,7 +8,6 @@ import {
   SigningSchemeInput,
   MultiKey,
   MultiKeyAccount,
-  AccountAuthenticatorMultiKey,
   RawTransaction,
   TransactionPayloadEntryFunction,
   Bool,
@@ -604,7 +603,10 @@ describe("transaction submission", () => {
         signaturesRequired: 2,
       });
 
-      const account = new MultiKeyAccount({multiKey, signers:[singleSignerED25519SenderAccount, singleSignerSecp256k1Account]});
+      const account = new MultiKeyAccount({
+        multiKey,
+        signers: [singleSignerED25519SenderAccount, singleSignerSecp256k1Account],
+      });
 
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 

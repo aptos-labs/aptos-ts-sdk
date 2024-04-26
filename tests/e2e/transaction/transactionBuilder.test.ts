@@ -470,7 +470,7 @@ describe("transaction builder", () => {
         sender: alice.accountAddress,
         payload,
       });
-      const senderAuthenticator = alice.signWithAuthenticator(transaction);     
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator,
@@ -497,7 +497,7 @@ describe("transaction builder", () => {
         secondarySignerAddresses: [bob.accountAddress],
       });
       const authenticator = alice.signWithAuthenticator(transaction);
-      const secondaryAuthenticator = bob.signWithAuthenticator(transaction); 
+      const secondaryAuthenticator = bob.signWithAuthenticator(transaction);
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
@@ -524,8 +524,8 @@ describe("transaction builder", () => {
         payload,
         feePayerAddress: bob.accountAddress,
       });
-      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
-      const feePayerAuthenticator = bob.signWithAuthenticator(transaction); 
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
+      const feePayerAuthenticator = bob.signWithAuthenticator(transaction);
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator,
@@ -548,7 +548,7 @@ describe("transaction builder", () => {
         amount: 1,
       });
 
-      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
 
       // Generate hash
       const signedTxnInput = {
@@ -579,8 +579,8 @@ describe("transaction builder", () => {
         payload,
         secondarySignerAddresses: [bob.accountAddress],
       });
-      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
-      const secondaryAuthenticator = bob.signWithAuthenticator(transaction); 
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
+      const secondaryAuthenticator = bob.signWithAuthenticator(transaction);
       // Generate hash
       const signedTxnInput = {
         transaction,
@@ -608,10 +608,10 @@ describe("transaction builder", () => {
       });
 
       // Bob signs without knowing the fee payer
-      const senderAuthenticator = bob.signWithAuthenticator(transaction); 
+      const senderAuthenticator = bob.signWithAuthenticator(transaction);
       // Alice signs after putting themselves in as fee payer
       transaction.feePayerAddress = alice.accountAddress;
-      const feePayerAuthenticator = alice.signWithAuthenticator(transaction); 
+      const feePayerAuthenticator = alice.signWithAuthenticator(transaction);
 
       // Generate hash
       const signedTxnInput = {
