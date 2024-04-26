@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Breaking`] Removes private key from the Account class to support keyless and passkey
+- Refactors the core/accounts folder to the top level
+- Separates the signing message functionality out of the transactionSubmission file
+
 # 1.13.1 (2024-04-23)
 
 - [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
