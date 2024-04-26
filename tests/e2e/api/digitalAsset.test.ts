@@ -67,7 +67,7 @@ describe("DigitalAsset", () => {
     tokenAddress = await setupToken();
   });
 
-  test.only("it gets digital asset data for a digital asset's address", async () => {
+  test("it gets digital asset data for a digital asset's address", async () => {
     const tokenData = await aptos.getDigitalAssetData({ digitalAssetAddress: tokenAddress });
 
     expect(tokenData.token_data_id).toEqual(tokenAddress);

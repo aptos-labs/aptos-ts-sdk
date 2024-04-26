@@ -53,7 +53,7 @@ describe("sign transaction", () => {
         const authenticator = AccountAuthenticator.deserialize(deserializer);
         expect(authenticator instanceof AccountAuthenticatorSingleKey).toBeTruthy();
       });
-      test.only("it signs an entry function transaction", async () => {
+      test("it signs an entry function transaction", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
