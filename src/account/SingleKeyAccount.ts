@@ -118,7 +118,7 @@ export class SingleKeyAccount implements Account {
   }
 
   signTransaction(transaction: AnyRawTransaction) {
-    return this.sign(generateSigningMessageForTransaction(transaction))
+    return this.sign(generateSigningMessageForTransaction(transaction));
   }
 
   // endregion

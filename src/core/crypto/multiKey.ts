@@ -141,15 +141,13 @@ export class MultiKey extends AccountPublicKey {
   }
 
   getIndex(publicKey: PublicKey): number {
-
-    const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey)
+    const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
     const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
 
     if (index !== -1) {
-        return index;
-    } 
+      return index;
+    }
     throw new Error("Public key not found in MultiKey");
-  
   }
 }
 
