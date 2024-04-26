@@ -33,7 +33,8 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, Account, PrivateKey } from "../core";
+import { AccountAddressInput, PrivateKey } from "../core";
+import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";

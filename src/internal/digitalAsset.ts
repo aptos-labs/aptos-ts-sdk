@@ -10,7 +10,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { Bool, MoveString, MoveVector, U64 } from "../bcs";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
 import { EntryFunctionABI, InputGenerateTransactionOptions } from "../transactions/types";
 import {
   AnyNumber,

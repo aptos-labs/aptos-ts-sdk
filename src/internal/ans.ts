@@ -9,7 +9,8 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";
 import { GetNamesQuery } from "../types/generated/operations";
