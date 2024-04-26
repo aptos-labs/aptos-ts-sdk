@@ -9,20 +9,13 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
 import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import {
-  DEFAULT_MAX_GAS_AMOUNT,
-  DEFAULT_TXN_EXP_SEC_FROM_NOW,
-  RAW_TRANSACTION_SALT,
-  RAW_TRANSACTION_WITH_DATA_SALT,
-} from "../../utils/const";
+import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -52,7 +45,6 @@ import { SignedTransaction } from "../instances/signedTransaction";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
-  AnyRawTransactionInstance,
   EntryFunctionArgumentTypes,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
@@ -76,6 +68,7 @@ import { memoizeAsync } from "../../utils/memoize";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { deriveTransactionType } from "./signingMessage";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -451,12 +444,7 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
-    if (publicKey.publicKey instanceof Ed25519PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
-    }
-    if (publicKey.publicKey instanceof Secp256k1PublicKey) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
-    }
+    return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
   }
 
   // legacy code
@@ -464,24 +452,6 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     new Ed25519PublicKey(publicKey.toUint8Array()),
     new Ed25519Signature(new Uint8Array(64)),
   );
-}
-
-/**
- * Sign a transaction that can later be submitted to chain
- *
- * @param args.signer The signer account to sign the transaction
- * @param args.transaction A aptos transaction type to sign
- *
- * @return The signer AccountAuthenticator
- */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-  const { signer, transaction } = args;
-
-  // get the signing message
-  const message = generateSigningMessage(transaction);
-
-  // account.signMessage
-  return signer.signWithAuthenticator(message);
 }
 
 /**
@@ -566,28 +536,6 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
 }
 
 /**
- * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
- *
- * @param transaction A aptos transaction type
- *
- * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
- */
-export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  if (transaction.feePayerAddress) {
-    return new FeePayerRawTransaction(
-      transaction.rawTransaction,
-      transaction.secondarySignerAddresses ?? [],
-      transaction.feePayerAddress,
-    );
-  }
-  if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
-  }
-
-  return transaction.rawTransaction;
-}
-
-/**
  * Generate a multi signers signed transaction that can be submitted to chain
  *
  * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
@@ -634,31 +582,6 @@ export function generateMultiSignersSignedTransaction(
   throw new Error(
     `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
   );
-}
-
-export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
-  const rawTxn = deriveTransactionType(transaction);
-  const hash = sha3Hash.create();
-
-  if (rawTxn instanceof RawTransaction) {
-    hash.update(RAW_TRANSACTION_SALT);
-  } else if (rawTxn instanceof MultiAgentRawTransaction) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else if (rawTxn instanceof FeePayerRawTransaction) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else {
-    throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
-  }
-
-  const prefix = hash.digest();
-
-  const body = rawTxn.bcsToBytes();
-
-  const mergedArray = new Uint8Array(prefix.length + body.length);
-  mergedArray.set(prefix);
-  mergedArray.set(body, prefix.length);
-
-  return mergedArray;
 }
 
 /**
