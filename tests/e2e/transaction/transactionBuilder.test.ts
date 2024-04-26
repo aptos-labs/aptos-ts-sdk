@@ -23,7 +23,6 @@ import {
   generateSignedTransactionForSimulation,
   generateTransactionPayload,
   generateTransactionPayloadWithABI,
-  sign,
   SignedTransaction,
   generateUserTransactionHash,
 } from "../../../src";
@@ -395,12 +394,9 @@ describe("transaction builder", () => {
         sender: alice.accountAddress,
         payload,
       });
-      const accountAuthenticator = sign({
-        signer: alice,
-        transaction,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
+      expect(senderAuthenticator instanceof AccountAuthenticator).toBeTruthy();
+      const deserializer = new Deserializer(senderAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
       expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
@@ -421,12 +417,9 @@ describe("transaction builder", () => {
         payload,
         feePayerAddress: Account.generate().accountAddress,
       });
-      const accountAuthenticator = sign({
-        signer: alice,
-        transaction,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
+      expect(senderAuthenticator instanceof AccountAuthenticator).toBeTruthy();
+      const deserializer = new Deserializer(senderAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
       expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
@@ -445,18 +438,15 @@ describe("transaction builder", () => {
           new U64(50),
         ],
       });
-      const rawTxn = await buildTransaction({
+      const transaction = await buildTransaction({
         aptosConfig: config,
         sender: alice.accountAddress,
         payload,
         secondarySignerAddresses: [bob.accountAddress],
       });
-      const accountAuthenticator = sign({
-        signer: alice,
-        transaction: rawTxn,
-      });
-      expect(accountAuthenticator instanceof AccountAuthenticator).toBeTruthy();
-      const deserializer = new Deserializer(accountAuthenticator.bcsToBytes());
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);
+      expect(senderAuthenticator instanceof AccountAuthenticator).toBeTruthy();
+      const deserializer = new Deserializer(senderAuthenticator.bcsToBytes());
       const authenticator = AccountAuthenticator.deserialize(deserializer);
       expect(authenticator instanceof AccountAuthenticatorEd25519).toBeTruthy();
     });
@@ -480,10 +470,10 @@ describe("transaction builder", () => {
         sender: alice.accountAddress,
         payload,
       });
-      const authenticator = sign({ signer: alice, transaction });
+      const senderAuthenticator = alice.signWithAuthenticator(transaction);     
       const bcsTransaction = await generateSignedTransaction({
         transaction,
-        senderAuthenticator: authenticator,
+        senderAuthenticator,
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);
@@ -506,11 +496,8 @@ describe("transaction builder", () => {
         payload,
         secondarySignerAddresses: [bob.accountAddress],
       });
-      const authenticator = sign({ signer: alice, transaction });
-      const secondaryAuthenticator = sign({
-        signer: bob,
-        transaction,
-      });
+      const authenticator = alice.signWithAuthenticator(transaction);
+      const secondaryAuthenticator = bob.signWithAuthenticator(transaction); 
       const bcsTransaction = await generateSignedTransaction({
         transaction,
         senderAuthenticator: authenticator,
@@ -537,14 +524,11 @@ describe("transaction builder", () => {
         payload,
         feePayerAddress: bob.accountAddress,
       });
-      const authenticator = sign({ signer: alice, transaction });
-      const feePayerAuthenticator = sign({
-        signer: bob,
-        transaction,
-      });
+      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
+      const feePayerAuthenticator = bob.signWithAuthenticator(transaction); 
       const bcsTransaction = await generateSignedTransaction({
         transaction,
-        senderAuthenticator: authenticator,
+        senderAuthenticator,
         feePayerAuthenticator,
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
@@ -564,7 +548,7 @@ describe("transaction builder", () => {
         amount: 1,
       });
 
-      const senderAuthenticator = sign({ signer: alice, transaction });
+      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
 
       // Generate hash
       const signedTxnInput = {
@@ -595,11 +579,8 @@ describe("transaction builder", () => {
         payload,
         secondarySignerAddresses: [bob.accountAddress],
       });
-      const senderAuthenticator = sign({ signer: alice, transaction });
-      const secondaryAuthenticator = sign({
-        signer: bob,
-        transaction,
-      });
+      const senderAuthenticator = alice.signWithAuthenticator(transaction); 
+      const secondaryAuthenticator = bob.signWithAuthenticator(transaction); 
       // Generate hash
       const signedTxnInput = {
         transaction,
@@ -627,13 +608,10 @@ describe("transaction builder", () => {
       });
 
       // Bob signs without knowing the fee payer
-      const senderAuthenticator = sign({
-        signer: bob,
-        transaction,
-      });
+      const senderAuthenticator = bob.signWithAuthenticator(transaction); 
       // Alice signs after putting themselves in as fee payer
       transaction.feePayerAddress = alice.accountAddress;
-      const feePayerAuthenticator = sign({ signer: alice, transaction });
+      const feePayerAuthenticator = alice.signWithAuthenticator(transaction); 
 
       // Generate hash
       const signedTxnInput = {

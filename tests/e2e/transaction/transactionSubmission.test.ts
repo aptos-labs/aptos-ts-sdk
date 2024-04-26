@@ -7,6 +7,7 @@ import {
   Deserializer,
   SigningSchemeInput,
   MultiKey,
+  MultiKeyAccount,
   AccountAuthenticatorMultiKey,
   RawTransaction,
   TransactionPayloadEntryFunction,
@@ -603,37 +604,21 @@ describe("transaction submission", () => {
         signaturesRequired: 2,
       });
 
-      const authKey = multiKey.authKey();
+      const account = new MultiKeyAccount({multiKey, signers:[singleSignerED25519SenderAccount, singleSignerSecp256k1Account]});
 
-      const multiKeyAccountAddress = authKey.derivedAddress();
-
-      await aptos.fundAccount({ accountAddress: multiKeyAccountAddress, amount: 100_000_000 });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
 
       const transaction = await aptos.transaction.build.simple({
-        sender: multiKeyAccountAddress,
+        sender: account.accountAddress,
         data: {
           function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
           functionArguments: [1, receiverAccounts[0].accountAddress],
         },
       });
-      // create a bitmap where singleSignerED25519SenderAccount and singleSignerSecp256k1Account
-      const bitmap = multiKey.createBitmap({ bits: [0, 2] });
 
-      // account1 and account3 sign the transaction
-      const account1Authenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
-      const account3Authenticator = aptos.transaction.sign({ signer: singleSignerSecp256k1Account, transaction });
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
 
-      if (!(account1Authenticator.isSingleKey() && account3Authenticator.isSingleKey())) {
-        throw new Error("Both AccountAuthenticators should be an instance of AccountAuthenticatorSingleKey");
-      }
-
-      const multiKeyAuth = new AccountAuthenticatorMultiKey(
-        multiKey,
-        [account1Authenticator.signature, account3Authenticator.signature],
-        bitmap,
-      );
-
-      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator: multiKeyAuth });
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
       await aptos.waitForTransaction({
         transactionHash: response.hash,
       });
