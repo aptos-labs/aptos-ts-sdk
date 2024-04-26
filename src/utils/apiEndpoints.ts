@@ -52,6 +52,7 @@ export const NetworkToChainId: Record<string, number> = {
   mainnet: 1,
   testnet: 2,
   randomnet: 70,
+  local: 4,
 };
 
 export const NetworkToNetworkName: Record<string, Network> = {
