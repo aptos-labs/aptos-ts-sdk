@@ -7,7 +7,6 @@ import { AccountAddress } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-import { KeylessAccount } from "./KeylessAccount";
 
 export class MultiKeyAccount implements Account {
   /**
@@ -74,13 +73,6 @@ export class MultiKeyAccount implements Account {
 
   signWithAuthenticator(transaction: AnyRawTransaction) {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
-  }
-
-  async waitForProofFetch() {
-    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
-    await Promise.all(
-      keylessSigners.filter((signer) => signer.proof instanceof Promise).map( (signer) => signer.proof),
-    );
   }
 
   /**
