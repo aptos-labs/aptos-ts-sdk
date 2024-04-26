@@ -55,7 +55,7 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
-  const expiryDateSecs = BigInt(1718911224);
+  const expiryDateSecs = BigInt(1721397501);
   const blinder = new Uint8Array(31);
   for (let i = 0; i < blinder.length; i += 1) {
     blinder[i] = 0;
@@ -103,7 +103,8 @@ const example = async () => {
   const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
-    // pepper: "4c000000000000000000000000000000000000000000000000000000000000",
+    pepper: "00000000000000000000000000000000000000000000000000000000000000",
+    disableConnect: true,
     // extraFieldKey: "family_name"
   });
 
