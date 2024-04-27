@@ -14,7 +14,7 @@ import {
   AptosConfig,
   Ed25519PrivateKey,
   EphemeralKeyPair,
-  Network
+  Network,
 } from "@aptos-labs/ts-sdk";
 import { promisify } from "util";
 
@@ -25,7 +25,8 @@ const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
 
-const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJhdF9oYXNoIjoiSlFCcEZQZlNIbmJVdGJUTzFiNFdjZyIsIm5vbmNlIjoiMTAxNzE4NzQyOTY2Mzc2NDAyMjM5MjUzOTc3ODY1NTM0MDMxNDIwNzkzOTEyNDgwMTQyMDkyNjU2MzM5NzUzMzY4NjM0ODQ5NzAxMzEiLCJpYXQiOjE3MTAxODI1MTAsImV4cCI6MTcxMDE4NjExMH0.dLVMdxFUqhvsXK3dR6CwWKIrWt8Z460VSxX-CXEhqwmFySskOGBSjcEGvUH23Z7Jc14UE5IKIbtrUCa_w4JRxedVTrfGo5JIlZAuDkqqCA-ogDjDK3iyQENrNShR4E_CH2b9186rK9jIANI6SbD3IzMj4lYRuCOEwdU4bw2RMbc059GzhPbzK1NCi5QeF-TQrbaDg7tfBZsojgPZ_aMVFt7LQIQRO2vjW8aPgXeg0RbQXIUYOGW382qMhQ6BoXC3GpR148EdOq9A3riViZqqAuC6QWsDK5StMwQbZiWI3m7nZISI632x9ISs09BQLJW2cTh_Y_NUk8mTKDzoDCZpKw";
+const TEST_JWT =
+  "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJhdF9oYXNoIjoiSlFCcEZQZlNIbmJVdGJUTzFiNFdjZyIsIm5vbmNlIjoiMTAxNzE4NzQyOTY2Mzc2NDAyMjM5MjUzOTc3ODY1NTM0MDMxNDIwNzkzOTEyNDgwMTQyMDkyNjU2MzM5NzUzMzY4NjM0ODQ5NzAxMzEiLCJpYXQiOjE3MTAxODI1MTAsImV4cCI6MTcxMDE4NjExMH0.dLVMdxFUqhvsXK3dR6CwWKIrWt8Z460VSxX-CXEhqwmFySskOGBSjcEGvUH23Z7Jc14UE5IKIbtrUCa_w4JRxedVTrfGo5JIlZAuDkqqCA-ogDjDK3iyQENrNShR4E_CH2b9186rK9jIANI6SbD3IzMj4lYRuCOEwdU4bw2RMbc059GzhPbzK1NCi5QeF-TQrbaDg7tfBZsojgPZ_aMVFt7LQIQRO2vjW8aPgXeg0RbQXIUYOGW382qMhQ6BoXC3GpR148EdOq9A3riViZqqAuC6QWsDK5StMwQbZiWI3m7nZISI632x9ISs09BQLJW2cTh_Y_NUk8mTKDzoDCZpKw";
 
 /**
  * Prints the balance of an account
@@ -49,7 +50,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({network: Network.DEVNET});
+  const config = new AptosConfig({ network: Network.DEVNET });
   // const config = new AptosConfig();
 
   const aptos = new Aptos(config);
@@ -76,7 +77,7 @@ const example = async () => {
   });
 
   const questionAsync = promisify(rl.question).bind(rl);
-  
+
   // eslint-disable-next-line consistent-return
   async function getUserInput(): Promise<string> {
     try {
@@ -86,10 +87,10 @@ const example = async () => {
         console.log("No jwt token inputted. Using test jwt token");
         console.log();
         rl.close();
-        return TEST_JWT
+        return TEST_JWT;
       }
       rl.close();
-      return response.trim()
+      return response.trim();
     } catch (error) {
       rl.close();
       console.error("Error reading user input:", error);

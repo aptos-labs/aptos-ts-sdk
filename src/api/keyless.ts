@@ -35,7 +35,7 @@ export class Keyless {
    * @param args.jwt jwt token
    * @returns The pepper
    */
-  async getPepper(args: { jwt: string, ephemeralKeyPair: EphemeralKeyPair; }): Promise<Uint8Array> {
+  async getPepper(args: { jwt: string; ephemeralKeyPair: EphemeralKeyPair }): Promise<Uint8Array> {
     return getPepper({ aptosConfig: this.config, ...args });
   }
 

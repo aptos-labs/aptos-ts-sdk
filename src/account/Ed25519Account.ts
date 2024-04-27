@@ -87,7 +87,7 @@ export class Ed25519Account implements Account {
   }
 
   signTransaction(transaction: AnyRawTransaction) {
-    return this.sign(generateSigningMessageForTransaction(transaction))
+    return this.sign(generateSigningMessageForTransaction(transaction));
   }
 
   // endregion

@@ -178,9 +178,9 @@ export class AnySignature extends Signature {
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
         break;
-        case AnySignatureVariant.Keyless:
-          signature = KeylessSignature.deserialize(deserializer);
-          break;
+      case AnySignatureVariant.Keyless:
+        signature = KeylessSignature.deserialize(deserializer);
+        break;
       default:
         throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);
     }

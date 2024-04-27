@@ -3,8 +3,13 @@
 
 import { randomBytes } from "@noble/hashes/utils";
 
-
-import { EPK_HORIZON_SECS, Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey} from "../core/crypto";
+import {
+  EPK_HORIZON_SECS,
+  Ed25519PrivateKey,
+  EphemeralPublicKey,
+  EphemeralSignature,
+  PrivateKey,
+} from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
 import { HexInput, SigningSchemeInput } from "../types";
@@ -29,7 +34,7 @@ export class EphemeralKeyPair {
     this.nonce = this.generateNonce();
   }
 
-  static generate(args?: {scheme: SigningSchemeInput}): EphemeralKeyPair {
+  static generate(args?: { scheme: SigningSchemeInput }): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
@@ -43,8 +48,8 @@ export class EphemeralKeyPair {
 
   generateNonce(): string {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
-    fields.push(BigInt(this.expiryDateSecs))
-    fields.push(bytesToBigIntLE(this.blinder))
+    fields.push(BigInt(this.expiryDateSecs));
+    fields.push(bytesToBigIntLE(this.blinder));
     const nonceHash = poseidonHash(fields);
     return nonceHash.toString();
   }
@@ -65,7 +70,7 @@ function generateBlinder(): Uint8Array {
 }
 
 function currentTimeInSeconds(): number {
-  return Math.floor(new Date().getTime() / 1000)
+  return Math.floor(new Date().getTime() / 1000);
 }
 
 function floorToWholeHour(timestampInSeconds: number): number {

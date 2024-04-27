@@ -119,7 +119,7 @@ export class KeylessAccount implements Account {
 
   async waitForProofFetch() {
     if (this.proof instanceof Promise) {
-      await this.proof
+      await this.proof;
     }
   }
 

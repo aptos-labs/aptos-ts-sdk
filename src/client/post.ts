@@ -136,7 +136,6 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
   });
 }
 
-
 export async function postAptosPepperService<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {

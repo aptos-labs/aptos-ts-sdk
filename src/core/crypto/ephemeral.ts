@@ -43,7 +43,7 @@ export class EphemeralPublicKey extends PublicKey {
    * @returns string representation of the public key
    */
   toString(): string {
-    return this.bcsToHex().toString()
+    return this.bcsToHex().toString();
   }
 
   /**
@@ -85,7 +85,6 @@ export class EphemeralPublicKey extends PublicKey {
     return this.publicKey instanceof Ed25519PublicKey;
   }
 }
-
 
 export class EphemeralSignature extends Signature {
   public readonly signature: Signature;

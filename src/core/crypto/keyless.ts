@@ -243,7 +243,13 @@ export class SignedGroth16Signature extends Signature {
     trainingWheelsSignature?: EphemeralSignature;
   }) {
     super();
-    const { proof, expHorizonSecs = BigInt(EPK_HORIZON_SECS), trainingWheelsSignature, extraField, overrideAudVal } = args;
+    const {
+      proof,
+      expHorizonSecs = BigInt(EPK_HORIZON_SECS),
+      trainingWheelsSignature,
+      extraField,
+      overrideAudVal,
+    } = args;
     this.proof = proof;
     this.expHorizonSecs = expHorizonSecs;
     this.trainingWheelsSignature = trainingWheelsSignature;

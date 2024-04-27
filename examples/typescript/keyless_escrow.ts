@@ -32,7 +32,8 @@ const ALICE_INITIAL_BALANCE = 100_000_000_000;
 const TRANSFER_AMOUNT = 100_000_000;
 const TRANSFER_AMOUNT_WITH_FEE = TRANSFER_AMOUNT + 600;
 
-const TEST_JWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJhdF9oYXNoIjoiSlFCcEZQZlNIbmJVdGJUTzFiNFdjZyIsIm5vbmNlIjoiMTAxNzE4NzQyOTY2Mzc2NDAyMjM5MjUzOTc3ODY1NTM0MDMxNDIwNzkzOTEyNDgwMTQyMDkyNjU2MzM5NzUzMzY4NjM0ODQ5NzAxMzEiLCJpYXQiOjE3MTAxODI1MTAsImV4cCI6MTcxMDE4NjExMH0.dLVMdxFUqhvsXK3dR6CwWKIrWt8Z460VSxX-CXEhqwmFySskOGBSjcEGvUH23Z7Jc14UE5IKIbtrUCa_w4JRxedVTrfGo5JIlZAuDkqqCA-ogDjDK3iyQENrNShR4E_CH2b9186rK9jIANI6SbD3IzMj4lYRuCOEwdU4bw2RMbc059GzhPbzK1NCi5QeF-TQrbaDg7tfBZsojgPZ_aMVFt7LQIQRO2vjW8aPgXeg0RbQXIUYOGW382qMhQ6BoXC3GpR148EdOq9A3riViZqqAuC6QWsDK5StMwQbZiWI3m7nZISI632x9ISs09BQLJW2cTh_Y_NUk8mTKDzoDCZpKw";
+const TEST_JWT =
+  "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJhdF9oYXNoIjoiSlFCcEZQZlNIbmJVdGJUTzFiNFdjZyIsIm5vbmNlIjoiMTAxNzE4NzQyOTY2Mzc2NDAyMjM5MjUzOTc3ODY1NTM0MDMxNDIwNzkzOTEyNDgwMTQyMDkyNjU2MzM5NzUzMzY4NjM0ODQ5NzAxMzEiLCJpYXQiOjE3MTAxODI1MTAsImV4cCI6MTcxMDE4NjExMH0.dLVMdxFUqhvsXK3dR6CwWKIrWt8Z460VSxX-CXEhqwmFySskOGBSjcEGvUH23Z7Jc14UE5IKIbtrUCa_w4JRxedVTrfGo5JIlZAuDkqqCA-ogDjDK3iyQENrNShR4E_CH2b9186rK9jIANI6SbD3IzMj4lYRuCOEwdU4bw2RMbc059GzhPbzK1NCi5QeF-TQrbaDg7tfBZsojgPZ_aMVFt7LQIQRO2vjW8aPgXeg0RbQXIUYOGW382qMhQ6BoXC3GpR148EdOq9A3riViZqqAuC6QWsDK5StMwQbZiWI3m7nZISI632x9ISs09BQLJW2cTh_Y_NUk8mTKDzoDCZpKw";
 
 /**
  * Prints the balance of an account
@@ -56,7 +57,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({network: Network.DEVNET});
+  const config = new AptosConfig({ network: Network.DEVNET });
   const aptos = new Aptos(config);
 
   // Create two accounts
@@ -82,7 +83,7 @@ const example = async () => {
   });
 
   const questionAsync = promisify(rl.question).bind(rl);
-  
+
   // eslint-disable-next-line consistent-return
   async function getUserInput(): Promise<string> {
     try {
@@ -92,9 +93,9 @@ const example = async () => {
         console.log("No jwt token inputted. Using test jwt token");
         console.log();
         // rl.close();
-        return TEST_JWT
+        return TEST_JWT;
       }
-      return response.trim()
+      return response.trim();
     } catch (error) {
       rl.close();
       console.error("Error reading user input:", error);
@@ -110,9 +111,9 @@ const example = async () => {
         console.log("No email inputted. Using heliuchuan@gmail.com");
         console.log();
         // rl.close();
-        return "heliuchuan@gmail.com"
+        return "heliuchuan@gmail.com";
       }
-      return response.trim()
+      return response.trim();
     } catch (error) {
       rl.close();
       console.error("Error reading user input:", error);
@@ -120,8 +121,8 @@ const example = async () => {
   }
 
   const iss = "https://accounts.google.com";
-  const aud = "407408718192.apps.googleusercontent.com"
-  const uidKey = "email"
+  const aud = "407408718192.apps.googleusercontent.com";
+  const uidKey = "email";
 
   const jwt = await getUserInput();
 
@@ -134,8 +135,8 @@ const example = async () => {
     ephemeralKeyPair: aliceEphem,
   });
 
-  const uidVal = bobEmail
-  const pepper = randomBytes(31);;
+  const uidVal = bobEmail;
+  const pepper = randomBytes(31);
   const escrowAddressSeed = computeAddressSeed({
     uidKey,
     uidVal,
@@ -144,8 +145,8 @@ const example = async () => {
   });
   const escrowPublicKey = new KeylessPublicKey(iss, escrowAddressSeed);
 
-  const multiKey = new MultiKey({publicKeys: [alice.publicKey, escrowPublicKey], signaturesRequired: 1})
-  const mkAddr = AuthenticationKey.fromPublicKey({ publicKey: multiKey} ).derivedAddress();
+  const multiKey = new MultiKey({ publicKeys: [alice.publicKey, escrowPublicKey], signaturesRequired: 1 });
+  const mkAddr = AuthenticationKey.fromPublicKey({ publicKey: multiKey }).derivedAddress();
 
   console.log("\n=== Addresses ===\n");
   console.log(`Alice's address is: ${alice.accountAddress}`);
@@ -195,15 +196,16 @@ const example = async () => {
   console.error("Transfer fee:", aliceBalance - (newAliceBalance + TRANSFER_AMOUNT_WITH_FEE));
   console.error("");
 
-  const bobJWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJlbWFpbCI6ImhlbGl1Y2h1YW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJZSlIybkNLYV9kcUlLZjRlOGRJcmt3Iiwibm9uY2UiOiIxMDE3MTg3NDI5NjYzNzY0MDIyMzkyNTM5Nzc4NjU1MzQwMzE0MjA3OTM5MTI0ODAxNDIwOTI2NTYzMzk3NTMzNjg2MzQ4NDk3MDEzMSIsImlhdCI6MTcwOTkzMzgwMiwiZXhwIjoxNzA5OTM3NDAyfQ.iqVu6Uae_lUS7B-nJ_eVIisfgHqHFikb0cwxROuudnSwMYND5OiuG0Zlslx-ZgqEV0Dy28aRJT1zmt-xvgtqjJjiPikgf_1sncgs1M7LweUVDKw88DSifuM9UV5JkuHBFmDgiEAbAlLGdlpAJqgbNNG02yN-cxqLaluXSB13yDUzbBz3b_eHivZiHjp9f2E2x2-vw9MY6x6G6bpc1xBPjjR0Nm1GsPpaz8hyhLj_lUX-dRKwbq2xTrOciucRE0rVEqby1smVfS83AQ9P8wW1nhuo3okuFMM9qut1NsFwRQ0EiS8H4kRd8O5Rc-J2CtNrLAC-gmUfzBDzIjGeuj4VUg"
+  const bobJWT =
+    "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJlbWFpbCI6ImhlbGl1Y2h1YW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJZSlIybkNLYV9kcUlLZjRlOGRJcmt3Iiwibm9uY2UiOiIxMDE3MTg3NDI5NjYzNzY0MDIyMzkyNTM5Nzc4NjU1MzQwMzE0MjA3OTM5MTI0ODAxNDIwOTI2NTYzMzk3NTMzNjg2MzQ4NDk3MDEzMSIsImlhdCI6MTcwOTkzMzgwMiwiZXhwIjoxNzA5OTM3NDAyfQ.iqVu6Uae_lUS7B-nJ_eVIisfgHqHFikb0cwxROuudnSwMYND5OiuG0Zlslx-ZgqEV0Dy28aRJT1zmt-xvgtqjJjiPikgf_1sncgs1M7LweUVDKw88DSifuM9UV5JkuHBFmDgiEAbAlLGdlpAJqgbNNG02yN-cxqLaluXSB13yDUzbBz3b_eHivZiHjp9f2E2x2-vw9MY6x6G6bpc1xBPjjR0Nm1GsPpaz8hyhLj_lUX-dRKwbq2xTrOciucRE0rVEqby1smVfS83AQ9P8wW1nhuo3okuFMM9qut1NsFwRQ0EiS8H4kRd8O5Rc-J2CtNrLAC-gmUfzBDzIjGeuj4VUg";
 
-//   const bobJWT = await getUserInput();
+  //   const bobJWT = await getUserInput();
 
   const bobTempZkIDAccount = await aptos.deriveKeylessAccount({
     jwt: bobJWT,
     uidKey,
     ephemeralKeyPair: aliceEphem,
-    pepper
+    pepper,
   });
 
   const bobZkID = await aptos.deriveKeylessAccount({
@@ -212,7 +214,7 @@ const example = async () => {
     ephemeralKeyPair: aliceEphem,
   });
 
-  const escrowAccount = new MultiKeyAccount({ multiKey, signers: [bobTempZkIDAccount] })
+  const escrowAccount = new MultiKeyAccount({ multiKey, signers: [bobTempZkIDAccount] });
 
   // Fund the accounts
   console.log("\n=== Funding Bob's account ===\n");
@@ -238,8 +240,8 @@ const example = async () => {
 
   console.log("\n=== Transferring ===\n");
 
-  const response = await aptos.signAndSubmitTransaction({ signer: escrowAccount, transaction:transferToBobTxn });
-  console.log("Transaction hash: ", response.hash)
+  const response = await aptos.signAndSubmitTransaction({ signer: escrowAccount, transaction: transferToBobTxn });
+  console.log("Transaction hash: ", response.hash);
   await aptos.waitForTransaction({
     transactionHash: response.hash,
   });

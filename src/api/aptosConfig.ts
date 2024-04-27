@@ -135,7 +135,7 @@ export class AptosConfig {
   isPepperServiceRequest(url: string): boolean {
     return NetworkToPepperAPI[this.network] === url;
   }
-  
+
   /**
    * Checks if the URL is a known prover service endpoint
    *

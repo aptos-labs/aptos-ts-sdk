@@ -117,7 +117,6 @@ export enum AnySignatureVariant {
   Keyless = 3,
 }
 
-
 export enum EphemeralPublicKeyVariant {
   Ed25519 = 0,
 }

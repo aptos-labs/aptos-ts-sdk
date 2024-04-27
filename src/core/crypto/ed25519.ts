@@ -7,11 +7,7 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
-import {
-  isValidHardenedPath,
-  fromDerivationPath as fromDerivationPathInner,
-  mnemonicToSeed,
-} from "./hdKey";
+import { isValidHardenedPath, fromDerivationPath as fromDerivationPathInner, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
@@ -189,7 +185,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
     if (!isValidHardenedPath(path)) {
       throw new Error(`Invalid derivation path ${path}`);
     }
-    return new Ed25519PrivateKey(fromDerivationPathInner(path, Ed25519PrivateKey.SLIP_0010_SEED, mnemonicToSeed(mnemonics)));
+    return new Ed25519PrivateKey(
+      fromDerivationPathInner(path, Ed25519PrivateKey.SLIP_0010_SEED, mnemonicToSeed(mnemonics)),
+    );
   }
 
   // endregion
