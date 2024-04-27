@@ -14,6 +14,7 @@ import {
   TokenStandardArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import {
   addDigitalAssetPropertyTransaction,
@@ -45,7 +46,6 @@ import {
 import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
-import { Account } from "../account";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**

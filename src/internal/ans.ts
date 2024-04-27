@@ -8,8 +8,8 @@
  * name namespace and without having a dependency cycle error.
  */
 
-import { Account } from "../account";
 import { AptosConfig } from "../api/aptosConfig";
+import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { GetANSNameResponse, MoveAddressType, OrderByArg, PaginationArgs, WhereArg } from "../types";

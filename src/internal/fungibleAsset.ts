@@ -34,6 +34,7 @@ import {
   FungibleAssetMetadataBoolExp,
 } from "../types/generated/types";
 import { AccountAddressInput } from "../core";
+import { Account } from "../account";
 import {
   EntryFunctionABI,
   InputGenerateTransactionOptions,
@@ -42,7 +43,6 @@ import {
   TypeTagU64,
 } from "../transactions";
 import { generateTransaction } from "./transactionSubmission";
-import { Account } from "../account";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 export async function getFungibleAssetMetadata(args: {

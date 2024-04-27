@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { Account } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
@@ -26,7 +27,6 @@ import { GetANSNameResponse } from "../types";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { Account } from "../account";
 
 /**
  * A class to handle all `ANS` operations

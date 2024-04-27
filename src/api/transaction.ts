@@ -34,11 +34,11 @@ import {
   InputGenerateTransactionPayloadData,
 } from "../transactions";
 import { AccountAddressInput, PrivateKey } from "../core";
+import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
-import { Account } from "../account/Account";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 export class Transaction {
