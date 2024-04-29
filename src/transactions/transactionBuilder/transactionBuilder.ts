@@ -23,6 +23,7 @@ import {
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
 } from "../../utils/const";
+import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
@@ -494,14 +495,12 @@ export function sign(args: { signer: Account; transaction: AnyRawTransaction }):
  * @returns A SignedTransaction
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
-  const { transaction, senderAuthenticator, feePayerAuthenticator, additionalSignersAuthenticators } = args;
+  const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
+  const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
 
   const transactionToSubmit = deriveTransactionType(transaction);
 
-  if (
-    (feePayerAuthenticator || additionalSignersAuthenticators) &&
-    (transactionToSubmit instanceof MultiAgentRawTransaction || transactionToSubmit instanceof FeePayerRawTransaction)
-  ) {
+  if ("secondary_signer_addresses" in transactionToSubmit) {
     return generateMultiSignersSignedTransaction(
       transactionToSubmit,
       senderAuthenticator,
@@ -513,7 +512,7 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
   // submit single signer transaction
 
   // check what instance is accountAuthenticator
-  if (senderAuthenticator instanceof AccountAuthenticatorEd25519 && transactionToSubmit instanceof RawTransaction) {
+  if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
     const transactionAuthenticator = new TransactionAuthenticatorEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
@@ -522,9 +521,8 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
   }
 
   if (
-    (senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
-      senderAuthenticator instanceof AccountAuthenticatorMultiKey) &&
-    transactionToSubmit instanceof RawTransaction
+    senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
+    senderAuthenticator instanceof AccountAuthenticatorMultiKey
   ) {
     const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
     return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
