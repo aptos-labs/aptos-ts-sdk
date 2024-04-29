@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Fix`] Fix `generateSignedTransaction` so that it works with object instances from different bundles
 - [`Fix`] Preventing undefined options from overriding fallbacks in `generateRawTransaction`
+- Use `@aptos-labs/aptos-cli` as a regular dependency
 
 # 1.13.1 (2024-04-23)
 
