@@ -27,10 +27,10 @@ import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
-  AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
+  TransactionAuthenticator,
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
@@ -497,39 +497,41 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
   const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
 
-  const transactionToSubmit = deriveTransactionType(transaction);
-
-  if ("secondary_signer_addresses" in transactionToSubmit) {
-    return generateMultiSignersSignedTransaction(
-      transactionToSubmit,
+  let txnAuthenticator: TransactionAuthenticator;
+  if (transaction.feePayerAddress) {
+    if (!feePayerAuthenticator) {
+      throw new Error("Must provide a feePayerAuthenticator argument to generate a signed fee payer transaction");
+    }
+    txnAuthenticator = new TransactionAuthenticatorFeePayer(
       senderAuthenticator,
-      feePayerAuthenticator,
+      transaction.secondarySignerAddresses ?? [],
+      additionalSignersAuthenticators ?? [],
+      {
+        address: transaction.feePayerAddress,
+        authenticator: feePayerAuthenticator,
+      },
+    );
+  } else if (transaction.secondarySignerAddresses) {
+    if (!additionalSignersAuthenticators) {
+      throw new Error(
+        "Must provide a additionalSignersAuthenticators argument to generate a signed multi agent transaction",
+      );
+    }
+    txnAuthenticator = new TransactionAuthenticatorMultiAgent(
+      senderAuthenticator,
+      transaction.secondarySignerAddresses,
       additionalSignersAuthenticators,
     );
-  }
-
-  // submit single signer transaction
-
-  // check what instance is accountAuthenticator
-  if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
-    const transactionAuthenticator = new TransactionAuthenticatorEd25519(
+  } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
+    txnAuthenticator = new TransactionAuthenticatorEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
+  } else {
+    txnAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
   }
 
-  if (
-    senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
-    senderAuthenticator instanceof AccountAuthenticatorMultiKey
-  ) {
-    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot generate a signed transaction, ${senderAuthenticator} is not a supported account authentication scheme`,
-  );
+  return new SignedTransaction(transaction.rawTransaction, txnAuthenticator).bcsToBytes();
 }
 
 /**
@@ -582,55 +584,6 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
   }
 
   return transaction.rawTransaction;
-}
-
-/**
- * Generate a multi signers signed transaction that can be submitted to chain
- *
- * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
- * @param senderAuthenticator The account authenticator of the transaction sender
- * @param secondarySignerAuthenticators The extra signers account Authenticators
- *
- * @returns A SignedTransaction
- */
-export function generateMultiSignersSignedTransaction(
-  transaction: MultiAgentRawTransaction | FeePayerRawTransaction,
-  senderAuthenticator: AccountAuthenticator,
-  feePayerAuthenticator?: AccountAuthenticator,
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>,
-) {
-  if (transaction instanceof FeePayerRawTransaction) {
-    if (!feePayerAuthenticator) {
-      throw new Error("Must provide a feePayerAuthenticator argument to generate a signed fee payer transaction");
-    }
-    const txAuthenticatorFeePayer = new TransactionAuthenticatorFeePayer(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-      {
-        address: transaction.fee_payer_address,
-        authenticator: feePayerAuthenticator,
-      },
-    );
-    return new SignedTransaction(transaction.raw_txn, txAuthenticatorFeePayer).bcsToBytes();
-  }
-  if (transaction instanceof MultiAgentRawTransaction) {
-    if (!additionalSignersAuthenticators) {
-      throw new Error(
-        "Must provide a additionalSignersAuthenticators argument to generate a signed multi agent transaction",
-      );
-    }
-    const multiAgentAuthenticator = new TransactionAuthenticatorMultiAgent(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-    );
-    return new SignedTransaction(transaction.raw_txn, multiAgentAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
-  );
 }
 
 export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
