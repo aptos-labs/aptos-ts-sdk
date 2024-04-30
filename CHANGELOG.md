@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Export `MultiAgentTransaction` class
 
 # 1.13.2 (2024-04-29)
 
