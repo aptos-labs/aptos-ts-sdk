@@ -215,6 +215,10 @@ export class KeylessAccount implements Account {
     return true;
   }
 
+  static fromBytes(bytes: Uint8Array): KeylessAccount {
+    return KeylessAccount.deserialize(new Deserializer(bytes));
+  }
+
   static fromJWTAndProof(args: {
     proofFetcherOrData: Promise<SignedGroth16Signature> | SignedGroth16Signature;
     jwt: string;

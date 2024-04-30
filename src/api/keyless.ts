@@ -28,7 +28,6 @@ export class Keyless {
     uidKey?: string;
     pepper?: HexInput;
     extraFieldKey?: string;
-    disableConnect?: boolean;
     fetchProofAsync?: boolean;
   }): Promise<KeylessAccount> {
     return deriveKeylessAccount({ aptosConfig: this.config, ...args });
