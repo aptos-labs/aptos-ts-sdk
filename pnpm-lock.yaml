@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@aptos-labs/aptos-cli':
+    specifier: ^0.1.2
+    version: 0.1.2
   '@aptos-labs/aptos-client':
     specifier: ^0.1.0
     version: 0.1.0
@@ -40,9 +43,6 @@ dependencies:
     version: 0.2.0
 
 devDependencies:
-  '@aptos-labs/aptos-cli':
-    specifier: ^0.1.2
-    version: 0.1.2
   '@babel/traverse':
     specifier: ^7.23.6
     version: 7.23.6
@@ -146,7 +146,7 @@ packages:
   /@aptos-labs/aptos-cli@0.1.2:
     resolution: {integrity: sha512-MCi+9xPDG/Fx6c6b9ACqyQBYJLHqKJQKB8lay/1sUNJ2mNBB2OU1Lkmd5pmjUG1JbZ5cg2Fmgid5iMKdTnphhA==}
     hasBin: true
-    dev: true
+    dev: false
 
   /@aptos-labs/aptos-client@0.1.0:
     resolution: {integrity: sha512-q3s6pPq8H2buGp+tPuIRInWsYOuhSEwuNJPwd2YnsiID3YSLihn2ug39ktDJAcSOprUcp7Nid8WK7hKqnUmSdA==}

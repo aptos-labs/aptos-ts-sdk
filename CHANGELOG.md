@@ -4,10 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- [`Breaking`] Removes private key from the Account class to support keyless and passkey
-- Refactors the core/accounts folder to the top level
-- Separates the signing message functionality out of the transactionSubmission.ts file
-- Adds an Account implementation for MultiKey accounts
+# 1.13.3 (2024-04-30)
+
+- Export `MultiAgentTransaction` class
+
+# 1.13.2 (2024-04-29)
+
+- [`Fix`] Fix `generateSignedTransaction` so that it works with object instances from different bundles
+- [`Fix`] Preventing undefined options from overriding fallbacks in `generateRawTransaction`
+- Use `@aptos-labs/aptos-cli` as a regular dependency
 
 # 1.13.1 (2024-04-23)
 
