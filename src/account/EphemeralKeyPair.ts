@@ -12,12 +12,13 @@ import {
 } from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { HexInput, SigningSchemeInput } from "../types";
+import { EphemeralPublicKeyVariant, HexInput, SigningSchemeInput } from "../types";
+import { Deserializer, Serializable, Serializer } from "../bcs";
 
-export class EphemeralKeyPair {
+export class EphemeralKeyPair extends Serializable{
   readonly blinder: Uint8Array;
 
-  readonly expiryDateSecs: bigint;
+  readonly expiryDateSecs: bigint | number;
 
   readonly nonce: string;
 
@@ -25,13 +26,36 @@ export class EphemeralKeyPair {
 
   readonly publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint; blinder?: HexInput }) {
+  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint | number; blinder?: HexInput }) {
+    super()
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     this.expiryDateSecs = expiryDateSecs || BigInt(floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS));
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     this.nonce = this.generateNonce();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.publicKey.variant);
+    serializer.serializeBytes(this.privateKey.toUint8Array())
+    serializer.serializeU64(this.expiryDateSecs)
+    serializer.serializeFixedBytes(this.blinder)
+  }
+
+  static deserialize(deserializer: Deserializer): EphemeralKeyPair {
+    const variantIndex = deserializer.deserializeUleb128AsU32();
+    let privateKey: PrivateKey;
+    switch (variantIndex) {
+      case EphemeralPublicKeyVariant.Ed25519:
+        privateKey = Ed25519PrivateKey.deserialize(deserializer);
+        break;
+      default:
+        throw new Error(`Unknown variant index for EphemeralPublicKey: ${variantIndex}`);
+    }
+    const expiryDateSecs = deserializer.deserializeU64();
+    const blinder = deserializer.deserializeFixedBytes(31);
+    return new EphemeralKeyPair({privateKey, expiryDateSecs, blinder});
   }
 
   static generate(args?: { scheme: SigningSchemeInput }): EphemeralKeyPair {

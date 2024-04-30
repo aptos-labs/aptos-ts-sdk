@@ -18,12 +18,11 @@ import {
   EphemeralSignature,
   Groth16Zkp,
   Hex,
-  MultiKey,
   SignedGroth16Signature,
 } from "../core";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
-import { EphemeralKeyPair, KeylessAccount, MultiKeyAccount } from "../account";
+import { EphemeralKeyPair, KeylessAccount } from "../account";
 import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
 const APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST = "APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST";
@@ -171,15 +170,10 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
-  disableConnect?: boolean;
   fetchProofAsync?: boolean;
-}): Promise<KeylessAccount | MultiKeyAccount> {
+}): Promise<KeylessAccount> {
   const { fetchProofAsync } = args;
-  let { pepper, disableConnect } = args;
-
-  if (pepper || disableConnect) {
-    disableConnect = true;
-  }
+  let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
   } else if (Hex.fromHexInput(pepper).toUint8Array().length !== 31) {
@@ -191,15 +185,5 @@ export async function deriveKeylessAccount(args: {
 
   const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proofFetcherOrData: proof, pepper });
 
-  if (disableConnect === true) {
     return keylessAccount;
-  }
-
-  const aptosConnectPublicKey = keylessAccount.deriveAptosConnectPublicKey();
-
-  const multiKey = new MultiKey({
-    publicKeys: [keylessAccount.publicKey, aptosConnectPublicKey],
-    signaturesRequired: 1,
-  });
-  return new MultiKeyAccount({ multiKey, signers: [keylessAccount] });
 }

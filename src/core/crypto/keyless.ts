@@ -419,7 +419,7 @@ export class KeylessSignature extends Signature {
 
   readonly jwtHeader: string;
 
-  readonly expiryDateSecs: bigint;
+  readonly expiryDateSecs: bigint | number;
 
   readonly ephemeralPublicKey: EphemeralPublicKey;
 
@@ -433,7 +433,7 @@ export class KeylessSignature extends Signature {
   constructor(args: {
     jwtHeader: string;
     openIdSignatureOrZkProof: OpenIdSignatureOrZkProof;
-    expiryDateSecs: bigint;
+    expiryDateSecs: bigint | number;
     ephemeralPublicKey: EphemeralPublicKey;
     ephemeralSignature: EphemeralSignature;
   }) {

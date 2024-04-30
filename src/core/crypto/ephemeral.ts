@@ -16,12 +16,15 @@ export class EphemeralPublicKey extends PublicKey {
    */
   public readonly publicKey: PublicKey;
 
+  public readonly variant: EphemeralPublicKeyVariant;
+
   constructor(publicKey: PublicKey) {
     super();
     const publicKeyType = publicKey.constructor.name;
     switch (publicKeyType) {
       case Ed25519PublicKey.name:
         this.publicKey = publicKey;
+        this.variant = EphemeralPublicKeyVariant.Ed25519;
         break;
       default:
         throw new Error(`Unsupported key for EphemeralPublicKey - ${publicKeyType}`);

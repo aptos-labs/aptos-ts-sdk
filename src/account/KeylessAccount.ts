@@ -22,7 +22,7 @@ import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Serializer } from "../bcs";
+import { Deserializer, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
 
@@ -43,9 +43,6 @@ export class KeylessAccount implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
   static readonly SLIP_0010_SEED: string = "32 bytes";
-
-  static readonly APTOS_CONNECT_CLIENT_ID: string =
-    "734998116548-ib6ircv72o1b6l0no9ol4spnnkr8gm69.apps.googleusercontent.com";
 
   publicKey: KeylessPublicKey;
 
@@ -102,6 +99,41 @@ export class KeylessAccount implements Account {
     this.pepper = pepperBytes;
   }
 
+  async serialize(serializer: Serializer): Promise<void> {
+    serializer.serializeStr(this.jwt);
+    serializer.serializeStr(this.uidKey);
+    serializer.serializeFixedBytes(this.pepper);
+    this.ephemeralKeyPair.serialize(serializer);
+    const proof = await this.proof;
+    proof.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): KeylessAccount {
+    const jwt = deserializer.deserializeStr();
+    const uidKey = deserializer.deserializeStr();
+    const pepper = deserializer.deserializeFixedBytes(31);
+    const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
+    const proof = SignedGroth16Signature.deserialize(deserializer);
+    return KeylessAccount.fromJWTAndProof({
+      proofFetcherOrData: proof,
+      pepper,
+      uidKey,
+      jwt,
+      ephemeralKeyPair,
+    });
+  }
+
+  async bcsToBytes(): Promise<Uint8Array> {
+    const serializer = new Serializer();
+    await this.serialize(serializer);
+    return serializer.toUint8Array();
+  }
+
+  async bcsToHex(): Promise<Hex> {
+    const bcsBytes = await this.bcsToBytes();
+    return Hex.fromHexInput(bcsBytes);
+  }
+
   private async initialize(promise: Promise<SignedGroth16Signature>) {
     try {
       this.proof = await promise;
@@ -138,7 +170,7 @@ export class KeylessAccount implements Account {
     const serializer = new Serializer();
     serializer.serializeFixedBytes(Hex.fromHexInput(data).toUint8Array());
     serializer.serializeOption(this.proof.proof);
-    const signMess = generateSigningMessage(serializer.toUint8Array(), "TransactionAndProof");
+    const signMess = generateSigningMessage(serializer.toUint8Array(), "APTOS::TransactionAndProof");
 
     const ephemeralSignature = this.ephemeralKeyPair.sign(signMess);
 
@@ -176,18 +208,6 @@ export class KeylessAccount implements Account {
       ephemeralPublicKey,
       ephemeralSignature,
     });
-  }
-
-  deriveAptosConnectPublicKey(): KeylessPublicKey {
-    const { uidKey, uidVal, pepper } = this;
-    const { iss } = this.publicKey;
-    const addressSeed = computeAddressSeed({
-      uidKey,
-      uidVal,
-      aud: KeylessAccount.APTOS_CONNECT_CLIENT_ID,
-      pepper,
-    });
-    return new KeylessPublicKey(iss, addressSeed);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
