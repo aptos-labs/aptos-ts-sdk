@@ -15,19 +15,19 @@ import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/c
 import { EphemeralPublicKeyVariant, HexInput, SigningSchemeInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 
-export class EphemeralKeyPair extends Serializable{
+export class EphemeralKeyPair extends Serializable {
   readonly blinder: Uint8Array;
 
   readonly expiryDateSecs: bigint | number;
 
   readonly nonce: string;
 
-  readonly privateKey: PrivateKey;
+  private privateKey: PrivateKey;
 
-  readonly publicKey: EphemeralPublicKey;
+  private publicKey: EphemeralPublicKey;
 
   constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint | number; blinder?: HexInput }) {
-    super()
+    super();
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
@@ -36,11 +36,15 @@ export class EphemeralKeyPair extends Serializable{
     this.nonce = this.generateNonce();
   }
 
+  getPublicKey(): EphemeralPublicKey {
+    return this.publicKey;
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.publicKey.variant);
-    serializer.serializeBytes(this.privateKey.toUint8Array())
-    serializer.serializeU64(this.expiryDateSecs)
-    serializer.serializeFixedBytes(this.blinder)
+    serializer.serializeBytes(this.privateKey.toUint8Array());
+    serializer.serializeU64(this.expiryDateSecs);
+    serializer.serializeFixedBytes(this.blinder);
   }
 
   static deserialize(deserializer: Deserializer): EphemeralKeyPair {
@@ -55,7 +59,11 @@ export class EphemeralKeyPair extends Serializable{
     }
     const expiryDateSecs = deserializer.deserializeU64();
     const blinder = deserializer.deserializeFixedBytes(31);
-    return new EphemeralKeyPair({privateKey, expiryDateSecs, blinder});
+    return new EphemeralKeyPair({ privateKey, expiryDateSecs, blinder });
+  }
+
+  static fromBytes(bytes: Uint8Array): EphemeralKeyPair {
+    return EphemeralKeyPair.deserialize(new Deserializer(bytes));
   }
 
   static generate(args?: { scheme: SigningSchemeInput }): EphemeralKeyPair {

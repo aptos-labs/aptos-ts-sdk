@@ -58,7 +58,7 @@ export class KeylessAccount implements Account {
 
   accountAddress: AccountAddress;
 
-  proof: SignedGroth16Signature | Promise<SignedGroth16Signature>;
+  proof: SignedGroth16Signature;
 
   signingScheme: SigningScheme;
 
@@ -72,10 +72,10 @@ export class KeylessAccount implements Account {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-    proofFetcherOrData: Promise<SignedGroth16Signature> | SignedGroth16Signature;
+    proof: SignedGroth16Signature;
     jwt: string;
   }) {
-    const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proofFetcherOrData, jwt } = args;
+    const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proof, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     const addressSeed = computeAddressSeed(args);
     this.publicKey = new KeylessPublicKey(iss, addressSeed);
@@ -84,12 +84,7 @@ export class KeylessAccount implements Account {
     this.uidVal = uidVal;
     this.aud = aud;
     this.jwt = jwt;
-    if (proofFetcherOrData instanceof Promise) {
-      this.proof = proofFetcherOrData;
-      this.initialize(proofFetcherOrData);
-    } else {
-      this.proof = proofFetcherOrData;
-    }
+    this.proof = proof;
 
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
@@ -99,13 +94,12 @@ export class KeylessAccount implements Account {
     this.pepper = pepperBytes;
   }
 
-  async serialize(serializer: Serializer): Promise<void> {
+  serialize(serializer: Serializer): void {
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
     this.ephemeralKeyPair.serialize(serializer);
-    const proof = await this.proof;
-    proof.serialize(serializer);
+    this.proof.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): KeylessAccount {
@@ -115,7 +109,7 @@ export class KeylessAccount implements Account {
     const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
     const proof = SignedGroth16Signature.deserialize(deserializer);
     return KeylessAccount.fromJWTAndProof({
-      proofFetcherOrData: proof,
+      proof,
       pepper,
       uidKey,
       jwt,
@@ -123,23 +117,15 @@ export class KeylessAccount implements Account {
     });
   }
 
-  async bcsToBytes(): Promise<Uint8Array> {
+  bcsToBytes(): Uint8Array {
     const serializer = new Serializer();
-    await this.serialize(serializer);
+    this.serialize(serializer);
     return serializer.toUint8Array();
   }
 
-  async bcsToHex(): Promise<Hex> {
-    const bcsBytes = await this.bcsToBytes();
+  bcsToHex(): Hex {
+    const bcsBytes = this.bcsToBytes();
     return Hex.fromHexInput(bcsBytes);
-  }
-
-  private async initialize(promise: Promise<SignedGroth16Signature>) {
-    try {
-      this.proof = await promise;
-    } catch (error) {
-      throw new Error("Failed to fetch proof");
-    }
   }
 
   signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
@@ -165,7 +151,7 @@ export class KeylessAccount implements Account {
       throw new Error("Failed to fetch proof.");
     }
     const jwtHeader = this.jwt.split(".")[0];
-    const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
+    const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
 
     const serializer = new Serializer();
     serializer.serializeFixedBytes(Hex.fromHexInput(data).toUint8Array());
@@ -199,7 +185,7 @@ export class KeylessAccount implements Account {
     });
 
     const { expiryDateSecs } = this.ephemeralKeyPair;
-    const ephemeralPublicKey = this.ephemeralKeyPair.publicKey;
+    const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
     return new KeylessSignature({
       jwtHeader,
@@ -220,13 +206,13 @@ export class KeylessAccount implements Account {
   }
 
   static fromJWTAndProof(args: {
-    proofFetcherOrData: Promise<SignedGroth16Signature> | SignedGroth16Signature;
+    proof: SignedGroth16Signature;
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
     pepper: HexInput;
     uidKey?: string;
   }): KeylessAccount {
-    const { proofFetcherOrData, jwt, ephemeralKeyPair, pepper } = args;
+    const { proof, jwt, ephemeralKeyPair, pepper } = args;
     const uidKey = args.uidKey ?? "sub";
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
@@ -237,7 +223,7 @@ export class KeylessAccount implements Account {
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
     return new KeylessAccount({
-      proofFetcherOrData,
+      proof,
       ephemeralKeyPair,
       iss,
       uidKey,

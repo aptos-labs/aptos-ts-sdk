@@ -79,7 +79,7 @@ export async function getPepper(args: {
 
   const body = {
     jwt_b64: jwt,
-    epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
+    epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
     exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
@@ -131,7 +131,7 @@ export async function getProof(args: {
   }
   const json = {
     jwt_b64: jwt,
-    epk: ephemeralKeyPair.publicKey.bcsToHex().toStringWithoutPrefix(),
+    epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
     exp_horizon_secs: EPK_HORIZON_SECS,
@@ -170,20 +170,16 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
-  fetchProofAsync?: boolean;
 }): Promise<KeylessAccount> {
-  const { fetchProofAsync } = args;
   let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
   } else if (Hex.fromHexInput(pepper).toUint8Array().length !== 31) {
     throw new Error("Pepper needs to be 31 bytes");
   }
+  const proof = await getProof({ ...args, pepper });
 
-  const proofPromise = getProof({ ...args, pepper });
-  const proof = fetchProofAsync ? proofPromise : await proofPromise;
-
-  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proofFetcherOrData: proof, pepper });
+  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proof, pepper });
 
     return keylessAccount;
 }
