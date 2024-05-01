@@ -9,7 +9,7 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, postAptosFullNode, postAptosIndexer } from "../client";
+import { getAptosFullNode, postAptosIndexer } from "../client";
 import {
   AnyNumber,
   Block,
@@ -17,8 +17,6 @@ import {
   GetProcessorStatusResponse,
   GraphqlQuery,
   LedgerInfo,
-  LedgerVersionArg,
-  TableItemRequest,
 } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
@@ -62,23 +60,6 @@ export async function getBlockByHeight(args: {
     params: { with_transactions: options?.withTransactions },
   });
   return data;
-}
-
-export async function getTableItem<T>(args: {
-  aptosConfig: AptosConfig;
-  handle: string;
-  data: TableItemRequest;
-  options?: LedgerVersionArg;
-}): Promise<T> {
-  const { aptosConfig, handle, data, options } = args;
-  const response = await postAptosFullNode<TableItemRequest, any>({
-    aptosConfig,
-    originMethod: "getTableItem",
-    path: `tables/${handle}/item`,
-    params: { ledger_version: options?.ledgerVersion },
-    body: data,
-  });
-  return response.data as T;
 }
 
 export async function getChainTopUserTransactions(args: {

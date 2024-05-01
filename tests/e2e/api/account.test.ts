@@ -226,6 +226,49 @@ describe("account api", () => {
       expect(lookupAccount).toStrictEqual(account.accountAddress);
     });
 
+    test("it fetches account owned token fron collection", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+      const creator = Account.generate();
+      await aptos.fundAccount({ accountAddress: creator.accountAddress, amount: FUND_AMOUNT });
+      const collectionCreationTransaction = await aptos.createCollectionTransaction({
+        creator,
+        description: "My new collection!",
+        name: "Test Collection",
+        uri: "Test Collection",
+      });
+      const pendingCollectionCreationTransaction = await aptos.signAndSubmitTransaction({
+        signer: creator,
+        transaction: collectionCreationTransaction,
+      });
+      await aptos.waitForTransaction({ transactionHash: pendingCollectionCreationTransaction.hash });
+      const transaction = await aptos.mintDigitalAssetTransaction({
+        creator,
+        collection: "Test Collection",
+        description: "My new collection!",
+        name: "Test Token",
+        uri: "http://aptos.dev/nft",
+        propertyKeys: ["my bool key", "my array key"],
+        propertyTypes: ["BOOLEAN", "ARRAY"],
+        propertyValues: [false, "[value]"],
+      });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: creator, transaction });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+      const address = await aptos.getCollectionId({
+        collectionName: "Test Collection",
+        creatorAddress: creator.accountAddress,
+      });
+      const tokens = await aptos.getAccountOwnedTokensFromCollectionAddress({
+        accountAddress: creator.accountAddress,
+        collectionAddress: address,
+        minimumLedgerVersion: BigInt(response.version),
+      });
+
+      expect(tokens.length).toBe(1);
+      expect(tokens[0].current_token_data?.token_name).toBe("Test Token");
+    });
+
     describe("it derives an account from a private key", () => {
       test("single sender ed25519", async () => {
         const config = new AptosConfig({ network: Network.LOCAL });
