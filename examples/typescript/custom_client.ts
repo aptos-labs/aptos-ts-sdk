@@ -10,13 +10,12 @@
  * `<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;`
  *
  */
-import "dotenv";
 import { Aptos, AptosConfig, ClientResponse, ClientRequest, Network, NetworkToNetworkName } from "@aptos-labs/ts-sdk";
 // eslint-disable-next-line import/no-commonjs
 const superagent = require("superagent");
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 export async function fetchCustomClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;

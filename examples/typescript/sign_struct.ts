@@ -21,7 +21,7 @@ const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10000;
 
 // Default to devnet, but allow for overriding
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 /**
  * Prints the balance of an account

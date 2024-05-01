@@ -18,7 +18,7 @@ const MOON_COINS_TO_MINT = 100;
 const MOON_COINS_TO_TRANSFER = 100;
 
 // Setup the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
