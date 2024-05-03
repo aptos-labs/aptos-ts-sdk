@@ -117,7 +117,7 @@ export async function getCurrentFungibleAssetBalances(args: {
 }
 
 const faTransferAbi: EntryFunctionABI = {
-  typeParameters: [],
+  typeParameters: [{ constraints: [] }],
   parameters: [parseTypeTag("0x1::object::Object"), new TypeTagAddress(), new TypeTagU64()],
 };
 
