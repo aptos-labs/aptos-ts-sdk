@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] fixed `trasnferFungibleAsset` function 
+- Run all examples in CI
+
 # 1.13.3 (2024-04-30)
 
 - Export `MultiAgentTransaction` class
