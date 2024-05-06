@@ -3,6 +3,7 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { decode } from "base-64";
+import EventEmitter from "eventemitter3";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
@@ -39,6 +40,23 @@ function base64UrlDecode(base64Url: string): string {
   return decodedString;
 }
 
+export type ProofFetchSuccess = {
+  status: "Success";
+};
+
+export type ProofFetchFailure = {
+  status: "Failed";
+  error: string;
+};
+
+export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure
+
+export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
+
+export interface ProofFetchEvents {
+  proofFetchFinish: (status: ProofFetchStatus) => void;
+}
+
 export class KeylessAccount implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
@@ -58,11 +76,15 @@ export class KeylessAccount implements Account {
 
   accountAddress: AccountAddress;
 
-  proof: SignedGroth16Signature;
+  proof: SignedGroth16Signature | undefined;
+
+  proofOrPromise: SignedGroth16Signature | Promise<SignedGroth16Signature>;
 
   signingScheme: SigningScheme;
 
   jwt: string;
+
+  emitter: EventEmitter<ProofFetchEvents>;
 
   constructor(args: {
     address?: AccountAddress;
@@ -72,10 +94,11 @@ export class KeylessAccount implements Account {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-    proof: SignedGroth16Signature;
+    proofOrFetcher: SignedGroth16Signature | Promise<SignedGroth16Signature>;
+    proofFetchCallback?: ProofFetchCallback
     jwt: string;
   }) {
-    const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proof, jwt } = args;
+    const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     const addressSeed = computeAddressSeed(args);
     this.publicKey = new KeylessPublicKey(iss, addressSeed);
@@ -84,7 +107,21 @@ export class KeylessAccount implements Account {
     this.uidVal = uidVal;
     this.aud = aud;
     this.jwt = jwt;
-    this.proof = proof;
+    this.emitter = new EventEmitter<ProofFetchEvents>();
+    this.proofOrPromise = proofOrFetcher;
+    if (proofOrFetcher instanceof SignedGroth16Signature) {
+      this.proof = proofOrFetcher;
+    } else {
+      if (proofFetchCallback === undefined) {
+        throw new Error("Must provide callback")
+      }
+      this.emitter.on("proofFetchFinish", async (status) => {
+        await proofFetchCallback(status);
+        this.emitter.removeAllListeners();
+      });
+      this.init(proofOrFetcher);
+    }
+    
 
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
@@ -94,11 +131,27 @@ export class KeylessAccount implements Account {
     this.pepper = pepperBytes;
   }
 
+  async init(promise: Promise<SignedGroth16Signature>) {
+    try {
+      this.proof = await promise;
+      this.emitter.emit("proofFetchFinish", {status: "Success"});
+    } catch (error) {
+      if (error instanceof Error) {
+        this.emitter.emit("proofFetchFinish", {status: "Failed", error: error.toString()});
+      } else {
+        this.emitter.emit("proofFetchFinish", {status: "Failed", error: "Unknown"});
+      }
+    }
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
     this.ephemeralKeyPair.serialize(serializer);
+    if (this.proof === undefined) {
+      throw new Error("Connot serialize - proof undefined")
+    }
     this.proof.serialize(serializer);
   }
 
@@ -140,8 +193,8 @@ export class KeylessAccount implements Account {
   }
 
   async waitForProofFetch() {
-    if (this.proof instanceof Promise) {
-      await this.proof;
+    if (this.proofOrPromise instanceof Promise) {
+      await this.proofOrPromise;
     }
   }
 
@@ -151,8 +204,8 @@ export class KeylessAccount implements Account {
     if (expiryDateSecs < currentTimeInSeconds) {
       throw new Error("Ephemeral key pair is expired.");
     }
-    if (this.proof instanceof Promise) {
-      throw new Error("Failed to fetch proof.");
+    if (this.proof === undefined) {
+      throw new Error("Proof not found");
     }
     const jwtHeader = this.jwt.split(".")[0];
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
@@ -210,13 +263,14 @@ export class KeylessAccount implements Account {
   }
 
   static fromJWTAndProof(args: {
-    proof: SignedGroth16Signature;
+    proof: SignedGroth16Signature | Promise<SignedGroth16Signature>;
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
     pepper: HexInput;
     uidKey?: string;
+    proofFetchCallback?: ProofFetchCallback;
   }): KeylessAccount {
-    const { proof, jwt, ephemeralKeyPair, pepper } = args;
+    const { proof, jwt, ephemeralKeyPair, pepper, proofFetchCallback } = args;
     const uidKey = args.uidKey ?? "sub";
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
@@ -227,7 +281,7 @@ export class KeylessAccount implements Account {
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
     return new KeylessAccount({
-      proof,
+      proofOrFetcher: proof,
       ephemeralKeyPair,
       iss,
       uidKey,
@@ -235,6 +289,7 @@ export class KeylessAccount implements Account {
       aud,
       pepper,
       jwt,
+      proofFetchCallback,
     });
   }
 

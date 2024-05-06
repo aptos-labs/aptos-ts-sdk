@@ -22,7 +22,7 @@ import {
 } from "../core";
 import { HexInput } from "../types";
 import { Serializer } from "../bcs";
-import { EphemeralKeyPair, KeylessAccount } from "../account";
+import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
 const APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST = "APTOS_KEYLESS_PEPPER_PINKAS_VUF_DST";
@@ -84,7 +84,6 @@ export async function getPepper(args: {
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     uid_key: uidKey,
   };
-  // console.log(JSON.stringify(body));
   const { data } = await postAptosPepperService<any, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
@@ -170,16 +169,20 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   extraFieldKey?: string;
+  proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount> {
+  const { proofFetchCallback } = args;
   let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
   } else if (Hex.fromHexInput(pepper).toUint8Array().length !== 31) {
     throw new Error("Pepper needs to be 31 bytes");
   }
-  const proof = await getProof({ ...args, pepper });
 
-  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proof, pepper });
+  const proofPromise = getProof({ ...args, pepper });
+  const proof = proofFetchCallback ? proofPromise : await proofPromise;
+
+  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proof, pepper, proofFetchCallback });
 
     return keylessAccount;
 }
