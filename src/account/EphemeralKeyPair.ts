@@ -40,6 +40,11 @@ export class EphemeralKeyPair extends Serializable {
     return this.publicKey;
   }
 
+  isExpired(): boolean {
+    const currentTimeSecs: number = Math.floor(Date.now() / 1000);
+    return currentTimeSecs > this.expiryDateSecs;
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.publicKey.variant);
     serializer.serializeBytes(this.privateKey.toUint8Array());
@@ -93,6 +98,9 @@ export class EphemeralKeyPair extends Serializable {
    * @returns EphemeralSignature
    */
   sign(data: HexInput): EphemeralSignature {
+    if (this.isExpired()) {
+      throw new Error("EphemeralKeyPair has expired")
+    }
     return new EphemeralSignature(this.privateKey.sign(data));
   }
 }

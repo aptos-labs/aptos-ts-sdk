@@ -117,6 +117,10 @@ export class KeylessAccount implements Account {
     });
   }
 
+  isExpired(): boolean {
+    return this.ephemeralKeyPair.isExpired();
+  }
+
   bcsToBytes(): Uint8Array {
     const serializer = new Serializer();
     this.serialize(serializer);
