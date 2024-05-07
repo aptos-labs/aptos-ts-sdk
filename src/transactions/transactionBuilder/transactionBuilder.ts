@@ -71,6 +71,7 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
+  InputViewFunctionDataWithNoABI,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
@@ -175,6 +176,18 @@ export function generateTransactionPayloadWithABI(
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
 }
 
+export async function generateViewFunctionPayloadWithNoABI(
+  args: InputViewFunctionDataWithNoABI,
+): Promise<EntryFunction> {
+  const { functionArguments, typeArguments } = args;
+  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+  return EntryFunction.build(
+    `${moduleAddress}::${moduleName}`,
+    functionName,
+    standardizeTypeTags(typeArguments),
+    functionArguments ?? [],
+  );
+}
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
@@ -189,7 +202,7 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
   });
 
   // Fill in the ABI
-  return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
+  return generateViewFunctionPayloadWithABI({ ...args, abi: functionAbi });
 }
 
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {

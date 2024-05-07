@@ -116,6 +116,8 @@ export type InputEntryFunctionData = {
 
 export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataWithABI | InputMultiSigDataWithABI;
 
+export type InputEntryFunctionDataWithNoABI = Omit<InputEntryFunctionData, "abi">;
+
 export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
   abi: EntryFunctionABI;
 };
@@ -161,12 +163,23 @@ export type InputViewFunctionData = {
 /**
  * Data needed to generate a view function payload and fetch the remote ABI
  */
-export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & {
+  aptosConfig: AptosConfig;
+};
 
 /**
  * Data needed to generate a view function, with an already fetched ABI
  */
-export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
+export type InputViewFunctionDataWithABI = InputViewFunctionData & {
+  abi: ViewFunctionABI;
+};
+
+/**
+ * Data needed to generate a view function with no ABI
+ */
+export type InputViewFunctionDataWithNoABI = Omit<InputViewFunctionData, "abi"> & {
+  functionArguments?: Array<EntryFunctionArgumentTypes>;
+};
 
 /**
  * Data need for a generic function ABI, both view and entry
