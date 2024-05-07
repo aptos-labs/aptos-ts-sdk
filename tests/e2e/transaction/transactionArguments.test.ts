@@ -21,6 +21,13 @@ import {
   MoveOption,
   MoveString,
   MoveVector,
+  ViewFunctionNotFoundError,
+  FunctionABI,
+  ViewFunctionABI,
+  stringStructTag,
+  TypeTagStruct,
+  objectStructTag,
+  FixedBytes,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -39,6 +46,10 @@ import {
   PUBLISHER_ACCOUNT_PK,
   MULTI_SIGNER_SCRIPT_ARGUMENT_TEST,
   PUBLISHER_ACCOUNT_ADDRESS,
+  ViewAllArgumentsJSONResponse,
+  viewWithNoMemoization,
+  toMoveObjectJSONData,
+  toMoveOptionJSONData,
 } from "./helper";
 
 jest.setTimeout(10000);
@@ -56,12 +67,14 @@ describe("various transaction arguments", () => {
     privateKey: new Ed25519PrivateKey(PUBLISHER_ACCOUNT_PK),
     legacy: false,
   });
+  const senderAddress = senderAccount.accountAddress;
   const secondarySignerAccounts = [Account.generate(), Account.generate(), Account.generate(), Account.generate()];
   const feePayerAccount = Account.generate();
   const moduleObjects: Array<AccountAddress> = [];
   let transactionArguments: Array<EntryFunctionArgumentTypes>;
   let simpleTransactionArguments: Array<SimpleEntryFunctionArgumentTypes>;
   let mixedTransactionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
+  let transactionArgumentsAsJSONData: ViewAllArgumentsJSONResponse;
   const EXPECTED_VECTOR_U8 = MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]);
   const EXPECTED_VECTOR_STRING = MoveVector.MoveString(["expected_string", "abc", "def", "123", "456", "789"]);
 
@@ -198,6 +211,53 @@ describe("various transaction arguments", () => {
       senderAccount.accountAddress.toString(),
       "expected_string",
       moduleObjects[0].toString(),
+    ];
+
+    const expectedU8Values = new Uint8Array(EXPECTED_VECTOR_U8.values.map((v) => v.value));
+
+    transactionArgumentsAsJSONData = [
+      true,
+      1,
+      2,
+      3,
+      "4",
+      "5",
+      "6",
+      senderAccount.accountAddress.toString(),
+      "expected_string",
+      toMoveObjectJSONData(moduleObjects[0]),
+      "0x",
+      [true, false, true],
+      new FixedBytes(expectedU8Values).bcsToHex().toString(),
+      [0, 1, 2, MAX_U16_NUMBER - 2, MAX_U16_NUMBER - 1, MAX_U16_NUMBER],
+      [0, 1, 2, MAX_U32_NUMBER - 2, MAX_U32_NUMBER - 1, MAX_U32_NUMBER],
+      ["0", "1", "2", MAX_U64_BIG_INT - BigInt(2), MAX_U64_BIG_INT - BigInt(1), MAX_U64_BIG_INT.toString(10)].map((s) =>
+        s.toString(),
+      ),
+      ["0", "1", "2", MAX_U128_BIG_INT - BigInt(2), MAX_U128_BIG_INT - BigInt(1), MAX_U128_BIG_INT.toString(10)].map(
+        (s) => s.toString(),
+      ),
+      ["0", "1", "2", MAX_U256_BIG_INT - BigInt(2), MAX_U256_BIG_INT - BigInt(1), MAX_U256_BIG_INT.toString(10)].map(
+        (s) => s.toString(),
+      ),
+      ["0x0", "0xabc", "0xdef", "0x123", "0x456", "0x789"],
+      ["expected_string", "abc", "def", "123", "456", "789"],
+      moduleObjects.map((obj) => toMoveObjectJSONData(obj)),
+      {
+        vec: "0x", // toMoveOptionJSONData("0x") doesn't work because vector<u8>s are returned as hex strings.
+      },
+      toMoveOptionJSONData(true),
+      {
+        vec: "0x01", // toMoveOptionJSONData("0x01") doesn't work because vector<u8>s are returned as hex strings.
+      },
+      toMoveOptionJSONData(2),
+      toMoveOptionJSONData(3),
+      toMoveOptionJSONData("4"),
+      toMoveOptionJSONData("5"),
+      toMoveOptionJSONData("6"),
+      toMoveOptionJSONData(senderAccount.accountAddress.toString()),
+      toMoveOptionJSONData("expected_string"),
+      toMoveOptionJSONData(toMoveObjectJSONData(moduleObjects[0])),
     ];
   });
 
@@ -569,6 +629,128 @@ describe("various transaction arguments", () => {
         feePayerAccount,
       );
       expect(response.success).toBe(true);
+    });
+  });
+
+  describe("view function submission and response parsing with all argument types", () => {
+    const emptyResourceTypeTag = parseTypeTag(`${senderAddress.toString()}::tx_args_module::EmptyResource`);
+    const emptyResourceObject = new TypeTagStruct(objectStructTag(emptyResourceTypeTag));
+    const stringTypeTag = new TypeTagStruct(stringStructTag());
+    const functionAbi: FunctionABI = {
+      parameters: [
+        parseTypeTag("bool"),
+        parseTypeTag("u8"),
+        parseTypeTag("u16"),
+        parseTypeTag("u32"),
+        parseTypeTag("u64"),
+        parseTypeTag("u128"),
+        parseTypeTag("u256"),
+        parseTypeTag("address"),
+        stringTypeTag,
+        emptyResourceObject,
+        parseTypeTag("vector<u8>"),
+        parseTypeTag("vector<bool>"),
+        parseTypeTag("vector<u8>"),
+        parseTypeTag("vector<u16>"),
+        parseTypeTag("vector<u32>"),
+        parseTypeTag("vector<u64>"),
+        parseTypeTag("vector<u128>"),
+        parseTypeTag("vector<u256>"),
+        parseTypeTag("vector<address>"),
+        parseTypeTag(`vector<${stringTypeTag}>`),
+        parseTypeTag(`vector<${emptyResourceObject.toString()}>`),
+        parseTypeTag("0x1::option::Option<u8>"),
+        parseTypeTag("0x1::option::Option<bool>"),
+        parseTypeTag("0x1::option::Option<u8>"),
+        parseTypeTag("0x1::option::Option<u16>"),
+        parseTypeTag("0x1::option::Option<u32>"),
+        parseTypeTag("0x1::option::Option<u64>"),
+        parseTypeTag("0x1::option::Option<u128>"),
+        parseTypeTag("0x1::option::Option<u256>"),
+        parseTypeTag("0x1::option::Option<address>"),
+        parseTypeTag(`0x1::option::Option<${stringTypeTag.toString()}>`),
+        parseTypeTag(`0x1::option::Option<${emptyResourceObject.toString()}>`),
+      ],
+      typeParameters: [],
+    };
+
+    const viewFunctionABI: ViewFunctionABI = {
+      ...functionAbi,
+      returnTypes: functionAbi.parameters,
+    };
+
+    describe("private view functions", () => {
+      const privateViewFunction = `${senderAddress.toString()}::tx_args_module::private_view_all_arguments` as const;
+
+      it("fails if only just one of the arguments isn't BCS encoded and the user didn't provide an ABI", async () => {
+        expect(
+          viewWithNoMemoization({
+            aptos,
+            function: privateViewFunction,
+            functionArguments: [...transactionArguments.slice(0, -1), moduleObjects[0].toString()],
+          }),
+        ).rejects.toThrow(ViewFunctionNotFoundError);
+      });
+
+      it("skips the ABI fetch and uses BCS encoded arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: privateViewFunction,
+          functionArguments: transactionArguments,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
+
+      it("uses the user-provided ABIs and serializes mixed arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: privateViewFunction,
+          functionArguments: mixedTransactionArguments,
+          abi: viewFunctionABI,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
+    });
+
+    describe("public view functions", () => {
+      const publicViewFunction = `${senderAddress.toString()}::tx_args_module::view_all_arguments` as const;
+
+      it("fetches the function ABIs and serializes simple arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: publicViewFunction,
+          functionArguments: simpleTransactionArguments,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
+
+      it("fetches the function ABIs and serializes BCS arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: publicViewFunction,
+          functionArguments: transactionArguments,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
+
+      it("fetches the function ABIs and serializes mixed arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: publicViewFunction,
+          functionArguments: mixedTransactionArguments,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
+
+      it("uses the user-provided ABIs and serializes mixed arguments", async () => {
+        const response = await viewWithNoMemoization({
+          aptos,
+          function: publicViewFunction,
+          functionArguments: mixedTransactionArguments,
+          abi: viewFunctionABI,
+        });
+        expect(response).toEqual(transactionArgumentsAsJSONData);
+      });
     });
   });
 });
