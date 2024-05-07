@@ -698,7 +698,7 @@ module transaction_arguments::tx_args_module {
     ) acquires SetupData {
         use std::features;
         let feature = features::get_auids();
-        features::change_feature_flags(core, vector[feature], vector[]);
+        features::change_feature_flags_for_testing(core, vector[feature], vector[]);
 
         let deployer_address = signer::address_of(deployer);
         let signer_2_address = signer::address_of(&signer_2);
@@ -920,7 +920,7 @@ module transaction_arguments::tx_args_module {
     ) acquires SetupData {
         use std::features;
         let feature = features::get_auids();
-        features::change_feature_flags(core, vector[feature], vector[]);
+        features::change_feature_flags_for_testing(core, vector[feature], vector[]);
         init_module(deployer);
 
         let arg_0 = EXPECTED_BOOL;
