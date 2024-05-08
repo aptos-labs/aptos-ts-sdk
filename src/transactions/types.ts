@@ -116,8 +116,6 @@ export type InputEntryFunctionData = {
 
 export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataWithABI | InputMultiSigDataWithABI;
 
-export type InputEntryFunctionDataWithNoABI = Omit<InputEntryFunctionData, "abi">;
-
 export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
   abi: EntryFunctionABI;
 };
