@@ -161,16 +161,12 @@ export type InputViewFunctionData = {
 /**
  * Data needed to generate a view function payload and fetch the remote ABI
  */
-export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & {
-  aptosConfig: AptosConfig;
-};
+export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptosConfig: AptosConfig };
 
 /**
  * Data needed to generate a view function, with an already fetched ABI
  */
-export type InputViewFunctionDataWithABI = InputViewFunctionData & {
-  abi: ViewFunctionABI;
-};
+export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
 
 /**
  * Data needed to generate a view function with no ABI
