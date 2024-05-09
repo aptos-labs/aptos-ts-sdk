@@ -56,3 +56,13 @@ export class AptosApiError extends Error {
     this.request = request;
   }
 }
+
+/**
+ * The type returned when a view function could not be found in a module's function ABIs.
+ */
+export class ViewFunctionNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ViewFunctionNotFoundError";
+  }
+}

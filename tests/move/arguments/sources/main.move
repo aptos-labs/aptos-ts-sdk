@@ -381,17 +381,24 @@ module transaction_arguments::tx_args_module {
     }
 
     public inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
-        assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
-        vector::zip<T, T>(vec_1, vec_2, |a, b| {
-            assert!(a == b, error::invalid_state(arg_index));
-        });
+        let len = vector::length<T>(&vec_1);
+        assert!(len == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
+        for (i in 0..len) {
+            assert!(
+                vector::pop_back(&mut vec_1) == vector::pop_back(&mut vec_2),
+                error::invalid_state(arg_index),
+            );
+        };
     }
 
     public inline fun assert_deep_equality<T: drop>(vec_1: vector<vector<T>>, vec_2: vector<vector<T>>, arg_index: u64) {
-        assert!(vector::length<vector<T>>(&vec_1) == vector::length<vector<T>>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
-        vector::zip<vector<T>, vector<T>>(vec_1, vec_2, |a, b| {
-            assert_vectors_equal<T>(a, b, arg_index);
-        });
+        let len = vector::length<vector<T>>(&vec_1);
+        assert!(len == vector::length<vector<T>>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
+        for (i in 0..len) {
+            let inner_vec_1 = vector::pop_back(&mut vec_1);
+            let inner_vec_2 = vector::pop_back(&mut vec_2);
+            assert_vectors_equal<T>(inner_vec_1, inner_vec_2, arg_index);
+        };
     }
 
     public inline fun assert_options_equal<T>(option_1: Option<T>, option_2: Option<T>, arg_index: u64) {
@@ -433,7 +440,113 @@ module transaction_arguments::tx_args_module {
     }
 
     #[view]
+    /// Returns all of the arguments passed in.
     public fun view_all_arguments(
+        arg_bool: bool,
+        arg_u8: u8,
+        arg_u16: u16,
+        arg_u32: u32,
+        arg_u64: u64,
+        arg_u128: u128,
+        arg_u256: u256,
+        arg_address: address,
+        arg_string: String,
+        arg_object: Object<EmptyResource>,
+        vector_empty: vector<u8>,
+        vector_bool: vector<bool>,
+        vector_u8: vector<u8>,
+        vector_u16: vector<u16>,
+        vector_u32: vector<u32>,
+        vector_u64: vector<u64>,
+        vector_u128: vector<u128>,
+        vector_u256: vector<u256>,
+        vector_address: vector<address>,
+        vector_string: vector<String>,
+        vector_object: vector<Object<EmptyResource>>,
+        option_empty: Option<u8>,
+        option_bool: Option<bool>,
+        option_u8: Option<u8>,
+        option_u16: Option<u16>,
+        option_u32: Option<u32>,
+        option_u64: Option<u64>,
+        option_u128: Option<u128>,
+        option_u256: Option<u256>,
+        option_address: Option<address>,
+        option_string: Option<String>,
+        option_object: Option<Object<EmptyResource>>,
+    ): (
+        bool,
+        u8,
+        u16,
+        u32,
+        u64,
+        u128,
+        u256,
+        address,
+        String,
+        Object<EmptyResource>,
+        vector<u8>,
+        vector<bool>,
+        vector<u8>,
+        vector<u16>,
+        vector<u32>,
+        vector<u64>,
+        vector<u128>,
+        vector<u256>,
+        vector<address>,
+        vector<String>,
+        vector<Object<EmptyResource>>,
+        Option<u8>,
+        Option<bool>,
+        Option<u8>,
+        Option<u16>,
+        Option<u32>,
+        Option<u64>,
+        Option<u128>,
+        Option<u256>,
+        Option<address>,
+        Option<String>,
+        Option<Object<EmptyResource>>,
+    ) {
+        (
+            arg_bool,
+            arg_u8,
+            arg_u16,
+            arg_u32,
+            arg_u64,
+            arg_u128,
+            arg_u256,
+            arg_address,
+            arg_string,
+            arg_object,
+            vector_empty,
+            vector_bool,
+            vector_u8,
+            vector_u16,
+            vector_u32,
+            vector_u64,
+            vector_u128,
+            vector_u256,
+            vector_address,
+            vector_string,
+            vector_object,
+            option_empty,
+            option_bool,
+            option_u8,
+            option_u16,
+            option_u32,
+            option_u64,
+            option_u128,
+            option_u256,
+            option_address,
+            option_string,
+            option_object,
+        )
+    }
+
+    #[view]
+    /// Returns all of the arguments passed in.
+    fun private_view_all_arguments(
         arg_bool: bool,
         arg_u8: u8,
         arg_u16: u16,
@@ -573,7 +686,7 @@ module transaction_arguments::tx_args_module {
     }
 
     #[test(deployer=@transaction_arguments, signer_2=@0xa, signer_3=@0xb, signer_4=@0xc, signer_5=@0xd, signer_2_clone=@0xa, signer_4_clone=@0xc, core=@0x1)]
-    fun test_all_functions(
+    fun test_all_entry_functions(
         deployer: &signer,
         signer_2: signer,
         signer_3: &signer,
@@ -585,7 +698,7 @@ module transaction_arguments::tx_args_module {
     ) acquires SetupData {
         use std::features;
         let feature = features::get_auids();
-        features::change_feature_flags(core, vector[feature], vector[]);
+        features::change_feature_flags_for_testing(core, vector[feature], vector[]);
 
         let deployer_address = signer::address_of(deployer);
         let signer_2_address = signer::address_of(&signer_2);
@@ -800,4 +913,194 @@ module transaction_arguments::tx_args_module {
         );
     }
 
+    #[test(deployer=@transaction_arguments, core=@0x1)]
+    fun test_view_functions(
+        deployer: &signer,
+        core: &signer,
+    ) acquires SetupData {
+        use std::features;
+        let feature = features::get_auids();
+        features::change_feature_flags_for_testing(core, vector[feature], vector[]);
+        init_module(deployer);
+
+        let arg_0 = EXPECTED_BOOL;
+        let arg_1 = EXPECTED_U8;
+        let arg_2 = EXPECTED_U16;
+        let arg_3 = EXPECTED_U32;
+        let arg_4 = EXPECTED_U64;
+        let arg_5 = EXPECTED_U128;
+        let arg_6 = EXPECTED_U256;
+        let arg_7 = EXPECTED_ADDRESS;
+        let arg_8 = string::utf8(EXPECTED_STRING);
+        let arg_9 = get_setup_data().empty_object_1;
+        let arg_a = vector<u8>[];
+        let arg_b = EXPECTED_VECTOR_BOOL;
+        let arg_c = EXPECTED_VECTOR_U8;
+        let arg_d = EXPECTED_VECTOR_U16;
+        let arg_e = EXPECTED_VECTOR_U32;
+        let arg_f = EXPECTED_VECTOR_U64;
+        let arg_g = EXPECTED_VECTOR_U128;
+        let arg_h = EXPECTED_VECTOR_U256;
+        let arg_i = EXPECTED_VECTOR_ADDRESS;
+        let arg_j = get_expected_vector_string();
+        let arg_k = get_test_objects_vector();
+        let arg_l = option::none<u8>();
+        let arg_m = option::some(EXPECTED_BOOL);
+        let arg_n = option::some(EXPECTED_U8);
+        let arg_o = option::some(EXPECTED_U16);
+        let arg_p = option::some(EXPECTED_U32);
+        let arg_q = option::some(EXPECTED_U64);
+        let arg_r = option::some(EXPECTED_U128);
+        let arg_s = option::some(EXPECTED_U256);
+        let arg_t = option::some(EXPECTED_ADDRESS);
+        let arg_u = option::some(string::utf8(EXPECTED_STRING));
+        let arg_v = option::some(get_setup_data().empty_object_1);
+
+        let (ret_0, ret_1, ret_2, ret_3, ret_4, ret_5, ret_6, ret_7, ret_8, ret_9,
+             ret_a, ret_b, ret_c, ret_d, ret_e, ret_f, ret_g, ret_h, ret_i, ret_j, ret_k,
+             ret_l, ret_m, ret_n, ret_o, ret_p, ret_q, ret_r, ret_s, ret_t, ret_u, ret_v) =
+            view_all_arguments(
+                EXPECTED_BOOL,
+                EXPECTED_U8,
+                EXPECTED_U16,
+                EXPECTED_U32,
+                EXPECTED_U64,
+                EXPECTED_U128,
+                EXPECTED_U256,
+                EXPECTED_ADDRESS,
+                string::utf8(EXPECTED_STRING),
+                get_setup_data().empty_object_1,
+                vector<u8>[],
+                EXPECTED_VECTOR_BOOL,
+                EXPECTED_VECTOR_U8,
+                EXPECTED_VECTOR_U16,
+                EXPECTED_VECTOR_U32,
+                EXPECTED_VECTOR_U64,
+                EXPECTED_VECTOR_U128,
+                EXPECTED_VECTOR_U256,
+                EXPECTED_VECTOR_ADDRESS,
+                get_expected_vector_string(),
+                get_test_objects_vector(),
+                option::none<u8>(),
+                option::some(EXPECTED_BOOL),
+                option::some(EXPECTED_U8),
+                option::some(EXPECTED_U16),
+                option::some(EXPECTED_U32),
+                option::some(EXPECTED_U64),
+                option::some(EXPECTED_U128),
+                option::some(EXPECTED_U256),
+                option::some(EXPECTED_ADDRESS),
+                option::some(string::utf8(EXPECTED_STRING)),
+                option::some(get_setup_data().empty_object_1),
+        );
+        assert!(
+            arg_0 == ret_0 &&
+            arg_1 == ret_1 &&
+            arg_2 == ret_2 &&
+            arg_3 == ret_3 &&
+            arg_4 == ret_4 &&
+            arg_5 == ret_5 &&
+            arg_6 == ret_6 &&
+            arg_7 == ret_7 &&
+            arg_8 == ret_8 &&
+            arg_9 == ret_9 &&
+            arg_a == ret_a &&
+            arg_b == ret_b &&
+            arg_c == ret_c &&
+            arg_d == ret_d &&
+            arg_e == ret_e &&
+            arg_f == ret_f &&
+            arg_g == ret_g &&
+            arg_h == ret_h &&
+            arg_i == ret_i &&
+            arg_j == ret_j &&
+            arg_k == ret_k &&
+            arg_l == ret_l &&
+            arg_m == ret_m &&
+            arg_n == ret_n &&
+            arg_o == ret_o &&
+            arg_p == ret_p &&
+            arg_q == ret_q &&
+            arg_r == ret_r &&
+            arg_s == ret_s &&
+            arg_t == ret_t &&
+            arg_u == ret_u &&
+            arg_v == ret_v,
+            0,
+        );
+
+        let (ret_0, ret_1, ret_2, ret_3, ret_4, ret_5, ret_6, ret_7, ret_8, ret_9,
+             ret_a, ret_b, ret_c, ret_d, ret_e, ret_f, ret_g, ret_h, ret_i, ret_j, ret_k,
+             ret_l, ret_m, ret_n, ret_o, ret_p, ret_q, ret_r, ret_s, ret_t, ret_u, ret_v) =
+            private_view_all_arguments(
+                EXPECTED_BOOL,
+                EXPECTED_U8,
+                EXPECTED_U16,
+                EXPECTED_U32,
+                EXPECTED_U64,
+                EXPECTED_U128,
+                EXPECTED_U256,
+                EXPECTED_ADDRESS,
+                string::utf8(EXPECTED_STRING),
+                get_setup_data().empty_object_1,
+                vector<u8>[],
+                EXPECTED_VECTOR_BOOL,
+                EXPECTED_VECTOR_U8,
+                EXPECTED_VECTOR_U16,
+                EXPECTED_VECTOR_U32,
+                EXPECTED_VECTOR_U64,
+                EXPECTED_VECTOR_U128,
+                EXPECTED_VECTOR_U256,
+                EXPECTED_VECTOR_ADDRESS,
+                get_expected_vector_string(),
+                get_test_objects_vector(),
+                option::none<u8>(),
+                option::some(EXPECTED_BOOL),
+                option::some(EXPECTED_U8),
+                option::some(EXPECTED_U16),
+                option::some(EXPECTED_U32),
+                option::some(EXPECTED_U64),
+                option::some(EXPECTED_U128),
+                option::some(EXPECTED_U256),
+                option::some(EXPECTED_ADDRESS),
+                option::some(string::utf8(EXPECTED_STRING)),
+                option::some(get_setup_data().empty_object_1),
+        );
+
+        assert!(
+            arg_0 == ret_0 &&
+            arg_1 == ret_1 &&
+            arg_2 == ret_2 &&
+            arg_3 == ret_3 &&
+            arg_4 == ret_4 &&
+            arg_5 == ret_5 &&
+            arg_6 == ret_6 &&
+            arg_7 == ret_7 &&
+            arg_8 == ret_8 &&
+            arg_9 == ret_9 &&
+            arg_a == ret_a &&
+            arg_b == ret_b &&
+            arg_c == ret_c &&
+            arg_d == ret_d &&
+            arg_e == ret_e &&
+            arg_f == ret_f &&
+            arg_g == ret_g &&
+            arg_h == ret_h &&
+            arg_i == ret_i &&
+            arg_j == ret_j &&
+            arg_k == ret_k &&
+            arg_l == ret_l &&
+            arg_m == ret_m &&
+            arg_n == ret_n &&
+            arg_o == ret_o &&
+            arg_p == ret_p &&
+            arg_q == ret_q &&
+            arg_r == ret_r &&
+            arg_s == ret_s &&
+            arg_t == ret_t &&
+            arg_u == ret_u &&
+            arg_v == ret_v,
+            0,
+        );
+    }
 }

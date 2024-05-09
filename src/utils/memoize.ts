@@ -66,3 +66,13 @@ export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: num
     return result;
   };
 }
+
+/**
+ * A test only function for clearing a key in the memoized cache.
+ *
+ * @param key The key to clear from the cache
+ * @returns void
+ */
+export function clearMemoizedCache(key: string): void {
+  cache.delete(key);
+}

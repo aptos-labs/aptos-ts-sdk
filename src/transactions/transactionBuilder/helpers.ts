@@ -11,6 +11,7 @@ import {
 import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { MoveFunction, MoveFunctionId } from "../../types";
+import { EntryFunction } from "../instances";
 
 export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
   return typeof arg === "boolean";
@@ -49,6 +50,12 @@ export function isEncodedEntryFunctionArgument(
     arg instanceof MoveVector ||
     arg instanceof MoveOption
   );
+}
+
+export function isEveryFunctionArgumentEncoded(
+  functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>,
+): functionArguments is EntryFunctionArgumentTypes[] {
+  return functionArguments.every(isEncodedEntryFunctionArgument);
 }
 
 export function isBcsBool(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is Bool {

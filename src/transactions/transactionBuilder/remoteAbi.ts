@@ -34,6 +34,7 @@ import {
   throwTypeMismatch,
 } from "./helpers";
 import { MoveFunction } from "../../types";
+import { ViewFunctionNotFoundError } from "../../client/types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -133,7 +134,9 @@ export async function fetchViewFunctionAbi(
 
   // If there's no ABI, then the function is invalid
   if (!functionAbi) {
-    throw new Error(`Could not find view function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+    throw new ViewFunctionNotFoundError(
+      `Could not find view function ABI for '${moduleAddress}::${moduleName}::${functionName}'`,
+    );
   }
 
   // Non-view functions can't be used

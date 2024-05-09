@@ -3,7 +3,10 @@
 
 import { LedgerVersionArg, MimeType, MoveValue } from "../types";
 import { AptosConfig } from "../api/aptosConfig";
-import { generateViewFunctionPayload, InputViewFunctionData } from "../transactions";
+import {
+  generateViewFunctionPayload,
+  InputViewFunctionData,
+} from "../transactions";
 import { Serializer } from "../bcs";
 import { postAptosFullNode } from "../client";
 
