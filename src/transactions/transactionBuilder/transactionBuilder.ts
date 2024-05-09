@@ -587,21 +587,19 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
 }
 
 export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
-  const rawTxn = deriveTransactionType(transaction);
   const hash = sha3Hash.create();
 
-  if (rawTxn instanceof RawTransaction) {
-    hash.update(RAW_TRANSACTION_SALT);
-  } else if (rawTxn instanceof MultiAgentRawTransaction) {
+  if (transaction.feePayerAddress) {
     hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else if (rawTxn instanceof FeePayerRawTransaction) {
+  } else if (transaction.secondarySignerAddresses) {
     hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
   } else {
-    throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
+    hash.update(RAW_TRANSACTION_SALT);
   }
 
   const prefix = hash.digest();
 
+  const rawTxn = deriveTransactionType(transaction);
   const body = rawTxn.bcsToBytes();
 
   const mergedArray = new Uint8Array(prefix.length + body.length);
