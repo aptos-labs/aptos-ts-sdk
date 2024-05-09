@@ -17,7 +17,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * It uses the fa_coin.move module that can be found in the move folder
  *
  * Before running this example, we should compile the package locally:
- * 1. Acquire the Aptos CLI, see https://aptos.dev/cli-tools/aptos-cli/use-cli/install-aptos-cli
+ * 1. Acquire the Aptos CLI, see https://aptos.dev/tools/aptos-cli/
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
  * 3. Run `pnpm run your_coin`
  */
