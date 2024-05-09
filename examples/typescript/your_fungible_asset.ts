@@ -19,7 +19,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * Before running this example, we should compile the package locally:
  * 1. Acquire the Aptos CLI, see https://aptos.dev/tools/aptos-cli/
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
- * 3. Run `pnpm run your_coin`
+ * 3. Run `pnpm run your_fungible_asset`
  */
 
 // Setup the client
@@ -148,12 +148,12 @@ async function main() {
   await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
   await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 100_000_000 });
 
-  console.log("\n=== Compiling MoonCoin package locally ===");
+  console.log("\n=== Compiling FACoin package locally ===");
   compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);
 
   const { metadataBytes, byteCode } = getPackageBytesToPublish("move/facoin/facoin.json");
 
-  console.log("\n===Publishing FAcoin package===");
+  console.log("\n===Publishing FACoin package===");
   const transaction = await aptos.publishPackageTransaction({
     account: alice.accountAddress,
     metadataBytes,
