@@ -9,6 +9,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Introcude cli `Move` class that holds `move` related commands
 - Add common cli commands - `move.init()`, `move.compile()`, `move.test()`, `move.publish()`
 - [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `intanceOf`
+- Remove `randomnet` from the known Network enum
 
 # 1.13.3 (2024-04-30)
 
