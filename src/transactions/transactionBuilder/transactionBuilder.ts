@@ -111,13 +111,12 @@ export async function generateTransactionPayload(
   }
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  const functionAbi = await fetchAbi({
+  const functionAbi = args.abi ?? await fetchAbi({
     key: "entry-function",
     moduleAddress,
     moduleName,
     functionName,
     aptosConfig: args.aptosConfig,
-    abi: args.abi,
     fetch: fetchEntryFunctionAbi,
   });
 
@@ -205,7 +204,6 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
           moduleName,
           functionName,
           aptosConfig: args.aptosConfig,
-          abi: args.abi,
           fetch: fetchViewFunctionAbi,
         });
 
@@ -649,7 +647,7 @@ export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Arr
 }
 
 /**
- * Fetches and caches ABIs with allowing for pass-through on provided ABIs
+ * Fetches and caches ABIs
  * @param key
  * @param moduleAddress
  * @param moduleName
@@ -664,7 +662,6 @@ async function fetchAbi<T extends FunctionABI>({
   moduleName,
   functionName,
   aptosConfig,
-  abi,
   fetch,
 }: {
   key: string;
@@ -672,13 +669,8 @@ async function fetchAbi<T extends FunctionABI>({
   moduleName: string;
   functionName: string;
   aptosConfig: AptosConfig;
-  abi?: T;
   fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
 }): Promise<T> {
-  if (abi !== undefined) {
-    return abi;
-  }
-
   // We fetch the entry function ABI, and then pretend that we already had the ABI
   return memoizeAsync(
     async () => fetch(moduleAddress, moduleName, functionName, aptosConfig),
