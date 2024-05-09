@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.14.0 (2024-05-09)
+
 - [`Fix`] fixed `trasnferFungibleAsset` function
 - Run all examples in CI
 - Introcude cli `Move` class that holds `move` related commands
