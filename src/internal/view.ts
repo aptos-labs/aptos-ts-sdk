@@ -46,7 +46,7 @@ export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: 
     } else {
       try {
         viewFunctionPayload = await generateViewFunctionPayload({
-          ...(payload as InputViewFunctionDataWithRemoteABI),
+          ...payload,
           aptosConfig,
         });
       } catch (e) {
