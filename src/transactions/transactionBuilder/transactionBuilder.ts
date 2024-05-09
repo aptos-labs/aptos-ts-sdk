@@ -71,13 +71,13 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
-  InputViewFunctionDataWithNoABI,
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { getFunctionParts, isEveryFunctionArgumentEncoded, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { ViewFunctionNotFoundError } from "../../client/types";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -176,33 +176,57 @@ export function generateTransactionPayloadWithABI(
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
 }
 
-export async function generateViewFunctionPayloadWithNoABI(
-  args: InputViewFunctionDataWithNoABI,
-): Promise<EntryFunction> {
-  const { functionArguments, typeArguments } = args;
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
-  return EntryFunction.build(
-    `${moduleAddress}::${moduleName}`,
-    functionName,
-    standardizeTypeTags(typeArguments),
-    functionArguments ?? [],
-  );
-}
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
-  const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+  // If the ABI is provided, we can skip the fetch ABI request and generate the payload.
+  if (typeof args.abi !== "undefined") {
+    return generateViewFunctionPayloadWithABI({
+      ...args,
+      abi: args.abi,
+    });
+  } else {
+    const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+    // Undefined function arguments are equivalent to an empty array.
+    const functionArguments = args.functionArguments ?? [];
 
-  const functionAbi = await fetchAbi({
-    key: "view-function",
-    moduleAddress,
-    moduleName,
-    functionName,
-    aptosConfig: args.aptosConfig,
-    abi: args.abi,
-    fetch: fetchViewFunctionAbi,
-  });
+    // We can skip both the fetch ABI request and the ABI check if all function arguments are BCS-serializable.
+    if (isEveryFunctionArgumentEncoded(functionArguments)) {
+      return EntryFunction.build(
+        `${moduleAddress}::${moduleName}`,
+        functionName,
+        standardizeTypeTags(args.typeArguments),
+        functionArguments,
+      );
+    } else {
+      // Otherwise, we need to fetch the ABI and generate the payload.
+      try {
+        const functionAbi = await fetchAbi({
+          key: "view-function",
+          moduleAddress,
+          moduleName,
+          functionName,
+          aptosConfig: args.aptosConfig,
+          abi: args.abi,
+          fetch: fetchViewFunctionAbi,
+        });
 
-  // Fill in the ABI
-  return generateViewFunctionPayloadWithABI({ ...args, abi: functionAbi });
+        return generateViewFunctionPayloadWithABI({
+          ...args,
+          abi: functionAbi,
+        });
+      } catch (e) {
+        if (e instanceof ViewFunctionNotFoundError) {
+          // Throw the same error with a more specific error message.
+          const errorMsg =
+            "Failed to generate view function payload with remote ABI." +
+            "If the function is private, please either include the function ABI in the view function payload" +
+            "or provide only BCS-serializable function arguments.";
+          throw new ViewFunctionNotFoundError(errorMsg);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
 }
 
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
@@ -220,8 +244,8 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   }
 
   // Check all BCS types, and convert any non-BCS types
-  const functionArguments: Array<EntryFunctionArgumentTypes> =
-    args?.functionArguments?.map((arg, i) => convertArgument(args.function, functionAbi, arg, i, typeArguments)) ?? [];
+  const functionArguments =
+    (args.functionArguments ?? []).map((arg, i) => convertArgument(args.function, functionAbi, arg, i, typeArguments));
 
   // Check that all arguments are accounted for
   if (functionArguments.length !== functionAbi.parameters.length) {

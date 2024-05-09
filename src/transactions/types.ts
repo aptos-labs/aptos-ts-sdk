@@ -169,13 +169,6 @@ export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptos
 export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
 
 /**
- * Data needed to generate a view function with no ABI
- */
-export type InputViewFunctionDataWithNoABI = Omit<InputViewFunctionData, "abi"> & {
-  functionArguments?: Array<EntryFunctionArgumentTypes>;
-};
-
-/**
  * Data need for a generic function ABI, both view and entry
  */
 export type FunctionABI = {
