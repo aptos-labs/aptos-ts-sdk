@@ -3,4 +3,4 @@ export type ProverResponse = {
   public_inputs_hash: string;
   training_wheels_signature: string;
 };
-export type PepperFetchResponse = { signature: string };
+export type PepperFetchResponse = { signature: string; pepper: string; address: string };
