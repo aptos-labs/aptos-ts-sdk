@@ -537,55 +537,6 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
 }
 
 /**
- * Generate a multi signers signed transaction that can be submitted to chain
- *
- * @param transaction MultiAgentRawTransaction | FeePayerRawTransaction
- * @param senderAuthenticator The account authenticator of the transaction sender
- * @param secondarySignerAuthenticators The extra signers account Authenticators
- *
- * @returns A SignedTransaction
- */
-export function generateMultiSignersSignedTransaction(
-  transaction: MultiAgentRawTransaction | FeePayerRawTransaction,
-  senderAuthenticator: AccountAuthenticator,
-  feePayerAuthenticator?: AccountAuthenticator,
-  additionalSignersAuthenticators?: Array<AccountAuthenticator>,
-) {
-  if (transaction instanceof FeePayerRawTransaction) {
-    if (!feePayerAuthenticator) {
-      throw new Error("Must provide a feePayerAuthenticator argument to generate a signed fee payer transaction");
-    }
-    const txAuthenticatorFeePayer = new TransactionAuthenticatorFeePayer(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-      {
-        address: transaction.fee_payer_address,
-        authenticator: feePayerAuthenticator,
-      },
-    );
-    return new SignedTransaction(transaction.raw_txn, txAuthenticatorFeePayer).bcsToBytes();
-  }
-  if (transaction instanceof MultiAgentRawTransaction) {
-    if (!additionalSignersAuthenticators) {
-      throw new Error(
-        "Must provide a additionalSignersAuthenticators argument to generate a signed multi agent transaction",
-      );
-    }
-    const multiAgentAuthenticator = new TransactionAuthenticatorMultiAgent(
-      senderAuthenticator,
-      transaction.secondary_signer_addresses,
-      additionalSignersAuthenticators ?? [],
-    );
-    return new SignedTransaction(transaction.raw_txn, multiAgentAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot prepare multi signers transaction to submission, ${typeof transaction} transaction is not supported`,
-  );
-}
-
-/**
  * Fetches and caches ABIs with allowing for pass-through on provided ABIs
  * @param key
  * @param moduleAddress
