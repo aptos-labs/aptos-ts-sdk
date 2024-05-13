@@ -61,7 +61,7 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
 }
 
 /**
- * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of 
+ * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of
  * its constructor as the domain separator.
  *
  * @param serializable An object that has a bcs serialized form
@@ -85,9 +85,9 @@ export function generateSigningMessageForTransaction(transaction: AnyRawTransact
   const rawTxn = deriveTransactionType(transaction);
   if (transaction.feePayerAddress) {
     return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_WITH_DATA_SALT);
-  } 
+  }
   if (transaction.secondarySignerAddresses) {
     return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_WITH_DATA_SALT);
-  } 
+  }
   return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_SALT);
 }

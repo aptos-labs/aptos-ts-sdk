@@ -15,10 +15,7 @@ import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import {
-  DEFAULT_MAX_GAS_AMOUNT,
-  DEFAULT_TXN_EXP_SEC_FROM_NOW,
-} from "../../utils/const";
+import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
@@ -467,7 +464,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
-    const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
+  const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
 
   let txnAuthenticator: TransactionAuthenticator;
   if (transaction.feePayerAddress) {

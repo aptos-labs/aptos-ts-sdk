@@ -31,7 +31,7 @@ export class MultiKeyAccount implements Account {
   /**
    * constructor for MultiKeyAccount
    *
-   * @param args.multiKey the multikey of the account which consists of N public keys and a number M which is 
+   * @param args.multiKey the multikey of the account which consists of N public keys and a number M which is
    * the number of required signatures.
    * @param args.signers an array of M signers that will be used to sign the transaction
    * @returns MultiKeyAccount
