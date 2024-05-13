@@ -3,7 +3,12 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
-- Adds support for keyless accounts
+
+- [`Breaking`] Removes private key from the Account class to support keyless and passkey
+- Refactors the core/accounts folder to the top level
+- Separates the signing message functionality out of the transactionSubmission.ts file
+- Adds an Account implementation for MultiKey accounts
+- Adds Keyless Account support
 
 # 1.14.0 (2024-05-09)
 
