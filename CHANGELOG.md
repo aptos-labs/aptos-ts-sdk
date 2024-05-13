@@ -3,6 +3,16 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Adds support for keyless accounts
+
+# 1.14.0 (2024-05-09)
+
+- [`Fix`] fixed `trasnferFungibleAsset` function
+- Run all examples in CI
+- Introcude cli `Move` class that holds `move` related commands
+- Add common cli commands - `move.init()`, `move.compile()`, `move.test()`, `move.publish()`
+- [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `intanceOf`
+- Remove `randomnet` from the known Network enum
 
 # 1.13.3 (2024-04-30)
 

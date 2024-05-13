@@ -30,17 +30,12 @@ export class MultiKeyAccount implements Account {
   signaturesBitmap: Uint8Array;
 
   /**
-   * constructor for Account
+   * constructor for MultiKeyAccount
    *
-   * Need to update this to use the new crypto library if new schemes are added.
-   *
-   * @param args.privateKey PrivateKey - private key of the account
-   * @param args.address AccountAddress - address of the account
-   * @param args.legacy optional. If set to false, the keypair authentication keys will be derived with a unified scheme.
-   * Defaults to deriving an authentication key with the legacy scheme.
-   *
-   * This method is private because it should only be called by the factory static methods.
-   * @returns Account
+   * @param args.multiKey the multikey of the account which consists of N public keys and a number M which is 
+   * the number of required signatures.
+   * @param args.signers an array of M signers that will be used to sign the transaction
+   * @returns MultiKeyAccount
    */
   constructor(args: { multiKey: MultiKey; signers: Account[] }) {
     const { multiKey, signers } = args;
@@ -58,6 +53,14 @@ export class MultiKeyAccount implements Account {
     this.signaturesBitmap = this.publicKey.createBitmap({ bits });
   }
 
+  /**
+   * Static constructor for MultiKeyAccount
+   *
+   * @param args.publicKeys the N public keys of the MultiKeyAccount
+   * @param args.signaturesRequired the number of signatures required
+   * @param args.signers an array of M signers that will be used to sign the transaction
+   * @returns MultiKeyAccount
+   */
   static fromPublicKeysAndSigners(args: {
     publicKeys: PublicKey[];
     signaturesRequired: number;
@@ -72,7 +75,7 @@ export class MultiKeyAccount implements Account {
     return account instanceof MultiKeyAccount;
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction) {
+  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
@@ -82,12 +85,10 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Sign the given message with the private key.
-   *
-   * TODO: Add sign transaction or specific types
+   * Sign the given message with the account.
    *
    * @param data in HexInput format
-   * @returns Signature
+   * @returns MultiSignature
    */
   sign(data: HexInput): MultiSignature {
     const signatures = [];
@@ -97,7 +98,7 @@ export class MultiKeyAccount implements Account {
     return new MultiSignature({ signatures, bitmap: this.signaturesBitmap });
   }
 
-  signTransaction(transaction: AnyRawTransaction) {
+  signTransaction(transaction: AnyRawTransaction): MultiSignature {
     const signatures = [];
     for (const signer of this.signers) {
       signatures.push(signer.signTransaction(transaction));

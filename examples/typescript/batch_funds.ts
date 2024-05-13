@@ -30,7 +30,7 @@ import {
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.LOCAL;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);

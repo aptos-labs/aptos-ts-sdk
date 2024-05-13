@@ -276,13 +276,8 @@ export class MultiSignature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): MultiSignature {
+    const signatures = deserializer.deserializeVector(AnySignature);
     const bitmap = deserializer.deserializeBytes();
-    const nSignatures = bitmap.reduce((acc, byte) => acc + bitCount(byte), 0);
-    const signatures: AnySignature[] = [];
-    for (let i = 0; i < nSignatures; i += 1) {
-      const signature = AnySignature.deserialize(deserializer);
-      signatures.push(signature);
-    }
     return new MultiSignature({ signatures, bitmap });
   }
 

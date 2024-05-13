@@ -45,17 +45,6 @@ describe("aptos config", () => {
     expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.MAINNET]);
   });
 
-  test("it should set urls based on randomnet", async () => {
-    const settings: AptosSettings = {
-      network: Network.RANDOMNET,
-    };
-    const aptosConfig = new AptosConfig(settings);
-    expect(aptosConfig.network).toEqual("randomnet");
-    expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.RANDOMNET]);
-    expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.RANDOMNET]);
-    expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.RANDOMNET]);
-  });
-
   test("it should have undefined urls when network is custom and no urls provided", async () => {
     const settings: AptosSettings = {
       network: Network.CUSTOM,
