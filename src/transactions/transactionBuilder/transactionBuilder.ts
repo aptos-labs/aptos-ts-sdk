@@ -72,7 +72,6 @@ import { memoizeAsync } from "../../utils/memoize";
 import { getFunctionParts, isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
-import { deriveTransactionType } from "./signingMessage";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -468,7 +467,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
-  const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
+    const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
 
   let txnAuthenticator: TransactionAuthenticator;
   if (transaction.feePayerAddress) {
