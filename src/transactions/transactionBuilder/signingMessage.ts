@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * This file handles the transaction creation lifecycle.
- * It holds different operations to generate a transaction payload, a raw transaction,
- * and a signed transaction that can be simulated, signed and submitted to chain.
+ * This file handles the generation of the signing message.
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
-import { FeePayerRawTransaction, MultiAgentRawTransaction, RawTransaction } from "../instances";
+import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
 import { Serializable } from "../../bcs";
 
@@ -34,6 +32,14 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
   return transaction.rawTransaction;
 }
 
+/**
+ * Generates the 'signing message' form of a message to be signed.
+ *
+ * @param bytes The byte representation of the message to be signed and sent to the chain
+ * @param domainSeparator A domain separator that starts with 'APTOS::'
+ *
+ * @returns The Uint8Array of the signing message
+ */
 export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
   const hash = sha3Hash.create();
 
@@ -54,17 +60,34 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
   return mergedArray;
 }
 
-export function generateSigningMessageForSerializable(obj: Serializable): Uint8Array {
-  return generateSigningMessage(obj.bcsToBytes(), obj.constructor.name);
+/**
+ * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of 
+ * its constructor as the domain separator.
+ *
+ * @param serializable An object that has a bcs serialized form
+ *
+ * @returns The Uint8Array of the signing message
+ */
+export function generateSigningMessageForSerializable(serializable: Serializable): Uint8Array {
+  return generateSigningMessage(serializable.bcsToBytes(), `APTOS::${serializable.constructor.name}`);
 }
 
+/**
+ * Generates the 'signing message' form of a transaction. It derives the type of transaction and
+ * applies the appropriate domain separator based on if there is extra data such as a fee payer or
+ * secondary signers.
+ *
+ * @param transaction A transaction that is to be signed
+ *
+ * @returns The Uint8Array of the signing message
+ */
 export function generateSigningMessageForTransaction(transaction: AnyRawTransaction): Uint8Array {
   const rawTxn = deriveTransactionType(transaction);
-  if (rawTxn instanceof RawTransaction) {
-    return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_SALT);
-  }
-  if (rawTxn instanceof MultiAgentRawTransaction || rawTxn instanceof FeePayerRawTransaction) {
+  if (transaction.feePayerAddress) {
     return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_WITH_DATA_SALT);
-  }
-  throw new Error(`Unknown transaction type to sign on: ${rawTxn}`);
+  } 
+  if (transaction.secondarySignerAddresses) {
+    return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_WITH_DATA_SALT);
+  } 
+  return generateSigningMessage(rawTxn.bcsToBytes(), RAW_TRANSACTION_SALT);
 }
