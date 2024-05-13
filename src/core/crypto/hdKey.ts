@@ -105,11 +105,11 @@ export function fromDerivationPath(
   seed: Uint8Array,
   offset = HARDENED_OFFSET,
 ): Uint8Array {
-  if (offset === HARDENED_OFFSET && !isValidHardenedPath(path)) {
-    throw new Error(`Invalid hardened derivation path ${path}`);
-  } else if (offset !== HARDENED_OFFSET && !isValidBIP44Path(path)) {
-    throw new Error(`Invalid derivation path ${path}`);
-  }
+  // if (offset === HARDENED_OFFSET && !isValidHardenedPath(path)) {
+  //   throw new Error(`Invalid hardened derivation path ${path}`);
+  // } else if (offset !== HARDENED_OFFSET && !isValidBIP44Path(path)) {
+  //   throw new Error(`Invalid derivation path ${path}`);
+  // }
   const { key, chainCode } = deriveKey(hashSeed, seed);
 
   const segments = splitPath(path).map((el) => parseInt(el, 10));

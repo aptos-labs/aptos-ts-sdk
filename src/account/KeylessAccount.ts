@@ -30,13 +30,10 @@ import { AnyRawTransaction } from "../transactions/types";
 function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-
   // Pad the string with '=' characters if needed
   const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-
   // Decode the base64 string using the base-64 library
   const decodedString = decode(paddedBase64);
-
   return decodedString;
 }
 
@@ -113,7 +110,7 @@ export class KeylessAccount implements Account {
       this.proof = proofOrFetcher;
     } else {
       if (proofFetchCallback === undefined) {
-        throw new Error("Must provide callback")
+        throw new Error("Must provide callback for async proof fetch")
       }
       this.emitter.on("proofFetchFinish", async (status) => {
         await proofFetchCallback(status);
