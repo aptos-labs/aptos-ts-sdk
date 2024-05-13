@@ -15,14 +15,18 @@ import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
+import {
+  DEFAULT_MAX_GAS_AMOUNT,
+  DEFAULT_TXN_EXP_SEC_FROM_NOW,
+} from "../../utils/const";
+import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
-  AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
+  TransactionAuthenticator,
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
@@ -288,9 +292,8 @@ export async function generateRawTransaction(args: {
 
   const { maxGasAmount, gasUnitPrice, expireTimestamp } = {
     maxGasAmount: options?.maxGasAmount ? BigInt(options.maxGasAmount) : BigInt(DEFAULT_MAX_GAS_AMOUNT),
-    gasUnitPrice: BigInt(gasEstimate),
-    expireTimestamp: BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
-    ...options,
+    gasUnitPrice: options?.gasUnitPrice ?? BigInt(gasEstimate),
+    expireTimestamp: options?.expireTimestamp ?? BigInt(Math.floor(Date.now() / 1000) + DEFAULT_TXN_EXP_SEC_FROM_NOW),
   };
 
   return new RawTransaction(
@@ -464,45 +467,44 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  * @returns A SignedTransaction
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
-  const { transaction, senderAuthenticator, feePayerAuthenticator, additionalSignersAuthenticators } = args;
+  const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
+  const senderAuthenticator = normalizeBundle(AccountAuthenticator, args.senderAuthenticator);
 
-  const transactionToSubmit = deriveTransactionType(transaction);
-
-  if (
-    (feePayerAuthenticator || additionalSignersAuthenticators) &&
-    (transactionToSubmit instanceof MultiAgentRawTransaction || transactionToSubmit instanceof FeePayerRawTransaction)
-  ) {
-    return generateMultiSignersSignedTransaction(
-      transactionToSubmit,
+  let txnAuthenticator: TransactionAuthenticator;
+  if (transaction.feePayerAddress) {
+    if (!feePayerAuthenticator) {
+      throw new Error("Must provide a feePayerAuthenticator argument to generate a signed fee payer transaction");
+    }
+    txnAuthenticator = new TransactionAuthenticatorFeePayer(
       senderAuthenticator,
-      feePayerAuthenticator,
+      transaction.secondarySignerAddresses ?? [],
+      additionalSignersAuthenticators ?? [],
+      {
+        address: transaction.feePayerAddress,
+        authenticator: feePayerAuthenticator,
+      },
+    );
+  } else if (transaction.secondarySignerAddresses) {
+    if (!additionalSignersAuthenticators) {
+      throw new Error(
+        "Must provide a additionalSignersAuthenticators argument to generate a signed multi agent transaction",
+      );
+    }
+    txnAuthenticator = new TransactionAuthenticatorMultiAgent(
+      senderAuthenticator,
+      transaction.secondarySignerAddresses,
       additionalSignersAuthenticators,
     );
-  }
-
-  // submit single signer transaction
-
-  // check what instance is accountAuthenticator
-  if (senderAuthenticator instanceof AccountAuthenticatorEd25519 && transactionToSubmit instanceof RawTransaction) {
-    const transactionAuthenticator = new TransactionAuthenticatorEd25519(
+  } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
+    txnAuthenticator = new TransactionAuthenticatorEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
+  } else {
+    txnAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
   }
 
-  if (
-    (senderAuthenticator instanceof AccountAuthenticatorSingleKey ||
-      senderAuthenticator instanceof AccountAuthenticatorMultiKey) &&
-    transactionToSubmit instanceof RawTransaction
-  ) {
-    const transactionAuthenticator = new TransactionAuthenticatorSingleSender(senderAuthenticator);
-    return new SignedTransaction(transactionToSubmit, transactionAuthenticator).bcsToBytes();
-  }
-
-  throw new Error(
-    `Cannot generate a signed transaction, ${senderAuthenticator} is not a supported account authentication scheme`,
-  );
+  return new SignedTransaction(transaction.rawTransaction, txnAuthenticator).bcsToBytes();
 }
 
 /**

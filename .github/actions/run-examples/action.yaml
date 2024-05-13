@@ -50,7 +50,7 @@ runs:
       with:
         max_attempts: 3
         timeout_minutes: 25
-        command: cd examples/typescript && pnpm install && pnpm test
+        command: cd examples/typescript && pnpm install && pnpm build && pnpm test
 
     - name: Print local testnet logs on failure
       shell: bash

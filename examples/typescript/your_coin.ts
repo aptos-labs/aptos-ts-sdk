@@ -9,7 +9,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * It uses the MoonCoin.move module that can be found in this folder
  *
  * Before running this example, we should compile the package locally:
- * 1. Acquire the Aptos CLI, see https://aptos.dev/cli-tools/aptos-cli/use-cli/install-aptos-cli
+ * 1. Acquire the Aptos CLI, see https://aptos.dev/tools/aptos-cli/
  * 2. cd `~/aptos-ts-sdk/examples/typescript`
  * 3. Run `pnpm run your_coin`
  */
@@ -18,7 +18,7 @@ const MOON_COINS_TO_MINT = 100;
 const MOON_COINS_TO_TRANSFER = 100;
 
 // Setup the client
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 

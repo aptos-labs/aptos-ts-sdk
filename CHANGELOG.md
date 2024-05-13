@@ -9,6 +9,25 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Separates the signing message functionality out of the transactionSubmission.ts file
 - Adds an Account implementation for MultiKey accounts
 
+# 1.14.0 (2024-05-09)
+
+- [`Fix`] fixed `trasnferFungibleAsset` function
+- Run all examples in CI
+- Introcude cli `Move` class that holds `move` related commands
+- Add common cli commands - `move.init()`, `move.compile()`, `move.test()`, `move.publish()`
+- [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `intanceOf`
+- Remove `randomnet` from the known Network enum
+
+# 1.13.3 (2024-04-30)
+
+- Export `MultiAgentTransaction` class
+
+# 1.13.2 (2024-04-29)
+
+- [`Fix`] Fix `generateSignedTransaction` so that it works with object instances from different bundles
+- [`Fix`] Preventing undefined options from overriding fallbacks in `generateRawTransaction`
+- Use `@aptos-labs/aptos-cli` as a regular dependency
+
 # 1.13.1 (2024-04-23)
 
 - [`Fix`] Fixes Local ABI to use it locally rather than make an external network call
