@@ -155,7 +155,7 @@ export class MultiKeyAccount implements Account {
     for (let i = 0; i < signature.signatures.length; i += 1) {
       const singleSignature = signature.signatures[i];
       const publicKey = this.publicKey.publicKeys[this.signerIndicies[i]];
-      if (publicKey.verifySignature({ message, signature: singleSignature })) {
+      if (!publicKey.verifySignature({ message, signature: singleSignature })) {
         return false;
       }
     }
