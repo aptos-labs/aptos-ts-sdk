@@ -23,7 +23,7 @@ import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Deserializer, Serializer } from "../bcs";
+import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
 
@@ -54,7 +54,7 @@ export interface ProofFetchEvents {
   proofFetchFinish: (status: ProofFetchStatus) => void;
 }
 
-export class KeylessAccount implements Account {
+export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
   static readonly SLIP_0010_SEED: string = "32 bytes";
@@ -95,6 +95,7 @@ export class KeylessAccount implements Account {
     proofFetchCallback?: ProofFetchCallback
     jwt: string;
   }) {
+    super();
     const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     const addressSeed = computeAddressSeed(args);
