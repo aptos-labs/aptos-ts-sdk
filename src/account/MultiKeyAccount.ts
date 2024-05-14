@@ -74,16 +74,14 @@ export class MultiKeyAccount implements Account {
     return account instanceof MultiKeyAccount;
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorMultiKey {
+    return new AccountAuthenticatorMultiKey(this.publicKey, this.sign(message));
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
-  /**
-   * Sign the given message with the account.
-   *
-   * @param data in HexInput format
-   * @returns MultiKeySignature
-   */
   sign(data: HexInput): MultiKeySignature {
     const signatures = [];
     for (const signer of this.signers) {

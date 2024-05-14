@@ -108,9 +108,12 @@ export class SingleKeyAccount implements Account {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
-    const signature = this.signTransaction(transaction);
-    return new AccountAuthenticatorSingleKey(this.publicKey, signature);
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
+    return new AccountAuthenticatorSingleKey(this.publicKey, this.sign(message));
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
+    return new AccountAuthenticatorSingleKey(this.publicKey, this.signTransaction(transaction));
   }
 
   sign(message: HexInput): AnySignature {
