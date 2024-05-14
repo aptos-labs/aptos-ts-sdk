@@ -77,9 +77,12 @@ export class Ed25519Account implements Account {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction) {
-    const signature = this.privateKey.sign(generateSigningMessageForTransaction(transaction));
-    return new AccountAuthenticatorEd25519(this.publicKey, signature);
+  signWithAuthenticator(message: HexInput) {
+    return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message));
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction) {
+    return new AccountAuthenticatorEd25519(this.publicKey, this.signTransaction(transaction));
   }
 
   sign(message: HexInput) {

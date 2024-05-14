@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account } from "./Account";
-import { MultiKey, MultiSignature, PublicKey, Signature } from "../core/crypto";
+import { MultiKey, MultiKeySignature, PublicKey, Signature } from "../core/crypto";
 import { AccountAddress } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
@@ -75,7 +75,11 @@ export class MultiKeyAccount implements Account {
     return account instanceof MultiKeyAccount;
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorMultiKey {
+    return new AccountAuthenticatorMultiKey(this.publicKey, this.sign(message));
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
@@ -90,20 +94,20 @@ export class MultiKeyAccount implements Account {
    * @param data in HexInput format
    * @returns MultiSignature
    */
-  sign(data: HexInput): MultiSignature {
+  sign(data: HexInput): MultiKeySignature {
     const signatures = [];
     for (const signer of this.signers) {
       signatures.push(signer.sign(data));
     }
-    return new MultiSignature({ signatures, bitmap: this.signaturesBitmap });
+    return new MultiKeySignature({ signatures, bitmap: this.signaturesBitmap });
   }
 
-  signTransaction(transaction: AnyRawTransaction): MultiSignature {
+  signTransaction(transaction: AnyRawTransaction): MultiKeySignature {
     const signatures = [];
     for (const signer of this.signers) {
       signatures.push(signer.signTransaction(transaction));
     }
-    return new MultiSignature({ signatures, bitmap: this.signaturesBitmap });
+    return new MultiKeySignature({ signatures, bitmap: this.signaturesBitmap });
   }
 
   /**

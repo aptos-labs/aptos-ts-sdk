@@ -182,7 +182,13 @@ export class KeylessAccount implements Account {
     return Hex.fromHexInput(bcsBytes);
   }
 
-  signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
+    const signature = new AnySignature(this.sign(message));
+    const publicKey = new AnyPublicKey(this.publicKey);
+    return new AccountAuthenticatorSingleKey(publicKey, signature);
+  }
+
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
     const raw = deriveTransactionType(transaction);
     const signature = new AnySignature(this.sign(raw.bcsToBytes()));
     const publicKey = new AnyPublicKey(this.publicKey);

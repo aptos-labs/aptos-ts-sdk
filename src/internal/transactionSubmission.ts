@@ -203,7 +203,7 @@ export function getSigningMessage(args: { transaction: AnyRawTransaction }): Uin
  */
 export function signTransaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
   const { signer, transaction } = args;
-  return signer.signWithAuthenticator(transaction);
+  return signer.signTransactionWithAuthenticator(transaction);
 }
 
 /**

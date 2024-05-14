@@ -216,11 +216,18 @@ export abstract class Account {
   }
 
   /**
+   * Sign a message using the available signing capabilities.
+   * @param message the signing message, as binary input
+   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   */
+  abstract signWithAuthenticator(message: HexInput): AccountAuthenticator;
+
+  /**
    * Sign a transaction using the available signing capabilities.
    * @param transaction the raw transaction
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
    */
-  abstract signWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
+  abstract signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
 
   /**
    * Sign the given message with the private key.
