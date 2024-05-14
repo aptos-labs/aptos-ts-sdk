@@ -73,23 +73,50 @@ export class Ed25519Account implements Account {
 
   // region Account
 
+  /**
+   * Verify the given message and signature with the public key.
+   *
+   * @param args.message raw message data in HexInput format
+   * @param args.signature signed message Signature
+   * @returns
+   */
   verifySignature(args: VerifyEd25519SignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(message: HexInput) {
+  /**
+   * Sign a message using the account's Ed25519 private key.
+   * @param message the signing message, as binary input
+   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   */
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorEd25519 {
     return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message));
   }
 
-  signTransactionWithAuthenticator(transaction: AnyRawTransaction) {
+  /**
+   * Sign a transaction using the account's Ed25519 private key.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   */
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorEd25519 {
     return new AccountAuthenticatorEd25519(this.publicKey, this.signTransaction(transaction));
   }
 
-  sign(message: HexInput) {
+  /**
+   * Sign the given message using the account's Ed25519 private key.
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(message: HexInput): Ed25519Signature {
     return this.privateKey.sign(message);
   }
 
-  signTransaction(transaction: AnyRawTransaction) {
+  /**
+   * Sign the given transaction using the available signing capabilities.
+   * @param transaction the transaction to be signed
+   * @returns Signature
+   */
+  signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
     return this.sign(generateSigningMessageForTransaction(transaction));
   }
 

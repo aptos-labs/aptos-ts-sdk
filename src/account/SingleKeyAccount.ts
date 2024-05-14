@@ -104,22 +104,49 @@ export class SingleKeyAccount implements Account {
 
   // region Account
 
+  /**
+   * Verify the given message and signature with the public key.
+   *
+   * @param args.message raw message data in HexInput format
+   * @param args.signature signed message Signature
+   * @returns
+   */
   verifySignature(args: VerifySingleKeySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
   }
 
+  /**
+   * Sign a message using the account's private key.
+   * @param message the signing message, as binary input
+   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
     return new AccountAuthenticatorSingleKey(this.publicKey, this.sign(message));
   }
 
+  /**
+   * Sign a transaction using the account's private key.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
     return new AccountAuthenticatorSingleKey(this.publicKey, this.signTransaction(transaction));
   }
 
+  /**
+   * Sign the given message using the account's private key.
+   * @param message in HexInput format
+   * @returns Signature
+   */
   sign(message: HexInput): AnySignature {
     return new AnySignature(this.privateKey.sign(message));
   }
 
+  /**
+   * Sign the given transaction using the account's private key.
+   * @param transaction the transaction to be signed
+   * @returns Signature
+   */
   signTransaction(transaction: AnyRawTransaction): AnySignature {
     return this.sign(generateSigningMessageForTransaction(transaction));
   }
