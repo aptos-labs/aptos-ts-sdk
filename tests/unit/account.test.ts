@@ -207,9 +207,9 @@ describe("Account", () => {
         multiKey,
         signers: [singleSignerED25519SenderAccount, singleSignerSecp256k1Account],
       });
-      const message = "test message"; 
+      const message = "test message";
       const multiKeySig = account.sign(message);
-      expect(account.verifySignature({message, signature: multiKeySig})).toEqual(true);
+      expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
     });
 
     it("signs a message with a legacy ed25519 scheme and verifies successfully", () => {
