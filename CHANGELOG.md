@@ -3,6 +3,7 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Add support for AIP-80 compatible private keys, for input and output
 
 - Support `Serialized Type` to Script txn.  Now can use vector<String> for example.
 - Add optional address parameter to MultiKeyAccount constructor.

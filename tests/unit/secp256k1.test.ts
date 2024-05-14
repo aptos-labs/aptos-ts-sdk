@@ -2,8 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
-import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
+import { ed25519, secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
+import {
+  Deserializer,
+  Ed25519PrivateKey,
+  Hex,
+  Secp256k1PrivateKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+  Serializer,
+} from "../../src";
 
 /* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
@@ -139,6 +147,25 @@ describe("Secp256k1PrivateKey", () => {
     const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
     expect(key.toString()).toEqual(privateKey);
+  });
+
+  it("should take either hex or aip-80", () => {
+    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKey);
+    const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyAip80);
+
+    expect(privateKey).toEqual(privateKey2);
+    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKeyAip80);
+    expect(privateKey2.toString()).toEqual(secp256k1TestObject.privateKeyAip80);
+  });
+
+  it("strict should only take aip-80", () => {
+    // eslint-disable-next-line no-new
+    expect(() => {
+      new Secp256k1PrivateKey(secp256k1TestObject.privateKey, true);
+    }).toThrow();
+    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyAip80, true);
+
+    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKeyAip80);
   });
 });
 

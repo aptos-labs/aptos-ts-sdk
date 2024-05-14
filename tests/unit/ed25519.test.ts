@@ -203,6 +203,25 @@ describe("PrivateKey", () => {
     expect(key).toBeInstanceOf(Ed25519PrivateKey);
     expect(privateKey).toEqual(key.toString());
   });
+
+  it("should take either hex or aip-80", () => {
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
+    const privateKey2 = new Ed25519PrivateKey(ed25519.privateKeyAip80);
+
+    expect(privateKey).toEqual(privateKey2);
+    expect(privateKey.toString()).toEqual(ed25519.privateKeyAip80);
+    expect(privateKey2.toString()).toEqual(ed25519.privateKeyAip80);
+  });
+
+  it("strict should only take aip-80", () => {
+    // eslint-disable-next-line no-new
+    expect(() => {
+      new Ed25519PrivateKey(ed25519.privateKey, true);
+    }).toThrow();
+    const privateKey = new Ed25519PrivateKey(ed25519.privateKeyAip80, true);
+
+    expect(privateKey.toString()).toEqual(ed25519.privateKeyAip80);
+  });
 });
 
 describe("Signature", () => {
