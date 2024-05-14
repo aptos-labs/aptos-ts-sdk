@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { AnyPublicKey, AnySignature, Secp256k1PublicKey } from "../../core/crypto";
+import { AnyPublicKey, AnySignature, Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
