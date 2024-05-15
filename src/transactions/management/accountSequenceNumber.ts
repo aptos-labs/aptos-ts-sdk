@@ -24,7 +24,7 @@
  */
 
 import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../core";
+import { Account } from "../../account";
 import { getInfo } from "../../internal/account";
 import { sleep } from "../../utils/helpers";
 

@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddress, PrivateKey, Account as AccountModule, AccountAddressInput } from "../core";
+import { Account as AccountModule } from "../account";
+import { AccountAddress, PrivateKey, AccountAddressInput } from "../core";
 import {
   AccountData,
   AnyNumber,

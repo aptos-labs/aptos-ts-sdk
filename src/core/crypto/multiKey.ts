@@ -139,6 +139,22 @@ export class MultiKey extends AccountPublicKey {
 
     return bitmap;
   }
+
+  /**
+   * Get the index of the provided public key.
+   *
+   * @param publicKey array of the index mapping to the matching public keys
+   * @returns the corresponding index of the publicKey, if it exists
+   */
+  getIndex(publicKey: PublicKey): number {
+    const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
+    const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
+
+    if (index !== -1) {
+      return index;
+    }
+    throw new Error("Public key not found in MultiKey");
+  }
 }
 
 export class MultiKeySignature extends Signature {
@@ -266,13 +282,8 @@ export class MultiKeySignature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): MultiKeySignature {
+    const signatures = deserializer.deserializeVector(AnySignature);
     const bitmap = deserializer.deserializeBytes();
-    const nSignatures = bitmap.reduce((acc, byte) => acc + bitCount(byte), 0);
-    const signatures: AnySignature[] = [];
-    for (let i = 0; i < nSignatures; i += 1) {
-      const signature = AnySignature.deserialize(deserializer);
-      signatures.push(signature);
-    }
     return new MultiKeySignature({ signatures, bitmap });
   }
 

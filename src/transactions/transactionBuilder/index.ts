@@ -4,3 +4,4 @@
 export * from "./helpers";
 export * from "./transactionBuilder";
 export * from "./remoteAbi";
+export * from "./signingMessage";

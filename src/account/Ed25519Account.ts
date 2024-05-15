@@ -1,8 +1,10 @@
-import { AccountAuthenticatorEd25519 } from "../../transactions/authenticator/account";
-import { HexInput, SigningScheme } from "../../types";
-import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../crypto";
+import { AccountAuthenticatorEd25519 } from "../transactions/authenticator/account";
+import { HexInput, SigningScheme } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/crypto";
 import type { Account } from "./Account";
+import { AnyRawTransaction } from "../transactions/types";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 
 export interface Ed25519SignerConstructorArgs {
   privateKey: Ed25519PrivateKey;
@@ -71,17 +73,51 @@ export class Ed25519Account implements Account {
 
   // region Account
 
+  /**
+   * Verify the given message and signature with the public key.
+   *
+   * @param args.message raw message data in HexInput format
+   * @param args.signature signed message Signature
+   * @returns
+   */
   verifySignature(args: VerifyEd25519SignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
   }
 
-  signWithAuthenticator(message: HexInput) {
-    const signature = this.privateKey.sign(message);
-    return new AccountAuthenticatorEd25519(this.publicKey, signature);
+  /**
+   * Sign a message using the account's Ed25519 private key.
+   * @param message the signing message, as binary input
+   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   */
+  signWithAuthenticator(message: HexInput): AccountAuthenticatorEd25519 {
+    return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message));
   }
 
-  sign(message: HexInput) {
-    return this.signWithAuthenticator(message).signature;
+  /**
+   * Sign a transaction using the account's Ed25519 private key.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   */
+  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorEd25519 {
+    return new AccountAuthenticatorEd25519(this.publicKey, this.signTransaction(transaction));
+  }
+
+  /**
+   * Sign the given message using the account's Ed25519 private key.
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(message: HexInput): Ed25519Signature {
+    return this.privateKey.sign(message);
+  }
+
+  /**
+   * Sign the given transaction using the available signing capabilities.
+   * @param transaction the transaction to be signed
+   * @returns Signature
+   */
+  signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
+    return this.sign(generateSigningMessageForTransaction(transaction));
   }
 
   // endregion

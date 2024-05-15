@@ -1,5 +1,5 @@
 import { longTestTimeout } from "../../unit/helper";
-import { Account } from "../../../src/core";
+import { Account } from "../../../src/account";
 import * as AccountQueries from "../../../src/internal/account";
 import { AccountSequenceNumber } from "../../../src/transactions/management/accountSequenceNumber";
 import { getAptosClient } from "../helper";

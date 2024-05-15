@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../../core";
+import { Account } from "../../account";
 import { signTransaction } from "../../internal/transactionSubmission";
 import { AccountAuthenticator, AnyRawTransaction } from "../../transactions";
 import { AptosConfig } from "../aptosConfig";

@@ -1,7 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, AccountAddress, AccountAddressInput } from "../core";
+import { Account } from "../account";
+import { AccountAddress, AccountAddressInput } from "../core";
 import {
   RegisterNameParameters,
   getExpiration,

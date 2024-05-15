@@ -9,20 +9,13 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { Account } from "../../core/account";
-import { AnyPublicKey, AnySignature } from "../../core/crypto";
+import { AnyPublicKey, AnySignature, Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto/secp256k1";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
-import {
-  DEFAULT_MAX_GAS_AMOUNT,
-  DEFAULT_TXN_EXP_SEC_FROM_NOW,
-  RAW_TRANSACTION_SALT,
-  RAW_TRANSACTION_WITH_DATA_SALT,
-} from "../../utils/const";
+import { DEFAULT_MAX_GAS_AMOUNT, DEFAULT_TXN_EXP_SEC_FROM_NOW } from "../../utils/const";
 import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
@@ -53,7 +46,6 @@ import { SignedTransaction } from "../instances/signedTransaction";
 import {
   AnyRawTransaction,
   AnyTransactionPayloadInstance,
-  AnyRawTransactionInstance,
   EntryFunctionArgumentTypes,
   InputGenerateMultiAgentRawTransactionArgs,
   InputGenerateRawTransactionArgs,
@@ -467,24 +459,6 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
 }
 
 /**
- * Sign a transaction that can later be submitted to chain
- *
- * @param args.signer The signer account to sign the transaction
- * @param args.transaction A aptos transaction type to sign
- *
- * @return The signer AccountAuthenticator
- */
-export function sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-  const { signer, transaction } = args;
-
-  // get the signing message
-  const message = generateSigningMessage(transaction);
-
-  // account.signMessage
-  return signer.signWithAuthenticator(message);
-}
-
-/**
  * Prepare a transaction to be submitted to chain
  *
  * @param args.transaction A aptos transaction type
@@ -562,51 +536,6 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
   // Then followed by the type of the transaction for the enum, UserTransaction is 0
   // Then followed by BCS encoded bytes of the signed transaction
   return new Hex(hashValues([TRANSACTION_PREFIX, new Uint8Array([0]), signedTransaction])).toString();
-}
-
-/**
- * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
- *
- * @param transaction A aptos transaction type
- *
- * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
- */
-export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
-  if (transaction.feePayerAddress) {
-    return new FeePayerRawTransaction(
-      transaction.rawTransaction,
-      transaction.secondarySignerAddresses ?? [],
-      transaction.feePayerAddress,
-    );
-  }
-  if (transaction.secondarySignerAddresses) {
-    return new MultiAgentRawTransaction(transaction.rawTransaction, transaction.secondarySignerAddresses);
-  }
-
-  return transaction.rawTransaction;
-}
-
-export function generateSigningMessage(transaction: AnyRawTransaction): Uint8Array {
-  const hash = sha3Hash.create();
-
-  if (transaction.feePayerAddress) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else if (transaction.secondarySignerAddresses) {
-    hash.update(RAW_TRANSACTION_WITH_DATA_SALT);
-  } else {
-    hash.update(RAW_TRANSACTION_SALT);
-  }
-
-  const prefix = hash.digest();
-
-  const rawTxn = deriveTransactionType(transaction);
-  const body = rawTxn.bcsToBytes();
-
-  const mergedArray = new Uint8Array(prefix.length + body.length);
-  mergedArray.set(prefix);
-  mergedArray.set(body, prefix.length);
-
-  return mergedArray;
 }
 
 /**
