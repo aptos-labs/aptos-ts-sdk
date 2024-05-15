@@ -212,6 +212,27 @@ describe("Account", () => {
       expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
     });
 
+    it("signs a message with a 2 of 3 multikey scheme and verifies successfully with misordered signers", () => {
+      const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+      const legacyED25519SenderAccount = Account.generate();
+      const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+      const multiKey = new MultiKey({
+        publicKeys: [
+          singleSignerED25519SenderAccount.publicKey,
+          legacyED25519SenderAccount.publicKey,
+          singleSignerSecp256k1Account.publicKey,
+        ],
+        signaturesRequired: 2,
+      });
+      const account = new MultiKeyAccount({
+        multiKey,
+        signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
+      });
+      const message = "test message";
+      const multiKeySig = account.sign(message);
+      expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+    });
+
     it("signs a message with a legacy ed25519 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded, stringMessage } = ed25519;
       const privateKey = new Ed25519PrivateKey(privateKeyBytes);

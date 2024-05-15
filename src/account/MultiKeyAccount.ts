@@ -64,17 +64,23 @@ export class MultiKeyAccount implements Account {
     const { multiKey, signers } = args;
 
     this.publicKey = multiKey;
-    this.signers = signers;
     this.signingScheme = SigningScheme.MultiKey;
 
     this.accountAddress = this.publicKey.authKey().derivedAddress();
 
-    const bits: number[] = [];
+    // Get the index of each respective signer in the bitmap
+    const bitPositions: number[] = [];
     for (const signer of signers) {
-      bits.push(this.publicKey.getIndex(signer.publicKey));
+      bitPositions.push(this.publicKey.getIndex(signer.publicKey));
     }
-    this.signerIndicies = bits;
-    this.signaturesBitmap = this.publicKey.createBitmap({ bits });
+    // Zip signers and bit positions and sort signers by bit positions in order
+    // to ensure the signature is signed in ascending order according to the bitmap.
+    // Authentication on chain will fail otherwise.
+    const signersAndBitPosition: [Account, number][] = signers.map((signer, index) => [signer, bitPositions[index]]);
+    signersAndBitPosition.sort((a, b) => a[1] - b[1]);
+    this.signers = signersAndBitPosition.map((value) => value[0]);
+    this.signerIndicies = signersAndBitPosition.map((value) => value[1]);
+    this.signaturesBitmap = this.publicKey.createBitmap({ bits: bitPositions });
   }
 
   /**
@@ -152,6 +158,12 @@ export class MultiKeyAccount implements Account {
    */
   verifySignature(args: VerifyMultiKeySignatureArgs): boolean {
     const { message, signature } = args;
+    const isSignerIndiciesSorted = this.signerIndicies.every(
+      (value, i) => i === 0 || value >= this.signerIndicies[i - 1],
+    );
+    if (!isSignerIndiciesSorted) {
+      return false;
+    }
     for (let i = 0; i < signature.signatures.length; i += 1) {
       const singleSignature = signature.signatures[i];
       const publicKey = this.publicKey.publicKeys[this.signerIndicies[i]];

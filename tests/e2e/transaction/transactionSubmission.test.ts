@@ -626,6 +626,41 @@ describe("transaction submission", () => {
       });
       expect(response.signature?.type).toBe("single_sender");
     });
+
+    test("it submits a multi key transaction with misordered signers", async () => {
+      const multiKey = new MultiKey({
+        publicKeys: [
+          singleSignerED25519SenderAccount.publicKey,
+          legacyED25519SenderAccount.publicKey,
+          singleSignerSecp256k1Account.publicKey,
+        ],
+        signaturesRequired: 2,
+      });
+
+      const account = new MultiKeyAccount({
+        multiKey,
+        // the input to signers does not maintain ordering
+        signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
+      });
+
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("single_sender");
+    });
   });
   describe("publish move module", () => {
     const account = Account.generate();
