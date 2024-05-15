@@ -140,6 +140,12 @@ export class MultiKey extends AccountPublicKey {
     return bitmap;
   }
 
+  /**
+   * Get the index of the provided public key.
+   *
+   * @param publicKey array of the index mapping to the matching public keys
+   * @returns the corresponding index of the publicKey, if it exists
+   */
   getIndex(publicKey: PublicKey): number {
     const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
     const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());

@@ -230,22 +230,24 @@ export abstract class Account {
   abstract signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
 
   /**
-   * Sign the given message with the private key.
+   * Sign the given message using the available signing capabilities.
    * @param message in HexInput format
    * @returns Signature
    */
   abstract sign(message: HexInput): Signature;
 
   /**
-   * Sign the given transaction.
-   * @param message in HexInput format
+   * Sign the given transaction using the available signing capabilities.
+   * @param transaction the transaction to be signed
    * @returns Signature
    */
   abstract signTransaction(transaction: AnyRawTransaction): Signature;
 
   /**
+   * Verify the given message and signature with the public key.
    * @param args.message raw message data in HexInput format
-   * @param args.signature signed message signature
+   * @param args.signature signed message Signature
+   * @returns
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
