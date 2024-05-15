@@ -24,13 +24,13 @@ import {
   Network,
   NetworkToNetworkName,
   MoveString,
-  generateTransactionPayload,
   generateRawTransaction,
   TransactionPayloadMultiSig,
   MultiSig,
   AccountAddress,
   InputViewFunctionData,
   SimpleTransaction,
+  generateTransactionPayload,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -141,6 +141,20 @@ const createMultiSigTransferTransaction = async () => {
     aptosConfig: config,
   });
 
+  // Simulate the transfer transaction to make sure it passes
+  const transactionToSimulate = await generateRawTransaction({
+    aptosConfig: config,
+    sender: owner2.accountAddress,
+    payload: transactionPayload,
+  });
+
+  const simulateMultisigTx = await aptos.transaction.simulate.simple({
+    signerPublicKey: owner2.publicKey,
+    transaction: new SimpleTransaction(transactionToSimulate),
+  });
+
+  console.log("simulateMultisigTx", simulateMultisigTx);
+
   // Build create_transaction transaction
   const createMultisigTx = await aptos.transaction.build.simple({
     sender: owner2.accountAddress,
@@ -149,8 +163,10 @@ const createMultiSigTransferTransaction = async () => {
       functionArguments: [multisigAddress, transactionPayload.multiSig.transaction_payload.bcsToBytes()],
     },
   });
+
   // Owner 2 signs the transaction
   const createMultisigTxAuthenticator = aptos.transaction.sign({ signer: owner2, transaction: createMultisigTx });
+
   // Submit the transaction to chain
   const createMultisigTxResponse = await aptos.transaction.submit.simple({
     senderAuthenticator: createMultisigTxAuthenticator,
