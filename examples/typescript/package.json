@@ -24,10 +24,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@noble/curves": "^1.4.0",
+    "@types/readline-sync": "^1.4.8",
     "dotenv": "^16.3.1",
     "npm-run-all": "latest",
-    "superagent": "^8.1.2",
-    "@noble/curves": "^1.4.0"
+    "readline-sync": "^1.4.10",
+    "superagent": "^8.1.2"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."

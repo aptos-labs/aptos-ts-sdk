@@ -2,10 +2,8 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Aptos client to create accounts, fund them, and transfer between them.
+ * This example shows how to use the Keyless accounts on Aptos
  */
-
-import * as readline from "readline";
 
 import {
   Account,
@@ -16,17 +14,13 @@ import {
   EphemeralKeyPair,
   Network,
 } from "@aptos-labs/ts-sdk";
-import { promisify } from "util";
+import * as readlineSync from "readline-sync";
 
-// TODO: There currently isn't a way to use the APTOS_COIN in the COIN_STORE due to a regex
 const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
-
-const TEST_JWT =
-  "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA4YmY1YzM3NzJkZDRlN2E3MjdhMTAxYmY1MjBmNjU3NWNhYzMyNmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0MDc0MDg3MTgxOTIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTUyNjEyMTU0NTAxNDcwMjgyMTMiLCJhdF9oYXNoIjoiSlFCcEZQZlNIbmJVdGJUTzFiNFdjZyIsIm5vbmNlIjoiMTAxNzE4NzQyOTY2Mzc2NDAyMjM5MjUzOTc3ODY1NTM0MDMxNDIwNzkzOTEyNDgwMTQyMDkyNjU2MzM5NzUzMzY4NjM0ODQ5NzAxMzEiLCJpYXQiOjE3MTAxODI1MTAsImV4cCI6MTcxMDE4NjExMH0.dLVMdxFUqhvsXK3dR6CwWKIrWt8Z460VSxX-CXEhqwmFySskOGBSjcEGvUH23Z7Jc14UE5IKIbtrUCa_w4JRxedVTrfGo5JIlZAuDkqqCA-ogDjDK3iyQENrNShR4E_CH2b9186rK9jIANI6SbD3IzMj4lYRuCOEwdU4bw2RMbc059GzhPbzK1NCi5QeF-TQrbaDg7tfBZsojgPZ_aMVFt7LQIQRO2vjW8aPgXeg0RbQXIUYOGW382qMhQ6BoXC3GpR148EdOq9A3riViZqqAuC6QWsDK5StMwQbZiWI3m7nZISI632x9ISs09BQLJW2cTh_Y_NUk8mTKDzoDCZpKw";
 
 /**
  * Prints the balance of an account
@@ -51,8 +45,6 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 const example = async () => {
   // Setup the client
   const config = new AptosConfig({ network: Network.DEVNET });
-  // const config = new AptosConfig();
-
   const aptos = new Aptos(config);
 
   const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
@@ -71,33 +63,12 @@ const example = async () => {
   console.log(link);
   console.log();
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  const questionAsync = promisify(rl.question).bind(rl);
-
-  // eslint-disable-next-line consistent-return
-  async function getUserInput(): Promise<string> {
-    try {
-      const response = await questionAsync("Paste the JWT token (or press enter to use default test token): ");
-      if (response.trim() === "") {
-        console.log();
-        console.log("No jwt token inputted. Using test jwt token");
-        console.log();
-        rl.close();
-        return TEST_JWT;
-      }
-      rl.close();
-      return response.trim();
-    } catch (error) {
-      rl.close();
-      console.error("Error reading user input:", error);
-    }
+  function inputJwt(): string {
+    const jwt: string = readlineSync.question("Paste the JWT token (or press enter to use default test token): ", {hideEchoBack: false});
+    return jwt;
   }
 
-  const jwt = await getUserInput();
+  const jwt = inputJwt();
 
   const bob = Account.generate();
 
@@ -105,16 +76,11 @@ const example = async () => {
     jwt,
     ephemeralKeyPair: aliceEphem,
     pepper: "00000000000000000000000000000000000000000000000000000000000000",
-    disableConnect: true,
-    // extraFieldKey: "family_name"
   });
 
   console.log("=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
-  console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  // console.log(`Alice's zkid is: ${alice.publicKey.addressSeed}`);
-  // console.log(`Alice's pk is: ${aliceEphem.privateKey}`);
 
   console.log(`Bob's address is: ${bob.accountAddress}`);
 
