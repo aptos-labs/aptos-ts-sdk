@@ -275,6 +275,8 @@ export async function signAndSubmitTransaction(args: {
   transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, transaction } = args;
+  // If the signer contains a KeylessAccount, await proof fetching in case the proof
+  // was fetched asyncronously.
   if (signer instanceof KeylessAccount || signer instanceof MultiKeyAccount) {
     await signer.waitForProofFetch();
   }

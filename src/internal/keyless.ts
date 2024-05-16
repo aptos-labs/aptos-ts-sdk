@@ -3,7 +3,7 @@
 
 /**
  * This file contains the underlying implementations for exposed API surface in
- * the {@link api/oidb}. By moving the methods out into a separate file,
+ * the {@link api/keyless}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
  */
