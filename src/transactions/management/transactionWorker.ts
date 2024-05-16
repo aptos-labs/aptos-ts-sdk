@@ -233,13 +233,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, sequenceNumber: bigint) {
     try {
       const waitFor: Array<Promise<TransactionResponse>> = [];
-      waitFor.push(
-        waitForTransaction({
-          aptosConfig: this.aptosConfig,
-          transactionHash: sentTransaction.value.hash,
-          options: { timeoutSecs: 3 },
-        }),
-      );
+      waitFor.push(waitForTransaction({ aptosConfig: this.aptosConfig, transactionHash: sentTransaction.value.hash }));
       const sentTransactions = await Promise.allSettled(waitFor);
 
       for (let i = 0; i < sentTransactions.length; i += 1) {
