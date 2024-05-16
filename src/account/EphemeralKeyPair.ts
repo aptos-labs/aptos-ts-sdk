@@ -105,11 +105,16 @@ export class EphemeralKeyPair extends Serializable {
     return EphemeralKeyPair.deserialize(new Deserializer(bytes));
   }
 
-  static generate(args?: { scheme: SigningSchemeInput }): EphemeralKeyPair {
+  /**
+   * Returns the public key of the key pair.
+   * @param scheme the type of keypair to use for the EphemeralKeyPair.  Only Ed25519 supported for now.
+   * @return boolean
+   */
+  static generate(args?: { scheme: EphemeralPublicKeyVariant }): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
-      case SigningSchemeInput.Ed25519:
+      case EphemeralPublicKeyVariant.Ed25519:
       default:
         privateKey = Ed25519PrivateKey.generate();
     }
