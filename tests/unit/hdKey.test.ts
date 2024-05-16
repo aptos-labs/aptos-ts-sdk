@@ -1,5 +1,5 @@
 import { secp256k1WalletTestObject, wallet } from "./helper";
-import { Ed25519PrivateKey, fromDerivationPath, Hex, isValidBIP44Path, isValidHardenedPath, Secp256k1PrivateKey } from "../../src";
+import { Ed25519PrivateKey, Hex, isValidBIP44Path, isValidHardenedPath, Secp256k1PrivateKey } from "../../src";
 
 describe("Hierarchical Deterministic Key (hdkey)", () => {
   describe("hardened path", () => {
@@ -106,7 +106,7 @@ describe("Hierarchical Deterministic Key (hdkey)", () => {
       vectors.forEach(({ chain, private: privateKey }) => {
         it(`should generate correct key pair for ${chain}`, () => {
           // eslint-disable-next-line @typescript-eslint/dot-notation
-          const key = new Ed25519PrivateKey(fromDerivationPath(chain, Ed25519PrivateKey.SLIP_0010_SEED, seed.toUint8Array()));
+          const key = Ed25519PrivateKey["fromDerivationPathInner"](chain, seed.toUint8Array());
           expect(key.toString()).toBe(`0x${privateKey}`);
         });
       });

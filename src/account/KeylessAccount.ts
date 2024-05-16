@@ -16,7 +16,6 @@ import {
   Signature,
   SignedGroth16Signature,
   computeAddressSeed,
-  fromDerivationPath as fromDerivationPathInner,
 } from "../core/crypto";
 
 import { Account } from "./Account";
@@ -56,8 +55,6 @@ export interface ProofFetchEvents {
 
 export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
-
-  static readonly SLIP_0010_SEED: string = "32 bytes";
 
   publicKey: KeylessPublicKey;
 
@@ -295,9 +292,5 @@ export class KeylessAccount extends Serializable implements Account {
       jwt,
       proofFetchCallback,
     });
-  }
-
-  static fromDerivationPath(path: string, seed: Uint8Array): Uint8Array {
-    return fromDerivationPathInner(path, KeylessAccount.SLIP_0010_SEED, seed);
   }
 }
