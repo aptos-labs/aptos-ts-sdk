@@ -12,7 +12,7 @@ import {
 } from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { EphemeralPublicKeyVariant, HexInput, SigningSchemeInput } from "../types";
+import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 
 export class EphemeralKeyPair extends Serializable {
