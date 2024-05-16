@@ -16,14 +16,37 @@ import { EphemeralPublicKeyVariant, HexInput, SigningSchemeInput } from "../type
 import { Deserializer, Serializable, Serializer } from "../bcs";
 
 export class EphemeralKeyPair extends Serializable {
+
+  static readonly BLINDER_LENGTH: number = 31;
+
+  /**
+   * A byte array of length BLINDER_LENGTH used to obfuscate the public key from the IdP.
+   * Used in calculating the nonce passed to the IdP and as a secret witness in proof generation.
+   */
   readonly blinder: Uint8Array;
 
+  /**
+   * A timestamp in seconds indicating when the ephemeral key pair is expired.  After expiry, a new 
+   * EphemeralKeyPair must be generated and a new JWT needs to be created.
+   */
   readonly expiryDateSecs: bigint | number;
 
+  /**
+   * The value passed to the IdP when the user authenticates.  It comprises of a hash of the 
+   * ephermeral public key, expiry date, and blinder.
+   */
   readonly nonce: string;
 
+  /**
+   * A private key used to sign transactions.  This private key is not tied to any account on the chain as it
+   * is ephemeral in nature.
+   */
   private privateKey: PrivateKey;
 
+  /**
+   * A public key used to verify transactions.  This public key is not tied to any account on the chain as it
+   * is ephemeral in nature.
+   */
   private publicKey: EphemeralPublicKey;
 
   constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint | number; blinder?: HexInput }) {
@@ -31,15 +54,26 @@ export class EphemeralKeyPair extends Serializable {
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
+    // We set the expiry date to be the nearest floored hour
     this.expiryDateSecs = expiryDateSecs || BigInt(floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS));
+    // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
+    // Calculate the nonce
     this.nonce = this.generateNonce();
   }
 
+  /**
+   * Returns the public key of the key pair.
+   * @return EphemeralPublicKey
+   */
   getPublicKey(): EphemeralPublicKey {
     return this.publicKey;
   }
 
+  /**
+   * Returns the public key of the key pair.
+   * @return boolean
+   */
   isExpired(): boolean {
     const currentTimeSecs: number = Math.floor(Date.now() / 1000);
     return currentTimeSecs > this.expiryDateSecs;
@@ -83,7 +117,7 @@ export class EphemeralKeyPair extends Serializable {
     return new EphemeralKeyPair({ privateKey });
   }
 
-  generateNonce(): string {
+  private generateNonce(): string {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
     fields.push(BigInt(this.expiryDateSecs));
     fields.push(bytesToBigIntLE(this.blinder));
@@ -93,7 +127,7 @@ export class EphemeralKeyPair extends Serializable {
 
   /**
    * Sign the given message with the private key.
-   *   *
+   * 
    * @param data in HexInput format
    * @returns EphemeralSignature
    */
@@ -106,7 +140,7 @@ export class EphemeralKeyPair extends Serializable {
 }
 
 function generateBlinder(): Uint8Array {
-  return randomBytes(31);
+  return randomBytes(EphemeralKeyPair.BLINDER_LENGTH);
 }
 
 function currentTimeInSeconds(): number {
