@@ -6,4 +6,4 @@
  *
  * hardcoded for now, we would want to have it injected dynamically
  */
-export const VERSION = "1.14.0-zeta.2";
+export const VERSION = "1.14.0";
