@@ -5,10 +5,11 @@ import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, EphemeralCertificate, AnyPublicKeyVariant, SigningScheme } from "../../types";
+import { HexInput, EphemeralCertificateVariant, AnyPublicKeyVariant, SigningScheme, ZkpVariant } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
+import { Proof } from "./proof";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -25,23 +26,27 @@ export const MAX_COMMITED_EPK_BYTES = 93;
  * KeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
  */
 export class KeylessPublicKey extends AccountPublicKey {
-  static readonly ADDRESS_SEED_LENGTH: number = 32;
+  static readonly ID_COMMITMENT_LENGTH: number = 32;
 
   readonly iss: string;
 
-  readonly addressSeed: Uint8Array;
+  readonly idCommitment: Uint8Array;
 
-  constructor(iss: string, addressSeed: HexInput) {
+  constructor(iss: string, idCommitment: HexInput) {
     super();
-    const addressSeedBytes = Hex.fromHexInput(addressSeed).toUint8Array();
-    if (addressSeedBytes.length !== KeylessPublicKey.ADDRESS_SEED_LENGTH) {
-      throw new Error(`Address seed length in bytes should be ${KeylessPublicKey.ADDRESS_SEED_LENGTH}`);
+    const idcBytes = Hex.fromHexInput(idCommitment).toUint8Array();
+    if (idcBytes.length !== KeylessPublicKey.ID_COMMITMENT_LENGTH) {
+      throw new Error(`Address seed length in bytes should be ${KeylessPublicKey.ID_COMMITMENT_LENGTH}`);
     }
-
     this.iss = iss;
-    this.addressSeed = addressSeedBytes;
+    this.idCommitment = idcBytes;
   }
 
+  /**
+   * Get the authentication key for the keyless public key
+   * 
+   * @returns AuthenticationKey
+   */
   authKey(): AuthenticationKey {
     const serializer = new Serializer();
     serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Keyless);
@@ -77,15 +82,14 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.signature The signature
    * @returns true if the signature is valid
    */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    // TODO
-    return true;
+    throw new Error("Not yet implemented")
   }
 
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
-    serializer.serializeBytes(this.addressSeed);
+    serializer.serializeBytes(this.idCommitment);
   }
 
   static deserialize(deserializer: Deserializer): KeylessPublicKey {
@@ -104,6 +108,16 @@ export class KeylessPublicKey extends AccountPublicKey {
     return publicKey instanceof KeylessPublicKey;
   }
 
+  /**
+   * Creates a KeylessPublicKey from the JWT components plus pepper
+   *
+   * @param args.iss the iss of the identity
+   * @param args.uidKey the key to use to get the uidVal in the JWT token
+   * @param args.uidVal the value of the uidKey in the JWT token
+   * @param args.aud the client ID of the application
+   * @param args.pepper The pepper used to maintain privacy of the account
+   * @returns KeylessPublicKey
+   */
   static create(args: {
     iss: string;
     uidKey: string;
@@ -111,12 +125,12 @@ export class KeylessPublicKey extends AccountPublicKey {
     aud: string;
     pepper: HexInput;
   }): KeylessPublicKey {
-    computeAddressSeed(args);
-    return new KeylessPublicKey(args.iss, computeAddressSeed(args));
+    computeIdCommitment(args);
+    return new KeylessPublicKey(args.iss, computeIdCommitment(args));
   }
 }
 
-export function computeAddressSeed(args: {
+function computeIdCommitment(args: {
   uidKey: string;
   uidVal: string;
   aud: string;
@@ -131,15 +145,21 @@ export function computeAddressSeed(args: {
     hashASCIIStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
-  return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ADDRESS_SEED_LENGTH);
+  return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
 }
 
-export class OpenIdSignatureOrZkProof extends Signature {
+export class EphemeralCertificate extends Signature {
   public readonly signature: Signature;
 
-  constructor(signature: Signature) {
+  /**
+   * Index of the underlying enum variant
+   */
+  private readonly variant: EphemeralCertificateVariant;
+
+  constructor(signature: Signature, variant: EphemeralCertificateVariant) {
     super();
     this.signature = signature;
+    this.variant = variant;
   }
 
   /**
@@ -161,35 +181,36 @@ export class OpenIdSignatureOrZkProof extends Signature {
   }
 
   serialize(serializer: Serializer): void {
-    if (this.signature instanceof OpenIdSignature) {
-      serializer.serializeU32AsUleb128(EphemeralCertificate.OpenIdSignature);
-      this.signature.serialize(serializer);
-    } else if (this.signature instanceof SignedGroth16Signature) {
-      serializer.serializeU32AsUleb128(EphemeralCertificate.ZkProof);
-      this.signature.serialize(serializer);
-    } else {
-      throw new Error("Not a valid OIDB signature");
-    }
+    serializer.serializeU32AsUleb128(this.variant);
+    this.signature.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): OpenIdSignatureOrZkProof {
-    const index = deserializer.deserializeUleb128AsU32();
-    switch (index) {
-      case EphemeralCertificate.ZkProof:
-        return new OpenIdSignatureOrZkProof(SignedGroth16Signature.load(deserializer));
-      case EphemeralCertificate.OpenIdSignature:
-        return new OpenIdSignatureOrZkProof(OpenIdSignature.load(deserializer));
+  static deserialize(deserializer: Deserializer): EphemeralCertificate {
+    const variant = deserializer.deserializeUleb128AsU32();
+    switch (variant) {
+      case EphemeralCertificateVariant.ZkProof:
+        return new EphemeralCertificate(ZeroKnowledgeSig.deserialize(deserializer), variant);
       default:
-        throw new Error(`Unknown variant index for EphemeralCertificate: ${index}`);
+        throw new Error(`Unknown variant index for EphemeralCertificate: ${variant}`);
     }
   }
 }
 
-export class Groth16Zkp extends Serializable {
+export class Groth16Zkp extends Proof {
+  
+  /**
+   * The bytes of proof point a
+   */
   a: Uint8Array;
 
+  /**
+   * The bytes of proof point b
+   */
   b: Uint8Array;
 
+  /**
+   * The bytes of proof point c
+   */
   c: Uint8Array;
 
   constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
@@ -200,23 +221,13 @@ export class Groth16Zkp extends Serializable {
     this.c = Hex.fromHexInput(c).toUint8Array();
   }
 
-  toUint8Array(): Uint8Array {
-    const serializer = new Serializer();
-    this.serialize(serializer);
-    return serializer.toUint8Array();
-  }
-
   serialize(serializer: Serializer): void {
-    // There's currently only one variant
-    serializer.serializeU32AsUleb128(0);
     serializer.serializeFixedBytes(this.a);
     serializer.serializeFixedBytes(this.b);
     serializer.serializeFixedBytes(this.c);
   }
 
   static deserialize(deserializer: Deserializer): Groth16Zkp {
-    // Ignored, as there's currently only one possible ZKP variant
-    deserializer.deserializeUleb128AsU32();
     const a = deserializer.deserializeFixedBytes(32);
     const b = deserializer.deserializeFixedBytes(64);
     const c = deserializer.deserializeFixedBytes(32);
@@ -224,8 +235,38 @@ export class Groth16Zkp extends Serializable {
   }
 }
 
-export class SignedGroth16Signature extends Signature {
-  readonly proof: Groth16Zkp;
+export class ZkProof extends Serializable {
+  public readonly proof: Proof;
+
+  /**
+   * Index of the underlying enum variant
+   */
+  private readonly variant: ZkpVariant;
+
+  constructor(proof: Proof, variant: ZkpVariant) {
+    super();
+    this.proof = proof;
+    this.variant = variant;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.variant);
+    this.proof.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): ZkProof {
+    const variant = deserializer.deserializeUleb128AsU32();
+    switch (variant) {
+      case ZkpVariant.Groth16:
+        return new ZkProof(Groth16Zkp.deserialize(deserializer), variant);
+      default:
+        throw new Error(`Unknown variant index for ZkProof: ${variant}`);
+    }
+  }
+}
+
+export class ZeroKnowledgeSig extends Signature {
+  readonly proof: ZkProof;
 
   readonly expHorizonSecs: bigint;
 
@@ -236,7 +277,7 @@ export class SignedGroth16Signature extends Signature {
   readonly trainingWheelsSignature?: EphemeralSignature;
 
   constructor(args: {
-    proof: Groth16Zkp;
+    proof: ZkProof;
     expHorizonSecs?: bigint;
     extraField?: string;
     overrideAudVal?: string;
@@ -285,137 +326,34 @@ export class SignedGroth16Signature extends Signature {
     serializer.serializeOption(this.trainingWheelsSignature);
   }
 
-  static deserialize(deserializer: Deserializer): SignedGroth16Signature {
-    const proof = Groth16Zkp.deserialize(deserializer);
+  static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
+    const proof = ZkProof.deserialize(deserializer);
     const expHorizonSecs = deserializer.deserializeU64();
     const hasExtraField = deserializer.deserializeUleb128AsU32();
     const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
     const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
     const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
     const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
-    return new SignedGroth16Signature({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
+    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
 
-  static load(deserializer: Deserializer): SignedGroth16Signature {
-    const proof = Groth16Zkp.deserialize(deserializer);
+  static load(deserializer: Deserializer): ZeroKnowledgeSig {
+    const proof = ZkProof.deserialize(deserializer);
     const expHorizonSecs = deserializer.deserializeU64();
     const hasExtraField = deserializer.deserializeUleb128AsU32();
     const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
     const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
     const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
     const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
-    return new SignedGroth16Signature({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
-  }
-
-  // static isSignature(signature: Signature): signature is OpenIdSignature {
-  //   return signature instanceof OpenIdSignature;
-  // }
-}
-
-/**
- * A OpenId signature which contains the private inputs to an OIDB proof.
- */
-export class OpenIdSignature extends Signature {
-  readonly jwtSignature: string;
-
-  readonly jwtPayloadJson: string;
-
-  readonly uidKey: string;
-
-  readonly epkBlinder: Uint8Array;
-
-  readonly pepper: Uint8Array;
-
-  readonly overrideAudValue?: string;
-
-  /**
-   * Create a new Signature instance from a Uint8Array or String.
-   *
-   * @param hexInput A HexInput (string or Uint8Array)
-   */
-  constructor(args: {
-    jwtSignature: string;
-    jwtPayloadJson: string;
-    uidKey?: string;
-    epkBlinder: Uint8Array;
-    pepper: Uint8Array;
-    overrideAudValue?: string;
-  }) {
-    super();
-    const { jwtSignature, uidKey, jwtPayloadJson, epkBlinder, pepper, overrideAudValue } = args;
-    this.jwtSignature = jwtSignature;
-    this.jwtPayloadJson = jwtPayloadJson;
-    this.uidKey = uidKey ?? "sub";
-    this.epkBlinder = epkBlinder;
-    this.pepper = pepper;
-    this.overrideAudValue = overrideAudValue;
-  }
-
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    // const textEncoder = new TextEncoder();
-    // const jwtSigBytes = textEncoder.encode(this.jwtSignature);
-    // const jwtPayloadJsonBytes = textEncoder.encode(this.jwtPayloadJson);
-    // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
-    // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
-
-    return this.epkBlinder;
-  }
-
-  /**
-   * Get the signature as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the signature
-   */
-  toString(): string {
-    return this.toString();
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.jwtSignature);
-    serializer.serializeStr(this.jwtPayloadJson);
-    serializer.serializeStr(this.uidKey);
-    serializer.serializeFixedBytes(this.epkBlinder);
-    serializer.serializeFixedBytes(this.pepper);
-    serializer.serializeOptionStr(this.overrideAudValue);
-  }
-
-  static deserialize(deserializer: Deserializer): OpenIdSignature {
-    const jwtSignature = deserializer.deserializeStr();
-    const jwtPayloadJson = deserializer.deserializeStr();
-    const uidKey = deserializer.deserializeStr();
-    const epkBlinder = deserializer.deserializeFixedBytes(31);
-    const pepper = deserializer.deserializeFixedBytes(31);
-    const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
-    const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
-    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
-  }
-
-  static load(deserializer: Deserializer): OpenIdSignature {
-    const jwtSignature = deserializer.deserializeStr();
-    const jwtPayloadJson = deserializer.deserializeStr();
-    const uidKey = deserializer.deserializeStr();
-    const epkBlinder = deserializer.deserializeFixedBytes(31);
-    const pepper = deserializer.deserializeFixedBytes(31);
-    const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
-    const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
-    return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
-  }
-
-  static isSignature(signature: Signature): signature is OpenIdSignature {
-    return signature instanceof OpenIdSignature;
+    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
 }
 
 /**
- * A signature of a message signed via OIDC that uses proofs or the jwt token to authenticate.
+ * A signature of a message signed via Keyless Accounnt that uses proofs or the jwt token to authenticate.
  */
 export class KeylessSignature extends Signature {
-  readonly openIdSignatureOrZkProof: OpenIdSignatureOrZkProof;
+  readonly ephemeralCertificate: EphemeralCertificate;
 
   readonly jwtHeader: string;
 
@@ -426,21 +364,25 @@ export class KeylessSignature extends Signature {
   readonly ephemeralSignature: EphemeralSignature;
 
   /**
-   * Create a new Signature instance from a Uint8Array or String.
+   * Create a new KeylessSignature
    *
-   * @param hexInput A HexInput (string or Uint8Array)
-   */
+   * @param args.jwtHeader A HexInput (string or Uint8Array)
+   * @param args.ephemeralCertificate A HexInput (string or Uint8Array)
+   * @param args.expiryDateSecs A HexInput (string or Uint8Array)
+   * @param args.ephemeralPublicKey A HexInput (string or Uint8Array)
+   * @param args.ephemeralSignature A HexInput (string or Uint8Array)
+  */
   constructor(args: {
     jwtHeader: string;
-    openIdSignatureOrZkProof: OpenIdSignatureOrZkProof;
+    ephemeralCertificate: EphemeralCertificate;
     expiryDateSecs: bigint | number;
     ephemeralPublicKey: EphemeralPublicKey;
     ephemeralSignature: EphemeralSignature;
   }) {
     super();
-    const { jwtHeader, openIdSignatureOrZkProof, expiryDateSecs, ephemeralPublicKey, ephemeralSignature } = args;
+    const { jwtHeader, ephemeralCertificate, expiryDateSecs, ephemeralPublicKey, ephemeralSignature } = args;
     this.jwtHeader = jwtHeader;
-    this.openIdSignatureOrZkProof = openIdSignatureOrZkProof;
+    this.ephemeralCertificate = ephemeralCertificate;
     this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
@@ -452,20 +394,11 @@ export class KeylessSignature extends Signature {
    * @returns Uint8Array representation of the signature
    */
   toUint8Array(): Uint8Array {
-    return this.ephemeralSignature.toUint8Array();
-  }
-
-  /**
-   * Get the signature as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the signature
-   */
-  toString(): string {
-    return this.toString();
+    return this.bcsToBytes();
   }
 
   serialize(serializer: Serializer): void {
-    this.openIdSignatureOrZkProof.serialize(serializer);
+    this.ephemeralCertificate.serialize(serializer);
     serializer.serializeStr(this.jwtHeader);
     serializer.serializeU64(this.expiryDateSecs);
     this.ephemeralPublicKey.serialize(serializer);
@@ -473,7 +406,7 @@ export class KeylessSignature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): KeylessSignature {
-    const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
+    const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
     const expiryDateSecs = deserializer.deserializeU64();
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
@@ -481,22 +414,22 @@ export class KeylessSignature extends Signature {
     return new KeylessSignature({
       jwtHeader,
       expiryDateSecs,
-      openIdSignatureOrZkProof,
+      ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
     });
   }
 
   static load(deserializer: Deserializer): KeylessSignature {
+    const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
     const expiryDateSecs = deserializer.deserializeU64();
-    const openIdSignatureOrZkProof = OpenIdSignatureOrZkProof.deserialize(deserializer);
     const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
       expiryDateSecs,
-      openIdSignatureOrZkProof,
+      ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
     });
@@ -506,3 +439,111 @@ export class KeylessSignature extends Signature {
     return signature instanceof KeylessSignature;
   }
 }
+
+
+
+
+
+
+
+
+
+// /**
+//  * A OpenId signature which contains the private inputs to an OIDB proof.
+//  */
+// export class OpenIdSignature extends Signature {
+//   readonly jwtSignature: string;
+
+//   readonly jwtPayloadJson: string;
+
+//   readonly uidKey: string;
+
+//   readonly epkBlinder: Uint8Array;
+
+//   readonly pepper: Uint8Array;
+
+//   readonly overrideAudValue?: string;
+
+//   /**
+//    * Create a new Signature instance from a Uint8Array or String.
+//    *
+//    * @param hexInput A HexInput (string or Uint8Array)
+//    */
+//   constructor(args: {
+//     jwtSignature: string;
+//     jwtPayloadJson: string;
+//     uidKey?: string;
+//     epkBlinder: Uint8Array;
+//     pepper: Uint8Array;
+//     overrideAudValue?: string;
+//   }) {
+//     super();
+//     const { jwtSignature, uidKey, jwtPayloadJson, epkBlinder, pepper, overrideAudValue } = args;
+//     this.jwtSignature = jwtSignature;
+//     this.jwtPayloadJson = jwtPayloadJson;
+//     this.uidKey = uidKey ?? "sub";
+//     this.epkBlinder = epkBlinder;
+//     this.pepper = pepper;
+//     this.overrideAudValue = overrideAudValue;
+//   }
+
+//   /**
+//    * Get the signature in bytes (Uint8Array).
+//    *
+//    * @returns Uint8Array representation of the signature
+//    */
+//   toUint8Array(): Uint8Array {
+//     // const textEncoder = new TextEncoder();
+//     // const jwtSigBytes = textEncoder.encode(this.jwtSignature);
+//     // const jwtPayloadJsonBytes = textEncoder.encode(this.jwtPayloadJson);
+//     // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
+//     // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
+
+//     return this.epkBlinder;
+//   }
+
+//   /**
+//    * Get the signature as a hex string with the 0x prefix.
+//    *
+//    * @returns string representation of the signature
+//    */
+//   toString(): string {
+//     return this.toString();
+//   }
+
+//   serialize(serializer: Serializer): void {
+//     serializer.serializeStr(this.jwtSignature);
+//     serializer.serializeStr(this.jwtPayloadJson);
+//     serializer.serializeStr(this.uidKey);
+//     serializer.serializeFixedBytes(this.epkBlinder);
+//     serializer.serializeFixedBytes(this.pepper);
+//     serializer.serializeOptionStr(this.overrideAudValue);
+//   }
+
+//   static deserialize(deserializer: Deserializer): OpenIdSignature {
+//     const jwtSignature = deserializer.deserializeStr();
+//     const jwtPayloadJson = deserializer.deserializeStr();
+//     const uidKey = deserializer.deserializeStr();
+//     const epkBlinder = deserializer.deserializeFixedBytes(31);
+//     const pepper = deserializer.deserializeFixedBytes(31);
+//     const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
+//     const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
+//     return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
+//   }
+
+//   static load(deserializer: Deserializer): OpenIdSignature {
+//     const jwtSignature = deserializer.deserializeStr();
+//     const jwtPayloadJson = deserializer.deserializeStr();
+//     const uidKey = deserializer.deserializeStr();
+//     const epkBlinder = deserializer.deserializeFixedBytes(31);
+//     const pepper = deserializer.deserializeFixedBytes(31);
+//     const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
+//     const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
+//     return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
+//   }
+
+//   static isSignature(signature: Signature): signature is OpenIdSignature {
+//     return signature instanceof OpenIdSignature;
+//   }
+// }
+

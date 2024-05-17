@@ -125,9 +125,12 @@ export enum EphemeralSignatureVariant {
   Ed25519 = 0,
 }
 
-export enum EphemeralCertificate {
+export enum EphemeralCertificateVariant {
   ZkProof = 0,
-  OpenIdSignature = 1,
+}
+
+export enum ZkpVariant {
+  Groth16 = 0,
 }
 
 /**

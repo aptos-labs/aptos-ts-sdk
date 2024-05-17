@@ -4,18 +4,17 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { decode } from "base-64";
 import EventEmitter from "eventemitter3";
-import { HexInput, SigningScheme } from "../types";
+import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
   AnySignature,
-  Groth16Zkp,
   KeylessPublicKey,
   KeylessSignature,
-  OpenIdSignatureOrZkProof,
+  EphemeralCertificate,
   Signature,
-  SignedGroth16Signature,
-  computeAddressSeed,
+  ZeroKnowledgeSig,
+  ZkProof,
 } from "../core/crypto";
 
 import { Account } from "./Account";
@@ -25,16 +24,6 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessageForSerializable } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-
-function base64UrlDecode(base64Url: string): string {
-  // Replace base64url-specific characters
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  // Pad the string with '=' characters if needed
-  const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-  // Decode the base64 string using the base-64 library
-  const decodedString = decode(paddedBase64);
-  return decodedString;
-}
 
 export type ProofFetchSuccess = {
   status: "Success";
@@ -70,9 +59,9 @@ export class KeylessAccount extends Serializable implements Account {
 
   accountAddress: AccountAddress;
 
-  proof: SignedGroth16Signature | undefined;
+  proof: ZeroKnowledgeSig | undefined;
 
-  proofOrPromise: SignedGroth16Signature | Promise<SignedGroth16Signature>;
+  proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
 
   signingScheme: SigningScheme;
 
@@ -88,15 +77,14 @@ export class KeylessAccount extends Serializable implements Account {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-    proofOrFetcher: SignedGroth16Signature | Promise<SignedGroth16Signature>;
+    proofOrFetcher: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback
     jwt: string;
   }) {
     super();
-    const { address, ephemeralKeyPair, iss, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
+    const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
-    const addressSeed = computeAddressSeed(args);
-    this.publicKey = new KeylessPublicKey(iss, addressSeed);
+    this.publicKey =  KeylessPublicKey.create(args);
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
@@ -104,7 +92,7 @@ export class KeylessAccount extends Serializable implements Account {
     this.jwt = jwt;
     this.emitter = new EventEmitter<ProofFetchEvents>();
     this.proofOrPromise = proofOrFetcher;
-    if (proofOrFetcher instanceof SignedGroth16Signature) {
+    if (proofOrFetcher instanceof ZeroKnowledgeSig) {
       this.proof = proofOrFetcher;
     } else {
       if (proofFetchCallback === undefined) {
@@ -126,7 +114,7 @@ export class KeylessAccount extends Serializable implements Account {
     this.pepper = pepperBytes;
   }
 
-  async init(promise: Promise<SignedGroth16Signature>) {
+  async init(promise: Promise<ZeroKnowledgeSig>) {
     try {
       this.proof = await promise;
       this.emitter.emit("proofFetchFinish", {status: "Success"});
@@ -155,7 +143,7 @@ export class KeylessAccount extends Serializable implements Account {
     const uidKey = deserializer.deserializeStr();
     const pepper = deserializer.deserializeFixedBytes(31);
     const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
-    const proof = SignedGroth16Signature.deserialize(deserializer);
+    const proof = ZeroKnowledgeSig.deserialize(deserializer);
     return KeylessAccount.fromJWTAndProof({
       proof,
       pepper,
@@ -225,7 +213,7 @@ export class KeylessAccount extends Serializable implements Account {
 
     return new KeylessSignature({
       jwtHeader: base64UrlDecode(jwtHeader),
-      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(this.proof),
+      ephemeralCertificate: new EphemeralCertificate(this.proof, EphemeralCertificateVariant.ZkProof),
       expiryDateSecs,
       ephemeralPublicKey,
       ephemeralSignature,
@@ -258,7 +246,7 @@ export class KeylessAccount extends Serializable implements Account {
   }
 
   static fromJWTAndProof(args: {
-    proof: SignedGroth16Signature | Promise<SignedGroth16Signature>;
+    proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
     pepper: HexInput;
@@ -292,9 +280,9 @@ export class KeylessAccount extends Serializable implements Account {
 class TransactionAndProof extends Serializable {
   transaction: AnyRawTransactionInstance;
 
-  proof?: Groth16Zkp;
+  proof?: ZkProof;
 
-  constructor(transaction: AnyRawTransactionInstance, proof?: Groth16Zkp) {
+  constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
     super();
     this.transaction = transaction;
     this.proof = proof;
@@ -304,4 +292,14 @@ class TransactionAndProof extends Serializable {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);
   }
+}
+
+function base64UrlDecode(base64Url: string): string {
+  // Replace base64url-specific characters
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  // Pad the string with '=' characters if needed
+  const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
+  // Decode the base64 string using the base-64 library
+  const decodedString = decode(paddedBase64);
+  return decodedString;
 }

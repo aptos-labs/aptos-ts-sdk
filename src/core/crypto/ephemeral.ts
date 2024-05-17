@@ -6,16 +6,20 @@ import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Hex } from "../hex";
 
 /**
- * Represents ephemeral keys and signatures for Aptos Keyless accounts.
+ * Represents ephemeral public keys for Aptos Keyless accounts.
  *
- * TODO
+ * These are not public keys used as a public key on an account.  They are only used ephemerally on Keyless accounts.
  */
 export class EphemeralPublicKey extends PublicKey {
+
   /**
-   * Reference to the inner public key
+   * The public key itself
    */
   public readonly publicKey: PublicKey;
 
+  /**
+   * An enum indicating the scheme of the ephemeral public key
+   */
   public readonly variant: EphemeralPublicKeyVariant;
 
   constructor(publicKey: PublicKey) {
@@ -41,19 +45,10 @@ export class EphemeralPublicKey extends PublicKey {
   }
 
   /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return this.bcsToHex().toString();
-  }
-
-  /**
-   * Verifies a signed data with a public key
+   * Verifies a signed data with a the ephemeral public key
    *
    * @param args.message message
-   * @param args.signature The signature
+   * @param args.signature The signature that was signed by the private key of the ephemeral public key
    * @returns true if the signature is valid
    */
   verifySignature(args: { message: HexInput; signature: EphemeralSignature }): boolean {
@@ -83,13 +78,17 @@ export class EphemeralPublicKey extends PublicKey {
   static isPublicKey(publicKey: PublicKey): publicKey is EphemeralPublicKey {
     return publicKey instanceof EphemeralPublicKey;
   }
-
-  isEd25519(): this is Ed25519PublicKey {
-    return this.publicKey instanceof Ed25519PublicKey;
-  }
 }
 
+/**
+ * Represents ephemeral signatures used in Aptos Keyless accounts.
+ *
+ * These signatures are used inside of KeylessSignature
+ */
 export class EphemeralSignature extends Signature {
+  /**
+   * The signature signed by the private key of an EphemeralKeyPair
+   */
   public readonly signature: Signature;
 
   constructor(signature: Signature) {
@@ -110,16 +109,7 @@ export class EphemeralSignature extends Signature {
    * @returns Uint8Array representation of the public key
    */
   toUint8Array(): Uint8Array {
-    return this.signature.toUint8Array();
-  }
-
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return this.signature.toString();
+    return this.bcsToBytes();
   }
 
   static fromHex(hexInput: HexInput): EphemeralSignature {

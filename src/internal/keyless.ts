@@ -10,8 +10,8 @@
 import { jwtDecode } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, SignedGroth16Signature } from "../core";
-import { HexInput } from "../types";
+import { EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof } from "../core";
+import { HexInput, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchResponse, ProverResponse } from "../types/keyless";
 
@@ -50,14 +50,8 @@ export async function getProof(args: {
   pepper: HexInput;
   uidKey?: string;
   extraFieldKey?: string;
-}): Promise<SignedGroth16Signature> {
+}): Promise<ZeroKnowledgeSig> {
   const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey, extraFieldKey } = args;
-  const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
-  let extraField;
-  if (extraFieldKey) {
-    const extraFieldVal = jwtPayload[extraFieldKey];
-    extraField = `"${extraFieldKey}":"${extraFieldVal}",`;
-  }
   const json = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
@@ -78,14 +72,21 @@ export async function getProof(args: {
   });
 
   const proofPoints = data.proof;
-  const proof = new Groth16Zkp({
+  const groth16Zkp = new Groth16Zkp({
     a: proofPoints.a,
     b: proofPoints.b,
     c: proofPoints.c,
   });
 
-  const signedProof = new SignedGroth16Signature({
-    proof,
+  let extraField;
+  if (extraFieldKey) {
+    const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
+    const extraFieldVal = jwtPayload[extraFieldKey];
+    extraField = `"${extraFieldKey}":"${extraFieldVal}",`;
+  }
+
+  const signedProof = new ZeroKnowledgeSig({
+    proof: new ZkProof(groth16Zkp, ZkpVariant.Groth16),
     extraField,
     trainingWheelsSignature: EphemeralSignature.fromHex(data.training_wheels_signature),
   });
@@ -105,8 +106,8 @@ export async function deriveKeylessAccount(args: {
   let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
-  } else if (Hex.fromHexInput(pepper).toUint8Array().length !== 31) {
-    throw new Error("Pepper needs to be 31 bytes");
+  } else if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
+    throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
 
   const proofPromise = getProof({ ...args, pepper });
