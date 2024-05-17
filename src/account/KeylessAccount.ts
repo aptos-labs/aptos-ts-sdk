@@ -3,7 +3,7 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { JwksClient } from "jwks-rsa";
-import { decode } from "base-64";
+import { decode } from "js-base64";
 import EventEmitter from "eventemitter3";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
@@ -319,7 +319,6 @@ function base64UrlDecode(base64Url: string): string {
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   // Pad the string with '=' characters if needed
   const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-  // Decode the base64 string using the base-64 library
   const decodedString = decode(paddedBase64);
   return decodedString;
 }
