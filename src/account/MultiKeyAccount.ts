@@ -124,6 +124,10 @@ export class MultiKeyAccount implements Account {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
+  /**
+   * Waits for any proofs to be fetched
+   * @return
+   */
   async waitForProofFetch() {
     const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
     await Promise.all(keylessSigners.filter((signer) => signer.proof instanceof Promise).map((signer) => signer.proof));

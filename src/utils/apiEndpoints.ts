@@ -25,14 +25,14 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 export const NetworkToPepperAPI: Record<string, string> = {
   mainnet: "https://pepper.keyless.mainnet.aptoslabs.com/v0",
   testnet: "https://pepper.keyless.testnet.aptoslabs.com/v0",
-  devnet: "https://pepper.keyless.devnet.aptoslabs.com/v0",
+  devnet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
   local: "http://127.0.0.1:8000/v0",
 };
 
 export const NetworkToProverAPI: Record<string, string> = {
   mainnet: "https://prover.keyless.mainnet.aptoslabs.com/v0",
   testnet: "https://prover.keyless.testnet.aptoslabs.com/v0",
-  devnet: "https://prover.keyless.devnet.aptoslabs.com/v0",
+  devnet: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
   local: "http://127.0.0.1:8083/v0",
 };
 

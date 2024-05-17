@@ -9,9 +9,9 @@ import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
   AnySignature,
+  Groth16Zkp,
   KeylessPublicKey,
   KeylessSignature,
-  OpenIdSignature,
   OpenIdSignatureOrZkProof,
   Signature,
   SignedGroth16Signature,
@@ -23,8 +23,8 @@ import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction } from "../transactions/types";
+import { deriveTransactionType, generateSigningMessageForSerializable } from "../transactions/transactionBuilder/signingMessage";
+import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 
 function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
@@ -165,44 +165,55 @@ export class KeylessAccount extends Serializable implements Account {
     });
   }
 
+  /**
+   * Checks if the proof is expired.  If so the account must be rederived with a new EphemeralKeyPair
+   * and JWT token.
+   * @return boolean
+   */
   isExpired(): boolean {
     return this.ephemeralKeyPair.isExpired();
   }
 
-  bcsToBytes(): Uint8Array {
-    const serializer = new Serializer();
-    this.serialize(serializer);
-    return serializer.toUint8Array();
-  }
-
-  bcsToHex(): Hex {
-    const bcsBytes = this.bcsToBytes();
-    return Hex.fromHexInput(bcsBytes);
-  }
-
+  /**
+   * Sign a message using Keyless.
+   * @param message the message to sign, as binary input
+   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
     const signature = new AnySignature(this.sign(message));
     const publicKey = new AnyPublicKey(this.publicKey);
     return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
 
+  /**
+   * Sign a transaction using Keyless.
+   * @param transaction the raw transaction
+   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
-    const raw = deriveTransactionType(transaction);
-    const signature = new AnySignature(this.sign(raw.bcsToBytes()));
+    const signature = new AnySignature(this.signTransaction(transaction));
     const publicKey = new AnyPublicKey(this.publicKey);
     return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
 
+  /**
+   * Waits for asyncronous proof fetching to finish.
+   * @return
+   */
   async waitForProofFetch() {
     if (this.proofOrPromise instanceof Promise) {
       await this.proofOrPromise;
     }
   }
 
-  sign(data: HexInput): Signature {
+  /**
+   * Sign the given message using Keyless.
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  sign(data: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
-    const currentTimeInSeconds = Math.floor(new Date().getTime() / 1000);
-    if (expiryDateSecs < currentTimeInSeconds) {
+    if (this.isExpired()) {
       throw new Error("Ephemeral key pair is expired.");
     }
     if (this.proof === undefined) {
@@ -210,13 +221,7 @@ export class KeylessAccount extends Serializable implements Account {
     }
     const jwtHeader = this.jwt.split(".")[0];
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
-
-    const serializer = new Serializer();
-    serializer.serializeFixedBytes(Hex.fromHexInput(data).toUint8Array());
-    serializer.serializeOption(this.proof.proof);
-    const signMess = generateSigningMessage(serializer.toUint8Array(), "APTOS::TransactionAndProof");
-
-    const ephemeralSignature = this.ephemeralKeyPair.sign(signMess);
+    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
 
     return new KeylessSignature({
       jwtHeader: base64UrlDecode(jwtHeader),
@@ -227,36 +232,25 @@ export class KeylessAccount extends Serializable implements Account {
     });
   }
 
-  signTransaction(transaction: AnyRawTransaction): Signature {
+  /**
+   * Sign the given transaction with Keyless.
+   * Signs the transaction and proof to guard against proof malleability.
+   * @param transaction the transaction to be signed
+   * @returns KeylessSignature
+   */
+  signTransaction(transaction: AnyRawTransaction): KeylessSignature {
+    if (this.proof === undefined) {
+      throw new Error("Proof not found");
+    }
     const raw = deriveTransactionType(transaction);
-    return this.sign(raw.bcsToBytes());
-  }
-
-  signWithOpenIdSignature(data: HexInput): Signature {
-    const [jwtHeader, jwtPayload, jwtSignature] = this.jwt.split(".");
-    const openIdSig = new OpenIdSignature({
-      jwtSignature,
-      jwtPayloadJson: jwtPayload,
-      uidKey: this.uidKey,
-      epkBlinder: this.ephemeralKeyPair.blinder,
-      pepper: this.pepper,
-    });
-
-    const { expiryDateSecs } = this.ephemeralKeyPair;
-    const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
-    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
-    return new KeylessSignature({
-      jwtHeader,
-      openIdSignatureOrZkProof: new OpenIdSignatureOrZkProof(openIdSig),
-      expiryDateSecs,
-      ephemeralPublicKey,
-      ephemeralSignature,
-    });
+    const txnAndProof = new TransactionAndProof(raw, this.proof.proof)
+    const signMess = generateSigningMessageForSerializable(txnAndProof);
+    return this.sign(signMess);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: Signature }): boolean {
-    return true;
+    throw new Error("Not implemented");
   }
 
   static fromBytes(bytes: Uint8Array): KeylessAccount {
@@ -292,5 +286,22 @@ export class KeylessAccount extends Serializable implements Account {
       jwt,
       proofFetchCallback,
     });
+  }
+}
+
+class TransactionAndProof extends Serializable {
+  transaction: AnyRawTransactionInstance;
+
+  proof?: Groth16Zkp;
+
+  constructor(transaction: AnyRawTransactionInstance, proof?: Groth16Zkp) {
+    super();
+    this.transaction = transaction;
+    this.proof = proof;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeFixedBytes(this.transaction.bcsToBytes());
+    serializer.serializeOption(this.proof);
   }
 }
