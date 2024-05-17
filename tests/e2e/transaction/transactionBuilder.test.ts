@@ -28,7 +28,12 @@ import {
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage } from "./helper";
+import {
+  fetchDevnetTestKeylessAccount,
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+} from "./helper";
 
 const { aptos, config } = getAptosClient();
 
@@ -348,6 +353,35 @@ describe("transaction builder", () => {
   describe("generateSignedTransactionForSimulation", () => {
     test("it generates a signed raw transaction for simulation", async () => {
       const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const payload = await generateTransactionPayload({
+        bytecode: multiSignerScriptBytecode,
+        functionArguments: [
+          new U64(100),
+          new U64(200),
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
+          new U64(50),
+        ],
+      });
+      const transaction = await buildTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+      });
+
+      const bcsTransaction = await generateSignedTransactionForSimulation({
+        transaction,
+        signerPublicKey: alice.publicKey,
+      });
+      expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
+      const deserializer = new Deserializer(bcsTransaction);
+      const signedTransaction = SignedTransaction.deserialize(deserializer);
+      expect(signedTransaction instanceof SignedTransaction).toBeTruthy();
+    });
+
+    test("it generates a keyless signed raw transaction for simulation", async () => {
+      const alice = fetchDevnetTestKeylessAccount(0);
       await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
       const payload = await generateTransactionPayload({
         bytecode: multiSignerScriptBytecode,
