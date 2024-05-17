@@ -56,6 +56,47 @@ export class Deserializer {
     return textDecoder.decode(value);
   }
 
+
+  /**
+   * Deserializes a an optional string.
+   *
+   * BCS layout for Optional<String>: 0 if none, else 1 | string_length | string_content
+   * @example
+   * ```ts
+   * const deserializer = new Deserializer(new Uint8Array([0x00]));
+   * assert(deserializer.deserializeOptionStr() === undefined);
+   * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
+   * assert(deserializer.deserializeOptionStr() === "1234abcd");
+   * ```
+   */
+  deserializeOptionStr(): string | undefined {
+    const exists = this.deserializeUleb128AsU32();
+    if (exists === 1) {
+      return this.deserializeStr();
+    }
+    return undefined
+  }
+
+  /**
+   * Deserializes a an optional string.
+   *
+   * BCS layout for Optional<String>: 0 if none, else 1 | string_length | string_content
+   * @example
+   * ```ts
+   * const deserializer = new Deserializer(new Uint8Array([0x00]));
+   * assert(deserializer.deserializeOptionStr() === undefined);
+   * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
+   * assert(deserializer.deserializeOptionStr() === "1234abcd");
+   * ```
+   */
+   deserializeOption<T>(cls: Deserializable<T>): T | undefined {
+    const exists = this.deserializeUleb128AsU32();
+    if (exists === 1) {
+      return this.deserialize(cls);
+    }
+    return undefined
+  }
+
   /**
    * Deserializes an array of bytes.
    *
