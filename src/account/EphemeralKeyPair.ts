@@ -107,9 +107,10 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * Returns the public key of the key pair.
    * @param scheme the type of keypair to use for the EphemeralKeyPair.  Only Ed25519 supported for now.
+   * @param expiryDateSecs the date of expiry.
    * @return boolean
    */
-  static generate(args?: { scheme: EphemeralPublicKeyVariant }): EphemeralKeyPair {
+  static generate(args?: { scheme: EphemeralPublicKeyVariant; expiryDateSecs?: bigint | number }): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
@@ -118,7 +119,7 @@ export class EphemeralKeyPair extends Serializable {
         privateKey = Ed25519PrivateKey.generate();
     }
 
-    return new EphemeralKeyPair({ privateKey });
+    return new EphemeralKeyPair({ privateKey, expiryDateSecs: args?.expiryDateSecs });
   }
 
   private generateNonce(): string {

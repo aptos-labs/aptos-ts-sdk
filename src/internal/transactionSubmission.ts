@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
 import { AptosApiError, postAptosFullNode } from "../client";
-import { Account, KeylessAccount, MultiKeyAccount } from "../account";
+import { Account, KeylessAccount, KeylessError, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -36,7 +36,6 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
-import { KeylessError } from "../types/keyless";
 
 /**
  * We are defining function signatures, each with its specific input and output.

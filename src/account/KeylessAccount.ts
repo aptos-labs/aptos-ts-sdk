@@ -28,10 +28,40 @@ import {
   generateSigningMessageForSerializable,
 } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
+import { AptosApiError } from "../client/types";
 
 export const IssuerToJwkEndpoint: Record<string, string> = {
   "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
 };
+
+export enum KeylessErrorType {
+  JWK_EXPIRED,
+  EPK_EXPIRED,
+  PROOF_NOT_FOUND,
+  UNKNOWN_INVALID_SIGNATURE,
+  UNKNOWN,
+}
+export class KeylessError extends Error {
+  readonly type: KeylessErrorType;
+
+  constructor(type: KeylessErrorType) {
+    super();
+    this.type = type;
+  }
+
+  static async fromAptosApiError(error: AptosApiError, signer: KeylessAccount): Promise<KeylessError> {
+    if (!error.data.message.includes("INVALID_SIGNATURE")) {
+      return new KeylessError(KeylessErrorType.UNKNOWN);
+    }
+    if (signer.isExpired()) {
+      return new KeylessError(KeylessErrorType.EPK_EXPIRED);
+    }
+    if (!(await signer.checkJwkValidity())) {
+      return new KeylessError(KeylessErrorType.JWK_EXPIRED);
+    }
+    return new KeylessError(KeylessErrorType.UNKNOWN_INVALID_SIGNATURE);
+  }
+}
 
 export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
@@ -220,13 +250,13 @@ export class KeylessAccount extends Serializable implements Account {
   sign(data: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
-      throw new Error("Ephemeral key pair is expired.");
+      throw new KeylessError(KeylessErrorType.EPK_EXPIRED);
     }
     if (this.proof === undefined) {
-      throw new Error("Proof not found");
+      throw new KeylessError(KeylessErrorType.PROOF_NOT_FOUND);
     }
     if (!this.isJwtValid) {
-      throw new Error("The proof has expired. Please refetch proof");
+      throw new KeylessError(KeylessErrorType.JWK_EXPIRED);
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
