@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@aptos-labs/aptos-cli':
-    specifier: ^0.1.6
-    version: 0.1.6
+    specifier: ^0.1.7
+    version: 0.1.7
   '@aptos-labs/aptos-client':
     specifier: ^0.1.0
     version: 0.1.0
@@ -123,8 +123,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.25
     dev: true
 
-  /@aptos-labs/aptos-cli@0.1.6:
-    resolution: {integrity: sha512-tpiOkJ4Wk2JGuaN1vvQiM8KIvb97v+Qs4fAkW5CCPiKMm2nJhupbC6fHzNdaQFE/tdZd4BiujrBigzYTX1zr/Q==}
+  /@aptos-labs/aptos-cli@0.1.7:
+    resolution: {integrity: sha512-qX0fFQUzp8Tq38E1hj6JhM78T/BGdSxcy1N0ZkmGtWiSch7jyObzgZOxNnrPXCjZTD0b/FQLTt7LY4xuse1Mwg==}
     hasBin: true
     dev: false
 
