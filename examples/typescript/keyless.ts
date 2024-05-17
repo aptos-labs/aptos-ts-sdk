@@ -76,7 +76,6 @@ const example = async () => {
   const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
-    pepper: "00000000000000000000000000000000000000000000000000000000000000",
   });
 
   console.log("=== Addresses ===\n");
