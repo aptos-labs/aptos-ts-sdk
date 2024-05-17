@@ -416,6 +416,15 @@ export class ZeroKnowledgeSig extends Signature {
     return this.bcsToBytes();
   }
 
+  /**
+   * Return a ZeroKnowledgeSig object from its bcs serialization in bytes.
+   *
+   * @returns ZeroKnowledgeSig
+   */
+  static fromBytes(bytes: Uint8Array): ZeroKnowledgeSig {
+    return ZeroKnowledgeSig.deserialize(new Deserializer(bytes));
+  }
+
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
     serializer.serializeU64(this.expHorizonSecs);

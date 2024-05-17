@@ -56,7 +56,6 @@ export class Deserializer {
     return textDecoder.decode(value);
   }
 
-
   /**
    * Deserializes a an optional string.
    *
@@ -74,7 +73,7 @@ export class Deserializer {
     if (exists === 1) {
       return this.deserializeStr();
     }
-    return undefined
+    return undefined;
   }
 
   /**
@@ -89,12 +88,12 @@ export class Deserializer {
    * assert(deserializer.deserializeOptionStr() === "1234abcd");
    * ```
    */
-   deserializeOption<T>(cls: Deserializable<T>): T | undefined {
+  deserializeOption<T>(cls: Deserializable<T>): T | undefined {
     const exists = this.deserializeUleb128AsU32();
     if (exists === 1) {
       return this.deserialize(cls);
     }
-    return undefined
+    return undefined;
   }
 
   /**

@@ -29,7 +29,7 @@ export class Keyless {
    * @param args.jwt JWT token
    * @param args.ephemeralKeyPair the EphemeralKeyPair used to generate the nonce in the JWT token
    * @param args.uidKey a key in the JWT token to use to set the uidVal in the IdCommitment
-   * @param args.pepper the pepper 
+   * @param args.pepper the pepper
    * @param args.extraFieldKey a key in the JWT token used to reveal a value on chain
    * @param args.proofFetchCallback a callback function that if set, the fetch of the proof will be done asyncronously. Once
    * if finishes the callback function will be called.

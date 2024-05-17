@@ -110,7 +110,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     throw new AptosApiError(options, result, `${response.data}`);
   }
 
-  if (aptosConfig.isPepperServiceRequest(url)) {
+  if (aptosConfig.isPepperServiceRequest(url) || aptosConfig.isProverServiceRequest(url)) {
     throw new AptosApiError(options, result, `${response.data}`);
   }
 

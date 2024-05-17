@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
+import { JwksClient } from "jwks-rsa";
 import { decode } from "base-64";
 import EventEmitter from "eventemitter3";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
@@ -22,8 +23,15 @@ import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType, generateSigningMessageForSerializable } from "../transactions/transactionBuilder/signingMessage";
+import {
+  deriveTransactionType,
+  generateSigningMessageForSerializable,
+} from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
+
+export const IssuerToJwkEndpoint: Record<string, string> = {
+  "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
+};
 
 export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
@@ -50,6 +58,8 @@ export class KeylessAccount extends Serializable implements Account {
 
   private jwt: string;
 
+  private isJwtValid: boolean;
+
   readonly emitter: EventEmitter<ProofFetchEvents>;
 
   constructor(args: {
@@ -61,13 +71,13 @@ export class KeylessAccount extends Serializable implements Account {
     aud: string;
     pepper: HexInput;
     proofOrFetcher: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
-    proofFetchCallback?: ProofFetchCallback
+    proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
     super();
     const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
-    this.publicKey =  KeylessPublicKey.create(args);
+    this.publicKey = KeylessPublicKey.create(args);
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
@@ -79,7 +89,7 @@ export class KeylessAccount extends Serializable implements Account {
       this.proof = proofOrFetcher;
     } else {
       if (proofFetchCallback === undefined) {
-        throw new Error("Must provide callback for async proof fetch")
+        throw new Error("Must provide callback for async proof fetch");
       }
       this.emitter.on("proofFetchFinish", async (status) => {
         await proofFetchCallback(status);
@@ -87,25 +97,28 @@ export class KeylessAccount extends Serializable implements Account {
       });
       this.init(proofOrFetcher);
     }
-    
-
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
     if (pepperBytes.length !== KeylessAccount.PEPPER_LENGTH) {
       throw new Error(`Pepper length in bytes should be ${KeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
+    this.isJwtValid = true;
   }
 
+  /**
+   * This initializes the asyncronous proof fetch
+   * @return
+   */
   async init(promise: Promise<ZeroKnowledgeSig>) {
     try {
       this.proof = await promise;
-      this.emitter.emit("proofFetchFinish", {status: "Success"});
+      this.emitter.emit("proofFetchFinish", { status: "Success" });
     } catch (error) {
       if (error instanceof Error) {
-        this.emitter.emit("proofFetchFinish", {status: "Failed", error: error.toString()});
+        this.emitter.emit("proofFetchFinish", { status: "Failed", error: error.toString() });
       } else {
-        this.emitter.emit("proofFetchFinish", {status: "Failed", error: "Unknown"});
+        this.emitter.emit("proofFetchFinish", { status: "Failed", error: "Unknown" });
       }
     }
   }
@@ -116,7 +129,7 @@ export class KeylessAccount extends Serializable implements Account {
     serializer.serializeFixedBytes(this.pepper);
     this.ephemeralKeyPair.serialize(serializer);
     if (this.proof === undefined) {
-      throw new Error("Connot serialize - proof undefined")
+      throw new Error("Connot serialize - proof undefined");
     }
     this.proof.serialize(serializer);
   }
@@ -143,6 +156,28 @@ export class KeylessAccount extends Serializable implements Account {
    */
   isExpired(): boolean {
     return this.ephemeralKeyPair.isExpired();
+  }
+
+  /**
+   * Checks if the the JWK used to verify the token still exists on the issuer's JWK uri.
+   * Caches the result.
+   * @return boolean
+   */
+  async checkJwkValidity(): Promise<boolean> {
+    if (!this.isJwtValid) {
+      return false;
+    }
+    const jwtHeader = jwtDecode(this.jwt, { header: true });
+    const client = new JwksClient({
+      jwksUri: IssuerToJwkEndpoint[this.publicKey.iss],
+    });
+    try {
+      await client.getSigningKey(jwtHeader.kid);
+      return true;
+    } catch (error) {
+      this.isJwtValid = false;
+      return false;
+    }
   }
 
   /**
@@ -190,12 +225,14 @@ export class KeylessAccount extends Serializable implements Account {
     if (this.proof === undefined) {
       throw new Error("Proof not found");
     }
-    const jwtHeader = this.jwt.split(".")[0];
+    if (!this.isJwtValid) {
+      throw new Error("The proof has expired. Please refetch proof");
+    }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
 
     return new KeylessSignature({
-      jwtHeader: base64UrlDecode(jwtHeader),
+      jwtHeader: base64UrlDecode(this.jwt.split(".")[0]),
       ephemeralCertificate: new EphemeralCertificate(this.proof, EphemeralCertificateVariant.ZkProof),
       expiryDateSecs,
       ephemeralPublicKey,
@@ -214,7 +251,7 @@ export class KeylessAccount extends Serializable implements Account {
       throw new Error("Proof not found");
     }
     const raw = deriveTransactionType(transaction);
-    const txnAndProof = new TransactionAndProof(raw, this.proof.proof)
+    const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
     const signMess = generateSigningMessageForSerializable(txnAndProof);
     return this.sign(signMess);
   }
@@ -296,7 +333,7 @@ export type ProofFetchFailure = {
   error: string;
 };
 
-export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure
+export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure;
 
 export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
 

@@ -7,7 +7,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
-import { postAptosFullNode } from "../client";
+import { AptosApiError, postAptosFullNode } from "../client";
 import { Account, KeylessAccount, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
@@ -36,6 +36,7 @@ import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput
 import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
+import { KeylessError } from "../types/keyless";
 
 /**
  * We are defining function signatures, each with its specific input and output.
@@ -281,11 +282,18 @@ export async function signAndSubmitTransaction(args: {
     await signer.waitForProofFetch();
   }
   const authenticator = signTransaction({ signer, transaction });
-  return submitTransaction({
-    aptosConfig,
-    transaction,
-    senderAuthenticator: authenticator,
-  });
+  try {
+    return await submitTransaction({
+      aptosConfig,
+      transaction,
+      senderAuthenticator: authenticator,
+    });
+  } catch (error) {
+    if (error instanceof AptosApiError && signer instanceof KeylessAccount) {
+      throw await KeylessError.fromAptosApiError(error, signer);
+    }
+    throw error;
+  }
 }
 
 const packagePublishAbi: EntryFunctionABI = {

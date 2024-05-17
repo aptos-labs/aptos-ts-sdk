@@ -16,7 +16,6 @@ import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 
 export class EphemeralKeyPair extends Serializable {
-
   static readonly BLINDER_LENGTH: number = 31;
 
   /**
@@ -26,13 +25,13 @@ export class EphemeralKeyPair extends Serializable {
   readonly blinder: Uint8Array;
 
   /**
-   * A timestamp in seconds indicating when the ephemeral key pair is expired.  After expiry, a new 
+   * A timestamp in seconds indicating when the ephemeral key pair is expired.  After expiry, a new
    * EphemeralKeyPair must be generated and a new JWT needs to be created.
    */
   readonly expiryDateSecs: bigint | number;
 
   /**
-   * The value passed to the IdP when the user authenticates.  It comprises of a hash of the 
+   * The value passed to the IdP when the user authenticates.  It comprises of a hash of the
    * ephermeral public key, expiry date, and blinder.
    */
   readonly nonce: string;
@@ -132,13 +131,13 @@ export class EphemeralKeyPair extends Serializable {
 
   /**
    * Sign the given message with the private key.
-   * 
+   *
    * @param data in HexInput format
    * @returns EphemeralSignature
    */
   sign(data: HexInput): EphemeralSignature {
     if (this.isExpired()) {
-      throw new Error("EphemeralKeyPair has expired")
+      throw new Error("EphemeralKeyPair has expired");
     }
     return new EphemeralSignature(this.privateKey.sign(data));
   }

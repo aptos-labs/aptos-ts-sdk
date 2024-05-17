@@ -64,12 +64,13 @@ const example = async () => {
   console.log();
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT token (or press enter to use default test token): ", {hideEchoBack: false});
+    const jwt: string = readlineSync.question("Paste the JWT token (or press enter to use default test token): ", {
+      hideEchoBack: false,
+    });
     return jwt;
   }
 
   const jwt = inputJwt();
-
   const bob = Account.generate();
 
   const alice = await aptos.deriveKeylessAccount({
@@ -81,6 +82,7 @@ const example = async () => {
   console.log("=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
+  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
 
   console.log(`Bob's address is: ${bob.accountAddress}`);
 

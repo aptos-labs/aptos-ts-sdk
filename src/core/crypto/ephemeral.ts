@@ -11,7 +11,6 @@ import { Hex } from "../hex";
  * These are not public keys used as a public key on an account.  They are only used ephemerally on Keyless accounts.
  */
 export class EphemeralPublicKey extends PublicKey {
-
   /**
    * The public key itself
    */

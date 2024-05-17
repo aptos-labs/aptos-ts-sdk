@@ -1,6 +1,8 @@
+/* eslint-disable max-len */
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { sign } from "jsonwebtoken";
 import {
   Account,
   Aptos,
@@ -13,6 +15,12 @@ import {
   MoveVector,
   AnyRawTransaction,
   isUserTransactionResponse,
+  KeylessAccount,
+  EphemeralKeyPair,
+  ZeroKnowledgeSig,
+  Hex,
+  Ed25519PrivateKey,
+  AccountAddress,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -85,6 +93,63 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
     throw new Error("Expected user transaction response");
   }
   return response;
+}
+
+export async function balance(aptos: Aptos, address: AccountAddress): Promise<number> {
+  type Coin = { coin: { value: string } };
+  const resource = await aptos.getAccountResource<Coin>({
+    accountAddress: address,
+    resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
+  });
+  return Number(resource.coin.value);
+}
+
+const fetchToken = (index: number, rsaPrivateKey: string, ephemKeyPair: EphemeralKeyPair) => {
+  const payload = {
+    iss: "test.oidc.provider",
+    aud: "test-keyless-dapp",
+    sub: `test-user-${index}`,
+    email: "test@aptoslabs.com",
+    email_verified: true,
+    iat: Math.floor(new Date().getTime() / 1000),
+    exp: 2700000000,
+    nonce: ephemKeyPair.nonce,
+  };
+  return sign(payload, rsaPrivateKey, { algorithm: "RS256", keyid: "test-rsa" });
+};
+
+export async function fetchTestKeylessAccount(
+  aptos: Aptos,
+  index: number,
+  rsaPrivateKey: string,
+): Promise<KeylessAccount> {
+  const ephemeralKeyPair = EphemeralKeyPair.generate();
+  const jwt = fetchToken(index, rsaPrivateKey, ephemeralKeyPair);
+  const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+  return account;
+}
+
+export function fetchDevnetTestKeylessAccount(index: number): KeylessAccount {
+  // These tokens cannot be used on the devnet prover service, but can be used to create the account.
+  const tokens = [
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0wIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.Te7iIFxfMIRhFQ37pigAWgwkCP--GIE8PNnJEQyzZ8GtezA_W-jnKxlOVF4WeS6ZCt-oRQUwucv9Dq4DYQHgQztXE9CCudXSUz62xQQMRllOv9xnzlDKGcyLJiRpey_3IQdQJDNkRZFxVzsMtqtnZj28Nd9coMXAZGkgXTIgczsh5NJrAK7oKPfBwfIGFpNpcEpPoz80sWN4yJqMp25zZwPZ-sZk1xjoccxjkeV5M7AUmor7L2aAJBsjmycPqgAGZyyhXMOuszKQ4f92ewe-ChH_63fS4H5HCie3ABdlyBp849kP4YcRcpB6-wf1zVpUaz8bEcY7If_RbL_VPKlFXg",
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.NPfbBL4fBwrRGxcU-Ao4oiuu0jRVnTURe9ZuQhyLcuG0UbukE002KelX_YSAP_AU6Xy9CGOxK9-bTwD50b6jXJSH7p6wfy8g2tZfNW2Mb9McCfL_sDxmk9gVYAE7N5B6vHLA3z1Fo7S3i9FY2pEvXO_kIAsTaq_cn76nc6T3hnlK4j15WReV_9SvVSGdPSKS62atucsC39RsUOUdJcE9UQP1VioSeCizR5qtRUyASJYuCRofb1dObdaWuhHxIaOzWEm-iaCzTVwPR_FpOXyag7FfO6IqoaH-l4kLvxkDF3TPMOeuwmewl4Bjq0lDtWmT6W4x2weSL_MqcftS7ubc3Q",
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0yIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.xFsXE6TcYCoEDCN7mK_Lb7fpMth7D1GfPfAGjzr2wMGAgUi1yYptko7oVbyvCZi2is0MyBxUEdlAMufPDvr-457aMau7E9ptHaGtwhUYDSTANKzvrgWajdDNcFUcuH6YYzafDTxm3PkyyjcQlMN_jrPL4QFiyaoJDbQINWotBiI0yZoEkeaBb9iCCOQK7yngAdhqPDJLKe94Xv97MtzZo64udMILBBDzlYMsKSESeBcvWQVrMVWBzvXb4nFr_A3BXsIe9TbHB7Ial9F79ql_QWmGnhiB2pl1i0yp0RU1lqxtq1hCSngks26LMMj4cjqIrlOca89RmCKrYW7Dl2tOaA",
+  ];
+  const proofs = [
+    "003b5f5763814107baf0782c512918bcda4f49022051895405e126c64d444c3e0157ce75386db38fad8aade38dbe6ffe0bb7300aa611713658c6d80b82b9487c187fab9f0acbc26179e75fad8eccb9014caa8c325c079435f45ad06eccf76783092038cfb862f29ee83ca67617df3350a7bb38719b99cf7a5b21323f8eca4d0d0980969800000000000000010040e94f874cfaa83f5736dd72c7cd0f932b2a186c2255871cae84b48290fb5711a38fd8f9bfc022c326395c38c447b10418a45abfaf512ce3c1734bbe8caae9df0e",
+    "007006c74d69320288dd47325bb374766b9ceef3210bdc28d98f1dcea50896472363360cadee64c9680d01244a1c179666f7797148d50fb7271deeedeedbf8bf2b79ba54fb9e51dc8578c41d5b5b9c42fcffcb63d4620ecdcc9c2c6c9a5f944316293604a90aabf88c1e8b6d31b82da0c412c232ae03363e1ce1118a9283e45621809698000000000000000100400405e6ff70728ccba56115ea8df1f93423f4a3e1d31becf27239e6809c5e41910870376e3e854141f7340903f6b62f8d34399bf93593ec4d12590872b553e90b",
+    "009a203da89409a5224feee57f97259f6f6befdef25b5e1aae29e031b740d7d4ae89b86307badfcd59caa8e370b9a42bd2046969838d844fc9bd5de6e975a2501fd4f17cc4107ab6201d4078dcb8b94bc5d47bd540f0e51407854aa1970e27a39d3d4eaf4ad0a89bb2a300d573bcc8f659f79b7089936758ad98e42d10c0bf9c28809698000000000000000100402cd6cb29b973a17fe356101722e201e64b53b5c128c57e593cbdc6426bf58906e657b541dab1c54ca300a28700cafaf0de0aff7806a79ff23a81a021d3d21d03",
+  ];
+  const proof = ZeroKnowledgeSig.fromBytes(Hex.fromHexInput(proofs[index]).toUint8Array());
+  const token = tokens[index];
+
+  const ZEROS = "00000000000000000000000000000000000000000000000000000000000000";
+  const ephemPrivateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
+  const expiryDateSecs = 1721397501;
+  const ephemKeyPair = new EphemeralKeyPair({ privateKey: ephemPrivateKey, expiryDateSecs, blinder: ZEROS });
+  const account = KeylessAccount.fromJWTAndProof({ proof, jwt: token, ephemeralKeyPair: ephemKeyPair, pepper: ZEROS });
+  return account;
 }
 
 // Transaction builder helpers
