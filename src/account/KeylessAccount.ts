@@ -25,49 +25,32 @@ import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessageForSerializable } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 
-export type ProofFetchSuccess = {
-  status: "Success";
-};
-
-export type ProofFetchFailure = {
-  status: "Failed";
-  error: string;
-};
-
-export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure
-
-export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
-
-export interface ProofFetchEvents {
-  proofFetchFinish: (status: ProofFetchStatus) => void;
-}
-
 export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
-  publicKey: KeylessPublicKey;
+  readonly publicKey: KeylessPublicKey;
 
-  ephemeralKeyPair: EphemeralKeyPair;
+  readonly ephemeralKeyPair: EphemeralKeyPair;
 
-  uidKey: string;
+  readonly uidKey: string;
 
-  uidVal: string;
+  readonly uidVal: string;
 
-  aud: string;
+  readonly aud: string;
 
-  pepper: Uint8Array;
+  readonly pepper: Uint8Array;
 
-  accountAddress: AccountAddress;
+  readonly accountAddress: AccountAddress;
 
   proof: ZeroKnowledgeSig | undefined;
 
-  proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
+  readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
 
-  signingScheme: SigningScheme;
+  readonly signingScheme: SigningScheme;
 
-  jwt: string;
+  private jwt: string;
 
-  emitter: EventEmitter<ProofFetchEvents>;
+  readonly emitter: EventEmitter<ProofFetchEvents>;
 
   constructor(args: {
     address?: AccountAddress;
@@ -302,4 +285,21 @@ function base64UrlDecode(base64Url: string): string {
   // Decode the base64 string using the base-64 library
   const decodedString = decode(paddedBase64);
   return decodedString;
+}
+
+export type ProofFetchSuccess = {
+  status: "Success";
+};
+
+export type ProofFetchFailure = {
+  status: "Failed";
+  error: string;
+};
+
+export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure
+
+export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
+
+export interface ProofFetchEvents {
+  proofFetchFinish: (status: ProofFetchStatus) => void;
 }
