@@ -44,7 +44,7 @@ export class KeylessPublicKey extends AccountPublicKey {
 
   /**
    * Get the authentication key for the keyless public key
-   * 
+   *
    * @returns AuthenticationKey
    */
   authKey(): AuthenticationKey {
@@ -84,7 +84,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not yet implemented")
+    throw new Error("Not yet implemented");
   }
 
   serialize(serializer: Serializer): void {
@@ -130,12 +130,7 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 }
 
-function computeIdCommitment(args: {
-  uidKey: string;
-  uidVal: string;
-  aud: string;
-  pepper: HexInput;
-}): Uint8Array {
+function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string; pepper: HexInput }): Uint8Array {
   const { uidKey, uidVal, aud, pepper } = args;
 
   const fields = [
@@ -148,230 +143,35 @@ function computeIdCommitment(args: {
   return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
 }
 
-export class EphemeralCertificate extends Signature {
-  public readonly signature: Signature;
-
-  /**
-   * Index of the underlying enum variant
-   */
-  private readonly variant: EphemeralCertificateVariant;
-
-  constructor(signature: Signature, variant: EphemeralCertificateVariant) {
-    super();
-    this.signature = signature;
-    this.variant = variant;
-  }
-
-  /**
-   * Get the public key in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the public key
-   */
-  toUint8Array(): Uint8Array {
-    return this.signature.toUint8Array();
-  }
-
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return this.signature.toString();
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.variant);
-    this.signature.serialize(serializer);
-  }
-
-  static deserialize(deserializer: Deserializer): EphemeralCertificate {
-    const variant = deserializer.deserializeUleb128AsU32();
-    switch (variant) {
-      case EphemeralCertificateVariant.ZkProof:
-        return new EphemeralCertificate(ZeroKnowledgeSig.deserialize(deserializer), variant);
-      default:
-        throw new Error(`Unknown variant index for EphemeralCertificate: ${variant}`);
-    }
-  }
-}
-
-export class Groth16Zkp extends Proof {
-  
-  /**
-   * The bytes of proof point a
-   */
-  a: Uint8Array;
-
-  /**
-   * The bytes of proof point b
-   */
-  b: Uint8Array;
-
-  /**
-   * The bytes of proof point c
-   */
-  c: Uint8Array;
-
-  constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
-    super();
-    const { a, b, c } = args;
-    this.a = Hex.fromHexInput(a).toUint8Array();
-    this.b = Hex.fromHexInput(b).toUint8Array();
-    this.c = Hex.fromHexInput(c).toUint8Array();
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.a);
-    serializer.serializeFixedBytes(this.b);
-    serializer.serializeFixedBytes(this.c);
-  }
-
-  static deserialize(deserializer: Deserializer): Groth16Zkp {
-    const a = deserializer.deserializeFixedBytes(32);
-    const b = deserializer.deserializeFixedBytes(64);
-    const c = deserializer.deserializeFixedBytes(32);
-    return new Groth16Zkp({ a, b, c });
-  }
-}
-
-export class ZkProof extends Serializable {
-  public readonly proof: Proof;
-
-  /**
-   * Index of the underlying enum variant
-   */
-  private readonly variant: ZkpVariant;
-
-  constructor(proof: Proof, variant: ZkpVariant) {
-    super();
-    this.proof = proof;
-    this.variant = variant;
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.variant);
-    this.proof.serialize(serializer);
-  }
-
-  static deserialize(deserializer: Deserializer): ZkProof {
-    const variant = deserializer.deserializeUleb128AsU32();
-    switch (variant) {
-      case ZkpVariant.Groth16:
-        return new ZkProof(Groth16Zkp.deserialize(deserializer), variant);
-      default:
-        throw new Error(`Unknown variant index for ZkProof: ${variant}`);
-    }
-  }
-}
-
-export class ZeroKnowledgeSig extends Signature {
-  readonly proof: ZkProof;
-
-  readonly expHorizonSecs: bigint;
-
-  readonly extraField?: string;
-
-  readonly overrideAudVal?: string;
-
-  readonly trainingWheelsSignature?: EphemeralSignature;
-
-  constructor(args: {
-    proof: ZkProof;
-    expHorizonSecs?: bigint;
-    extraField?: string;
-    overrideAudVal?: string;
-    trainingWheelsSignature?: EphemeralSignature;
-  }) {
-    super();
-    const {
-      proof,
-      expHorizonSecs = BigInt(EPK_HORIZON_SECS),
-      trainingWheelsSignature,
-      extraField,
-      overrideAudVal,
-    } = args;
-    this.proof = proof;
-    this.expHorizonSecs = expHorizonSecs;
-    this.trainingWheelsSignature = trainingWheelsSignature;
-    this.extraField = extraField;
-    this.overrideAudVal = overrideAudVal;
-  }
-
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    const serializer = new Serializer();
-    this.serialize(serializer);
-    return serializer.toUint8Array();
-  }
-
-  /**
-   * Get the signature as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the signature
-   */
-  toString(): string {
-    return this.toString();
-  }
-
-  serialize(serializer: Serializer): void {
-    this.proof.serialize(serializer);
-    serializer.serializeU64(this.expHorizonSecs);
-    serializer.serializeOptionStr(this.extraField);
-    serializer.serializeOptionStr(this.overrideAudVal);
-    serializer.serializeOption(this.trainingWheelsSignature);
-  }
-
-  static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
-    const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = deserializer.deserializeU64();
-    const hasExtraField = deserializer.deserializeUleb128AsU32();
-    const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
-    const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
-    const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
-    const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
-    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
-  }
-
-  static load(deserializer: Deserializer): ZeroKnowledgeSig {
-    const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = deserializer.deserializeU64();
-    const hasExtraField = deserializer.deserializeUleb128AsU32();
-    const extraField = hasExtraField ? deserializer.deserializeStr() : undefined;
-    const hasOverrideAudVal = deserializer.deserializeUleb128AsU32();
-    const overrideAudVal = hasOverrideAudVal ? deserializer.deserializeStr() : undefined;
-    const [trainingWheelsSignature] = deserializer.deserializeVector(EphemeralSignature);
-    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
-  }
-}
-
 /**
  * A signature of a message signed via Keyless Accounnt that uses proofs or the jwt token to authenticate.
  */
 export class KeylessSignature extends Signature {
+  /**
+   * The inner signature ZeroKnowledgeSigniature or OpenIdSignature
+   */
   readonly ephemeralCertificate: EphemeralCertificate;
 
+  /**
+   * The jwt header in the token used to create the proof/signature.  In json string representation.
+   */
   readonly jwtHeader: string;
 
+  /**
+   * The expiry timestamp in seconds of the EphemeralKeyPair used to sign
+   */
   readonly expiryDateSecs: bigint | number;
 
+  /**
+   * The ephemeral public key used to verify the signature
+   */
   readonly ephemeralPublicKey: EphemeralPublicKey;
 
+  /**
+   * The signature resulting from signing with the private key of the EphemeralKeyPair
+   */
   readonly ephemeralSignature: EphemeralSignature;
 
-  /**
-   * Create a new KeylessSignature
-   *
-   * @param args.jwtHeader A HexInput (string or Uint8Array)
-   * @param args.ephemeralCertificate A HexInput (string or Uint8Array)
-   * @param args.expiryDateSecs A HexInput (string or Uint8Array)
-   * @param args.ephemeralPublicKey A HexInput (string or Uint8Array)
-   * @param args.ephemeralSignature A HexInput (string or Uint8Array)
-  */
   constructor(args: {
     jwtHeader: string;
     ephemeralCertificate: EphemeralCertificate;
@@ -440,110 +240,205 @@ export class KeylessSignature extends Signature {
   }
 }
 
+/**
+ * A container for a signature that is a ZeroKnowledgeSig.  Can be expanded to support OpenIdSignature.
+ */
+export class EphemeralCertificate extends Signature {
+  public readonly signature: Signature;
 
+  /**
+   * Index of the underlying enum variant
+   */
+  private readonly variant: EphemeralCertificateVariant;
 
+  constructor(signature: Signature, variant: EphemeralCertificateVariant) {
+    super();
+    this.signature = signature;
+    this.variant = variant;
+  }
 
+  /**
+   * Get the public key in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the public key
+   */
+  toUint8Array(): Uint8Array {
+    return this.signature.toUint8Array();
+  }
 
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.variant);
+    this.signature.serialize(serializer);
+  }
 
+  static deserialize(deserializer: Deserializer): EphemeralCertificate {
+    const variant = deserializer.deserializeUleb128AsU32();
+    switch (variant) {
+      case EphemeralCertificateVariant.ZkProof:
+        return new EphemeralCertificate(ZeroKnowledgeSig.deserialize(deserializer), variant);
+      default:
+        throw new Error(`Unknown variant index for EphemeralCertificate: ${variant}`);
+    }
+  }
+}
 
+/**
+ * A representation of a Groth16 proof.  The points are the compressed serialization of affine reprentation of the proof.
+ */
+export class Groth16Zkp extends Proof {
+  /**
+   * The bytes of G1 proof point a
+   */
+  a: Uint8Array;
 
+  /**
+   * The bytes of G2 proof point b
+   */
+  b: Uint8Array;
 
-// /**
-//  * A OpenId signature which contains the private inputs to an OIDB proof.
-//  */
-// export class OpenIdSignature extends Signature {
-//   readonly jwtSignature: string;
+  /**
+   * The bytes of G1 proof point c
+   */
+  c: Uint8Array;
 
-//   readonly jwtPayloadJson: string;
+  constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
+    super();
+    const { a, b, c } = args;
+    this.a = Hex.fromHexInput(a).toUint8Array();
+    this.b = Hex.fromHexInput(b).toUint8Array();
+    this.c = Hex.fromHexInput(c).toUint8Array();
+  }
 
-//   readonly uidKey: string;
+  serialize(serializer: Serializer): void {
+    serializer.serializeFixedBytes(this.a);
+    serializer.serializeFixedBytes(this.b);
+    serializer.serializeFixedBytes(this.c);
+  }
 
-//   readonly epkBlinder: Uint8Array;
+  static deserialize(deserializer: Deserializer): Groth16Zkp {
+    const a = deserializer.deserializeFixedBytes(32);
+    const b = deserializer.deserializeFixedBytes(64);
+    const c = deserializer.deserializeFixedBytes(32);
+    return new Groth16Zkp({ a, b, c });
+  }
+}
 
-//   readonly pepper: Uint8Array;
+/**
+ * A container for a different zero knowledge proof types
+ */
+export class ZkProof extends Serializable {
+  public readonly proof: Proof;
 
-//   readonly overrideAudValue?: string;
+  /**
+   * Index of the underlying enum variant
+   */
+  private readonly variant: ZkpVariant;
 
-//   /**
-//    * Create a new Signature instance from a Uint8Array or String.
-//    *
-//    * @param hexInput A HexInput (string or Uint8Array)
-//    */
-//   constructor(args: {
-//     jwtSignature: string;
-//     jwtPayloadJson: string;
-//     uidKey?: string;
-//     epkBlinder: Uint8Array;
-//     pepper: Uint8Array;
-//     overrideAudValue?: string;
-//   }) {
-//     super();
-//     const { jwtSignature, uidKey, jwtPayloadJson, epkBlinder, pepper, overrideAudValue } = args;
-//     this.jwtSignature = jwtSignature;
-//     this.jwtPayloadJson = jwtPayloadJson;
-//     this.uidKey = uidKey ?? "sub";
-//     this.epkBlinder = epkBlinder;
-//     this.pepper = pepper;
-//     this.overrideAudValue = overrideAudValue;
-//   }
+  constructor(proof: Proof, variant: ZkpVariant) {
+    super();
+    this.proof = proof;
+    this.variant = variant;
+  }
 
-//   /**
-//    * Get the signature in bytes (Uint8Array).
-//    *
-//    * @returns Uint8Array representation of the signature
-//    */
-//   toUint8Array(): Uint8Array {
-//     // const textEncoder = new TextEncoder();
-//     // const jwtSigBytes = textEncoder.encode(this.jwtSignature);
-//     // const jwtPayloadJsonBytes = textEncoder.encode(this.jwtPayloadJson);
-//     // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
-//     // const uidKeyBytes = textEncoder.encode(this.jwtSignature);
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.variant);
+    this.proof.serialize(serializer);
+  }
 
-//     return this.epkBlinder;
-//   }
+  static deserialize(deserializer: Deserializer): ZkProof {
+    const variant = deserializer.deserializeUleb128AsU32();
+    switch (variant) {
+      case ZkpVariant.Groth16:
+        return new ZkProof(Groth16Zkp.deserialize(deserializer), variant);
+      default:
+        throw new Error(`Unknown variant index for ZkProof: ${variant}`);
+    }
+  }
+}
 
-//   /**
-//    * Get the signature as a hex string with the 0x prefix.
-//    *
-//    * @returns string representation of the signature
-//    */
-//   toString(): string {
-//     return this.toString();
-//   }
+/**
+ * The signature representation of a proof
+ */
+export class ZeroKnowledgeSig extends Signature {
+  /**
+   * The proof
+   */
+  readonly proof: ZkProof;
 
-//   serialize(serializer: Serializer): void {
-//     serializer.serializeStr(this.jwtSignature);
-//     serializer.serializeStr(this.jwtPayloadJson);
-//     serializer.serializeStr(this.uidKey);
-//     serializer.serializeFixedBytes(this.epkBlinder);
-//     serializer.serializeFixedBytes(this.pepper);
-//     serializer.serializeOptionStr(this.overrideAudValue);
-//   }
+  /**
+   * The max lifespan of the proof
+   */
+  readonly expHorizonSecs: bigint;
 
-//   static deserialize(deserializer: Deserializer): OpenIdSignature {
-//     const jwtSignature = deserializer.deserializeStr();
-//     const jwtPayloadJson = deserializer.deserializeStr();
-//     const uidKey = deserializer.deserializeStr();
-//     const epkBlinder = deserializer.deserializeFixedBytes(31);
-//     const pepper = deserializer.deserializeFixedBytes(31);
-//     const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
-//     const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
-//     return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
-//   }
+  /**
+   * A key value pair on the JWT token that can be made public
+   */
+  readonly extraField?: string;
 
-//   static load(deserializer: Deserializer): OpenIdSignature {
-//     const jwtSignature = deserializer.deserializeStr();
-//     const jwtPayloadJson = deserializer.deserializeStr();
-//     const uidKey = deserializer.deserializeStr();
-//     const epkBlinder = deserializer.deserializeFixedBytes(31);
-//     const pepper = deserializer.deserializeFixedBytes(31);
-//     const hasOverrideAudValue = deserializer.deserializeUleb128AsU32();
-//     const overrideAudValue = hasOverrideAudValue ? deserializer.deserializeStr() : undefined;
-//     return new OpenIdSignature({ jwtSignature, jwtPayloadJson, uidKey, epkBlinder, pepper, overrideAudValue });
-//   }
+  /**
+   * Set in the case of signing by recovery services
+   */
+  readonly overrideAudVal?: string;
 
-//   static isSignature(signature: Signature): signature is OpenIdSignature {
-//     return signature instanceof OpenIdSignature;
-//   }
-// }
+  /**
+   * The training wheels signature
+   */
+  readonly trainingWheelsSignature?: EphemeralSignature;
 
+  constructor(args: {
+    proof: ZkProof;
+    expHorizonSecs?: bigint;
+    extraField?: string;
+    overrideAudVal?: string;
+    trainingWheelsSignature?: EphemeralSignature;
+  }) {
+    super();
+    const {
+      proof,
+      expHorizonSecs = BigInt(EPK_HORIZON_SECS),
+      trainingWheelsSignature,
+      extraField,
+      overrideAudVal,
+    } = args;
+    this.proof = proof;
+    this.expHorizonSecs = expHorizonSecs;
+    this.trainingWheelsSignature = trainingWheelsSignature;
+    this.extraField = extraField;
+    this.overrideAudVal = overrideAudVal;
+  }
+
+  /**
+   * Get the signature in bytes (Uint8Array).
+   *
+   * @returns Uint8Array representation of the signature
+   */
+  toUint8Array(): Uint8Array {
+    return this.bcsToBytes();
+  }
+
+  serialize(serializer: Serializer): void {
+    this.proof.serialize(serializer);
+    serializer.serializeU64(this.expHorizonSecs);
+    serializer.serializeOptionStr(this.extraField);
+    serializer.serializeOptionStr(this.overrideAudVal);
+    serializer.serializeOption(this.trainingWheelsSignature);
+  }
+
+  static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
+    const proof = ZkProof.deserialize(deserializer);
+    const expHorizonSecs = deserializer.deserializeU64();
+    const extraField = deserializer.deserializeOptionStr();
+    const overrideAudVal = deserializer.deserializeOptionStr();
+    const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
+    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
+  }
+
+  static load(deserializer: Deserializer): ZeroKnowledgeSig {
+    const proof = ZkProof.deserialize(deserializer);
+    const expHorizonSecs = deserializer.deserializeU64();
+    const extraField = deserializer.deserializeOptionStr();
+    const overrideAudVal = deserializer.deserializeOptionStr();
+    const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
+    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
+  }
+}
