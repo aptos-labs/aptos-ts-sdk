@@ -10,6 +10,7 @@ import {
   EntryFunctionABI,
   ViewFunctionABI,
   FunctionABI,
+  TypeArgument,
 } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
@@ -40,9 +41,9 @@ const TEXT_ENCODER = new TextEncoder();
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags
  */
-export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Array<TypeTag> {
+export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<TypeTag> {
   return (
-    typeArguments?.map((typeArg: string | TypeTag): TypeTag => {
+    typeArguments?.map((typeArg: TypeArgument): TypeTag => {
       // Convert to TypeTag if it's a string representation
       if (isString(typeArg)) {
         return parseTypeTag(typeArg);

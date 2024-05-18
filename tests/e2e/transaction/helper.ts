@@ -214,6 +214,11 @@ export const rawTransactionMultiAgentHelper = async (
 export const PUBLISHER_ACCOUNT_PK = "0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";
 export const PUBLISHER_ACCOUNT_ADDRESS = "2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c";
 
+// script function byte code form `transfer/sources/script_coin_transfer.move`
+export const TYPED_SCRIPT_TEST =
+  // eslint-disable-next-line max-len
+  "a11ceb0b060000000701000202020603080c04140405181a07321b084d2000000001040100010002030101000003040501000002010203060c0305010b0001090001090002060c0302050b000109000004636f696e04436f696e087769746864726177076465706f736974000000000000000000000000000000000000000000000000000000000000000101000001080b000b0138000c030b020b03380102";
+
 // script function byte code from `arguments/sources/script.move` for the transaction_arguments.test.ts script function tests
 export const MULTI_SIGNER_SCRIPT_ARGUMENT_TEST =
   // eslint-disable-next-line max-len
