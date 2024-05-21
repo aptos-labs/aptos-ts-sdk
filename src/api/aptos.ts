@@ -12,6 +12,7 @@ import { General } from "./general";
 import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
+import { Table } from "./table";
 
 /**
  * This class is the main entry point into Aptos's
@@ -47,6 +48,8 @@ export class Aptos {
 
   readonly transaction: Transaction;
 
+  readonly table: Table;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -59,6 +62,7 @@ export class Aptos {
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
+    this.table = new Table(this.config);
   }
 }
 
@@ -74,6 +78,7 @@ export interface Aptos
     FungibleAsset,
     General,
     Staking,
+    Table,
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
@@ -107,3 +112,4 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
+applyMixin(Aptos, Table, "table");

@@ -13,7 +13,7 @@ import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
 import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
-import { getTableItem, queryIndexer } from "./general";
+import { queryIndexer } from "./general";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -54,6 +54,7 @@ import {
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { getTableItem } from "./table";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;

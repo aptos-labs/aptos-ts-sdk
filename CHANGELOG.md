@@ -10,6 +10,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Separates the signing message functionality out of the transactionSubmission.ts file
 - Adds an Account implementation for MultiKey accounts
 - Upgrade `@aptos-labs/aptos-cli` package to version `0.1.7`
+- Introduce `table` function APIs
+- Add `getTableItemsData` and `getTableItemsMetadata` API queries
+- Add `decimal` prop back to `current_token_ownerships_v2.current_token_data` response
 
 # 1.14.0 (2024-05-09)
 
