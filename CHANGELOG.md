@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.15.0 (2024-05-21)
+
 - [`Breaking`] Removes private key from the Account class to support MultiKey accounts.
 - [`Breaking`] Removes the `sign` function from transactionBuilder.ts. Use `Account.signTransactionWithAuthenticator` instead.
 - Refactors the core/accounts folder to the top level
