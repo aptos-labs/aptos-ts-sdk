@@ -11,8 +11,8 @@ import {
   ViewFunctionABI,
   FunctionABI,
 } from "../types";
-import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
-import { AccountAddress } from "../../core";
+import { Bool, Deserializer, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
+import { AccountAddress, Ed25519PublicKey } from "../../core";
 import { getModule } from "../../internal/account";
 import {
   findFirstNonSignerArg,
@@ -31,9 +31,18 @@ import {
   isNull,
   isNumber,
   isString,
+  isTypeTagAddress,
+  isTypeTagBool,
+  isTypeTagGeneric,
+  isTypeTagU128,
+  isTypeTagU16,
+  isTypeTagU256,
+  isTypeTagU32,
+  isTypeTagU64,
+  isTypeTagU8,
   throwTypeMismatch,
 } from "./helpers";
-import { MoveFunction } from "../../types";
+import { MoveFunction, MoveStruct } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -70,6 +79,22 @@ export async function fetchFunctionAbi(
 
   if (module.abi) {
     return module.abi.exposed_functions.find((func) => func.name === functionName);
+  }
+
+  return undefined;
+}
+
+export async function fetchStructAbi(
+  moduleAddress: string,
+  moduleName: string,
+  structName: string,
+  aptosConfig: AptosConfig,
+): Promise<MoveStruct | undefined> {
+  // This fetch from the API is currently cached
+  const module = await getModule({ aptosConfig, accountAddress: moduleAddress, moduleName });
+
+  if (module.abi) {
+    return module.abi.structs.find((struct) => struct.name === structName);
   }
 
   return undefined;
@@ -157,6 +182,30 @@ export async function fetchViewFunctionAbi(
     typeParameters: functionAbi.generic_type_params,
     parameters: params,
     returnTypes,
+  };
+}
+
+export async function fetchStructFieldsAbi(
+  moduleAddress: string,
+  moduleName: string,
+  structName: string,
+  aptosConfig: AptosConfig,
+): Promise<FunctionABI> {
+  const structAbi = await fetchStructAbi(moduleAddress, moduleName, structName, aptosConfig);
+
+  // If there's no ABI, then the function is invalid
+  if (!structAbi) {
+    throw new Error(`Could not find Struct ABI for '${moduleAddress}::${moduleName}::${structName}'`);
+  }
+
+  const params: TypeTag[] = [];
+  for (let i = 0; i < structAbi.fields.length; i += 1) {
+    params.push(parseTypeTag(structAbi.fields[i].type, { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: structAbi.generic_type_params,
+    parameters: params,
   };
 }
 
@@ -426,4 +475,108 @@ function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: nu
   }
 
   throw new Error(`Type mismatch for argument ${position}, expected '${param.toString()}'`);
+}
+
+export function deserializeArgument(
+  params: Array<TypeTag>,
+  deserializer: Deserializer,
+): Array<SimpleEntryFunctionArgumentTypes> {
+  return params.map((param) => deserializeArg(deserializer, param));
+}
+
+export function deserializeArg(deserializer: Deserializer, param: TypeTag): SimpleEntryFunctionArgumentTypes {
+  if (isTypeTagBool(param)) {
+    return Bool.deserialize(deserializer).value;
+  }
+  if (isTypeTagAddress(param)) {
+    return AccountAddress.deserialize(deserializer).toString();
+  }
+  if (isTypeTagU8(param)) {
+    return U8.deserialize(deserializer).value;
+  }
+  if (isTypeTagU16(param)) {
+    return U16.deserialize(deserializer).value;
+  }
+  if (isTypeTagU32(param)) {
+    return U32.deserialize(deserializer).value;
+  }
+  if (isTypeTagU64(param)) {
+    return U64.deserialize(deserializer).value;
+  }
+  if (isTypeTagU128(param)) {
+    return U128.deserialize(deserializer).value;
+  }
+  if (isTypeTagU256(param)) {
+    return U256.deserialize(deserializer).value;
+  }
+  if (isTypeTagGeneric(param)) {
+    // // Currently, TS SDK `deserialize` can only handle a single class, not a class with generics
+    throw new Error("Generic type deserialization is not implemented");
+  }
+
+  if (param.isVector()) {
+    if (isTypeTagU8(param.value)) {
+      // TODO handle Secp256k1PublicKey
+      const { values } = MoveVector.deserialize(deserializer, U8);
+      const numbers = values.map((value) => value.value);
+      try {
+        return new Ed25519PublicKey(new Uint8Array(numbers)).toString();
+      } catch (e: any) {
+        return numbers;
+      }
+    }
+    if (isTypeTagU16(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, U16);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagU32(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, U32);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagU64(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, U64);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagU128(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, U128);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagU256(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, U256);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagBool(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, Bool);
+      return values.map((value) => value.value);
+    }
+    if (isTypeTagAddress(param.value)) {
+      const { values } = MoveVector.deserialize(deserializer, AccountAddress);
+      return values.map((value) => value.toString());
+    }
+    if (param.value.isStruct()) {
+      if (param.value.isObject()) {
+        const { values } = MoveVector.deserialize(deserializer, AccountAddress);
+        return values.map((value) => value.toString());
+      }
+      if (param.value.isOption()) {
+        // Currently, TS SDK `deserialize` can only handle a single class, not a class with generics
+        throw new Error("Option type deserialization is not implemented");
+      }
+
+      const { values } = MoveVector.deserialize(deserializer, MoveString);
+      return values.map((value) => value.value);
+    }
+  }
+  if (param.isStruct()) {
+    if (param.isObject()) {
+      return AccountAddress.deserialize(deserializer).toString();
+    }
+    if (param.isOption()) {
+      // Currently, TS SDK `deserialize` can only handle a single class, not a class with generics
+      throw new Error("Option type deserialization is not implemented");
+    }
+    return MoveString.deserialize(deserializer).value;
+  }
+
+  throw new Error(`Could not deserialize type '${param.toString()}'`);
 }

@@ -9,6 +9,7 @@ import { Serializable, Serializer } from "../../bcs/serializer";
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 import { TypeTagVariants } from "../../types";
+import { U128, U16, U256, U32, U64, U8 } from "../../bcs";
 
 export abstract class TypeTag extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -388,3 +389,33 @@ export function optionStructTag(typeArg: TypeTag): StructTag {
 export function objectStructTag(typeArg: TypeTag): StructTag {
   return new StructTag(AccountAddress.ONE, new Identifier("object"), new Identifier("Object"), [typeArg]);
 }
+
+export const convert = (
+  value: string,
+): typeof U8 | typeof U16 | typeof U32 | typeof U64 | typeof U128 | typeof U256 => {
+  if (value === "u8") {
+    return U8;
+  }
+
+  if (value === "u16") {
+    return U16;
+  }
+
+  if (value === "u32") {
+    return U32;
+  }
+
+  if (value === "u64") {
+    return U64;
+  }
+
+  if (value === "u128") {
+    return U128;
+  }
+
+  if (value === "u256") {
+    return U256;
+  }
+
+  throw new Error("");
+};

@@ -1,12 +1,24 @@
 import {
+  Account,
   AccountAddress,
   Bool,
   checkOrConvertArgument,
+  deserializeArgument,
+  Deserializer,
+  Identifier,
   MoveOption,
   MoveString,
   MoveVector,
   parseTypeTag,
+  StructTag,
+  TypeTagAddress,
+  TypeTagBool,
+  TypeTagStruct,
+  TypeTagU128,
+  TypeTagU16,
   TypeTagU256,
+  TypeTagU32,
+  TypeTagU64,
   TypeTagU8,
   TypeTagVector,
   U128,
@@ -274,6 +286,219 @@ describe("Remote ABI", () => {
       expect(() => checkOrConvertArgument([1n, new U64(2)], parseTypeTag("vector<u32>"), 0, [])).toThrowError();
 
       // TODO: Verify string behavior on u64 and above
+    });
+  });
+  describe("deserialize", () => {
+    describe("primitives", () => {
+      test("should deserialize TypeTagBool", () => {
+        const bool = new Bool(true).bcsToBytes();
+        const typeTagBool = new TypeTagBool();
+
+        const deserializer = new Deserializer(bool);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(true);
+      });
+      test("should deserialize TypeTagU8", () => {
+        const u8 = new U8(MAX_U8).bcsToBytes();
+        const typeTagBool = new TypeTagU8();
+
+        const deserializer = new Deserializer(u8);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U8);
+      });
+      test("should deserialize TypeTagU16", () => {
+        const u16 = new U16(MAX_U16).bcsToBytes();
+        const typeTagBool = new TypeTagU16();
+
+        const deserializer = new Deserializer(u16);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U16);
+      });
+      test("should deserialize TypeTagU32", () => {
+        const u32 = new U32(MAX_U32).bcsToBytes();
+        const typeTagBool = new TypeTagU32();
+
+        const deserializer = new Deserializer(u32);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U32);
+      });
+      test("should deserialize TypeTagU64", () => {
+        const u64 = new U64(MAX_U64).bcsToBytes();
+        const typeTagBool = new TypeTagU64();
+
+        const deserializer = new Deserializer(u64);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U64);
+      });
+      test("should deserialize TypeTagU128", () => {
+        const u128 = new U128(MAX_U128).bcsToBytes();
+        const typeTagBool = new TypeTagU128();
+
+        const deserializer = new Deserializer(u128);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U128);
+      });
+      test("should deserialize TypeTagU256", () => {
+        const u256 = new U256(MAX_U256).bcsToBytes();
+        const typeTagBool = new TypeTagU256();
+
+        const deserializer = new Deserializer(u256);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual(MAX_U256);
+      });
+    });
+
+    describe("address", () => {
+      test("should deserialize TypeTagAddress", () => {
+        const address = AccountAddress.ONE.bcsToBytes();
+        const typeTagAddress = new TypeTagAddress();
+
+        const deserializer = new Deserializer(address);
+        const data = deserializeArgument([typeTagAddress], deserializer);
+        expect(data[0]).toEqual(AccountAddress.ONE.toString());
+      });
+    });
+
+    describe("struct", () => {
+      test("should deserialize TypeTagStruct string", () => {
+        const string = new MoveString("Hello Aptos").bcsToBytes();
+        const structTag = new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+        const typeTagStruct = new TypeTagStruct(structTag);
+
+        const deserializer = new Deserializer(string);
+        const data = deserializeArgument([typeTagStruct], deserializer);
+        expect(data[0]).toEqual("Hello Aptos");
+      });
+      test("should deserialize TypeTagStruct object", () => {
+        const object = AccountAddress.ONE.bcsToBytes();
+        const structTag = new StructTag(AccountAddress.ONE, new Identifier("object"), new Identifier("Object"), []);
+        const typeTagStruct = new TypeTagStruct(structTag);
+
+        const deserializer = new Deserializer(object);
+        const data = deserializeArgument([typeTagStruct], deserializer);
+        expect(data[0]).toEqual(AccountAddress.ONE.toString());
+      });
+
+      test("should deserialize TypeTagStruct struct", () => {
+        const struct = new MoveString("0x123::aptos:SDK").bcsToBytes();
+
+        const structTag = new StructTag(
+          AccountAddress.from("0x123"),
+          new Identifier("aptos"),
+          new Identifier("SDK"),
+          [],
+        );
+        const typeTagStruct = new TypeTagStruct(structTag);
+
+        const deserializer = new Deserializer(struct);
+        const data = deserializeArgument([typeTagStruct], deserializer);
+        expect(data[0]).toEqual("0x123::aptos:SDK");
+      });
+    });
+
+    describe.only("vector", () => {
+      test("should deserialize vector of U8", () => {
+        const u8 = new MoveVector([new U8(MAX_U8)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU8());
+
+        const deserializer = new Deserializer(u8);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U8]);
+      });
+
+      test("should deserialize ed25519 public key as a vector of U8", () => {
+        const account = Account.generate();
+        const publicKeyArray = MoveVector.U8(account.publicKey.toUint8Array()).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU8());
+
+        const deserializer = new Deserializer(publicKeyArray);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual(account.publicKey.toString());
+      });
+
+      test("should deserialize vector of U16", () => {
+        const u16 = new MoveVector([new U16(MAX_U16)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU16());
+
+        const deserializer = new Deserializer(u16);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U16]);
+      });
+
+      test("should deserialize vector of U32", () => {
+        const u32 = new MoveVector([new U32(MAX_U32)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU32());
+
+        const deserializer = new Deserializer(u32);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U32]);
+      });
+
+      test("should deserialize vector of U64", () => {
+        const u64 = new MoveVector([new U64(MAX_U64)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU64());
+
+        const deserializer = new Deserializer(u64);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U64]);
+      });
+
+      test("should deserialize vector of U128", () => {
+        const u128 = new MoveVector([new U128(MAX_U128)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU128());
+
+        const deserializer = new Deserializer(u128);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U128]);
+      });
+
+      test("should deserialize vector of U256", () => {
+        const u256 = new MoveVector([new U256(MAX_U256)]).bcsToBytes();
+        const typeTagVector = new TypeTagVector(new TypeTagU256());
+
+        const deserializer = new Deserializer(u256);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([MAX_U256]);
+      });
+
+      test("should deserialize vector of bool", () => {
+        const bool = new MoveVector([new Bool(true)]).bcsToBytes();
+        const typeTagBool = new TypeTagVector(new TypeTagBool());
+
+        const deserializer = new Deserializer(bool);
+        const data = deserializeArgument([typeTagBool], deserializer);
+        expect(data[0]).toEqual([true]);
+      });
+
+      test("should deserialize vector of address", () => {
+        const account = Account.generate();
+        const address = new MoveVector([new AccountAddress(account.accountAddress.toUint8Array())]).bcsToBytes();
+        const typeTagAddress = new TypeTagVector(new TypeTagAddress());
+
+        const deserializer = new Deserializer(address);
+        const data = deserializeArgument([typeTagAddress], deserializer);
+        expect(data[0]).toEqual([account.accountAddress.toString()]);
+      });
+
+      test("should deserialize vector of strings", () => {
+        const stringArray = new MoveVector([new MoveString("Hello Aptos")]).bcsToBytes();
+        const structTag = new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []);
+        const typeTagVector = new TypeTagVector(new TypeTagStruct(structTag));
+
+        const deserializer = new Deserializer(stringArray);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual(["Hello Aptos"]);
+      });
+
+      test("should deserialize vector of objects", () => {
+        const stringArray = new MoveVector([AccountAddress.ONE]).bcsToBytes();
+        const structTag = new StructTag(AccountAddress.ONE, new Identifier("object"), new Identifier("Object"), []);
+        const typeTagVector = new TypeTagVector(new TypeTagStruct(structTag));
+
+        const deserializer = new Deserializer(stringArray);
+        const data = deserializeArgument([typeTagVector], deserializer);
+        expect(data[0]).toEqual([AccountAddress.ONE.toString()]);
+      });
     });
   });
 });
