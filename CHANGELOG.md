@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
+
 # 1.15.0 (2024-05-21)
 
 - [`Breaking`] Removes private key from the Account class to support MultiKey accounts.
