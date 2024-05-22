@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
+- [`Fix`] CLI scripts to be OS compatible with Mac, Linux and Windows
 
 # 1.15.0 (2024-05-21)
 

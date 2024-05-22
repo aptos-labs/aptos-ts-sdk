@@ -1,5 +1,7 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import kill from "tree-kill";
+import { platform } from "os";
+
 import { sleep } from "../utils/helpers";
 
 export class LocalNode {
@@ -40,7 +42,15 @@ export class LocalNode {
     const cliCommand = "npx";
     const cliArgs = ["aptos", "node", "run-local-testnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 
-    const childProcess = spawn(cliCommand, cliArgs);
+    const currentPlatform = platform();
+    let childProcess;
+    // Check if current OS is windows
+    if (currentPlatform === "win32") {
+      childProcess = spawn(cliCommand, cliArgs, { shell: true });
+    } else {
+      childProcess = spawn(cliCommand, cliArgs);
+    }
+
     this.process = childProcess;
 
     childProcess.stderr?.on("data", (data: any) => {

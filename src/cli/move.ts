@@ -1,4 +1,6 @@
 import { spawn } from "child_process";
+import { platform } from "os";
+
 import { AccountAddress } from "../core";
 import { Network } from "../utils";
 
@@ -114,7 +116,15 @@ export class Move {
   // eslint-disable-next-line class-methods-use-this
   private async runCommand(args: Array<string>): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      const childProcess = spawn("npx", args);
+      const currentPlatform = platform();
+      let childProcess;
+
+      // Check if current OS is windows
+      if (currentPlatform === "win32") {
+        childProcess = spawn("npx", args, { shell: true });
+      } else {
+        childProcess = spawn("npx", args);
+      }
 
       childProcess.stdout.pipe(process.stdout);
       childProcess.stderr.pipe(process.stderr);

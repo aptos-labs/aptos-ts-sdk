@@ -11,9 +11,8 @@ const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
 // Run local node
 async function runLocalNode() {
   const localNode = new cli.LocalNode();
-  localNode.run();
+  await localNode.run();
 }
-runLocalNode();
 
 // initialize current directory for Aptos
 async function init() {
@@ -24,7 +23,6 @@ async function init() {
     profile: "devnet",
   });
 }
-init();
 
 // compile a package
 async function compile() {
@@ -37,7 +35,6 @@ async function compile() {
     },
   });
 }
-compile();
 
 // run Move unit tests for a package
 async function tests() {
@@ -50,7 +47,6 @@ async function tests() {
     },
   });
 }
-tests();
 
 // publishe the modules in a Move package to the Aptos blockchain
 async function publish() {
@@ -63,4 +59,13 @@ async function publish() {
     },
   });
 }
-publish();
+
+async function run() {
+  await runLocalNode();
+  await init();
+  await compile();
+  await tests();
+  await publish();
+}
+
+run();
