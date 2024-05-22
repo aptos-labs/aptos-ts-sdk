@@ -47,9 +47,6 @@ describe("TypeTagParser", () => {
     // Addr isn't a type
     typeTagParserError("addr", TypeTagParserErrorType.InvalidTypeTag);
 
-    // No references
-    typeTagParserError("&address", TypeTagParserErrorType.InvalidTypeTag);
-
     // Standalone generic (with allow generics off)
     typeTagParserError("T1", TypeTagParserErrorType.UnexpectedGenericType);
 
@@ -93,25 +90,26 @@ describe("TypeTagParser", () => {
     // Invalid type tags without arguments
     // TODO: Message could be clearer
     typeTagParserError("0x1::tag::Tag<>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag<,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag<, >", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag< ,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag< , >", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<,>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag<, >", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag< ,>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag< , >", TypeTagParserErrorType.MissingTypeArgument);
     typeTagParserError("0x1::tag::Tag<u8,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
     typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
     typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<u8,>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<,u8>>>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag<,u8>", TypeTagParserErrorType.MissingTypeArgument);
+  });
 
-    // TODO: This should have a better message
-    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<,u8>>>", TypeTagParserErrorType.UnexpectedTypeArgumentClose);
-
-    // TODO: This case isn't caught
-    // typeTagParserError("0x1::tag::Tag<,u8>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+  test("invalid struct types", () => {
+    expect(() => parseTypeTag("notAnAddress::tag::Tag<u8>")).toThrow(TypeTagParserErrorType.InvalidAddress);
+    expect(() => parseTypeTag("0x1::not-a-module::Tag<u8>")).toThrow(TypeTagParserErrorType.InvalidModuleNameCharacter);
+    expect(() => parseTypeTag("0x1::tag::Not-A-Name<u8>")).toThrow(TypeTagParserErrorType.InvalidStructNameCharacter);
   });
 
   test("standard types", () => {
     // TODO: Should we gate signer and &signer similar to how we gate generic?
     expect(parseTypeTag("signer")).toEqual(new TypeTagSigner());
-    expect(parseTypeTag("&signer")).toEqual(new TypeTagReference(new TypeTagSigner()));
     expect(parseTypeTag("u8")).toEqual(new TypeTagU8());
     expect(parseTypeTag("u16")).toEqual(new TypeTagU16());
     expect(parseTypeTag("u32")).toEqual(new TypeTagU32());
@@ -121,6 +119,37 @@ describe("TypeTagParser", () => {
     expect(parseTypeTag("bool")).toEqual(new TypeTagBool());
     expect(parseTypeTag("address")).toEqual(new TypeTagAddress());
   });
+
+  test("standard capitalized types", () => {
+    expect(parseTypeTag("Signer")).toEqual(new TypeTagSigner());
+    expect(parseTypeTag("U8")).toEqual(new TypeTagU8());
+    expect(parseTypeTag("U16")).toEqual(new TypeTagU16());
+    expect(parseTypeTag("U32")).toEqual(new TypeTagU32());
+    expect(parseTypeTag("U64")).toEqual(new TypeTagU64());
+    expect(parseTypeTag("U128")).toEqual(new TypeTagU128());
+    expect(parseTypeTag("U256")).toEqual(new TypeTagU256());
+    expect(parseTypeTag("BOOL")).toEqual(new TypeTagBool());
+    expect(parseTypeTag("Address")).toEqual(new TypeTagAddress());
+  });
+
+  test("extra spacing", () => {
+    expect(parseTypeTag("u8 ")).toEqual(new TypeTagU8());
+    expect(parseTypeTag(" u8")).toEqual(new TypeTagU8());
+    expect(parseTypeTag(" u8 ")).toEqual(new TypeTagU8());
+    expect(parseTypeTag("vector< u8 >")).toEqual(new TypeTagVector(new TypeTagU8()));
+  });
+
+  test("reference types", () => {
+    expect(parseTypeTag("&signer")).toEqual(new TypeTagReference(new TypeTagSigner()));
+    expect(parseTypeTag("&u8")).toEqual(new TypeTagReference(new TypeTagU8()));
+    expect(parseTypeTag("&u16")).toEqual(new TypeTagReference(new TypeTagU16()));
+    expect(parseTypeTag("&u32")).toEqual(new TypeTagReference(new TypeTagU32()));
+    expect(parseTypeTag("&u64")).toEqual(new TypeTagReference(new TypeTagU64()));
+    expect(parseTypeTag("&u128")).toEqual(new TypeTagReference(new TypeTagU128()));
+    expect(parseTypeTag("&u256")).toEqual(new TypeTagReference(new TypeTagU256()));
+    expect(parseTypeTag("&bool")).toEqual(new TypeTagReference(new TypeTagBool()));
+    expect(parseTypeTag("&address")).toEqual(new TypeTagReference(new TypeTagAddress()));
+  });
   test("generic types with allow generics on", () => {
     expect(parseTypeTag("T0", { allowGenerics: true })).toEqual(new TypeTagGeneric(0));
     expect(parseTypeTag("T1", { allowGenerics: true })).toEqual(new TypeTagGeneric(1));
@@ -129,6 +158,7 @@ describe("TypeTagParser", () => {
     expect(parseTypeTag("0x1::tag::Tag<T0, T1>", { allowGenerics: true })).toEqual(
       structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]),
     );
+    expect(parseTypeTag("&T0", { allowGenerics: true })).toEqual(new TypeTagReference(new TypeTagGeneric(0)));
   });
 
   test("outside spacing", () => {
@@ -245,10 +275,23 @@ describe("TypeTagParser", () => {
     );
   });
 
-  /* These are debatable on whether they are valid or not */
-  test.skip("edge case invalid types", () => {
-    // TODO: Do we care about this one?
+  test("Invalid type args", () => {
+    expect(() => parseTypeTag("signer<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("bool<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("address<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u8<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u16<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u32<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u64<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u128<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    expect(() => parseTypeTag("u256<u8>")).toThrow(TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    // TODO: This could be a better message
+    expect(() => parseTypeTag("vector<>")).toThrow(TypeTagParserErrorType.TypeArgumentCountMismatch);
+    expect(() => parseTypeTag("vector<u8, u8>")).toThrow(TypeTagParserErrorType.UnexpectedVectorTypeArgumentCount);
+  });
 
+  /* These are debatable on whether they are valid or not */
+  test("edge case invalid types", () => {
     expect(() => parseTypeTag("0x1::tag::Tag< , u8>")).toThrow();
     expect(() => parseTypeTag("0x1::tag::Tag<,u8>")).toThrow();
   });

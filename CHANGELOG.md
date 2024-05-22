@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- TypeTag parsing now support references, uppercase types, and more complete error handling
+
 # 1.16.0 (2024-05-22)
 
 - Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
