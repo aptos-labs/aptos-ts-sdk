@@ -217,6 +217,10 @@ function parseArg(
     if (isBool(arg)) {
       return new Bool(arg);
     }
+    if (isString(arg)) {
+      if (arg === "true") return new Bool(true);
+      if (arg === "false") return new Bool(false);
+    }
     throwTypeMismatch("boolean", position);
   }
   // TODO: support uint8array?
@@ -230,17 +234,26 @@ function parseArg(
     if (isNumber(arg)) {
       return new U8(arg);
     }
+    if (isString(arg)) {
+      return new U8(Number.parseInt(arg, 10));
+    }
     throwTypeMismatch("number", position);
   }
   if (param.isU16()) {
     if (isNumber(arg)) {
       return new U16(arg);
     }
+    if (isString(arg)) {
+      return new U16(Number.parseInt(arg, 10));
+    }
     throwTypeMismatch("number", position);
   }
   if (param.isU32()) {
     if (isNumber(arg)) {
       return new U32(arg);
+    }
+    if (isString(arg)) {
+      return new U32(Number.parseInt(arg, 10));
     }
     throwTypeMismatch("number", position);
   }

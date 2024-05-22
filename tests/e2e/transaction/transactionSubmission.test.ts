@@ -807,4 +807,25 @@ describe("transaction submission", () => {
       expect(uncreatedAccountInfo.sequence_number).toEqual("1");
     });
   });
+
+  describe("transactions with loose types for SDK v1 compatibility", () => {
+    it("submits transactions with loose types successfully", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: singleSignerED25519SenderAccount.accountAddress,
+        data: {
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: ["1", receiverAccounts[0].accountAddress],
+        },
+      });
+      const response = await aptos.signAndSubmitTransaction({
+        signer: singleSignerED25519SenderAccount,
+        transaction,
+      });
+      const submittedTransaction = await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+
+      expect(submittedTransaction.success).toBe(true);
+    });
+  });
 });
