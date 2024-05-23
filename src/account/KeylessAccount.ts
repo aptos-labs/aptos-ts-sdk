@@ -25,10 +25,11 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import {
   deriveTransactionType,
-  generateSigningMessageForSerializable,
+  generateSigningMessageForBcsCryptoHashable,
 } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { AptosApiError } from "../client/types";
+import { AptsoDomainSeparator, CryptoHashable } from "../bcs/cryptoHasher";
 
 export const IssuerToJwkEndpoint: Record<string, string> = {
   "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
@@ -282,7 +283,7 @@ export class KeylessAccount extends Serializable implements Account {
     }
     const raw = deriveTransactionType(transaction);
     const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
-    const signMess = generateSigningMessageForSerializable(txnAndProof);
+    const signMess = generateSigningMessageForBcsCryptoHashable(txnAndProof);
     return this.sign(signMess);
   }
 
@@ -327,15 +328,18 @@ export class KeylessAccount extends Serializable implements Account {
   }
 }
 
-class TransactionAndProof extends Serializable {
+export class TransactionAndProof extends CryptoHashable {
   transaction: AnyRawTransactionInstance;
 
   proof?: ZkProof;
+
+  domainSeparator: AptsoDomainSeparator;
 
   constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
     super();
     this.transaction = transaction;
     this.proof = proof;
+    this.domainSeparator = "APTOS::TransactionAndProof"
   }
 
   serialize(serializer: Serializer): void {
