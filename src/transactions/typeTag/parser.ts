@@ -21,18 +21,64 @@ import {
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 
+/**
+ * Tells if the string is a valid Move identifier.  It can only be alphanumeric and `_`
+ * @param str
+ */
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);
 }
 
+/**
+ * Tells if the character is a whitespace character.  Does not work for multiple characters
+ * @param char
+ */
 function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
 }
 
+/**
+ * Tells if a type is a generic type from the ABI, this will be of the form T0, T1, ...
+ * @param str
+ */
 function isGeneric(str: string) {
   return !!str.match(/^T[0-9]+$/);
 }
 
+/**
+ * Tells if a type is a reference type (starts with &)
+ * @param str
+ */
+function isRef(str: string) {
+  return !!str.match(/^&.+$/);
+}
+
+/**
+ * Tells if a type is a primitive type
+ * @param str
+ */
+function isPrimitive(str: string) {
+  switch (str) {
+    case "signer":
+    case "address":
+    case "bool":
+    case "u8":
+    case "u16":
+    case "u32":
+    case "u64":
+    case "u128":
+    case "u256":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Consumes all whitespace in a string, similar to trim
+ * @param tagStr
+ * @param pos
+ */
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
   for (; i < tagStr.length; i += 1) {
@@ -46,6 +92,9 @@ function consumeWhitespace(tagStr: string, pos: number) {
   return i;
 }
 
+/**
+ * State for TypeTag parsing.  This is pushed onto a stack to keep track of what is the current state
+ */
 type TypeTagState = {
   savedExpectedTypes: number;
   savedStr: string;
@@ -60,11 +109,13 @@ export enum TypeTagParserErrorType {
   UnexpectedComma = "unexpected ','",
   TypeArgumentCountMismatch = "type argument count doesn't match expected amount",
   MissingTypeArgumentClose = "no matching '>' for '<'",
+  MissingTypeArgument = "no type argument before ','",
   UnexpectedPrimitiveTypeArguments = "primitive types not expected to have type arguments",
   UnexpectedVectorTypeArgumentCount = "vector type expected to have exactly one type argument",
   UnexpectedStructFormat = "unexpected struct format, must be of the form 0xaddress::module_name::struct_name",
   InvalidModuleNameCharacter = "module name must only contain alphanumeric or '_' characters",
   InvalidStructNameCharacter = "struct name must only contain alphanumeric or '_' characters",
+  InvalidAddress = "struct address must be valid",
 }
 
 export class TypeTagParserError extends Error {
@@ -141,16 +192,24 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
       expectedTypes = savedExpectedTypes;
     } else if (char === ",") {
       // Comma means we need to start parsing a new tag, push the previous one to the curTypes
-      // Process last type, if there is no type string, then don't parse it
-      if (currentStr.length !== 0) {
-        const newType = parseTypeTagInner(currentStr, innerTypes, allowGenerics);
 
-        // parse type tag and push it on the types
-        innerTypes = [];
-        curTypes.push(newType);
-        currentStr = "";
-        expectedTypes += 1;
+      // No top level commas (not in a type <> are allowed)
+      if (saved.length === 0) {
+        throw new TypeTagParserError(typeStr, TypeTagParserErrorType.UnexpectedComma);
       }
+      // If there was no actual value before the comma, then it's missing a type argument
+      if (currentStr.length === 0) {
+        throw new TypeTagParserError(typeStr, TypeTagParserErrorType.MissingTypeArgument);
+      }
+
+      // Process characters before as a type
+      const newType = parseTypeTagInner(currentStr, innerTypes, allowGenerics);
+
+      // parse type tag and push it on the types
+      innerTypes = [];
+      curTypes.push(newType);
+      currentStr = "";
+      expectedTypes += 1;
     } else if (isValidWhitespaceCharacter(char)) {
       // This means we should save what we have and everything else should skip until the next
       let parsedTypeTag = false;
@@ -207,59 +266,35 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
  * Parses a type tag with internal types associated
  * @param str
  * @param types
+ * @param allowGenerics allow generic in parsing of the type tag
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
-  // TODO: Parse references to any item not just signer
-  switch (str) {
-    case "&signer":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
-      return new TypeTagReference(new TypeTagSigner());
+  const trimmedStr = str.trim();
+  const lowerCaseTrimmed = trimmedStr.toLowerCase();
+  if (isPrimitive(lowerCaseTrimmed)) {
+    if (types.length > 0) {
+      throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    }
+  }
+
+  switch (trimmedStr.toLowerCase()) {
     case "signer":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagSigner();
     case "bool":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagBool();
     case "address":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagAddress();
     case "u8":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU8();
     case "u16":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU16();
     case "u32":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU32();
     case "u64":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU64();
     case "u128":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU128();
     case "u256":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU256();
     case "vector":
       if (types.length !== 1) {
@@ -267,23 +302,39 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
       return new TypeTagVector(types[0]);
     default:
-      if (isGeneric(str)) {
+      // Reference will have to handle the inner type
+      if (isRef(trimmedStr)) {
+        const actualType = trimmedStr.substring(1);
+        return new TypeTagReference(parseTypeTagInner(actualType, types, allowGenerics));
+      }
+
+      // Generics are always expected to be T0 or T1
+      if (isGeneric(trimmedStr)) {
         if (allowGenerics) {
-          return new TypeTagGeneric(Number(str.split("T")[1]));
+          return new TypeTagGeneric(Number(trimmedStr.split("T")[1]));
         }
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedGenericType);
       }
 
       // If the value doesn't contain a colon, then we'll assume it isn't trying to be a struct
-      if (!str.match(/:/)) {
+      if (!trimmedStr.match(/:/)) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidTypeTag);
       }
 
       // Parse for a struct tag
       // eslint-disable-next-line no-case-declarations
-      const structParts = str.split("::");
+      const structParts = trimmedStr.split("::");
       if (structParts.length !== 3) {
         throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedStructFormat);
+      }
+
+      // Validate struct address
+      // eslint-disable-next-line no-case-declarations
+      let address: AccountAddress;
+      try {
+        address = AccountAddress.fromString(structParts[0]);
+      } catch (error: any) {
+        throw new TypeTagParserError(str, TypeTagParserErrorType.InvalidAddress);
       }
 
       // Validate identifier characters
@@ -295,12 +346,7 @@ function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: bo
       }
 
       return new TypeTagStruct(
-        new StructTag(
-          AccountAddress.fromString(structParts[0]),
-          new Identifier(structParts[1]),
-          new Identifier(structParts[2]),
-          types,
-        ),
+        new StructTag(address, new Identifier(structParts[1]), new Identifier(structParts[2]), types),
       );
   }
 }
