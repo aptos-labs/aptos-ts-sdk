@@ -281,18 +281,11 @@ export async function signAndSubmitTransaction(args: {
     await signer.waitForProofFetch();
   }
   const authenticator = signTransaction({ signer, transaction });
-  try {
-    return await submitTransaction({
-      aptosConfig,
-      transaction,
-      senderAuthenticator: authenticator,
-    });
-  } catch (error) {
-    if (error instanceof AptosApiError && signer instanceof KeylessAccount) {
-      throw await KeylessError.fromAptosApiError(error, signer);
-    }
-    throw error;
-  }
+  return submitTransaction({
+    aptosConfig,
+    transaction,
+    senderAuthenticator: authenticator,
+  });
 }
 
 const packagePublishAbi: EntryFunctionABI = {
