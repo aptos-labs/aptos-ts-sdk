@@ -4,9 +4,12 @@
 import {
   Account,
   Ed25519PrivateKey,
-  generateSigningMessageForSerializable,
+  Serializer,
+  TransactionAndProof,
+  generateSigningMessageForBcsCryptoHashable,
   generateSigningMessageForTransaction,
 } from "../../src";
+import { AptsoDomainSeparator, CryptoHashable } from "../../src/bcs/cryptoHasher";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 
@@ -74,12 +77,27 @@ describe("generateSigningMessage ", () => {
   });
 
   test("generates the proper message for serializable", async () => {
-    const signingMessage = generateSigningMessageForSerializable(alice.publicKey);
+    class TestClass extends CryptoHashable {
+      domainSeparator: AptsoDomainSeparator;
+
+      data: string;
+
+      constructor() {
+        super();
+        this.data = "test";
+        this.domainSeparator = "APTOS::TestClass";
+      }
+
+      serialize(serializer: Serializer): void {
+        serializer.serializeStr(this.data);
+      }
+    }
+
+    const signingMessage = generateSigningMessageForBcsCryptoHashable(new TestClass());
     expect(signingMessage).toEqual(
       new Uint8Array([
-        35, 174, 146, 91, 32, 167, 212, 247, 186, 43, 31, 208, 55, 67, 229, 235, 208, 187, 199, 127, 107, 22, 147, 72,
-        128, 135, 179, 154, 150, 76, 73, 93, 32, 222, 25, 229, 209, 136, 12, 172, 135, 213, 116, 132, 206, 158, 210,
-        232, 76, 240, 249, 89, 159, 18, 231, 204, 58, 82, 228, 231, 101, 122, 118, 63, 44,
+        134, 234, 208, 191, 5, 202, 254, 220, 58, 89, 147, 141, 29, 129, 67, 235, 85, 247, 253, 242, 60, 51, 32, 219,
+        33, 228, 237, 43, 170, 195, 204, 116, 4, 116, 101, 115, 116,
       ]),
     );
   });
