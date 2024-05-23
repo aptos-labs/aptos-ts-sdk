@@ -104,7 +104,6 @@ export function bigIntToBytesLE(value: bigint, length: number): Uint8Array {
   return bytes;
 }
 
-// From chatGPT
 function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uint8Array {
   if (paddedSize < inputArray.length) {
     throw new Error("Padded size must be greater than or equal to the input array size.");

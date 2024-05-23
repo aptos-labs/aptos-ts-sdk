@@ -7,7 +7,6 @@
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
  */
-import { jwtDecode } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
 import { EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof } from "../core";
@@ -21,7 +20,6 @@ export async function getPepper(args: {
   ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
   derivationPath?: string;
-  verify?: boolean;
 }): Promise<Uint8Array> {
   const { aptosConfig, jwt, ephemeralKeyPair, uidKey, derivationPath } = args;
 
@@ -78,16 +76,8 @@ export async function getProof(args: {
     c: proofPoints.c,
   });
 
-  let extraField;
-  if (extraFieldKey) {
-    const jwtPayload = jwtDecode<{ [key: string]: string }>(jwt);
-    const extraFieldVal = jwtPayload[extraFieldKey];
-    extraField = `"${extraFieldKey}":"${extraFieldVal}",`;
-  }
-
   const signedProof = new ZeroKnowledgeSig({
     proof: new ZkProof(groth16Zkp, ZkpVariant.Groth16),
-    extraField,
     trainingWheelsSignature: EphemeralSignature.fromHex(data.training_wheels_signature),
   });
   return signedProof;
