@@ -10,13 +10,11 @@ import {
   AccountAddress,
   Aptos,
   AptosConfig,
-  Ed25519PrivateKey,
   EphemeralKeyPair,
   Network,
 } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
-const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
@@ -47,36 +45,31 @@ const example = async () => {
   const config = new AptosConfig({ network: Network.DEVNET });
   const aptos = new Aptos(config);
 
-  const privateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
-  const expiryDateSecs = BigInt(1721397501);
-  const blinder = new Uint8Array(31);
-  for (let i = 0; i < blinder.length; i += 1) {
-    blinder[i] = 0;
-  }
-  const aliceEphem = new EphemeralKeyPair({ privateKey, expiryDateSecs, blinder });
+  // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
+  const aliceEphem = EphemeralKeyPair.generate();
 
-  console.log();
-  console.log("=== Get token via the below link ===");
-  console.log();
+  console.log("\n=== Keyless Account Example ===\n");
 
   const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=openid&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
-  console.log(link);
-  console.log();
+  console.log(`${link}\n`);
+
+  console.log("1. Open the link above");
+  console.log("2. Log in with your Google account");
+  console.log("3. Click 'Exchange authorization code for tokens");
+  console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT token (or press enter to use default test token): ", {
+    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
       hideEchoBack: false,
     });
     return jwt;
   }
 
   const jwt = inputJwt();
-  const bob = Account.generate();
-
+  // Derive the Keyless Account from the JWT and ephemeral key pair.
   const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
-    pepper: "00000000000000000000000000000000000000000000000000000000000000",
   });
 
   console.log("=== Addresses ===\n");
@@ -84,6 +77,7 @@ const example = async () => {
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
   console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
 
+  const bob = Account.generate();
   console.log(`Bob's address is: ${bob.accountAddress}`);
 
   // Fund the accounts
@@ -106,13 +100,10 @@ const example = async () => {
   const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
   // Transfer between users
-  const transaction = await aptos.transaction.build.simple({
+  const transaction = await aptos.transferCoinTransaction({
     sender: alice.accountAddress,
-    data: {
-      function: "0x1::coin::transfer",
-      typeArguments: [APTOS_COIN],
-      functionArguments: [bob.accountAddress, TRANSFER_AMOUNT],
-    },
+    recipient: bob.accountAddress,
+    amount: TRANSFER_AMOUNT,
   });
 
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
