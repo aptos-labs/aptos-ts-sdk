@@ -21,22 +21,64 @@ import {
 import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 
+/**
+ * Tells if the string is a valid Move identifier.  It can only be alphanumeric and `_`
+ * @param str
+ */
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);
 }
 
+/**
+ * Tells if the character is a whitespace character.  Does not work for multiple characters
+ * @param char
+ */
 function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
 }
 
+/**
+ * Tells if a type is a generic type from the ABI, this will be of the form T0, T1, ...
+ * @param str
+ */
 function isGeneric(str: string) {
   return !!str.match(/^T[0-9]+$/);
 }
 
+/**
+ * Tells if a type is a reference type (starts with &)
+ * @param str
+ */
 function isRef(str: string) {
   return !!str.match(/^&.+$/);
 }
 
+/**
+ * Tells if a type is a primitive type
+ * @param str
+ */
+function isPrimitive(str: string) {
+  switch (str) {
+    case "signer":
+    case "address":
+    case "bool":
+    case "u8":
+    case "u16":
+    case "u32":
+    case "u64":
+    case "u128":
+    case "u256":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Consumes all whitespace in a string, similar to trim
+ * @param tagStr
+ * @param pos
+ */
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
   for (; i < tagStr.length; i += 1) {
@@ -50,6 +92,9 @@ function consumeWhitespace(tagStr: string, pos: number) {
   return i;
 }
 
+/**
+ * State for TypeTag parsing.  This is pushed onto a stack to keep track of what is the current state
+ */
 type TypeTagState = {
   savedExpectedTypes: number;
   savedStr: string;
@@ -225,51 +270,31 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
   const trimmedStr = str.trim();
+  const lowerCaseTrimmed = trimmedStr.toLowerCase();
+  if (isPrimitive(lowerCaseTrimmed)) {
+    if (types.length > 0) {
+      throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
+    }
+  }
+
   switch (trimmedStr.toLowerCase()) {
     case "signer":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagSigner();
     case "bool":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagBool();
     case "address":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagAddress();
     case "u8":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU8();
     case "u16":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU16();
     case "u32":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU32();
     case "u64":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU64();
     case "u128":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU128();
     case "u256":
-      if (types.length > 0) {
-        throw new TypeTagParserError(str, TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments);
-      }
       return new TypeTagU256();
     case "vector":
       if (types.length !== 1) {
