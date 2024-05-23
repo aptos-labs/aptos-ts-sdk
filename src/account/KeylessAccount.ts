@@ -3,7 +3,6 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { JwksClient } from "jwks-rsa";
-import { decode } from "js-base64";
 import EventEmitter from "eventemitter3";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
@@ -30,6 +29,7 @@ import {
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { AptosApiError } from "../client/types";
 import { AptsoDomainSeparator, CryptoHashable } from "../bcs/cryptoHasher";
+import { base64UrlDecode } from "../utils/helpers";
 
 export const IssuerToJwkEndpoint: Record<string, string> = {
   "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
@@ -346,15 +346,6 @@ export class TransactionAndProof extends CryptoHashable {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);
   }
-}
-
-function base64UrlDecode(base64Url: string): string {
-  // Replace base64url-specific characters
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  // Pad the string with '=' characters if needed
-  const paddedBase64 = base64 + "==".substring(0, (3 - (base64.length % 3)) % 3);
-  const decodedString = decode(paddedBase64);
-  return decodedString;
 }
 
 export type ProofFetchSuccess = {

@@ -125,7 +125,8 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Waits for any proofs to be fetched
+   * Waits for any proofs on any KeylessAccount signers to be fetched. If the proof is fetched a syncronously, call this
+   * to ensure signing with the KeylessAccount does not fail as the proof must be ready.
    * @return
    */
   async waitForProofFetch() {

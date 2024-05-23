@@ -12,8 +12,9 @@ import {
 } from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { EphemeralPublicKeyVariant, HexInput } from "../types";
+import { AnyNumber, EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
+import { currentTimeInSeconds, floorToWholeHour } from "../utils/helpers";
 
 export class EphemeralKeyPair extends Serializable {
   static readonly BLINDER_LENGTH: number = 31;
@@ -38,17 +39,17 @@ export class EphemeralKeyPair extends Serializable {
 
   /**
    * A private key used to sign transactions.  This private key is not tied to any account on the chain as it
-   * is ephemeral in nature.
+   * is ephemeral (not permanent) in nature.
    */
   private privateKey: PrivateKey;
 
   /**
    * A public key used to verify transactions.  This public key is not tied to any account on the chain as it
-   * is ephemeral in nature.
+   * is ephemeral (not permanent) in nature.
    */
   private publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: bigint | number; blinder?: HexInput }) {
+  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: AnyNumber; blinder?: HexInput }) {
     super();
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
@@ -122,6 +123,10 @@ export class EphemeralKeyPair extends Serializable {
     return new EphemeralKeyPair({ privateKey, expiryDateSecs: args?.expiryDateSecs });
   }
 
+  /**
+   * From the ephemeral public key, expiry timestamp, and blinder, calculate the nonce to be used at authentication via OIDC.
+   * @returns string
+   */
   private generateNonce(): string {
     const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
     fields.push(BigInt(this.expiryDateSecs));
@@ -132,7 +137,6 @@ export class EphemeralKeyPair extends Serializable {
 
   /**
    * Sign the given message with the private key.
-   *
    * @param data in HexInput format
    * @returns EphemeralSignature
    */
@@ -144,19 +148,10 @@ export class EphemeralKeyPair extends Serializable {
   }
 }
 
+/**
+ * Generates a random byte array of length EphemeralKeyPair.BLINDER_LENGTH
+ * @returns Uint8Array
+ */
 function generateBlinder(): Uint8Array {
   return randomBytes(EphemeralKeyPair.BLINDER_LENGTH);
-}
-
-function currentTimeInSeconds(): number {
-  return Math.floor(new Date().getTime() / 1000);
-}
-
-function floorToWholeHour(timestampInSeconds: number): number {
-  const date = new Date(timestampInSeconds * 1000);
-  // Reset minutes and seconds to zero
-  date.setMinutes(0);
-  date.setSeconds(0);
-  date.setMilliseconds(0);
-  return Math.floor(date.getTime() / 1000);
 }
