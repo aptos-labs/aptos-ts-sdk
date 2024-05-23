@@ -58,5 +58,10 @@ describe("keyless api", () => {
       expect(senderOldBalance - senderNewBalance).toBeGreaterThan(TRANSFER_AMOUNT);
       expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
     });
+    test("serializes and deserializes", async () => {
+      const bytes = keylessAccount.bcsToBytes();
+      const deserializedAccount = KeylessAccount.fromBytes(bytes);
+      expect(bytes).toEqual(deserializedAccount.bcsToBytes());
+    });
   });
 });
