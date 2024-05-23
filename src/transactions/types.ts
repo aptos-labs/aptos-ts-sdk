@@ -69,6 +69,25 @@ export type ScriptFunctionArgumentTypes =
   | FixedBytes;
 
 /**
+ * TypeArgument inputs for Entry functions, view functions, and scripts
+ *
+ * This can be a string version of the type argument such as:
+ * - u8
+ * - u16
+ * - u32
+ * - u64
+ * - u128
+ * - u256
+ * - bool
+ * - address
+ * - signer
+ * - vector<Type>
+ * - address::module::struct
+ * - address::module::struct<Type1, Type2>
+ */
+export type TypeArgument = TypeTag | string;
+
+/**
  * Type that holds all raw transaction instances Aptos SDK supports
  */
 export type AnyRawTransactionInstance = RawTransaction | MultiAgentRawTransaction | FeePayerRawTransaction;
@@ -109,7 +128,7 @@ export type InputGenerateTransactionPayloadDataWithRemoteABI =
  */
 export type InputEntryFunctionData = {
   function: MoveFunctionId;
-  typeArguments?: Array<TypeTag | string>;
+  typeArguments?: Array<TypeArgument>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   abi?: EntryFunctionABI;
 };
@@ -144,7 +163,7 @@ export type InputMultiSigDataWithRemoteABI = {
  */
 export type InputScriptData = {
   bytecode: HexInput;
-  typeArguments?: Array<TypeTag>;
+  typeArguments?: Array<TypeArgument>;
   functionArguments: Array<ScriptFunctionArgumentTypes>;
 };
 
@@ -153,7 +172,7 @@ export type InputScriptData = {
  */
 export type InputViewFunctionData = {
   function: MoveFunctionId;
-  typeArguments?: Array<TypeTag | string>;
+  typeArguments?: Array<TypeArgument>;
   functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   abi?: ViewFunctionABI;
 };
