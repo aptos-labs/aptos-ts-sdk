@@ -32,12 +32,10 @@ describe("keyless api", () => {
       await aptos.faucet.fundAccount({
         accountAddress: keylessAccount.accountAddress,
         amount: FUND_AMOUNT,
-        options: { waitForIndexer: false },
       });
       await aptos.faucet.fundAccount({
         accountAddress: recipient.accountAddress,
         amount: FUND_AMOUNT,
-        options: { waitForIndexer: false },
       });
 
       const senderOldBalance = await balance(aptos, keylessAccount.accountAddress);
