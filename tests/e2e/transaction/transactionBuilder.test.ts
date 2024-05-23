@@ -33,6 +33,7 @@ import {
   fundAccounts,
   multiSignerScriptBytecode,
   publishTransferPackage,
+  TYPED_SCRIPT_TEST,
 } from "./helper";
 
 const { aptos, config } = getAptosClient();
@@ -150,6 +151,40 @@ describe("transaction builder", () => {
           Account.generate().accountAddress,
           new U64(50),
         ],
+      });
+      const rawTxn = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+      });
+      expect(rawTxn instanceof RawTransaction).toBeTruthy();
+      expect(rawTxn.payload instanceof TransactionPayloadScript).toBeTruthy();
+    });
+
+    test("it generates a raw transaction with script payload and string type arguments", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const payload = await generateTransactionPayload({
+        bytecode: TYPED_SCRIPT_TEST,
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        functionArguments: [Account.generate().accountAddress, new U64(50)],
+      });
+      const rawTxn = await generateRawTransaction({
+        aptosConfig: config,
+        sender: alice.accountAddress,
+        payload,
+      });
+      expect(rawTxn instanceof RawTransaction).toBeTruthy();
+      expect(rawTxn.payload instanceof TransactionPayloadScript).toBeTruthy();
+    });
+
+    test("it generates a raw transaction with script payload and typed type arguments", async () => {
+      const alice = Account.generate();
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      const payload = await generateTransactionPayload({
+        bytecode: TYPED_SCRIPT_TEST,
+        typeArguments: [parseTypeTag("0x1::aptos_coin::AptosCoin")],
+        functionArguments: [Account.generate().accountAddress, new U64(50)],
       });
       const rawTxn = await generateRawTransaction({
         aptosConfig: config,

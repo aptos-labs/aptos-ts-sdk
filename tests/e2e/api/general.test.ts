@@ -1,102 +1,36 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosConfig, Aptos, Network, GraphqlQuery, ProcessorType, InputViewFunctionData } from "../../../src";
+import { Network, GraphqlQuery, ProcessorType, InputViewFunctionData } from "../../../src";
 import { getAptosClient } from "../helper";
 
 describe("general api", () => {
+  const { aptos } = getAptosClient();
+
   test("it fetches ledger info", async () => {
-    const { aptos } = getAptosClient();
     const ledgerInfo = await aptos.getLedgerInfo();
     expect(ledgerInfo.chain_id).toBe(4);
   });
 
   test("it fetches chain id", async () => {
-    const { aptos } = getAptosClient();
     const chainId = await aptos.getChainId();
     expect(chainId).toBe(4);
   });
 
   test("it fetches block data by block height", async () => {
-    const { aptos } = getAptosClient();
     const blockHeight = 1;
     const blockData = await aptos.getBlockByHeight({ blockHeight });
     expect(blockData.block_height).toBe(blockHeight.toString());
   });
 
   test("it fetches block data by block version", async () => {
-    const { aptos } = getAptosClient();
     const blockVersion = 1;
     const blockData = await aptos.getBlockByVersion({ ledgerVersion: blockVersion });
     expect(blockData.block_height).toBe(blockVersion.toString());
   });
 
-  test("it fetches table item data", async () => {
-    const { aptos } = getAptosClient();
-    type Supply = {
-      supply: {
-        vec: [
-          {
-            aggregator: {
-              vec: [{ handle: string; key: string }];
-            };
-          },
-        ];
-      };
-    };
-    const resource = await aptos.getAccountResource<Supply>({
-      accountAddress: "0x1",
-      resourceType: "0x1::coin::CoinInfo<0x1::aptos_coin::AptosCoin>",
-    });
-
-    const { handle, key } = resource.supply.vec[0].aggregator.vec[0];
-
-    const supply = await aptos.getTableItem<string>({
-      handle,
-      data: {
-        key_type: "address",
-        value_type: "u128",
-        key,
-      },
-    });
-    expect(parseInt(supply, 10)).toBeGreaterThan(0);
-  });
-
-  test("it fetches data with a custom graphql query", async () => {
-    const config = new AptosConfig({ network: Network.TESTNET });
-    const aptos = new Aptos(config);
-
-    const query: GraphqlQuery = {
-      query: `query MyQuery {
-        ledger_infos {
-          chain_id
-        }
-      }`,
-    };
-
-    const chainId = await aptos.queryIndexer<{
-      ledger_infos: [
-        {
-          chain_id: number;
-        },
-      ];
-    }>({ query });
-
-    expect(chainId.ledger_infos[0].chain_id).toBe(2);
-  });
-
-  test("it should fetch chain top user transactions", async () => {
-    const config = new AptosConfig({ network: Network.TESTNET });
-    const aptos = new Aptos(config);
-
-    const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 3 });
-    expect(topUserTransactions.length).toEqual(3);
-  });
-
   describe("View functions", () => {
     test("it fetches view function data", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
@@ -107,8 +41,6 @@ describe("general api", () => {
     });
 
     test("it fetches view function with a type", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::chain_id::get",
       };
@@ -119,8 +51,6 @@ describe("general api", () => {
     });
 
     test("it fetches view function with bool", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::account::exists_at",
         functionArguments: ["0x1"],
@@ -141,8 +71,6 @@ describe("general api", () => {
     });
 
     test("it fetches view function with address input and different output types", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x1"],
@@ -163,8 +91,6 @@ describe("general api", () => {
     });
 
     test("it fetches view functions with generics", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::coin::symbol",
         typeArguments: ["0x1::aptos_coin::AptosCoin"],
@@ -192,8 +118,6 @@ describe("general api", () => {
     });
 
     test("view functions that fail in the VM fail here", async () => {
-      const { aptos } = getAptosClient();
-
       const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
         functionArguments: ["0x123456"],
@@ -204,9 +128,35 @@ describe("general api", () => {
   });
 
   test("it should get the processor statuses for one", async () => {
-    const { aptos } = getAptosClient();
-
     const processor = await aptos.getProcessorStatus(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
     expect(processor.processor).toEqual(ProcessorType.ACCOUNT_TRANSACTION_PROCESSOR);
+  });
+});
+
+describe("general api (requires testnet)", () => {
+  const { aptos } = getAptosClient({ network: Network.TESTNET });
+  test("it fetches data with a custom graphql query", async () => {
+    const query: GraphqlQuery = {
+      query: `query MyQuery {
+        ledger_infos {
+          chain_id
+        }
+      }`,
+    };
+
+    const chainId = await aptos.queryIndexer<{
+      ledger_infos: [
+        {
+          chain_id: number;
+        },
+      ];
+    }>({ query });
+
+    expect(chainId.ledger_infos[0].chain_id).toBe(2);
+  });
+
+  test("it should fetch chain top user transactions", async () => {
+    const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 3 });
+    expect(topUserTransactions.length).toEqual(3);
   });
 });

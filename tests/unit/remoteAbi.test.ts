@@ -52,6 +52,21 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(MAX_U256.toString(), parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U256));
     });
 
+    // This test is for backward compatibility with the SDK V1 to generate transactions with loose types
+    it("should parse primitive types for sdk v1 compatibility", () => {
+      // boolean as a string
+      expect(checkOrConvertArgument("true", parseTypeTag("bool"), 0, [])).toEqual(new Bool(true));
+      expect(checkOrConvertArgument("false", parseTypeTag("bool"), 0, [])).toEqual(new Bool(false));
+
+      // integers as strings
+      expect(checkOrConvertArgument("255", parseTypeTag("u8"), 0, [])).toEqual(new U8(MAX_U8));
+      expect(checkOrConvertArgument("65535", parseTypeTag("u16"), 0, [])).toEqual(new U16(MAX_U16));
+      expect(checkOrConvertArgument("255", parseTypeTag("u32"), 0, [])).toEqual(new U32(MAX_U8));
+      expect(checkOrConvertArgument("255", parseTypeTag("u64"), 0, [])).toEqual(new U64(MAX_U8));
+      expect(checkOrConvertArgument("255", parseTypeTag("u128"), 0, [])).toEqual(new U128(MAX_U8));
+      expect(checkOrConvertArgument("255", parseTypeTag("u256"), 0, [])).toEqual(new U256(MAX_U8));
+    });
+
     it("should parse a typed arguments", () => {
       expect(checkOrConvertArgument(AccountAddress.ONE, parseTypeTag("address"), 0, [])).toEqual(AccountAddress.ONE);
       expect(checkOrConvertArgument(new Bool(true), parseTypeTag("bool"), 0, [])).toEqual(new Bool(true));

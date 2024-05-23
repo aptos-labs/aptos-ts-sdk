@@ -4,11 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- [`Breaking`] Removes private key from the Account class to support MultiKey accounts.
-- [`Breaking`] Removes the `sign` function from transactionBuilder.ts.  Use `Account.signTransactionWithAuthenticator` instead.
-- Refactors the core/accounts folder to the top level
-- Separates the signing message functionality out of the transactionSubmission.ts file
-- Adds an Account implementation for MultiKey accounts
+- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.7`
+- Introduce `table` function APIs
+- Add `getTableItemsData` and `getTableItemsMetadata` API queries
+- Add `decimal` prop back to `current_token_ownerships_v2.current_token_data` response
 - Adds Keyless Account support
 
 # 1.14.0 (2024-05-09)

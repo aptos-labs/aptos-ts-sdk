@@ -47,8 +47,8 @@
     "update-version": "scripts/updateVersion.sh && pnpm doc"
   },
   "dependencies": {
-    "@aptos-labs/aptos-cli": "^0.1.2",
     "@aptos-labs/aptos-client": "^0.1.0",
+    "@aptos-labs/aptos-cli": "^0.1.2",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
@@ -93,5 +93,5 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.3.3"
   },
-  "version": "1.14.0"
+  "version": "1.16.0"
 }

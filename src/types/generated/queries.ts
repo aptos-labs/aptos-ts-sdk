@@ -389,6 +389,37 @@ export const GetProcessorStatus = `
   }
 }
     `;
+export const GetTableItemsData = `
+    query getTableItemsData($where_condition: table_items_bool_exp!, $offset: Int, $limit: Int, $order_by: [table_items_order_by!]) {
+  table_items(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    decoded_key
+    decoded_value
+    key
+    table_handle
+    transaction_version
+    write_set_change_index
+  }
+}
+    `;
+export const GetTableItemsMetadata = `
+    query getTableItemsMetadata($where_condition: table_metadatas_bool_exp!, $offset: Int, $limit: Int, $order_by: [table_metadatas_order_by!]) {
+  table_metadatas(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    handle
+    key_type
+    value_type
+  }
+}
+    `;
 export const GetTokenActivity = `
     query getTokenActivity($where_condition: token_activities_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [token_activities_v2_order_by!]) {
   token_activities_v2(
@@ -724,6 +755,34 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
+        "query",
+      );
+    },
+    getTableItemsData(
+      variables: Types.GetTableItemsDataQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetTableItemsDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTableItemsDataQuery>(GetTableItemsData, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTableItemsData",
+        "query",
+      );
+    },
+    getTableItemsMetadata(
+      variables: Types.GetTableItemsMetadataQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetTableItemsMetadataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetTableItemsMetadataQuery>(GetTableItemsMetadata, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getTableItemsMetadata",
         "query",
       );
     },

@@ -29,6 +29,8 @@ import {
   APTOS_COIN,
 } from "../../src";
 
+const TAG_STRUCT_NAME = "0x1::tag::Tag";
+
 const MODULE_NAME = new Identifier("tag");
 const STRUCT_NAME = new Identifier("Tag");
 
@@ -39,6 +41,60 @@ const typeTagParserError = (str: string, errorType: TypeTagParserErrorType, subS
   expect(() => parseTypeTag(str)).toThrow(new TypeTagParserError(subStr ?? str, errorType));
 };
 
+/**
+ * These types are primitives, and we ignore casing on them
+ */
+const primitives = [
+  { str: "signer", type: new TypeTagSigner() },
+  { str: "address", type: new TypeTagAddress() },
+  { str: "bool", type: new TypeTagBool() },
+  { str: "u8", type: new TypeTagU8() },
+  { str: "u16", type: new TypeTagU16() },
+  { str: "u32", type: new TypeTagU32() },
+  { str: "u64", type: new TypeTagU64() },
+  { str: "u128", type: new TypeTagU128() },
+  { str: "u256", type: new TypeTagU256() },
+];
+
+/**
+ * Known struct types without inner arguments
+ */
+const structTypes = [
+  { str: "0x1::string::String", type: new TypeTagStruct(stringStructTag()) },
+  { str: APTOS_COIN, type: new TypeTagStruct(aptosCoinStructTag()) },
+  { str: "0x1::option::Option<u8>", type: new TypeTagStruct(optionStructTag(new TypeTagU8())) },
+  { str: "0x1::object::Object<u8>", type: new TypeTagStruct(objectStructTag(new TypeTagU8())) },
+  { str: TAG_STRUCT_NAME, type: structTagType() },
+  { str: `${TAG_STRUCT_NAME}<u8>`, type: structTagType([new TypeTagU8()]) },
+  { str: `${TAG_STRUCT_NAME}<u8, u8>`, type: structTagType([new TypeTagU8(), new TypeTagU8()]) },
+  { str: `${TAG_STRUCT_NAME}<u64, u8>`, type: structTagType([new TypeTagU64(), new TypeTagU8()]) },
+  {
+    str: `${TAG_STRUCT_NAME}<${TAG_STRUCT_NAME}<u8>, u8>`,
+    type: structTagType([structTagType([new TypeTagU8()]), new TypeTagU8()]),
+  },
+  {
+    str: `${TAG_STRUCT_NAME}<u8, ${TAG_STRUCT_NAME}<u8>>`,
+    type: structTagType([new TypeTagU8(), structTagType([new TypeTagU8()])]),
+  },
+];
+
+/**
+ * Some examples with generics
+ */
+const generics = [
+  { str: "T0", type: new TypeTagGeneric(0) },
+  { str: "T1", type: new TypeTagGeneric(1) },
+  { str: "T1337", type: new TypeTagGeneric(1337) },
+  { str: `${TAG_STRUCT_NAME}<T0>`, type: structTagType([new TypeTagGeneric(0)]) },
+  { str: `${TAG_STRUCT_NAME}<T0, T1>`, type: structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]) },
+];
+
+/**
+ * These types have no inner types
+ */
+const combinedTypes = [...primitives, ...structTypes];
+const combinedTypesWithGeneric = [...primitives, ...structTypes, ...generics];
+
 describe("TypeTagParser", () => {
   test("invalid types", () => {
     // Missing 8
@@ -46,9 +102,6 @@ describe("TypeTagParser", () => {
 
     // Addr isn't a type
     typeTagParserError("addr", TypeTagParserErrorType.InvalidTypeTag);
-
-    // No references
-    typeTagParserError("&address", TypeTagParserErrorType.InvalidTypeTag);
 
     // Standalone generic (with allow generics off)
     typeTagParserError("T1", TypeTagParserErrorType.UnexpectedGenericType);
@@ -93,144 +146,99 @@ describe("TypeTagParser", () => {
     // Invalid type tags without arguments
     // TODO: Message could be clearer
     typeTagParserError("0x1::tag::Tag<>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag<,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag<, >", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag< ,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
-    typeTagParserError("0x1::tag::Tag< , >", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<,>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag<, >", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag< ,>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag< , >", TypeTagParserErrorType.MissingTypeArgument);
     typeTagParserError("0x1::tag::Tag<u8,>", TypeTagParserErrorType.TypeArgumentCountMismatch);
     typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
     typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<u8,>>>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<,u8>>>", TypeTagParserErrorType.MissingTypeArgument);
+    typeTagParserError("0x1::tag::Tag<,u8>", TypeTagParserErrorType.MissingTypeArgument);
+  });
 
-    // TODO: This should have a better message
-    typeTagParserError("0x1::tag::Tag<0x1::tag::Tag<,u8>>>", TypeTagParserErrorType.UnexpectedTypeArgumentClose);
-
-    // TODO: This case isn't caught
-    // typeTagParserError("0x1::tag::Tag<,u8>", TypeTagParserErrorType.TypeArgumentCountMismatch);
+  test("invalid struct types", () => {
+    expect(() => parseTypeTag("notAnAddress::tag::Tag<u8>")).toThrow(TypeTagParserErrorType.InvalidAddress);
+    expect(() => parseTypeTag("0x1::not-a-module::Tag<u8>")).toThrow(TypeTagParserErrorType.InvalidModuleNameCharacter);
+    expect(() => parseTypeTag("0x1::tag::Not-A-Name<u8>")).toThrow(TypeTagParserErrorType.InvalidStructNameCharacter);
   });
 
   test("standard types", () => {
-    // TODO: Should we gate signer and &signer similar to how we gate generic?
-    expect(parseTypeTag("signer")).toEqual(new TypeTagSigner());
-    expect(parseTypeTag("&signer")).toEqual(new TypeTagReference(new TypeTagSigner()));
-    expect(parseTypeTag("u8")).toEqual(new TypeTagU8());
-    expect(parseTypeTag("u16")).toEqual(new TypeTagU16());
-    expect(parseTypeTag("u32")).toEqual(new TypeTagU32());
-    expect(parseTypeTag("u64")).toEqual(new TypeTagU64());
-    expect(parseTypeTag("u128")).toEqual(new TypeTagU128());
-    expect(parseTypeTag("u256")).toEqual(new TypeTagU256());
-    expect(parseTypeTag("bool")).toEqual(new TypeTagBool());
-    expect(parseTypeTag("address")).toEqual(new TypeTagAddress());
-  });
-  test("generic types with allow generics on", () => {
-    expect(parseTypeTag("T0", { allowGenerics: true })).toEqual(new TypeTagGeneric(0));
-    expect(parseTypeTag("T1", { allowGenerics: true })).toEqual(new TypeTagGeneric(1));
-    expect(parseTypeTag("T1337", { allowGenerics: true })).toEqual(new TypeTagGeneric(1337));
-    expect(parseTypeTag("vector<T0>", { allowGenerics: true })).toEqual(new TypeTagVector(new TypeTagGeneric(0)));
-    expect(parseTypeTag("0x1::tag::Tag<T0, T1>", { allowGenerics: true })).toEqual(
-      structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]),
-    );
+    for (let i = 0; i < combinedTypes.length; i += 1) {
+      const combinedType = combinedTypes[i];
+      expect(parseTypeTag(combinedType.str)).toEqual(combinedType.type);
+      expect(parseTypeTag(` ${combinedType.str}`)).toEqual(combinedType.type);
+      expect(parseTypeTag(`${combinedType.str} `)).toEqual(combinedType.type);
+      expect(parseTypeTag(` ${combinedType.str} `)).toEqual(combinedType.type);
+    }
   });
 
-  test("outside spacing", () => {
-    expect(parseTypeTag(" address")).toEqual(new TypeTagAddress());
-    expect(parseTypeTag("address ")).toEqual(new TypeTagAddress());
-    expect(parseTypeTag(" address ")).toEqual(new TypeTagAddress());
+  test("capitalized primitive types", () => {
+    for (let i = 0; i < primitives.length; i += 1) {
+      const primitive = primitives[i];
+      expect(parseTypeTag(primitive.str.toUpperCase())).toEqual(primitive.type);
+    }
+  });
+
+  test("reference types", () => {
+    for (let i = 0; i < combinedTypes.length; i += 1) {
+      const combinedType = combinedTypes[i];
+      expect(parseTypeTag(`&${combinedType.str}`)).toEqual(new TypeTagReference(combinedType.type));
+    }
+  });
+
+  test("generic types with allow generics on", () => {
+    for (let i = 0; i < combinedTypesWithGeneric.length; i += 1) {
+      const combinedType = combinedTypesWithGeneric[i];
+      expect(parseTypeTag(combinedType.str, { allowGenerics: true })).toEqual(combinedType.type);
+      expect(parseTypeTag(`&${combinedType.str}`, { allowGenerics: true })).toEqual(
+        new TypeTagReference(combinedType.type),
+      );
+      expect(parseTypeTag(`vector<${combinedType.str}>`, { allowGenerics: true })).toEqual(
+        new TypeTagVector(combinedType.type),
+      );
+      expect(parseTypeTag(`0x1::tag::Tag<${combinedType.str}, ${combinedType.str}>`, { allowGenerics: true })).toEqual(
+        structTagType([combinedType.type, combinedType.type]),
+      );
+    }
   });
 
   test("vector", () => {
-    expect(parseTypeTag("vector<u8>")).toEqual(new TypeTagVector(new TypeTagU8()));
-    expect(parseTypeTag("vector<u16>")).toEqual(new TypeTagVector(new TypeTagU16()));
-    expect(parseTypeTag("vector<u32>")).toEqual(new TypeTagVector(new TypeTagU32()));
-    expect(parseTypeTag("vector<u64>")).toEqual(new TypeTagVector(new TypeTagU64()));
-    expect(parseTypeTag("vector<u128>")).toEqual(new TypeTagVector(new TypeTagU128()));
-    expect(parseTypeTag("vector<u256>")).toEqual(new TypeTagVector(new TypeTagU256()));
-    expect(parseTypeTag("vector<bool>")).toEqual(new TypeTagVector(new TypeTagBool()));
-    expect(parseTypeTag("vector<address>")).toEqual(new TypeTagVector(new TypeTagAddress()));
-    expect(parseTypeTag("vector<0x1::string::String>")).toEqual(
-      new TypeTagVector(new TypeTagStruct(stringStructTag())),
-    );
+    for (let i = 0; i < combinedTypes.length; i += 1) {
+      const combinedType = combinedTypes[i];
+      expect(parseTypeTag(`vector<${combinedType.str}>`)).toEqual(new TypeTagVector(combinedType.type));
+      expect(parseTypeTag(`vector< ${combinedType.str}>`)).toEqual(new TypeTagVector(combinedType.type));
+      expect(parseTypeTag(`vector<${combinedType.str} >`)).toEqual(new TypeTagVector(combinedType.type));
+      expect(parseTypeTag(`vector< ${combinedType.str} >`)).toEqual(new TypeTagVector(combinedType.type));
+    }
   });
 
   test("nested vector", () => {
-    expect(parseTypeTag("vector<vector<u8>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU8())));
-    expect(parseTypeTag("vector<vector<u16>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU16())));
-    expect(parseTypeTag("vector<vector<u32>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU32())));
-    expect(parseTypeTag("vector<vector<u64>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU64())));
-    expect(parseTypeTag("vector<vector<u128>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU128())));
-    expect(parseTypeTag("vector<vector<u256>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagU256())));
-    expect(parseTypeTag("vector<vector<bool>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagBool())));
-    expect(parseTypeTag("vector<vector<address>>")).toEqual(new TypeTagVector(new TypeTagVector(new TypeTagAddress())));
-    expect(parseTypeTag("vector<vector<0x1::string::String>>")).toEqual(
-      new TypeTagVector(new TypeTagVector(new TypeTagStruct(stringStructTag()))),
-    );
-  });
-
-  test("aptos coin", () => {
-    const aptosCoin = new TypeTagStruct(aptosCoinStructTag());
-    expect(parseTypeTag("0x1::aptos_coin::AptosCoin")).toEqual(aptosCoin);
-    expect(parseTypeTag(APTOS_COIN)).toEqual(aptosCoin);
-  });
-
-  test("string", () => {
-    expect(parseTypeTag("0x1::string::String")).toEqual(new TypeTagStruct(stringStructTag()));
+    for (let i = 0; i < combinedTypes.length; i += 1) {
+      const combinedType = combinedTypes[i];
+      expect(parseTypeTag(`vector<vector<${combinedType.str}>>`)).toEqual(
+        new TypeTagVector(new TypeTagVector(combinedType.type)),
+      );
+    }
   });
 
   test("object", () => {
-    expect(parseTypeTag("0x1::object::Object<0x1::tag::Tag>")).toEqual(
-      new TypeTagStruct(objectStructTag(structTagType())),
-    );
-    expect(parseTypeTag("0x1::object::Object<0x1::tag::Tag<u8>>")).toEqual(
-      new TypeTagStruct(objectStructTag(structTagType([new TypeTagU8()]))),
-    );
+    // TODO: Do we block primitives from object type?  Technically it isn't possible
+    for (let i = 0; i < structTypes.length; i += 1) {
+      const structType = structTypes[i];
+      expect(parseTypeTag(`0x1::object::Object<${structType.str}>`)).toEqual(
+        new TypeTagStruct(objectStructTag(structType.type)),
+      );
+    }
   });
 
   test("option", () => {
-    expect(parseTypeTag("0x1::option::Option<0x1::tag::Tag>")).toEqual(
-      new TypeTagStruct(optionStructTag(structTagType())),
-    );
-    expect(parseTypeTag("0x1::option::Option<0x1::tag::Tag<u8>>")).toEqual(
-      new TypeTagStruct(optionStructTag(structTagType([new TypeTagU8()]))),
-    );
-  });
-
-  test("0x1::tag::Tag", () => {
-    expect(parseTypeTag("0x1::tag::Tag")).toEqual(structTagType());
-  });
-
-  test("0x1::tag::Tag<u8>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<u8>")).toEqual(structTagType([new TypeTagU8()]));
-  });
-
-  test("0x1::tag::Tag<u8,u64>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<u8,u64>")).toEqual(structTagType([new TypeTagU8(), new TypeTagU64()]));
-  });
-
-  test("0x1::tag::Tag<u8,  u8>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<u8,  u8>")).toEqual(structTagType([new TypeTagU8(), new TypeTagU8()]));
-  });
-
-  test("0x1::tag::Tag<  u8,u8>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<  u8,u8>")).toEqual(structTagType([new TypeTagU8(), new TypeTagU8()]));
-  });
-
-  test("0x1::tag::Tag<u8,u8  >", () => {
-    expect(parseTypeTag("0x1::tag::Tag<u8,u8  >")).toEqual(structTagType([new TypeTagU8(), new TypeTagU8()]));
-  });
-
-  test("0x1::tag::Tag<0x1::tag::Tag<u8>>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<0x1::tag::Tag<u8>>")).toEqual(structTagType([structTagType([new TypeTagU8()])]));
-  });
-
-  test("0x1::tag::Tag<0x1::tag::Tag<u8, u8>>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<0x1::tag::Tag<u8, u8>>")).toEqual(
-      structTagType([structTagType([new TypeTagU8(), new TypeTagU8()])]),
-    );
-  });
-
-  test("0x1::tag::Tag<u8, 0x1::tag::Tag<u8>>", () => {
-    expect(parseTypeTag("0x1::tag::Tag<u8, 0x1::tag::Tag<u8>>")).toEqual(
-      structTagType([new TypeTagU8(), structTagType([new TypeTagU8()])]),
-    );
+    for (let i = 0; i < combinedTypes.length; i += 1) {
+      const combinedType = combinedTypes[i];
+      expect(parseTypeTag(`0x1::option::Option<${combinedType.str}>`)).toEqual(
+        new TypeTagStruct(optionStructTag(combinedType.type)),
+      );
+    }
   });
 
   test("0x1::tag::Tag<0x1::tag::Tag<u8>, u8>", () => {
@@ -245,22 +253,21 @@ describe("TypeTagParser", () => {
     );
   });
 
-  /* These are debatable on whether they are valid or not */
-  test.skip("edge case invalid types", () => {
-    // TODO: Do we care about this one?
-
-    expect(() => parseTypeTag("0x1::tag::Tag< , u8>")).toThrow();
-    expect(() => parseTypeTag("0x1::tag::Tag<,u8>")).toThrow();
+  test("Invalid type args", () => {
+    for (let i = 0; i < primitives.length; i += 1) {
+      const primitiveType = primitives[i];
+      expect(() => parseTypeTag(`${primitiveType.str}<u8>`)).toThrow(
+        TypeTagParserErrorType.UnexpectedPrimitiveTypeArguments,
+      );
+    }
+    // TODO: This could be a better message
+    expect(() => parseTypeTag("vector<>")).toThrow(TypeTagParserErrorType.TypeArgumentCountMismatch);
+    expect(() => parseTypeTag("vector<u8, u8>")).toThrow(TypeTagParserErrorType.UnexpectedVectorTypeArgumentCount);
   });
 
-  /* These need to be supported for ABI parsing */
-  test("struct with generic", () => {
-    expect(parseTypeTag("0x1::tag::Tag<T0>", { allowGenerics: true })).toEqual(structTagType([new TypeTagGeneric(0)]));
-    expect(parseTypeTag("0x1::tag::Tag<T0, T1>", { allowGenerics: true })).toEqual(
-      structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]),
-    );
-    expect(parseTypeTag("0x1::tag::Tag<0x1::tag::Tag<T0, T1>, T2>", { allowGenerics: true })).toEqual(
-      structTagType([structTagType([new TypeTagGeneric(0), new TypeTagGeneric(1)]), new TypeTagGeneric(2)]),
-    );
+  /* These are debatable on whether they are valid or not */
+  test("edge case invalid types", () => {
+    expect(() => parseTypeTag("0x1::tag::Tag< , u8>")).toThrow();
+    expect(() => parseTypeTag("0x1::tag::Tag<,u8>")).toThrow();
   });
 });

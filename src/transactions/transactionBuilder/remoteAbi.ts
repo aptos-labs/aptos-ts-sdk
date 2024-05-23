@@ -10,6 +10,7 @@ import {
   EntryFunctionABI,
   ViewFunctionABI,
   FunctionABI,
+  TypeArgument,
 } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
@@ -40,9 +41,9 @@ const TEXT_ENCODER = new TextEncoder();
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags
  */
-export function standardizeTypeTags(typeArguments?: Array<TypeTag | string>): Array<TypeTag> {
+export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<TypeTag> {
   return (
-    typeArguments?.map((typeArg: string | TypeTag): TypeTag => {
+    typeArguments?.map((typeArg: TypeArgument): TypeTag => {
       // Convert to TypeTag if it's a string representation
       if (isString(typeArg)) {
         return parseTypeTag(typeArg);
@@ -217,6 +218,10 @@ function parseArg(
     if (isBool(arg)) {
       return new Bool(arg);
     }
+    if (isString(arg)) {
+      if (arg === "true") return new Bool(true);
+      if (arg === "false") return new Bool(false);
+    }
     throwTypeMismatch("boolean", position);
   }
   // TODO: support uint8array?
@@ -230,17 +235,26 @@ function parseArg(
     if (isNumber(arg)) {
       return new U8(arg);
     }
+    if (isString(arg)) {
+      return new U8(Number.parseInt(arg, 10));
+    }
     throwTypeMismatch("number", position);
   }
   if (param.isU16()) {
     if (isNumber(arg)) {
       return new U16(arg);
     }
+    if (isString(arg)) {
+      return new U16(Number.parseInt(arg, 10));
+    }
     throwTypeMismatch("number", position);
   }
   if (param.isU32()) {
     if (isNumber(arg)) {
       return new U32(arg);
+    }
+    if (isString(arg)) {
+      return new U32(Number.parseInt(arg, 10));
     }
     throwTypeMismatch("number", position);
   }

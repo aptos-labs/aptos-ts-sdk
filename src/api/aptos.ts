@@ -12,6 +12,7 @@ import { General } from "./general";
 import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
+import { Table } from "./table";
 import { Keyless } from "./keyless";
 
 /**
@@ -48,6 +49,8 @@ export class Aptos {
 
   readonly transaction: Transaction;
 
+  readonly table: Table;
+
   readonly keyless: Keyless;
 
   constructor(settings?: AptosConfig) {
@@ -62,6 +65,7 @@ export class Aptos {
     this.general = new General(this.config);
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
+    this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
   }
 }
@@ -79,6 +83,7 @@ export interface Aptos
     General,
     Keyless,
     Staking,
+    Table,
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
@@ -112,4 +117,5 @@ applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
+applyMixin(Aptos, Table, "table");
 applyMixin(Aptos, Keyless, "keyless");

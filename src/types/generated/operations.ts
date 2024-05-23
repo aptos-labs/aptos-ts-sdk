@@ -535,6 +535,35 @@ export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
 };
 
+export type GetTableItemsDataQueryVariables = Types.Exact<{
+  where_condition: Types.TableItemsBoolExp;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  order_by?: Types.InputMaybe<Array<Types.TableItemsOrderBy> | Types.TableItemsOrderBy>;
+}>;
+
+export type GetTableItemsDataQuery = {
+  table_items: Array<{
+    decoded_key: any;
+    decoded_value?: any | null;
+    key: string;
+    table_handle: string;
+    transaction_version: any;
+    write_set_change_index: any;
+  }>;
+};
+
+export type GetTableItemsMetadataQueryVariables = Types.Exact<{
+  where_condition: Types.TableMetadatasBoolExp;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  order_by?: Types.InputMaybe<Array<Types.TableMetadatasOrderBy> | Types.TableMetadatasOrderBy>;
+}>;
+
+export type GetTableItemsMetadataQuery = {
+  table_metadatas: Array<{ handle: string; key_type: string; value_type: string }>;
+};
+
 export type GetTokenActivityQueryVariables = Types.Exact<{
   where_condition: Types.TokenActivitiesV2BoolExp;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;

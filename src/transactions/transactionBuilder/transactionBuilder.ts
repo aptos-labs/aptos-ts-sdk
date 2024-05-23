@@ -222,7 +222,11 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
 
 function generateTransactionPayloadScript(args: InputScriptData) {
   return new TransactionPayloadScript(
-    new Script(Hex.fromHexInput(args.bytecode).toUint8Array(), args.typeArguments ?? [], args.functionArguments),
+    new Script(
+      Hex.fromHexInput(args.bytecode).toUint8Array(),
+      standardizeTypeTags(args.typeArguments),
+      args.functionArguments,
+    ),
   );
 }
 
