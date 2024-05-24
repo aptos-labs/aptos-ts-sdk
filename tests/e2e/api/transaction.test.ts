@@ -119,4 +119,63 @@ describe("transaction api", () => {
       expect(transaction).toStrictEqual(txn);
     });
   });
+
+  describe("block APIs", () => {
+    test("it fetches block data by block height", async () => {
+      const blockHeight = 1;
+      const blockData = await aptos.getBlockByHeight({ blockHeight });
+      expect(blockData.block_height).toBe(blockHeight.toString());
+      expect(blockData.transactions).toBe(null);
+    });
+
+    test("it fetches block data by block height with transactions", async () => {
+      const info = await aptos.getLedgerInfo();
+      const blockHeight = BigInt(info.block_height);
+      const blockData = await aptos.getBlockByHeight({ blockHeight, options: { withTransactions: true } });
+      expect(blockData.block_height).toBe(blockHeight.toString());
+      const length = BigInt(blockData.transactions?.length ?? 0);
+
+      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as any).version));
+      // Check that every exists
+      for (let i = 0; i < txnVersions.length - 1; i += 1) {
+        expect(txnVersions[i]).toBe(txnVersions[i + 1] - 1n);
+      }
+
+      // Check the borders
+      expect(txnVersions[0]).toBe(BigInt(blockData.first_version));
+      expect(txnVersions[txnVersions.length - 1]).toBe(BigInt(blockData.last_version));
+
+      // Check the length
+      const expectedLength = BigInt(blockData.last_version) - BigInt(blockData.first_version) + 1n;
+      expect(length).toBe(expectedLength);
+    });
+
+    test("it fetches block data by block version", async () => {
+      const blockVersion = 1;
+      const blockData = await aptos.getBlockByVersion({ ledgerVersion: blockVersion });
+      expect(blockData.block_height).toBe(blockVersion.toString());
+    });
+
+    test("it fetches block data by block version with transactions", async () => {
+      const info = await aptos.getLedgerInfo();
+      const ledgerVersion = BigInt(info.ledger_version);
+      const blockData = await aptos.getBlockByVersion({ ledgerVersion, options: { withTransactions: true } });
+      expect(blockData.block_height).toBe(info.block_height.toString());
+      const length = BigInt(blockData.transactions?.length ?? 0);
+
+      const txnVersions = blockData.transactions!.map((txn) => BigInt((txn as any).version));
+      // Check that every exists
+      for (let i = 0; i < txnVersions.length - 1; i += 1) {
+        expect(txnVersions[i]).toBe(txnVersions[i + 1] - 1n);
+      }
+
+      // Check the borders
+      expect(txnVersions[0]).toBe(BigInt(blockData.first_version));
+      expect(txnVersions[txnVersions.length - 1]).toBe(BigInt(blockData.last_version));
+
+      // Check the length
+      const expectedLength = BigInt(blockData.last_version) - BigInt(blockData.first_version) + 1n;
+      expect(length).toBe(expectedLength);
+    });
+  });
 });

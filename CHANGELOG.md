@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - TypeTag parsing now support references, uppercase types, and more complete error handling
 - Allow simple string inputs as type arguments in move scripts
+- [`Fix`] Block APIs will now pull all associated transactions in the block, not just the first `100`
 
 # 1.16.0 (2024-05-22)
 
