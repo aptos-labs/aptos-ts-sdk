@@ -10,6 +10,7 @@ import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
+import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -160,7 +161,7 @@ export class KeylessSignature extends Signature {
   /**
    * The expiry timestamp in seconds of the EphemeralKeyPair used to sign
    */
-  readonly expiryDateSecs: bigint | number;
+  readonly expiryDateSecs: number;
 
   /**
    * The ephemeral public key used to verify the signature
@@ -175,7 +176,7 @@ export class KeylessSignature extends Signature {
   constructor(args: {
     jwtHeader: string;
     ephemeralCertificate: EphemeralCertificate;
-    expiryDateSecs: bigint | number;
+    expiryDateSecs: number;
     ephemeralPublicKey: EphemeralPublicKey;
     ephemeralSignature: EphemeralSignature;
   }) {
@@ -213,7 +214,7 @@ export class KeylessSignature extends Signature {
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryDateSecs,
+      expiryDateSecs: Number(expiryDateSecs),
       ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
@@ -228,10 +229,28 @@ export class KeylessSignature extends Signature {
     const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
     return new KeylessSignature({
       jwtHeader,
-      expiryDateSecs,
+      expiryDateSecs: Number(expiryDateSecs),
       ephemeralCertificate,
       ephemeralPublicKey,
       ephemeralSignature,
+    });
+  }
+
+  static getSimulationSignature(): KeylessSignature {
+    return new KeylessSignature({
+      jwtHeader: "{}",
+      ephemeralCertificate: new EphemeralCertificate(
+        new ZeroKnowledgeSig({
+          proof: new ZkProof(
+            new Groth16Zkp({ a: new Uint8Array(32), b: new Uint8Array(64), c: new Uint8Array(32) }),
+            ZkpVariant.Groth16,
+          ),
+        }),
+        EphemeralCertificateVariant.ZkProof,
+      ),
+      expiryDateSecs: 0,
+      ephemeralPublicKey: new EphemeralPublicKey(new Ed25519PublicKey(new Uint8Array(32))),
+      ephemeralSignature: new EphemeralSignature(new Ed25519Signature(new Uint8Array(64))),
     });
   }
 

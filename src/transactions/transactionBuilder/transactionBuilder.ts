@@ -465,6 +465,7 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
     }
     if (publicKey.publicKey instanceof KeylessPublicKey) {
+      // return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(KeylessSignature.getSimulationSignature()));
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
   }

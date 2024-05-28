@@ -8,7 +8,6 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
 import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
-import { CryptoHashable } from "../../bcs/cryptoHasher";
 
 /**
  * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
@@ -58,18 +57,6 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
   mergedArray.set(body, prefix.length);
 
   return mergedArray;
-}
-
-/**
- * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of
- * its constructor as the domain separator.
- *
- * @param hashable An object that has a bcs serialized form
- *
- * @returns The Uint8Array of the signing message
- */
-export function generateSigningMessageForBcsCryptoHashable(hashable: CryptoHashable): Uint8Array {
-  return generateSigningMessage(hashable.bcsToBytes(), hashable.domainSeparator);
 }
 
 /**

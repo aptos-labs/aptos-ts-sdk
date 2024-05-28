@@ -24,11 +24,10 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import {
   deriveTransactionType,
-  generateSigningMessageForBcsCryptoHashable,
 } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { AptosApiError } from "../client/types";
-import { AptsoDomainSeparator, CryptoHashable } from "../bcs/cryptoHasher";
+import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHasher";
 import { base64UrlDecode } from "../utils/helpers";
 
 export const IssuerToJwkEndpoint: Record<string, string> = {
@@ -335,7 +334,7 @@ export class KeylessAccount extends Serializable implements Account {
     }
     const raw = deriveTransactionType(transaction);
     const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
-    const signMess = generateSigningMessageForBcsCryptoHashable(txnAndProof);
+    const signMess = txnAndProof.hash();
     return this.sign(signMess);
   }
 
@@ -380,11 +379,24 @@ export class KeylessAccount extends Serializable implements Account {
   }
 }
 
+/**
+ * A container class to hold a transaction and a proof.  It implements CryptoHashable which is used to create
+ * the signing message for Keyless transactions.  We sign over the proof to ensure non-malleability.
+ */
 export class TransactionAndProof extends CryptoHashable {
+  /**
+   * The transaction to sign.
+   */
   transaction: AnyRawTransactionInstance;
 
+  /**
+   * The zero knowledge proof used in signing the transaction.
+   */
   proof?: ZkProof;
 
+  /**
+   * The domain separator prefix used when hashing.
+   */
   domainSeparator: AptsoDomainSeparator;
 
   constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {

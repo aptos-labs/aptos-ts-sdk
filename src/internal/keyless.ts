@@ -47,9 +47,8 @@ export async function getProof(args: {
   ephemeralKeyPair: EphemeralKeyPair;
   pepper: HexInput;
   uidKey?: string;
-  extraFieldKey?: string;
 }): Promise<ZeroKnowledgeSig> {
-  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey, extraFieldKey } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey } = args;
   const json = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
@@ -57,7 +56,6 @@ export async function getProof(args: {
     exp_date_secs: ephemeralKeyPair.expiryDateSecs,
     exp_horizon_secs: EPK_HORIZON_SECS,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
-    extra_field: extraFieldKey,
     uid_key: uidKey || "sub",
   };
 
@@ -89,7 +87,6 @@ export async function deriveKeylessAccount(args: {
   ephemeralKeyPair: EphemeralKeyPair;
   uidKey?: string;
   pepper?: HexInput;
-  extraFieldKey?: string;
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount> {
   const { proofFetchCallback } = args;
