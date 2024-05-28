@@ -96,12 +96,10 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
 }
 
 export async function balance(aptos: Aptos, address: AccountAddress): Promise<number> {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
+  const amount = await aptos.getAccountAPTAmount({
     accountAddress: address,
-    resourceType: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>",
   });
-  return Number(resource.coin.value);
+  return amount;
 }
 
 const fetchToken = (index: number, rsaPrivateKey: string, ephemKeyPair: EphemeralKeyPair) => {
