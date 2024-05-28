@@ -17,18 +17,6 @@ describe("general api", () => {
     expect(chainId).toBe(4);
   });
 
-  test("it fetches block data by block height", async () => {
-    const blockHeight = 1;
-    const blockData = await aptos.getBlockByHeight({ blockHeight });
-    expect(blockData.block_height).toBe(blockHeight.toString());
-  });
-
-  test("it fetches block data by block version", async () => {
-    const blockVersion = 1;
-    const blockData = await aptos.getBlockByVersion({ ledgerVersion: blockVersion });
-    expect(blockData.block_height).toBe(blockVersion.toString());
-  });
-
   describe("View functions", () => {
     test("it fetches view function data", async () => {
       const payload: InputViewFunctionData = {

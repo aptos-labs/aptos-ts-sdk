@@ -19,6 +19,7 @@ import {
   type TransactionResponse,
   WaitForTransactionOptions,
   CommittedTransactionResponse,
+  Block,
 } from "../types";
 import { DEFAULT_TXN_TIMEOUT_SEC, ProcessorType } from "../utils/const";
 import { sleep } from "../utils/helpers";
@@ -278,4 +279,95 @@ export class FailedTransactionError extends Error {
     super(message);
     this.transaction = transaction;
   }
+}
+
+export async function getBlockByVersion(args: {
+  aptosConfig: AptosConfig;
+  ledgerVersion: AnyNumber;
+  options?: { withTransactions?: boolean };
+}): Promise<Block> {
+  const { aptosConfig, ledgerVersion, options } = args;
+  const { data: block } = await getAptosFullNode<{}, Block>({
+    aptosConfig,
+    originMethod: "getBlockByVersion",
+    path: `blocks/by_version/${ledgerVersion}`,
+    params: { with_transactions: options?.withTransactions },
+  });
+
+  return fillBlockTransactions({ block, ...args });
+}
+
+export async function getBlockByHeight(args: {
+  aptosConfig: AptosConfig;
+  blockHeight: AnyNumber;
+  options?: { withTransactions?: boolean };
+}): Promise<Block> {
+  const { aptosConfig, blockHeight, options } = args;
+  const { data: block } = await getAptosFullNode<{}, Block>({
+    aptosConfig,
+    originMethod: "getBlockByHeight",
+    path: `blocks/by_height/${blockHeight}`,
+    params: { with_transactions: options?.withTransactions },
+  });
+  return fillBlockTransactions({ block, ...args });
+}
+
+/**
+ * Fills in the block with transactions if not enough were returned
+ * @param args
+ */
+async function fillBlockTransactions(args: {
+  aptosConfig: AptosConfig;
+  block: Block;
+  options?: { withTransactions?: boolean };
+}) {
+  const { aptosConfig, block, options } = args;
+  if (options?.withTransactions) {
+    // Transactions should be filled, but this ensures it
+    block.transactions = block.transactions ?? [];
+
+    const lastTxn = block.transactions[block.transactions.length - 1];
+    const firstVersion = BigInt(block.first_version);
+    const lastVersion = BigInt(block.last_version);
+
+    // Convert the transaction to the type
+    const curVersion: string | undefined = (lastTxn as any)?.version;
+    let latestVersion;
+
+    // This time, if we don't have any transactions, we will try once with the start of the block
+    if (curVersion === undefined) {
+      latestVersion = firstVersion - 1n;
+    } else {
+      latestVersion = BigInt(curVersion);
+    }
+
+    // If we have all the transactions in the block, we can skip out, otherwise we need to fill the transactions
+    if (latestVersion === lastVersion) {
+      return block;
+    }
+
+    // For now, we will grab all the transactions in groups of 100, but we can make this more efficient by trying larger
+    // amounts
+    const fetchFutures = [];
+    const pageSize = 100n;
+    for (let i = latestVersion + 1n; i < lastVersion; i += BigInt(100)) {
+      fetchFutures.push(
+        getTransactions({
+          aptosConfig,
+          options: {
+            offset: i,
+            limit: Math.min(Number(pageSize), Number(lastVersion - i + 1n)),
+          },
+        }),
+      );
+    }
+
+    // Combine all the futures
+    const responses = await Promise.all(fetchFutures);
+    for (const txns of responses) {
+      block.transactions.push(...txns);
+    }
+  }
+
+  return block;
 }

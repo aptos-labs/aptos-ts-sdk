@@ -3,14 +3,13 @@
 
 import { AptosConfig } from "./aptosConfig";
 import {
-  getBlockByHeight,
-  getBlockByVersion,
   getChainTopUserTransactions,
   getIndexerLastSuccessVersion,
   getLedgerInfo,
   getProcessorStatus,
   queryIndexer,
 } from "../internal/general";
+import { getBlockByHeight, getBlockByVersion } from "../internal/transaction";
 import { view } from "../internal/view";
 import {
   AnyNumber,
