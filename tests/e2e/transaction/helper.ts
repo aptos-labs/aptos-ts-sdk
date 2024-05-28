@@ -20,7 +20,6 @@ import {
   ZeroKnowledgeSig,
   Hex,
   Ed25519PrivateKey,
-  AccountAddress,
 } from "../../../src";
 import { FUND_AMOUNT } from "../../unit/helper";
 
@@ -93,13 +92,6 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
     throw new Error("Expected user transaction response");
   }
   return response;
-}
-
-export async function balance(aptos: Aptos, address: AccountAddress): Promise<number> {
-  const amount = await aptos.getAccountAPTAmount({
-    accountAddress: address,
-  });
-  return amount;
 }
 
 const fetchToken = (index: number, rsaPrivateKey: string, ephemKeyPair: EphemeralKeyPair) => {

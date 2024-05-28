@@ -7,7 +7,7 @@ import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput, EphemeralCertificateVariant, AnyPublicKeyVariant, SigningScheme, ZkpVariant } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
-import { bigIntToBytesLE, bytesToBigIntLE, hashASCIIStrToField, poseidonHash } from "./poseidon";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
@@ -37,7 +37,7 @@ export class KeylessPublicKey extends AccountPublicKey {
     super();
     const idcBytes = Hex.fromHexInput(idCommitment).toUint8Array();
     if (idcBytes.length !== KeylessPublicKey.ID_COMMITMENT_LENGTH) {
-      throw new Error(`Address seed length in bytes should be ${KeylessPublicKey.ID_COMMITMENT_LENGTH}`);
+      throw new Error(`Id Commitment length in bytes should be ${KeylessPublicKey.ID_COMMITMENT_LENGTH}`);
     }
     this.iss = iss;
     this.idCommitment = idcBytes;
@@ -136,9 +136,9 @@ function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string
 
   const fields = [
     bytesToBigIntLE(Hex.fromHexInput(pepper).toUint8Array()),
-    hashASCIIStrToField(aud, MAX_AUD_VAL_BYTES),
-    hashASCIIStrToField(uidVal, MAX_UID_VAL_BYTES),
-    hashASCIIStrToField(uidKey, MAX_UID_KEY_BYTES),
+    hashStrToField(aud, MAX_AUD_VAL_BYTES),
+    hashStrToField(uidVal, MAX_UID_VAL_BYTES),
+    hashStrToField(uidKey, MAX_UID_KEY_BYTES),
   ];
 
   return bigIntToBytesLE(poseidonHash(fields), KeylessPublicKey.ID_COMMITMENT_LENGTH);
@@ -301,6 +301,48 @@ export class EphemeralCertificate extends Signature {
   }
 }
 
+class G1ProofPoint extends Serializable {
+  data: Uint8Array;
+
+  constructor(data: HexInput) {
+    super();
+    this.data = Hex.fromHexInput(data).toUint8Array();
+    if (this.data.length !== 32) {
+      throw new Error("Pepper needs to be 32 bytes");
+    }
+  }
+
+  serialize(serializer: Serializer): void {
+  serializer.serializeFixedBytes(this.data);
+  }
+
+  static deserialize(deserializer: Deserializer): G1ProofPoint {
+    const bytes = deserializer.deserializeFixedBytes(32);
+    return new G1ProofPoint(bytes);
+  }
+}
+
+class G2ProofPoint extends Serializable {
+  data: Uint8Array;
+
+  constructor(data: HexInput) {
+    super();
+    this.data = Hex.fromHexInput(data).toUint8Array();
+    if (this.data.length !== 64) {
+      throw new Error("Pepper needs to be 64 bytes");
+    }
+  }
+
+  serialize(serializer: Serializer): void {
+  serializer.serializeFixedBytes(this.data);
+  }
+
+  static deserialize(deserializer: Deserializer): G1ProofPoint {
+    const bytes = deserializer.deserializeFixedBytes(64);
+    return new G1ProofPoint(bytes);
+  }
+}
+
 /**
  * A representation of a Groth16 proof.  The points are the compressed serialization of affine reprentation of the proof.
  */
@@ -308,36 +350,36 @@ export class Groth16Zkp extends Proof {
   /**
    * The bytes of G1 proof point a
    */
-  a: Uint8Array;
+  a: G1ProofPoint;
 
   /**
    * The bytes of G2 proof point b
    */
-  b: Uint8Array;
+  b: G2ProofPoint;
 
   /**
    * The bytes of G1 proof point c
    */
-  c: Uint8Array;
+  c: G1ProofPoint;
 
   constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
     super();
     const { a, b, c } = args;
-    this.a = Hex.fromHexInput(a).toUint8Array();
-    this.b = Hex.fromHexInput(b).toUint8Array();
-    this.c = Hex.fromHexInput(c).toUint8Array();
+    this.a = new G1ProofPoint(a)
+    this.b = new G2ProofPoint(b)
+    this.c = new G1ProofPoint(c)
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.a);
-    serializer.serializeFixedBytes(this.b);
-    serializer.serializeFixedBytes(this.c);
+    this.a.serialize(serializer);
+    this.b.serialize(serializer);
+    this.c.serialize(serializer);
   }
 
   static deserialize(deserializer: Deserializer): Groth16Zkp {
-    const a = deserializer.deserializeFixedBytes(32);
-    const b = deserializer.deserializeFixedBytes(64);
-    const c = deserializer.deserializeFixedBytes(32);
+    const a = G1ProofPoint.deserialize(deserializer).bcsToBytes();
+    const b = G1ProofPoint.deserialize(deserializer).bcsToBytes();
+    const c = G1ProofPoint.deserialize(deserializer).bcsToBytes();
     return new Groth16Zkp({ a, b, c });
   }
 }

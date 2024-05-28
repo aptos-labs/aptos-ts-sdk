@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { deriveKeylessAccount, getPepper } from "../internal/keyless";
-import { HexInput } from "../types";
+import { deriveKeylessAccount, getKeylessConfig, getPepper } from "../internal/keyless";
+import { HexInput, LedgerVersionArg } from "../types";
+import { KeylessConfiguration } from "../types/keyless";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -11,6 +12,18 @@ import { AptosConfig } from "./aptosConfig";
  */
 export class Keyless {
   constructor(readonly config: AptosConfig) {}
+
+  /**
+   * Gets the parameters of how Keyless Accounts are configured on chain.
+   *
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   * @returns KeylessConfiguration
+   */
+  async getKeylessConfig(
+    options?: LedgerVersionArg
+  ): Promise<KeylessConfiguration> {
+    return getKeylessConfig({ aptosConfig: this.config, options });
+  }
 
   /**
    * Fetches the pepper from the Aptos pepper service API.

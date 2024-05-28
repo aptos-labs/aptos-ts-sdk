@@ -5,14 +5,36 @@
  * This file contains the underlying implementations for exposed API surface in
  * the {@link api/keyless}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
- * faucet namespace and without having a dependency cycle error.
+ * keyless namespace and without having a dependency cycle error.
  */
 import { AptosConfig } from "../api/aptosConfig";
-import { postAptosPepperService, postAptosProvingService } from "../client";
-import { EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof } from "../core";
-import { HexInput, ZkpVariant } from "../types";
+import { getAptosFullNode, postAptosPepperService, postAptosProvingService } from "../client";
+import { AccountAddress, EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof } from "../core";
+import { HexInput, LedgerVersionArg, MoveResource, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { PepperFetchResponse, ProverResponse } from "../types/keyless";
+import { KeylessConfiguration, PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
+import { memoizeAsync } from "../utils/memoize";
+
+export async function getKeylessConfig(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<KeylessConfiguration> {
+  const { aptosConfig, options } = args;
+  const resourceType = "0x1::keyless_account::Configuration"
+  return memoizeAsync(
+    async () => {
+      const { data } = await getAptosFullNode<{}, MoveResource>({
+        aptosConfig,
+        originMethod: "getKeylessConfig",
+        path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+        params: { ledger_version: options?.ledgerVersion },
+      });
+      return data.data as KeylessConfiguration;
+    },
+    `keyless-configuration-${aptosConfig.network}`,
+    1000 * 60 * 10, // 10 minutes
+  )();
+}
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -31,7 +53,7 @@ export async function getPepper(args: {
     uid_key: uidKey || "sub",
     derivation_path: derivationPath,
   };
-  const { data } = await postAptosPepperService<any, PepperFetchResponse>({
+  const { data } = await postAptosPepperService<PepperFetchRequest, PepperFetchResponse>({
     aptosConfig,
     path: "fetch",
     body,
@@ -59,7 +81,7 @@ export async function getProof(args: {
     uid_key: uidKey || "sub",
   };
 
-  const { data } = await postAptosProvingService<any, ProverResponse>({
+  const { data } = await postAptosProvingService<ProverRequest, ProverResponse>({
     aptosConfig,
     path: "prove",
     body: json,
@@ -93,7 +115,11 @@ export async function deriveKeylessAccount(args: {
   let { pepper } = args;
   if (pepper === undefined) {
     pepper = await getPepper(args);
-  } else if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
+  } else {
+    pepper = Hex.fromHexInput(pepper).toUint8Array();
+  }
+
+  if (pepper.length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
 

@@ -5,11 +5,9 @@ import {
   Account,
   Ed25519PrivateKey,
   Serializer,
-  TransactionAndProof,
-  generateSigningMessageForBcsCryptoHashable,
   generateSigningMessageForTransaction,
 } from "../../src";
-import { AptsoDomainSeparator, CryptoHashable } from "../../src/bcs/cryptoHasher";
+import { AptsoDomainSeparator, CryptoHashable } from "../../src/core/crypto/cryptoHasher";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 
@@ -93,7 +91,7 @@ describe("generateSigningMessage ", () => {
       }
     }
 
-    const signingMessage = generateSigningMessageForBcsCryptoHashable(new TestClass());
+    const signingMessage = new TestClass().hash();
     expect(signingMessage).toEqual(
       new Uint8Array([
         134, 234, 208, 191, 5, 202, 254, 220, 58, 89, 147, 141, 29, 129, 67, 235, 85, 247, 253, 242, 60, 51, 32, 219,
