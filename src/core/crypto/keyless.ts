@@ -316,7 +316,7 @@ class G1ProofPoint extends Serializable {
     super();
     this.data = Hex.fromHexInput(data).toUint8Array();
     if (this.data.length !== 32) {
-      throw new Error("Pepper needs to be 32 bytes");
+      throw new Error("Input needs to be 32 bytes");
     }
   }
 
@@ -337,7 +337,7 @@ class G2ProofPoint extends Serializable {
     super();
     this.data = Hex.fromHexInput(data).toUint8Array();
     if (this.data.length !== 64) {
-      throw new Error("Pepper needs to be 64 bytes");
+      throw new Error("Input needs to be 64 bytes");
     }
   }
 
@@ -345,9 +345,9 @@ class G2ProofPoint extends Serializable {
   serializer.serializeFixedBytes(this.data);
   }
 
-  static deserialize(deserializer: Deserializer): G1ProofPoint {
+  static deserialize(deserializer: Deserializer): G2ProofPoint {
     const bytes = deserializer.deserializeFixedBytes(64);
-    return new G1ProofPoint(bytes);
+    return new G2ProofPoint(bytes);
   }
 }
 
@@ -386,7 +386,7 @@ export class Groth16Zkp extends Proof {
 
   static deserialize(deserializer: Deserializer): Groth16Zkp {
     const a = G1ProofPoint.deserialize(deserializer).bcsToBytes();
-    const b = G1ProofPoint.deserialize(deserializer).bcsToBytes();
+    const b = G2ProofPoint.deserialize(deserializer).bcsToBytes();
     const c = G1ProofPoint.deserialize(deserializer).bcsToBytes();
     return new Groth16Zkp({ a, b, c });
   }
