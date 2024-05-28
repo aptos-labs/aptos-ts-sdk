@@ -52,7 +52,7 @@ export function hashStrToField(str: string, maxSizeBytes: number): bigint {
   return hashBytesWithLen(strBytes, maxSizeBytes);
 }
 
-function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number) {
+function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
   if (bytes.length > maxSizeBytes) {
     throw new Error(`Inputted bytes of length ${bytes} is longer than ${maxSizeBytes}`);
   }

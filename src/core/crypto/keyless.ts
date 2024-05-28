@@ -29,8 +29,16 @@ export const MAX_COMMITED_EPK_BYTES = 93;
 export class KeylessPublicKey extends AccountPublicKey {
   static readonly ID_COMMITMENT_LENGTH: number = 32;
 
+  /**
+   * The value of the 'iss' claim on the JWT which identifies the OIDC provider.
+   */
   readonly iss: string;
 
+  /**
+   * A value representing a cryptographic commitment to a user identity.
+   * 
+   * It is calculated from the aud, uidKey, uidVal, pepper.
+   */
   readonly idCommitment: Uint8Array;
 
   constructor(iss: string, idCommitment: HexInput) {
@@ -432,12 +440,13 @@ export class ZeroKnowledgeSig extends Signature {
   readonly expHorizonSecs: bigint;
 
   /**
-   * A key value pair on the JWT token that can be made public
+   * A key value pair on the JWT token that can be specified on the signature which would reveal the value on chain.
+   * Can be used to assert identity or other attributes.
    */
   readonly extraField?: string;
 
   /**
-   * Set in the case of signing by recovery services
+   * The 'aud' value of the recovery service which is set when recovering an account.
    */
   readonly overrideAudVal?: string;
 
