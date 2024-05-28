@@ -136,6 +136,12 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
   });
 }
 
+/**
+ * Makes a post request to the pepper service
+ *
+ * @param options GetAptosRequestOptions
+ * @returns AptosResponse
+ */
 export async function postAptosPepperService<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {

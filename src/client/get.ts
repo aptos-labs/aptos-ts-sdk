@@ -89,6 +89,12 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
   });
 }
 
+/**
+ * Makes a get request to the pepper service
+ *
+ * @param options GetAptosRequestOptions
+ * @returns AptosResponse
+ */
 export async function getAptosPepperService<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
