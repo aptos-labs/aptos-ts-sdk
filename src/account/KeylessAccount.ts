@@ -64,34 +64,86 @@ export class KeylessError extends Error {
   }
 }
 
+/**
+ * Account implementation for the Keyless authentication scheme.
+ *
+ * Used to represent a Keyless based account and sign transactions with it.
+ * 
+ * Use KeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
+ * 
+ * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
+ * EphemeralKeyPair, and corresponding proof.
+ */
 export class KeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
+  /**
+   * The KeylessPublicKey associated with the account
+   */
   readonly publicKey: KeylessPublicKey;
 
+  /**
+   * The EphemeralKeyPair used to generate sign. 
+   */
   readonly ephemeralKeyPair: EphemeralKeyPair;
 
+  /**
+   * The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
+   */
   readonly uidKey: string;
 
+  /**
+   * The value of the uidKey claim on the JWT.  This intended to be a stable user identifier.
+   */
   readonly uidVal: string;
 
+  /**
+   * The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
+   * OIDC registration with the identity provider.
+   */
   readonly aud: string;
 
+  /**
+   * A value contains 31 bytes of entropy that preserves privacy of the account. Typically fetched from a pepper provider.
+   */
   readonly pepper: Uint8Array;
 
+  /**
+   * Account address associated with the account
+   */
   readonly accountAddress: AccountAddress;
 
+  /**
+   * The zero knowledge signature (if ready) which contains the proof used to validate the EphemeralKeyPair.
+   */
   proof: ZeroKnowledgeSig | undefined;
 
+  /**
+   * The proof of the EphemeralKeyPair or a promise that provides the proof.  This is used to allow for awaiting on
+   * fetching the proof.
+   */
   readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
 
+  /**
+   * Signing scheme used to sign transactions
+   */
   readonly signingScheme: SigningScheme;
 
+  /**
+   * The JWT token used to derive the account
+   */
   private jwt: string;
 
+  /**
+   * A value that caches the JWT's validity.  A JWT becomes invalid when it's corresponding JWK is rotated from the 
+   * identity provider's JWK keyset.
+   */
   private isJwtValid: boolean;
 
-  readonly emitter: EventEmitter<ProofFetchEvents>;
+  /**
+   * An event emitter used to assist in handling asycronous proof fetching.
+   */
+  private readonly emitter: EventEmitter<ProofFetchEvents>;
 
   constructor(args: {
     address?: AccountAddress;

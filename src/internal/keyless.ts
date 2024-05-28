@@ -26,9 +26,9 @@ export async function getPepper(args: {
   const body = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
-    exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
+    exp_date_secs: ephemeralKeyPair.expiryDateSecs,
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
-    uid_key: uidKey,
+    uid_key: uidKey || "sub",
     derivation_path: derivationPath,
   };
   const { data } = await postAptosPepperService<any, PepperFetchResponse>({
@@ -54,7 +54,7 @@ export async function getProof(args: {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
-    exp_date_secs: Number(ephemeralKeyPair.expiryDateSecs),
+    exp_date_secs: ephemeralKeyPair.expiryDateSecs,
     exp_horizon_secs: EPK_HORIZON_SECS,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
     extra_field: extraFieldKey,

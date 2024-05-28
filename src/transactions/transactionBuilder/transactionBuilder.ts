@@ -450,9 +450,9 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   return new SignedTransaction(transaction.rawTransaction, transactionAuthenticator).bcsToBytes();
 }
 
-export function getAuthenticatorForSimulation(pk: PublicKey) {
-  let publicKey = pk;
+export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   if (publicKey instanceof KeylessPublicKey || publicKey instanceof Secp256k1PublicKey) {
+    // eslint-disable-next-line no-param-reassign
     publicKey = new AnyPublicKey(publicKey);
   }
 

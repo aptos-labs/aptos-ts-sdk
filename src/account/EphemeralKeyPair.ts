@@ -12,7 +12,7 @@ import {
 } from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
-import { AnyNumber, EphemeralPublicKeyVariant, HexInput } from "../types";
+import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { currentTimeInSeconds, floorToWholeHour } from "../utils/helpers";
 
@@ -29,7 +29,7 @@ export class EphemeralKeyPair extends Serializable {
    * A timestamp in seconds indicating when the ephemeral key pair is expired.  After expiry, a new
    * EphemeralKeyPair must be generated and a new JWT needs to be created.
    */
-  readonly expiryDateSecs: bigint | number;
+  readonly expiryDateSecs: number;
 
   /**
    * The value passed to the IdP when the user authenticates.  It comprises of a hash of the
@@ -49,13 +49,13 @@ export class EphemeralKeyPair extends Serializable {
    */
   private publicKey: EphemeralPublicKey;
 
-  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: AnyNumber; blinder?: HexInput }) {
+  constructor(args: { privateKey: PrivateKey; expiryDateSecs?: number; blinder?: HexInput }) {
     super();
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     // We set the expiry date to be the nearest floored hour
-    this.expiryDateSecs = expiryDateSecs || BigInt(floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS));
+    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS);
     // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     // Calculate the nonce
@@ -98,7 +98,7 @@ export class EphemeralKeyPair extends Serializable {
     }
     const expiryDateSecs = deserializer.deserializeU64();
     const blinder = deserializer.deserializeFixedBytes(31);
-    return new EphemeralKeyPair({ privateKey, expiryDateSecs, blinder });
+    return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecs), blinder });
   }
 
   static fromBytes(bytes: Uint8Array): EphemeralKeyPair {
@@ -111,7 +111,7 @@ export class EphemeralKeyPair extends Serializable {
    * @param expiryDateSecs the date of expiry.
    * @return boolean
    */
-  static generate(args?: { scheme: EphemeralPublicKeyVariant; expiryDateSecs?: bigint | number }): EphemeralKeyPair {
+  static generate(args?: { scheme: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {
