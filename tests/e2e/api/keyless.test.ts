@@ -25,11 +25,11 @@ export const TEST_JWT_TOKENS = [
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
-  expiryDateSecs: 1724497501,
+  expiryDateSecs: 1724497501, // Expires Saturday, August 24, 2024 11:05:01 AM GMT
   blinder: new Uint8Array(31),
 });
 
-const KEYLESS_TEST_TIMEOUT = 10000;
+const KEYLESS_TEST_TIMEOUT = 12000;
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;

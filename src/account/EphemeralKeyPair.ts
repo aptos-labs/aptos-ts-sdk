@@ -3,18 +3,14 @@
 
 import { randomBytes } from "@noble/hashes/utils";
 
-import {
-  EPK_HORIZON_SECS,
-  Ed25519PrivateKey,
-  EphemeralPublicKey,
-  EphemeralSignature,
-  PrivateKey,
-} from "../core/crypto";
+import { Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey } from "../core/crypto";
 import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
 import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
+
+const TWO_WEEKS_IN_SECONDS = 1_209_600;
 
 /**
  * A class which contains a key pair that is used in signing transactions via the Keyless authentication scheme. This key pair
@@ -59,8 +55,8 @@ export class EphemeralKeyPair extends Serializable {
     const { privateKey, expiryDateSecs, blinder } = args;
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
-    // We set the expiry date to be the nearest floored hour
-    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(nowInSeconds() + EPK_HORIZON_SECS);
+    // By default, we set the expiry date to be two weeks in the future floored to the nearest hour
+    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(nowInSeconds() + TWO_WEEKS_IN_SECONDS);
     // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     // Calculate the nonce

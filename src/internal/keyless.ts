@@ -10,10 +10,10 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
 import { EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof, getKeylessConfig } from "../core";
-import { EphemeralPublicKeyVariant, HexInput, ZkpVariant } from "../types";
+import { HexInput, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
-import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
+import { nowInSeconds } from "../utils/helpers";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -85,19 +85,6 @@ export async function getProof(args: {
     expHorizonSecs: maxExpHorizonSecs,
   });
   return signedProof;
-}
-
-export async function generateEphemeralKeyPair(args: {
-  aptosConfig: AptosConfig;
-  scheme?: EphemeralPublicKeyVariant;
-  expiryDateSecs?: number;
-}): Promise<EphemeralKeyPair> {
-  const { aptosConfig, scheme, expiryDateSecs } = args;
-  const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  return EphemeralKeyPair.generate({
-    scheme,
-    expiryDateSecs: expiryDateSecs || floorToWholeHour(nowInSeconds() + maxExpHorizonSecs),
-  });
 }
 
 export async function deriveKeylessAccount(args: {
