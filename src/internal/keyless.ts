@@ -190,6 +190,11 @@ export async function deriveKeylessAccount(args: {
   }
 
   const proofPromise = getProof({ ...args, pepper });
+  // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
+  // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
+  // allowing for faster rendering of UX.
+  //
+  // If no callback is provided, the just await the proof fetch and continue syncronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
   const keylessAccount = KeylessAccount.create({ ...args, proof, pepper, proofFetchCallback });
