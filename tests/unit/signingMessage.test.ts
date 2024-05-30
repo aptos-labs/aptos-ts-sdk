@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account, Ed25519PrivateKey, Serializer, generateSigningMessageForTransaction } from "../../src";
-import { AptsoDomainSeparator, CryptoHashable } from "../../src/core/crypto/cryptoHasher";
+import { AptsoDomainSeparator, CryptoHashable } from "../../src/core/crypto/cryptoHashable";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 

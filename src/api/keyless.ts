@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { deriveKeylessAccount, getPepper } from "../internal/keyless";
-import { HexInput } from "../types";
+import { deriveKeylessAccount, generateEphemeralKeyPair, getPepper } from "../internal/keyless";
+import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -14,6 +14,22 @@ import { AptosConfig } from "./aptosConfig";
  */
 export class Keyless {
   constructor(readonly config: AptosConfig) {}
+
+  /**
+   * Generates an EphemeralKeyPair. It checks the maxExpHorizonSecs set on chain at 0x1::keyless_account::Configuration to
+   * ensure the expiry date is valid.  If expiryDateSecs is not set, defaults setting the expiry to the maximum allowed
+   * with respect to the Keyless configuration.
+   *
+   * @param scheme the type of keypair to use for the EphemeralKeyPair.  Only Ed25519 supported for now.
+   * @param expiryDateSecs the date of expiry.
+   * @returns EphemeralKeyPair
+   */
+  async generateEphemeralKeyPair(args?: {
+    scheme?: EphemeralPublicKeyVariant;
+    expiryDateSecs?: number;
+  }): Promise<EphemeralKeyPair> {
+    return generateEphemeralKeyPair({ aptosConfig: this.config, ...args });
+  }
 
   /**
    * Fetches the pepper from the Aptos pepper service API.

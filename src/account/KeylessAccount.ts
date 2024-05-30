@@ -23,7 +23,7 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHasher";
+import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHashable";
 import { base64UrlDecode } from "../utils/helpers";
 
 /**
