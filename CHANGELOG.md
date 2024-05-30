@@ -3,13 +3,13 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Adds Keyless Account support
 
 # 1.17.0 (2024-05-30)
 
 - TypeTag parsing now support references, uppercase types, and more complete error handling
 - Allow simple string inputs as type arguments in move scripts
 - [`Fix`] Block APIs will now pull all associated transactions in the block, not just the first `100`
-- Adds Keyless Account support
 
 # 1.16.0 (2024-05-22)
 
