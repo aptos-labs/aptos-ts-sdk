@@ -99,7 +99,7 @@ const example = async () => {
     amount: TRANSFER_AMOUNT,
   });
 
-    const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);
