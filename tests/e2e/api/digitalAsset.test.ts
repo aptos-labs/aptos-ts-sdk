@@ -104,7 +104,7 @@ describe("DigitalAsset", () => {
     expect(tokenActivityData[0].entry_function_id_str).toEqual("0x4::aptos_token::mint");
     expect(tokenActivityData[0].token_data_id).toEqual(tokenAddress);
     expect(tokenActivityData[0].from_address).toEqual(creatorAddress);
-    expect(tokenActivityData[0].is_fungible_v2).toEqual(false);
+    expect(tokenActivityData[0].is_fungible_v2).toEqual(null);
   });
   test("it fetches collection data", async () => {
     const data = await aptos.getCollectionData({ collectionName, creatorAddress });
