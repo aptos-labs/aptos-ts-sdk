@@ -13,7 +13,6 @@ export async function sleep(timeMs: number): Promise<null> {
   });
 }
 
-
 export function currentTimeInSeconds(): number {
   return Math.floor(new Date().getTime() / 1000);
 }

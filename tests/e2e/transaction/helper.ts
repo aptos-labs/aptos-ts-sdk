@@ -1,8 +1,6 @@
-/* eslint-disable max-len */
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sign } from "jsonwebtoken";
 import {
   Account,
   Aptos,
@@ -15,13 +13,8 @@ import {
   MoveVector,
   AnyRawTransaction,
   isUserTransactionResponse,
-  KeylessAccount,
-  EphemeralKeyPair,
-  ZeroKnowledgeSig,
-  Hex,
-  Ed25519PrivateKey,
 } from "../../../src";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 
 export async function publishPackage(
   aptos: Aptos,
@@ -94,52 +87,46 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
   return response;
 }
 
-const fetchToken = (index: number, rsaPrivateKey: string, ephemKeyPair: EphemeralKeyPair) => {
-  const payload = {
-    iss: "test.oidc.provider",
-    aud: "test-keyless-dapp",
-    sub: `test-user-${index}`,
-    email: "test@aptoslabs.com",
-    email_verified: true,
-    iat: Math.floor(new Date().getTime() / 1000),
-    exp: 2700000000,
-    nonce: ephemKeyPair.nonce,
-  };
-  return sign(payload, rsaPrivateKey, { algorithm: "RS256", keyid: "test-rsa" });
-};
+export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, recipient: Account) {
+  const senderFundTxn = await aptos.faucet.fundAccount({
+    accountAddress: sender.accountAddress,
+    amount: FUND_AMOUNT,
+  });
+  const recipientFundTxn = await aptos.faucet.fundAccount({
+    accountAddress: recipient.accountAddress,
+    amount: FUND_AMOUNT,
+  });
 
-export async function fetchTestKeylessAccount(
-  aptos: Aptos,
-  index: number,
-  rsaPrivateKey: string,
-): Promise<KeylessAccount> {
-  const ephemeralKeyPair = EphemeralKeyPair.generate();
-  const jwt = fetchToken(index, rsaPrivateKey, ephemeralKeyPair);
-  const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
-  return account;
-}
+  const senderOldBalance = await aptos.getAccountAPTAmount({
+    accountAddress: sender.accountAddress,
+    minimumLedgerVersion: Number(senderFundTxn.version),
+  });
+  const recipientOldBalance = await aptos.getAccountAPTAmount({
+    accountAddress: recipient.accountAddress,
+    minimumLedgerVersion: Number(recipientFundTxn.version),
+  });
 
-export function fetchDevnetTestKeylessAccount(index: number): KeylessAccount {
-  // These tokens cannot be used on the devnet prover service, but can be used to create the account.
-  const tokens = [
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0wIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.Te7iIFxfMIRhFQ37pigAWgwkCP--GIE8PNnJEQyzZ8GtezA_W-jnKxlOVF4WeS6ZCt-oRQUwucv9Dq4DYQHgQztXE9CCudXSUz62xQQMRllOv9xnzlDKGcyLJiRpey_3IQdQJDNkRZFxVzsMtqtnZj28Nd9coMXAZGkgXTIgczsh5NJrAK7oKPfBwfIGFpNpcEpPoz80sWN4yJqMp25zZwPZ-sZk1xjoccxjkeV5M7AUmor7L2aAJBsjmycPqgAGZyyhXMOuszKQ4f92ewe-ChH_63fS4H5HCie3ABdlyBp849kP4YcRcpB6-wf1zVpUaz8bEcY7If_RbL_VPKlFXg",
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.NPfbBL4fBwrRGxcU-Ao4oiuu0jRVnTURe9ZuQhyLcuG0UbukE002KelX_YSAP_AU6Xy9CGOxK9-bTwD50b6jXJSH7p6wfy8g2tZfNW2Mb9McCfL_sDxmk9gVYAE7N5B6vHLA3z1Fo7S3i9FY2pEvXO_kIAsTaq_cn76nc6T3hnlK4j15WReV_9SvVSGdPSKS62atucsC39RsUOUdJcE9UQP1VioSeCizR5qtRUyASJYuCRofb1dObdaWuhHxIaOzWEm-iaCzTVwPR_FpOXyag7FfO6IqoaH-l4kLvxkDF3TPMOeuwmewl4Bjq0lDtWmT6W4x2weSL_MqcftS7ubc3Q",
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0yIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzExMzk3NTk5LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiMjE1NDk4ODA2MTM5MDQzNDAxNjI1MTg1NTYxMjIxMjgwNjcxMzgzMDkyNzI4NTc5NDg4MDM2NTg1MDkzMTg3NzUyNTM1NzY2MTE1MDQifQ.xFsXE6TcYCoEDCN7mK_Lb7fpMth7D1GfPfAGjzr2wMGAgUi1yYptko7oVbyvCZi2is0MyBxUEdlAMufPDvr-457aMau7E9ptHaGtwhUYDSTANKzvrgWajdDNcFUcuH6YYzafDTxm3PkyyjcQlMN_jrPL4QFiyaoJDbQINWotBiI0yZoEkeaBb9iCCOQK7yngAdhqPDJLKe94Xv97MtzZo64udMILBBDzlYMsKSESeBcvWQVrMVWBzvXb4nFr_A3BXsIe9TbHB7Ial9F79ql_QWmGnhiB2pl1i0yp0RU1lqxtq1hCSngks26LMMj4cjqIrlOca89RmCKrYW7Dl2tOaA",
-  ];
-  const proofs = [
-    "005073aa7bb5e1ca67c4e205180b83ebdf55afee4abc38ad9bfe1bd8c18c6b3d0e594f121ef7ba8813848c184dad732f573ba7354f21f095986f7434d07b798a2e7167ab03bb8365926ada1402f1ffccac77f9395c001709e235376cf66c4f342a8188763f9e0356323106af2a06c922d318b9befeb8461ec4da6cf35c76995a2d8096980000000000000001004095f81b48e96c97d4e83ae9aa42dd3b638932f077134daa0a9ef1d6156c956f766e26168e37c60354a53fc6d9de2a00943f184a84642218018e8ef684481cce01",
-    "003fe9e4ca26c672e886dcc572b94a585a02541e1817102a8be3012ed4f6610e17ed02035125e706c974e15cdba1176996c4e752fe9950dedcffcbe27d0152f028822cdbd24568fc0179d5a60a21bff098c00906da8bae1f66ef5f9b05d937c805093188dd09732a061c38813f35abf39f2d9a6bca455e37245463c56ddfca371380969800000000000000010040d3898b6a3cdda4bd51eec5ed037ad7cbb76f8a0e4fd3a9c02645a42e71c4a08b5cdb119817e67114bd08bc8c2fabca1295dec0b974410a070975b5a2702e8f01",
-    "004777ee9a265122db09dfbde09cc828b7ce3fb95faf95499cec89a334dd59831a4a6a0adf9ccdc0e4a185a0d9c500d9a27e83a3d2d108ab5e3f48e197843d3d0cfd1b1d4e653cfb5bbe451ff83ff2b4765ff860dc612075c5b29a5fc0b8a93e0bb6fd078478a69a48cbe96cd698de35c77989afbd9f9003f58acd7010a5cac78c8096980000000000000001004040bbf6d459df035416113a5a828b6422f24d8d5a1865c00c904a6517d9b8867295b8fa6f1d999e19cc86a637fa1a731a44aa00a99fd22a811e4cb7fba8c04700",
-  ];
-  const proof = ZeroKnowledgeSig.fromBytes(Hex.fromHexInput(proofs[index]).toUint8Array());
-  const token = tokens[index];
+  const transaction = await aptos.transferCoinTransaction({
+    sender: sender.accountAddress,
+    recipient: recipient.accountAddress,
+    amount: TRANSFER_AMOUNT,
+  });
 
-  const ZEROS = "00000000000000000000000000000000000000000000000000000000000000";
-  const ephemPrivateKey = new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111");
-  const expiryDateSecs = 1724497501;
-  const ephemKeyPair = new EphemeralKeyPair({ privateKey: ephemPrivateKey, expiryDateSecs, blinder: ZEROS });
-  const account = KeylessAccount.fromJWTAndProof({ proof, jwt: token, ephemeralKeyPair: ephemKeyPair, pepper: ZEROS });
-  return account;
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
+  const committedTxn = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const version = Number(committedTxn.version);
+
+  const senderNewBalance = await aptos.getAccountAPTAmount({
+    accountAddress: sender.accountAddress,
+    minimumLedgerVersion: version,
+  });
+  const recipientNewBalance = await aptos.getAccountAPTAmount({
+    accountAddress: recipient.accountAddress,
+    minimumLedgerVersion: version,
+  });
+
+  expect(senderOldBalance - senderNewBalance).toBeGreaterThan(TRANSFER_AMOUNT);
+  expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
 }
 
 // Transaction builder helpers

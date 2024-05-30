@@ -5,14 +5,7 @@
  * This example shows how to use the Keyless accounts on Aptos
  */
 
-import {
-  Account,
-  AccountAddress,
-  Aptos,
-  AptosConfig,
-  EphemeralKeyPair,
-  Network,
-} from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
@@ -106,7 +99,7 @@ const example = async () => {
     amount: TRANSFER_AMOUNT,
   });
 
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
+    const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
   console.log(`Committed transaction: ${committedTxn.hash}`);

@@ -322,9 +322,9 @@ export type GasEstimation = {
   prioritized_gas_estimate?: number;
 };
 
-export type MoveResource = {
+export type MoveResource<T = {}> = {
   type: MoveStructId;
-  data: {};
+  data: T;
 };
 
 export type AccountData = {

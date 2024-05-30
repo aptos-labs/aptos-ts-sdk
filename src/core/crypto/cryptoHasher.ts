@@ -7,7 +7,7 @@ export abstract class CryptoHashable extends Serializable {
 
   /**
    * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in aptos-core.
-   * 
+   *
    * @returns Uint8Array
    */
   hash(): Uint8Array {

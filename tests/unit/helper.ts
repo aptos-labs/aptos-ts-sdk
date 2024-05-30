@@ -5,6 +5,7 @@
 import { ClientRequest, ClientResponse } from "../../src";
 
 export const FUND_AMOUNT = 100_000_000;
+export const TRANSFER_AMOUNT = 500_000;
 
 export const wallet = {
   address: "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30",

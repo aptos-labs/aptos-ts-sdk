@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { JwtPayload, jwtDecode } from "jwt-decode";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
@@ -11,6 +12,7 @@ import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { Groth16VerificationKeyResponse } from "../../types/keyless";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -36,7 +38,7 @@ export class KeylessPublicKey extends AccountPublicKey {
 
   /**
    * A value representing a cryptographic commitment to a user identity.
-   * 
+   *
    * It is calculated from the aud, uidKey, uidVal, pepper.
    */
   readonly idCommitment: Uint8Array;
@@ -136,6 +138,18 @@ export class KeylessPublicKey extends AccountPublicKey {
   }): KeylessPublicKey {
     computeIdCommitment(args);
     return new KeylessPublicKey(args.iss, computeIdCommitment(args));
+  }
+
+  static fromJWTAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
+    const { jwt, pepper, uidKey = "sub" } = args;
+    const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
+    const iss = jwtPayload.iss!;
+    if (typeof jwtPayload.aud !== "string") {
+      throw new Error("aud was not found or an array of values");
+    }
+    const aud = jwtPayload.aud!;
+    const uidVal = jwtPayload[uidKey];
+    return KeylessPublicKey.create({ iss, uidKey, uidVal, aud, pepper });
   }
 }
 
@@ -253,6 +267,7 @@ export class KeylessSignature extends Signature {
             new Groth16Zkp({ a: new Uint8Array(32), b: new Uint8Array(64), c: new Uint8Array(32) }),
             ZkpVariant.Groth16,
           ),
+          expHorizonSecs: 0,
         }),
         EphemeralCertificateVariant.ZkProof,
       ),
@@ -309,7 +324,7 @@ export class EphemeralCertificate extends Signature {
   }
 }
 
-class G1ProofPoint extends Serializable {
+class G1Bytes extends Serializable {
   data: Uint8Array;
 
   constructor(data: HexInput) {
@@ -321,16 +336,16 @@ class G1ProofPoint extends Serializable {
   }
 
   serialize(serializer: Serializer): void {
-  serializer.serializeFixedBytes(this.data);
+    serializer.serializeFixedBytes(this.data);
   }
 
-  static deserialize(deserializer: Deserializer): G1ProofPoint {
+  static deserialize(deserializer: Deserializer): G1Bytes {
     const bytes = deserializer.deserializeFixedBytes(32);
-    return new G1ProofPoint(bytes);
+    return new G1Bytes(bytes);
   }
 }
 
-class G2ProofPoint extends Serializable {
+class G2Bytes extends Serializable {
   data: Uint8Array;
 
   constructor(data: HexInput) {
@@ -342,12 +357,12 @@ class G2ProofPoint extends Serializable {
   }
 
   serialize(serializer: Serializer): void {
-  serializer.serializeFixedBytes(this.data);
+    serializer.serializeFixedBytes(this.data);
   }
 
-  static deserialize(deserializer: Deserializer): G2ProofPoint {
+  static deserialize(deserializer: Deserializer): G2Bytes {
     const bytes = deserializer.deserializeFixedBytes(64);
-    return new G2ProofPoint(bytes);
+    return new G2Bytes(bytes);
   }
 }
 
@@ -358,24 +373,24 @@ export class Groth16Zkp extends Proof {
   /**
    * The bytes of G1 proof point a
    */
-  a: G1ProofPoint;
+  a: G1Bytes;
 
   /**
    * The bytes of G2 proof point b
    */
-  b: G2ProofPoint;
+  b: G2Bytes;
 
   /**
    * The bytes of G1 proof point c
    */
-  c: G1ProofPoint;
+  c: G1Bytes;
 
   constructor(args: { a: HexInput; b: HexInput; c: HexInput }) {
     super();
     const { a, b, c } = args;
-    this.a = new G1ProofPoint(a)
-    this.b = new G2ProofPoint(b)
-    this.c = new G1ProofPoint(c)
+    this.a = new G1Bytes(a);
+    this.b = new G2Bytes(b);
+    this.c = new G1Bytes(c);
   }
 
   serialize(serializer: Serializer): void {
@@ -385,9 +400,9 @@ export class Groth16Zkp extends Proof {
   }
 
   static deserialize(deserializer: Deserializer): Groth16Zkp {
-    const a = G1ProofPoint.deserialize(deserializer).bcsToBytes();
-    const b = G2ProofPoint.deserialize(deserializer).bcsToBytes();
-    const c = G1ProofPoint.deserialize(deserializer).bcsToBytes();
+    const a = G1Bytes.deserialize(deserializer).bcsToBytes();
+    const b = G2Bytes.deserialize(deserializer).bcsToBytes();
+    const c = G1Bytes.deserialize(deserializer).bcsToBytes();
     return new Groth16Zkp({ a, b, c });
   }
 }
@@ -437,7 +452,7 @@ export class ZeroKnowledgeSig extends Signature {
   /**
    * The max lifespan of the proof
    */
-  readonly expHorizonSecs: bigint;
+  readonly expHorizonSecs: number;
 
   /**
    * A key value pair on the JWT token that can be specified on the signature which would reveal the value on chain.
@@ -457,19 +472,13 @@ export class ZeroKnowledgeSig extends Signature {
 
   constructor(args: {
     proof: ZkProof;
-    expHorizonSecs?: bigint;
+    expHorizonSecs: number;
     extraField?: string;
     overrideAudVal?: string;
     trainingWheelsSignature?: EphemeralSignature;
   }) {
     super();
-    const {
-      proof,
-      expHorizonSecs = BigInt(EPK_HORIZON_SECS),
-      trainingWheelsSignature,
-      extraField,
-      overrideAudVal,
-    } = args;
+    const { proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal } = args;
     this.proof = proof;
     this.expHorizonSecs = expHorizonSecs;
     this.trainingWheelsSignature = trainingWheelsSignature;
@@ -505,7 +514,7 @@ export class ZeroKnowledgeSig extends Signature {
 
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = deserializer.deserializeU64();
+    const expHorizonSecs = Number(deserializer.deserializeU64());
     const extraField = deserializer.deserializeOptionStr();
     const overrideAudVal = deserializer.deserializeOptionStr();
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
@@ -514,10 +523,71 @@ export class ZeroKnowledgeSig extends Signature {
 
   static load(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = deserializer.deserializeU64();
+    const expHorizonSecs = Number(deserializer.deserializeU64());
     const extraField = deserializer.deserializeOptionStr();
     const overrideAudVal = deserializer.deserializeOptionStr();
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
     return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
+  }
+}
+
+export class KeylessConfiguration {
+  readonly verficationKey: Groth16VerificationKey;
+
+  readonly maxExpHorizonSecs: number;
+
+  constructor(verficationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
+    this.verficationKey = verficationKey;
+    this.maxExpHorizonSecs = maxExpHorizonSecs;
+  }
+
+  static create(res: Groth16VerificationKeyResponse, maxExpHorizonSecs: number): KeylessConfiguration {
+    return new KeylessConfiguration(
+      new Groth16VerificationKey({
+        alphaG1: res.alpha_g1,
+        betaG2: res.beta_g2,
+        deltaG2: res.delta_g2,
+        gammaAbcG1: res.gamma_abc_g1,
+        gammaG2: res.gamma_g2,
+      }),
+      maxExpHorizonSecs,
+    );
+  }
+}
+
+class Groth16VerificationKey {
+  readonly alphaG1: G1Bytes;
+
+  readonly betaG2: G2Bytes;
+
+  readonly deltaG2: G2Bytes;
+
+  readonly gammaAbcG1: G1Bytes[];
+
+  readonly gammaG2: G2Bytes;
+
+  constructor(args: {
+    alphaG1: HexInput;
+    betaG2: HexInput;
+    deltaG2: HexInput;
+    gammaAbcG1: [HexInput, HexInput];
+    gammaG2: HexInput;
+  }) {
+    const { alphaG1, betaG2, deltaG2, gammaAbcG1, gammaG2 } = args;
+    this.alphaG1 = new G1Bytes(alphaG1);
+    this.betaG2 = new G2Bytes(betaG2);
+    this.deltaG2 = new G2Bytes(deltaG2);
+    this.gammaAbcG1 = [new G1Bytes(gammaAbcG1[0]), new G1Bytes(gammaAbcG1[1])];
+    this.gammaG2 = new G2Bytes(gammaG2);
+  }
+
+  static fromGroth16VerificationKeyResponse(res: Groth16VerificationKeyResponse): Groth16VerificationKey {
+    return new Groth16VerificationKey({
+      alphaG1: res.alpha_g1,
+      betaG2: res.beta_g2,
+      deltaG2: res.delta_g2,
+      gammaAbcG1: res.gamma_abc_g1,
+      gammaG2: res.gamma_g2,
+    });
   }
 }

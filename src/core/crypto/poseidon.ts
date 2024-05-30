@@ -43,7 +43,7 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
 
 /**
  * Hashes a string to a field element via poseidon
- * 
+ *
  * @returns bigint result of the hash
  */
 export function hashStrToField(str: string, maxSizeBytes: number): bigint {
@@ -129,14 +129,16 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
 
 /**
  * Hashes up to 16 scalar elements via the poseidon hashing algorithm.
- * 
+ *
  * Each element must be scalar fields of the BN254 elliptic curve group.
  *
  * @returns bigint result of the hash
  */
 export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
   if (inputs.length > numInputsToPoseidonFunc.length) {
-    throw new Error(`Unable to hash input of length ${inputs.length}.  Max input length is ${numInputsToPoseidonFunc.length}`);
+    throw new Error(
+      `Unable to hash input of length ${inputs.length}.  Max input length is ${numInputsToPoseidonFunc.length}`,
+    );
   }
   return numInputsToPoseidonFunc[inputs.length - 1](inputs);
 }

@@ -9,31 +9,91 @@
  */
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, postAptosPepperService, postAptosProvingService } from "../client";
-import { AccountAddress, EPK_HORIZON_SECS, EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof } from "../core";
+import {
+  AccountAddress,
+  EphemeralSignature,
+  Groth16Zkp,
+  Hex,
+  KeylessConfiguration,
+  ZeroKnowledgeSig,
+  ZkProof,
+} from "../core";
 import { HexInput, LedgerVersionArg, MoveResource, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { KeylessConfiguration, PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
+import {
+  Groth16VerificationKeyResponse,
+  KeylessConfigurationResponse,
+  PepperFetchRequest,
+  PepperFetchResponse,
+  ProverRequest,
+  ProverResponse,
+} from "../types/keyless";
 import { memoizeAsync } from "../utils/memoize";
 
-export async function getKeylessConfig(args: {
+/**
+ * Gets the parameters of how Keyless Accounts are configured on chain including the verifying key and the max expiry horizon
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns KeylessConfiguration
+ */
+async function getKeylessConfig(args: {
   aptosConfig: AptosConfig;
   options?: LedgerVersionArg;
 }): Promise<KeylessConfiguration> {
-  const { aptosConfig, options } = args;
-  const resourceType = "0x1::keyless_account::Configuration"
+  const { aptosConfig } = args;
   return memoizeAsync(
     async () => {
-      const { data } = await getAptosFullNode<{}, MoveResource>({
-        aptosConfig,
-        originMethod: "getKeylessConfig",
-        path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-        params: { ledger_version: options?.ledgerVersion },
-      });
-      return data.data as KeylessConfiguration;
+      const config = await getKeylessConfigurationResource(args);
+      const vk = await getGroth16VerificationKeyResource(args);
+      return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
     },
     `keyless-configuration-${aptosConfig.network}`,
-    1000 * 60 * 10, // 10 minutes
+    1000 * 60 * 5, // 5 minutes
   )();
+}
+
+/**
+ * Gets the KeylessConfiguration set on chain
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns KeylessConfigurationResponse
+ */
+async function getKeylessConfigurationResource(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<KeylessConfigurationResponse> {
+  const { aptosConfig, options } = args;
+  const resourceType = "0x1::keyless_account::Configuration";
+  const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
+    aptosConfig,
+    originMethod: "getKeylessConfiguration",
+    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+    params: { ledger_version: options?.ledgerVersion },
+  });
+
+  return data.data;
+}
+
+/**
+ * Gets the Groth16VerificationKey set on chain
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns Groth16VerificationKeyResponse
+ */
+async function getGroth16VerificationKeyResource(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<Groth16VerificationKeyResponse> {
+  const { aptosConfig, options } = args;
+  const resourceType = "0x1::keyless_account::Groth16VerificationKey";
+  const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
+    aptosConfig,
+    originMethod: "getGroth16VerificationKey",
+    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+    params: { ledger_version: options?.ledgerVersion },
+  });
+
+  return data.data;
 }
 
 export async function getPepper(args: {
@@ -43,14 +103,14 @@ export async function getPepper(args: {
   uidKey?: string;
   derivationPath?: string;
 }): Promise<Uint8Array> {
-  const { aptosConfig, jwt, ephemeralKeyPair, uidKey, derivationPath } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, uidKey = "sub", derivationPath } = args;
 
   const body = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
     exp_date_secs: ephemeralKeyPair.expiryDateSecs,
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
-    uid_key: uidKey || "sub",
+    uid_key: uidKey,
     derivation_path: derivationPath,
   };
   const { data } = await postAptosPepperService<PepperFetchRequest, PepperFetchResponse>({
@@ -70,15 +130,16 @@ export async function getProof(args: {
   pepper: HexInput;
   uidKey?: string;
 }): Promise<ZeroKnowledgeSig> {
-  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey = "sub" } = args;
+  const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
   const json = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
     epk_blinder: Hex.fromHexInput(ephemeralKeyPair.blinder).toStringWithoutPrefix(),
     exp_date_secs: ephemeralKeyPair.expiryDateSecs,
-    exp_horizon_secs: EPK_HORIZON_SECS,
+    exp_horizon_secs: maxExpHorizonSecs,
     pepper: Hex.fromHexInput(pepper).toStringWithoutPrefix(),
-    uid_key: uidKey || "sub",
+    uid_key: uidKey,
   };
 
   const { data } = await postAptosProvingService<ProverRequest, ProverResponse>({
@@ -99,6 +160,7 @@ export async function getProof(args: {
   const signedProof = new ZeroKnowledgeSig({
     proof: new ZkProof(groth16Zkp, ZkpVariant.Groth16),
     trainingWheelsSignature: EphemeralSignature.fromHex(data.training_wheels_signature),
+    expHorizonSecs: maxExpHorizonSecs,
   });
   return signedProof;
 }
@@ -126,7 +188,7 @@ export async function deriveKeylessAccount(args: {
   const proofPromise = getProof({ ...args, pepper });
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
-  const keylessAccount = KeylessAccount.fromJWTAndProof({ ...args, proof, pepper, proofFetchCallback });
+  const keylessAccount = KeylessAccount.create({ ...args, proof, pepper, proofFetchCallback });
 
   return keylessAccount;
 }

@@ -1,12 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  Ed25519PrivateKey,
-  Serializer,
-  generateSigningMessageForTransaction,
-} from "../../src";
+import { Account, Ed25519PrivateKey, Serializer, generateSigningMessageForTransaction } from "../../src";
 import { AptsoDomainSeparator, CryptoHashable } from "../../src/core/crypto/cryptoHasher";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";

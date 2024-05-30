@@ -80,16 +80,16 @@ export class Deserializer {
    * Deserializes a an optional deserializable class.
    *
    * BCS layout for Optional<T>: 0 if none, else 1 | bcs representation of class
-   * 
-   * @example 
+   *
+   * @example
    * const deserializer = new Deserializer(new Uint8Array([1, 2, 3]));
    * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
    * // value is now an instance of MyClass
-   * 
+   *
    * const deserializer = new Deserializer(new Uint8Array([0]));
    * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
    * // value is undefined
-   * 
+   *
    * @param cls The BCS-deserializable class to deserialize the buffered bytes into.
    *
    * @returns the deserialized value of class type T

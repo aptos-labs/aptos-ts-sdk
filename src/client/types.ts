@@ -41,7 +41,7 @@ export class AptosApiError extends Error {
 
   readonly statusText: string;
 
-  readonly data: { message: string; error_code?: string; vm_error_code?: number };
+  readonly data: any;
 
   readonly request: AptosRequest;
 

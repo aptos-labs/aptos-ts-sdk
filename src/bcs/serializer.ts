@@ -322,14 +322,14 @@ export class Serializer {
    * Note that this does not return anything. The bytes are added to the serializer instance's byte buffer.
    *
    * @param values The array of BCS Serializable values
-   * 
+   *
    * @example
    * ```ts
    * const serializer = new Serializer();
    * serializer.serializeOption(new AccountAddress(...));
    * const serializedBytes = serializer.toUint8Array();
    * // serializedBytes is now the BCS-serialized byte representation of AccountAddress
-   * 
+   *
    * const serializer = new Serializer();
    * serializer.serializeOption(undefined);
    * assert(serializer.toUint8Array() === new Uint8Array([0x00]));

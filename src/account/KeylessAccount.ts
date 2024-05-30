@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
-import { JwksClient } from "jwks-rsa";
 import EventEmitter from "eventemitter3";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
@@ -22,11 +21,8 @@ import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import {
-  deriveTransactionType,
-} from "../transactions/transactionBuilder/signingMessage";
+import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { AptosApiError } from "../client/types";
 import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHasher";
 import { base64UrlDecode } from "../utils/helpers";
 
@@ -34,42 +30,13 @@ export const IssuerToJwkEndpoint: Record<string, string> = {
   "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
 };
 
-export enum KeylessErrorType {
-  JWK_EXPIRED,
-  EPK_EXPIRED,
-  PROOF_NOT_FOUND,
-  UNKNOWN_INVALID_SIGNATURE,
-  UNKNOWN,
-}
-export class KeylessError extends Error {
-  readonly type: KeylessErrorType;
-
-  constructor(type: KeylessErrorType) {
-    super();
-    this.type = type;
-  }
-
-  static async fromAptosApiError(error: AptosApiError, signer: KeylessAccount): Promise<KeylessError> {
-    if (!error.data.message.includes("INVALID_SIGNATURE")) {
-      return new KeylessError(KeylessErrorType.UNKNOWN);
-    }
-    if (signer.isExpired()) {
-      return new KeylessError(KeylessErrorType.EPK_EXPIRED);
-    }
-    if (!(await signer.checkJwkValidity())) {
-      return new KeylessError(KeylessErrorType.JWK_EXPIRED);
-    }
-    return new KeylessError(KeylessErrorType.UNKNOWN_INVALID_SIGNATURE);
-  }
-}
-
 /**
  * Account implementation for the Keyless authentication scheme.
  *
  * Used to represent a Keyless based account and sign transactions with it.
- * 
+ *
  * Use KeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
- * 
+ *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
@@ -82,7 +49,7 @@ export class KeylessAccount extends Serializable implements Account {
   readonly publicKey: KeylessPublicKey;
 
   /**
-   * The EphemeralKeyPair used to generate sign. 
+   * The EphemeralKeyPair used to generate sign.
    */
   readonly ephemeralKeyPair: EphemeralKeyPair;
 
@@ -134,7 +101,7 @@ export class KeylessAccount extends Serializable implements Account {
   private jwt: string;
 
   /**
-   * A value that caches the JWT's validity.  A JWT becomes invalid when it's corresponding JWK is rotated from the 
+   * A value that caches the JWT's validity.  A JWT becomes invalid when it's corresponding JWK is rotated from the
    * identity provider's JWK keyset.
    */
   private isJwtValid: boolean;
@@ -222,7 +189,7 @@ export class KeylessAccount extends Serializable implements Account {
     const pepper = deserializer.deserializeFixedBytes(31);
     const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
     const proof = ZeroKnowledgeSig.deserialize(deserializer);
-    return KeylessAccount.fromJWTAndProof({
+    return KeylessAccount.create({
       proof,
       pepper,
       uidKey,
@@ -238,28 +205,6 @@ export class KeylessAccount extends Serializable implements Account {
    */
   isExpired(): boolean {
     return this.ephemeralKeyPair.isExpired();
-  }
-
-  /**
-   * Checks if the the JWK used to verify the token still exists on the issuer's JWK uri.
-   * Caches the result.
-   * @return boolean
-   */
-  async checkJwkValidity(): Promise<boolean> {
-    if (!this.isJwtValid) {
-      return false;
-    }
-    const jwtHeader = jwtDecode(this.jwt, { header: true });
-    const client = new JwksClient({
-      jwksUri: IssuerToJwkEndpoint[this.publicKey.iss],
-    });
-    try {
-      await client.getSigningKey(jwtHeader.kid);
-      return true;
-    } catch (error) {
-      this.isJwtValid = false;
-      return false;
-    }
   }
 
   /**
@@ -302,13 +247,10 @@ export class KeylessAccount extends Serializable implements Account {
   sign(data: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
-      throw new KeylessError(KeylessErrorType.EPK_EXPIRED);
+      throw new Error("EphemeralKeyPair is expired");
     }
     if (this.proof === undefined) {
-      throw new KeylessError(KeylessErrorType.PROOF_NOT_FOUND);
-    }
-    if (!this.isJwtValid) {
-      throw new KeylessError(KeylessErrorType.JWK_EXPIRED);
+      throw new Error("Proof not defined");
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
@@ -347,7 +289,7 @@ export class KeylessAccount extends Serializable implements Account {
     return KeylessAccount.deserialize(new Deserializer(bytes));
   }
 
-  static fromJWTAndProof(args: {
+  static create(args: {
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
@@ -355,8 +297,7 @@ export class KeylessAccount extends Serializable implements Account {
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
   }): KeylessAccount {
-    const { proof, jwt, ephemeralKeyPair, pepper, proofFetchCallback } = args;
-    const uidKey = args.uidKey ?? "sub";
+    const { proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     const iss = jwtPayload.iss!;
@@ -403,7 +344,7 @@ export class TransactionAndProof extends CryptoHashable {
     super();
     this.transaction = transaction;
     this.proof = proof;
-    this.domainSeparator = "APTOS::TransactionAndProof"
+    this.domainSeparator = "APTOS::TransactionAndProof";
   }
 
   serialize(serializer: Serializer): void {

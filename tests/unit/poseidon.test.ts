@@ -27,7 +27,10 @@ describe("Poseidon", () => {
   it("should convert bigint to array and back correctly", () => {
     const input = [BigInt(123), BigInt(321)];
     for (let i = 0; i < input.length; i += 1) {
-      expect(input[i]).toEqual( bytesToBigIntLE(bigIntToBytesLE(input[i], 31)));
+      expect(input[i]).toEqual(bytesToBigIntLE(bigIntToBytesLE(input[i], 31)));
     }
+  });
+  it("should error if too many inputs", () => {
+    expect(() => poseidonHash(new Array(17).fill(0))).toThrow();
   });
 });

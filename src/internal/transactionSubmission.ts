@@ -7,8 +7,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
-import { AptosApiError, postAptosFullNode } from "../client";
-import { Account, KeylessAccount, KeylessError, MultiKeyAccount } from "../account";
+import { postAptosFullNode } from "../client";
+import { Account, KeylessAccount, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
