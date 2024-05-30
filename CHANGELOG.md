@@ -4,11 +4,28 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- TypeTag parsing now support references, uppercase types, and more complete error handling
+- Allow simple string inputs as type arguments in move scripts
+- [`Fix`] Block APIs will now pull all associated transactions in the block, not just the first `100`
+- Adds Keyless Account support
+
+# 1.16.0 (2024-05-22)
+
+- Upgrade `@aptos-labs/aptos-cli` package to version `0.1.8`
+- [`Fix`] CLI scripts to be OS compatible with Mac, Linux and Windows
+- [`Fix`] Support generating transactions with loose types for SDK V1 backward compatibility
+
+# 1.15.0 (2024-05-21)
+
+- [`Breaking`] Removes private key from the Account class to support MultiKey accounts.
+- [`Breaking`] Removes the `sign` function from transactionBuilder.ts. Use `Account.signTransactionWithAuthenticator` instead.
+- Refactors the core/accounts folder to the top level
+- Separates the signing message functionality out of the transactionSubmission.ts file
+- Adds an Account implementation for MultiKey accounts
 - Upgrade `@aptos-labs/aptos-cli` package to version `0.1.7`
 - Introduce `table` function APIs
 - Add `getTableItemsData` and `getTableItemsMetadata` API queries
 - Add `decimal` prop back to `current_token_ownerships_v2.current_token_data` response
-- Adds Keyless Account support
 
 # 1.14.0 (2024-05-09)
 

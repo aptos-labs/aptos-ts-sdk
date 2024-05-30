@@ -10,14 +10,7 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, postAptosIndexer } from "../client";
-import {
-  AnyNumber,
-  Block,
-  GetChainTopUserTransactionsResponse,
-  GetProcessorStatusResponse,
-  GraphqlQuery,
-  LedgerInfo,
-} from "../types";
+import { GetChainTopUserTransactionsResponse, GetProcessorStatusResponse, GraphqlQuery, LedgerInfo } from "../types";
 import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../types/generated/operations";
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
 import { ProcessorType } from "../utils/const";
@@ -28,36 +21,6 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
     aptosConfig,
     originMethod: "getLedgerInfo",
     path: "",
-  });
-  return data;
-}
-
-export async function getBlockByVersion(args: {
-  aptosConfig: AptosConfig;
-  ledgerVersion: AnyNumber;
-  options?: { withTransactions?: boolean };
-}): Promise<Block> {
-  const { aptosConfig, ledgerVersion, options } = args;
-  const { data } = await getAptosFullNode<{}, Block>({
-    aptosConfig,
-    originMethod: "getBlockByVersion",
-    path: `blocks/by_version/${ledgerVersion}`,
-    params: { with_transactions: options?.withTransactions },
-  });
-  return data;
-}
-
-export async function getBlockByHeight(args: {
-  aptosConfig: AptosConfig;
-  blockHeight: AnyNumber;
-  options?: { withTransactions?: boolean };
-}): Promise<Block> {
-  const { aptosConfig, blockHeight, options } = args;
-  const { data } = await getAptosFullNode<{}, Block>({
-    aptosConfig,
-    originMethod: "getBlockByHeight",
-    path: `blocks/by_height/${blockHeight}`,
-    params: { with_transactions: options?.withTransactions },
   });
   return data;
 }
