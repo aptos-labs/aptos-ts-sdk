@@ -8,6 +8,9 @@ import { AptosConfig } from "./aptosConfig";
 
 /**
  * A class to query all `Keyless` related queries on Aptos.
+ * 
+ * More documentation on how to integrate Keyless Accounts see the below
+ * https://aptos.dev/guides/keyless-accounts/#aptos-keyless-integration-guide
  */
 export class Keyless {
   constructor(readonly config: AptosConfig) {}

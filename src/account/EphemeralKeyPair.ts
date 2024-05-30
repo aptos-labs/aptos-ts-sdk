@@ -16,6 +16,11 @@ import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
 
+/**
+ * A class which contains a key pair that is used in signing transactions via the Keyless authentication scheme. This key pair
+ * is ephemeral and has an expiration time.  For more details on how this class is used -
+ * https://aptos.dev/guides/keyless-accounts/#1-present-the-user-with-a-sign-in-with-idp-button-on-the-ui
+ */
 export class EphemeralKeyPair extends Serializable {
   static readonly BLINDER_LENGTH: number = 31;
 
