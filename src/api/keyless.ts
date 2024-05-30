@@ -30,8 +30,10 @@ export class Keyless {
    * @param args.ephemeralKeyPair the EphemeralKeyPair used to generate the nonce in the JWT token
    * @param args.uidKey a key in the JWT token to use to set the uidVal in the IdCommitment
    * @param args.pepper the pepper
-   * @param args.proofFetchCallback a callback function that if set, the fetch of the proof will be done asyncronously. Once
-   * if finishes the callback function will be called.
+   * @param args.proofFetchCallback a callback function that if set, the fetch of the proof will be done in the background. Once
+   * fetching finishes the callback function will be called.  This should be used to provide a more responsive user experience as now
+   * they are not blocked on fetching the proof. Thus the function will return much more quickly.
+   * 
    * @returns A KeylessAccount that can be used to sign transactions
    */
   async deriveKeylessAccount(args: {
