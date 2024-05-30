@@ -94,13 +94,7 @@ export class KeylessAccount extends Serializable implements Account {
   /**
    * The JWT token used to derive the account
    */
-  private jwt: string;
-
-  /**
-   * A value that caches the JWT's validity.  A JWT becomes invalid when it's corresponding JWK is rotated from the
-   * identity provider's JWK keyset.
-   */
-  private isJwtValid: boolean;
+  readonly jwt: string;
 
   /**
    * An event emitter used to assist in handling asycronous proof fetching.
@@ -148,7 +142,6 @@ export class KeylessAccount extends Serializable implements Account {
       throw new Error(`Pepper length in bytes should be ${KeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
-    this.isJwtValid = true;
   }
 
   /**
