@@ -20,7 +20,7 @@ describe("FungibleAsset", () => {
     expect(data[0].asset_type).toEqual(APTOS_COIN);
   });
 
-  test("it should fetch a specific fungible asset metadata", async () => {
+  test("it should fetch a specific fungible asset metadata by an asset type", async () => {
     let data = await aptos.getFungibleAssetMetadataByAssetType({ assetType: APTOS_COIN });
     expect(data.asset_type).toEqual(APTOS_COIN);
 

@@ -3539,14 +3539,15 @@ export type CurrentTokenDatasV2 = {
   current_token_ownerships: Array<CurrentTokenOwnershipsV2>;
   /** An aggregate relationship */
   current_token_ownerships_aggregate: CurrentTokenOwnershipsV2Aggregate;
-  decimals: Scalars["bigint"]["output"];
+  decimals?: Maybe<Scalars["bigint"]["output"]>;
   description: Scalars["String"]["output"];
+  is_deleted_v2?: Maybe<Scalars["Boolean"]["output"]>;
   is_fungible_v2?: Maybe<Scalars["Boolean"]["output"]>;
   largest_property_version_v1?: Maybe<Scalars["numeric"]["output"]>;
   last_transaction_timestamp: Scalars["timestamp"]["output"];
   last_transaction_version: Scalars["bigint"]["output"];
   maximum?: Maybe<Scalars["numeric"]["output"]>;
-  supply: Scalars["numeric"]["output"];
+  supply?: Maybe<Scalars["numeric"]["output"]>;
   token_data_id: Scalars["String"]["output"];
   token_name: Scalars["String"]["output"];
   token_properties: Scalars["jsonb"]["output"];
@@ -3590,6 +3591,7 @@ export type CurrentTokenDatasV2BoolExp = {
   current_token_ownerships_aggregate?: InputMaybe<CurrentTokenOwnershipsV2AggregateBoolExp>;
   decimals?: InputMaybe<BigintComparisonExp>;
   description?: InputMaybe<StringComparisonExp>;
+  is_deleted_v2?: InputMaybe<BooleanComparisonExp>;
   is_fungible_v2?: InputMaybe<BooleanComparisonExp>;
   largest_property_version_v1?: InputMaybe<NumericComparisonExp>;
   last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
@@ -3612,6 +3614,7 @@ export type CurrentTokenDatasV2OrderBy = {
   current_token_ownerships_aggregate?: InputMaybe<CurrentTokenOwnershipsV2AggregateOrderBy>;
   decimals?: InputMaybe<OrderBy>;
   description?: InputMaybe<OrderBy>;
+  is_deleted_v2?: InputMaybe<OrderBy>;
   is_fungible_v2?: InputMaybe<OrderBy>;
   largest_property_version_v1?: InputMaybe<OrderBy>;
   last_transaction_timestamp?: InputMaybe<OrderBy>;
@@ -3633,6 +3636,8 @@ export enum CurrentTokenDatasV2SelectColumn {
   Decimals = "decimals",
   /** column name */
   Description = "description",
+  /** column name */
+  IsDeletedV2 = "is_deleted_v2",
   /** column name */
   IsFungibleV2 = "is_fungible_v2",
   /** column name */
@@ -3670,6 +3675,7 @@ export type CurrentTokenDatasV2StreamCursorValueInput = {
   collection_id?: InputMaybe<Scalars["String"]["input"]>;
   decimals?: InputMaybe<Scalars["bigint"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
+  is_deleted_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_fungible_v2?: InputMaybe<Scalars["Boolean"]["input"]>;
   largest_property_version_v1?: InputMaybe<Scalars["numeric"]["input"]>;
   last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
@@ -5415,10 +5421,12 @@ export type FungibleAssetMetadata = {
   icon_uri?: Maybe<Scalars["String"]["output"]>;
   last_transaction_timestamp: Scalars["timestamp"]["output"];
   last_transaction_version: Scalars["bigint"]["output"];
+  maximum_v2?: Maybe<Scalars["numeric"]["output"]>;
   name: Scalars["String"]["output"];
   project_uri?: Maybe<Scalars["String"]["output"]>;
   supply_aggregator_table_handle_v1?: Maybe<Scalars["String"]["output"]>;
   supply_aggregator_table_key_v1?: Maybe<Scalars["String"]["output"]>;
+  supply_v2?: Maybe<Scalars["numeric"]["output"]>;
   symbol: Scalars["String"]["output"];
   token_standard: Scalars["String"]["output"];
 };
@@ -5434,10 +5442,12 @@ export type FungibleAssetMetadataBoolExp = {
   icon_uri?: InputMaybe<StringComparisonExp>;
   last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
+  maximum_v2?: InputMaybe<NumericComparisonExp>;
   name?: InputMaybe<StringComparisonExp>;
   project_uri?: InputMaybe<StringComparisonExp>;
   supply_aggregator_table_handle_v1?: InputMaybe<StringComparisonExp>;
   supply_aggregator_table_key_v1?: InputMaybe<StringComparisonExp>;
+  supply_v2?: InputMaybe<NumericComparisonExp>;
   symbol?: InputMaybe<StringComparisonExp>;
   token_standard?: InputMaybe<StringComparisonExp>;
 };
@@ -5450,10 +5460,12 @@ export type FungibleAssetMetadataOrderBy = {
   icon_uri?: InputMaybe<OrderBy>;
   last_transaction_timestamp?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
+  maximum_v2?: InputMaybe<OrderBy>;
   name?: InputMaybe<OrderBy>;
   project_uri?: InputMaybe<OrderBy>;
   supply_aggregator_table_handle_v1?: InputMaybe<OrderBy>;
   supply_aggregator_table_key_v1?: InputMaybe<OrderBy>;
+  supply_v2?: InputMaybe<OrderBy>;
   symbol?: InputMaybe<OrderBy>;
   token_standard?: InputMaybe<OrderBy>;
 };
@@ -5473,6 +5485,8 @@ export enum FungibleAssetMetadataSelectColumn {
   /** column name */
   LastTransactionVersion = "last_transaction_version",
   /** column name */
+  MaximumV2 = "maximum_v2",
+  /** column name */
   Name = "name",
   /** column name */
   ProjectUri = "project_uri",
@@ -5480,6 +5494,8 @@ export enum FungibleAssetMetadataSelectColumn {
   SupplyAggregatorTableHandleV1 = "supply_aggregator_table_handle_v1",
   /** column name */
   SupplyAggregatorTableKeyV1 = "supply_aggregator_table_key_v1",
+  /** column name */
+  SupplyV2 = "supply_v2",
   /** column name */
   Symbol = "symbol",
   /** column name */
@@ -5502,10 +5518,12 @@ export type FungibleAssetMetadataStreamCursorValueInput = {
   icon_uri?: InputMaybe<Scalars["String"]["input"]>;
   last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
   last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  maximum_v2?: InputMaybe<Scalars["numeric"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   project_uri?: InputMaybe<Scalars["String"]["input"]>;
   supply_aggregator_table_handle_v1?: InputMaybe<Scalars["String"]["input"]>;
   supply_aggregator_table_key_v1?: InputMaybe<Scalars["String"]["input"]>;
+  supply_v2?: InputMaybe<Scalars["numeric"]["input"]>;
   symbol?: InputMaybe<Scalars["String"]["input"]>;
   token_standard?: InputMaybe<Scalars["String"]["input"]>;
 };
