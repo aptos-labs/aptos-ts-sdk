@@ -133,8 +133,8 @@ export async function getProof(args: {
 }): Promise<ZeroKnowledgeSig> {
   const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey = "sub" } = args;
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  if (maxExpHorizonSecs < (ephemeralKeyPair.expiryDateSecs - currentTimeInSeconds()) ) {
-    throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`)
+  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - currentTimeInSeconds()) {
+    throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
     jwt_b64: jwt,

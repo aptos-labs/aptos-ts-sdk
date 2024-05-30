@@ -26,12 +26,6 @@ export function floorToWholeHour(timestampInSeconds: number): number {
   return Math.floor(date.getTime() / 1000);
 }
 
-export function ceilingToWholeHour(timestampInSeconds: number): number {
-  const date = new Date(timestampInSeconds * 1000);
-  date.setHours(date.getHours() + 1);
-  return floorToWholeHour(date.getTime() / 1000)
-}
-
 export function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
