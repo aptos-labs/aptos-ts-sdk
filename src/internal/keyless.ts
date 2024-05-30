@@ -29,6 +29,7 @@ import {
   ProverResponse,
 } from "../types/keyless";
 import { memoizeAsync } from "../utils/memoize";
+import { currentTimeInSeconds } from "../utils/helpers";
 
 /**
  * Gets the parameters of how Keyless Accounts are configured on chain including the verifying key and the max expiry horizon
@@ -66,7 +67,7 @@ async function getKeylessConfigurationResource(args: {
   const resourceType = "0x1::keyless_account::Configuration";
   const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
     aptosConfig,
-    originMethod: "getKeylessConfiguration",
+    originMethod: "getKeylessConfigurationResource",
     path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
@@ -88,7 +89,7 @@ async function getGroth16VerificationKeyResource(args: {
   const resourceType = "0x1::keyless_account::Groth16VerificationKey";
   const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
     aptosConfig,
-    originMethod: "getGroth16VerificationKey",
+    originMethod: "getGroth16VerificationKeyResource",
     path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
     params: { ledger_version: options?.ledgerVersion },
   });
@@ -132,6 +133,9 @@ export async function getProof(args: {
 }): Promise<ZeroKnowledgeSig> {
   const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey = "sub" } = args;
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+  if (maxExpHorizonSecs < (ephemeralKeyPair.expiryDateSecs - currentTimeInSeconds()) ) {
+    throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`)
+  }
   const json = {
     jwt_b64: jwt,
     epk: ephemeralKeyPair.getPublicKey().bcsToHex().toStringWithoutPrefix(),
