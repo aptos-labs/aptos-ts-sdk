@@ -531,9 +531,18 @@ export class ZeroKnowledgeSig extends Signature {
   }
 }
 
+/**
+ * A class which represents the on-chain configuration for how Keyless accounts work
+ */
 export class KeylessConfiguration {
+  /**
+   * The verification key used to verify Groth16 proofs on chain
+   */
   readonly verficationKey: Groth16VerificationKey;
 
+  /**
+   * The maximum lifespan of an ephemeral key pair.  This is configured on chain.
+   */
   readonly maxExpHorizonSecs: number;
 
   constructor(verficationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
@@ -555,15 +564,35 @@ export class KeylessConfiguration {
   }
 }
 
+/**
+ * A representation of the verification key stored on chain used to verify Groth16 proofs
+ */
 class Groth16VerificationKey {
+  // The docstrings below are borrowed from ark-groth16
+
+  /**
+   * The `alpha * G`, where `G` is the generator of G1
+   */
   readonly alphaG1: G1Bytes;
 
+  /**
+   * The `alpha * H`, where `H` is the generator of G2
+   */
   readonly betaG2: G2Bytes;
 
+  /**
+   * The `delta * H`, where `H` is the generator of G2
+   */
   readonly deltaG2: G2Bytes;
 
+  /**
+   * The `gamma^{-1} * (beta * a_i + alpha * b_i + c_i) * H`, where H is the generator of G1
+   */
   readonly gammaAbcG1: G1Bytes[];
 
+  /**
+   * The `gamma * H`, where `H` is the generator of G2
+   */
   readonly gammaG2: G2Bytes;
 
   constructor(args: {
