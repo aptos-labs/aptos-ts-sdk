@@ -14,7 +14,7 @@ import { Hex } from "../core/hex";
 import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
 import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { currentTimeInSeconds, floorToWholeHour } from "../utils/helpers";
+import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
 
 export class EphemeralKeyPair extends Serializable {
   static readonly BLINDER_LENGTH: number = 31;
@@ -55,7 +55,7 @@ export class EphemeralKeyPair extends Serializable {
     this.privateKey = privateKey;
     this.publicKey = new EphemeralPublicKey(privateKey.publicKey());
     // We set the expiry date to be the nearest floored hour
-    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(currentTimeInSeconds() + EPK_HORIZON_SECS);
+    this.expiryDateSecs = expiryDateSecs || floorToWholeHour(nowInSeconds() + EPK_HORIZON_SECS);
     // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     // Calculate the nonce
@@ -111,7 +111,7 @@ export class EphemeralKeyPair extends Serializable {
    * @param expiryDateSecs the date of expiry.
    * @return boolean
    */
-  static generate(args?: { scheme: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
+  static generate(args?: { scheme?: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
     let privateKey: PrivateKey;
 
     switch (args?.scheme) {

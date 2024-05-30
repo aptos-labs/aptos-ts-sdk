@@ -29,6 +29,8 @@ export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   blinder: new Uint8Array(31),
 });
 
+const KEYLESS_TEST_TIMEOUT = 10000;
+
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
   // TODO: Make this work for local by spinning up a local proving service.
@@ -39,7 +41,7 @@ describe("keyless api", () => {
     const promises = TEST_JWT_TOKENS.map(async (jwt) => {
       const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
       const accountAddress = KeylessPublicKey.fromJWTAndPepper({ jwt, pepper }).authKey().derivedAddress();
-      await aptos.faucet.fundAccount({
+      await aptos.fundAccount({
         accountAddress,
         amount: FUND_AMOUNT,
       });
@@ -48,119 +50,159 @@ describe("keyless api", () => {
     await Promise.all(promises);
   }, 30000);
   describe("keyless account", () => {
-    test("derives the keyless account and submits a transaction", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "derives the keyless account and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("derives the keyless account with email uidKey and submits a transaction", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" });
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "derives the keyless account with email uidKey and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" });
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("derives the keyless account with custom pepper and submits a transaction", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) });
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "derives the keyless account with custom pepper and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) });
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("derives the keyless account with custom pepper and submits a transaction", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) });
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "derives the keyless account with custom pepper and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) });
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("deriving keyless account with async proof fetch executes callback", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      let succeeded = false;
-      const proofFetchCallback = async (res: ProofFetchStatus) => {
-        if (res.status === "Failed") {
-          return;
-        }
-        succeeded = true;
-      };
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
-      expect(succeeded).toBeFalsy();
-      await account.waitForProofFetch();
-      expect(succeeded).toBeTruthy();
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "deriving keyless account with async proof fetch executes callback",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        let succeeded = false;
+        const proofFetchCallback = async (res: ProofFetchStatus) => {
+          if (res.status === "Failed") {
+            return;
+          }
+          succeeded = true;
+        };
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        expect(succeeded).toBeFalsy();
+        await account.waitForProofFetch();
+        expect(succeeded).toBeTruthy();
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("derives the keyless account with async proof fetch and submits a transaction", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const proofFetchCallback = async () => {};
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
-      const transaction = await aptos.transferCoinTransaction({
-        sender: account.accountAddress,
-        recipient: account.accountAddress,
-        amount: TRANSFER_AMOUNT,
-      });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction });
-      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-    }, 10000);
+    test(
+      "derives the keyless account with async proof fetch and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const proofFetchCallback = async () => {};
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        const transaction = await aptos.transferCoinTransaction({
+          sender: account.accountAddress,
+          recipient: account.accountAddress,
+          amount: TRANSFER_AMOUNT,
+        });
+        const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction });
+        await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("deriving keyless account with async proof fetch throws when trying to immediately sign", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const proofFetchCallback = async () => {};
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
-      const transaction = await aptos.transferCoinTransaction({
-        sender: account.accountAddress,
-        recipient: account.accountAddress,
-        amount: TRANSFER_AMOUNT,
-      });
-      expect(() => account.signTransaction(transaction)).toThrow();
-      await account.waitForProofFetch();
-      account.signTransaction(transaction);
-    }, 10000);
+    test(
+      "deriving keyless account with async proof fetch throws when trying to immediately sign",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const proofFetchCallback = async () => {};
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        const transaction = await aptos.transferCoinTransaction({
+          sender: account.accountAddress,
+          recipient: account.accountAddress,
+          amount: TRANSFER_AMOUNT,
+        });
+        expect(() => account.signTransaction(transaction)).toThrow();
+        await account.waitForProofFetch();
+        account.signTransaction(transaction);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("deriving keyless account using all parameters", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const proofFetchCallback = async () => {};
-      const account = await aptos.deriveKeylessAccount({
-        jwt,
-        ephemeralKeyPair,
-        uidKey: "email",
-        pepper: new Uint8Array(31),
-        proofFetchCallback,
-      });
-      const recipient = Account.generate();
-      await simpleCoinTransactionHelper(aptos, account, recipient);
-    }, 10000);
+    test(
+      "deriving keyless account using all parameters",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const proofFetchCallback = async () => {};
+        const account = await aptos.deriveKeylessAccount({
+          jwt,
+          ephemeralKeyPair,
+          uidKey: "email",
+          pepper: new Uint8Array(31),
+          proofFetchCallback,
+        });
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("simulation works correctly", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
-      const transaction = await aptos.transferCoinTransaction({
-        sender: account.accountAddress,
-        recipient: account.accountAddress,
-        amount: TRANSFER_AMOUNT,
-      });
-      await aptos.transaction.simulate.simple({ signerPublicKey: account.publicKey, transaction });
-    }, 10000);
+    test(
+      "simulation works correctly",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const transaction = await aptos.transferCoinTransaction({
+          sender: account.accountAddress,
+          recipient: account.accountAddress,
+          amount: TRANSFER_AMOUNT,
+        });
+        await aptos.transaction.simulate.simple({ signerPublicKey: account.publicKey, transaction });
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
 
-    test("serializes and deserializes", async () => {
-      // Select a random test token.  Using the same one may encounter rate limits
-      const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-      const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
-      const bytes = account.bcsToBytes();
-      const deserializedAccount = KeylessAccount.fromBytes(bytes);
-      expect(bytes).toEqual(deserializedAccount.bcsToBytes());
-    }, 10000);
+    test(
+      "serializes and deserializes",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const bytes = account.bcsToBytes();
+        const deserializedAccount = KeylessAccount.fromBytes(bytes);
+        expect(bytes).toEqual(deserializedAccount.bcsToBytes());
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
   });
 });

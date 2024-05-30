@@ -8,94 +8,12 @@
  * keyless namespace and without having a dependency cycle error.
  */
 import { AptosConfig } from "../api/aptosConfig";
-import { getAptosFullNode, postAptosPepperService, postAptosProvingService } from "../client";
-import {
-  AccountAddress,
-  EphemeralSignature,
-  Groth16Zkp,
-  Hex,
-  KeylessConfiguration,
-  ZeroKnowledgeSig,
-  ZkProof,
-} from "../core";
-import { HexInput, LedgerVersionArg, MoveResource, ZkpVariant } from "../types";
+import { postAptosPepperService, postAptosProvingService } from "../client";
+import { EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof, getKeylessConfig } from "../core";
+import { EphemeralPublicKeyVariant, HexInput, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import {
-  Groth16VerificationKeyResponse,
-  KeylessConfigurationResponse,
-  PepperFetchRequest,
-  PepperFetchResponse,
-  ProverRequest,
-  ProverResponse,
-} from "../types/keyless";
-import { memoizeAsync } from "../utils/memoize";
-import { currentTimeInSeconds } from "../utils/helpers";
-
-/**
- * Gets the parameters of how Keyless Accounts are configured on chain including the verifying key and the max expiry horizon
- *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns KeylessConfiguration
- */
-async function getKeylessConfig(args: {
-  aptosConfig: AptosConfig;
-  options?: LedgerVersionArg;
-}): Promise<KeylessConfiguration> {
-  const { aptosConfig } = args;
-  return memoizeAsync(
-    async () => {
-      const config = await getKeylessConfigurationResource(args);
-      const vk = await getGroth16VerificationKeyResource(args);
-      return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
-    },
-    `keyless-configuration-${aptosConfig.network}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
-}
-
-/**
- * Gets the KeylessConfiguration set on chain
- *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns KeylessConfigurationResponse
- */
-async function getKeylessConfigurationResource(args: {
-  aptosConfig: AptosConfig;
-  options?: LedgerVersionArg;
-}): Promise<KeylessConfigurationResponse> {
-  const { aptosConfig, options } = args;
-  const resourceType = "0x1::keyless_account::Configuration";
-  const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
-    aptosConfig,
-    originMethod: "getKeylessConfigurationResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-
-  return data.data;
-}
-
-/**
- * Gets the Groth16VerificationKey set on chain
- *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns Groth16VerificationKeyResponse
- */
-async function getGroth16VerificationKeyResource(args: {
-  aptosConfig: AptosConfig;
-  options?: LedgerVersionArg;
-}): Promise<Groth16VerificationKeyResponse> {
-  const { aptosConfig, options } = args;
-  const resourceType = "0x1::keyless_account::Groth16VerificationKey";
-  const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
-    aptosConfig,
-    originMethod: "getGroth16VerificationKeyResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-
-  return data.data;
-}
+import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
+import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -133,7 +51,7 @@ export async function getProof(args: {
 }): Promise<ZeroKnowledgeSig> {
   const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey = "sub" } = args;
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - currentTimeInSeconds()) {
+  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - nowInSeconds()) {
     throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
@@ -167,6 +85,19 @@ export async function getProof(args: {
     expHorizonSecs: maxExpHorizonSecs,
   });
   return signedProof;
+}
+
+export async function generateEphemeralKeyPair(args: {
+  aptosConfig: AptosConfig;
+  scheme?: EphemeralPublicKeyVariant;
+  expiryDateSecs?: number;
+}): Promise<EphemeralKeyPair> {
+  const { aptosConfig, scheme, expiryDateSecs } = args;
+  const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+  return EphemeralKeyPair.generate({
+    scheme,
+    expiryDateSecs: expiryDateSecs || floorToWholeHour(nowInSeconds() + maxExpHorizonSecs),
+  });
 }
 
 export async function deriveKeylessAccount(args: {

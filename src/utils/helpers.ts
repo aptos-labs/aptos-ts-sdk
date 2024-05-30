@@ -13,9 +13,7 @@ export async function sleep(timeMs: number): Promise<null> {
   });
 }
 
-export function currentTimeInSeconds(): number {
-  return Math.floor(new Date().getTime() / 1000);
-}
+export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 export function floorToWholeHour(timestampInSeconds: number): number {
   const date = new Date(timestampInSeconds * 1000);

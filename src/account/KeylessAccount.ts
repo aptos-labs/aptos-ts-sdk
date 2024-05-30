@@ -26,10 +26,6 @@ import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/ty
 import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHasher";
 import { base64UrlDecode } from "../utils/helpers";
 
-export const IssuerToJwkEndpoint: Record<string, string> = {
-  "https://accounts.google.com": "https://www.googleapis.com/oauth2/v3/certs",
-};
-
 /**
  * Account implementation for the Keyless authentication scheme.
  *

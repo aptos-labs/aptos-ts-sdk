@@ -6,13 +6,25 @@ import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, EphemeralCertificateVariant, AnyPublicKeyVariant, SigningScheme, ZkpVariant } from "../../types";
+import {
+  HexInput,
+  EphemeralCertificateVariant,
+  AnyPublicKeyVariant,
+  SigningScheme,
+  ZkpVariant,
+  LedgerVersionArg,
+  MoveResource,
+} from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Groth16VerificationKeyResponse } from "../../types/keyless";
+import { Groth16VerificationKeyResponse, KeylessConfigurationResponse } from "../../types/keyless";
+import { AptosConfig } from "../../api/aptosConfig";
+import { getAptosFullNode } from "../../client";
+import { memoizeAsync } from "../../utils/memoize";
+import { AccountAddress } from "../accountAddress";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -29,6 +41,9 @@ export const MAX_COMMITED_EPK_BYTES = 93;
  * KeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
  */
 export class KeylessPublicKey extends AccountPublicKey {
+  /**
+   * The number of bytes that `idCommitment` should be
+   */
   static readonly ID_COMMITMENT_LENGTH: number = 32;
 
   /**
@@ -229,21 +244,6 @@ export class KeylessSignature extends Signature {
   }
 
   static deserialize(deserializer: Deserializer): KeylessSignature {
-    const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
-    const jwtHeader = deserializer.deserializeStr();
-    const expiryDateSecs = deserializer.deserializeU64();
-    const ephemeralPublicKey = EphemeralPublicKey.deserialize(deserializer);
-    const ephemeralSignature = EphemeralSignature.deserialize(deserializer);
-    return new KeylessSignature({
-      jwtHeader,
-      expiryDateSecs: Number(expiryDateSecs),
-      ephemeralCertificate,
-      ephemeralPublicKey,
-      ephemeralSignature,
-    });
-  }
-
-  static load(deserializer: Deserializer): KeylessSignature {
     const ephemeralCertificate = EphemeralCertificate.deserialize(deserializer);
     const jwtHeader = deserializer.deserializeStr();
     const expiryDateSecs = deserializer.deserializeU64();
@@ -520,15 +520,6 @@ export class ZeroKnowledgeSig extends Signature {
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
     return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
-
-  static load(deserializer: Deserializer): ZeroKnowledgeSig {
-    const proof = ZkProof.deserialize(deserializer);
-    const expHorizonSecs = Number(deserializer.deserializeU64());
-    const extraField = deserializer.deserializeOptionStr();
-    const overrideAudVal = deserializer.deserializeOptionStr();
-    const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
-    return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
-  }
 }
 
 /**
@@ -619,4 +610,70 @@ class Groth16VerificationKey {
       gammaG2: res.gamma_g2,
     });
   }
+}
+
+/**
+ * Gets the parameters of how Keyless Accounts are configured on chain including the verifying key and the max expiry horizon
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns KeylessConfiguration
+ */
+export async function getKeylessConfig(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<KeylessConfiguration> {
+  const { aptosConfig } = args;
+  return memoizeAsync(
+    async () => {
+      const config = await getKeylessConfigurationResource(args);
+      const vk = await getGroth16VerificationKeyResource(args);
+      return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
+    },
+    `keyless-configuration-${aptosConfig.network}`,
+    1000 * 60 * 5, // 5 minutes
+  )();
+}
+
+/**
+ * Gets the KeylessConfiguration set on chain
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns KeylessConfigurationResponse
+ */
+async function getKeylessConfigurationResource(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<KeylessConfigurationResponse> {
+  const { aptosConfig, options } = args;
+  const resourceType = "0x1::keyless_account::Configuration";
+  const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
+    aptosConfig,
+    originMethod: "getKeylessConfigurationResource",
+    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+    params: { ledger_version: options?.ledgerVersion },
+  });
+
+  return data.data;
+}
+
+/**
+ * Gets the Groth16VerificationKey set on chain
+ *
+ * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+ * @returns Groth16VerificationKeyResponse
+ */
+async function getGroth16VerificationKeyResource(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<Groth16VerificationKeyResponse> {
+  const { aptosConfig, options } = args;
+  const resourceType = "0x1::keyless_account::Groth16VerificationKey";
+  const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
+    aptosConfig,
+    originMethod: "getGroth16VerificationKeyResource",
+    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+    params: { ledger_version: options?.ledgerVersion },
+  });
+
+  return data.data;
 }

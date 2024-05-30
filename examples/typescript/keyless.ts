@@ -76,10 +76,9 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  await aptos.faucet.fundAccount({
+  await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
-    options: { waitForIndexer: false },
   });
   await aptos.faucet.fundAccount({
     accountAddress: bob.accountAddress,
