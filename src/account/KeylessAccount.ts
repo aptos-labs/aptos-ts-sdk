@@ -23,7 +23,7 @@ import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/acc
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { AptsoDomainSeparator, CryptoHashable } from "../core/crypto/cryptoHashable";
+import { CryptoHashable } from "../core/crypto/cryptoHashable";
 import { base64UrlDecode } from "../utils/helpers";
 
 /**
@@ -327,13 +327,12 @@ export class TransactionAndProof extends CryptoHashable {
   /**
    * The domain separator prefix used when hashing.
    */
-  domainSeparator: AptsoDomainSeparator;
+  readonly domainSeparator = "APTOS::TransactionAndProof";
 
   constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
     super();
     this.transaction = transaction;
     this.proof = proof;
-    this.domainSeparator = "APTOS::TransactionAndProof";
   }
 
   serialize(serializer: Serializer): void {

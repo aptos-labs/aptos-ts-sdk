@@ -1,9 +1,9 @@
 import { generateSigningMessage } from "../../transactions/transactionBuilder/signingMessage";
 import { Serializable } from "../../bcs/serializer";
 
-export type AptsoDomainSeparator = `APTOS::${string}`;
+export type AptosDomainSeparator = `APTOS::${string}`;
 export abstract class CryptoHashable extends Serializable {
-  abstract readonly domainSeparator: AptsoDomainSeparator;
+  abstract readonly domainSeparator: AptosDomainSeparator;
 
   /**
    * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in aptos-core.

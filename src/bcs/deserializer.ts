@@ -69,11 +69,8 @@ export class Deserializer {
    * ```
    */
   deserializeOptionStr(): string | undefined {
-    const exists = this.deserializeUleb128AsU32();
-    if (exists === 1) {
-      return this.deserializeStr();
-    }
-    return undefined;
+    const exists = this.deserializeBool();
+    return exists ? this.deserializeStr() : undefined;
   }
 
   /**
@@ -95,11 +92,8 @@ export class Deserializer {
    * @returns the deserialized value of class type T
    */
   deserializeOption<T>(cls: Deserializable<T>): T | undefined {
-    const exists = this.deserializeUleb128AsU32();
-    if (exists === 1) {
-      return this.deserialize(cls);
-    }
-    return undefined;
+    const exists = this.deserializeBool();
+    return exists ? this.deserialize(cls) : undefined;
   }
 
   /**

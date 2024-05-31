@@ -336,10 +336,9 @@ export class Serializer {
    * ```
    */
   serializeOption<T extends Serializable>(value?: T): void {
-    if (value === undefined) {
-      this.serializeU32AsUleb128(0);
-    } else {
-      this.serializeU32AsUleb128(1);
+    const hasValue = value !== undefined;
+    this.serializeBool(hasValue);
+    if (hasValue) {
       value.serialize(this);
     }
   }
