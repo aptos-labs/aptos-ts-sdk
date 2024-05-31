@@ -60,7 +60,11 @@ export class EphemeralKeyPair extends Serializable {
     // Generate the blinder if not provided
     this.blinder = blinder !== undefined ? Hex.fromHexInput(blinder).toUint8Array() : generateBlinder();
     // Calculate the nonce
-    this.nonce = this.generateNonce();
+    const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
+    fields.push(BigInt(this.expiryDateSecs));
+    fields.push(bytesToBigIntLE(this.blinder));
+    const nonceHash = poseidonHash(fields);
+    this.nonce = nonceHash.toString();
   }
 
   /**
@@ -122,18 +126,6 @@ export class EphemeralKeyPair extends Serializable {
     }
 
     return new EphemeralKeyPair({ privateKey, expiryDateSecs: args?.expiryDateSecs });
-  }
-
-  /**
-   * From the ephemeral public key, expiry timestamp, and blinder, calculate the nonce to be used at authentication via OIDC.
-   * @returns string
-   */
-  private generateNonce(): string {
-    const fields = padAndPackBytesWithLen(this.publicKey.bcsToBytes(), 93);
-    fields.push(BigInt(this.expiryDateSecs));
-    fields.push(bytesToBigIntLE(this.blinder));
-    const nonceHash = poseidonHash(fields);
-    return nonceHash.toString();
   }
 
   /**

@@ -21,9 +21,8 @@ import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
+import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
-import { CryptoHashable } from "../core/crypto/cryptoHashable";
 import { base64UrlDecode } from "../utils/helpers";
 
 /**
@@ -313,7 +312,7 @@ export class KeylessAccount extends Serializable implements Account {
  * A container class to hold a transaction and a proof.  It implements CryptoHashable which is used to create
  * the signing message for Keyless transactions.  We sign over the proof to ensure non-malleability.
  */
-export class TransactionAndProof extends CryptoHashable {
+class TransactionAndProof extends Serializable {
   /**
    * The transaction to sign.
    */
@@ -338,6 +337,15 @@ export class TransactionAndProof extends CryptoHashable {
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);
+  }
+
+  /**
+   * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in aptos-core.
+   *
+   * @returns Uint8Array
+   */
+  hash(): Uint8Array {
+    return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
   }
 }
 

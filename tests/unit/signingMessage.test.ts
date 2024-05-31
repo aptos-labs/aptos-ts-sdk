@@ -1,8 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, Ed25519PrivateKey, Serializer, generateSigningMessageForTransaction } from "../../src";
-import { AptosDomainSeparator, CryptoHashable } from "../../src/core/crypto/cryptoHashable";
+import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from "../../src";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 
@@ -65,32 +64,6 @@ describe("generateSigningMessage ", () => {
         196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34, 178, 77, 86, 6, 11, 122,
         242, 170, 8, 100, 0, 0, 0, 0, 0, 0, 0, 64, 13, 3, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0,
         0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      ]),
-    );
-  });
-
-  test("generates the proper message for serializable", async () => {
-    class TestClass extends CryptoHashable {
-      domainSeparator: AptosDomainSeparator;
-
-      data: string;
-
-      constructor() {
-        super();
-        this.data = "test";
-        this.domainSeparator = "APTOS::TestClass";
-      }
-
-      serialize(serializer: Serializer): void {
-        serializer.serializeStr(this.data);
-      }
-    }
-
-    const signingMessage = new TestClass().hash();
-    expect(signingMessage).toEqual(
-      new Uint8Array([
-        134, 234, 208, 191, 5, 202, 254, 220, 58, 89, 147, 141, 29, 129, 67, 235, 85, 247, 253, 242, 60, 51, 32, 219,
-        33, 228, 237, 43, 170, 195, 204, 116, 4, 116, 101, 115, 116,
       ]),
     );
   });
