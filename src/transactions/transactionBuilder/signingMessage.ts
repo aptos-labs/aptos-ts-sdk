@@ -8,7 +8,7 @@ import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
 import { FeePayerRawTransaction, MultiAgentRawTransaction } from "../instances";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../types";
-import { Serializable } from "../../bcs";
+import { Serializable } from "../../bcs/serializer";
 
 /**
  * Derive the raw transaction type - FeePayerRawTransaction or MultiAgentRawTransaction or RawTransaction
@@ -61,6 +61,9 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
 }
 
 /**
+ * @deprected
+ * Use CryptoHashable instead by having your class implement it and call hash() to get the signing message.
+ *
  * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of
  * its constructor as the domain separator.
  *

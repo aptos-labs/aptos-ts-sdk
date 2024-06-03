@@ -4,6 +4,7 @@ import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 
 /**
@@ -34,6 +35,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Ed25519;
     } else if (publicKey instanceof Secp256k1PublicKey) {
       this.variant = AnyPublicKeyVariant.Secp256k1;
+    } else if (publicKey instanceof KeylessPublicKey) {
+      this.variant = AnyPublicKeyVariant.Keyless;
     } else {
       throw new Error("Unsupported public key type");
     }
@@ -84,6 +87,9 @@ export class AnyPublicKey extends AccountPublicKey {
         break;
       case AnyPublicKeyVariant.Secp256k1:
         publicKey = Secp256k1PublicKey.deserialize(deserializer);
+        break;
+      case AnyPublicKeyVariant.Keyless:
+        publicKey = KeylessPublicKey.deserialize(deserializer);
         break;
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
@@ -138,6 +144,8 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
       this.variant = AnySignatureVariant.Secp256k1;
+    } else if (signature instanceof KeylessSignature) {
+      this.variant = AnySignatureVariant.Keyless;
     } else {
       throw new Error("Unsupported signature type");
     }
@@ -169,6 +177,9 @@ export class AnySignature extends Signature {
         break;
       case AnySignatureVariant.Secp256k1:
         signature = Secp256k1Signature.deserialize(deserializer);
+        break;
+      case AnySignatureVariant.Keyless:
+        signature = KeylessSignature.deserialize(deserializer);
         break;
       default:
         throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);

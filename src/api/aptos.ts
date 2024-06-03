@@ -13,6 +13,7 @@ import { ANS } from "./ans";
 import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { Table } from "./table";
+import { Keyless } from "./keyless";
 
 /**
  * This class is the main entry point into Aptos's
@@ -50,6 +51,8 @@ export class Aptos {
 
   readonly table: Table;
 
+  readonly keyless: Keyless;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -63,6 +66,7 @@ export class Aptos {
     this.staking = new Staking(this.config);
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
+    this.keyless = new Keyless(this.config);
   }
 }
 
@@ -77,6 +81,7 @@ export interface Aptos
     Faucet,
     FungibleAsset,
     General,
+    Keyless,
     Staking,
     Table,
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
@@ -113,3 +118,4 @@ applyMixin(Aptos, General, "general");
 applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, Table, "table");
+applyMixin(Aptos, Keyless, "keyless");

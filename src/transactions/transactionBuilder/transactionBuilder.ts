@@ -9,7 +9,13 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { AnyPublicKey, AnySignature, Secp256k1PublicKey, Secp256k1Signature } from "../../core/crypto";
+import {
+  AnyPublicKey,
+  AnySignature,
+  KeylessPublicKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+} from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
@@ -445,6 +451,11 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 }
 
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
+  if (publicKey instanceof KeylessPublicKey || publicKey instanceof Secp256k1PublicKey) {
+    // eslint-disable-next-line no-param-reassign
+    publicKey = new AnyPublicKey(publicKey);
+  }
+
   // TODO add support for AnyMultiKey
   if (publicKey instanceof AnyPublicKey) {
     if (publicKey.publicKey instanceof Ed25519PublicKey) {
@@ -452,6 +463,11 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     }
     if (publicKey.publicKey instanceof Secp256k1PublicKey) {
       return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Secp256k1Signature(new Uint8Array(64))));
+    }
+    if (publicKey.publicKey instanceof KeylessPublicKey) {
+      // TODO: Replace with the line below one simulation works properly for Keyless
+      // return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(KeylessSignature.getSimulationSignature()));
+      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(new Ed25519Signature(new Uint8Array(64))));
     }
   }
 

@@ -108,11 +108,29 @@ export enum AccountAuthenticatorVariant {
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  Keyless = 3,
 }
 
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
+  Keyless = 3,
+}
+
+export enum EphemeralPublicKeyVariant {
+  Ed25519 = 0,
+}
+
+export enum EphemeralSignatureVariant {
+  Ed25519 = 0,
+}
+
+export enum EphemeralCertificateVariant {
+  ZkProof = 0,
+}
+
+export enum ZkpVariant {
+  Groth16 = 0,
 }
 
 /**
@@ -139,6 +157,10 @@ export type AptosSettings = {
   readonly faucet?: string;
 
   readonly indexer?: string;
+
+  readonly pepper?: string;
+
+  readonly prover?: string;
 
   readonly clientConfig?: ClientConfig;
 
@@ -300,9 +322,9 @@ export type GasEstimation = {
   prioritized_gas_estimate?: number;
 };
 
-export type MoveResource = {
+export type MoveResource<T = {}> = {
   type: MoveStructId;
-  data: {};
+  data: T;
 };
 
 export type AccountData = {

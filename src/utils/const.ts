@@ -8,6 +8,8 @@ export enum AptosApiType {
   FULLNODE = "Fullnode",
   INDEXER = "Indexer",
   FAUCET = "Faucet",
+  PEPPER = "Pepper",
+  PROVER = "Prover",
 }
 
 /**
