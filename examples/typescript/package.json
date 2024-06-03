@@ -16,16 +16,20 @@
     "external_signing": "ts-node external_signing.ts",
     "your_coin": "ts-node your_coin.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
+    "keyless": "ts-node keyless.ts",
+    "keyless_escrow": "ts-node keyless_escrow.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct publish_package_from_filepath external_signing your_coin your_fungible_asset"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@noble/curves": "^1.4.0",
+    "@types/readline-sync": "^1.4.8",
     "dotenv": "^16.3.1",
     "npm-run-all": "latest",
-    "superagent": "^8.1.2",
-    "@noble/curves": "^1.4.0"
+    "readline-sync": "^1.4.10",
+    "superagent": "^8.1.2"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."

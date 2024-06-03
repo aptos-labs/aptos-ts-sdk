@@ -26,10 +26,7 @@
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../account";
 import { getInfo } from "../../internal/account";
-import { sleep } from "../../utils/helpers";
-
-// returns `now` time in seconds
-const now = () => Math.floor(Date.now() / 1000);
+import { nowInSeconds, sleep } from "../../utils/helpers";
 
 export class AccountSequenceNumber {
   readonly aptosConfig: AptosConfig;
@@ -96,10 +93,10 @@ export class AccountSequenceNumber {
       if (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
         await this.update();
 
-        const startTime = now();
+        const startTime = nowInSeconds();
         while (this.currentNumber! - this.lastUncommintedNumber! >= this.maximumInFlight) {
           await sleep(this.sleepTime);
-          if (now() - startTime > this.maxWaitTime) {
+          if (nowInSeconds() - startTime > this.maxWaitTime) {
             /* eslint-disable no-console */
             console.warn(
               `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,
@@ -164,9 +161,9 @@ export class AccountSequenceNumber {
 
     try {
       await this.update();
-      const startTime = now();
+      const startTime = nowInSeconds();
       while (this.lastUncommintedNumber !== this.currentNumber) {
-        if (now() - startTime > this.maxWaitTime) {
+        if (nowInSeconds() - startTime > this.maxWaitTime) {
           /* eslint-disable no-console */
           console.warn(
             `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,

@@ -61,6 +61,9 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
 }
 
 /**
+ * @deprecated
+ * Use CryptoHashable instead by having your class implement it and call hash() to get the signing message.
+ *
  * Generates the 'signing message' form of a serilizable value. It bcs serializes the value and uses the name of
  * its constructor as the domain separator.
  *

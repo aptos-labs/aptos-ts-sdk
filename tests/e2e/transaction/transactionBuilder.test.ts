@@ -25,8 +25,10 @@ import {
   generateTransactionPayloadWithABI,
   SignedTransaction,
   generateUserTransactionHash,
+  KeylessPublicKey,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { EPHEMERAL_KEY_PAIR } from "../api/keyless.test";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, TYPED_SCRIPT_TEST } from "./helper";
 
@@ -402,6 +404,40 @@ describe("transaction builder", () => {
       const bcsTransaction = await generateSignedTransactionForSimulation({
         transaction,
         signerPublicKey: alice.publicKey,
+      });
+      expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
+      const deserializer = new Deserializer(bcsTransaction);
+      const signedTransaction = SignedTransaction.deserialize(deserializer);
+      expect(signedTransaction instanceof SignedTransaction).toBeTruthy();
+    });
+
+    test("it generates a keyless signed raw transaction for simulation", async () => {
+      const jwt =
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3Mtc2RrIiwic3ViIjoidGVzdC11c2VyLTE0IiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzE3MDM5NDg0LCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiOTM2MTU0NTUyNDkyMDA0ODgwNjUzNDY0MDQ5ODUwMzg4NDk1NDg2NTU2NzM2MjEwNzM0OTIyMTMwMDI4NDIwOTg3NTA5MTM2MjIyOSJ9.pqmdpi9Ruh_JLD_i2nCVDQZbjDFOF-gFHVc63px-oYolisvY6IOTj96iGPIpANegpMkefHQ4q2ZQKbIHDc1tYDfzbSiR4aUn8zxPYCbIIcteZ0UGil6GQRto_5pTEK9d5vH0baHG7zmfnLDN9mRP44pe0MiT1JcR2_LcaNIyh1sYIUk3cSDEMonkA9tGWlKqCSD4wf9NA_cLd5yptv99tleiCxduIKP-zOVcT8h6kWtVJL7-D5toS5EC_EDWAxjqoeb6I4cPmmR1SHFCsbLjzQ4B4x0IjJKWSmo1b585tjJRtr1PYe80G7J9tKfNzY8rdVkxhjjZNnKkAB1-WhlV5w";
+      const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
+      const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
+      const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
+      const accountAddress = publicKey.authKey().derivedAddress();
+      await aptos.fundAccount({ accountAddress, amount: FUND_AMOUNT });
+      const payload = await generateTransactionPayload({
+        bytecode: multiSignerScriptBytecode,
+        functionArguments: [
+          new U64(100),
+          new U64(200),
+          Account.generate().accountAddress,
+          Account.generate().accountAddress,
+          new U64(50),
+        ],
+      });
+      const transaction = await buildTransaction({
+        aptosConfig: config,
+        sender: accountAddress,
+        payload,
+      });
+
+      const bcsTransaction = await generateSignedTransactionForSimulation({
+        transaction,
+        signerPublicKey: publicKey,
       });
       expect(bcsTransaction instanceof Uint8Array).toBeTruthy();
       const deserializer = new Deserializer(bcsTransaction);

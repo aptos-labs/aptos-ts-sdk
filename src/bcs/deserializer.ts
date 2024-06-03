@@ -57,6 +57,46 @@ export class Deserializer {
   }
 
   /**
+   * Deserializes a an optional string.
+   *
+   * BCS layout for Optional<String>: 0 if none, else 1 | string_length | string_content
+   * @example
+   * ```ts
+   * const deserializer = new Deserializer(new Uint8Array([0x00]));
+   * assert(deserializer.deserializeOptionStr() === undefined);
+   * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
+   * assert(deserializer.deserializeOptionStr() === "1234abcd");
+   * ```
+   */
+  deserializeOptionStr(): string | undefined {
+    const exists = this.deserializeBool();
+    return exists ? this.deserializeStr() : undefined;
+  }
+
+  /**
+   * Deserializes a an optional deserializable class.
+   *
+   * BCS layout for Optional<T>: 0 if none, else 1 | bcs representation of class
+   *
+   * @example
+   * const deserializer = new Deserializer(new Uint8Array([1, 2, 3]));
+   * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
+   * // value is now an instance of MyClass
+   *
+   * const deserializer = new Deserializer(new Uint8Array([0]));
+   * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
+   * // value is undefined
+   *
+   * @param cls The BCS-deserializable class to deserialize the buffered bytes into.
+   *
+   * @returns the deserialized value of class type T
+   */
+  deserializeOption<T>(cls: Deserializable<T>): T | undefined {
+    const exists = this.deserializeBool();
+    return exists ? this.deserialize(cls) : undefined;
+  }
+
+  /**
    * Deserializes an array of bytes.
    *
    * BCS layout for "bytes": bytes_length | bytes

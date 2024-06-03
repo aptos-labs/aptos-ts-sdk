@@ -14,7 +14,7 @@ import {
   AnyRawTransaction,
   isUserTransactionResponse,
 } from "../../../src";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 
 export async function publishPackage(
   aptos: Aptos,
@@ -85,6 +85,48 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
     throw new Error("Expected user transaction response");
   }
   return response;
+}
+
+export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, recipient: Account) {
+  const senderFundTxn = await aptos.faucet.fundAccount({
+    accountAddress: sender.accountAddress,
+    amount: FUND_AMOUNT,
+  });
+  const recipientFundTxn = await aptos.faucet.fundAccount({
+    accountAddress: recipient.accountAddress,
+    amount: FUND_AMOUNT,
+  });
+
+  const senderOldBalance = await aptos.getAccountAPTAmount({
+    accountAddress: sender.accountAddress,
+    minimumLedgerVersion: Number(senderFundTxn.version),
+  });
+  const recipientOldBalance = await aptos.getAccountAPTAmount({
+    accountAddress: recipient.accountAddress,
+    minimumLedgerVersion: Number(recipientFundTxn.version),
+  });
+
+  const transaction = await aptos.transferCoinTransaction({
+    sender: sender.accountAddress,
+    recipient: recipient.accountAddress,
+    amount: TRANSFER_AMOUNT,
+  });
+
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
+  const committedTxn = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  const version = Number(committedTxn.version);
+
+  const senderNewBalance = await aptos.getAccountAPTAmount({
+    accountAddress: sender.accountAddress,
+    minimumLedgerVersion: version,
+  });
+  const recipientNewBalance = await aptos.getAccountAPTAmount({
+    accountAddress: recipient.accountAddress,
+    minimumLedgerVersion: version,
+  });
+
+  expect(senderOldBalance - senderNewBalance).toBeGreaterThan(TRANSFER_AMOUNT);
+  expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
 }
 
 // Transaction builder helpers

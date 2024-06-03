@@ -100,6 +100,10 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
       );
     }
     result.data = indexerResponse.data as Res;
+  } else if (apiType === AptosApiType.PEPPER || apiType === AptosApiType.PROVER) {
+    if (result.status >= 400) {
+      throw new AptosApiError(options, result, `${response.data}`);
+    }
   }
 
   if (result.status >= 200 && result.status < 300) {

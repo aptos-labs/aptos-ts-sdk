@@ -316,6 +316,63 @@ export class Serializer {
       item.serialize(this);
     });
   }
+
+  /**
+   * Serializes a BCS Serializable values into a serializer instance or undefined.
+   * Note that this does not return anything. The bytes are added to the serializer instance's byte buffer.
+   *
+   * @param values The array of BCS Serializable values
+   *
+   * @example
+   * ```ts
+   * const serializer = new Serializer();
+   * serializer.serializeOption(new AccountAddress(...));
+   * const serializedBytes = serializer.toUint8Array();
+   * // serializedBytes is now the BCS-serialized byte representation of AccountAddress
+   *
+   * const serializer = new Serializer();
+   * serializer.serializeOption(undefined);
+   * assert(serializer.toUint8Array() === new Uint8Array([0x00]));
+   * ```
+   */
+  serializeOption<T extends Serializable>(value?: T): void {
+    const hasValue = value !== undefined;
+    this.serializeBool(hasValue);
+    if (hasValue) {
+      value.serialize(this);
+    }
+  }
+
+  /**
+   * Serializes an optional string. UTF8 string is supported.
+   *
+   * The existence of the string is encoded first, 0 if undefined and 1 if it exists.
+   * Them the number of bytes in the string content is serialized, as a uleb128-encoded u32 integer.
+   * Then the string content is serialized as UTF8 encoded bytes.
+   *
+   * BCS layout for optional "string": 1 | string_length | string_content
+   * where string_length is a u32 integer encoded as a uleb128 integer, equal to the number of bytes in string_content.
+   *
+   * BCS layout for undefined: 0
+   * @example
+   * ```ts
+   * const serializer = new Serializer();
+   * serializer.serializeOptionStr("1234abcd");
+   * assert(serializer.toUint8Array() === new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
+   *
+   * const serializer = new Serializer();
+   * serializer.serializeOptionStr(undefined);
+   * assert(serializer.toUint8Array() === new Uint8Array([0]));
+   * ```
+   */
+  serializeOptionStr(value?: string): void {
+    if (value === undefined) {
+      this.serializeU32AsUleb128(0);
+    } else {
+      this.serializeU32AsUleb128(1);
+      this.serializeStr(value);
+    }
+  }
 }
 
 export function ensureBoolean(value: unknown): asserts value is boolean {

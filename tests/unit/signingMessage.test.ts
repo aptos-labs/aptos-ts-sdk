@@ -1,12 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  Ed25519PrivateKey,
-  generateSigningMessageForSerializable,
-  generateSigningMessageForTransaction,
-} from "../../src";
+import { Account, Ed25519PrivateKey, generateSigningMessageForTransaction } from "../../src";
 import { getAptosClient } from "../e2e/helper";
 import { ed25519 } from "./helper";
 
@@ -69,17 +64,6 @@ describe("generateSigningMessage ", () => {
         196, 131, 61, 247, 21, 72, 223, 124, 228, 157, 84, 199, 89, 214, 182, 217, 50, 222, 34, 178, 77, 86, 6, 11, 122,
         242, 170, 8, 100, 0, 0, 0, 0, 0, 0, 0, 64, 13, 3, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0,
         0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      ]),
-    );
-  });
-
-  test("generates the proper message for serializable", async () => {
-    const signingMessage = generateSigningMessageForSerializable(alice.publicKey);
-    expect(signingMessage).toEqual(
-      new Uint8Array([
-        35, 174, 146, 91, 32, 167, 212, 247, 186, 43, 31, 208, 55, 67, 229, 235, 208, 187, 199, 127, 107, 22, 147, 72,
-        128, 135, 179, 154, 150, 76, 73, 93, 32, 222, 25, 229, 209, 136, 12, 172, 135, 213, 116, 132, 206, 158, 210,
-        232, 76, 240, 249, 89, 159, 18, 231, 204, 58, 82, 228, 231, 101, 122, 118, 63, 44,
       ]),
     );
   });
