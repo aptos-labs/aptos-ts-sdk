@@ -340,6 +340,12 @@ export class TypeTagStruct extends TypeTag {
   }
 }
 
+export class TypeTagString extends TypeTagStruct {
+  constructor() {
+    super(new StructTag(AccountAddress.ONE, new Identifier("string"), new Identifier("String"), []));
+  }
+}
+
 export class StructTag extends Serializable {
   public readonly address: AccountAddress;
 
