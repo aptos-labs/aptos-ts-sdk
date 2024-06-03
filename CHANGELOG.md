@@ -3,8 +3,10 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
-- Adds Keyless Account support
 
+# 1.18.0 (2024-06-03)
+
+- Adds Keyless Account support
 - Add `supply_v2` and `maximum_v2` scheme fields to `getFungibleAssetMetadata` query
 
 # 1.17.0 (2024-05-30)
