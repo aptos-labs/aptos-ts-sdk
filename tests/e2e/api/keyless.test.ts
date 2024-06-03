@@ -65,8 +65,7 @@ describe("keyless api", () => {
     test(
       "creates the keyless account via the static constructor and submits a transaction",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const jwt = TEST_JWT_TOKENS[0];
 
         const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
         const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
