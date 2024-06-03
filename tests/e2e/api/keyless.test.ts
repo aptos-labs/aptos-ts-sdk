@@ -75,7 +75,7 @@ describe("keyless api", () => {
         });
         const proof = await aptos.getProof({ jwt, ephemeralKeyPair, pepper });
 
-        const account = KeylessAccount.create({address, proof, jwt, ephemeralKeyPair, pepper})
+        const account = KeylessAccount.create({ address, proof, jwt, ephemeralKeyPair, pepper });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, account, recipient);
       },
