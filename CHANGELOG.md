@@ -5,6 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 - Adds Keyless Account support
 
+- Add `supply_v2` and `maximum_v2` scheme fields to `getFungibleAssetMetadata` query
+
 # 1.17.0 (2024-05-30)
 
 - TypeTag parsing now support references, uppercase types, and more complete error handling

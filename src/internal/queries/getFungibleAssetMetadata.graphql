@@ -12,5 +12,7 @@ query getFungibleAssetMetadata($where_condition: fungible_asset_metadata_bool_ex
     name
     symbol
     token_standard
+    supply_v2
+    maximum_v2
   }
 }

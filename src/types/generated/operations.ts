@@ -49,13 +49,13 @@ export type CurrentTokenOwnershipFieldsFragment = {
     last_transaction_timestamp: any;
     last_transaction_version: any;
     maximum?: any | null;
-    supply: any;
+    supply?: any | null;
     token_data_id: string;
     token_name: string;
     token_properties: any;
     token_standard: string;
     token_uri: string;
-    decimals: any;
+    decimals?: any | null;
     current_collection?: {
       collection_id: string;
       collection_name: string;
@@ -206,13 +206,13 @@ export type GetAccountOwnedTokensQuery = {
       last_transaction_timestamp: any;
       last_transaction_version: any;
       maximum?: any | null;
-      supply: any;
+      supply?: any | null;
       token_data_id: string;
       token_name: string;
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
+      decimals?: any | null;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -262,13 +262,13 @@ export type GetAccountOwnedTokensByTokenDataQuery = {
       last_transaction_timestamp: any;
       last_transaction_version: any;
       maximum?: any | null;
-      supply: any;
+      supply?: any | null;
       token_data_id: string;
       token_name: string;
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
+      decimals?: any | null;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -318,13 +318,13 @@ export type GetAccountOwnedTokensFromCollectionQuery = {
       last_transaction_timestamp: any;
       last_transaction_version: any;
       maximum?: any | null;
-      supply: any;
+      supply?: any | null;
       token_data_id: string;
       token_name: string;
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
+      decimals?: any | null;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -496,6 +496,8 @@ export type GetFungibleAssetMetadataQuery = {
     name: string;
     symbol: string;
     token_standard: string;
+    supply_v2?: any | null;
+    maximum_v2?: any | null;
   }>;
 };
 
@@ -620,13 +622,13 @@ export type GetCurrentTokenOwnershipQuery = {
       last_transaction_timestamp: any;
       last_transaction_version: any;
       maximum?: any | null;
-      supply: any;
+      supply?: any | null;
       token_data_id: string;
       token_name: string;
       token_properties: any;
       token_standard: string;
       token_uri: string;
-      decimals: any;
+      decimals?: any | null;
       current_collection?: {
         collection_id: string;
         collection_name: string;
@@ -663,13 +665,13 @@ export type GetTokenDataQuery = {
     last_transaction_timestamp: any;
     last_transaction_version: any;
     maximum?: any | null;
-    supply: any;
+    supply?: any | null;
     token_data_id: string;
     token_name: string;
     token_properties: any;
     token_standard: string;
     token_uri: string;
-    decimals: any;
+    decimals?: any | null;
     current_collection?: {
       collection_id: string;
       collection_name: string;

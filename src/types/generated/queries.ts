@@ -1,7 +1,7 @@
 import * as Types from "./operations";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export const TokenActivitiesFieldsFragmentDoc = `
     fragment TokenActivitiesFields on token_activities_v2 {
   after_value
@@ -357,6 +357,8 @@ export const GetFungibleAssetMetadata = `
     name
     symbol
     token_standard
+    supply_v2
+    maximum_v2
   }
 }
     `;
@@ -490,9 +492,10 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
@@ -508,6 +511,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountCoinsCount",
         "query",
+        variables,
       );
     },
     getAccountCoinsData(
@@ -522,6 +526,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountCoinsData",
         "query",
+        variables,
       );
     },
     getAccountCollectionsWithOwnedTokens(
@@ -537,6 +542,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           ),
         "getAccountCollectionsWithOwnedTokens",
         "query",
+        variables,
       );
     },
     getAccountOwnedObjects(
@@ -551,6 +557,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountOwnedObjects",
         "query",
+        variables,
       );
     },
     getAccountOwnedTokens(
@@ -565,6 +572,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountOwnedTokens",
         "query",
+        variables,
       );
     },
     getAccountOwnedTokensByTokenData(
@@ -579,6 +587,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountOwnedTokensByTokenData",
         "query",
+        variables,
       );
     },
     getAccountOwnedTokensFromCollection(
@@ -594,6 +603,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           ),
         "getAccountOwnedTokensFromCollection",
         "query",
+        variables,
       );
     },
     getAccountTokensCount(
@@ -608,6 +618,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountTokensCount",
         "query",
+        variables,
       );
     },
     getAccountTransactionsCount(
@@ -622,6 +633,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getAccountTransactionsCount",
         "query",
+        variables,
       );
     },
     getChainTopUserTransactions(
@@ -636,6 +648,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getChainTopUserTransactions",
         "query",
+        variables,
       );
     },
     getCollectionData(
@@ -650,6 +663,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getCollectionData",
         "query",
+        variables,
       );
     },
     getCurrentFungibleAssetBalances(
@@ -664,6 +678,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getCurrentFungibleAssetBalances",
         "query",
+        variables,
       );
     },
     getDelegatedStakingActivities(
@@ -678,6 +693,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getDelegatedStakingActivities",
         "query",
+        variables,
       );
     },
     getEvents(
@@ -689,6 +705,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           client.request<Types.GetEventsQuery>(GetEvents, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
         "getEvents",
         "query",
+        variables,
       );
     },
     getFungibleAssetActivities(
@@ -703,6 +720,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getFungibleAssetActivities",
         "query",
+        variables,
       );
     },
     getFungibleAssetMetadata(
@@ -717,6 +735,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getFungibleAssetMetadata",
         "query",
+        variables,
       );
     },
     getNames(
@@ -728,6 +747,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           client.request<Types.GetNamesQuery>(GetNames, variables, { ...requestHeaders, ...wrappedRequestHeaders }),
         "getNames",
         "query",
+        variables,
       );
     },
     getNumberOfDelegators(
@@ -742,6 +762,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getNumberOfDelegators",
         "query",
+        variables,
       );
     },
     getProcessorStatus(
@@ -756,6 +777,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getProcessorStatus",
         "query",
+        variables,
       );
     },
     getTableItemsData(
@@ -770,6 +792,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getTableItemsData",
         "query",
+        variables,
       );
     },
     getTableItemsMetadata(
@@ -784,6 +807,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getTableItemsMetadata",
         "query",
+        variables,
       );
     },
     getTokenActivity(
@@ -798,6 +822,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getTokenActivity",
         "query",
+        variables,
       );
     },
     getCurrentTokenOwnership(
@@ -812,6 +837,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getCurrentTokenOwnership",
         "query",
+        variables,
       );
     },
     getTokenData(
@@ -826,6 +852,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
           }),
         "getTokenData",
         "query",
+        variables,
       );
     },
   };
