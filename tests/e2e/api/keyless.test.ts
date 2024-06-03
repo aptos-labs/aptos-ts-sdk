@@ -63,6 +63,26 @@ describe("keyless api", () => {
     );
 
     test(
+      "creates the keyless account via the static constructor and submits a transaction",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+
+        const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
+        const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
+        const address = await aptos.lookupOriginalAccountAddress({
+          authenticationKey: publicKey.authKey().derivedAddress(),
+        });
+        const proof = await aptos.getProof({ jwt, ephemeralKeyPair, pepper });
+
+        const account = KeylessAccount.create({address, proof, jwt, ephemeralKeyPair, pepper})
+        const recipient = Account.generate();
+        await simpleCoinTransactionHelper(aptos, account, recipient);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
+
+    test(
       "derives the keyless account with email uidKey and submits a transaction",
       async () => {
         // Select a random test token.  Using the same one may encounter rate limits
