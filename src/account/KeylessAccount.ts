@@ -108,12 +108,12 @@ export class KeylessAccount extends Serializable implements Account {
     uidVal: string;
     aud: string;
     pepper: HexInput;
-    proofOrFetcher: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
+    proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
     super();
-    const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proofOrFetcher, proofFetchCallback, jwt } = args;
+    const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     this.publicKey = KeylessPublicKey.create(args);
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
@@ -122,9 +122,9 @@ export class KeylessAccount extends Serializable implements Account {
     this.aud = aud;
     this.jwt = jwt;
     this.emitter = new EventEmitter<ProofFetchEvents>();
-    this.proofOrPromise = proofOrFetcher;
-    if (proofOrFetcher instanceof ZeroKnowledgeSig) {
-      this.proof = proofOrFetcher;
+    this.proofOrPromise = proof;
+    if (proof instanceof ZeroKnowledgeSig) {
+      this.proof = proof;
     } else {
       if (proofFetchCallback === undefined) {
         throw new Error("Must provide callback for async proof fetch");
@@ -133,7 +133,7 @@ export class KeylessAccount extends Serializable implements Account {
         await proofFetchCallback(status);
         this.emitter.removeAllListeners();
       });
-      this.init(proofOrFetcher);
+      this.init(proof);
     }
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
@@ -278,6 +278,7 @@ export class KeylessAccount extends Serializable implements Account {
   }
 
   static create(args: {
+    address?: AccountAddress;
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
@@ -285,7 +286,7 @@ export class KeylessAccount extends Serializable implements Account {
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
   }): KeylessAccount {
-    const { proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
+    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     const iss = jwtPayload.iss!;
@@ -295,7 +296,8 @@ export class KeylessAccount extends Serializable implements Account {
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
     return new KeylessAccount({
-      proofOrFetcher: proof,
+      address,
+      proof,
       ephemeralKeyPair,
       iss,
       uidKey,

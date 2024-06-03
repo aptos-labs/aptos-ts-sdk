@@ -9,11 +9,20 @@
  */
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
-import { EphemeralSignature, Groth16Zkp, Hex, ZeroKnowledgeSig, ZkProof, getKeylessConfig } from "../core";
+import {
+  EphemeralSignature,
+  Groth16Zkp,
+  Hex,
+  KeylessPublicKey,
+  ZeroKnowledgeSig,
+  ZkProof,
+  getKeylessConfig,
+} from "../core";
 import { HexInput, ZkpVariant } from "../types";
 import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { nowInSeconds } from "../utils/helpers";
+import { lookupOriginalAccountAddress } from "./account";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -46,10 +55,13 @@ export async function getProof(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
-  pepper: HexInput;
+  pepper?: HexInput;
   uidKey?: string;
 }): Promise<ZeroKnowledgeSig> {
-  const { aptosConfig, jwt, ephemeralKeyPair, pepper, uidKey = "sub" } = args;
+  const { aptosConfig, jwt, ephemeralKeyPair, pepper = await getPepper(args), uidKey = "sub" } = args;
+  if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
+    throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
+  }
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
   if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - nowInSeconds()) {
     throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
@@ -95,18 +107,7 @@ export async function deriveKeylessAccount(args: {
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount> {
-  const { proofFetchCallback } = args;
-  let { pepper } = args;
-  if (pepper === undefined) {
-    pepper = await getPepper(args);
-  } else {
-    pepper = Hex.fromHexInput(pepper).toUint8Array();
-  }
-
-  if (pepper.length !== KeylessAccount.PEPPER_LENGTH) {
-    throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
-  }
-
+  const { aptosConfig, jwt, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const proofPromise = getProof({ ...args, pepper });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
@@ -115,7 +116,14 @@ export async function deriveKeylessAccount(args: {
   // If no callback is provided, the just await the proof fetch and continue syncronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
-  const keylessAccount = KeylessAccount.create({ ...args, proof, pepper, proofFetchCallback });
+  // Look up the original address to handle key rotations
+  const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
+  const address = await lookupOriginalAccountAddress({
+    aptosConfig,
+    authenticationKey: publicKey.authKey().derivedAddress(),
+  });
+
+  const keylessAccount = KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
 
   return keylessAccount;
 }

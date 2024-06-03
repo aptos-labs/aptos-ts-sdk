@@ -20,7 +20,7 @@ export type PepperFetchRequest = {
   uid_key: string;
   derivation_path: string;
 };
-export type PepperFetchResponse = { signature: string; pepper: string; address: string };
+export type PepperFetchResponse = { pepper: string; address: string };
 
 export type KeylessConfigurationResponse = {
   max_commited_epk_bytes: number;

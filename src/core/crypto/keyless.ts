@@ -155,7 +155,7 @@ export class KeylessPublicKey extends AccountPublicKey {
     return new KeylessPublicKey(args.iss, computeIdCommitment(args));
   }
 
-  static fromJWTAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
+  static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     const iss = jwtPayload.iss!;

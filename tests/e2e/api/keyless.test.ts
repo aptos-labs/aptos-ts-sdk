@@ -40,7 +40,7 @@ describe("keyless api", () => {
     // Fund the test accounts
     const promises = TEST_JWT_TOKENS.map(async (jwt) => {
       const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-      const accountAddress = KeylessPublicKey.fromJWTAndPepper({ jwt, pepper }).authKey().derivedAddress();
+      const accountAddress = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper }).authKey().derivedAddress();
       await aptos.fundAccount({
         accountAddress,
         amount: FUND_AMOUNT,
