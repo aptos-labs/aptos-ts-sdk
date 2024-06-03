@@ -100,7 +100,8 @@ export class KeylessAccount extends Serializable implements Account {
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
 
-  constructor(args: {
+  // Use the static constructor 'create' instead.
+  private constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;
