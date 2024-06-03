@@ -40,7 +40,7 @@ export class Keyless {
    * @param args.ephemeralKeyPair the EphemeralKeyPair used to generate the nonce in the JWT token
    * @param args.uidKey a key in the JWT token to use to set the uidVal in the IdCommitment
    * @param args.pepper the pepper used for the account.  If not provided it will be fetched from the Aptos pepper service
-   * 
+   *
    * @returns The proof which is represented by a ZeroKnowledgeSig.
    */
   async getProof(args: {
