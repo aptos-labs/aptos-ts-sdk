@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Keyless transaction simulation now reports gas correctly
+
 # 1.18.0 (2024-06-03)
 
 - Adds Keyless Account support
