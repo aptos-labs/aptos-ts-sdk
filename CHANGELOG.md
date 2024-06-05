@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Allow for empty string "" as `none` for an Option in simple function arguments
+- [`Fix`] Allow for empty array in MoveVector.U8
+- [`Fix`] Correctly type MoveOption when empty for some cases
+
 # 1.18.1 (2024-06-05)
 
 - [`Fix`] Keyless transaction simulation now reports gas correctly
