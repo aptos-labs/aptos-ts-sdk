@@ -28,8 +28,8 @@ export function isLargeNumber(arg: SimpleEntryFunctionArgumentTypes): arg is num
   return typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string";
 }
 
-export function isNull(arg: SimpleEntryFunctionArgumentTypes): arg is null | undefined {
-  return arg === null || arg === undefined;
+export function isEmptyOption(arg: SimpleEntryFunctionArgumentTypes): arg is null | undefined | "" {
+  return arg === null || arg === undefined || arg === "";
 }
 
 export function isEncodedEntryFunctionArgument(
