@@ -24,13 +24,11 @@ import {
   convertArgument,
   FunctionABI,
   TypeTagBool,
-  optionStructTag,
-  TypeTagStruct,
   TypeTagVector,
   TypeTagU8,
-  stringStructTag,
   TypeTagU16,
   TypeTagU32,
+  TypeTagAddress,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -215,28 +213,24 @@ describe("various transaction arguments", () => {
     backwardsCompatibleArgs = [
       "true", // True
       "false", // False
-      "", // Empty option vector<u8>
-      "", // Empty option string
-      "", // Empty option u8
       "1", // U8
       "2", // U16
       "3", // U32
       "ABC", // Vector<u8>
       "", // Vector<u8>
+      "", // Address
     ];
     backwardsCompatibleAbi = {
       typeParameters: [],
       parameters: [
         new TypeTagBool(),
         new TypeTagBool(),
-        new TypeTagStruct(optionStructTag(new TypeTagVector(new TypeTagU8()))),
-        new TypeTagStruct(optionStructTag(new TypeTagStruct(stringStructTag()))),
-        new TypeTagStruct(optionStructTag(new TypeTagU8())),
         new TypeTagU8(),
         new TypeTagU16(),
         new TypeTagU32(),
         new TypeTagVector(new TypeTagU8()),
         new TypeTagVector(new TypeTagU8()),
+        new TypeTagAddress(),
       ],
     };
   });
@@ -328,14 +322,12 @@ describe("various transaction arguments", () => {
         expect(converted).toEqual([
           new Bool(true),
           new Bool(false),
-          new MoveOption<MoveString>(), // This is supposed to be Vector<U8>, but the type can't be reconstructed easily
-          new MoveOption<MoveString>(),
-          new MoveOption<U8>(),
           new U8(1),
           new U16(2),
           new U32(3),
           MoveVector.U8([65, 66, 67]),
           MoveVector.U8([]),
+          AccountAddress.ZERO,
         ]);
       });
 

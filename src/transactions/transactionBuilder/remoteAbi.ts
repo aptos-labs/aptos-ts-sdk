@@ -41,9 +41,9 @@ import {
   isEncodedEntryFunctionArgument,
   isLargeNumber,
   isEmptyOption,
-  isNumber,
   isString,
   throwTypeMismatch,
+  convertNumber,
 } from "./helpers";
 import { MoveFunction } from "../../types";
 
@@ -239,36 +239,35 @@ function parseArg(
   // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
+      // There is a very specific special case here, that was supported in the Legacy SDK
+      if (arg === "") {
+        return AccountAddress.ZERO;
+      }
+
       return AccountAddress.fromString(arg);
     }
     throwTypeMismatch("string | AccountAddress", position);
   }
   if (param.isU8()) {
-    if (isNumber(arg)) {
-      return new U8(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U8(num);
     }
-    if (isString(arg)) {
-      return new U8(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU16()) {
-    if (isNumber(arg)) {
-      return new U16(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U16(num);
     }
-    if (isString(arg)) {
-      return new U16(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU32()) {
-    if (isNumber(arg)) {
-      return new U32(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U32(num);
     }
-    if (isString(arg)) {
-      return new U32(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU64()) {
     if (isLargeNumber(arg)) {

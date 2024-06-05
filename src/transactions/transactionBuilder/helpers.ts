@@ -24,12 +24,23 @@ export function isNumber(arg: SimpleEntryFunctionArgumentTypes): arg is number {
   return typeof arg === "number";
 }
 
+export function convertNumber(arg: SimpleEntryFunctionArgumentTypes): number | undefined {
+  if (isNumber(arg)) {
+    return arg;
+  }
+  if (isString(arg) && arg !== "") {
+    return Number.parseInt(arg, 10);
+  }
+
+  return undefined;
+}
+
 export function isLargeNumber(arg: SimpleEntryFunctionArgumentTypes): arg is number | bigint | string {
   return typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string";
 }
 
-export function isEmptyOption(arg: SimpleEntryFunctionArgumentTypes): arg is null | undefined | "" {
-  return arg === null || arg === undefined || arg === "";
+export function isEmptyOption(arg: SimpleEntryFunctionArgumentTypes): arg is null | undefined {
+  return arg === null || arg === undefined;
 }
 
 export function isEncodedEntryFunctionArgument(
