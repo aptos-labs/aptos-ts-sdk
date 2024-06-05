@@ -26,6 +26,8 @@ export type AnsTokenFragmentFragment = {
   token_standard?: string | null;
   is_primary?: boolean | null;
   owner_address?: string | null;
+  subdomain_expiration_policy?: any | null;
+  domain_expiration_timestamp?: any | null;
 };
 
 export type CurrentTokenOwnershipFieldsFragment = {
@@ -517,6 +519,8 @@ export type GetNamesQuery = {
     token_standard?: string | null;
     is_primary?: boolean | null;
     owner_address?: string | null;
+    subdomain_expiration_policy?: any | null;
+    domain_expiration_timestamp?: any | null;
   }>;
 };
 

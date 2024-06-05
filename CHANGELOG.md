@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Fixes a bug with ANS not returning subdomains with an expiration policy of 1 when the subdomain is expired but the parent domain is not.
+
 # 1.18.0 (2024-06-03)
 
 - Adds Keyless Account support
