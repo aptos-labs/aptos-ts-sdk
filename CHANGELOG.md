@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Fix`] Keyless transaction simulation now reports gas correctly
+- Fix when there is more than 1 named addresses in cli
 
 # 1.18.0 (2024-06-03)
 

@@ -161,6 +161,7 @@ export class Move {
 
     newArgs.push("--named-addresses");
 
+    let concatenatedNamedAddresses = "";
     let idx = 0;
     namedAddresses.forEach((value, key) => {
       idx += 1;
@@ -168,8 +169,10 @@ export class Move {
       if (idx < totalNames - 1) {
         toAppend += ",";
       }
-      newArgs.push(toAppend);
+      concatenatedNamedAddresses = concatenatedNamedAddresses.concat(toAppend);
     });
+    newArgs.push(`"${concatenatedNamedAddresses}"`);
+
     return newArgs;
   }
 
