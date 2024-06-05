@@ -161,18 +161,12 @@ export class Move {
 
     newArgs.push("--named-addresses");
 
-    let concatenatedNamedAddresses = "";
-    let idx = 0;
+    const names: Array<string> = [];
     namedAddresses.forEach((value, key) => {
-      let toAppend = `${key}=${value.toString()}`;
-      if (idx < totalNames - 1) {
-        toAppend += ",";
-      }
-      concatenatedNamedAddresses = concatenatedNamedAddresses.concat(toAppend);
-      idx += 1;
+      const toAppend = `${key}=${value.toString()}`;
+      names.push(toAppend);
     });
-    newArgs.push(`"${concatenatedNamedAddresses}"`);
-
+    newArgs.push(names.join(","));
     return newArgs;
   }
 
