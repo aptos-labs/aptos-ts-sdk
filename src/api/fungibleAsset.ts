@@ -24,7 +24,7 @@ import { ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { Account } from "../account";
-import { AccountAddressInput } from "../core";
+import { AccountAddress, AccountAddressInput } from "../core";
 import { InputGenerateTransactionOptions } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
@@ -58,7 +58,7 @@ export class FungibleAsset {
   }
 
   /**
-   * Queries a fungible asset metadata
+   * Queries a fungible asset metadata by the asset type
    *
    * This query returns the fungible asset metadata for a specific fungible asset.
    *
@@ -92,6 +92,40 @@ export class FungibleAsset {
     });
 
     return data[0];
+  }
+
+  /**
+   * Queries a fungible asset metadata by the creator address
+   *
+   * This query returns the fungible asset metadata for a specific fungible asset.
+   *
+   * @example
+   * const fungibleAsset = await aptos.getFungibleAssetMetadataByCreatorAddress({creatorAddress:"0x123"})
+   *
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.creatorAddress The creator address of the fungible asset.
+   *
+   * @returns A fungible asset metadata item
+   */
+  async getFungibleAssetMetadataByCreatorAddress(args: {
+    creatorAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<GetFungibleAssetMetadataResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args?.minimumLedgerVersion,
+      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+    });
+    const data = await getFungibleAssetMetadata({
+      aptosConfig: this.config,
+      options: {
+        where: {
+          creator_address: { _eq: AccountAddress.from(args.creatorAddress).toStringLong() },
+        },
+      },
+    });
+
+    return data;
   }
 
   /**
