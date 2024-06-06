@@ -1,4 +1,4 @@
-query getAccountOwnedObjects(
+query getObjectData(
   $where_condition: current_objects_bool_exp
   $offset: Int
   $limit: Int

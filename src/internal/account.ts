@@ -18,9 +18,9 @@ import {
   AccountData,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
-  GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
+  GetObjectDataQueryResponse,
   LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
@@ -35,7 +35,7 @@ import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
-  GetAccountOwnedObjectsQuery,
+  GetObjectDataQuery,
   GetAccountOwnedTokensFromCollectionQuery,
   GetAccountOwnedTokensQuery,
   GetAccountTokensCountQuery,
@@ -45,7 +45,7 @@ import {
   GetAccountCoinsCount,
   GetAccountCoinsData,
   GetAccountCollectionsWithOwnedTokens,
-  GetAccountOwnedObjects,
+  GetObjectData,
   GetAccountOwnedTokens,
   GetAccountOwnedTokensFromCollection,
   GetAccountTokensCount,
@@ -484,8 +484,8 @@ export async function getAccountCoinsCount(args: {
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  options?: PaginationArgs & OrderByArg<GetAccountOwnedObjectsResponse[0]>;
-}): Promise<GetAccountOwnedObjectsResponse> {
+  options?: PaginationArgs & OrderByArg<GetObjectDataQueryResponse[0]>;
+}): Promise<GetObjectDataQueryResponse> {
   const { aptosConfig, accountAddress, options } = args;
   const address = AccountAddress.from(accountAddress).toStringLong();
 
@@ -493,7 +493,7 @@ export async function getAccountOwnedObjects(args: {
     owner_address: { _eq: address },
   };
   const graphqlQuery = {
-    query: GetAccountOwnedObjects,
+    query: GetObjectData,
     variables: {
       where_condition: whereCondition,
       offset: options?.offset,
@@ -501,7 +501,7 @@ export async function getAccountOwnedObjects(args: {
       order_by: options?.orderBy,
     },
   };
-  const data = await queryIndexer<GetAccountOwnedObjectsQuery>({
+  const data = await queryIndexer<GetObjectDataQuery>({
     aptosConfig,
     query: graphqlQuery,
     originMethod: "getAccountOwnedObjects",
