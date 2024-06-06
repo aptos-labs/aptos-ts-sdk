@@ -239,11 +239,6 @@ function parseArg(
   // TODO: support uint8array?
   if (param.isAddress()) {
     if (isString(arg)) {
-      // There is a very specific special case here, that was supported in the Legacy SDK
-      if (arg === "") {
-        return AccountAddress.ZERO;
-      }
-
       return AccountAddress.fromString(arg);
     }
     throwTypeMismatch("string | AccountAddress", position);

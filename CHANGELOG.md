@@ -4,7 +4,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- [`Fix`] Allow for empty string "" as `0x0` for AccountAddress in argument parsing for backwards compatibility reasons
 - [`Fix`] Allow for empty array in MoveVector.U8
 - [`Fix`] Correctly type MoveOption when empty for some cases
 - [`Fix`] Add better error handling for empty string "" when used for a u8-u32 argument input type

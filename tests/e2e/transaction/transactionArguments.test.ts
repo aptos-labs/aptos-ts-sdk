@@ -218,7 +218,6 @@ describe("various transaction arguments", () => {
       "3", // U32
       "ABC", // Vector<u8>
       "", // Vector<u8>
-      "", // Address
     ];
     backwardsCompatibleAbi = {
       typeParameters: [],
@@ -230,7 +229,6 @@ describe("various transaction arguments", () => {
         new TypeTagU32(),
         new TypeTagVector(new TypeTagU8()),
         new TypeTagVector(new TypeTagU8()),
-        new TypeTagAddress(),
       ],
     };
   });
@@ -327,7 +325,6 @@ describe("various transaction arguments", () => {
           new U32(3),
           MoveVector.U8([65, 66, 67]),
           MoveVector.U8([]),
-          AccountAddress.ZERO,
         ]);
       });
 
