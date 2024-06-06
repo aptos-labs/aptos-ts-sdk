@@ -28,7 +28,6 @@ import {
   TypeTagU8,
   TypeTagU16,
   TypeTagU32,
-  TypeTagAddress,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,

@@ -336,9 +336,6 @@ function parseArg(
     }
 
     if (param.isOption()) {
-      // Empty option must be handled specially
-      // Note: Empty String for an empty option is for backwards compatibility, this does have the tradeoff
-      // where Some("") is not possible, without using BCS arguments directly.
       if (isEmptyOption(arg)) {
         // Here we attempt to reconstruct the underlying type
         // Note, for some reason the `isBool` etc. does not work with the compiler
