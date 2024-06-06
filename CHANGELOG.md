@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `getFungibleAssetMetadataByCreatorAddress` API function to fetch fungible asset metadata by the creator address
+
 # 1.18.1 (2024-06-05)
 
 - [`Fix`] Keyless transaction simulation now reports gas correctly
