@@ -2,7 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { parseTypeTag } from "../typeTag/parser";
-import { TypeTag, TypeTagStruct } from "../typeTag";
+import {
+  TypeTag,
+  TypeTagAddress,
+  TypeTagBool,
+  TypeTagStruct,
+  TypeTagU128,
+  TypeTagU16,
+  TypeTagU256,
+  TypeTagU32,
+  TypeTagU64,
+  TypeTagU8,
+} from "../typeTag";
 import { AptosConfig } from "../../api/aptosConfig";
 import {
   EntryFunctionArgumentTypes,
@@ -29,10 +40,10 @@ import {
   isBool,
   isEncodedEntryFunctionArgument,
   isLargeNumber,
-  isNull,
-  isNumber,
+  isEmptyOption,
   isString,
   throwTypeMismatch,
+  convertNumber,
 } from "./helpers";
 import { MoveFunction } from "../../types";
 
@@ -167,6 +178,7 @@ export async function fetchViewFunctionAbi(
  * @param functionAbi
  * @param arg
  * @param position
+ * @param genericTypeParams
  */
 export function convertArgument(
   functionName: string,
@@ -232,31 +244,25 @@ function parseArg(
     throwTypeMismatch("string | AccountAddress", position);
   }
   if (param.isU8()) {
-    if (isNumber(arg)) {
-      return new U8(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U8(num);
     }
-    if (isString(arg)) {
-      return new U8(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU16()) {
-    if (isNumber(arg)) {
-      return new U16(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U16(num);
     }
-    if (isString(arg)) {
-      return new U16(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU32()) {
-    if (isNumber(arg)) {
-      return new U32(arg);
+    const num = convertNumber(arg);
+    if (num !== undefined) {
+      return new U32(num);
     }
-    if (isString(arg)) {
-      return new U32(Number.parseInt(arg, 10));
-    }
-    throwTypeMismatch("number", position);
+    throwTypeMismatch("number | string", position);
   }
   if (param.isU64()) {
     if (isLargeNumber(arg)) {
@@ -330,10 +336,38 @@ function parseArg(
     }
 
     if (param.isOption()) {
-      // Empty option must be handled specially
-      if (isNull(arg)) {
+      if (isEmptyOption(arg)) {
+        // Here we attempt to reconstruct the underlying type
+        // Note, for some reason the `isBool` etc. does not work with the compiler
+        const innerParam = param.value.typeArgs[0];
+        if (innerParam instanceof TypeTagBool) {
+          return new MoveOption<Bool>(null);
+        }
+        if (innerParam instanceof TypeTagAddress) {
+          return new MoveOption<AccountAddress>(null);
+        }
+        if (innerParam instanceof TypeTagU8) {
+          return new MoveOption<U8>(null);
+        }
+        if (innerParam instanceof TypeTagU16) {
+          return new MoveOption<U16>(null);
+        }
+        if (innerParam instanceof TypeTagU32) {
+          return new MoveOption<U32>(null);
+        }
+        if (innerParam instanceof TypeTagU64) {
+          return new MoveOption<U64>(null);
+        }
+        if (innerParam instanceof TypeTagU128) {
+          return new MoveOption<U128>(null);
+        }
+        if (innerParam instanceof TypeTagU256) {
+          return new MoveOption<U256>(null);
+        }
+
+        // In all other cases, we will use a placeholder, it doesn't actually matter what the type is, but it will be obvious
         // Note: This is a placeholder U8 type, and does not match the actual type, as that can't be dynamically grabbed
-        return new MoveOption<U8>(null);
+        return new MoveOption<MoveString>(null);
       }
 
       return new MoveOption(checkOrConvertArgument(arg, param.value.typeArgs[0], position, genericTypeParams));

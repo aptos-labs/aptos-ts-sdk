@@ -21,6 +21,13 @@ import {
   MoveOption,
   MoveString,
   MoveVector,
+  convertArgument,
+  FunctionABI,
+  TypeTagBool,
+  TypeTagVector,
+  TypeTagU8,
+  TypeTagU16,
+  TypeTagU32,
 } from "../../../src";
 import {
   MAX_U128_BIG_INT,
@@ -64,6 +71,9 @@ describe("various transaction arguments", () => {
   let mixedTransactionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   const EXPECTED_VECTOR_U8 = MoveVector.U8([0, 1, 2, MAX_U8_NUMBER - 2, MAX_U8_NUMBER - 1, MAX_U8_NUMBER]);
   const EXPECTED_VECTOR_STRING = MoveVector.MoveString(["expected_string", "abc", "def", "123", "456", "789"]);
+
+  let backwardsCompatibleArgs: Array<SimpleEntryFunctionArgumentTypes>;
+  let backwardsCompatibleAbi: FunctionABI;
 
   beforeAll(async () => {
     await fundAccounts(aptos, [senderAccount, ...secondarySignerAccounts, feePayerAccount]);
@@ -199,6 +209,27 @@ describe("various transaction arguments", () => {
       "expected_string",
       moduleObjects[0].toString(),
     ];
+    backwardsCompatibleArgs = [
+      "true", // True
+      "false", // False
+      "1", // U8
+      "2", // U16
+      "3", // U32
+      "ABC", // Vector<u8>
+      "", // Vector<u8>
+    ];
+    backwardsCompatibleAbi = {
+      typeParameters: [],
+      parameters: [
+        new TypeTagBool(),
+        new TypeTagBool(),
+        new TypeTagU8(),
+        new TypeTagU16(),
+        new TypeTagU32(),
+        new TypeTagVector(new TypeTagU8()),
+        new TypeTagVector(new TypeTagU8()),
+      ],
+    };
   });
 
   describe("type tags", () => {
@@ -278,6 +309,22 @@ describe("various transaction arguments", () => {
           simpleTransactionArguments,
         );
         expect(response.success).toBe(true);
+      });
+
+      it("simple inputs support backwards compatibility", async () => {
+        const converted: Array<EntryFunctionArgumentTypes> = backwardsCompatibleArgs.map((arg, i) =>
+          convertArgument("testing", backwardsCompatibleAbi, arg, i, []),
+        );
+
+        expect(converted).toEqual([
+          new Bool(true),
+          new Bool(false),
+          new U8(1),
+          new U16(2),
+          new U32(3),
+          MoveVector.U8([65, 66, 67]),
+          MoveVector.U8([]),
+        ]);
       });
 
       it("simple inputs successfully submits a private entry fn with all argument types except `&signer`", async () => {

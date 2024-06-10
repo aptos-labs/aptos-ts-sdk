@@ -90,7 +90,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   static U8(values: Array<number> | HexInput): MoveVector<U8> {
     let numbers: Array<number>;
 
-    if (Array.isArray(values) && typeof values[0] === "number") {
+    if (Array.isArray(values) && values.length === 0) {
+      // Handle empty array, since it won't have a "first value"
+      numbers = [];
+    } else if (Array.isArray(values) && typeof values[0] === "number") {
       numbers = values;
     } else if (typeof values === "string") {
       const hex = Hex.fromHexInput(values);
@@ -98,7 +101,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     } else if (values instanceof Uint8Array) {
       numbers = Array.from(values);
     } else {
-      throw new Error("Invalid input type");
+      throw new Error("Invalid input type, must be an number[], Uint8Array, or hex string");
     }
 
     return new MoveVector<U8>(numbers.map((v) => new U8(v)));
