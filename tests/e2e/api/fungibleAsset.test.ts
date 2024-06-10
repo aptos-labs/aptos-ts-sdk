@@ -29,6 +29,17 @@ describe("FungibleAsset", () => {
     expect(data).toBeUndefined();
   });
 
+  test("it should fetch a specific fungible asset metadata by a creator address", async () => {
+    let data = await aptos.getFungibleAssetMetadataByCreatorAddress({
+      creatorAddress: "0x0000000000000000000000000000000000000000000000000000000000000001",
+    });
+    expect(data[1].asset_type).toEqual(APTOS_COIN);
+
+    // fetch by something that doesn't exist
+    data = await aptos.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0x123" });
+    expect(data).toEqual([]);
+  });
+
   test("it should fetch fungible asset activities with correct number and asset type ", async () => {
     const data = await aptos.getFungibleAssetActivities({
       options: {
