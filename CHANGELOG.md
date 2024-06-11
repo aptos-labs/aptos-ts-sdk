@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.19.0 (2024-06-11)
+
 - Add `getFungibleAssetMetadataByCreatorAddress` API function to fetch fungible asset metadata by the creator address
 - [`Fix`] Allow for empty array in MoveVector.U8
 - [`Fix`] Correctly type MoveOption when empty for some cases
