@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Fix`] Allow for empty array in MoveVector.U8
 - [`Fix`] Correctly type MoveOption when empty for some cases
 - [`Fix`] Add better error handling for empty string "" when used for a u8-u32 argument input type
+- [`Fix`] Always fetch latest git dependency when running move cli.
 
 # 1.18.1 (2024-06-05)
 

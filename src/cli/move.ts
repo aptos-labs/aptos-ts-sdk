@@ -39,7 +39,7 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
   }): Promise<boolean> {
     const { packageDirectoryPath, namedAddresses } = args;
-    const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath, "--skip-fetch-latest-git-deps"];
+    const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
@@ -62,7 +62,7 @@ export class Move {
    */
   async test(args: { packageDirectoryPath: string; namedAddresses: Record<string, AccountAddress> }): Promise<boolean> {
     const { packageDirectoryPath, namedAddresses } = args;
-    const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath, "--skip-fetch-latest-git-deps"];
+    const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
@@ -96,7 +96,6 @@ export class Move {
       "publish",
       "--package-dir",
       packageDirectoryPath,
-      "--skip-fetch-latest-git-deps",
       `--profile=${profile ?? "default"}`,
     ];
 
