@@ -109,7 +109,7 @@ export async function generateTransactionPayload(
   }
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  const functionAbi = await fetchAbi({
+  const functionAbi = await fetchOrUseProvidedAbi({
     key: "entry-function",
     moduleAddress,
     moduleName,
@@ -177,7 +177,7 @@ export function generateTransactionPayloadWithABI(
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
-  const functionAbi = await fetchAbi({
+  const functionAbi = await fetchOrUseProvidedAbi({
     key: "view-function",
     moduleAddress,
     moduleName,
@@ -188,7 +188,7 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
   });
 
   // Fill in the ABI
-  return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
+  return generateViewFunctionPayloadWithABI({ ...args, abi: functionAbi });
 }
 
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
@@ -567,7 +567,7 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
  * @param abi
  * @param fetch
  */
-async function fetchAbi<T extends FunctionABI>({
+async function fetchOrUseProvidedAbi<T extends FunctionABI>({
   key,
   moduleAddress,
   moduleName,
@@ -584,7 +584,7 @@ async function fetchAbi<T extends FunctionABI>({
   abi?: T;
   fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
 }): Promise<T> {
-  if (abi !== undefined) {
+  if (abi !== undefined && abi !== null) {
     return abi;
   }
 
