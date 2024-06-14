@@ -15,7 +15,7 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId } from "../types";
+import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -175,6 +175,24 @@ export type InputViewFunctionData = {
   typeArguments?: Array<TypeArgument>;
   functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
   abi?: ViewFunctionABI;
+};
+
+/**
+ * The data needed to generate a View Function payload in JSON
+ */
+export type InputViewFunctionJsonData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<MoveStructId>;
+  functionArguments?: Array<MoveValue>;
+};
+
+/**
+ *  Payload sent to the fullnode for a JSON view request
+ */
+export type ViewFunctionJsonPayload = {
+  function: MoveFunctionId;
+  typeArguments: Array<MoveStructId>;
+  functionArguments: Array<MoveValue>;
 };
 
 /**
