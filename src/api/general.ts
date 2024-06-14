@@ -10,7 +10,7 @@ import {
   queryIndexer,
 } from "../internal/general";
 import { getBlockByHeight, getBlockByVersion } from "../internal/transaction";
-import { view } from "../internal/view";
+import { view, viewJson } from "../internal/view";
 import {
   AnyNumber,
   Block,
@@ -22,7 +22,7 @@ import {
   MoveValue,
 } from "../types";
 import { ProcessorType } from "../utils/const";
-import { InputViewFunctionData } from "../transactions";
+import { InputViewFunctionData, InputViewFunctionJsonData } from "../transactions";
 
 /**
  * A class to query all `General` Aptos related queries
@@ -130,6 +130,29 @@ export class General {
     options?: LedgerVersionArg;
   }): Promise<T> {
     return view<T>({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries for a Move view function with JSON, this provides compatability with the old `aptos` package
+   * @param args.payload Payload for the view function
+   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
+   *
+   * @example
+   * const data = await aptos.view({
+   *  payload: {
+   *   function: "0x1::coin::balance",
+   *   typeArguments: ["0x1::aptos_coin::AptosCoin"],
+   *   functionArguments: [accountAddress.toString()],
+   *  }
+   * })
+   *
+   * @returns an array of Move values
+   */
+  async viewJson<T extends Array<MoveValue>>(args: {
+    payload: InputViewFunctionJsonData;
+    options?: LedgerVersionArg;
+  }): Promise<T> {
+    return viewJson<T>({ aptosConfig: this.config, ...args });
   }
 
   /**
