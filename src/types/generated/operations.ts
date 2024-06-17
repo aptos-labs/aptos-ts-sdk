@@ -158,25 +158,6 @@ export type GetAccountCollectionsWithOwnedTokensQuery = {
   }>;
 };
 
-export type GetAccountOwnedObjectsQueryVariables = Types.Exact<{
-  where_condition?: Types.InputMaybe<Types.CurrentObjectsBoolExp>;
-  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
-  order_by?: Types.InputMaybe<Array<Types.CurrentObjectsOrderBy> | Types.CurrentObjectsOrderBy>;
-}>;
-
-export type GetAccountOwnedObjectsQuery = {
-  current_objects: Array<{
-    allow_ungated_transfer: boolean;
-    state_key_hash: string;
-    owner_address: string;
-    object_address: string;
-    last_transaction_version: any;
-    last_guid_creation_num: any;
-    is_deleted: boolean;
-  }>;
-};
-
 export type GetAccountOwnedTokensQueryVariables = Types.Exact<{
   where_condition: Types.CurrentTokenOwnershipsV2BoolExp;
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -527,6 +508,25 @@ export type GetNumberOfDelegatorsQueryVariables = Types.Exact<{
 
 export type GetNumberOfDelegatorsQuery = {
   num_active_delegator_per_pool: Array<{ num_active_delegator?: any | null; pool_address?: string | null }>;
+};
+
+export type GetObjectDataQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.CurrentObjectsBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  order_by?: Types.InputMaybe<Array<Types.CurrentObjectsOrderBy> | Types.CurrentObjectsOrderBy>;
+}>;
+
+export type GetObjectDataQuery = {
+  current_objects: Array<{
+    allow_ungated_transfer: boolean;
+    state_key_hash: string;
+    owner_address: string;
+    object_address: string;
+    last_transaction_version: any;
+    last_guid_creation_num: any;
+    is_deleted: boolean;
+  }>;
 };
 
 export type GetProcessorStatusQueryVariables = Types.Exact<{

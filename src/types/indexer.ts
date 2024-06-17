@@ -13,7 +13,7 @@
 
 import {
   GetAccountCoinsDataQuery,
-  GetAccountOwnedObjectsQuery,
+  GetObjectDataQuery,
   GetAccountOwnedTokensQuery,
   GetAccountOwnedTokensFromCollectionQuery,
   GetAccountCollectionsWithOwnedTokensQuery,
@@ -44,7 +44,7 @@ import {
  * These types are used as the return type when calling a sdk api function
  * that calls the function that queries the server (usually under the /api/ folder)
  */
-export type GetAccountOwnedObjectsResponse = GetAccountOwnedObjectsQuery["current_objects"];
+export type GetObjectDataQueryResponse = GetObjectDataQuery["current_objects"];
 
 export type GetAccountOwnedTokensQueryResponse = GetAccountOwnedTokensQuery["current_token_ownerships_v2"];
 

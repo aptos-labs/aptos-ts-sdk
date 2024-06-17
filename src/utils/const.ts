@@ -64,4 +64,5 @@ export enum ProcessorType {
   // Token V2 processor replaces Token processor (not only for digital assets)
   TOKEN_V2_PROCESSOR = "token_v2_processor",
   USER_TRANSACTION_PROCESSOR = "user_transaction_processor",
+  OBJECT_PROCESSOR = "objects_processor",
 }

@@ -160,24 +160,6 @@ export const GetAccountCollectionsWithOwnedTokens = `
   }
 }
     `;
-export const GetAccountOwnedObjects = `
-    query getAccountOwnedObjects($where_condition: current_objects_bool_exp, $offset: Int, $limit: Int, $order_by: [current_objects_order_by!]) {
-  current_objects(
-    where: $where_condition
-    offset: $offset
-    limit: $limit
-    order_by: $order_by
-  ) {
-    allow_ungated_transfer
-    state_key_hash
-    owner_address
-    object_address
-    last_transaction_version
-    last_guid_creation_num
-    is_deleted
-  }
-}
-    `;
 export const GetAccountOwnedTokens = `
     query getAccountOwnedTokens($where_condition: current_token_ownerships_v2_bool_exp!, $offset: Int, $limit: Int, $order_by: [current_token_ownerships_v2_order_by!]) {
   current_token_ownerships_v2(
@@ -382,6 +364,24 @@ export const GetNumberOfDelegators = `
   }
 }
     `;
+export const GetObjectData = `
+    query getObjectData($where_condition: current_objects_bool_exp, $offset: Int, $limit: Int, $order_by: [current_objects_order_by!]) {
+  current_objects(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    allow_ungated_transfer
+    state_key_hash
+    owner_address
+    object_address
+    last_transaction_version
+    last_guid_creation_num
+    is_deleted
+  }
+}
+    `;
 export const GetProcessorStatus = `
     query getProcessorStatus($where_condition: processor_status_bool_exp) {
   processor_status(where: $where_condition) {
@@ -541,21 +541,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "getAccountCollectionsWithOwnedTokens",
-        "query",
-        variables,
-      );
-    },
-    getAccountOwnedObjects(
-      variables?: Types.GetAccountOwnedObjectsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<Types.GetAccountOwnedObjectsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<Types.GetAccountOwnedObjectsQuery>(GetAccountOwnedObjects, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "getAccountOwnedObjects",
         "query",
         variables,
       );
@@ -761,6 +746,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getNumberOfDelegators",
+        "query",
+        variables,
+      );
+    },
+    getObjectData(
+      variables?: Types.GetObjectDataQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetObjectDataQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetObjectDataQuery>(GetObjectData, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getObjectData",
         "query",
         variables,
       );

@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Introduce `AptosObject` API for all Object queries
+- Add `getObjectData` API function to fetch an object data by the object address
+- [`Breaking`] `GetAccountOwnedObjectsResponse` type renamed to `GetObjectDataQueryResponse`
+
 # 1.19.0 (2024-06-11)
 
 - Add `getFungibleAssetMetadataByCreatorAddress` API function to fetch fungible asset metadata by the creator address

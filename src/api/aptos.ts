@@ -14,6 +14,7 @@ import { Staking } from "./staking";
 import { Transaction } from "./transaction";
 import { Table } from "./table";
 import { Keyless } from "./keyless";
+import { AptosObject } from "./object";
 
 /**
  * This class is the main entry point into Aptos's
@@ -53,6 +54,8 @@ export class Aptos {
 
   readonly keyless: Keyless;
 
+  readonly object: AptosObject;
+
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
@@ -67,6 +70,7 @@ export class Aptos {
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
+    this.object = new AptosObject(this.config);
   }
 }
 
@@ -84,6 +88,7 @@ export interface Aptos
     Keyless,
     Staking,
     Table,
+    AptosObject,
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
@@ -119,3 +124,4 @@ applyMixin(Aptos, Staking, "staking");
 applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, Table, "table");
 applyMixin(Aptos, Keyless, "keyless");
+applyMixin(Aptos, AptosObject, "object");

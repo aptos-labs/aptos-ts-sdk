@@ -8,9 +8,9 @@ import {
   AnyNumber,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
-  GetAccountOwnedObjectsResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
+  GetObjectDataQueryResponse,
   LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
@@ -471,8 +471,8 @@ export class Account {
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
-    options?: PaginationArgs & OrderByArg<GetAccountOwnedObjectsResponse[0]>;
-  }): Promise<GetAccountOwnedObjectsResponse> {
+    options?: PaginationArgs & OrderByArg<GetObjectDataQueryResponse[0]>;
+  }): Promise<GetObjectDataQueryResponse> {
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
