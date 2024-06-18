@@ -347,11 +347,9 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
 
   const whereCondition: {
     owner_address: { _eq: string };
-    amount: { _gt: number };
     current_collection?: { token_standard: { _eq: string } };
   } = {
     owner_address: { _eq: address },
-    amount: { _gt: 0 },
   };
 
   if (options?.tokenStandard) {
