@@ -123,7 +123,7 @@ describe("DigitalAsset", () => {
     expect(data.collection_name).toEqual(collectionDataByCreatorAddressAndCollectionName.collection_name);
 
     const collectionDataByCreatorAddress = await aptos.getCollectionDataByCreatorAddress({
-      creatorAddress: creatorAddress,
+      creatorAddress,
     });
     expect(data.collection_name).toEqual(collectionDataByCreatorAddress.collection_name);
 

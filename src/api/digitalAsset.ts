@@ -12,7 +12,6 @@ import {
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
-  WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core";
 import { Account } from "../account";
@@ -108,7 +107,10 @@ export class DigitalAsset {
    * can pass an optional `tokenStandard` parameter to query a specific standard
    *
    * @example
-   * const collection = await aptos.getCollectionDataByCreatorAddressAndCollectionName({creatorAddress:"0x123",collectionName:"myCollection"})
+   * const collection = await aptos.getCollectionDataByCreatorAddressAndCollectionName({
+   *   creatorAddress:"0x123",
+   *   collectionName:"myCollection"
+   * })
    *
    * @param args.creatorAddress the address of the collection's creator
    * @param args.collectionName the name of the collection
