@@ -9,14 +9,20 @@ describe("Event", () => {
   test("it should get transaction fee statement module event by event type", async () => {
     const { aptos } = getAptosClient();
 
-    const testAccount = Account.generate();
-    await aptos.fundAccount({ accountAddress: testAccount.accountAddress, amount: FUND_AMOUNT });
-
     const events = await aptos.getModuleEventsByEventType({
-      eventType: "0x1::transaction_fee::FeeStatement",
+      eventType: "0x1::block::NewBlock",
     });
+    expect(events.length).toBeGreaterThan(2);
+    expect(events[0].type).toEqual("0x1::block::NewBlock");
 
-    expect(events[0].type).toEqual("0x1::transaction_fee::FeeStatement");
+    const onlyTwoEvents = await aptos.getModuleEventsByEventType({
+      eventType: "0x1::block::NewBlock",
+      options: {
+        limit: 2,
+      },
+    });
+    expect(onlyTwoEvents.length).toBe(2);
+    expect(onlyTwoEvents[0].type).toEqual("0x1::block::NewBlock");
   });
 
   test("it should get fund event by creation number and address", async () => {
