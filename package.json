@@ -91,5 +91,5 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.3.3"
   },
-  "version": "1.19.0"
+  "version": "1.20.0"
 }

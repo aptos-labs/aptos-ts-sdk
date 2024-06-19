@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.20.0 (2024-06-18)
+
 - Introduce `AptosObject` API for all Object queries
 - Add `getObjectDataByObjectAddress` API function to fetch an object data by the object address
 - [`Breaking`] `GetAccountOwnedObjectsResponse` type renamed to `GetObjectDataQueryResponse`
