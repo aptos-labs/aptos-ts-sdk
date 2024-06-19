@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `getCollectionDataByCreatorAddressAndCollectionName` and `getCollectionDataByCreatorAddress` API queries
 - Add `PaginationArgs` argument to `getCollectionDataByCollectionId` API query
 - Mark `getCollectionData` API query as `@deprecated`
+- [`Fix`] `getAccountCollectionsWithOwnedTokens` no longer uses amount query
 
 # 1.19.0 (2024-06-11)
 
