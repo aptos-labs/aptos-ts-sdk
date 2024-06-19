@@ -5,8 +5,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Introduce `AptosObject` API for all Object queries
-- Add `getObjectData` API function to fetch an object data by the object address
+- Add `getObjectDataByObjectAddress` API function to fetch an object data by the object address
 - [`Breaking`] `GetAccountOwnedObjectsResponse` type renamed to `GetObjectDataQueryResponse`
+- Add `getCollectionDataByCreatorAddressAndCollectionName` and `getCollectionDataByCreatorAddress` API queries
+- Add `PaginationArgs` argument to `getCollectionDataByCollectionId` API query
+- Mark `getCollectionData` API query as `@deprecated`
 - [`Fix`] `getAccountCollectionsWithOwnedTokens` no longer uses amount query
 
 # 1.19.0 (2024-06-11)
