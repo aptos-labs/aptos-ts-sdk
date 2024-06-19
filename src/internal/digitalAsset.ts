@@ -25,6 +25,7 @@ import {
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
+  WhereArg,
 } from "../types";
 import {
   GetCollectionDataQuery,
@@ -41,7 +42,11 @@ import {
 import { queryIndexer } from "./general";
 import { generateTransaction } from "./transactionSubmission";
 import { MAX_U64_BIG_INT } from "../bcs/consts";
-import { CurrentTokenOwnershipsV2BoolExp, TokenActivitiesV2BoolExp } from "../types/generated/types";
+import {
+  CurrentCollectionsV2BoolExp,
+  CurrentTokenOwnershipsV2BoolExp,
+  TokenActivitiesV2BoolExp,
+} from "../types/generated/types";
 import {
   checkOrConvertArgument,
   objectStructTag,
@@ -274,17 +279,11 @@ export async function createCollectionTransaction(
 
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
-  creatorAddress: AccountAddressInput;
-  collectionName: string;
-  options?: TokenStandardArg;
+  options?: TokenStandardArg & PaginationArgs & WhereArg<CurrentCollectionsV2BoolExp>;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, creatorAddress, collectionName, options } = args;
-  const address = AccountAddress.from(creatorAddress);
+  const { aptosConfig, options } = args;
 
-  const whereCondition: any = {
-    collection_name: { _eq: collectionName },
-    creator_address: { _eq: address.toStringLong() },
-  };
+  const whereCondition: any = options?.where;
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
@@ -294,6 +293,8 @@ export async function getCollectionData(args: {
     query: GetCollectionData,
     variables: {
       where_condition: whereCondition,
+      offset: options?.offset,
+      limit: options?.limit,
     },
   };
   const data = await queryIndexer<GetCollectionDataQuery>({
@@ -305,30 +306,61 @@ export async function getCollectionData(args: {
   return data.current_collections_v2[0];
 }
 
+export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
+  aptosConfig: AptosConfig;
+  creatorAddress: AccountAddressInput;
+  collectionName: string;
+  options?: TokenStandardArg & PaginationArgs;
+}): Promise<GetCollectionDataResponse> {
+  const { aptosConfig, creatorAddress, collectionName, options } = args;
+  const address = AccountAddress.from(creatorAddress);
+
+  const whereCondition: any = {
+    collection_name: { _eq: collectionName },
+    creator_address: { _eq: address.toStringLong() },
+  };
+  if (options?.tokenStandard) {
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+  }
+
+  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
+}
+
+export async function getCollectionDataByCreatorAddress(args: {
+  aptosConfig: AptosConfig;
+  creatorAddress: AccountAddressInput;
+  options?: TokenStandardArg & PaginationArgs;
+}): Promise<GetCollectionDataResponse> {
+  const { aptosConfig, creatorAddress, options } = args;
+  const address = AccountAddress.from(creatorAddress);
+
+  const whereCondition: any = {
+    creator_address: { _eq: address.toStringLong() },
+  };
+  if (options?.tokenStandard) {
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+  }
+
+  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
+}
+
 export async function getCollectionDataByCollectionId(args: {
   aptosConfig: AptosConfig;
   collectionId: AccountAddressInput;
+  options?: TokenStandardArg & PaginationArgs;
 }): Promise<GetCollectionDataResponse> {
-  const { aptosConfig, collectionId } = args;
+  const { aptosConfig, collectionId, options } = args;
   const address = AccountAddress.from(collectionId);
 
   const whereCondition: any = {
     collection_id: { _eq: address.toStringLong() },
   };
 
-  const graphqlQuery = {
-    query: GetCollectionData,
-    variables: {
-      where_condition: whereCondition,
-    },
-  };
-  const data = await queryIndexer<GetCollectionDataQuery>({
-    aptosConfig,
-    query: graphqlQuery,
-    originMethod: "getCollectionData",
-  });
+  if (options?.tokenStandard) {
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+  }
 
-  return data.current_collections_v2[0];
+  return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
 export async function getCollectionId(args: {
@@ -337,7 +369,18 @@ export async function getCollectionId(args: {
   collectionName: string;
   options?: TokenStandardArg;
 }): Promise<string> {
-  return (await getCollectionData(args)).collection_id;
+  const { creatorAddress, collectionName, options, aptosConfig } = args;
+  const address = AccountAddress.from(creatorAddress);
+
+  const whereCondition: any = {
+    collection_name: { _eq: collectionName },
+    creator_address: { _eq: address.toStringLong() },
+  };
+  if (options?.tokenStandard) {
+    whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+  }
+
+  return (await getCollectionData({ aptosConfig, options: { where: whereCondition } })).collection_id;
 }
 
 // TRANSACTIONS

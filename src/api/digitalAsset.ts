@@ -25,6 +25,8 @@ import {
   freezeDigitalAssetTransferTransaction,
   getCollectionData,
   getCollectionDataByCollectionId,
+  getCollectionDataByCreatorAddress,
+  getCollectionDataByCreatorAddressAndCollectionName,
   getCollectionId,
   getCurrentDigitalAssetOwnership,
   getDigitalAssetActivity,
@@ -55,6 +57,9 @@ export class DigitalAsset {
   constructor(readonly config: AptosConfig) {}
 
   /**
+   * @deprecated use getCollectionDataByCreatorAddressAndCollectionName - this function
+   * will be removed in the next major release
+   *
    * Queries data of a specific collection by the collection creator address and the collection name.
    *
    * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
@@ -80,7 +85,81 @@ export class DigitalAsset {
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.TOKEN_V2_PROCESSOR,
     });
-    return getCollectionData({ aptosConfig: this.config, ...args });
+
+    const { creatorAddress, collectionName, options } = args;
+    const address = AccountAddress.from(creatorAddress);
+
+    const whereCondition: any = {
+      collection_name: { _eq: collectionName },
+      creator_address: { _eq: address.toStringLong() },
+    };
+    if (options?.tokenStandard) {
+      whereCondition.token_standard = { _eq: options?.tokenStandard ?? "v2" };
+    }
+
+    return getCollectionData({ aptosConfig: this.config, options: { where: whereCondition } });
+  }
+
+  /**
+   * Queries data of a specific collection by the collection creator address and the collection name.
+   *
+   * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
+   * can pass an optional `tokenStandard` parameter to query a specific standard
+   *
+   * @example
+   * const collection = await aptos.getCollectionDataByCreatorAddressAndCollectionName({
+   *   creatorAddress:"0x123",
+   *   collectionName:"myCollection"
+   * })
+   *
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.options.tokenStandard the token standard to query
+   * @returns GetCollectionDataResponse response type
+   */
+  async getCollectionDataByCreatorAddressAndCollectionName(args: {
+    creatorAddress: AccountAddressInput;
+    collectionName: string;
+    minimumLedgerVersion?: AnyNumber;
+    options?: TokenStandardArg & PaginationArgs;
+  }): Promise<GetCollectionDataResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
+    });
+
+    return getCollectionDataByCreatorAddressAndCollectionName({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries data of a specific collection by the collection creator address and the collection name.
+   *
+   * If, for some reason, a creator account has 2 collections with the same name in v1 and v2,
+   * can pass an optional `tokenStandard` parameter to query a specific standard
+   *
+   * @example
+   * const collection = await aptos.getCollectionDataByCreatorAddressAnd({creatorAddress:"0x123"})
+   *
+   * @param args.creatorAddress the address of the collection's creator
+   * @param args.collectionName the name of the collection
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
+   * @param args.options.tokenStandard the token standard to query
+   * @returns GetCollectionDataResponse response type
+   */
+  async getCollectionDataByCreatorAddress(args: {
+    creatorAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+    options?: TokenStandardArg & PaginationArgs;
+  }): Promise<GetCollectionDataResponse> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.TOKEN_V2_PROCESSOR,
+    });
+
+    return getCollectionDataByCreatorAddress({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -96,6 +175,7 @@ export class DigitalAsset {
   async getCollectionDataByCollectionId(args: {
     collectionId: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
+    options?: TokenStandardArg & PaginationArgs;
   }): Promise<GetCollectionDataResponse> {
     await waitForIndexerOnVersion({
       config: this.config,

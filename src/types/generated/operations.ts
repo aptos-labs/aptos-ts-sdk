@@ -356,6 +356,13 @@ export type GetCollectionDataQueryVariables = Types.Exact<{
 
 export type GetCollectionDataQuery = {
   current_collections_v2: Array<{
+    uri: string;
+    total_minted_v2?: any | null;
+    token_standard: string;
+    table_handle_v1?: string | null;
+    mutable_uri?: boolean | null;
+    mutable_description?: boolean | null;
+    max_supply?: any | null;
     collection_id: string;
     collection_name: string;
     creator_address: string;
@@ -363,13 +370,17 @@ export type GetCollectionDataQuery = {
     description: string;
     last_transaction_timestamp: any;
     last_transaction_version: any;
-    max_supply?: any | null;
-    mutable_description?: boolean | null;
-    mutable_uri?: boolean | null;
-    table_handle_v1?: string | null;
-    token_standard: string;
-    total_minted_v2?: any | null;
-    uri: string;
+    cdn_asset_uris?: {
+      cdn_image_uri?: string | null;
+      asset_uri: string;
+      animation_optimizer_retry_count: number;
+      cdn_animation_uri?: string | null;
+      cdn_json_uri?: string | null;
+      image_optimizer_retry_count: number;
+      json_parser_retry_count: number;
+      raw_animation_uri?: string | null;
+      raw_image_uri?: string | null;
+    } | null;
   }>;
 };
 

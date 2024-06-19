@@ -118,6 +118,15 @@ describe("DigitalAsset", () => {
     expect(data.mutable_uri).toEqual(true);
     expect(data.token_standard).toEqual("v2");
 
+    const collectionDataByCreatorAddressAndCollectionName =
+      await aptos.getCollectionDataByCreatorAddressAndCollectionName({ collectionName, creatorAddress });
+    expect(data.collection_name).toEqual(collectionDataByCreatorAddressAndCollectionName.collection_name);
+
+    const collectionDataByCreatorAddress = await aptos.getCollectionDataByCreatorAddress({
+      creatorAddress,
+    });
+    expect(data.collection_name).toEqual(collectionDataByCreatorAddress.collection_name);
+
     expect(data).toHaveProperty("max_supply");
     expect(data).toHaveProperty("collection_id");
     expect(data).toHaveProperty("last_transaction_timestamp");
@@ -127,6 +136,9 @@ describe("DigitalAsset", () => {
 
     const address = await aptos.getCollectionId({ collectionName, creatorAddress });
     expect(address).toEqual(data.collection_id);
+
+    const collectionDataByCollectionId = await aptos.getCollectionDataByCollectionId({ collectionId: address });
+    expect(address).toEqual(collectionDataByCollectionId.collection_id);
   });
 
   test("it freezes transfer ability", async () => {
