@@ -13,8 +13,9 @@
     "multisig_v2": "ts-node --esm dist/multisig_v2.js",
     "server_signs_and_submit": "ts-node dist/sponsored_transactions/server_signs_and_submit.js",
     "server_as_sponsor": "ts-node dist/sponsored_transactions/server_as_sponsor.js",
+    "rotate_key": "ts-node --esm dist/rotate_key.js",
     "transaction_with_predefined_abi": "ts-node dist/transaction_with_predefined_abi.js",
-    "test": "run-s build simple_transfer simple_sponsored_transaction simple_digital_asset multisig_v2 server_signs_and_submit server_as_sponsor transaction_with_predefined_abi"
+    "test": "run-s build simple_transfer simple_sponsored_transaction simple_digital_asset multisig_v2 server_signs_and_submit server_as_sponsor transaction_with_predefined_abi rotate_key"
   },
   "keywords": [],
   "author": "",
