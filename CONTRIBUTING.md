@@ -26,11 +26,20 @@ If you know Markdown, you can already contribute!
 
 Changes to the project are proposed through pull requests. The general pull request workflow is as follows:
 
-* If you have added code that should be tested, add unit tests.
-* If you have changed APIs, update the documentation. Make sure the documentation builds.
-* Ensure all formatting applies with `pnpm fmt`.
-* Ensure all tests and lints pass on each and every commit that is part of your pull request using `pnpm test && pnpm lint`.
-* Submit your pull request.
+1. If you have added code that should be tested, add unit tests.
+2. If you have changed APIs, update the documentation. Make sure the documentation builds.
+3. Ensure all formatting applies with `pnpm fmt`.
+4. Ensure all tests and lints pass on each and every commit that is part of your pull request using `pnpm test && pnpm lint`.
+5. Submit your pull request.
+
+### Testing
+
+To test your code:
+
+1. Navigate to the top of the package.
+2. Install dependencies with `pnpm i`
+3. Build the code using `pnpm build`
+4. Run tests using `pnpm test`
 
 ## Authoring Clean Commits
 
