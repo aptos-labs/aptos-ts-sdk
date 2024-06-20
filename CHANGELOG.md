@@ -4,7 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- Export the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
+- Export `core/account` folder and the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
 
 # 1.20.0 (2024-06-18)
 
