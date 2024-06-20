@@ -37,13 +37,7 @@ export async function getModuleEventsByEventType(args: {
     indexed_type: { _eq: eventType },
   };
 
-  const customOptions = {
-    where: whereCondition,
-    pagination: options,
-    orderBy: options?.orderBy,
-  };
-
-  return getEvents({ aptosConfig, options: customOptions });
+  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
 export async function getAccountEventsByCreationNumber(args: {
@@ -60,13 +54,7 @@ export async function getAccountEventsByCreationNumber(args: {
     creation_number: { _eq: creationNumber },
   };
 
-  const customOptions = {
-    where: whereCondition,
-    pagination: options,
-    orderBy: options?.orderBy,
-  };
-
-  return getEvents({ aptosConfig, options: customOptions });
+  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
 export async function getAccountEventsByEventType(args: {
@@ -83,13 +71,7 @@ export async function getAccountEventsByEventType(args: {
     indexed_type: { _eq: eventType },
   };
 
-  const customOptions = {
-    where: whereCondition,
-    pagination: options,
-    orderBy: options?.orderBy,
-  };
-
-  return getEvents({ aptosConfig, options: customOptions });
+  return getEvents({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
 export async function getEvents(args: {
