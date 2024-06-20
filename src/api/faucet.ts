@@ -32,7 +32,7 @@ export class Faucet {
   }): Promise<UserTransactionResponse> {
     const fundTxn = await fundAccount({ aptosConfig: this.config, ...args });
 
-    if (args.options?.waitForIndexer !== false) {
+    if (args.options?.waitForIndexer) {
       await waitForIndexer({ aptosConfig: this.config, minimumLedgerVersion: BigInt(fundTxn.version) });
     }
 
