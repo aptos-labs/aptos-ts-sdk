@@ -30,7 +30,8 @@ Changes to the project are proposed through pull requests. The general pull requ
 2. If you have changed APIs, update the documentation. Make sure the documentation builds.
 3. Ensure all formatting applies with `pnpm fmt`.
 4. Ensure all tests and lints pass on each and every commit that is part of your pull request using `pnpm test && pnpm lint`.
-5. Submit your pull request.
+5. Update `CHANGELOG.md` with your changes.
+6. Submit your pull request.
 
 ### Testing
 
