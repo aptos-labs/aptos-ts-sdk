@@ -154,7 +154,7 @@ export class Move {
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.objectAddress Address of the object that the Move package published to
    * @example
-   * alice
+   * 0x1000
    * @param args.namedAddresses  Named addresses for the move binary
    * @example
    * {
