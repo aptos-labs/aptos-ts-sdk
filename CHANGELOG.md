@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Export `core/account` folder and the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
 - [`Fix`] Respect pagination arguments on `Events` queries
 
 # 1.20.0 (2024-06-18)
