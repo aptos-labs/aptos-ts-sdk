@@ -72,7 +72,7 @@ export class Move {
   }
 
   /**
-   * Function to publishe the modules in a Move package to the Aptos blockchain
+   * Function to publish the modules to the deployer account on the Aptos blockchain
    *
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.namedAddresses  Named addresses for the move binary
@@ -102,6 +102,114 @@ export class Move {
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
+   * Function to create a new object and publish the Move package to it on the Aptos blockchain
+   *
+   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
+   * @param args.addressName Address name for the Move package
+   * @example
+   * alice
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * {
+   *  alice:0x1234, bob:0x5678
+   * }
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * @returns
+   */
+  async createObjectAndPublishPackage(args: {
+    packageDirectoryPath: string;
+    addressName: string;
+    namedAddresses: Record<string, AccountAddress>;
+    profile?: string;
+  }): Promise<boolean> {
+    const { packageDirectoryPath, addressName, namedAddresses, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "create-object-and-publish-package",
+      "--package-dir",
+      packageDirectoryPath,
+      "--address-name",
+      addressName,
+      `--profile=${profile ?? "default"}`,
+    ];
+
+    const addressesMap = this.parseNamedAddresses(namedAddresses);
+
+    cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
+   * Function to upgrade a Move package previously published to an object on the Aptos blockchain
+   * Caller must be the object owner to call this function
+   *
+   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
+   * @param args.objectAddress Address of the object that the Move package published to
+   * @example
+   * alice
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * {
+   *  alice:0x1234, bob:0x5678
+   * }
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * @returns
+   */
+  async upgradeObjectPackage(args: {
+    packageDirectoryPath: string;
+    objectAddress: string;
+    namedAddresses: Record<string, AccountAddress>;
+    profile?: string;
+  }): Promise<boolean> {
+    const { packageDirectoryPath, objectAddress, namedAddresses, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "upgrade-object-package",
+      "--package-dir",
+      packageDirectoryPath,
+      "--object-address",
+      objectAddress,
+      `--profile=${profile ?? "default"}`,
+    ];
+
+    const addressesMap = this.parseNamedAddresses(namedAddresses);
+
+    cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
+   * Function to run a Move script, please run compile before running this
+   *
+   * @param args.compiledScriptPath Path to a compiled Move script bytecode file
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * build/my_package/bytecode_scripts/my_move_script.mv
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * @returns
+   */
+  async runScript(args: { compiledScriptPath: string; profile?: string }): Promise<boolean> {
+    const { compiledScriptPath, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "run-script",
+      "--compiled-script-path",
+      compiledScriptPath,
+      `--profile=${profile ?? "default"}`,
+    ];
 
     return this.runCommand(cliArgs);
   }
