@@ -112,7 +112,7 @@ export class Move {
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.addressName Address name for the Move package
    * @example
-   * alice
+   * MoonCoin, please find the actual address name in Move.toml
    * @param args.namedAddresses  Named addresses for the move binary
    * @example
    * {
