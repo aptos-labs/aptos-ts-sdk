@@ -72,7 +72,7 @@ export class Move {
   }
 
   /**
-   * Function to publish the modules to the deployer account on the Aptos blockchain
+   * Function to publish the modules to the publisher account on the Aptos blockchain
    *
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.namedAddresses  Named addresses for the move binary
