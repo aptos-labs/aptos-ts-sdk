@@ -15,7 +15,7 @@ export class Move {
    *
    * @returns stdout
    */
-  async init(args: { network?: Network; profile?: string }): Promise<string> {
+  async init(args: { network?: Network; profile?: string }): Promise<{ output: string }> {
     const { network, profile } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
 
@@ -37,7 +37,7 @@ export class Move {
   async compile(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
-  }): Promise<string> {
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses } = args;
     const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
@@ -60,7 +60,10 @@ export class Move {
    *
    * @returns stdout
    */
-  async test(args: { packageDirectoryPath: string; namedAddresses: Record<string, AccountAddress> }): Promise<string> {
+  async test(args: {
+    packageDirectoryPath: string;
+    namedAddresses: Record<string, AccountAddress>;
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses } = args;
     const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
@@ -88,7 +91,7 @@ export class Move {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
-  }): Promise<string> {
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses, profile } = args;
     const cliArgs = [
       "aptos",
@@ -134,7 +137,7 @@ export class Move {
     addressName: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
-  }): Promise<string> {
+  }): Promise<{ objectAddress: string }> {
     const { packageDirectoryPath, addressName, namedAddresses, profile } = args;
     const cliArgs = [
       "aptos",
@@ -151,7 +154,8 @@ export class Move {
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
 
-    return this.runCommand(cliArgs).then((output) => this.extractAddressFromOutput(output));
+    const result = await this.runCommand(cliArgs);
+    return { objectAddress: this.extractAddressFromOutput(result.output) };
   }
 
   /**
@@ -176,7 +180,7 @@ export class Move {
     objectAddress: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
-  }): Promise<string> {
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, objectAddress, namedAddresses, profile } = args;
     const cliArgs = [
       "aptos",
@@ -207,7 +211,7 @@ export class Move {
    *
    * @returns stdout
    */
-  async runScript(args: { compiledScriptPath: string; profile?: string }): Promise<string> {
+  async runScript(args: { compiledScriptPath: string; profile?: string }): Promise<{ output: string }> {
     const { compiledScriptPath, profile } = args;
     const cliArgs = [
       "aptos",
@@ -228,7 +232,7 @@ export class Move {
    * @returns stdout
    */
   // eslint-disable-next-line class-methods-use-this
-  private async runCommand(args: Array<string>): Promise<string> {
+  private async runCommand(args: Array<string>): Promise<{ output: string }> {
     return new Promise((resolve, reject) => {
       const currentPlatform = platform();
       let childProcess;
@@ -251,7 +255,7 @@ export class Move {
 
       childProcess.on("close", (code) => {
         if (code === 0) {
-          resolve(stdout); // Resolve with stdout if the child process exits successfully
+          resolve({ output: stdout }); // Resolve with stdout if the child process exits successfully
         } else {
           reject(new Error(`Child process exited with code ${code}`)); // Reject with an error if the child process exits with an error code
         }
