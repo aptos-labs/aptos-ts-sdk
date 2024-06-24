@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.22.0 (2024-06-24)
+
+- Bump Aptos CLI version that will auto upgrade Aptos CLI to latest.
+
 # 1.21.0 (2024-06-21)
 
 - Export `core/account` folder and the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
