@@ -6,7 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.22.0 (2024-06-24)
 
-- Bump Aptos CLI version that will auto upgrade Aptos CLI to latest.
+- Bump Aptos CLI version that will auto upgrade Aptos CLI to 0.1.9.
 
 # 1.21.0 (2024-06-21)
 
