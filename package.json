@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-client": "^0.1.0",
-    "@aptos-labs/aptos-cli": "^0.1.2",
+    "@aptos-labs/aptos-cli": "^0.1.9",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
@@ -91,5 +91,5 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.3.3"
   },
-  "version": "1.21.0"
+  "version": "1.22.1"
 }
