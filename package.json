@@ -35,6 +35,7 @@
   "scripts": {
     "build:clean": "rm -rf dist",
     "build": "pnpm build:clean && tsup",
+    "publish": "pnpm run build && npm publish",
     "_fmt": "prettier 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.js' 'examples/**/*.ts' '.eslintrc.js'",
     "fmt": "pnpm _fmt --write",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'examples/**/*.ts'",
