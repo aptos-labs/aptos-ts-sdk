@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.22.2 (2024-06-26)
+
+- Release an updated build to npm due to issues with latest release
+
 # 1.22.1 (2024-06-24)
 
 - Fix unit test of ts sdk.
