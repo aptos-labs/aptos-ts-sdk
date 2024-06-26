@@ -358,7 +358,7 @@ export type CommittedTransactionResponse =
   | BlockMetadataTransactionResponse
   | StateCheckpointTransactionResponse
   | ValidatorTransactionResponse
-  | BlockEpilogueResponse;
+  | BlockEpilogueTransactionResponse;
 
 export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
   return response.type === TransactionResponseType.Pending;
