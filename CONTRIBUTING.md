@@ -149,7 +149,7 @@ This command gives us a preview of what we will be releasing to NPM, make sure i
 Then, when we are ready to publish to NPM, simply run:
 
 ```bash
-pnpm run publish
+npm publish
 ```
 
-This command will build the SDK and run the publish command to publish it to NPM registry
+This command will build the SDK and publish it to NPM registry
