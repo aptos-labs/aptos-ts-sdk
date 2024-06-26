@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { IrysAssetUploader } from "./irys";
@@ -79,5 +80,17 @@ export class AssetUploader {
     options?: any;
   }): Promise<UploadResponse | undefined> {
     return this.assetUploader.uploadFolder({ ...args });
+  }
+
+  /**
+   * Get cost estimate
+   *
+   * @param args.numBytes  The number of bytes to check the price for
+   *
+   * @return Cost to upload numBytes, unit is the token specified
+   * when instantiating the Irys object Return value is in atomic units
+   */
+  async getPrice(args: { numBytes: number }): Promise<BigNumber> {
+    return this.assetUploader.getPrice({ ...args });
   }
 }
