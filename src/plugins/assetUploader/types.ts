@@ -21,6 +21,9 @@ export interface IAssetUploader {
     folder: string | TaggedFile[];
     options?: any;
   }): Promise<UploadResponse | undefined>;
+  estimateFolderPrice(args: {
+    folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
+  }): Promise<number>;
 }
 
 export enum AssetUploaderProvider {
