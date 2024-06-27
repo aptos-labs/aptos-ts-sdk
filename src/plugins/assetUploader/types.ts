@@ -2,7 +2,6 @@ import type { FundResponse, UploadResponse, CreateAndUploadOptions } from "@irys
 import type { TaggedFile } from "@irys/sdk/build/cjs/web/upload";
 import type { NodeIrys } from "@irys/sdk/build/cjs/node/irys";
 import type { WebIrys } from "@irys/sdk/build/cjs/web/irys";
-import BigNumber from "bignumber.js";
 import { Account } from "../../core";
 
 export { FundResponse, UploadResponse, TaggedFile, CreateAndUploadOptions, NodeIrys, WebIrys };
@@ -22,7 +21,9 @@ export interface IAssetUploader {
     folder: string | TaggedFile[];
     options?: any;
   }): Promise<UploadResponse | undefined>;
-  getPrice(args: { numBytes: number }): Promise<BigNumber>;
+  estimateFolderPrice(args: {
+    folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
+  }): Promise<number>;
 }
 
 export enum AssetUploaderProvider {

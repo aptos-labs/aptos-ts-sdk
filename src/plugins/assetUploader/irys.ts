@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import {
   FundResponse,
   IAssetUploader,
@@ -201,19 +200,24 @@ export class IrysAssetUploader implements IAssetUploader {
    * Get cost estimate to upload
    *
    * @param args.account The account to sign the transaction
-   * @param args.numBytes  The number of bytes to check the price for
+   * @param argsfolderInfo either an array of file sizes in bytes,
+   * or an object containing the total number of files
+   *  and the sum total size of the files in bytes
    *
-   * @return Cost to upload numBytes, unit is the token specified
+   * @return Cost to upload folder, unit is the token specified
    * when instantiating the Irys object Return value is in atomic units
    */
-  async getPrice(args: { account: Account; numBytes: number }): Promise<BigNumber> {
-    const { account, numBytes } = args;
+  async estimateFolderPrice(args: {
+    account: Account;
+    folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
+  }): Promise<number> {
+    const { account, folderInfo } = args;
     const irys = await this.getIrys({ account });
 
     try {
-      return await irys.getPrice(numBytes);
+      return (await irys.utils.estimateFolderPrice(folderInfo)).toNumber();
     } catch (e) {
-      throw new Error(`Error uploading folder to irys ${e}`);
+      throw new Error(`Error estimating folder price with irys: ${e}`);
     }
   }
 }

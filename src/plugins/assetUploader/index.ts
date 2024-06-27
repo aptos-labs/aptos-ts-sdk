@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../core";
 import { IrysAssetUploader } from "./irys";
@@ -83,14 +82,19 @@ export class AssetUploader {
   }
 
   /**
-   * Get cost estimate
+   * Get cost estimate to upload
    *
-   * @param args.numBytes  The number of bytes to check the price for
+   * @param args.account The account to sign the transaction
+   * @param argsfolderInfo either an array of file sizes in bytes,
+   * or an object containing the total number of files
+   *  and the sum total size of the files in bytes
    *
-   * @return Cost to upload numBytes, unit is the token specified
+   * @return Cost to upload folder, unit is the token specified
    * when instantiating the Irys object Return value is in atomic units
    */
-  async getPrice(args: { numBytes: number }): Promise<BigNumber> {
-    return this.assetUploader.getPrice({ ...args });
+  async estimateFolderPrice(args: {
+    folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
+  }): Promise<number> {
+    return this.assetUploader.estimateFolderPrice({ ...args });
   }
 }
