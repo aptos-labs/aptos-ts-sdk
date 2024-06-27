@@ -195,4 +195,29 @@ export class IrysAssetUploader implements IAssetUploader {
       throw new Error(`Error uploading folder to irys ${e}`);
     }
   }
+
+  /**
+   * Get cost estimate to upload
+   *
+   * @param args.account The account to sign the transaction
+   * @param argsfolderInfo either an array of file sizes in bytes,
+   * or an object containing the total number of files
+   *  and the sum total size of the files in bytes
+   *
+   * @return Cost to upload folder, unit is the token specified
+   * when instantiating the Irys object Return value is in atomic units
+   */
+  async estimateFolderPrice(args: {
+    account: Account;
+    folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
+  }): Promise<number> {
+    const { account, folderInfo } = args;
+    const irys = await this.getIrys({ account });
+
+    try {
+      return (await irys.utils.estimateFolderPrice(folderInfo)).toNumber();
+    } catch (e) {
+      throw new Error(`Error estimating folder price with irys: ${e}`);
+    }
+  }
 }
