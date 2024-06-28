@@ -16,7 +16,7 @@
     "strictNullChecks": true,
     "noEmit": true
   },
-  "include": ["*.ts", "tests/*.ts"],
+  "include": ["./*.ts"],
   "paths": {
     "@aptos/*": "../.."
   }

@@ -1,0 +1,12 @@
+[package]
+name = "facoin"
+version = "1.0.0"
+authors = []
+
+[addresses]
+FACoin = "_"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
