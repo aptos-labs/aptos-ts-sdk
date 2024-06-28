@@ -18,7 +18,6 @@ export class Move {
   async init(args: { network?: Network; profile?: string }): Promise<{ output: string }> {
     const { network, profile } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
-
     return this.runCommand(cliArgs);
   }
 
@@ -90,16 +89,19 @@ export class Move {
   async publish(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
-    profile?: string;
+    privateKey: string;
+    url: string;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, profile } = args;
+    const { packageDirectoryPath, namedAddresses, privateKey, url } = args;
     const cliArgs = [
       "aptos",
       "move",
       "publish",
       "--package-dir",
       packageDirectoryPath,
-      `--profile=${profile ?? "default"}`,
+      `--private-key=${privateKey}`,
+      `--url=${url}`,
+      `--assume-yes`,
     ];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
