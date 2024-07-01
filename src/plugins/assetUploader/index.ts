@@ -85,7 +85,7 @@ export class AssetUploader {
    * Get cost estimate to upload
    *
    * @param args.account The account to sign the transaction
-   * @param argsfolderInfo either an array of file sizes in bytes,
+   * @param args.folderInfo either an array of file sizes in bytes,
    * or an object containing the total number of files
    *  and the sum total size of the files in bytes
    *
@@ -93,6 +93,7 @@ export class AssetUploader {
    * when instantiating the Irys object Return value is in atomic units
    */
   async estimateFolderPrice(args: {
+    account: Account;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number> {
     return this.assetUploader.estimateFolderPrice({ ...args });

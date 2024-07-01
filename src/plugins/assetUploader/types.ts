@@ -22,6 +22,7 @@ export interface IAssetUploader {
     options?: any;
   }): Promise<UploadResponse | undefined>;
   estimateFolderPrice(args: {
+    account: Account;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number>;
 }
