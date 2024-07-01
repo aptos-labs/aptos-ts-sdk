@@ -98,4 +98,20 @@ export class AssetUploader {
   }): Promise<number> {
     return this.assetUploader.estimateFolderPrice({ ...args });
   }
+
+  /**
+   * Get account's loaded balance
+   *
+   * @param args.account The account to query balance from
+   * @return account loaded balance
+   */
+  async getLoadedBalance(args: {
+    account: Account;
+  }): Promise<number> {
+    try {
+      return await this.assetUploader.getLoadedBalance({...args});
+    } catch (e) {
+      throw new Error(`Error getting loaded balance with irys: ${e}`);
+    }
+  }
 }

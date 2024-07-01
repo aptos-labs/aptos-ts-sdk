@@ -25,6 +25,7 @@ export interface IAssetUploader {
     account: Account;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number>;
+  getLoadedBalance(args: {account: Account}): Promise<number>;
 }
 
 export enum AssetUploaderProvider {
