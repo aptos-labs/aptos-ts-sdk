@@ -2,7 +2,7 @@ import type { FundResponse, UploadResponse, CreateAndUploadOptions } from "@irys
 import type { TaggedFile } from "@irys/sdk/build/cjs/web/upload";
 import type { NodeIrys } from "@irys/sdk/build/cjs/node/irys";
 import type { WebIrys } from "@irys/sdk/build/cjs/web/irys";
-import { Account } from "../../core";
+import { Account } from "../../account";
 
 export { FundResponse, UploadResponse, TaggedFile, CreateAndUploadOptions, NodeIrys, WebIrys };
 
@@ -25,7 +25,7 @@ export interface IAssetUploader {
     account: Account;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number>;
-  getLoadedBalance(args: {account: Account}): Promise<number>;
+  getLoadedBalance(args: { account: Account }): Promise<number>;
 }
 
 export enum AssetUploaderProvider {

@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getAptosClient } from "../helper";
-import { Account,  Bool, MoveString, MoveVector, U8 } from "../../../src";
+import { Account, Bool, MoveString, MoveVector, U8 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
+import { getAptosClient } from "../helper";
 
 const { aptos } = getAptosClient();
 

@@ -77,6 +77,11 @@ export class AptosConfig {
    */
   readonly faucetConfig?: FaucetConfig;
 
+  /**
+   * Asset uploader provider, default to "irys"
+   */
+  readonly assetUploaderProvider = AssetUploaderProvider.Irys;
+
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? Network.DEVNET;
     this.fullnode = settings?.fullnode;

@@ -32,6 +32,7 @@ This is a repository of all Aptos TypeScript SDK documentation by version.
 - [Stable - @aptos-labs/ts-sdk-1.12.0](@aptos-labs/ts-sdk-1.12.0)
 - [Stable - @aptos-labs/ts-sdk-1.11.0](@aptos-labs/ts-sdk-1.11.0)
 - [Stable - @aptos-labs/ts-sdk-1.10.0](@aptos-labs/ts-sdk-1.10.0)
+- [Stable - @aptos-labs/ts-sdk-1.9.1-tmp.2](@aptos-labs/ts-sdk-1.9.1-tmp.2)
 - [Stable - @aptos-labs/ts-sdk-1.9.1-tmp.1](@aptos-labs/ts-sdk-1.9.1-tmp.1)
 - [Stable - @aptos-labs/ts-sdk-1.9.1](@aptos-labs/ts-sdk-1.9.1)
 - [Stable - @aptos-labs/ts-sdk-1.9.0](@aptos-labs/ts-sdk-1.9.0)

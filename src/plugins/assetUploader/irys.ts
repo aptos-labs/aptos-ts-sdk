@@ -8,7 +8,7 @@ import {
   TaggedFile,
 } from "./types";
 import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../core";
+import { Account } from "../../account";
 import { Network } from "../../utils";
 
 /**
@@ -227,10 +227,8 @@ export class IrysAssetUploader implements IAssetUploader {
    * @param args.account The account to query balance from
    * @return account loaded balance
    */
-  async getLoadedBalance(args: {
-    account: Account;
-  }): Promise<number> {
-    const { account} = args;
+  async getLoadedBalance(args: { account: Account }): Promise<number> {
+    const { account } = args;
     const irys = await this.getIrys({ account });
 
     try {

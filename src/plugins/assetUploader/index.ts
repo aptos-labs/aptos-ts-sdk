@@ -1,5 +1,5 @@
+import { Account } from "../../account";
 import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../core";
 import { IrysAssetUploader } from "./irys";
 import { FundResponse, IAssetUploader, UploadResponse, TaggedFile, AssetUploaderProvider } from "./types";
 
@@ -105,11 +105,9 @@ export class AssetUploader {
    * @param args.account The account to query balance from
    * @return account loaded balance
    */
-  async getLoadedBalance(args: {
-    account: Account;
-  }): Promise<number> {
+  async getLoadedBalance(args: { account: Account }): Promise<number> {
     try {
-      return await this.assetUploader.getLoadedBalance({...args});
+      return await this.assetUploader.getLoadedBalance({ ...args });
     } catch (e) {
       throw new Error(`Error getting loaded balance with irys: ${e}`);
     }
