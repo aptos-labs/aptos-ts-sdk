@@ -200,7 +200,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * Get cost estimate to upload
    *
    * @param args.account The account to sign the transaction
-   * @param argsfolderInfo either an array of file sizes in bytes,
+   * @param args.folderInfo either an array of file sizes in bytes,
    * or an object containing the total number of files
    *  and the sum total size of the files in bytes
    *
