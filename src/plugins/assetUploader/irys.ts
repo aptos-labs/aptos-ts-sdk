@@ -220,4 +220,23 @@ export class IrysAssetUploader implements IAssetUploader {
       throw new Error(`Error estimating folder price with irys: ${e}`);
     }
   }
+
+  /**
+   * Get account's loaded balance
+   *
+   * @param args.account The account to query balance from
+   * @return account loaded balance
+   */
+  async getLoadedBalance(args: {
+    account: Account;
+  }): Promise<number> {
+    const { account} = args;
+    const irys = await this.getIrys({ account });
+
+    try {
+      return (await irys.getLoadedBalance()).toNumber();
+    } catch (e) {
+      throw new Error(`Error getting loaded balance with irys: ${e}`);
+    }
+  }
 }
