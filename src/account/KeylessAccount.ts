@@ -267,6 +267,7 @@ export class KeylessAccount extends Serializable implements Account {
     const signMess = txnAndProof.hash();
     return this.sign(signMess);
   }
+
   /**
    * Note - This function is currently incomplete and should only be used to verify ownership of the KeylessAccount
    *
