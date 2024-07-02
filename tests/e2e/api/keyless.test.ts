@@ -204,6 +204,19 @@ describe("keyless api", () => {
     );
 
     test(
+      "keyless account verifies signature for arbitrary message correctly",
+      async () => {
+        // Select a random test token.  Using the same one may encounter rate limits
+        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
+        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const message = "hello world"
+        const signature = sender.sign(message);
+        expect(sender.verifySignature({message, signature})).toBe(true);
+      },
+      KEYLESS_TEST_TIMEOUT,
+    );
+
+    test(
       "serializes and deserializes",
       async () => {
         // Select a random test token.  Using the same one may encounter rate limits
