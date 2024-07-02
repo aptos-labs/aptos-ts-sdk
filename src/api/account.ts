@@ -439,12 +439,15 @@ export class Account {
    *
    * @param args.accountAddress The account address we want to get the total count for
    * @param args.coinType The coin type to query
+   * @param args.faMetadataAddress The fungible asset metadata address to query.
+   *        Note: coinType will automatically fill this in if not provided when migrated to fungible assets
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
    * @returns Current amount of account's coin
    */
   async getAccountCoinAmount(args: {
     accountAddress: AccountAddressInput;
-    coinType: MoveStructId;
+    coinType?: MoveStructId;
+    faMetadataAddress?: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
     await waitForIndexerOnVersion({

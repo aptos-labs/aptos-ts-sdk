@@ -52,9 +52,10 @@ import {
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey } from "../core";
+import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
+import { APTOS_COIN } from "../utils";
 
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -404,16 +405,46 @@ export async function getAccountTransactionsCount(args: {
 export async function getAccountCoinAmount(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
-  coinType: MoveStructId;
+  coinType?: MoveStructId;
+  faMetadataAddress?: AccountAddressInput;
 }): Promise<number> {
-  const { aptosConfig, accountAddress, coinType } = args;
+  const { aptosConfig, accountAddress, coinType, faMetadataAddress } = args;
+  let coinAssetType: string | undefined;
+  let faAddress: string;
+
+  if (coinType !== undefined && faMetadataAddress !== undefined) {
+    faAddress = AccountAddress.from(faMetadataAddress).toStringLong();
+  } else if (coinType !== undefined && faMetadataAddress === undefined) {
+    coinAssetType = coinType;
+    // TODO Move to a separate function as defined in the AIP for coin migration
+    if (args.coinType === APTOS_COIN) {
+      faAddress = AccountAddress.A.toStringLong();
+    } else {
+      faAddress = createObjectAddress(AccountAddress.A, coinType).toStringLong();
+    }
+  } else if (coinType === undefined && faMetadataAddress !== undefined) {
+    // TODO: add a view function lookup for non-APT migrated coins
+    const addr = AccountAddress.from(faMetadataAddress);
+    faAddress = addr.toStringLong();
+    if (addr === AccountAddress.A) {
+      coinAssetType = APTOS_COIN;
+    }
+  } else {
+    throw new Error("Either coinType, fungibleAssetAddress, or both must be provided");
+  }
   const address = AccountAddress.from(accountAddress).toStringLong();
+
+  // Search by fungible asset address, unless it has a coin it migrated from
+  let where: any = { asset_type: { _eq: faAddress } };
+  if (coinType !== undefined) {
+    where = { asset_type: { _in: [coinAssetType, faAddress] } };
+  }
 
   const data = await getAccountCoinsData({
     aptosConfig,
     accountAddress: address,
     options: {
-      where: { asset_type: { _eq: coinType } },
+      where,
     },
   });
 
