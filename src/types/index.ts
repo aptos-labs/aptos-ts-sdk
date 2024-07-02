@@ -563,30 +563,6 @@ export type ValidatorTransactionResponse = {
   timestamp: string;
 };
 
-export type StateCheckpointTransactionResponse = {
-  type: TransactionResponseType.StateCheckpoint;
-  version: string;
-  hash: string;
-  state_change_hash: string;
-  event_root_hash: string;
-  state_checkpoint_hash: string | null;
-  gas_used: string;
-  /**
-   * Whether the transaction was successful
-   */
-  success: boolean;
-  /**
-   * The VM status of the transaction, can tell useful information in a failure
-   */
-  vm_status: string;
-  accumulator_root_hash: string;
-  /**
-   * Final state of resources changed by the transaction
-   */
-  changes: Array<WriteSetChange>;
-  timestamp: string;
-};
-
 export type BlockEndInfo = {
   block_gas_limit_reached: boolean;
   block_output_limit_reached: boolean;
@@ -595,7 +571,7 @@ export type BlockEndInfo = {
 }
 
 export type BlockEpilogueTransactionResponse = {
-  type: TransactionResponseType.StateCheckpoint;
+  type: TransactionResponseType.BlockEpilogue;
   version: string;
   hash: string;
   state_change_hash: string;
