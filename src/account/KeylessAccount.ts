@@ -11,7 +11,6 @@ import {
   KeylessPublicKey,
   KeylessSignature,
   EphemeralCertificate,
-  Signature,
   ZeroKnowledgeSig,
   ZkProof,
 } from "../core/crypto";
@@ -270,13 +269,13 @@ export class KeylessAccount extends Serializable implements Account {
   }
   /**
    * Note - This function is currently incomplete and should only be used to verify ownership of the KeylessAccount
-   * 
+   *
    * Verifies a signature given the message.
-   * 
+   *
    * TODO: Groth16 proof verification
-   * 
+   *
    * @param args.message the message that was signed.
-   * @param args.signature the KeylessSignature to verify 
+   * @param args.signature the KeylessSignature to verify
    * @returns boolean
    */
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
