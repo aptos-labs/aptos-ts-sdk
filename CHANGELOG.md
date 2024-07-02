@@ -4,8 +4,25 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- [`Fix`] Respect pagination arguments on `Events` queries
 - [`Fix`] `fundAccount` no longer always waits for latest indexer results
+
+# 1.22.2 (2024-06-26)
+
+- Release an updated build to npm due to issues with latest release
+
+# 1.22.1 (2024-06-24)
+
+- Fix unit test of ts sdk.
+
+# 1.22.0 (2024-06-24)
+
+- Bump Aptos CLI version that will auto upgrade Aptos CLI to 0.1.9.
+
+# 1.21.0 (2024-06-21)
+
+- Export `core/account` folder and the functions: `createObjectAddress` `createResourceAddress` `createTokenAddress`
+- [`Fix`] Respect pagination arguments on `Events` queries
+- Add `createObjectAndPublishPackage`, `upgradeObjectPackage` and `runScript` to cli in ts.
 
 # 1.20.0 (2024-06-18)
 

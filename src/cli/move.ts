@@ -9,13 +9,13 @@ export class Move {
    * Function to initialize current directory for Aptos
    *
    * Configuration will be pushed into .aptos/config.yaml
-   * @param args.network optional Netowrk type argument to use for default settings, default is local
+   * @param args.network optional Network type argument to use for default settings, default is local
    * @param args.profile optional Profile to use from the config file, default is 'default'
    * This will be used to override associated settings such as the REST URL, the Faucet URL, and the private key arguments.
    *
-   * @returns
+   * @returns stdout
    */
-  async init(args: { network?: Network; profile?: string }): Promise<boolean> {
+  async init(args: { network?: Network; profile?: string }): Promise<{ output: string }> {
     const { network, profile } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
 
@@ -32,12 +32,12 @@ export class Move {
    *  alice:0x1234, bob:0x5678
    * }
    *
-   * @returns
+   * @returns stdout
    */
   async compile(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
-  }): Promise<boolean> {
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses } = args;
     const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
@@ -58,9 +58,12 @@ export class Move {
    *  alice:0x1234, bob:0x5678
    * }
    *
-   * @returns
+   * @returns stdout
    */
-  async test(args: { packageDirectoryPath: string; namedAddresses: Record<string, AccountAddress> }): Promise<boolean> {
+  async test(args: {
+    packageDirectoryPath: string;
+    namedAddresses: Record<string, AccountAddress>;
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses } = args;
     const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
@@ -72,7 +75,7 @@ export class Move {
   }
 
   /**
-   * Function to publishe the modules in a Move package to the Aptos blockchain
+   * Function to publish the modules to the publisher account on the Aptos blockchain
    *
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.namedAddresses  Named addresses for the move binary
@@ -82,13 +85,13 @@ export class Move {
    * }
    * @param args.profile optional Profile to use from the config file.
    *
-   * @returns
+   * @returns stdout
    */
   async publish(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
-  }): Promise<boolean> {
+  }): Promise<{ output: string }> {
     const { packageDirectoryPath, namedAddresses, profile } = args;
     const cliArgs = [
       "aptos",
@@ -107,16 +110,133 @@ export class Move {
   }
 
   /**
+   * Function to create a new object and publish the Move package to it on the Aptos blockchain
+   *
+   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
+   * @param args.addressName Address name for the Move package
+   * @example
+   * MoonCoin, please find the actual address name in Move.toml
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * {
+   *  alice:0x1234, bob:0x5678
+   * }
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * A complete example in cli
+   * aptos move create-object-and-publish-package \
+   * --package-dir path_to_directory_that_has_move.toml \
+   * --address-name launchpad_addr \
+   * --named-addresses "launchpad_addr=0x123,initial_creator_addr=0x456"\
+   * --profile my_profile \
+   * --assume-yes
+   * @returns object address
+   */
+  async createObjectAndPublishPackage(args: {
+    packageDirectoryPath: string;
+    addressName: string;
+    namedAddresses: Record<string, AccountAddress>;
+    profile?: string;
+  }): Promise<{ objectAddress: string }> {
+    const { packageDirectoryPath, addressName, namedAddresses, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "create-object-and-publish-package",
+      "--package-dir",
+      packageDirectoryPath,
+      "--address-name",
+      addressName,
+      `--profile=${profile ?? "default"}`,
+    ];
+
+    const addressesMap = this.parseNamedAddresses(namedAddresses);
+
+    cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    const result = await this.runCommand(cliArgs);
+    return { objectAddress: this.extractAddressFromOutput(result.output) };
+  }
+
+  /**
+   * Function to upgrade a Move package previously published to an object on the Aptos blockchain
+   * Caller must be the object owner to call this function
+   *
+   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
+   * @param args.objectAddress Address of the object that the Move package published to
+   * @example
+   * 0x1000
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * {
+   *  alice:0x1234, bob:0x5678
+   * }
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * @returns stdout
+   */
+  async upgradeObjectPackage(args: {
+    packageDirectoryPath: string;
+    objectAddress: string;
+    namedAddresses: Record<string, AccountAddress>;
+    profile?: string;
+  }): Promise<{ output: string }> {
+    const { packageDirectoryPath, objectAddress, namedAddresses, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "upgrade-object-package",
+      "--package-dir",
+      packageDirectoryPath,
+      "--object-address",
+      objectAddress,
+      `--profile=${profile ?? "default"}`,
+    ];
+
+    const addressesMap = this.parseNamedAddresses(namedAddresses);
+
+    cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
+   * Function to run a Move script, please run compile before running this
+   *
+   * @param args.compiledScriptPath Path to a compiled Move script bytecode file
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * build/my_package/bytecode_scripts/my_move_script.mv
+   * @param args.profile optional Profile to use from the config file.
+   *
+   * @returns stdout
+   */
+  async runScript(args: { compiledScriptPath: string; profile?: string }): Promise<{ output: string }> {
+    const { compiledScriptPath, profile } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "run-script",
+      "--compiled-script-path",
+      compiledScriptPath,
+      `--profile=${profile ?? "default"}`,
+    ];
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
    * Run a move command
    *
    * @param args
-   * @returns
+   * @returns stdout
    */
   // eslint-disable-next-line class-methods-use-this
-  private async runCommand(args: Array<string>): Promise<boolean> {
+  private async runCommand(args: Array<string>): Promise<{ output: string }> {
     return new Promise((resolve, reject) => {
       const currentPlatform = platform();
       let childProcess;
+      let stdout = "";
 
       // Check if current OS is windows
       if (currentPlatform === "win32") {
@@ -125,13 +245,17 @@ export class Move {
         childProcess = spawn("npx", args);
       }
 
+      childProcess.stdout.on("data", (data) => {
+        stdout += data.toString();
+      });
+
       childProcess.stdout.pipe(process.stdout);
       childProcess.stderr.pipe(process.stderr);
       process.stdin.pipe(childProcess.stdin);
 
       childProcess.on("close", (code) => {
         if (code === 0) {
-          resolve(true); // Resolve with true if the child process exits successfully
+          resolve({ output: stdout }); // Resolve with stdout if the child process exits successfully
         } else {
           reject(new Error(`Child process exited with code ${code}`)); // Reject with an error if the child process exits with an error code
         }
@@ -185,5 +309,20 @@ export class Move {
     });
 
     return addressesMap;
+  }
+
+  /**
+   * Extract object address from the output
+   *
+   * @param output
+   * @returns object address
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private extractAddressFromOutput(output: string): string {
+    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)\\.");
+    if (match) {
+      return match[1];
+    }
+    throw new Error("Failed to extract object address from output");
   }
 }
