@@ -348,6 +348,7 @@ export enum TransactionResponseType {
   BlockMetadata = "block_metadata_transaction",
   StateCheckpoint = "state_checkpoint_transaction",
   Validator = "validator_transaction",
+  BlockEpilogue = "block_epilogue_transaction",
 }
 
 export type TransactionResponse = PendingTransactionResponse | CommittedTransactionResponse;
@@ -356,7 +357,8 @@ export type CommittedTransactionResponse =
   | GenesisTransactionResponse
   | BlockMetadataTransactionResponse
   | StateCheckpointTransactionResponse
-  | ValidatorTransactionResponse;
+  | ValidatorTransactionResponse
+  | BlockEpilogueTransactionResponse;
 
 export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
   return response.type === TransactionResponseType.Pending;
@@ -386,6 +388,12 @@ export function isValidatorTransactionResponse(
   response: TransactionResponse,
 ): response is ValidatorTransactionResponse {
   return response.type === TransactionResponseType.Validator;
+}
+
+export function isBlockEpilogueTransactionResponse(
+  response: TransactionResponse,
+): response is BlockEpilogueTransactionResponse {
+  return response.type === TransactionResponseType.BlockEpilogue;
 }
 
 export type PendingTransactionResponse = {
@@ -553,6 +561,45 @@ export type ValidatorTransactionResponse = {
    */
   events: Array<Event>;
   timestamp: string;
+};
+
+/**
+ * BlockEndInfo describes the gas state of the block
+ */
+export type BlockEndInfo = {
+  block_gas_limit_reached: boolean;
+  block_output_limit_reached: boolean;
+  block_effective_block_gas_units: number;
+  block_approx_output_size: number;
+};
+
+/**
+ * BlockEpilogueTransactionResponse is a transaction that is executed at the end of a block keeping track of data from
+ * the whole block
+ */
+export type BlockEpilogueTransactionResponse = {
+  type: TransactionResponseType.BlockEpilogue;
+  version: string;
+  hash: string;
+  state_change_hash: string;
+  event_root_hash: string;
+  state_checkpoint_hash: string | null;
+  gas_used: string;
+  /**
+   * Whether the transaction was successful
+   */
+  success: boolean;
+  /**
+   * The VM status of the transaction, can tell useful information in a failure
+   */
+  vm_status: string;
+  accumulator_root_hash: string;
+  /**
+   * Final state of resources changed by the transaction
+   */
+  changes: Array<WriteSetChange>;
+  timestamp: string;
+  block_end_info: BlockEndInfo | null;
 };
 
 /**
