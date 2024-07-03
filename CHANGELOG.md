@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Fix`] Support migrated coins in coin balance lookup indexer queries
+
 # 1.22.2 (2024-06-26)
 
 - Release an updated build to npm due to issues with latest release
