@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Fix`] Support migrated coins in coin balance lookup indexer queries
+- Add support for BlockEpilogueTransaction
 
 # 1.22.2 (2024-06-26)
 

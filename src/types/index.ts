@@ -563,6 +563,9 @@ export type ValidatorTransactionResponse = {
   timestamp: string;
 };
 
+/**
+ * BlockEndInfo describes the gas state of the block
+ */
 export type BlockEndInfo = {
   block_gas_limit_reached: boolean;
   block_output_limit_reached: boolean;
@@ -570,6 +573,10 @@ export type BlockEndInfo = {
   block_approx_output_size: number;
 };
 
+/**
+ * BlockEpilogueTransactionResponse is a transaction that is executed at the end of a block keeping track of data from
+ * the whole block
+ */
 export type BlockEpilogueTransactionResponse = {
   type: TransactionResponseType.BlockEpilogue;
   version: string;
