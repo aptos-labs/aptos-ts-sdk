@@ -146,7 +146,11 @@ async function main() {
   console.log(`Charlie: ${charlie.accountAddress.toString()}`);
 
   await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
-  await aptos.fundAccount({ accountAddress: bob.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({
+    accountAddress: bob.accountAddress,
+    amount: 100_000_000,
+    options: { waitForIndexer: true },
+  });
 
   console.log("\n=== Compiling FACoin package locally ===");
   compilePackage("move/facoin", "move/facoin/facoin.json", [{ name: "FACoin", address: alice.accountAddress }]);

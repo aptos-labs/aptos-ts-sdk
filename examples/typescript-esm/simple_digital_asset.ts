@@ -28,11 +28,11 @@ const example = async () => {
   console.log(`Alice's address is: ${alice.accountAddress}`);
 
   // Fund and create the accounts
-  await aptos.faucet.fundAccount({
+  await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: INITIAL_BALANCE,
   });
-  await aptos.faucet.fundAccount({
+  await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: INITIAL_BALANCE,
   });

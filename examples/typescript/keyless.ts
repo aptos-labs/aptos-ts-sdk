@@ -80,7 +80,7 @@ const example = async () => {
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
-  await aptos.faucet.fundAccount({
+  await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
     options: { waitForIndexer: false },

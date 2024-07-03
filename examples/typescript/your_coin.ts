@@ -97,7 +97,11 @@ async function main() {
   console.log(`Bob: ${bob.accountAddress.toString()}`);
 
   // Fund alice account
-  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000 });
+  await aptos.fundAccount({
+    accountAddress: alice.accountAddress,
+    amount: 100_000_000,
+    options: { waitForIndexer: true },
+  });
 
   // Please ensure you have the aptos CLI installed
   console.log("\n=== Compiling MoonCoin package locally ===");
