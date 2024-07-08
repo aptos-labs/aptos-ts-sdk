@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AptosApiError should generate pretty error messages 1`] = `"Request to [Pepper]: POST http://blabla.com/my/api:8080 failed with status: Bad Request(code:400) and response body: {"error":"something went wrong"}"`;
+
+exports[`AptosApiError should generate pretty error messages 2`] = `"Request to [Indexer]: POST http://blabla.com/my/api:8080 failed with: Your graphql query is invalid."`;
+
+exports[`AptosApiError should generate pretty error messages 3`] = `"Request to [Indexer]: POST http://blabla.com/my/api:8080 (trace_id:4312e4b208ab6749e42fc534e8590424) failed with status: OK(code:200) and response body: truncated(original_size:973): {"foo":"bar","bar":"baz","nested":{"asssdf":"asdf","asdf":["asdfadsafds","Asdfadafs"],"assssdf":"asdf","afsdf":["asdfadsafds","Asdfadafs"],"assassdf":"asdf","asasfdssdf":"asdf","asdff":["asdfadsafds",...dafsasfdssdf":"asdf","asadsfasdfdf":["asdfadsafds","Asdfadafs"],"assasdfadfssdf":"asdf","assadsfafdsfddf":["asdfadsaasfdfds","Asdfadafs"],"asdadffasfssdf":"asdf","asdfss":["asdfadsafds","Asdfadafs"]}}"`;
