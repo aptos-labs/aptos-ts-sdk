@@ -67,13 +67,21 @@ export async function publishAnsContract(
 
     // Derive the router signer address.
     // TODO: We should derive this with the SDK
-    const ROUTER_SIGNER = `0x${
-      JSON.parse(
-        execCmdString(
-          `${cliInvocation} account derive-resource-account-address --address ${LOCAL_ANS_ACCOUNT_ADDRESS} --seed "ANS ROUTER" --seed-encoding utf8`,
-        ),
-      ).Result
-    }`;
+    const output = execCmdString(
+      `${cliInvocation} account derive-resource-account-address --address ${LOCAL_ANS_ACCOUNT_ADDRESS} --seed "ANS ROUTER" --seed-encoding utf8`,
+    );
+
+    let result;
+    const jsonMatch = output.match(/\{[^}]+\}/);
+    if (jsonMatch) {
+      const jsonString = jsonMatch[0];
+      result = JSON.parse(jsonString).Result;
+    } else {
+      throw new Error(`Failed to parse output: ${output}`);
+    }
+
+    console.log(`Router signer derivation output: ${result}`);
+    const ROUTER_SIGNER = `0x${result}`;
     console.log(`Resource account ${ROUTER_SIGNER}`);
 
     // 2. Fund ANS account.

@@ -30,6 +30,8 @@ export const AnsTokenFragmentFragmentDoc = `
   token_standard
   is_primary
   owner_address
+  subdomain_expiration_policy
+  domain_expiration_timestamp
 }
     `;
 export const CurrentTokenOwnershipFieldsFragmentDoc = `
