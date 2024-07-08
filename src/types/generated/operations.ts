@@ -26,6 +26,8 @@ export type AnsTokenFragmentFragment = {
   token_standard?: string | null;
   is_primary?: boolean | null;
   owner_address?: string | null;
+  subdomain_expiration_policy?: any | null;
+  domain_expiration_timestamp?: any | null;
 };
 
 export type CurrentTokenOwnershipFieldsFragment = {
@@ -94,15 +96,15 @@ export type GetAccountCoinsDataQueryVariables = Types.Exact<{
 
 export type GetAccountCoinsDataQuery = {
   current_fungible_asset_balances: Array<{
-    amount: any;
-    asset_type: string;
+    amount?: any | null;
+    asset_type?: string | null;
     is_frozen: boolean;
-    is_primary: boolean;
-    last_transaction_timestamp: any;
-    last_transaction_version: any;
+    is_primary?: boolean | null;
+    last_transaction_timestamp?: any | null;
+    last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard: string;
+    token_standard?: string | null;
     metadata?: {
       token_standard: string;
       symbol: string;
@@ -392,15 +394,15 @@ export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
 
 export type GetCurrentFungibleAssetBalancesQuery = {
   current_fungible_asset_balances: Array<{
-    amount: any;
-    asset_type: string;
+    amount?: any | null;
+    asset_type?: string | null;
     is_frozen: boolean;
-    is_primary: boolean;
-    last_transaction_timestamp: any;
-    last_transaction_version: any;
+    is_primary?: boolean | null;
+    last_transaction_timestamp?: any | null;
+    last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard: string;
+    token_standard?: string | null;
   }>;
 };
 
@@ -509,6 +511,8 @@ export type GetNamesQuery = {
     token_standard?: string | null;
     is_primary?: boolean | null;
     owner_address?: string | null;
+    subdomain_expiration_policy?: any | null;
+    domain_expiration_timestamp?: any | null;
   }>;
 };
 

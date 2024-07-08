@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - [`Fix`] Support migrated coins in coin balance lookup indexer queries
 - Add support for BlockEpilogueTransaction
+- [`Fix`] Fixes a bug with ANS not returning subdomains with an expiration policy of 1 when the subdomain is expired but the parent domain is not.
 
 # 1.22.2 (2024-06-26)
 

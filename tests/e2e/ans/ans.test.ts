@@ -11,7 +11,7 @@ import {
   GetANSNameResponse,
   AccountAddress,
 } from "../../../src";
-import { isValidANSName } from "../../../src/internal/ans";
+import { isValidANSName, isActiveANSName, SubdomainExpirationPolicy } from "../../../src/internal/ans";
 import { generateTransaction } from "../../../src/internal/transactionSubmission";
 import { getAptosClient } from "../helper";
 import { publishAnsContract } from "./publishANSContracts";
@@ -116,6 +116,103 @@ describe("ANS", () => {
     },
     2 * 60 * 1000,
   );
+
+  describe("isActiveANSName", () => {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const tomorrow = Date.now() + oneDay;
+    const yesterday = Date.now() - oneDay;
+
+    test("domains", () => {
+      expect(isActiveANSName({ domain: "primary", expiration_timestamp: tomorrow })).toBeTruthy();
+      expect(isActiveANSName({ domain: "primary", expiration_timestamp: yesterday })).toBeFalsy();
+    });
+
+    describe("subdomains", () => {
+      test("Policy: Follows Parent", () => {
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: tomorrow,
+            domain_expiration_timestamp: tomorrow,
+          }),
+        ).toBeTruthy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: yesterday,
+            domain_expiration_timestamp: tomorrow,
+          }),
+        ).toBeTruthy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: tomorrow,
+            domain_expiration_timestamp: yesterday,
+          }),
+        ).toBeFalsy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.FollowsDomain,
+            expiration_timestamp: yesterday,
+            domain_expiration_timestamp: yesterday,
+          }),
+        ).toBeFalsy();
+      });
+
+      test("Policy: Independent", () => {
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+            expiration_timestamp: tomorrow,
+            domain_expiration_timestamp: tomorrow,
+          }),
+        ).toBeTruthy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+            expiration_timestamp: yesterday,
+            domain_expiration_timestamp: tomorrow,
+          }),
+        ).toBeFalsy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+            expiration_timestamp: tomorrow,
+            domain_expiration_timestamp: yesterday,
+          }),
+        ).toBeFalsy();
+
+        expect(
+          isActiveANSName({
+            domain: "primary",
+            subdomain: "secondary",
+            subdomain_expiration_policy: SubdomainExpirationPolicy.Independent,
+            expiration_timestamp: yesterday,
+            domain_expiration_timestamp: yesterday,
+          }),
+        ).toBeFalsy();
+      });
+    });
+  });
 
   describe("isValidANSName", () => {
     test("it returns true for valid names", () => {
