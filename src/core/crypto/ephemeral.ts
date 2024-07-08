@@ -52,7 +52,7 @@ export class EphemeralPublicKey extends PublicKey {
    */
   verifySignature(args: { message: HexInput; signature: EphemeralSignature }): boolean {
     const { message, signature } = args;
-    return this.publicKey.verifySignature({ message, signature });
+    return this.publicKey.verifySignature({ message, signature: signature.signature });
   }
 
   serialize(serializer: Serializer): void {
