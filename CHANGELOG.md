@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.23.0 (2024-07-09)
+
 - Adds a base implementation of verify signature for Keyless Accounts
 - [`Fix`] Support migrated coins in coin balance lookup indexer queries
 - Add support for BlockEpilogueTransaction
