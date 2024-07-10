@@ -5,8 +5,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Fix`] `fundAccount` no longer always waits for latest indexer results
+
+# 1.23.0 (2024-07-09)
+
+- Adds a base implementation of verify signature for Keyless Accounts
 - [`Fix`] Support migrated coins in coin balance lookup indexer queries
 - Add support for BlockEpilogueTransaction
+- [`Fix`] Fixes a bug with ANS not returning subdomains with an expiration policy of 1 when the subdomain is expired but the parent domain is not.
+- Marked AptosApiError.constructor function as @internal and changed its signature
+- AptosApiError.message contains a more descriptive and more detailed error message to ease troubleshooting
 
 # 1.22.2 (2024-06-26)
 

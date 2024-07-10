@@ -11,7 +11,6 @@ import {
   KeylessPublicKey,
   KeylessSignature,
   EphemeralCertificate,
-  Signature,
   ZeroKnowledgeSig,
   ZkProof,
 } from "../core/crypto";
@@ -269,9 +268,26 @@ export class KeylessAccount extends Serializable implements Account {
     return this.sign(signMess);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
-    throw new Error("Not implemented");
+  /**
+   * Note - This function is currently incomplete and should only be used to verify ownership of the KeylessAccount
+   *
+   * Verifies a signature given the message.
+   *
+   * TODO: Groth16 proof verification
+   *
+   * @param args.message the message that was signed.
+   * @param args.signature the KeylessSignature to verify
+   * @returns boolean
+   */
+  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
+    const { message, signature } = args;
+    if (this.isExpired()) {
+      return false;
+    }
+    if (!this.ephemeralKeyPair.getPublicKey().verifySignature({ message, signature: signature.ephemeralSignature })) {
+      return false;
+    }
+    return true;
   }
 
   static fromBytes(bytes: Uint8Array): KeylessAccount {
