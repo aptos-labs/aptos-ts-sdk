@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Make `fundAccount` to wait for the `fungible_asset_processor` indexer processor
+
 # 1.23.0 (2024-07-09)
 
 - Adds a base implementation of verify signature for Keyless Accounts
