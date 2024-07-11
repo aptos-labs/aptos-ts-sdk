@@ -48,9 +48,6 @@ export class Secp256k1PublicKey extends PublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    if (!(signature instanceof Secp256k1Signature)) {
-      return false;
-    }
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);

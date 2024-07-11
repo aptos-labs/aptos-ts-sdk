@@ -22,6 +22,26 @@ const L: number[] = [
 ];
 
 /**
+ * Checks if an ED25519 signature is non-canonical.
+ *
+ * Comes from Aptos Core
+ * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
+ */
+export function isCanonicalEd25519Signature(signature: Signature): boolean {
+  const s = signature.toUint8Array().slice(32);
+  for (let i = L.length - 1; i >= 0; i -= 1) {
+    if (s[i] < L[i]) {
+      return true;
+    }
+    if (s[i] > L[i]) {
+      return false;
+    }
+  }
+  // As this stage S == L which implies a non-canonical S.
+  return false;
+}
+
+/**
  * Represents the public key of an Ed25519 key pair.
  *
  * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
@@ -66,18 +86,15 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    if (!(signature instanceof Ed25519Signature)) {
+    // Verify malleability
+    if (!isCanonicalEd25519Signature(signature)) {
       return false;
     }
+
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
-    // Also verify malleability
-    if (!signature.isCanonicalSignature()) {
-      return false;
-    }
-
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
 
@@ -323,27 +340,6 @@ export class Ed25519Signature extends Signature {
   static deserialize(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
-  }
-
-  /**
-   * Checks if an ED25519 signature is non-canonical.
-   *
-   * Comes from Aptos Core
-   * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
-   */
-  isCanonicalSignature(): boolean {
-    const s = this.toUint8Array().slice(32);
-
-    for (let i = s.length - 1; i >= 0; i -= 1) {
-      if (s[i] < L[i]) {
-        return true;
-      }
-      if (s[i] > L[i]) {
-        return false;
-      }
-    }
-    // As this stage S == L which implies a non-canonical S.
-    return false;
   }
 
   // endregion

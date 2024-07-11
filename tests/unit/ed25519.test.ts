@@ -1,7 +1,15 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Deserializer, Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature, Hex, Serializer } from "../../src";
+import {
+  Deserializer,
+  Ed25519PrivateKey,
+  Ed25519PublicKey,
+  Ed25519Signature,
+  Hex,
+  isCanonicalEd25519Signature,
+  Serializer,
+} from "../../src";
 import { ed25519, wallet } from "./helper";
 
 describe("Ed25519PublicKey", () => {
@@ -55,14 +63,14 @@ describe("Ed25519PublicKey", () => {
       // eslint-disable-next-line max-len
       "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010",
     );
-    expect(signature.isCanonicalSignature()).toBe(false);
+    expect(isCanonicalEd25519Signature(signature)).toBe(false);
 
     // We now check with L + 1
     const signature2 = new Ed25519Signature(
       // eslint-disable-next-line max-len
       "0x0000000000000000000000000000000000000000000000000000000000000000edd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000011",
     );
-    expect(signature2.isCanonicalSignature()).toBe(false);
+    expect(isCanonicalEd25519Signature(signature2)).toBe(false);
   });
 
   it("should serialize correctly", () => {

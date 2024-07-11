@@ -48,7 +48,7 @@ export class AnyPublicKey extends AccountPublicKey {
 
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    if (!(signature instanceof AnySignature)) {
+    if (!AnySignature.isInstance(signature)) {
       return false;
     }
 
@@ -156,6 +156,12 @@ export class AnySignature extends Signature {
   // region AccountSignature
 
   toUint8Array() {
+    // TODO: keep this warning around for a bit, and eventually change this to return `this.signature.toUint8Array()`.
+    // eslint-disable-next-line no-console
+    console.warn(
+      "Calls to AnySignature.toUint8Array() will soon return the underlying signature bytes. " +
+        "Use AnySignature.bcsToBytes() instead.",
+    );
     return this.bcsToBytes();
   }
 
@@ -188,4 +194,13 @@ export class AnySignature extends Signature {
   }
 
   // endregion
+
+  static isInstance(signature: Signature): signature is AnySignature {
+    return (
+      "signature" in signature &&
+      typeof signature.signature === "object" &&
+      signature.signature !== null &&
+      "toUint8Array" in signature.signature
+    );
+  }
 }
