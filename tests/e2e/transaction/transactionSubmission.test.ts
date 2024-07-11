@@ -12,6 +12,10 @@ import {
   TransactionPayloadEntryFunction,
   Bool,
   MoveString,
+  AptosIntentBuilder,
+  TransactionPayloadScript,
+  generateRawTransaction,
+  SimpleTransaction,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -53,6 +57,29 @@ describe("transaction submission", () => {
         const response = await aptos.signAndSubmitTransaction({
           signer: singleSignerED25519SenderAccount,
           transaction,
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+
+        expect(response.signature?.type).toBe("single_sender");
+      });
+      test("with batch payload", async () => {
+        const builder = new AptosIntentBuilder(aptos.config);
+        await builder.add_batched_calls({
+          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        });
+        const bytes = builder.build();
+        const transaction = await generateRawTransaction({
+          aptosConfig: aptos.config,
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          payload: TransactionPayloadScript.load(new Deserializer(bytes)),
+        });
+        const response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerED25519SenderAccount,
+          transaction: new SimpleTransaction(transaction),
         });
 
         await aptos.waitForTransaction({
