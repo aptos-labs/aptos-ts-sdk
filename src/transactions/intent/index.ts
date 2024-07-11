@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { BatchArgument, BatchedFunctionCallBuilder, BatchedFunctionCall, BatchArgumentType } from "aptos-intent";
+import { BatchArgument, BatchedFunctionCallBuilder, get_wasm, initSync } from "@wgb5445/aptos-intent-npm";
 import { Network } from "../../utils";
 import { AptosConfig } from "../../api";
 import {
@@ -45,10 +45,9 @@ export class AptosIntentBuilder {
 
   async add_batched_calls(input: InputBatchedFunctionData): Promise<BatchArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
-    await this.builder.load_module(this.config.network, moduleName);
+    await this.builder.load_module(this.config.fullnode!, moduleAddress + " " + moduleName);
     const typeArguments = standardizeTypeTags(input.typeArguments);
     const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);
-
     // Check the type argument count against the ABI
     if (typeArguments.length !== functionAbi.typeParameters.length) {
       throw new Error(

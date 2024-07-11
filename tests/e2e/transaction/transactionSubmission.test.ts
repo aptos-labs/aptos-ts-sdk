@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { BatchArgument, get_wasm, initSync } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
   U64,
@@ -16,6 +17,7 @@ import {
   TransactionPayloadScript,
   generateRawTransaction,
   SimpleTransaction,
+  Network,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -66,10 +68,12 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with batch payload", async () => {
-        const builder = new AptosIntentBuilder(aptos.config);
+        initSync(await get_wasm())
+        let _aptos = getAptosClient({ network: Network.CUSTOM ,fullnode : "http://127.0.0.1:8080/v1",faucet: "http://127.0.0.1:8081",indexer: "http://127.0.0.1:8090"})
+        const builder = new AptosIntentBuilder(_aptos.config);
         await builder.add_batched_calls({
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: [1, receiverAccounts[0].accountAddress],
+          functionArguments: [BatchArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
         });
         const bytes = builder.build();
         const transaction = await generateRawTransaction({
