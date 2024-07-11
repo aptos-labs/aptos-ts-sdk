@@ -4,7 +4,6 @@
 import {BatchArgument, BatchedFunctionCallBuilder, BatchedFunctionCall, BatchArgumentType} from "aptos-intent";
 import { Network } from "../../utils";
 import { AptosConfig } from "../../api";
-import { MoveFunctionId } from "../../types";
 import { EntryFunctionArgumentTypes, InputBatchedFunctionData, } from "../types";
 import { getFunctionParts,standardizeTypeTags } from "../transactionBuilder";
 
@@ -12,7 +11,7 @@ function convert_batch_argument(argument: BatchArgument | EntryFunctionArgumentT
     if(argument instanceof BatchArgument) {
         return argument 
     } else {
-        return BatchArgument.new_bytes(argument.serialize())
+        return BatchArgument.new_bytes(argument.bcsToBytes())
     }
 }
 
