@@ -119,6 +119,10 @@ export class AnyPublicKey extends AccountPublicKey {
   isSecp256k1PublicKey(): boolean {
     return this.publicKey instanceof Secp256k1PublicKey;
   }
+
+  static isInstance(publicKey: PublicKey): publicKey is AnyPublicKey {
+    return "publicKey" in publicKey && "variant" in publicKey;
+  }
 }
 
 /**

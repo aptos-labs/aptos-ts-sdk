@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
@@ -134,6 +134,10 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   static isPublicKey(publicKey: AccountPublicKey): publicKey is Ed25519PublicKey {
     return publicKey instanceof Ed25519PublicKey;
+  }
+
+  static isInstance(publicKey: PublicKey): publicKey is Ed25519PublicKey {
+    return "key" in publicKey && (publicKey.key as any)?.data?.length === Ed25519PublicKey.LENGTH;
   }
 }
 
