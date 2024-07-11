@@ -21,6 +21,7 @@ import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
 import { Serialized } from "../bcs";
+import { CallArgument } from "@wgb5445/aptos-intent-npm";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
@@ -164,6 +165,16 @@ export type InputMultiSigDataWithABI = {
  * Combines input function data with Aptos configuration for remote ABI interactions.
  */
 export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
+
+/**
+ * The data needed to generate a batched function payload
+ */
+export type InputBatchedFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeArgument>;
+  functionArguments: Array<EntryFunctionArgumentTypes | CallArgument | SimpleEntryFunctionArgumentTypes>;
+};
+
 /**
  * The data needed to generate a Multi Sig payload
  */

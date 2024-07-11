@@ -93,6 +93,34 @@ export async function fetchFunctionAbi(
 }
 
 /**
+ * Fetches a function ABI from the on-chain module ABI.  It doesn't validate whether it's a view or entry function.
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchMoveFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<FunctionABI> {
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  if (!functionAbi) {
+    throw new Error(`Could not find entry function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+  }
+  const params: TypeTag[] = [];
+  for (let i = 0; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
+}
+
+/**
  * Fetches the ABI for an entry function from the specified module address.
  * This function validates if the ABI corresponds to an entry function and retrieves its parameters.
  *
