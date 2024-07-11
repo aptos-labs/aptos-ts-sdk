@@ -20,6 +20,7 @@ import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
+import { BatchArgument } from "aptos-intent";
 
 /**
  * Entry function arguments to be used when building a raw transaction using remote ABI
@@ -144,6 +145,18 @@ export type InputMultiSigDataWithABI = {
 } & InputEntryFunctionDataWithABI;
 
 export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
+
+/**
+ * The data needed to generate a batched function payload
+ */
+export type InputBatchedFunctionData = {
+  function: MoveFunctionId;
+  typeArguments?: Array<TypeArgument>;
+  functionArguments: Array<EntryFunctionArgumentTypes | BatchArgument>;
+};
+
+export {BatchArgument} from "aptos-intent";
+
 /**
  * The data needed to generate a Multi Sig payload
  */
