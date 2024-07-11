@@ -28,7 +28,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountPublicKey, AuthenticationKey, PublicKey } from "../core";
 import { PasskeyPublicKey } from "../core/crypto/passkey";
 import { Secp256r1PublicKey } from "../core/crypto/secp256r1";
-import { AnyRawTransaction, signWithPasskey } from "../transactions";
+import { AccountAuthenticator, AnyRawTransaction, signWithPasskey as _signWithPasskey } from "../transactions";
 import { HexInput, PendingTransactionResponse } from "../types";
 import { AllowCredentialOption } from "../types/passkey";
 import { submitTransaction } from "./transactionSubmission";
@@ -120,6 +120,19 @@ export function parsePublicKey(response: RegistrationResponseJSON): PublicKey {
   // Convert from COSE
   const publicKey = convertCOSEtoPKCS(parsedAuthenticatorData.credentialPublicKey!);
   return new Secp256r1PublicKey(publicKey);
+}
+
+export async function signWithPasskey(args: {
+  credentialId: string | Uint8Array;
+  publicKey: PublicKey;
+  transaction: AnyRawTransaction;
+  timeout?: number;
+  rpID: string;
+  options?: {
+    allowCredentials?: AllowCredentialOption[];
+  };
+}): Promise<AccountAuthenticator> {
+  return _signWithPasskey({ ...args });
 }
 
 export async function signAndSubmitWithPasskey(args: {

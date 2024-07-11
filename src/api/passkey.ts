@@ -10,8 +10,9 @@ import {
   parsePublicKey,
   registerCredential,
   signAndSubmitWithPasskey,
+  signWithPasskey,
 } from "../internal/passkey";
-import { AnyRawTransaction } from "../transactions";
+import { AccountAuthenticator, AnyRawTransaction } from "../transactions";
 import { HexInput, PendingTransactionResponse } from "../types";
 import { AllowCredentialOption } from "../types/passkey";
 import { AptosConfig } from "./aptosConfig";
@@ -45,6 +46,19 @@ export class Passkey {
     };
   }): Promise<PendingTransactionResponse> {
     return signAndSubmitWithPasskey({ aptosConfig: this.config, ...args });
+  }
+
+  async signWithPasskey(args: {
+    credentialId: string | Uint8Array;
+    publicKey: PublicKey;
+    transaction: AnyRawTransaction;
+    timeout?: number;
+    rpID: string;
+    options?: {
+      allowCredentials?: AllowCredentialOption[];
+    };
+  }): Promise<AccountAuthenticator> {
+    return signWithPasskey({ ...args });
   }
 
   async getPasskeyAccountAddress(args: { publicKey: HexInput }): Promise<AccountAddress> {
