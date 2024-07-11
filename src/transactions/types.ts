@@ -152,10 +152,10 @@ export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { apt
 export type InputBatchedFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeArgument>;
-  functionArguments: Array<EntryFunctionArgumentTypes | BatchArgument>;
+  functionArguments: Array<EntryFunctionArgumentTypes | BatchArgument | SimpleEntryFunctionArgumentTypes>;
 };
 
-export {BatchArgument} from "aptos-intent";
+export { BatchArgument } from "aptos-intent";
 
 /**
  * The data needed to generate a Multi Sig payload
