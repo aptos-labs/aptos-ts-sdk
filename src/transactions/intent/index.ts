@@ -9,10 +9,10 @@ import { EntryFunctionArgumentTypes, InputBatchedFunctionData, } from "../types"
 import { getFunctionParts,standardizeTypeTags } from "../transactionBuilder";
 
 function convert_batch_argument(argument: BatchArgument | EntryFunctionArgumentTypes): BatchArgument {
-    if(typeof argument == "BatchArgument") {
-        argument 
+    if(argument instanceof BatchArgument) {
+        return argument 
     } else {
-        BatchArgument.new_bytes(argument.serialize())
+        return BatchArgument.new_bytes(argument.serialize())
     }
 }
 
