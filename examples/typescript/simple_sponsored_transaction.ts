@@ -44,7 +44,6 @@ const example = async () => {
   await aptos.fundAccount({
     accountAddress: sponsorAddress,
     amount: SPONSOR_INITIAL_BALANCE,
-    options: { waitForIndexer: true },
   });
 
   // Show account balances

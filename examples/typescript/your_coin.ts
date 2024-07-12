@@ -100,7 +100,6 @@ async function main() {
   await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: 100_000_000,
-    options: { waitForIndexer: true },
   });
 
   // Please ensure you have the aptos CLI installed

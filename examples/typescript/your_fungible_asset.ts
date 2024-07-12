@@ -149,7 +149,6 @@ async function main() {
   await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: 100_000_000,
-    options: { waitForIndexer: true },
   });
 
   console.log("\n=== Compiling FACoin package locally ===");
