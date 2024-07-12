@@ -6,6 +6,7 @@ import { UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AccountAddressInput } from "../core";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexer } from "../internal/transaction";
+import { ProcessorType } from "../utils";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
@@ -35,7 +36,11 @@ export class Faucet {
     // If the user explicitly says to NOT wait by setting waitForIndexer to false, then we skip this.
     // But, by default we want to wait for the indexer.
     if (args.options?.waitForIndexer === undefined || args.options?.waitForIndexer) {
-      await waitForIndexer({ aptosConfig: this.config, minimumLedgerVersion: BigInt(fundTxn.version) });
+      await waitForIndexer({
+        aptosConfig: this.config,
+        minimumLedgerVersion: BigInt(fundTxn.version),
+        processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
+      });
     }
 
     return fundTxn;

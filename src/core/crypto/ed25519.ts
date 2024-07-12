@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
@@ -20,6 +20,26 @@ const L: number[] = [
   0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10,
 ];
+
+/**
+ * Checks if an ED25519 signature is non-canonical.
+ *
+ * Comes from Aptos Core
+ * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
+ */
+export function isCanonicalEd25519Signature(signature: Signature): boolean {
+  const s = signature.toUint8Array().slice(32);
+  for (let i = L.length - 1; i >= 0; i -= 1) {
+    if (s[i] < L[i]) {
+      return true;
+    }
+    if (s[i] > L[i]) {
+      return false;
+    }
+  }
+  // As this stage S == L which implies a non-canonical S.
+  return false;
+}
 
 /**
  * Represents the public key of an Ed25519 key pair.
@@ -66,18 +86,15 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
-    if (!(signature instanceof Ed25519Signature)) {
+    // Verify malleability
+    if (!isCanonicalEd25519Signature(signature)) {
       return false;
     }
+
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
-    // Also verify malleability
-    if (!signature.isCanonicalSignature()) {
-      return false;
-    }
-
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
 
@@ -117,6 +134,10 @@ export class Ed25519PublicKey extends AccountPublicKey {
    */
   static isPublicKey(publicKey: AccountPublicKey): publicKey is Ed25519PublicKey {
     return publicKey instanceof Ed25519PublicKey;
+  }
+
+  static isInstance(publicKey: PublicKey): publicKey is Ed25519PublicKey {
+    return "key" in publicKey && (publicKey.key as any)?.data?.length === Ed25519PublicKey.LENGTH;
   }
 }
 
@@ -323,27 +344,6 @@ export class Ed25519Signature extends Signature {
   static deserialize(deserializer: Deserializer): Ed25519Signature {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519Signature(bytes);
-  }
-
-  /**
-   * Checks if an ED25519 signature is non-canonical.
-   *
-   * Comes from Aptos Core
-   * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
-   */
-  isCanonicalSignature(): boolean {
-    const s = this.toUint8Array().slice(32);
-
-    for (let i = s.length - 1; i >= 0; i -= 1) {
-      if (s[i] < L[i]) {
-        return true;
-      }
-      if (s[i] > L[i]) {
-        return false;
-      }
-    }
-    // As this stage S == L which implies a non-canonical S.
-    return false;
   }
 
   // endregion

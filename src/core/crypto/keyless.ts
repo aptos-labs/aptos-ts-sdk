@@ -166,6 +166,15 @@ export class KeylessPublicKey extends AccountPublicKey {
     const uidVal = jwtPayload[uidKey];
     return KeylessPublicKey.create({ iss, uidKey, uidVal, aud, pepper });
   }
+
+  static isInstance(publicKey: PublicKey) {
+    return (
+      "iss" in publicKey &&
+      typeof publicKey.iss === "string" &&
+      "idCommitment" in publicKey &&
+      publicKey.idCommitment instanceof Uint8Array
+    );
+  }
 }
 
 function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string; pepper: HexInput }): Uint8Array {

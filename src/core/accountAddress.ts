@@ -344,13 +344,13 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @param input
    */
   static from(input: AccountAddressInput): AccountAddress {
-    if (input instanceof AccountAddress) {
-      return input;
+    if (typeof input === "string") {
+      return AccountAddress.fromString(input);
     }
     if (input instanceof Uint8Array) {
       return new AccountAddress(input);
     }
-    return AccountAddress.fromString(input);
+    return input;
   }
 
   /**
@@ -360,13 +360,13 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @param input
    */
   static fromStrict(input: AccountAddressInput): AccountAddress {
-    if (input instanceof AccountAddress) {
-      return input;
+    if (typeof input === "string") {
+      return AccountAddress.fromStringStrict(input);
     }
     if (input instanceof Uint8Array) {
       return new AccountAddress(input);
     }
-    return AccountAddress.fromStringStrict(input);
+    return input;
   }
 
   // ===
