@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Make `fundAccount` to wait for the `fungible_asset_processor` indexer processor
 - Removed `instanceof` where input might come from other bundle
+- Update `fundWallet` check to be more explicit that `undefined` in `waitForIndexer` defaults to waiting.
 
 # 1.23.0 (2024-07-09)
 
