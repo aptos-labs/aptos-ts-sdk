@@ -8,6 +8,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Update Indexer GraphQL schema
 - Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
 - Export `helpers.ts` file
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
 
 # 1.26.0 (2024-07-18)
 
