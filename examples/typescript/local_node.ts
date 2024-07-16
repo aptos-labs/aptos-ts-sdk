@@ -9,6 +9,7 @@
 const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
 
 let localNode: any;
+const move = new cli.Move();
 
 // Run local node
 async function runLocalNode() {
@@ -18,8 +19,6 @@ async function runLocalNode() {
 
 // initialize current directory for Aptos
 async function init() {
-  const move = new cli.Move();
-
   await move.init({
     network: "local",
     profile: "default",
@@ -28,8 +27,6 @@ async function init() {
 
 // compile a package
 async function compile() {
-  const move = new cli.Move();
-
   await move.compile({
     packageDirectoryPath: "move/moonCoin",
     namedAddresses: {
@@ -40,8 +37,6 @@ async function compile() {
 
 // run Move unit tests for a package
 async function tests() {
-  const move = new cli.Move();
-
   await move.test({
     packageDirectoryPath: "move/moonCoin",
     namedAddresses: {
@@ -52,8 +47,6 @@ async function tests() {
 
 // publish the Move package to the publisher's account
 async function publish() {
-  const move = new cli.Move();
-
   await move.publish({
     packageDirectoryPath: "move/moonCoin",
     namedAddresses: {
@@ -65,8 +58,6 @@ async function publish() {
 
 // create a new object and publish a Move package to it
 async function createObjectAndPublishPackage() {
-  const move = new cli.Move();
-
   await move.createObjectAndPublishPackage({
     packageDirectoryPath: "move/moonCoin",
     addressName: "MoonCoin",
@@ -79,8 +70,6 @@ async function createObjectAndPublishPackage() {
 
 // upgrade a Move packaged published to an object
 async function upgradeObjectPackage() {
-  const move = new cli.Move();
-
   await move.upgradeObjectPackage({
     packageDirectoryPath: "move/moonCoin",
     // please replace the address with the actual address of object that the package was published to
@@ -94,10 +83,19 @@ async function upgradeObjectPackage() {
 
 // run a Move script
 async function runScript() {
-  const move = new cli.Move();
-
   await move.runScript({
     compiledScriptPath: "move/moonCoin/build/MoonCoin/bytecode_scripts/register.mv",
+  });
+}
+
+// build a publication transaction payload and store it in a JSON output file
+async function buildPublishPayload() {
+  await move.buildPublishPayload({
+    outputFile: "move/moonCoin/test-package.json",
+    packageDirectoryPath: "move/moonCoin",
+    namedAddresses: {
+      MoonCoin: "0x123",
+    },
   });
 }
 
@@ -123,6 +121,7 @@ async function run() {
   await createObjectAndPublishPackage();
   await upgradeObjectPackage();
   await runScript();
+  await buildPublishPayload();
 
   // stop the localnet
   await stopLocalNode();

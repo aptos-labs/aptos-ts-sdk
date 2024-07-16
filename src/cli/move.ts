@@ -201,6 +201,42 @@ export class Move {
   }
 
   /**
+   * Build a publication transaction payload and store it in a JSON output file
+   *
+   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
+   * @param args.outputFile Output file to write publication transaction to
+   * @param args.namedAddresses  Named addresses for the move binary
+   * @example
+   * {
+   *  alice:0x1234, bob:0x5678
+   * }
+   *
+   * @returns stdout
+   */
+  async buildPublishPayload(args: {
+    packageDirectoryPath: string;
+    outputFile: string;
+    namedAddresses: Record<string, AccountAddress>;
+  }) {
+    const { outputFile, packageDirectoryPath, namedAddresses } = args;
+    const cliArgs = [
+      "aptos",
+      "move",
+      "build-publish-payload",
+      "--json-output-file",
+      outputFile,
+      "--package-dir",
+      packageDirectoryPath,
+    ];
+
+    const addressesMap = this.parseNamedAddresses(namedAddresses);
+
+    cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    return this.runCommand(cliArgs);
+  }
+
+  /**
    * Function to run a Move script, please run compile before running this
    *
    * @param args.compiledScriptPath Path to a compiled Move script bytecode file
