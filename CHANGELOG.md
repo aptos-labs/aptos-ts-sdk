@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Change the `stop()` function on `LocalNode` to return a `Promise` so we can wait for the processes to be killed
+
 # 1.24.0 (2024-07-12)
 
 - Make `fundAccount` to wait for the `fungible_asset_processor` indexer processor
