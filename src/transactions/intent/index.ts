@@ -10,12 +10,7 @@ import {
   InputBatchedFunctionData,
   SimpleEntryFunctionArgumentTypes,
 } from "../types";
-import {
-  convertArgument,
-  fetchMoveFunctionAbi,
-  getFunctionParts,
-  standardizeTypeTags,
-} from "../transactionBuilder";
+import { convertArgument, fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { TypeTag } from "../typeTag";
 
 function convert_batch_argument(
@@ -45,6 +40,7 @@ export class AptosIntentBuilder {
 
   async add_batched_calls(input: InputBatchedFunctionData): Promise<BatchArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
+    console.log(this.config);
     await this.builder.load_module(this.config.fullnode!, moduleAddress + " " + moduleName);
     const typeArguments = standardizeTypeTags(input.typeArguments);
     const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);
@@ -55,13 +51,9 @@ export class AptosIntentBuilder {
       );
     }
 
-    const functionArguments: BatchArgument[] = input.functionArguments.map((arg, i) => convert_batch_argument(
-        arg,
-        functionName,
-        functionAbi,
-        i,
-        typeArguments
-    ));
+    const functionArguments: BatchArgument[] = input.functionArguments.map((arg, i) =>
+      convert_batch_argument(arg, functionName, functionAbi, i, typeArguments),
+    );
 
     return this.builder.add_batched_call(
       `${moduleAddress}::${moduleName}`,

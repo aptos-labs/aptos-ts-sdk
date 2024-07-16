@@ -1,12 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { get_wasm, initSync } from "@wgb5445/aptos-intent-npm";
 import { AccountAddressInput } from "../../core";
 import { generateTransaction } from "../../internal/transactionSubmission";
-import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } from "../../transactions";
+import {
+  InputGenerateTransactionPayloadData,
+  InputGenerateTransactionOptions,
+  AptosIntentBuilder,
+  TransactionPayloadScript,
+  generateRawTransaction,
+} from "../../transactions";
 import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction";
 import { SimpleTransaction } from "../../transactions/instances/simpleTransaction";
 import { AptosConfig } from "../aptosConfig";
+import { singleSignerED25519 } from "../../../tests/unit/helper";
+import { Deserializer } from "../../bcs";
 
 /**
  * A class to handle all `Build` transaction operations
@@ -35,6 +44,24 @@ export class Build {
     withFeePayer?: boolean;
   }): Promise<SimpleTransaction> {
     return generateTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  async batched_intents(args: {
+    sender: AccountAddressInput;
+    builder: (builder: AptosIntentBuilder) => Promise<AptosIntentBuilder>;
+    options?: InputGenerateTransactionOptions;
+    withFeePayer?: boolean;
+  }): Promise<SimpleTransaction> {
+    initSync(await get_wasm());
+    let builder = new AptosIntentBuilder(this.config);
+    builder = await args.builder(builder);
+    const bytes = builder.build();
+    let raw_txn = await generateRawTransaction({
+      aptosConfig: this.config,
+      payload: TransactionPayloadScript.load(new Deserializer(bytes)),
+      ...args,
+    });
+    return new SimpleTransaction(raw_txn);
   }
 
   /**
