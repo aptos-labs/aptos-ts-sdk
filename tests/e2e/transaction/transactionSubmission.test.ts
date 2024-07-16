@@ -92,6 +92,45 @@ describe("transaction submission", () => {
 
         expect(response.signature?.type).toBe("single_sender");
       });
+      test("with batch withdraw payload", async () => {
+        initSync(await get_wasm())
+        let _aptos = getAptosClient({ network: Network.CUSTOM ,fullnode : "http://127.0.0.1:8080/v1",faucet: "http://127.0.0.1:8081",indexer: "http://127.0.0.1:8090"})
+        const builder = new AptosIntentBuilder(_aptos.config);
+        let return_1 =  await builder.add_batched_calls({
+          function: `0x1::coin::withdraw`,
+          functionArguments: [BatchArgument.new_signer(0), 1],
+          typeArguments: ["0x1::aptos_coin::AptosCoin"]
+        });
+
+        let return_2 =  await builder.add_batched_calls({
+          function: `0x1::coin::coin_to_fungible_asset`,
+          functionArguments: [return_1[0]],
+          typeArguments: ["0x1::aptos_coin::AptosCoin"]
+        });
+
+        await builder.add_batched_calls({
+          function: `0x1::primary_fungible_store::deposit`,
+          functionArguments: [singleSignerED25519SenderAccount.accountAddress, return_2[0]],
+          typeArguments: []
+        });
+
+        const bytes = builder.build();
+        const transaction = await generateRawTransaction({
+          aptosConfig: aptos.config,
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          payload: TransactionPayloadScript.load(new Deserializer(bytes)),
+        });
+        const response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerED25519SenderAccount,
+          transaction: new SimpleTransaction(transaction),
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+
+        expect(response.signature?.type).toBe("single_sender");
+      });
       test("with entry function payload", async () => {
         const transaction = await aptos.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
