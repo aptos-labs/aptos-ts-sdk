@@ -15,9 +15,17 @@ export class LocalNode {
    * kills all the descendent processes
    * of the node process, including the node process itself
    */
-  stop() {
-    if (!this.process?.pid) return;
-    kill(this.process.pid);
+  async stop() {
+    await new Promise((resolve, reject) => {
+      if (!this.process?.pid) return;
+      kill(this.process.pid, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(true);
+        }
+      });
+    });
   }
 
   /**
@@ -40,7 +48,7 @@ export class LocalNode {
    */
   start() {
     const cliCommand = "npx";
-    const cliArgs = ["aptos", "node", "run-local-testnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
+    const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 
     const currentPlatform = platform();
     let childProcess;

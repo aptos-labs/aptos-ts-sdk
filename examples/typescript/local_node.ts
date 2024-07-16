@@ -8,9 +8,11 @@
 
 const cli = require("@aptos-labs/ts-sdk/dist/common/cli/index.js");
 
+let localNode: any;
+
 // Run local node
 async function runLocalNode() {
-  const localNode = new cli.LocalNode();
+  localNode = new cli.LocalNode();
   await localNode.run();
 }
 
@@ -99,8 +101,21 @@ async function runScript() {
   });
 }
 
+// Stop local node
+async function stopLocalNode() {
+  await localNode.stop();
+  try {
+    // Query localnet endpoint
+    await fetch("http://localhost:8080");
+  } catch (err: any) {
+    console.log("localnet stopped");
+  }
+}
+
 async function run() {
+  // start the localnet
   await runLocalNode();
+
   await init();
   await compile();
   await tests();
@@ -108,6 +123,9 @@ async function run() {
   await createObjectAndPublishPackage();
   await upgradeObjectPackage();
   await runScript();
+
+  // stop the localnet
+  await stopLocalNode();
 }
 
 run();
