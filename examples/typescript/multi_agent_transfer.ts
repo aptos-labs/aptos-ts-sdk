@@ -70,13 +70,13 @@ const example = async () => {
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
 
-  const aliceFundTxn = await aptos.faucet.fundAccount({
+  const aliceFundTxn = await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
   });
   console.log("Alice's fund transaction: ", aliceFundTxn);
 
-  const bobFundTxn = await aptos.faucet.fundAccount({
+  const bobFundTxn = await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: BOB_INITIAL_BALANCE,
   });

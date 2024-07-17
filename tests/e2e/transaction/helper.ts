@@ -88,11 +88,11 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
 }
 
 export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, recipient: Account) {
-  const senderFundTxn = await aptos.faucet.fundAccount({
+  const senderFundTxn = await aptos.fundAccount({
     accountAddress: sender.accountAddress,
     amount: FUND_AMOUNT,
   });
-  const recipientFundTxn = await aptos.faucet.fundAccount({
+  const recipientFundTxn = await aptos.fundAccount({
     accountAddress: recipient.accountAddress,
     amount: FUND_AMOUNT,
   });

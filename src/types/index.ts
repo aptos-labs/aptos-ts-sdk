@@ -1174,6 +1174,7 @@ export enum DeriveScheme {
 export type WaitForTransactionOptions = {
   timeoutSecs?: number;
   checkSuccess?: boolean;
+  // Default behavior is to wait for the indexer. Set this to false to disable waiting.
   waitForIndexer?: boolean;
 };
 

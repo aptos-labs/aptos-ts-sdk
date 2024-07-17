@@ -33,7 +33,9 @@ export class Faucet {
   }): Promise<UserTransactionResponse> {
     const fundTxn = await fundAccount({ aptosConfig: this.config, ...args });
 
-    if (args.options?.waitForIndexer !== false) {
+    // If the user explicitly says to NOT wait by setting waitForIndexer to false, then we skip this.
+    // But, by default we want to wait for the indexer.
+    if (args.options?.waitForIndexer === undefined || args.options?.waitForIndexer) {
       await waitForIndexer({
         aptosConfig: this.config,
         minimumLedgerVersion: BigInt(fundTxn.version),
