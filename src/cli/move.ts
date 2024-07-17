@@ -12,12 +12,23 @@ export class Move {
    * @param args.network optional Network type argument to use for default settings, default is local
    * @param args.profile optional Profile to use from the config file, default is 'default'
    * This will be used to override associated settings such as the REST URL, the Faucet URL, and the private key arguments.
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
-  async init(args: { network?: Network; profile?: string }): Promise<{ output: string }> {
-    const { network, profile } = args;
+  async init(args: {
+    network?: Network;
+    profile?: string;
+    extraArguments?: Array<string>;
+  }): Promise<{ output: string }> {
+    const { network, profile, extraArguments } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     return this.runCommand(cliArgs);
   }
@@ -27,6 +38,9 @@ export class Move {
    *
    * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
    * @param args.namedAddresses  Named addresses for the move binary
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    * @example
    * {
    *  alice:0x1234, bob:0x5678
@@ -37,13 +51,18 @@ export class Move {
   async compile(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
+    extraArguments?: Array<string>;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
     const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     return this.runCommand(cliArgs);
   }
@@ -57,19 +76,27 @@ export class Move {
    * {
    *  alice:0x1234, bob:0x5678
    * }
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
   async test(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
+    extraArguments?: Array<string>;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
     const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     return this.runCommand(cliArgs);
   }
@@ -84,6 +111,9 @@ export class Move {
    *  alice:0x1234, bob:0x5678
    * }
    * @param args.profile optional Profile to use from the config file.
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
@@ -91,8 +121,9 @@ export class Move {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
+    extraArguments?: Array<string>;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, profile } = args;
+    const { packageDirectoryPath, namedAddresses, profile, extraArguments } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -105,6 +136,10 @@ export class Move {
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     return this.runCommand(cliArgs);
   }
@@ -122,6 +157,9 @@ export class Move {
    *  alice:0x1234, bob:0x5678
    * }
    * @param args.profile optional Profile to use from the config file.
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * A complete example in cli
    * aptos move create-object-and-publish-package \
@@ -137,8 +175,9 @@ export class Move {
     addressName: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
+    extraArguments?: Array<string>;
   }): Promise<{ objectAddress: string }> {
-    const { packageDirectoryPath, addressName, namedAddresses, profile } = args;
+    const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -153,6 +192,10 @@ export class Move {
     const addressesMap = this.parseNamedAddresses(namedAddresses);
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     const result = await this.runCommand(cliArgs);
     return { objectAddress: this.extractAddressFromOutput(result.output) };
@@ -172,6 +215,9 @@ export class Move {
    *  alice:0x1234, bob:0x5678
    * }
    * @param args.profile optional Profile to use from the config file.
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
@@ -180,8 +226,9 @@ export class Move {
     objectAddress: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
+    extraArguments?: Array<string>;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, objectAddress, namedAddresses, profile } = args;
+    const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -197,6 +244,10 @@ export class Move {
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
 
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
+
     return this.runCommand(cliArgs);
   }
 
@@ -210,6 +261,9 @@ export class Move {
    * {
    *  alice:0x1234, bob:0x5678
    * }
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
@@ -217,8 +271,9 @@ export class Move {
     packageDirectoryPath: string;
     outputFile: string;
     namedAddresses: Record<string, AccountAddress>;
+    extraArguments?: Array<string>;
   }) {
-    const { outputFile, packageDirectoryPath, namedAddresses } = args;
+    const { outputFile, packageDirectoryPath, namedAddresses, extraArguments } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -233,6 +288,10 @@ export class Move {
 
     cliArgs.push(...this.prepareNamedAddresses(addressesMap));
 
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
+
     return this.runCommand(cliArgs);
   }
 
@@ -244,11 +303,18 @@ export class Move {
    * @example
    * build/my_package/bytecode_scripts/my_move_script.mv
    * @param args.profile optional Profile to use from the config file.
+   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
+   * @example
+   * ["--assume-yes","--gas-unit-price=10"]
    *
    * @returns stdout
    */
-  async runScript(args: { compiledScriptPath: string; profile?: string }): Promise<{ output: string }> {
-    const { compiledScriptPath, profile } = args;
+  async runScript(args: {
+    compiledScriptPath: string;
+    profile?: string;
+    extraArguments?: Array<string>;
+  }): Promise<{ output: string }> {
+    const { compiledScriptPath, profile, extraArguments } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -257,6 +323,10 @@ export class Move {
       compiledScriptPath,
       `--profile=${profile ?? "default"}`,
     ];
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
 
     return this.runCommand(cliArgs);
   }

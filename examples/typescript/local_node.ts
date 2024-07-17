@@ -96,6 +96,7 @@ async function buildPublishPayload() {
     namedAddresses: {
       MoonCoin: "0x123",
     },
+    extraArguments: ["--assume-yes"],
   });
 }
 

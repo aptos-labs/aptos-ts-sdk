@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Suport `extraArguments` optional property on the cli Move commnads
+
 # 1.25.0 (2024-07-17)
 
 - Change the `stop()` function on `LocalNode` to return a `Promise` so we can wait for the processes to be killed
