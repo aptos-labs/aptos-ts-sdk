@@ -9,7 +9,7 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { AnyPublicKey, AnySignature, KeylessPublicKey, Secp256k1PublicKey } from "../../core/crypto";
+import { AnyPublicKey, AnySignature, KeylessPublicKey, KeylessSignature, Secp256k1PublicKey } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
@@ -453,6 +453,9 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   }
 
   if (AnyPublicKey.isInstance(publicKey)) {
+    if (KeylessPublicKey.isInstance(publicKey.publicKey)) {
+      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(KeylessSignature.getSimulationSignature()));
+    }
     return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(invalidSignature));
   }
 
