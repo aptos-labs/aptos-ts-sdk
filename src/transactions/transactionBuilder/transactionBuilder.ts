@@ -550,7 +550,7 @@ export function getAuthenticatorForWebAuthn(args: {
   const { publicKey, signature, authenticatorData, clientDataJSON } = args;
   let signatureObj: AnySignature;
   if (publicKey instanceof Secp256r1PublicKey) {
-    signatureObj = new AnySignature(new Secp256k1Signature(signature));
+    signatureObj = new AnySignature(new Secp256r1Signature(signature));
   } else {
     throw new Error("Unsupported public key");
   }
