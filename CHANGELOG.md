@@ -4,12 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- [`Fix`] Fixes transactions simulations using an `AnyPublicKey` with a `KeylessPublicKey` 
-  
 # 1.26.0 (2024-07-18)
 
-- Suport `extraArguments` optional property on the cli Move commnads
+- Support `extraArguments` optional property on the cli Move commands
 - Update `fundWallet` check to be more explicit that `undefined` in `waitForIndexer` defaults to waiting.
+- [`Fix`] Fixes transactions simulations using an `AnyPublicKey` with a `KeylessPublicKey`
 
 # 1.25.0 (2024-07-17)
 
