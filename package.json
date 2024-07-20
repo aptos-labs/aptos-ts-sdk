@@ -63,6 +63,7 @@
     "poseidon-lite": "^0.2.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.24.8",
     "@babel/traverse": "^7.23.6",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/import-types-preset": "^3.0.0",
