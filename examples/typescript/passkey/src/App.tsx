@@ -16,6 +16,10 @@ function App() {
   const config = new AptosConfig({ network: currentNetwork });
   const aptos = new Aptos(config);
 
+  const rpName = window.location.origin;
+  const rpID = window.location.hostname;
+  console.log(rpName, rpID);
+
   /**
    * Prints the balance of an account
    * @param aptos
@@ -39,13 +43,14 @@ function App() {
   // Create the passkey via credential registration ceremony
   const createPasskey = async () => {
     const options = await aptos.generateRegistrationOptions({
-      rpName: window.location.origin,
-      rpID: window.location.hostname,
+      rpName,
+      rpID,
       userName: "Andrew",
       authenticatorAttachment: "platform",
     });
 
     const cred = await aptos.registerCredential(options);
+    console.log(cred);
     const pubKey = aptos.parsePublicKey(cred);
     const addr = await aptos.getPasskeyAccountAddress({ publicKey: pubKey.toString() });
 
@@ -128,12 +133,15 @@ function App() {
     });
 
     console.log("\n=== Transfer transaction ===\n");
-    const xxx = new Secp256r1PublicKey(publicKey);
-    console.log(credentialId, txn, xxx.toString());
+    console.log(credentialId);
+    console.log(txn);
+    console.log(publicKey);
+    console.log(rpID);
     const pendingTxn = await aptos.signAndSubmitWithPasskey({
       credentialId: credentialId,
       transaction: txn,
       publicKey: new Secp256r1PublicKey(publicKey),
+      rpID,
       options: {},
     });
     console.log("PENDING TXN", pendingTxn);
