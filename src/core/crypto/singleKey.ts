@@ -5,7 +5,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
-import { Secp256r1PublicKey } from "./secp256r1";
+import { Secp256r1PublicKey, Secp256r1Signature } from "./secp256r1";
 import { Signature } from "./signature";
 import { WebAuthnSignature } from "./webauthn";
 
@@ -159,6 +159,8 @@ export class AnySignature extends Signature {
       this.variant = AnySignatureVariant.Keyless;
     } else if (signature instanceof WebAuthnSignature) {
       this.variant = AnySignatureVariant.WebAuthn;
+    } else if (signature instanceof Secp256r1Signature) {
+      this.variant = AnySignatureVariant.Secp256r1;
     } else {
       throw new Error("Unsupported signature type");
     }
@@ -202,6 +204,9 @@ export class AnySignature extends Signature {
         break;
       case AnySignatureVariant.WebAuthn:
         signature = WebAuthnSignature.deserialize(deserializer);
+        break;
+      case AnySignatureVariant.Secp256r1:
+        signature = Secp256r1Signature.deserialize(deserializer);
         break;
       default:
         throw new Error(`Unknown variant index for AnySignature: ${variantIndex}`);

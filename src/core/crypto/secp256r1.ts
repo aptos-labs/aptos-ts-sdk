@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { p256 } from "@noble/curves/p256";
-import { sha256 } from "@noble/hashes/sha256";
 import { sha3_256 } from "@noble/hashes/sha3";
+import { HDKey } from "@scure/bip32";
 import { bufferToBase64URLString } from "@simplewebauthn/browser";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { HexInput } from "../../types";
 import { Hex } from "../hex";
+import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
@@ -74,7 +75,7 @@ export class Secp256r1PublicKey extends PublicKey {
 
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
-    const messageSha3Bytes = sha256(messageBytes);
+    const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
     return p256.verify(signatureBytes, messageSha3Bytes, this.toUint8Array());
   }
@@ -121,6 +122,10 @@ export class Secp256r1PublicKey extends PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256r1PublicKey(bytes);
   }
+
+  static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
+    return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256r1PublicKey.LENGTH;
+  }
 }
 
 /**
@@ -152,6 +157,40 @@ export class Secp256r1PrivateKey extends Serializable implements PrivateKey {
     }
 
     this.key = privateKeyHex;
+  }
+
+  /**
+   * Derives a private key from a mnemonic seed phrase.
+   *
+   * @param path the BIP44 path
+   * @param mnemonics the mnemonic seed phrase
+   *
+   * @returns The generated key
+   */
+  static fromDerivationPath(path: string, mnemonics: string): Secp256r1PrivateKey {
+    if (!isValidBIP44Path(path)) {
+      throw new Error(`Invalid derivation path ${path}`);
+    }
+    return Secp256r1PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  /**
+   * A private inner function so we can separate from the main fromDerivationPath() method
+   * to add tests to verify we create the keys correctly.
+   *
+   * @param path the BIP44 path
+   * @param seed the seed phrase created by the mnemonics
+   *
+   * @returns The generated key
+   */
+  private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256r1PrivateKey {
+    const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
+    // library returns privateKey as Uint8Array | null
+    if (privateKey === null) {
+      throw new Error("Invalid key");
+    }
+
+    return new Secp256r1PrivateKey(privateKey);
   }
 
   /**
@@ -245,7 +284,7 @@ export class Secp256r1Signature extends Signature {
         `Signature length should be ${Secp256r1Signature.LENGTH}, recieved ${data.toUint8Array().length}`,
       );
     }
-    const signature = p256.Signature.fromCompact(hexInput).normalizeS().toCompactRawBytes();
+    const signature = p256.Signature.fromCompact(data.toUint8Array()).normalizeS().toCompactRawBytes();
     this.data = Hex.fromHexInput(signature);
   }
 

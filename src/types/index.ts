@@ -117,6 +117,7 @@ export enum AnySignatureVariant {
   Secp256k1 = 1,
   WebAuthn = 2,
   Keyless = 3,
+  Secp256r1 = 4,
 }
 
 export enum EphemeralPublicKeyVariant {
