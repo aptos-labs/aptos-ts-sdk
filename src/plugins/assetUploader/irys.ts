@@ -74,11 +74,9 @@ export class IrysAssetUploader implements IAssetUploader {
         // Irys does not support Aptos' devnet
         throw new Error("Irys does not support Aptos' devnet");
       case Network.TESTNET:
-        return { irysNode: "devnet", providerUrl: Network.TESTNET };
+        return { irysNode: "https://arweave.devnet.irys.xyz", providerUrl: Network.TESTNET };
       case Network.MAINNET:
-        // Irys supports node1 and node2, there is no major difference between
-        // those and it is recommended to simply use node1
-        return { irysNode: "node1", providerUrl: Network.MAINNET };
+        return { irysNode: "https://arweave.mainnet.irys.xyz", providerUrl: Network.MAINNET };
       default:
         throw new Error(`${this.config.network} network is not supported`);
     }

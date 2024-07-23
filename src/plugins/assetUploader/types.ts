@@ -2,7 +2,7 @@ import type { FundResponse, UploadResponse, CreateAndUploadOptions } from "@irys
 import type { TaggedFile } from "@irys/sdk/build/cjs/web/upload";
 import type { NodeIrys } from "@irys/sdk/build/cjs/node/irys";
 import type { WebIrys } from "@irys/sdk/build/cjs/web/irys";
-import { Account } from "../../account";
+import type { Account } from "../../account/Account";
 
 export { FundResponse, UploadResponse, TaggedFile, CreateAndUploadOptions, NodeIrys, WebIrys };
 
