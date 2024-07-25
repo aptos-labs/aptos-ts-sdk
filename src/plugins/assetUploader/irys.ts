@@ -8,7 +8,7 @@ import {
   TaggedFile,
 } from "./types";
 import { AptosConfig } from "../../api/aptosConfig";
-import { Account } from "../../account";
+import { AsyncAccount } from "../../account";
 import { Network } from "../../utils";
 
 /**
@@ -89,7 +89,7 @@ export class IrysAssetUploader implements IAssetUploader {
    *
    * @returns Promise<NodeIrys | WebIrys>
    */
-  async getIrys(args: { account: Account }): Promise<NodeIrys | WebIrys> {
+  async getIrys(args: { account: AsyncAccount }): Promise<NodeIrys | WebIrys> {
     if (!this.irysApp) {
       throw new Error("Irys has not been initialized");
     }
@@ -99,7 +99,11 @@ export class IrysAssetUploader implements IAssetUploader {
       token: "aptos", // Token used for payment and signing
       publicKey: args.account.publicKey.toString(), // Aptos wallet publicKey
       providerUrl, // Aptos Network
-      signingFunction: async (msg: Uint8Array) => args.account.sign(msg).toUint8Array(), // Signing function Irys will use
+      signingFunction: async (msg: Uint8Array) => {
+        // Signing function Irys will use
+        const sig = await args.account.sign(msg);
+        return sig.toUint8Array();
+      },
     });
     return irys;
   }
@@ -112,7 +116,7 @@ export class IrysAssetUploader implements IAssetUploader {
    *
    * @returns Irys FundResponse
    */
-  async fundNode(args: { account: Account; amount: number }): Promise<FundResponse> {
+  async fundNode(args: { account: AsyncAccount; amount: number }): Promise<FundResponse> {
     const { account, amount } = args;
     const irys = await this.getIrys({ account });
     try {
@@ -131,7 +135,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * @returns Irys UploadResponse
    */
   async uploadData(args: {
-    account: Account;
+    account: AsyncAccount;
     data: string | Buffer;
     options?: CreateAndUploadOptions;
   }): Promise<UploadResponse> {
@@ -155,7 +159,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * @returns Irys UploadResponse
    */
   async uploadFile(args: {
-    account: Account;
+    account: AsyncAccount;
     file: string | File;
     options?: CreateAndUploadOptions;
   }): Promise<UploadResponse> {
@@ -180,7 +184,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * @returns Irys UploadResponse
    */
   async uploadFolder(args: {
-    account: Account;
+    account: AsyncAccount;
     folder: string | TaggedFile[];
     options?: any;
   }): Promise<UploadResponse | undefined> {
@@ -206,7 +210,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * when instantiating the Irys object Return value is in atomic units
    */
   async estimateFolderPrice(args: {
-    account: Account;
+    account: AsyncAccount;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number> {
     const { account, folderInfo } = args;
@@ -225,7 +229,7 @@ export class IrysAssetUploader implements IAssetUploader {
    * @param args.account The account to query balance from
    * @return account loaded balance
    */
-  async getLoadedBalance(args: { account: Account }): Promise<number> {
+  async getLoadedBalance(args: { account: AsyncAccount }): Promise<number> {
     const { account } = args;
     const irys = await this.getIrys({ account });
 

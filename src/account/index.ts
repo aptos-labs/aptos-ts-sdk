@@ -4,3 +4,4 @@ export * from "./SingleKeyAccount";
 export * from "./EphemeralKeyPair";
 export * from "./KeylessAccount";
 export * from "./MultiKeyAccount";
+export * from "./AsyncAccount";
