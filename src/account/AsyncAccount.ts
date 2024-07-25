@@ -5,14 +5,9 @@ import { AccountPublicKey, Signature, VerifySignatureArgs } from "../core/crypto
 import { AnyRawTransaction } from "../transactions/types";
 
 /**
- * Interface for a generic Aptos account.
+ * Interface for a version of Account where the actions are async
  *
- * The interface is defined as abstract class to provide a single entrypoint for account generation,
- * either through `Account.generate()` or `Account.fromDerivationPath`.
- * Despite this being an abstract class, it should be treated as an interface and enforced using
- * the `implements` keyword.
- *
- * Note: Generating an account instance does not create the account on-chain.
+ * Async actions can be useful in cases when signing a transaction requires making an API call
  */
 export abstract class AsyncAccount {
   /**
