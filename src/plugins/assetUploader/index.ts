@@ -1,4 +1,4 @@
-import { Account } from "../../account";
+import { Account, AsyncAccount } from "../../account";
 import { AptosConfig } from "../../api/aptosConfig";
 import { IrysAssetUploader } from "./irys";
 import { FundResponse, IAssetUploader, UploadResponse, TaggedFile, AssetUploaderProvider } from "./types";
@@ -37,7 +37,7 @@ export class AssetUploader {
    *
    * @return FundResponse
    */
-  async fundNode(args: { account: Account; amount: number }): Promise<FundResponse> {
+  async fundNode(args: { account: Account | AsyncAccount; amount: number }): Promise<FundResponse> {
     return this.assetUploader.fundNode({ ...args });
   }
 
@@ -49,7 +49,11 @@ export class AssetUploader {
    *
    * @return UploadResponse
    */
-  async uploadData(args: { account: Account; data: string | Buffer; options?: any }): Promise<UploadResponse> {
+  async uploadData(args: {
+    account: Account | AsyncAccount;
+    data: string | Buffer;
+    options?: any;
+  }): Promise<UploadResponse> {
     return this.assetUploader.uploadData({ ...args });
   }
 
@@ -61,7 +65,11 @@ export class AssetUploader {
    *
    * @return UploadResponse
    */
-  async uploadFile(args: { account: Account; file: string | File; options?: any }): Promise<UploadResponse> {
+  async uploadFile(args: {
+    account: Account | AsyncAccount;
+    file: string | File;
+    options?: any;
+  }): Promise<UploadResponse> {
     return this.assetUploader.uploadFile({ ...args });
   }
 
@@ -74,7 +82,7 @@ export class AssetUploader {
    * @return UploadResponse | undefined
    */
   async uploadFolder(args: {
-    account: Account;
+    account: Account | AsyncAccount;
     folder: string | TaggedFile[];
     options?: any;
   }): Promise<UploadResponse | undefined> {
@@ -93,7 +101,7 @@ export class AssetUploader {
    * when instantiating the Irys object Return value is in atomic units
    */
   async estimateFolderPrice(args: {
-    account: Account;
+    account: Account | AsyncAccount;
     folderInfo: number[] | { fileCount: number; totalBytes: number; headerSizeAvg?: number };
   }): Promise<number> {
     return this.assetUploader.estimateFolderPrice({ ...args });
@@ -105,7 +113,7 @@ export class AssetUploader {
    * @param args.account The account to query balance from
    * @return account loaded balance
    */
-  async getLoadedBalance(args: { account: Account }): Promise<number> {
+  async getLoadedBalance(args: { account: Account | AsyncAccount }): Promise<number> {
     try {
       return await this.assetUploader.getLoadedBalance({ ...args });
     } catch (e) {
