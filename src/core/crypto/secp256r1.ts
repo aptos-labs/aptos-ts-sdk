@@ -6,11 +6,12 @@ import { sha3_256 } from "@noble/hashes/sha3";
 import { HDKey } from "@scure/bip32";
 import { bufferToBase64URLString } from "@simplewebauthn/browser";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
-import { HexInput } from "../../types";
+import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../../types";
+import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 import type { WebAuthnSignature } from "./webauthn";
@@ -20,7 +21,7 @@ import type { WebAuthnSignature } from "./webauthn";
  *
  * Secp256r1 authentication key is represented in the SDK as `AnyPublicKey`.  It is used to verify WebAuthnSignatures.
  */
-export class Secp256r1PublicKey extends PublicKey {
+export class Secp256r1PublicKey extends AccountPublicKey {
   // Secp256r1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 
@@ -107,6 +108,16 @@ export class Secp256r1PublicKey extends PublicKey {
 
     // Verify the the signature is the signed verification data.
     return this.verifySignature({ message: verificationData, signature: signature.paar.signature.signature });
+  }
+
+  authKey(): AuthenticationKey {
+    const serializer = new Serializer();
+    serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Secp256r1);
+    serializer.serializeFixedBytes(this.bcsToBytes());
+    return AuthenticationKey.fromSchemeAndBytes({
+      scheme: SigningScheme.SingleKey,
+      input: serializer.toUint8Array(),
+    });
   }
 
   serialize(serializer: Serializer): void {
