@@ -8,7 +8,7 @@ import {
   TaggedFile,
 } from "./types";
 import { AptosConfig } from "../../api/aptosConfig";
-import { AsyncAccount } from "../../account";
+import { Account, AsyncAccount } from "../../account";
 import { Network } from "../../utils";
 
 /**
@@ -89,7 +89,7 @@ export class IrysAssetUploader implements IAssetUploader {
    *
    * @returns Promise<NodeIrys | WebIrys>
    */
-  async getIrys(args: { account: AsyncAccount }): Promise<NodeIrys | WebIrys> {
+  async getIrys(args: { account: Account | AsyncAccount }): Promise<NodeIrys | WebIrys> {
     if (!this.irysApp) {
       throw new Error("Irys has not been initialized");
     }

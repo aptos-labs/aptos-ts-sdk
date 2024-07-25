@@ -35,28 +35,28 @@ export abstract class AsyncAccount {
    * @param message the signing message, as binary input
    * @return the AccountAuthenticator containing the signature, together with the account's public key
    */
-  abstract signWithAuthenticator(message: HexInput): AccountAuthenticator | Promise<AccountAuthenticator>;
+  abstract signWithAuthenticator(message: HexInput): Promise<AccountAuthenticator>;
 
   /**
    * Sign a transaction using the available signing capabilities.
    * @param transaction the raw transaction
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
    */
-  abstract signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator | Promise<AccountAuthenticator>;
+  abstract signTransactionWithAuthenticator(transaction: AnyRawTransaction): Promise<AccountAuthenticator>;
 
   /**
    * Sign the given message using the available signing capabilities.
    * @param message in HexInput format
    * @returns Signature
    */
-  abstract sign(message: HexInput): Signature | Promise<Signature>;
+  abstract sign(message: HexInput): Promise<Signature>;
 
   /**
    * Sign the given transaction using the available signing capabilities.
    * @param transaction the transaction to be signed
    * @returns Signature
    */
-  abstract signTransaction(transaction: AnyRawTransaction): Signature | Promise<Signature>;
+  abstract signTransaction(transaction: AnyRawTransaction): Promise<Signature>;
 
   /**
    * Verify the given message and signature with the public key.
