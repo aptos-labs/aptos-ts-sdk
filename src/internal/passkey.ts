@@ -26,7 +26,6 @@ import {
 import { convertCOSEtoPKCS, cose, isoBase64URL, parseAuthenticatorData } from "@simplewebauthn/server/helpers";
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, AccountPublicKey, AuthenticationKey, PublicKey } from "../core";
-import { PasskeyPublicKey } from "../core/crypto/passkey";
 import { Secp256r1PublicKey } from "../core/crypto/secp256r1";
 import { AccountAuthenticator, AnyRawTransaction, signWithPasskey as _signWithPasskey } from "../transactions";
 import { HexInput, PendingTransactionResponse } from "../types";
@@ -164,7 +163,7 @@ export async function getPasskeyAccountAddress(args: { publicKey: HexInput; alg?
   switch (algorithm) {
     // ES256, P256, Secp256r1 are all the same thing.
     case cose.COSEALG.ES256:
-      publicKeyObj = new PasskeyPublicKey(publicKey);
+      publicKeyObj = new Secp256r1PublicKey(publicKey);
       break;
     default:
       throw new Error("Algorithm is not supported");

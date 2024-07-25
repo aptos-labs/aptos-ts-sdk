@@ -7,7 +7,6 @@ export * from "./hdKey";
 export * from "./keyless";
 export * from "./multiEd25519";
 export * from "./multiKey";
-export * from "./passkey";
 export * from "./privateKey";
 export * from "./publicKey";
 export * from "./secp256k1";
