@@ -16,51 +16,57 @@ import {
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "assert";
 
-Given("bytes {}", function(input: string) {
-  this.input = fromByteString(input);
+Given(/^(bytes|address) (0x[0-9a-fA-F]*)$/, function(type: string, input: string) {
+  switch (type) {
+    case "bytes":
+      this.input = fromByteString(input);
+      break;
+    case "address":
+      this.input = AccountAddress.from(input);
+      break;
+    default:
+      throw new Error(`Unsupported type: ${type}`);
+  }
 });
 
-Given("address {}", function(input: string) {
-  this.input = AccountAddress.from(input);
-});
-
-Given("bool {}", function(input: string) {
-  this.input = new Bool(input === "true");
-});
-
-Given("u8 {}", function(input: string) {
-  this.input = new U8(parseInt(input, 10));
-});
-
-Given("u16 {}", function(input: string) {
-  this.input = new U16(parseInt(input, 10));
-});
-
-Given("u32 {}", function(input: string) {
-  this.input = new U32(parseInt(input, 10));
-});
-
-Given("u64 {}", function(input: string) {
-  this.input = new U64(BigInt(input));
-});
-
-Given("u128 {}", function(input: string) {
-  this.input = new U128(BigInt(input));
-});
-
-Given("u256 {}", function(input: string) {
-  this.input = new U256(BigInt(input));
-});
-
-Given("string \"{}\"", function(input: string) {
+Given(/^string "(.*)"$/, function(input: string) {
   this.input = new MoveString(input);
 });
 
-Given("sequence of {} [{}]", function(type: string, input: string) {
+Given(/^bool (true|false)$/, function(input: string) {
+  this.input = new Bool(input === "true");
+});
+
+Given(/^([u8|u16|u32|u64|u128|u256]+) ([0-9]+)$/, function(type: string, input: string) {
+  switch (type) {
+    case "u8":
+      this.input = new U8(parseInt(input, 10));
+      break;
+    case "u16":
+      this.input = new U16(parseInt(input, 10));
+      break;
+    case "u32":
+      this.input = new U32(parseInt(input, 10));
+      break;
+    case "u64":
+      this.input = new U64(BigInt(input));
+      break;
+    case "u128":
+      this.input = new U128(BigInt(input));
+      break;
+    case "u256":
+      this.input = new U256(BigInt(input));
+      break;
+    default:
+      throw new Error(`Unsupported type: ${type}`);
+  }
+});
+
+Given(/^sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(type: string, input: string) {
   this.input = sequenceOf(type, input);
 });
 
-When("I serialize as {}", function(inputType: string) {
+When(/^I serialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   const serializer = new Serializer();
 
   switch (inputType) {
@@ -90,7 +96,7 @@ When("I serialize as {}", function(inputType: string) {
   this.result = serializer.toUint8Array();
 });
 
-When("I deserialize as {}", function(inputType: string) {
+When(/^I deserialize as ([0-9a-zA-Z ]+)$/, function(inputType: string) {
   const deserializer = new Deserializer((this.input! as Hex).toUint8Array());
   this.resultError = false;
   this.result = null;
@@ -194,67 +200,58 @@ When("I deserialize as {}", function(inputType: string) {
   }
 });
 
-Then("the result should be bytes {}", function(expected: string) {
+Then(/^the result should be ([0-9a-zA-Z]+) ([0-9a-zA-Z]+)$/, function(type: string, expected: string) {
   checkDeserializationError(this);
-  assert.deepEqual(this.result, fromByteString(expected).toUint8Array());
+  switch (type) {
+    case "bytes":
+      assert.deepEqual(this.result, fromByteString(expected).toUint8Array());
+      break;
+    case "address":
+      assert.equal(this.result, AccountAddress.from(expected).toString());
+      break;
+    case "bool":
+      assert.equal(this.result, expected === "true");
+      break;
+    case "u8":
+      assert.equal(this.result, parseInt(expected, 10));
+      break;
+    case "u16":
+      assert.equal(this.result, parseInt(expected, 10));
+      break;
+    case "u32":
+      assert.equal(this.result, parseInt(expected, 10));
+      break;
+    case "u64":
+      assert.equal(this.result, BigInt(expected));
+      break;
+    case "u128":
+      assert.equal(this.result, BigInt(expected));
+      break;
+    case "u256":
+      assert.equal(this.result, BigInt(expected));
+      break;
+    default:
+      throw new Error(`Unsupported type: ${type}`);
+  }
 });
 
-Then("the result should be address {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, AccountAddress.from(expected).toString());
-});
-
-Then("the result should be bool {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, expected === "true");
-});
-
-// TODO: None of the types are comparable, we probably want to fix that
-Then("the result should be u8 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, parseInt(expected, 10));
-});
-
-Then("the result should be u16 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, parseInt(expected, 10));
-});
-
-Then("the result should be u32 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, parseInt(expected, 10));
-});
-
-Then("the result should be u64 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, BigInt(expected));
-});
-
-Then("the result should be u128 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, BigInt(expected));
-});
-
-Then("the result should be u256 {}", function(expected: string) {
-  checkDeserializationError(this);
-  assert.equal(this.result, BigInt(expected));
-});
-Then("the result should be string \"{}\"", function(expected: string) {
+Then(/^the result should be string "(.*)"$/, function(expected: string) {
   checkDeserializationError(this);
   assert.equal(this.result, expected);
 });
 
-Then("the result should be sequence of {} [{}]", function(typeName: string, expectedList: string) {
+Then(/^the result should be sequence of ([0-9a-zA-Z]+) \[(.*)]$/, function(typeName: string, expectedList: string) {
   checkDeserializationError(this);
   const expected = sequenceOf(typeName, expectedList);
   assert.deepEqual(this.result, expected);
 });
 
-Then("the deserialization should fail", function() {
+Then(/^the deserialization should fail$/, function() {
   assert(this.resultError || this.dataRemaining);
 });
 
 function fromByteString(input: string) {
+  // 0x allows for representing an empty array
   if (input === "0x") {
     return new Hex(new Uint8Array());
   } else {
@@ -262,6 +259,7 @@ function fromByteString(input: string) {
   }
 }
 
+// If there is no value, handle empty array
 function parseArray(input: string) {
   if (input === "") {
     return [];
