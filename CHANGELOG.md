@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Update Indexer GraphQL schema
 - Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
 - Export `helpers.ts` file
+- Add `remaining()` function to deserializer, to tell remaining byte size
 
 # 1.26.0 (2024-07-18)
 
