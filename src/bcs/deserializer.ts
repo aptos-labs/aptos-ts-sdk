@@ -116,6 +116,14 @@ export class Deserializer {
   }
 
   /**
+   * Deserializes an Raw bytes. 
+   *
+   */
+  deserializeRaw(): Uint8Array {
+    return new Uint8Array(this.read(this.buffer.byteLength - this.offset));
+  }
+
+  /**
    * Deserializes a boolean value.
    *
    * BCS layout for "boolean": One byte. "0x01" for true and "0x00" for false.

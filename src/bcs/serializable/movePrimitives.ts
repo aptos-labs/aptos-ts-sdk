@@ -12,7 +12,8 @@ import {
 import { Deserializer } from "../deserializer";
 import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types";
+import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants, HexInput } from "../../types";
+import { Hex } from "../../core";
 
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;
@@ -207,5 +208,30 @@ export class U256 extends Serializable implements TransactionArgument {
 
   static deserialize(deserializer: Deserializer): U256 {
     return new U256(deserializer.deserializeU256());
+  }
+}
+
+export class Raw extends Serializable implements TransactionArgument {
+  public readonly value: Uint8Array;
+
+  constructor(value: HexInput) {
+    super();
+    this.value = Hex.fromHexInput(value).toUint8Array();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeRaw(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    serializer.serialize(this);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serialize(this);
+  }
+
+  static deserialize(deserializer: Deserializer): Raw {
+    return new Raw(deserializer.deserializeRaw());
   }
 }
