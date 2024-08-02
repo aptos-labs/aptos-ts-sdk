@@ -116,7 +116,7 @@ export class Deserializer {
   }
 
   /**
-   * Deserializes an Raw bytes. 
+   * Deserializes an Raw bytes.
    *
    */
   deserializeRaw(): Uint8Array {

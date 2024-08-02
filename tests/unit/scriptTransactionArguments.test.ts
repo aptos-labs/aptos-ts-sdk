@@ -31,7 +31,7 @@ describe("Tests for the script transaction argument class", () => {
   let scriptAddressBytes: Uint8Array;
   let scriptVectorU8Bytes: Uint8Array;
   let scriptRawBytes: Uint8Array;
-  
+
   beforeEach(() => {
     serializer = new Serializer();
     scriptU8Bytes = new Uint8Array([0, 1]);
