@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
+- Update Indexer GraphQL schema
 
 # 1.26.0 (2024-07-18)
 
