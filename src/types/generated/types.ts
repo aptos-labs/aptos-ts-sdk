@@ -2598,6 +2598,7 @@ export type CurrentCollectionsV2 = {
   cdn_asset_uris?: Maybe<NftMetadataCrawlerParsedAssetUris>;
   collection_id: Scalars["String"]["output"];
   collection_name: Scalars["String"]["output"];
+  collection_properties?: Maybe<Scalars["jsonb"]["output"]>;
   creator_address: Scalars["String"]["output"];
   current_supply: Scalars["numeric"]["output"];
   description: Scalars["String"]["output"];
@@ -2612,6 +2613,11 @@ export type CurrentCollectionsV2 = {
   uri: Scalars["String"]["output"];
 };
 
+/** columns and relationships of "current_collections_v2" */
+export type CurrentCollectionsV2CollectionPropertiesArgs = {
+  path?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** Boolean expression to filter rows from the table "current_collections_v2". All fields are combined with a logical 'AND'. */
 export type CurrentCollectionsV2BoolExp = {
   _and?: InputMaybe<Array<CurrentCollectionsV2BoolExp>>;
@@ -2620,6 +2626,7 @@ export type CurrentCollectionsV2BoolExp = {
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisBoolExp>;
   collection_id?: InputMaybe<StringComparisonExp>;
   collection_name?: InputMaybe<StringComparisonExp>;
+  collection_properties?: InputMaybe<JsonbComparisonExp>;
   creator_address?: InputMaybe<StringComparisonExp>;
   current_supply?: InputMaybe<NumericComparisonExp>;
   description?: InputMaybe<StringComparisonExp>;
@@ -2639,6 +2646,7 @@ export type CurrentCollectionsV2OrderBy = {
   cdn_asset_uris?: InputMaybe<NftMetadataCrawlerParsedAssetUrisOrderBy>;
   collection_id?: InputMaybe<OrderBy>;
   collection_name?: InputMaybe<OrderBy>;
+  collection_properties?: InputMaybe<OrderBy>;
   creator_address?: InputMaybe<OrderBy>;
   current_supply?: InputMaybe<OrderBy>;
   description?: InputMaybe<OrderBy>;
@@ -2659,6 +2667,8 @@ export enum CurrentCollectionsV2SelectColumn {
   CollectionId = "collection_id",
   /** column name */
   CollectionName = "collection_name",
+  /** column name */
+  CollectionProperties = "collection_properties",
   /** column name */
   CreatorAddress = "creator_address",
   /** column name */
@@ -2697,6 +2707,7 @@ export type CurrentCollectionsV2StreamCursorInput = {
 export type CurrentCollectionsV2StreamCursorValueInput = {
   collection_id?: InputMaybe<Scalars["String"]["input"]>;
   collection_name?: InputMaybe<Scalars["String"]["input"]>;
+  collection_properties?: InputMaybe<Scalars["jsonb"]["input"]>;
   creator_address?: InputMaybe<Scalars["String"]["input"]>;
   current_supply?: InputMaybe<Scalars["numeric"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -5139,7 +5150,7 @@ export type EventsStreamCursorValueInput = {
 /** columns and relationships of "fungible_asset_activities" */
 export type FungibleAssetActivities = {
   amount?: Maybe<Scalars["numeric"]["output"]>;
-  asset_type: Scalars["String"]["output"];
+  asset_type?: Maybe<Scalars["String"]["output"]>;
   block_height: Scalars["bigint"]["output"];
   entry_function_id_str?: Maybe<Scalars["String"]["output"]>;
   event_index: Scalars["bigint"]["output"];
@@ -5149,7 +5160,7 @@ export type FungibleAssetActivities = {
   is_transaction_success: Scalars["Boolean"]["output"];
   /** An object relationship */
   metadata?: Maybe<FungibleAssetMetadata>;
-  owner_address: Scalars["String"]["output"];
+  owner_address?: Maybe<Scalars["String"]["output"]>;
   /** An array relationship */
   owner_aptos_names: Array<CurrentAptosNames>;
   /** An aggregate relationship */
