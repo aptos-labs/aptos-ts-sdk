@@ -116,10 +116,10 @@ export class Deserializer {
   }
 
   /**
-   * Deserializes an Raw bytes.
+   * Deserializes an Serialized bytes.
    *
    */
-  deserializeRaw(): Uint8Array {
+  deserializeSerializedBytes(): Uint8Array {
     return new Uint8Array(this.read(this.buffer.byteLength - this.offset));
   }
 

@@ -4,7 +4,7 @@ import { HexInput } from "../../types";
 import { Hex } from "../../core/hex";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
 
-export class Raw extends Serializable implements TransactionArgument {
+export class Serialized extends Serializable implements TransactionArgument {
   public readonly value: Uint8Array;
 
   constructor(value: HexInput) {
@@ -13,7 +13,7 @@ export class Raw extends Serializable implements TransactionArgument {
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeRaw(this.value);
+    serializer.serializeSerializedBytes(this.value);
   }
 
   serializeForEntryFunction(serializer: Serializer): void {
@@ -24,7 +24,7 @@ export class Raw extends Serializable implements TransactionArgument {
     serializer.serialize(this);
   }
 
-  static deserialize(deserializer: Deserializer): Raw {
-    return new Raw(deserializer.deserializeRaw());
+  static deserialize(deserializer: Deserializer): Serialized {
+    return new Serialized(deserializer.deserializeSerializedBytes());
   }
 }

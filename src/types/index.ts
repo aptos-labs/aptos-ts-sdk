@@ -61,7 +61,7 @@ export enum ScriptTransactionArgumentVariants {
   U16 = 6,
   U32 = 7,
   U256 = 8,
-  Raw = 9,
+  Serialized = 9,
 }
 
 /**

@@ -227,11 +227,11 @@ export class Serializer {
   }
 
   /**
-   * Serializes a Raw bytes.
+   * Serializes a serialized bytes.
    *
-   * BCS layout for "Raw bytes": Binary format in little-endian representation.
+   * BCS layout for "serialized bytes": Binary format in little-endian representation.
    */
-  serializeRaw(value: Uint8Array) {
+  serializeSerializedBytes(value: Uint8Array) {
     this.serializeU32AsUleb128(9);
     this.serializeFixedBytes(value);
   }
