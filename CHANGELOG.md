@@ -6,6 +6,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
 - Update Indexer GraphQL schema
+- Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
+- Export `helpers.ts` file
 
 # 1.26.0 (2024-07-18)
 
