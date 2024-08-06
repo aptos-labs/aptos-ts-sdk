@@ -31,6 +31,7 @@ import {
   InputViewFunctionData,
   SimpleTransaction,
   generateTransactionPayload,
+  TransactionPayloadEntryFunction,
 } from "@aptos-labs/ts-sdk";
 
 // Default to devnet, but allow for overriding
@@ -141,19 +142,40 @@ const createMultiSigTransferTransaction = async () => {
     aptosConfig: config,
   });
 
-  // Simulate the transfer transaction to make sure it passes
-  const transactionToSimulate = await generateRawTransaction({
-    aptosConfig: config,
-    sender: owner2.accountAddress,
-    payload: transactionPayload,
-  });
+  // The simulation enhancement feature is not enabled on the devnet yet.
+  const isSimulationEnhancementFeatureEnabled = false;
+  if (!isSimulationEnhancementFeatureEnabled) {
+    // Simulate the transfer transaction to make sure it passes
+    const transactionToSimulate = await generateRawTransaction({
+      aptosConfig: config,
+      sender: owner2.accountAddress,
+      payload: transactionPayload,
+    });
 
-  const simulateMultisigTx = await aptos.transaction.simulate.simple({
-    signerPublicKey: owner2.publicKey,
-    transaction: new SimpleTransaction(transactionToSimulate),
-  });
+    const simulateMultisigTx = await aptos.transaction.simulate.simple({
+      signerPublicKey: owner2.publicKey,
+      transaction: new SimpleTransaction(transactionToSimulate),
+    });
 
-  console.log("simulateMultisigTx", simulateMultisigTx);
+    console.log("simulateMultisigTx", simulateMultisigTx);
+  }
+  else {
+    // Generate a raw transaction with the multisig address as the sender,
+    // the provided entry function payload, and 0x0 as the fee payer address.
+    const transactionToSimulate = await generateRawTransaction({
+      aptosConfig: config,
+      sender: transactionPayload.multiSig.multisig_address,
+      payload: new TransactionPayloadEntryFunction(transactionPayload.multiSig.transaction_payload.transaction_payload),
+      feePayerAddress: AccountAddress.ZERO,
+    });
+
+    // Simulate the transaction, skipping the public/auth key check for both the sender and the fee payer.
+    const simulateMultisigTx = await aptos.transaction.simulate.simple({
+      transaction: new SimpleTransaction(transactionToSimulate),
+    });
+
+    console.log("simulateMultisigTx", simulateMultisigTx);
+  }
 
   // Build create_transaction transaction
   const createMultisigTx = await aptos.transaction.build.simple({
