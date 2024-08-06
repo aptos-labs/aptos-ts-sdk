@@ -168,17 +168,30 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * @param hexInput HexInput (string or Uint8Array)
+   * @param strict If set, enforces private key has to use AIP-80
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict: boolean = false) {
     super();
-
-    const privateKeyHex = Hex.fromHexInput(hexInput);
-    if (privateKeyHex.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
+    let data: Hex;
+    if (typeof hexInput === "string") {
+      // A non-prefixed input
+      if (!strict && hexInput.startsWith("0x")) {
+        data = Hex.fromHexString(hexInput);
+      } else if (hexInput.startsWith("ed25519-priv-")) {
+        // AIP-80 compatible
+        data = Hex.fromHexString(hexInput.split("-")[2]);
+      } else {
+        throw new Error("Invalid private key input type");
+      }
+    } else {
+      data = Hex.fromHexInput(hexInput);
+    }
+    if (data.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`);
     }
 
     // Create keyPair from Private key in Uint8Array format
-    this.signingKey = privateKeyHex;
+    this.signingKey = data;
   }
 
   /**
@@ -272,8 +285,8 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns string representation of the private key
    */
-  toString(): string {
-    return this.signingKey.toString();
+  toString(): `ed25519-priv-${string}` {
+    return `ed25519-priv-${this.signingKey.toString()}`;
   }
 
   // endregion

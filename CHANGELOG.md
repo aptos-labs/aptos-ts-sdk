@@ -3,6 +3,7 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Add support for AIP-80 compatible private keys, for input and output
 
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
 - Update Indexer GraphQL schema
