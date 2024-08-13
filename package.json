@@ -47,7 +47,7 @@
     "check-version": "scripts/checkVersion.sh",
     "update-version": "scripts/updateVersion.sh && pnpm doc",
     "spec": "pnpm build && pnpm _spec",
-    "_spec": "./node_modules/.bin/cucumber-js -p default"
+    "_spec": "cucumber-js -p default"
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^0.2.0",
