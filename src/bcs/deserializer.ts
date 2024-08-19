@@ -38,6 +38,15 @@ export class Deserializer {
   }
 
   /**
+   * Returns the number of bytes remaining in the buffer.
+   *
+   * Useful to tell if there's more data to be read.
+   */
+  remaining(): number {
+    return this.buffer.byteLength - this.offset;
+  }
+
+  /**
    * Deserializes a string. UTF8 string is supported. Reads the string's bytes length "l" first,
    * and then reads "l" bytes of content. Decodes the byte array into a string.
    *

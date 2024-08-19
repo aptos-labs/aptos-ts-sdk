@@ -45,11 +45,13 @@
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
     "doc": "scripts/generateDocs.sh",
     "check-version": "scripts/checkVersion.sh",
-    "update-version": "scripts/updateVersion.sh && pnpm doc"
+    "update-version": "scripts/updateVersion.sh && pnpm doc",
+    "spec": "pnpm build && pnpm _spec",
+    "_spec": "cucumber-js -p default"
   },
   "dependencies": {
-    "@aptos-labs/aptos-client": "^0.1.0",
     "@aptos-labs/aptos-cli": "^0.2.0",
+    "@aptos-labs/aptos-client": "^0.1.0",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
@@ -62,6 +64,7 @@
   },
   "devDependencies": {
     "@babel/traverse": "^7.23.6",
+    "@cucumber/cucumber": "^10.8.0",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/import-types-preset": "^3.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
