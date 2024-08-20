@@ -4,9 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.27.0 (2024-08-15)
+
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
 - Update Indexer GraphQL schema
 - Support `Serialized Type` to Script txn
+- Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
+- Export `helpers.ts` file
+- Add `remaining()` function to deserializer, to tell remaining byte size
+- Add BCS spec for testing purposes with Cucumber
 
 # 1.26.0 (2024-07-18)
 
