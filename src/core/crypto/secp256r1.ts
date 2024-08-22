@@ -15,6 +15,7 @@ import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 import type { WebAuthnSignature } from "./webauthn";
+import { sha256 } from "@noble/hashes/sha256";
 
 /**
  * Represents the Secp256r1 public key
@@ -76,6 +77,8 @@ export class Secp256r1PublicKey extends AccountPublicKey {
 
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
+    // TODO should this be sha2_256, not sha3_256? to be consistent with how we've defined it in the Rust authenticator
+    // https://github.com/aptos-labs/aptos-core/blob/55ff034f4907b82a3523ca2782ff7eefec665b7d/crates/aptos-crypto/src/secp256r1_ecdsa/secp256r1_ecdsa_keys.rs#L64-L73
     const messageSha3Bytes = sha3_256(messageBytes);
     const signatureBytes = signature.toUint8Array();
     return p256.verify(signatureBytes, messageSha3Bytes, this.toUint8Array());
@@ -231,8 +234,28 @@ export class Secp256r1PrivateKey extends Serializable implements PrivateKey {
   sign(message: HexInput): Secp256r1Signature {
     const messageToSign = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToSign);
+    // TODO should this be sha2_256, not sha3_256? to be consistent with how we've defined it in the Rust authenticator
+    // https://github.com/aptos-labs/aptos-core/blob/55ff034f4907b82a3523ca2782ff7eefec665b7d/crates/aptos-crypto/src/secp256r1_ecdsa/secp256r1_ecdsa_keys.rs#L64-L73
     const messageHashBytes = sha3_256(messageBytes.toUint8Array());
     const signature = p256.sign(messageHashBytes, this.key.toUint8Array());
+    return new Secp256r1Signature(signature.toCompactRawBytes());
+  }
+
+  /**
+   * Sign the given message with the private key.
+   *
+   * Note: This does not generate a signingMessage or transform the value.
+   * Useful for mocking how a Platform Authenticator signs a message
+   * with a WebAuthn credential
+   *
+   * @param message in HexInput format
+   * @returns Signature
+   */
+  signArbitraryMessage(message: HexInput): Secp256r1Signature {
+    const messageBytes = Hex.fromHexInput(message);
+    const messageHashBytes = sha256(messageBytes.toUint8Array());
+    // NOTE if you change to preHash here you will also need to update the verify() function parameters
+    const signature = p256.sign(messageHashBytes, this.key.toUint8Array(), { lowS: true });
     return new Secp256r1Signature(signature.toCompactRawBytes());
   }
 

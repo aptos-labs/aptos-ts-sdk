@@ -2,8 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { p256 } from "@noble/curves/p256";
-import { Deserializer, Hex, Secp256r1PrivateKey, Secp256r1PublicKey, Secp256r1Signature, Serializer } from "../../src";
+import {
+  Deserializer,
+  Hex,
+  Secp256r1PrivateKey,
+  Secp256r1PublicKey,
+  Secp256r1Signature,
+  Serializer,
+} from "../../src";
 import { secp256r1TestObject, secp256r1WalletTestObject } from "./helper";
+import { sha256 } from "@noble/hashes/sha256";
 
 /* eslint-disable max-len */
 describe("Secp256r1PublicKey", () => {
@@ -26,6 +34,18 @@ describe("Secp256r1PublicKey", () => {
       `PublicKey length should be ${Secp256r1PublicKey.LENGTH}`,
     );
   });
+
+  it("should sign_arbitrary_bytes and verify the signature correctly", () => {
+    const privateKey = new Secp256r1PrivateKey(secp256r1TestObject.privateKey);
+    const publicKey = privateKey.publicKey();
+
+    const message = Hex.fromHexString(secp256r1TestObject.messageEncoded);
+    const signature = privateKey.signArbitraryMessage(message.toUint8Array());
+    expect(signature.toString()).toEqual("0x67a8c6539315eea3953c04165d2448f2de9bbb800bf5672af8098b73026292966ea226dfe4591b89da58999ef5e7f659a7d5bbee8aedbabe550e3b7034ddc51b")
+
+    const verify = p256.verify(signature.toUint8Array(), sha256(message.toUint8Array()), publicKey.toUint8Array())
+    expect(verify).toBeTruthy();
+  })
 
   it("should verify the signature correctly", () => {
     const pubKey = new Secp256r1PublicKey(secp256r1TestObject.publicKey);
