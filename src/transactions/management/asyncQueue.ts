@@ -40,15 +40,41 @@ export class AsyncQueue<T> {
     this.queue.push(item);
   }
 
-  /**
-   * The dequeue method returns a promise that resolves to the next item in the queue.
-   * If the queue is not empty, it resolves the promise immediately with the next item.
-   * Otherwise, it creates a new promise. The promise's resolve function is stored
-   * in the pendingDequeue with a unique counter value as the key.
-   * The newly created promise is then returned, and it will be resolved later when an item is enqueued.
-   *
-   * @returns Promise<T>
-   */
+/**
+ * The dequeue method returns a promise that resolves to the next item in the queue. 
+ * If the queue is not empty, it resolves the promise immediately with the next item. 
+ * Otherwise, it creates a new promise that will be resolved later when an item is enqueued.
+ * 
+ * @returns Promise<T>
+ * 
+ * @example
+ * ```typescript
+ * import { Queue } from "your-queue-library"; // replace with actual import
+ * 
+ * async function runExample() {
+ *   const queue = new Queue<number>(); // Create a new queue for numbers
+ * 
+ *   // Simulate adding an item to the queue
+ *   queue.enqueue(1);
+ * 
+ *   // Dequeue an item from the queue
+ *   const item = await queue.dequeue(); // This will resolve immediately since the queue is not empty
+ * 
+ *   console.log(item); // Output: 1
+ * 
+ *   // Now let's simulate a case where the queue is empty
+ *   const emptyQueue = new Queue<number>();
+ * 
+ *   // Dequeue from the empty queue
+ *   const nextItem = await emptyQueue.dequeue(); // This will wait until an item is enqueued
+ * 
+ *   console.log(nextItem); // Output will be the next item added to the queue
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async dequeue(): Promise<T> {
     if (this.queue.length > 0) {
       return Promise.resolve(this.queue.shift()!);

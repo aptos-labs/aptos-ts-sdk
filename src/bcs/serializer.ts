@@ -400,7 +400,33 @@ function checkNumberRange<T extends AnyNumber>(minValue: T, maxValue: T) {
   return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) => {
     const childFunction = descriptor.value;
     // eslint-disable-next-line no-param-reassign
-    descriptor.value = function deco(value: AnyNumber) {
+    descriptor.value =
+
+/**
+ * Validates the input number and applies a child function to it.
+ * This function ensures that the provided number falls within the specified range before proceeding with further operations.
+ * 
+ * @param value - The number to be validated and processed.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const value = 50; // Example value within the valid range
+ *   
+ *   // This will validate the number and apply the child function
+ *   const result = await aptos.deco(value);
+ *   
+ *   console.log(result); // Log the result of the operation
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function deco(value: AnyNumber) {
       validateNumberInRange(value, minValue, maxValue);
       return childFunction.apply(this, [value]);
     };

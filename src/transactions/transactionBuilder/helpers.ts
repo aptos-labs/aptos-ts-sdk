@@ -110,7 +110,37 @@ export function isScriptDataInput(
   return "bytecode" in arg;
 }
 
-export function throwTypeMismatch(expectedType: string, position: number) {
+export
+
+/**
+ * Throws an error indicating a type mismatch for a specified argument position.
+ * This function is useful for validating input types in function parameters.
+ * 
+ * @param expectedType - The type that was expected for the argument.
+ * @param position - The position of the argument that caused the type mismatch.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *     // Simulating a function that checks types and throws an error if there's a mismatch
+ *     const expectedType = "MoveOption"; // The expected type
+ *     const position = 1; // The position of the argument
+ * 
+ *     try {
+ *         throwTypeMismatch(expectedType, position); // This will throw an error
+ *     } catch (error) {
+ *         console.error(error.message); // Log the error message
+ *     }
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function throwTypeMismatch(expectedType: string, position: number) {
   throw new Error(`Type mismatch for argument ${position}, expected '${expectedType}'`);
 }
 
@@ -129,7 +159,36 @@ export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
   return index;
 }
 
-export function getFunctionParts(functionArg: MoveFunctionId) {
+export
+
+/**
+ * Parses a Move function identifier into its constituent parts: module address, module name, and function name.
+ * This can help you extract specific details from a function identifier for further processing or validation.
+ * 
+ * @param functionArg - The Move function identifier in the format "moduleAddress::moduleName::functionName".
+ * @returns An object containing the module address, module name, and function name.
+ * @throws Error if the provided function identifier is invalid.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Extracting parts from a Move function identifier
+ *   const functionArg = "0x1::aptos_account::transfer"; // replace with a real function identifier
+ *   const { moduleAddress, moduleName, functionName } = getFunctionParts(functionArg);
+ * 
+ *   console.log(`Module Address: ${moduleAddress}`);
+ *   console.log(`Module Name: ${moduleName}`);
+ *   console.log(`Function Name: ${functionName}`);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getFunctionParts(functionArg: MoveFunctionId) {
   const funcNameParts = functionArg.split("::");
   if (funcNameParts.length !== 3) {
     throw new Error(`Invalid function ${functionArg}`);

@@ -34,56 +34,82 @@ export class General {
     this.config = config;
   }
 
-  /**
-   * Queries for the Aptos ledger info
-   *
-   * @returns Aptos Ledger Info
-   *
-   * @example
-   * const ledgerInfo = await aptos.getLedgerInfo()
-   * // an example of the returned data
-   * ```
-   * {
-   * "chain_id": 4,
-   * "epoch": "8",
-   * "ledger_version": "714",
-   * "oldest_ledger_version": "0",
-   * "ledger_timestamp": "1694695496521775",
-   * "node_role": "validator",
-   * "oldest_block_height": "0",
-   * "block_height": "359",
-   * "git_hash": "c82193f36f4e185fed9f68c4ad21f6c6dd390c6e"
-   * }
-   * ```
-   */
+/**
+ * Queries for the Aptos ledger information, providing details such as the chain ID, epoch, and ledger version.
+ *
+ * @returns The Aptos Ledger Info.
+ *
+ * @example
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET }); // Specify your network
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching the ledger information
+ *   const ledgerInfo = await aptos.getLedgerInfo();
+ *   console.log(ledgerInfo); // Display the fetched ledger information
+ * }
+ * runExample().catch(console.error);
+ */
+
+
   async getLedgerInfo(): Promise<LedgerInfo> {
     return getLedgerInfo({ aptosConfig: this.config });
   }
 
-  /**
-   * Queries for the chain id
-   *
-   * @example
-   * const chainId = await aptos.getChainId()
-   *
-   * @returns The chain id
-   */
+/**
+ * Retrieves the chain ID of the current blockchain network.
+ *
+ * @example
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ *
+ * async function runExample() {
+ *   // Fetch the chain ID
+ *   const chainId = await aptos.getChainId();
+ *   console.log("Chain ID:", chainId);
+ * }
+ * runExample().catch(console.error);
+ *
+ * @returns The chain ID as a string.
+ */
+
+
   async getChainId(): Promise<number> {
     const result = await this.getLedgerInfo();
     return result.chain_id;
   }
 
-  /**
-   * Queries for block by transaction version
-   *
-   * @example
-   * const block = await aptos.getBlockByVersion({ledgerVersion:5})
-   *
-   * @param args.ledgerVersion Ledger version to lookup block information for
-   * @param args.options.withTransactions If set to true, include all transactions in the block
-   *
-   * @returns Block information with optional transactions
-   */
+/**
+ * Retrieves block information by its ledger version.
+ * 
+ * @param args - The arguments for retrieving the block.
+ * @param args.ledgerVersion - The ledger version to lookup block information for.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.withTransactions - If set to true, include all transactions in the block.
+ * 
+ * @returns Block information with optional transactions.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve block information for ledger version 5
+ *   const block = await aptos.getBlockByVersion({ ledgerVersion: 5, options: { withTransactions: true } });
+ *   console.log(block);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getBlockByVersion(args: {
     ledgerVersion: AnyNumber;
     options?: { withTransactions?: boolean };
@@ -94,17 +120,33 @@ export class General {
     });
   }
 
-  /**
-   * Get block by block height
-   *
-   * @example
-   * const block = await aptos.getBlockByVersion({blockHeight:5})
-   *
-   * @param args.blockHeight Block height to lookup.  Starts at 0
-   * @param args.options.withTransactions If set to true, include all transactions in the block
-   *
-   * @returns Block with optional transactions
-   */
+/**
+ * Retrieve a block by its height from the blockchain.
+ * 
+ * @param args - The parameters for retrieving the block.
+ * @param args.blockHeight - The block height to look up, starting at 0.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.withTransactions - If set to true, include all transactions in the block.
+ * 
+ * @returns The block with optional transactions included.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve the block at height 5, including transactions
+ *   const block = await aptos.getBlockByHeight({ blockHeight: 5, options: { withTransactions: true } });
+ *   console.log(block);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getBlockByHeight(args: { blockHeight: AnyNumber; options?: { withTransactions?: boolean } }): Promise<Block> {
     return getBlockByHeight({ aptosConfig: this.config, ...args });
   }
@@ -155,15 +197,28 @@ export class General {
     return viewJson<T>({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Queries top user transactions
-   *
-   * @example
-   * const topUserTransactions = await aptos.getChainTopUserTransactions({limit:5})
-   *
-   * @param args.limit The number of transactions to return
-   * @returns GetChainTopUserTransactionsResponse
-   */
+/**
+ * Queries the top user transactions based on the specified limit.
+ * 
+ * @param args - The arguments for the query.
+ * @param args.limit - The number of transactions to return.
+ * @returns GetChainTopUserTransactionsResponse
+ * 
+ * @example
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch the top 5 user transactions
+ *   const topUserTransactions = await aptos.getChainTopUserTransactions({ limit: 5 });
+ *   console.log(topUserTransactions);
+ * }
+ * runExample().catch(console.error);
+ */
+
+
   async getChainTopUserTransactions(args: { limit: number }): Promise<GetChainTopUserTransactionsResponse> {
     return getChainTopUserTransactions({
       aptosConfig: this.config,
@@ -196,27 +251,49 @@ export class General {
     });
   }
 
-  /**
-   * Queries for the last successful indexer version
-   *
-   * This is useful to tell what ledger version the indexer is updated to, as it can be behind the full nodes.
-   *
-   * @example
-   * const version = await aptos.getIndexerLastSuccessVersion()
-   */
+/**
+ * Queries for the last successful indexer version to determine the ledger version the indexer is updated to, as it can be behind the full nodes.
+ *
+ * @example
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ *
+ * async function runExample() {
+ *   // Get the last successful indexer version
+ *   const version = await aptos.getIndexerLastSuccessVersion();
+ *   console.log(`Last successful indexer version: ${version}`);
+ * }
+ * runExample().catch(console.error);
+ */
+
+
   async getIndexerLastSuccessVersion(): Promise<bigint> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
   }
 
-  /**
-   * Query the processor status for a specific processor type.
-   *
-   * @example
-   * const status = await aptos.getProcessorStatus({processorType:"account_transactions_processor"})
-   *
-   * @param processorType The processor type to query
-   * @returns
-   */
+/**
+ * Query the processor status for a specific processor type.
+ * 
+ * @param processorType The processor type to query.
+ * @returns The status of the specified processor type.
+ * 
+ * @example
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Get the processor status for the account transactions processor
+ *   const status = await aptos.getProcessorStatus("account_transactions_processor");
+ *   console.log(status);
+ * }
+ * runExample().catch(console.error);
+ */
+
+
   async getProcessorStatus(processorType: ProcessorType): Promise<GetProcessorStatusResponse[0]> {
     return getProcessorStatus({ aptosConfig: this.config, processorType });
   }

@@ -134,12 +134,30 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     );
   }
 
-  /**
-   * Gets the current account sequence number,
-   * generates the transaction with the account sequence number,
-   * adds the transaction to the outstanding transaction queue
-   * to be processed later.
-   */
+/**
+ * Submits the next transaction for the account by generating it with the current sequence number 
+ * and adding it to the outstanding transaction queue for processing. 
+ * This function will continue to submit transactions until there are no more to process.
+ * 
+ * @throws {Error} Throws an error if the transaction submission fails.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Submit the next transaction for the account
+ *   await aptos.submitNextTransaction();
+ *   console.log("Transaction submitted successfully.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async submitNextTransaction() {
     try {
       /* eslint-disable no-constant-condition */
@@ -163,15 +181,30 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     }
   }
 
-  /**
-   * Reads the outstanding transaction queue and submits the transaction to chain.
-   *
-   * If the transaction has fulfilled, it pushes the transaction to the processed
-   * transactions queue and fires a transactionsFulfilled event.
-   *
-   * If the transaction has failed, it pushes the transaction to the processed
-   * transactions queue with the failure reason and fires a transactionsFailed event.
-   */
+/**
+ * Reads the outstanding transaction queue and submits the transactions to the blockchain. 
+ * This function helps ensure that all pending transactions are processed and their statuses are tracked.
+ * 
+ * @throws {Error} Throws an error if the process execution fails.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Process outstanding transactions
+ *   await aptos.processTransactions();
+ * 
+ *   console.log("Transactions processed successfully.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async processTransactions() {
     try {
       /* eslint-disable no-constant-condition */
@@ -225,11 +258,42 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     }
   }
 
-  /**
-   * Once transaction has been sent to chain, we check for its execution status.
-   * @param sentTransaction transactions that were sent to chain and are now waiting to be executed
-   * @param sequenceNumber the account's sequence number that was sent with the transaction
-   */
+/**
+ * Once a transaction has been sent to the chain, this function checks for its execution status.
+ * It helps you determine whether the transaction was executed successfully or if it failed.
+ * 
+ * @param sentTransaction - The transaction that was sent to the chain and is now waiting to be executed.
+ * @param sequenceNumber - The account's sequence number that was sent with the transaction.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = Account.generate(); // Generate a new account
+ *   const transaction = await aptos.transaction.build.simple({
+ *     sender: sender.accountAddress,
+ *     data: {
+ *       function: "0x1::aptos_account::transfer",
+ *       functionArguments: [destination.accountAddress, 100],
+ *     },
+ *   });
+ * 
+ *   const sentTransaction = await aptos.transaction.send(transaction);
+ * 
+ *   // Check the transaction execution status
+ *   await aptos.checkTransaction(sentTransaction, sender.sequenceNumber);
+ * 
+ *   console.log(`Transaction ${sentTransaction.value.hash} checked successfully.`);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, sequenceNumber: bigint) {
     try {
       const waitFor: Array<Promise<TransactionResponse>> = [];
@@ -259,16 +323,48 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     }
   }
 
-  /**
-   * Push transaction to the transactions queue
-   *
-   * @param transactionData Transaction payload
-   * @param transactionData.abi For all entry function payloads, the ABI to skip remote ABI lookups
-   * @param options.maxGasAmount Maximum gas amount for the transaction
-   * @param options.gasUnitPrice Gas unit price for the transaction
-   * @param options.expireTimestamp expiration timestamp on the transaction
-   * @param options.accountSequenceNumber the sequence number for the transaction
-   */
+/**
+ * Push a transaction to the transactions queue for processing.
+ * 
+ * @param transactionData - The transaction payload to be pushed to the queue.
+ * @param transactionData.abi - The ABI for all entry function payloads to skip remote ABI lookups.
+ * @param options - Optional parameters for transaction processing.
+ * @param options.maxGasAmount - The maximum gas amount for the transaction.
+ * @param options.gasUnitPrice - The gas unit price for the transaction.
+ * @param options.expireTimestamp - The expiration timestamp for the transaction.
+ * @param options.accountSequenceNumber - The sequence number for the transaction.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Prepare transaction data
+ *   const transactionData = {
+ *     abi: { /* ABI details here */ }, // replace with actual ABI details
+ *   };
+ * 
+ *   // Specify options for the transaction
+ *   const options = {
+ *     maxGasAmount: 10000, // specify your own if needed
+ *     gasUnitPrice: 1, // specify your own if needed
+ *     expireTimestamp: Date.now() + 60000, // 1 minute from now
+ *     accountSequenceNumber: 0, // specify your own if needed
+ *   };
+ * 
+ *   // Push the transaction to the queue
+ *   await aptos.push(transactionData, options);
+ * 
+ *   console.log("Transaction pushed to the queue successfully.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async push(
     transactionData: InputGenerateTransactionPayloadData,
     options?: InputGenerateTransactionOptions,
@@ -276,12 +372,32 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     this.transactionsQueue.enqueue([transactionData, options]);
   }
 
-  /**
-   * Generates a signed transaction that can be submitted to chain
-   * @param account an Aptos account
-   * @param sequenceNumber a sequence number the transaction will be generated with
-   * @returns
-   */
+/**
+ * Generates a signed transaction that can be submitted to the chain using the provided account and sequence number.
+ * 
+ * @param account - An Aptos account used to sign the transaction.
+ * @param sequenceNumber - A sequence number that the transaction will be generated with.
+ * @returns A signed transaction or undefined if the transaction queue is empty.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const account = Account.generate(); // Generate a new account
+ * const sequenceNumber = BigInt(0); // Replace with the actual sequence number for the account
+ * 
+ * async function runExample() {
+ *   // Generate the next transaction for the account
+ *   const transaction = await aptos.generateNextTransaction(account, sequenceNumber);
+ *   console.log(transaction); // Log the generated transaction
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
     const [transactionData, options] = await this.transactionsQueue.dequeue();
@@ -293,9 +409,27 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     });
   }
 
-  /**
-   * Starts transaction submission and transaction processing.
-   */
+/**
+ * Starts transaction submission and processing, allowing for efficient batching of transactions.
+ * 
+ * @throws {Error} Throws an error if unable to start transaction batching.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Start processing transactions in a loop
+ *   await aptos.run();
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async run() {
     try {
       while (!this.taskQueue.isCancelled()) {

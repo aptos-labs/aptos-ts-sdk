@@ -89,14 +89,93 @@ export async function generateTransaction(
  * }
  * ```
  */
-export async function generateTransaction(
+export async
+
+/**
+ * Generates a raw transaction based on the provided configuration and input data.
+ * This function helps in creating a transaction payload that can be submitted to the Aptos blockchain.
+ * 
+ * @param args - The arguments for generating the transaction.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.sender - The account address of the sender.
+ * @param args.data - The transaction data, including the function to be called and its arguments.
+ * @param args.options - Optional parameters for the transaction, such as gas price or sequence number.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Generate a transaction to transfer coins
+ *   const transaction = await aptos.transaction.generateTransaction({
+ *     aptosConfig: config,
+ *     sender: "0x1", // replace with a real sender address
+ *     data: {
+ *       function: "0x1::aptos_account::transfer_coins",
+ *       functionArguments: ["0x2", 100], // replace with a real recipient address and amount
+ *     },
+ *     options: {
+ *       gasPrice: 1000, // specify your own gas price if needed
+ *     },
+ *   });
+ * 
+ *   console.log(transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function generateTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyRawTransaction> {
   const payload = await buildTransactionPayload(args);
   return buildRawTransaction(args, payload);
 }
 
-export async function buildTransactionPayload(
+export async
+
+/**
+ * Builds a transaction payload based on the provided configuration and data.
+ * This function allows you to create a payload for executing transactions on the Aptos blockchain.
+ * 
+ * @param args - The arguments for building the transaction payload.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.data - The data required to generate the transaction payload, which can include:
+ *   - `bytecode`: The bytecode of the transaction.
+ *   - `multisigAddress`: The address of the multisig account (if applicable).
+ *   - `function`: The function to be called in the transaction.
+ *   - `functionArguments`: The arguments to be passed to the function.
+ *   - `typeArguments`: The type arguments for the function.
+ *   - `abi`: The ABI of the function (if available).
+ * 
+ * @returns A promise that resolves to the generated transaction payload.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const transactionPayload = await aptos.buildTransactionPayload({
+ *     aptosConfig: config,
+ *     data: {
+ *       function: "0x1::aptos_account::transfer",
+ *       functionArguments: ["0x1", 100], // replace with a real account address
+ *       typeArguments: [],
+ *       abi: undefined // specify if available
+ *     }
+ *   });
+ * 
+ *   console.log(transactionPayload); // Logs the generated transaction payload
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function buildTransactionPayload(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
 ): Promise<AnyTransactionPayloadInstance> {
   const { aptosConfig, data } = args;
@@ -130,7 +209,45 @@ export async function buildTransactionPayload(
   return payload;
 }
 
-export async function buildRawTransaction(
+export async
+
+/**
+ * Builds a raw transaction based on the provided configuration and payload.
+ * This function is essential for creating transactions that can be sent to the Aptos blockchain.
+ * 
+ * @param args - The arguments for building the transaction.
+ * @param args.aptosConfig - The configuration object for the Aptos client.
+ * @param args.sender - The account address of the transaction sender.
+ * @param args.options - Additional options for the transaction.
+ * @param payload - The payload containing the transaction details.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = Account.generate(); // Replace with a real sender account
+ * 
+ *   const payload = {
+ *     function: "0x1::aptos_account::transfer",
+ *     functionArguments: [Account.generate().accountAddress, 100], // Replace with a real destination account
+ *   };
+ * 
+ *   const transaction = await aptos.transaction.buildRawTransaction({
+ *     aptosConfig: config,
+ *     sender: sender.accountAddress,
+ *     options: {},
+ *   }, payload);
+ * 
+ *   console.log(transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function buildRawTransaction(
   args: { aptosConfig: AptosConfig } & InputGenerateTransactionData,
   payload: AnyTransactionPayloadInstance,
 ): Promise<AnyRawTransaction> {
@@ -252,7 +369,39 @@ export async function simulateTransaction(
  *
  * @return PendingTransactionResponse
  */
-export async function submitTransaction(
+export async
+
+/**
+ * Submits a signed transaction to the Aptos blockchain. This function is essential for executing transactions and interacting with smart contracts on the Aptos network.
+ * 
+ * @param args - The arguments for submitting the transaction.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.data - The data required for the transaction submission.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const transactionData = {
+ *     // Replace with actual transaction data
+ *   };
+ * 
+ *   // Submitting a transaction to the Aptos blockchain
+ *   const response = await aptos.transaction.submitTransaction({
+ *     aptosConfig: config,
+ *     ...transactionData,
+ *   });
+ * 
+ *   console.log("Transaction submitted:", response);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function submitTransaction(
   args: {
     aptosConfig: AptosConfig;
   } & InputSubmitTransactionData,
@@ -269,7 +418,49 @@ export async function submitTransaction(
   return data;
 }
 
-export async function signAndSubmitTransaction(args: {
+export async
+
+/**
+ * Signs and submits a transaction to the Aptos blockchain.
+ * This function allows users to securely sign a transaction and submit it for processing.
+ * 
+ * @param args - The arguments for signing and submitting the transaction.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.signer - The account that will sign the transaction.
+ * @param args.transaction - The raw transaction to be signed and submitted.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const sender = Account.generate(); // Generate a new account for sending the transaction
+ * 
+ * async function runExample() {
+ *   const sequenceNumber = await aptos.account.sequenceNumber(sender.accountAddress);
+ * 
+ *   const transaction = await aptos.transaction.build.simple({
+ *     sender: sender.accountAddress,
+ *     data: {
+ *       function: "0x1::aptos_account::transfer",
+ *       functionArguments: [sender.accountAddress, 100], // Replace with a real destination account
+ *     },
+ *   });
+ * 
+ *   // Sign and submit the transaction
+ *   const pendingTransaction = await aptos.transaction.signAndSubmitTransaction({
+ *     aptosConfig: config,
+ *     signer: sender,
+ *     transaction,
+ *   });
+ * 
+ *   console.log("Pending Transaction:", pendingTransaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
   signer: Account;
   transaction: AnyRawTransaction;
@@ -293,7 +484,45 @@ const packagePublishAbi: EntryFunctionABI = {
   parameters: [TypeTagVector.u8(), new TypeTagVector(TypeTagVector.u8())],
 };
 
-export async function publicPackageTransaction(args: {
+export async
+
+/**
+ * Publishes a package transaction to the Aptos blockchain using the provided metadata and module bytecode.
+ * This function allows users to deploy new modules and associated metadata to the blockchain.
+ * 
+ * @param args - The arguments for the package transaction.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.account - The account address that will send the transaction.
+ * @param args.metadataBytes - The metadata for the package in hexadecimal format.
+ * @param args.moduleBytecode - An array of module bytecode in hexadecimal format.
+ * @param args.options - Optional parameters for generating the transaction.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const account = "0x1"; // replace with a real account address
+ *   const metadataBytes = "0xabcdef"; // replace with real metadata in hex
+ *   const moduleBytecode = ["0x123456"]; // replace with real module bytecode in hex
+ * 
+ *   // Publishing a package transaction
+ *   const transaction = await aptos.transaction.publicPackageTransaction({
+ *     aptosConfig: config,
+ *     account,
+ *     metadataBytes,
+ *     moduleBytecode,
+ *   });
+ * 
+ *   console.log("Transaction published:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function publicPackageTransaction(args: {
   aptosConfig: AptosConfig;
   account: AccountAddressInput;
   metadataBytes: HexInput;
@@ -331,7 +560,41 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
 /**
  * TODO: Need to refactor and move this function out of transactionSubmission
  */
-export async function rotateAuthKey(args: {
+export async
+
+/**
+ * Rotates the authentication key for a specified account to a new private key.
+ * This function is essential for enhancing account security by allowing users to change their authentication key.
+ * 
+ * @param args - The parameters for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toNewPrivateKey - The new private key to be set for the account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account, PrivateKey } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const fromAccount = Account.generate(); // Replace with your own account
+ *   const toNewPrivateKey = PrivateKey.fromHex("0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"); // replace with a real private key
+ * 
+ *   // Rotate the authentication key for the account
+ *   const result = await aptos.transaction.rotateAuthKey({
+ *     aptosConfig: config,
+ *     fromAccount,
+ *     toNewPrivateKey,
+ *   });
+ * 
+ *   console.log("Authentication key rotated successfully:", result);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function rotateAuthKey(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
   toNewPrivateKey: PrivateKey;

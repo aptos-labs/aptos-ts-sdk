@@ -12,7 +12,46 @@ const coinTransferAbi: EntryFunctionABI = {
   parameters: [new TypeTagAddress(), new TypeTagU64()],
 };
 
-export async function transferCoinTransaction(args: {
+export async
+
+/**
+ * Generates a transaction to transfer coins from one account to another.
+ * This function allows you to specify the sender, recipient, amount, and coin type for the transfer.
+ * 
+ * @param args - The arguments for the transaction.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.sender - The address of the account sending the coins.
+ * @param args.recipient - The address of the account receiving the coins.
+ * @param args.amount - The amount of coins to transfer.
+ * @param args.coinType - The type of coin to transfer (optional).
+ * @param args.options - Additional options for generating the transaction (optional).
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = "0x1"; // replace with a real sender address
+ *   const recipient = "0x2"; // replace with a real recipient address
+ *   const amount = 100; // specify the amount to transfer
+ * 
+ *   // Generate a transaction to transfer coins
+ *   const transaction = await aptos.transaction.transferCoinTransaction({
+ *     aptosConfig: config,
+ *     sender,
+ *     recipient,
+ *     amount,
+ *   });
+ * 
+ *   console.log("Transaction generated:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   recipient: AccountAddressInput;

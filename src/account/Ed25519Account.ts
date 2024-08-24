@@ -48,21 +48,61 @@ export class Ed25519Account implements Account {
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
   }
 
-  /**
-   * Derives a signer from a randomly generated private key
-   */
+/**
+ * Generates a new account with a randomly generated private key.
+ * This function is useful for creating a signer that can be used for transactions.
+ * 
+ * @returns {Ed25519Account} The newly generated Ed25519 account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Ed25519Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Generate a new account
+ *   const newAccount = Ed25519Account.generate();
+ * 
+ *   console.log("Generated Account Address:", newAccount.accountAddress);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
   static generate() {
     const privateKey = Ed25519PrivateKey.generate();
     return new Ed25519Account({ privateKey });
   }
 
-  /**
-   * Derives an account with bip44 path and mnemonics
-   *
-   * @param args.path the BIP44 derive hardened path e.g. m/44'/637'/0'/0'/0'
-   * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param args.mnemonic the mnemonic seed phrase of the account
-   */
+/**
+ * Derives an account using a BIP44 path and mnemonic seed phrase.
+ * This function helps you create an account from a specified derivation path and mnemonic.
+ * 
+ * @param args - The arguments for deriving the account.
+ * @param args.path - The BIP44 derive hardened path, e.g., m/44'/637'/0'/0'/0'.
+ * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
+ * @param args.mnemonic - The mnemonic seed phrase of the account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Ed25519Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Deriving an account from a BIP44 path and mnemonic
+ *   const account = Ed25519Account.fromDerivationPath({
+ *     path: "m/44'/637'/0'/0'/0'", // specify your own path if needed
+ *     mnemonic: "abandon abandon ability able about above absent absorb abstract absurd abuse access accident",
+ *   });
+ * 
+ *   console.log(account);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
   static fromDerivationPath(args: Ed25519SignerFromDerivationPathArgs) {
     const { path, mnemonic } = args;
     const privateKey = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);

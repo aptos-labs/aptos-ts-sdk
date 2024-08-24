@@ -129,7 +129,36 @@ const unwrapOption = <T>(option: any): T | undefined => {
   return undefined;
 };
 
-export async function getOwnerAddress(args: {
+export async
+
+/**
+ * Retrieves the owner address for a specified domain or subdomain name.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.name - The domain or subdomain name to query.
+ * @returns The owner address of the specified domain or subdomain, or undefined if not found.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, AccountAddress } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch the owner address for a given domain name
+ *   const ownerAddress = await aptos.ans.getOwnerAddress({
+ *     aptosConfig: config,
+ *     name: "example.apt"
+ *   });
+ * 
+ *   console.log("Owner Address:", ownerAddress?.toString());
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getOwnerAddress(args: {
   aptosConfig: AptosConfig;
   name: string;
 }): Promise<AccountAddress | undefined> {
@@ -164,7 +193,58 @@ export interface RegisterNameParameters {
   options?: InputGenerateTransactionOptions;
 }
 
-export async function registerName(args: RegisterNameParameters): Promise<SimpleTransaction> {
+export async
+
+/**
+ * Registers a domain name or subdomain on the Aptos blockchain.
+ * This function allows users to register a new domain or subdomain with specified expiration policies and transferability options.
+ * 
+ * @param args - The parameters for registering the name.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.expiration - The expiration details for the name registration.
+ * @param args.expiration.policy - The policy for expiration, which can be "domain", "subdomain:independent", or "subdomain:follow-domain".
+ * @param args.expiration.years - The number of years for which the domain is registered (only applicable for domain registrations).
+ * @param args.expiration.expirationDate - The expiration date in milliseconds since epoch (used for subdomains).
+ * @param args.name - The name to be registered, which can be a domain or a subdomain.
+ * @param args.sender - The account initiating the registration.
+ * @param args.targetAddress - The target address for the registration.
+ * @param args.toAddress - The address to which the name will be transferred.
+ * @param args.options - Additional options for the transaction.
+ * @param args.transferable - Indicates whether the name can be transferred.
+ * 
+ * @returns A transaction object for the registration.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = { accountAddress: "0x1" }; // replace with a real account address
+ *   const args = {
+ *     aptosConfig: config,
+ *     expiration: {
+ *       policy: "domain",
+ *       years: 1,
+ *     },
+ *     name: "example.apt",
+ *     sender,
+ *     targetAddress: "0x2", // replace with a real target address
+ *     toAddress: "0x3", // replace with a real address for transfer
+ *     options: {},
+ *     transferable: true,
+ *   };
+ * 
+ *   // Registering a domain name
+ *   const transaction = await aptos.registerName(args);
+ *   console.log("Transaction registered:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function registerName(args: RegisterNameParameters): Promise<SimpleTransaction> {
   const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -242,7 +322,36 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
   return transaction;
 }
 
-export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
+export async
+
+/**
+ * Retrieves the expiration time of a specified domain name in epoch milliseconds.
+ * 
+ * @param args - The arguments for retrieving the expiration.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.name - The name of the domain whose expiration is being queried.
+ * @returns The expiration time in epoch milliseconds, or undefined if an error occurs.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch the expiration time for a domain name
+ *   const expirationTime = await aptos.ans.getExpiration({
+ *     aptosConfig: config,
+ *     name: "example.apt"
+ *   });
+ * 
+ *   console.log("Expiration Time:", expirationTime);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
   const { aptosConfig, name } = args;
   const routerAddress = getRouterAddress(aptosConfig);
   const { domainName, subdomainName } = isValidANSName(name);
@@ -263,7 +372,35 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
   }
 }
 
-export async function getPrimaryName(args: {
+export async
+
+/**
+ * Retrieves the primary name associated with a given account address.
+ * This function helps you obtain the primary domain name and subdomain name for an account.
+ * 
+ * @param args - The arguments for retrieving the primary name.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.address - The account address for which to retrieve the primary name.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const primaryName = await aptos.ans.getPrimaryName({
+ *     aptosConfig: config,
+ *     address: "0x1" // replace with a real account address
+ *   });
+ * 
+ *   console.log("Primary Name:", primaryName);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getPrimaryName(args: {
   aptosConfig: AptosConfig;
   address: AccountAddressInput;
 }): Promise<string | undefined> {
@@ -286,7 +423,40 @@ export async function getPrimaryName(args: {
   return [subdomainName, domainName].filter(Boolean).join(".");
 }
 
-export async function setPrimaryName(args: {
+export async
+
+/**
+ * Sets the primary name for the specified account or clears it if no name is provided.
+ * This function allows you to manage the primary name associated with an account in the Aptos network.
+ * 
+ * @param args - The arguments for setting the primary name.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.sender - The account that will be sending the transaction.
+ * @param args.name - The name to set as the primary name. If omitted, the primary name will be cleared.
+ * @param args.options - Optional parameters for generating the transaction.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const sender = Account.generate(); // Generate a new account for the example
+ * 
+ * async function runExample() {
+ *   // Setting a primary name for the account
+ *   const transaction = await aptos.setPrimaryName({
+ *     aptosConfig: config,
+ *     sender: sender,
+ *     name: "example.apt", // Specify your desired primary name
+ *   });
+ * 
+ *   console.log("Transaction sent:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function setPrimaryName(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   name?: string;
@@ -324,7 +494,35 @@ export async function setPrimaryName(args: {
   return transaction;
 }
 
-export async function getTargetAddress(args: {
+export async
+
+/**
+ * Retrieves the target address associated with a given domain name and subdomain name.
+ * 
+ * @param args - The arguments for retrieving the target address.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.name - The name which includes the domain and optional subdomain.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, AccountAddress } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve the target address for a specific domain name
+ *   const targetAddress = await aptos.getTargetAddress({
+ *     aptosConfig: config,
+ *     name: "example.test" // replace with a real domain name
+ *   });
+ * 
+ *   console.log("Target Address:", targetAddress?.toString());
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getTargetAddress(args: {
   aptosConfig: AptosConfig;
   name: string;
 }): Promise<AccountAddress | undefined> {
@@ -344,7 +542,43 @@ export async function getTargetAddress(args: {
   return target ? AccountAddress.from(target) : undefined;
 }
 
-export async function setTargetAddress(args: {
+export async
+
+/**
+ * Sets the target address for a specified domain and subdomain name in the Aptos network.
+ * This function allows you to associate a target address with a domain and subdomain, enabling routing to the specified address.
+ * 
+ * @param args - The parameters required to set the target address.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.sender - The account that is sending the transaction.
+ * @param args.name - The domain name to be set.
+ * @param args.address - The target address to associate with the domain name.
+ * @param args.options - Optional parameters for generating the transaction.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const sender = Account.generate(); // Generate a new account for sending the transaction
+ * const domainName = "example"; // Specify your domain name
+ * const targetAddress = "0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"; // replace with a real address
+ * 
+ * async function runExample() {
+ *   const transaction = await aptos.setTargetAddress({
+ *     aptosConfig: config,
+ *     sender: sender,
+ *     name: domainName,
+ *     address: targetAddress,
+ *   });
+ * 
+ *   console.log("Transaction submitted:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function setTargetAddress(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   name: string;
@@ -368,7 +602,37 @@ export async function setTargetAddress(args: {
   return transaction;
 }
 
-export async function getName(args: {
+export async
+
+/**
+ * Retrieves the active Aptos name associated with the specified domain and subdomain.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos, which includes network settings.
+ * @param args.name - The full name to query, which may include a domain and subdomain.
+ * 
+ * @returns The active Aptos name if found, otherwise undefined.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve the active Aptos name for the specified domain and subdomain
+ *   const name = await aptos.getName({
+ *     aptosConfig: config,
+ *     name: "example.apt"
+ *   });
+ * 
+ *   console.log(name); // Output the retrieved name
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getName(args: {
   aptosConfig: AptosConfig;
   name: string;
 }): Promise<GetANSNameResponse[0] | undefined> {
@@ -409,7 +673,45 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
 }
 
-export async function getAccountNames(
+export async
+
+/**
+ * Retrieves the current Aptos names associated with a specified account address.
+ * This function allows users to query the names owned by a specific account, filtered by expiration date.
+ * 
+ * @param args - The arguments for retrieving account names.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.accountAddress - The address of the account for which to retrieve names.
+ * @param args.options - Optional parameters for querying names.
+ * @param args.options.limit - The maximum number of names to return.
+ * @param args.options.offset - The number of names to skip before starting to collect the result set.
+ * @param args.options.orderBy - The order in which to return the names.
+ * @param args.options.where - Additional filtering conditions for the query.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const accountAddress = "0x1"; // replace with a real account address
+ *   const names = await aptos.getAccountNames({
+ *     aptosConfig: config,
+ *     accountAddress,
+ *     options: {
+ *       limit: 10, // specify the limit as needed
+ *       orderBy: "created_at", // specify the order as needed
+ *     },
+ *   });
+ * 
+ *   console.log(names);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getAccountNames(
   args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
 ): Promise<GetANSNameResponse> {
   const { aptosConfig, options, accountAddress } = args;
@@ -441,7 +743,48 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
 }
 
-export async function getAccountDomains(
+export async
+
+/**
+ * Retrieves the domains associated with a specific account address.
+ * This function allows you to query the domains owned by an account that are not expired.
+ * 
+ * @param args - The arguments for retrieving account domains.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.accountAddress - The address of the account whose domains are being queried.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.limit - The maximum number of domains to retrieve.
+ * @param args.options.offset - The number of domains to skip before starting to collect the result set.
+ * @param args.options.orderBy - The field by which to order the results.
+ * @param args.options.where - Additional conditions to filter the domains.
+ * 
+ * @returns An array of sanitized domain names owned by the specified account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve domains for a specific account address
+ *   const accountAddress = "0x1"; // replace with a real account address
+ *   const domains = await aptos.getAccountDomains({
+ *     aptosConfig: config,
+ *     accountAddress,
+ *     options: {
+ *       limit: 10, // specify the number of domains to retrieve
+ *       orderBy: "name", // specify the field to order by
+ *     },
+ *   });
+ * 
+ *   console.log(domains);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getAccountDomains(
   args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
 ): Promise<GetANSNameResponse> {
   const { aptosConfig, options, accountAddress } = args;
@@ -474,7 +817,45 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
 }
 
-export async function getAccountSubdomains(
+export async
+
+/**
+ * Retrieves the subdomains associated with a specified account address.
+ * This function helps you to identify all subdomains owned by a particular account that are not expired.
+ * 
+ * @param args - The arguments for retrieving account subdomains.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.limit - The maximum number of subdomains to retrieve.
+ * @param args.options.offset - The number of subdomains to skip before starting to collect the result set.
+ * @param args.options.orderBy - The field by which to order the results.
+ * @param args.options.where - Additional filtering conditions for the query.
+ * @param args.accountAddress - The account address for which to retrieve subdomains.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve subdomains for a specific account
+ *   const subdomains = await aptos.getAccountSubdomains({
+ *     aptosConfig: config,
+ *     accountAddress: "0x1", // replace with a real account address
+ *     options: {
+ *       limit: 10, // specify the maximum number of subdomains to retrieve
+ *       orderBy: "created_at", // specify the field to order by
+ *     },
+ *   });
+ * 
+ *   console.log(subdomains);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getAccountSubdomains(
   args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
 ): Promise<GetANSNameResponse> {
   const { aptosConfig, options, accountAddress } = args;
@@ -507,7 +888,46 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
   domain: string;
 }
 
-export async function getDomainSubdomains(
+export async
+
+/**
+ * Retrieves the subdomains associated with a specified domain.
+ * This function helps you to find all active subdomains under a given domain.
+ * 
+ * @param args - The arguments for fetching subdomains.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.domain - The domain for which to retrieve subdomains.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.limit - The maximum number of subdomains to return.
+ * @param args.options.offset - The number of subdomains to skip before starting to collect the result set.
+ * @param args.options.orderBy - The field by which to order the results.
+ * @param args.options.where - Additional conditions to filter the results.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch subdomains for the specified domain
+ *   const subdomains = await aptos.getDomainSubdomains({
+ *     aptosConfig: config,
+ *     domain: "example.apt",
+ *     options: {
+ *       limit: 10, // Specify the maximum number of subdomains to return
+ *       offset: 0, // Start from the first subdomain
+ *       orderBy: "created_at", // Order by creation date
+ *     },
+ *   });
+ * 
+ *   console.log(subdomains); // Output the retrieved subdomains
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getDomainSubdomains(
   args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
 ): Promise<GetANSNameResponse> {
   const { aptosConfig, options, domain } = args;
@@ -544,7 +964,34 @@ export async function getDomainSubdomains(
  * @param args.aptosConfig an AptosConfig object
  * @returns
  */
-async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
+async
+
+/**
+ * Retrieves the expiration date for a name based on the contract's defined grace period. 
+ * The grace period allows names to remain in a non-functional state for a specified duration 
+ * after expiration, during which the owner can renew the name without risk of losing it.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - An AptosConfig object containing network configuration.
+ * @returns The expiration date in ISO format.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Get the expiration date for a name
+ *   const expirationDate = await aptos.getANSExpirationDate({ aptosConfig: config });
+ * 
+ *   console.log("Expiration Date:", expirationDate);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
   const { aptosConfig } = args;
   const routerAddress = getRouterAddress(aptosConfig);
 
@@ -561,7 +1008,40 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
   return new Date(now().setDate(now().getDate() - gracePeriodInDays)).toISOString();
 }
 
-export async function renewDomain(args: {
+export async
+
+/**
+ * Renews a domain for a specified number of years. Currently, only 1-year renewals are supported.
+ * 
+ * @param args - The arguments for renewing the domain.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.sender - The account that is sending the renewal request.
+ * @param args.name - The name of the domain to renew.
+ * @param args.years - The number of years to renew the domain for (default is 1).
+ * @param args.options - Additional options for generating the transaction.
+ * @throws Error if attempting to renew a subdomain or if years is not equal to 1.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * const sender = Account.generate(); // Generate a new account for sending the renewal
+ * 
+ * async function runExample() {
+ *   const transaction = await aptos.renewDomain({
+ *     aptosConfig: config,
+ *     sender: sender,
+ *     name: "example.ans", // Specify the domain name to renew
+ *   });
+ * 
+ *   console.log("Transaction for renewing domain:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function renewDomain(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   name: string;

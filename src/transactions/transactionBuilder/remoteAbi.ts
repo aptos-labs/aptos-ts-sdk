@@ -71,7 +71,40 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
  * @param functionName
  * @param aptosConfig
  */
-export async function fetchFunctionAbi(
+export async
+
+/**
+ * Fetches the ABI of a specified function from a given module.
+ * This allows you to retrieve detailed information about a specific function's interface.
+ * 
+ * @param moduleAddress - The address of the module containing the function.
+ * @param moduleName - The name of the module where the function is defined.
+ * @param functionName - The name of the function whose ABI you want to fetch.
+ * @param aptosConfig - The configuration settings for connecting to the Aptos network.
+ * @returns The ABI of the specified function, or undefined if not found.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching the ABI of a specific function
+ *   const functionAbi = await aptos.fetchFunctionAbi(
+ *     "0x1", // replace with a real module address
+ *     "MyModule", // replace with a real module name
+ *     "myFunction", // replace with a real function name
+ *     config
+ *   );
+ * 
+ *   console.log(functionAbi);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function fetchFunctionAbi(
   moduleAddress: string,
   moduleName: string,
   functionName: string,
@@ -95,7 +128,40 @@ export async function fetchFunctionAbi(
  * @param functionName
  * @param aptosConfig
  */
-export async function fetchEntryFunctionAbi(
+export async
+
+/**
+ * Fetches the ABI for an entry function from a specified module.
+ * This function helps you retrieve the function's parameters and type information for further interaction.
+ * 
+ * @param moduleAddress - The address of the module containing the function.
+ * @param moduleName - The name of the module containing the function.
+ * @param functionName - The name of the entry function to fetch.
+ * @param aptosConfig - The configuration object for Aptos.
+ * @returns An object containing the number of signers, type parameters, and parameters of the entry function.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching the ABI for an entry function
+ *   const entryFunctionAbi = await aptos.fetchEntryFunctionAbi(
+ *     "0x1", // replace with a real module address
+ *     "coin", // replace with a real module name
+ *     "mint", // replace with a real function name
+ *     config
+ *   );
+ * 
+ *   console.log(entryFunctionAbi);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function fetchEntryFunctionAbi(
   moduleAddress: string,
   moduleName: string,
   functionName: string,
@@ -135,7 +201,38 @@ export async function fetchEntryFunctionAbi(
  * @param functionName
  * @param aptosConfig
  */
-export async function fetchViewFunctionAbi(
+export async
+
+/**
+ * Fetches the ABI for a specified view function from a given module address.
+ * This function allows you to retrieve the details of a view function's parameters and return types.
+ * 
+ * @param moduleAddress - The address of the module containing the view function.
+ * @param moduleName - The name of the module containing the view function.
+ * @param functionName - The name of the view function whose ABI is to be fetched.
+ * @param aptosConfig - The configuration object for the Aptos client.
+ * 
+ * @returns An object containing the type parameters, parameters, and return types of the view function.
+ * 
+ * @throws Error if the function ABI cannot be found or if the function is not a view function.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching the ABI for a view function
+ *   const abi = await aptos.fetchViewFunctionAbi("0x1", "MyModule", "myViewFunction", config);
+ * 
+ *   console.log(abi);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function fetchViewFunctionAbi(
   moduleAddress: string,
   moduleName: string,
   functionName: string,
@@ -180,7 +277,46 @@ export async function fetchViewFunctionAbi(
  * @param position
  * @param genericTypeParams
  */
-export function convertArgument(
+export
+
+/**
+ * Converts an argument based on the provided function ABI and its position, ensuring type compatibility.
+ * This function helps to validate and convert arguments before they are passed to a smart contract function.
+ * 
+ * @param functionName - The name of the function being called.
+ * @param functionAbi - The ABI of the function, which includes parameter definitions.
+ * @param arg - The argument to be converted, which can be of various types.
+ * @param position - The position of the argument in the function's parameter list.
+ * @param genericTypeParams - An array of generic type parameters for the function.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const functionName = "transfer";
+ *   const functionAbi = {
+ *     parameters: [
+ *       { name: "recipient", type: "address" },
+ *       { name: "amount", type: "u64" }
+ *     ]
+ *   };
+ *   const arg = "0x1"; // replace with a real address
+ *   const position = 0;
+ *   const genericTypeParams = [];
+ * 
+ *   // This will convert the argument for the function call
+ *   const convertedArg = aptos.convertArgument(functionName, functionAbi, arg, position, genericTypeParams);
+ * 
+ *   console.log(convertedArg);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function convertArgument(
   functionName: string,
   functionAbi: FunctionABI,
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
@@ -196,7 +332,38 @@ export function convertArgument(
   return checkOrConvertArgument(arg, param, position, genericTypeParams);
 }
 
-export function checkOrConvertArgument(
+export
+
+/**
+ * Checks if the provided argument is BCS encoded and converts it if necessary, ensuring type compatibility with the ABI.
+ * 
+ * @param arg - The argument to check or convert, which can be either a simple or an entry function argument type.
+ * @param param - The expected type tag for the argument.
+ * @param position - The position of the argument in the function call.
+ * @param genericTypeParams - An array of type tags for any generic type parameters.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const arg = "exampleArgument"; // replace with a real argument
+ *   const param = "0x1::example_module::ExampleType"; // replace with a real type tag
+ *   const position = 0; // the position of the argument
+ *   const genericTypeParams = []; // specify any generic type parameters if needed
+ * 
+ *   // Check or convert the argument
+ *   const result = await aptos.checkOrConvertArgument(arg, param, position, genericTypeParams);
+ * 
+ *   console.log(result); // Log the result to verify the operation
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function checkOrConvertArgument(
   arg: SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes,
   param: TypeTag,
   position: number,
@@ -380,11 +547,35 @@ function parseArg(
 }
 
 /**
- * Checks that the type of an already BCS encoded argument matches the ABI
- * @param param
- * @param arg
- * @param position
+ * Checks that the type of an already BCS encoded argument matches the ABI.
+ * This function ensures that the provided argument conforms to the expected type defined by the parameter.
+ * 
+ * @param param - The expected type as defined in the ABI.
+ * @param arg - The actual argument that needs to be checked against the expected type.
+ * @param position - The position of the argument in the function call for error reporting.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const param = ...; // Define the expected type
+ *   const arg = ...; // Provide the actual argument to check
+ *   const position = 1; // Specify the position of the argument
+ * 
+ *   // Check the type of the argument against the expected type
+ *   checkType(param, arg, position);
+ * 
+ *   console.log("Type check passed.");
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number) {
   if (param.isBool()) {
     if (isBcsBool(arg)) {

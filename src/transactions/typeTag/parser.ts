@@ -22,41 +22,130 @@ import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 
 /**
- * Tells if the string is a valid Move identifier.  It can only be alphanumeric and `_`
- * @param str
+ * Determines if the provided string is a valid Move identifier, which can only contain alphanumeric characters and underscores.
+ * 
+ * @param str - The string to validate as a Move identifier.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *   const identifier = "valid_identifier123"; // Example of a valid identifier
+ * 
+ *   // Check if the identifier is valid
+ *   const isValid = Aptos.isValidIdentifier(identifier);
+ * 
+ *   console.log(`Is the identifier valid? ${isValid}`); // Outputs: Is the identifier valid? true
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);
 }
 
 /**
- * Tells if the character is a whitespace character.  Does not work for multiple characters
- * @param char
+ * Determines if the provided character is a whitespace character.
+ * This function is useful for validating input and ensuring that only non-whitespace characters are processed.
+ * 
+ * @param char - The character to check.
+ * @returns A boolean indicating whether the character is a whitespace character.
+ * 
+ * @example
+ * ```typescript
+ * import { isValidWhitespaceCharacter } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *   // Check if a character is a whitespace character
+ *   const result = isValidWhitespaceCharacter(" ");
+ * 
+ *   console.log(result); // Should log: true
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
 }
 
 /**
- * Tells if a type is a generic type from the ABI, this will be of the form T0, T1, ...
- * @param str
+ * Determines if the provided string represents a generic type from the ABI, which follows the format T0, T1, etc.
+ * 
+ * @param str - The string to evaluate as a potential generic type.
+ * @returns A boolean indicating whether the string matches the generic type format.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *   const genericType = "T1"; // Example of a generic type
+ *   const isGenericType = isGeneric(genericType); // Check if it's a generic type
+ *   console.log(isGenericType); // Should log: true
+ * 
+ *   const nonGenericType = "String"; // Example of a non-generic type
+ *   const isNotGenericType = isGeneric(nonGenericType); // Check if it's a generic type
+ *   console.log(isNotGenericType); // Should log: false
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function isGeneric(str: string) {
   return !!str.match(/^T[0-9]+$/);
 }
 
 /**
- * Tells if a type is a reference type (starts with &)
- * @param str
+ * Determines if the provided string represents a reference type, which starts with an ampersand (&).
+ * 
+ * @param str - The string to evaluate.
+ * @returns A boolean indicating whether the string is a reference type.
+ * 
+ * @example
+ * ```typescript
+ * import { isRef } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *   // Check if the string is a reference type
+ *   const result = isRef("&myReference");
+ * 
+ *   console.log(result); // Should log true
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function isRef(str: string) {
   return !!str.match(/^&.+$/);
 }
 
 /**
- * Tells if a type is a primitive type
- * @param str
+ * Determines if the provided string represents a primitive type.
+ * This function can help validate types when working with data structures.
+ * 
+ * @param str - The string to check for being a primitive type.
+ * @returns A boolean indicating whether the string is a primitive type.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *   const isPrimitiveType = Aptos.isPrimitive("address"); // Check if "address" is a primitive type
+ *   console.log(isPrimitiveType); // Should log: true
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function isPrimitive(str: string) {
   switch (str) {
     case "signer":
@@ -75,10 +164,34 @@ function isPrimitive(str: string) {
 }
 
 /**
- * Consumes all whitespace in a string, similar to trim
- * @param tagStr
- * @param pos
+ * Consumes all whitespace in a string starting from a specified position and returns the new position.
+ * This function is useful for parsing strings where whitespace needs to be ignored.
+ * 
+ * @param tagStr - The string to process for whitespace consumption.
+ * @param pos - The starting position in the string from which to begin consuming whitespace.
+ * @returns The new position in the string after consuming whitespace.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *     const tagStr = "   Hello, World!  ";
+ *     const startPos = 0; // Starting position to consume whitespace
+ *     
+ *     // Consuming whitespace from the string
+ *     const newPos = consumeWhitespace(tagStr, startPos);
+ *     
+ *     console.log(`New position after consuming whitespace: ${newPos}`); // Outputs the new position
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
+
+
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
   for (; i < tagStr.length; i += 1) {
@@ -136,7 +249,32 @@ export class TypeTagParserError extends Error {
  * 3. Nested generics of different depths e.g. 0x1::pair::Pair<0x1::coin::Coin<0x1234::coin::MyCoin>, u8>
  * 4. Generics for types in ABIs are filled in with placeholders e.g T1, T2, T3
  */
-export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
+export
+
+/**
+ * Parses a type tag string into a structured representation of its types.
+ * This function is useful for interpreting type tags that may include generics or nested types.
+ * 
+ * @param typeStr - The string representation of the type tag to parse.
+ * @param options - Optional parameters for parsing behavior.
+ * @param options.allowGenerics - A boolean indicating whether to allow generic types in the parsing (default is false).
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Parse a type tag string with generics
+ *   const typeTag = parseTypeTag("0x1::coin::Coin<u8>", { allowGenerics: true });
+ *   console.log(typeTag);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
   const allowGenerics = options?.allowGenerics ?? false;
 
   const saved: Array<TypeTagState> = [];

@@ -7,7 +7,33 @@ import { decode } from "js-base64";
  * Sleep the current thread for the given amount of time
  * @param timeMs time in milliseconds to sleep
  */
-export async function sleep(timeMs: number): Promise<null> {
+export async
+
+/**
+ * Pauses execution for a specified duration in milliseconds.
+ * This function is useful for creating delays in asynchronous operations, such as waiting for a process to complete or for a specific condition to be met.
+ * 
+ * @param timeMs - The duration to sleep in milliseconds.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   console.log("Starting the sleep function...");
+ * 
+ *   // This will pause execution for 200 milliseconds
+ *   await aptos.sleep(200);
+ * 
+ *   console.log("Finished sleeping!");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function sleep(timeMs: number): Promise<null> {
   return new Promise((resolve) => {
     setTimeout(resolve, timeMs);
   });

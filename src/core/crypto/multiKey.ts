@@ -8,6 +8,29 @@ import { AnyPublicKey, AnySignature } from "./singleKey";
 
 /* eslint-disable no-bitwise */
 
+/**
+ * Counts the number of set bits (1s) in a byte.
+ * This function is useful for determining the Hamming weight of a byte.
+ * 
+ * @param byte - The byte (number) for which to count the set bits.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const byte = 0b10101100; // Example byte
+ *   const count = aptos.bitCount(byte); // Counting the set bits in the byte
+ *   console.log(`Number of set bits: ${count}`);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
 function bitCount(byte: number) {
   let n = byte;
   n -= (n >> 1) & 0x55555555;

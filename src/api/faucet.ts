@@ -14,18 +14,36 @@ import { ProcessorType } from "../utils";
 export class Faucet {
   constructor(readonly config: AptosConfig) {}
 
-  /**
-   * This creates an account if it does not exist and mints the specified amount of
-   * coins into that account
-   *
-   * @example
-   * const transaction = await aptos.fundAccount({accountAddress:"0x123", amount: 100})
-   *
-   * @param args.accountAddress Address of the account to fund
-   * @param args.amount Amount of tokens to fund the account with
-   * @param args.options Configuration options for waitForTransaction
-   * @returns Transaction hash of the transaction that funded the account
-   */
+/**
+ * This function creates an account if it does not exist and mints the specified amount of coins into that account.
+ * 
+ * @param args - The parameters for funding the account.
+ * @param args.accountAddress - Address of the account to fund.
+ * @param args.amount - Amount of tokens to fund the account with.
+ * @param args.options - Configuration options for waiting for the transaction.
+ * @returns Transaction hash of the transaction that funded the account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fund an account with 100 tokens
+ *   const transaction = await aptos.fundAccount({
+ *     accountAddress: "0x1", // replace with a real account address
+ *     amount: 100,
+ *   });
+ * 
+ *   console.log("Transaction Hash:", transaction.hash);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async fundAccount(args: {
     accountAddress: AccountAddressInput;
     amount: number;
