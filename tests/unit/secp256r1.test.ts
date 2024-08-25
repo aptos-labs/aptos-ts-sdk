@@ -2,16 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { p256 } from "@noble/curves/p256";
-import {
-  Deserializer,
-  Hex,
-  Secp256r1PrivateKey,
-  Secp256r1PublicKey,
-  Secp256r1Signature,
-  Serializer,
-} from "../../src";
-import { secp256r1TestObject, secp256r1WalletTestObject } from "./helper";
 import { sha256 } from "@noble/hashes/sha256";
+import { Deserializer, Hex, Secp256r1PrivateKey, Secp256r1PublicKey, Secp256r1Signature, Serializer } from "../../src";
+import { secp256r1TestObject, secp256r1WalletTestObject } from "./helper";
 
 /* eslint-disable max-len */
 describe("Secp256r1PublicKey", () => {
@@ -41,11 +34,11 @@ describe("Secp256r1PublicKey", () => {
 
     const message = Hex.fromHexString(secp256r1TestObject.messageEncoded);
     const signature = privateKey.signArbitraryMessage(message.toUint8Array());
-    expect(signature.toString()).toEqual("0x67a8c6539315eea3953c04165d2448f2de9bbb800bf5672af8098b73026292966ea226dfe4591b89da58999ef5e7f659a7d5bbee8aedbabe550e3b7034ddc51b")
+    expect(signature.toString()).toEqual(secp256r1TestObject.signatureHex);
 
-    const verify = p256.verify(signature.toUint8Array(), sha256(message.toUint8Array()), publicKey.toUint8Array())
+    const verify = p256.verify(signature.toUint8Array(), sha256(message.toUint8Array()), publicKey.toUint8Array());
     expect(verify).toBeTruthy();
-  })
+  });
 
   it("should verify the signature correctly", () => {
     const pubKey = new Secp256r1PublicKey(secp256r1TestObject.publicKey);
@@ -191,13 +184,13 @@ describe("Secp256r1Signature", () => {
 
     const received = Hex.fromHexInput(serializer.toUint8Array()).toString();
     const expected =
-      "0x40fdce3c5476cc02199f6c2f8adb559bd4b6735893087e336bc0215438ca1b909b22da6d75646c9d823f99f81d29c05fae92cef6e57c909d206a2cfcb954370d81";
+      "0x4067a8c6539315eea3953c04165d2448f2de9bbb800bf5672af8098b73026292966ea226dfe4591b89da58999ef5e7f659a7d5bbee8aedbabe550e3b7034ddc51b";
     expect(received).toEqual(expected);
   });
 
   it("should deserialize correctly", () => {
     const serializedSignature =
-      "0x40fdce3c5476cc02199f6c2f8adb559bd4b6735893087e336bc0215438ca1b909b22da6d75646c9d823f99f81d29c05fae92cef6e57c909d206a2cfcb954370d81";
+      "0x4067a8c6539315eea3953c04165d2448f2de9bbb800bf5672af8098b73026292966ea226dfe4591b89da58999ef5e7f659a7d5bbee8aedbabe550e3b7034ddc51b";
     const serializedSignatureUint8Array = Hex.fromHexString(serializedSignature).toUint8Array();
     const deserializer = new Deserializer(serializedSignatureUint8Array);
     const signature = Secp256r1Signature.deserialize(deserializer);

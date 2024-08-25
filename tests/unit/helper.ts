@@ -102,7 +102,7 @@ export const secp256r1TestObject = {
   messageEncoded: "68656c6c6f20776f726c64",
   stringMessage: "hello world",
   signatureHex:
-    "0xfdce3c5476cc02199f6c2f8adb559bd4b6735893087e336bc0215438ca1b909b22da6d75646c9d823f99f81d29c05fae92cef6e57c909d206a2cfcb954370d81",
+    "0x67a8c6539315eea3953c04165d2448f2de9bbb800bf5672af8098b73026292966ea226dfe4591b89da58999ef5e7f659a7d5bbee8aedbabe550e3b7034ddc51b",
 };
 
 export const singleSignerED25519 = {
