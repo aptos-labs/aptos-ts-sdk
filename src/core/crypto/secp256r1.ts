@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { p256 } from "@noble/curves/p256";
+import { p256, secp256r1 } from "@noble/curves/p256";
 import { sha256 } from "@noble/hashes/sha256";
 import { HDKey } from "@scure/bip32";
 import { bufferToBase64URLString } from "@simplewebauthn/browser";
@@ -15,6 +15,7 @@ import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 import type { WebAuthnSignature } from "./webauthn";
+import type { ProjPointType } from "@noble/curves/abstract/weierstrass";
 
 /**
  * Represents the Secp256r1 public key
@@ -136,6 +137,68 @@ export class Secp256r1PublicKey extends AccountPublicKey {
 
   static isInstance(publicKey: PublicKey): publicKey is Secp256r1PublicKey {
     return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256r1PublicKey.LENGTH;
+  }
+
+  /**
+   * Recover Secp256r1 Ecdsa Public Key from Passkey Signature
+   *
+   * @param authenticatorData authenticatorData
+   * @param clientDataJSON clientDataJSON
+   * @param signature signature
+   * @returns Secp256r1PublicKey
+   *
+   * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
+   */
+  static async recoverPasskeyPublicKey(
+    authenticatorData: Uint8Array,
+    clientDataJSON: Uint8Array,
+    signature: Uint8Array,
+  ): Promise<Secp256r1PublicKey | null> {
+    const shaClientDataJSON = sha256(clientDataJSON);
+
+    // Construct verificationData, where verificationData is defined as
+    // verificationData = authenticator_data || sha256(clientDataJson)
+    // https://www.w3.org/TR/webauthn-3/#sctn-verifying-assertion
+    const verificationData = new Uint8Array([...authenticatorData, ...shaClientDataJSON]);
+    return await Secp256r1PublicKey.recoverPublicKey(verificationData, signature);
+  }
+
+  /**
+   * Recover Secp256r1 Ecdsa Public Key from Signature
+   *
+   * @param authenticatorData authenticatorData
+   * @param clientDataJSON clientDataJSON
+   * @param signature signature
+   * @returns Secp256r1PublicKey
+   *
+   * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
+   */
+  static async recoverPublicKey(
+    message: Uint8Array,
+    signature: Uint8Array,
+  ): Promise<Secp256r1PublicKey | null> {
+    const msgHash = sha256(message);
+    const sig = secp256r1.Signature.fromCompact(signature);
+
+    // TODO Double check recovery bit logic with Alin
+    // Cycle through all potential recovery bits (0, 1, 2, 3)
+    // to recover the one that is correct for the given signature
+    let publicKey: ProjPointType<bigint>;
+    for (let recid = 0; recid < 4; recid++) {
+      try {
+        publicKey = sig.addRecoveryBit(recid).recoverPublicKey(msgHash);
+        let secp256r1PublicKey = new Secp256r1PublicKey(publicKey.toRawBytes(false));
+
+        // If the Public Key verifies the signature correctly, return it
+        if (p256.verify(signature, msgHash, secp256r1PublicKey.toUint8Array())) {
+          return secp256r1PublicKey;
+        }
+      } catch (err) {
+        // Ignore and continue
+      }
+    }
+
+    return null;
   }
 }
 

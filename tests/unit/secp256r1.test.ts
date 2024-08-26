@@ -4,7 +4,7 @@
 import { p256 } from "@noble/curves/p256";
 import { sha256 } from "@noble/hashes/sha256";
 import { Deserializer, Hex, Secp256r1PrivateKey, Secp256r1PublicKey, Secp256r1Signature, Serializer } from "../../src";
-import { secp256r1TestObject, secp256r1WalletTestObject } from "./helper";
+import { secp256k1TestObject, secp256r1TestObject, secp256r1WalletTestObject } from "./helper";
 
 /* eslint-disable max-len */
 describe("Secp256r1PublicKey", () => {
@@ -81,6 +81,18 @@ describe("Secp256r1PublicKey", () => {
     const publicKey = Secp256r1PublicKey.deserialize(deserializer);
 
     expect(publicKey.toString()).toEqual(secp256r1TestObject.publicKey);
+  });
+
+  it("ecdsa public key recovery", async () => {
+    // Create from string
+    const message = Hex.fromHexInput(secp256r1TestObject.messageEncoded);
+    const signature = new Secp256r1Signature(secp256r1TestObject.signatureHex);
+    expect(signature).toBeInstanceOf(Secp256r1Signature);
+
+    // // Create from Uint8Array
+    const publicKey = await Secp256r1PublicKey.recoverPublicKey(message.toUint8Array(), signature.toUint8Array())
+    expect(publicKey?.verifySignature({ message: message.toUint8Array(), signature })).toBeTruthy();
+    expect(publicKey?.toString()).toEqual(secp256r1TestObject.publicKey);
   });
 });
 
