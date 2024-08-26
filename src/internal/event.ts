@@ -31,9 +31,16 @@ export async function getModuleEventsByEventType(args: {
   const { aptosConfig, eventType, options } = args;
 
   const whereCondition: EventsBoolExp = {
-    account_address: { _eq: "0x0000000000000000000000000000000000000000000000000000000000000000" },
-    creation_number: { _eq: "0" },
-    sequence_number: { _eq: "0" },
+    _or: [
+      // EventHandle events
+      { account_address: { _eq: eventType.split("::")[0] } },
+      // Module events
+      {
+        account_address: { _eq: "0x0000000000000000000000000000000000000000000000000000000000000000" },
+        sequence_number: { _eq: 0 },
+        creation_number: { _eq: 0 },
+      },
+    ],
     indexed_type: { _eq: eventType },
   };
 
