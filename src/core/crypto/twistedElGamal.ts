@@ -4,7 +4,8 @@ import { bytesToNumberLE, ensureBytes } from "@noble/curves/abstract/utils";
 import { randomBytes } from "crypto";
 import { HexInput } from "../../types";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { Hex } from "../hex";
+
+export type RistPoint = InstanceType<typeof RistrettoPoint>
 
 /**
  * Twisted ElGamal encryption/decryption
@@ -69,12 +70,13 @@ export class TwistedElGamal {
     const m = amount
     const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT)
     const r = mod(bytesToNumberLE(rBytes), ed25519.CURVE.n)
-    const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r).toRawBytes()
     const rG = RistrettoPoint.BASE.multiply(r)
     const mH = m === BigInt(0)
       ? RistrettoPoint.ZERO
       : H.multiply(m)
-    const C = mH.add(rG).toRawBytes()
+
+    const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r)
+    const C = mH.add(rG)
   
     return new TwistedElGamalCiphertext(C, D);
   }
@@ -93,16 +95,17 @@ export class TwistedElGamal {
     const { C, D } = ciphertext
     const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT)
     const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n)
-    const sD = RistrettoPoint.fromHex(D.toUint8Array()).multiply(modS)
-    const mH = RistrettoPoint.fromHex(C.toUint8Array()).subtract(sD)
+    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS)
+    const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD)
 
-    let searchablePoint = H
     let amount = startAmount ?? BigInt(0)
     if (amount === BigInt(0)){
       if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0)
 
       amount += BigInt(1)
     } 
+
+    let searchablePoint = H.multiply(amount)
 
     while (!mH.equals(searchablePoint)) {
       if (amount >= ed25519.CURVE.n) throw new Error("Error when decrypting the amount")
@@ -118,12 +121,16 @@ export class TwistedElGamal {
  * Points of ciphertext encrypted by Twisted ElGamal
  */
 export class TwistedElGamalCiphertext {
-  readonly C: Hex;
+  readonly C: RistPoint;
 
-  readonly D: Hex;
+  readonly D: RistPoint;
 
-  constructor(C: HexInput, D: HexInput) {
-    this.C = Hex.fromHexInput(C);
-    this.D = Hex.fromHexInput(D);
+  constructor(C: HexInput | RistPoint, D: HexInput | RistPoint) {
+    this.C = C instanceof RistrettoPoint
+      ? C
+      : RistrettoPoint.fromHex(C);
+    this.D = D instanceof RistrettoPoint 
+      ? D
+      : RistrettoPoint.fromHex(D);
   }
 }
