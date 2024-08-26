@@ -109,6 +109,7 @@ export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
   Keyless = 3,
+  FederatedKeyless = 4,
 }
 
 export enum AnySignatureVariant {

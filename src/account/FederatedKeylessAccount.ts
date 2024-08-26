@@ -4,25 +4,19 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import EventEmitter from "eventemitter3";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
-import { AccountAddress } from "../core/accountAddress";
-import {
-  AnyPublicKey,
-  AnySignature,
-  KeylessPublicKey,
-  KeylessSignature,
-  EphemeralCertificate,
-  ZeroKnowledgeSig,
-  ZkProof,
-} from "../core/crypto";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { AnyPublicKey, AnySignature, KeylessSignature, EphemeralCertificate, ZeroKnowledgeSig } from "../core/crypto";
 
 import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
+import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
+import { AnyRawTransaction } from "../transactions/types";
 import { base64UrlDecode } from "../utils/helpers";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
+import { KeylessAccount, ProofFetchCallback, ProofFetchEvents, TransactionAndProof } from "./KeylessAccount";
 
 /**
  * Account implementation for the Keyless authentication scheme.
@@ -34,13 +28,13 @@ import { base64UrlDecode } from "../utils/helpers";
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
-export class KeylessAccount extends Serializable implements Account {
+export class FederatedKeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
    * The KeylessPublicKey associated with the account
    */
-  readonly publicKey: KeylessPublicKey;
+  readonly publicKey: FederatedKeylessPublicKey;
 
   /**
    * The EphemeralKeyPair used to generate sign.
@@ -108,6 +102,7 @@ export class KeylessAccount extends Serializable implements Account {
     uidVal: string;
     aud: string;
     pepper: HexInput;
+    jwkAddress: AccountAddress;
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
@@ -115,7 +110,7 @@ export class KeylessAccount extends Serializable implements Account {
     super();
     const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
-    this.publicKey = KeylessPublicKey.create(args);
+    this.publicKey = FederatedKeylessPublicKey.create(args);
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
@@ -164,6 +159,7 @@ export class KeylessAccount extends Serializable implements Account {
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
+    this.publicKey.jwkAddress.serialize(serializer);
     this.ephemeralKeyPair.serialize(serializer);
     if (this.proof === undefined) {
       throw new Error("Connot serialize - proof undefined");
@@ -171,15 +167,17 @@ export class KeylessAccount extends Serializable implements Account {
     this.proof.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): KeylessAccount {
+  static deserialize(deserializer: Deserializer): FederatedKeylessAccount {
     const jwt = deserializer.deserializeStr();
     const uidKey = deserializer.deserializeStr();
     const pepper = deserializer.deserializeFixedBytes(31);
+    const jwkAddress = AccountAddress.deserialize(deserializer);
     const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
     const proof = ZeroKnowledgeSig.deserialize(deserializer);
-    return KeylessAccount.create({
+    return FederatedKeylessAccount.create({
       proof,
       pepper,
+      jwkAddress,
       uidKey,
       jwt,
       ephemeralKeyPair,
@@ -300,10 +298,11 @@ export class KeylessAccount extends Serializable implements Account {
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
     pepper: HexInput;
+    jwkAddress: AccountAddressInput;
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
-  }): KeylessAccount {
-    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
+  }): FederatedKeylessAccount {
+    const { address, proof, jwt, ephemeralKeyPair, pepper, jwkAddress, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     const iss = jwtPayload.iss!;
@@ -312,7 +311,7 @@ export class KeylessAccount extends Serializable implements Account {
     }
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
-    return new KeylessAccount({
+    return new FederatedKeylessAccount({
       address,
       proof,
       ephemeralKeyPair,
@@ -321,66 +320,9 @@ export class KeylessAccount extends Serializable implements Account {
       uidVal,
       aud,
       pepper,
+      jwkAddress: AccountAddress.from(jwkAddress),
       jwt,
       proofFetchCallback,
     });
   }
-}
-
-/**
- * A container class to hold a transaction and a proof.  It implements CryptoHashable which is used to create
- * the signing message for Keyless transactions.  We sign over the proof to ensure non-malleability.
- */
-export class TransactionAndProof extends Serializable {
-  /**
-   * The transaction to sign.
-   */
-  transaction: AnyRawTransactionInstance;
-
-  /**
-   * The zero knowledge proof used in signing the transaction.
-   */
-  proof?: ZkProof;
-
-  /**
-   * The domain separator prefix used when hashing.
-   */
-  readonly domainSeparator = "APTOS::TransactionAndProof";
-
-  constructor(transaction: AnyRawTransactionInstance, proof?: ZkProof) {
-    super();
-    this.transaction = transaction;
-    this.proof = proof;
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeFixedBytes(this.transaction.bcsToBytes());
-    serializer.serializeOption(this.proof);
-  }
-
-  /**
-   * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in aptos-core.
-   *
-   * @returns Uint8Array
-   */
-  hash(): Uint8Array {
-    return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
-  }
-}
-
-export type ProofFetchSuccess = {
-  status: "Success";
-};
-
-export type ProofFetchFailure = {
-  status: "Failed";
-  error: string;
-};
-
-export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure;
-
-export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
-
-export interface ProofFetchEvents {
-  proofFetchFinish: (status: ProofFetchStatus) => void;
 }
