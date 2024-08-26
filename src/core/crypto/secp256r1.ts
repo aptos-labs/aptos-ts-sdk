@@ -180,7 +180,7 @@ export class Secp256r1PublicKey extends AccountPublicKey {
     const msgHash = sha256(message);
     const sig = secp256r1.Signature.fromCompact(signature);
 
-    // TODO Double check recovery bit logic with Alin
+    // TODO Double check recovery bit logic
     // Cycle through all potential recovery bits (0, 1, 2, 3)
     // to recover the one that is correct for the given signature
     let publicKey: ProjPointType<bigint>;
