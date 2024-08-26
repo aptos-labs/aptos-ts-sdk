@@ -6,7 +6,7 @@
 
 import { TwistedElGamal, TwistedEd25519PrivateKey } from "@aptos-labs/ts-sdk";
 
-const AMOUNT = BigInt(12345)
+const AMOUNT = BigInt(12_345)
 
 
 const example = async () => {
@@ -15,7 +15,7 @@ const example = async () => {
   const privateKey = TwistedEd25519PrivateKey.generate()
   console.log("=== Key pair ===");
   console.log(`Private key: ${privateKey.toString()}`);
-  console.log(`Pablic key: ${privateKey.publicKey().toString()}\n\n`);
+  console.log(`Public key: ${privateKey.publicKey().toString()}\n\n`);
 
   const twistedElGamalInstance = new TwistedElGamal(privateKey)
 
@@ -29,9 +29,17 @@ const example = async () => {
   const decAmount1 = twistedElGamalInstance.decrypt(ciphertext)
   console.log(`Decrypted amount: ${decAmount1}\n`);
 
-  console.log("Decrypting the ciphertext starting at a specified amount");
-  const decAmount2 = twistedElGamalInstance.decrypt(ciphertext, 1000n)
-  console.log(`Decrypted amount: ${decAmount2}`);
+  console.log("Decrypting a ciphertext using a valid range");
+  const decAmount2 = twistedElGamalInstance.decrypt(ciphertext, { start: 1_000n, end: 20_000n})
+  console.log(`Decrypted amount: ${decAmount2}\n`);
+
+  console.log("Decrypting a ciphertext using a invalid range");
+  try {
+    twistedElGamalInstance.decrypt(ciphertext, { start: 1_000n, end: 2_000n})
+  } catch (e) {
+    console.error(e);
+    console.log("Failed to decrypt the amount");
+  }
 };
 
 

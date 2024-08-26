@@ -7,6 +7,11 @@ import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25
 
 export type RistPoint = InstanceType<typeof RistrettoPoint>
 
+export interface DecryptionRange {
+  start?: bigint;
+  end?: bigint;
+}
+
 /**
  * Twisted ElGamal encryption/decryption
  * @see {@link https://drive.google.com/file/d/1wGo-pIOPOcCQA0gjngE5kmWUQ-TxktAF/view | Veiled coins with twisted ElGamal}
@@ -47,10 +52,10 @@ export class TwistedElGamal {
    * Decrypts the amount with Twisted ElGamal
    * 
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
-   * @param startAmount Start amount from which the decryption will begin
+   * @param decryptionRange The range of amounts to be used in decryption
    */
-  public decrypt(ciphertext: TwistedElGamalCiphertext, startAmount?: bigint): bigint {
-    return TwistedElGamal.decryptWithSK(ciphertext, this.privateKey, startAmount)
+  public decrypt(ciphertext: TwistedElGamalCiphertext, decryptionRange?: DecryptionRange): bigint {
+    return TwistedElGamal.decryptWithSK(ciphertext, this.privateKey, decryptionRange)
   }
 
   /**
@@ -85,12 +90,12 @@ export class TwistedElGamal {
    * Decrypts the amount with Twisted ElGamal
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
    * @param privateKey Twisted ElGamal Ed25519 private key.
-   * @param startAmount Start amount from which the decryption will begin
+   * @param decryptionRange The range of amounts to be used in decryption
    */
   static decryptWithSK(
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
-    startAmount?: bigint
+    decryptionRange?: DecryptionRange
   ): bigint {
     const { C, D } = ciphertext
     const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT)
@@ -98,7 +103,7 @@ export class TwistedElGamal {
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS)
     const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD)
 
-    let amount = startAmount ?? BigInt(0)
+    let amount = decryptionRange?.start ?? BigInt(0)
     if (amount === BigInt(0)){
       if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0)
 
@@ -106,9 +111,11 @@ export class TwistedElGamal {
     } 
 
     let searchablePoint = H.multiply(amount)
+    const endAmount = decryptionRange?.end ?? ed25519.CURVE.n
 
     while (!mH.equals(searchablePoint)) {
-      if (amount >= ed25519.CURVE.n) throw new Error("Error when decrypting the amount")
+      if (amount >= endAmount)
+        throw new Error("Error when decrypting the amount: it is not possible to decrypt the amount in the specified range")
 
       amount += BigInt(1)
       searchablePoint = searchablePoint.add(H)
