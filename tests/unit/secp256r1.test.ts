@@ -89,10 +89,35 @@ describe("Secp256r1PublicKey", () => {
     const signature = new Secp256r1Signature(secp256r1TestObject.signatureHex);
     expect(signature).toBeInstanceOf(Secp256r1Signature);
 
-    // // Create from Uint8Array
-    const publicKey = await Secp256r1PublicKey.recoverPublicKey(message.toUint8Array(), signature.toUint8Array())
-    expect(publicKey?.verifySignature({ message: message.toUint8Array(), signature })).toBeTruthy();
-    expect(publicKey?.toString()).toEqual(secp256r1TestObject.publicKey);
+    // Test public key recovery. Should return two valid public keys, one of which contains the expected public key
+    let publicKeys: Secp256r1PublicKey[] = await Secp256r1PublicKey.recoverPublicKey({
+      message: message.toUint8Array(),
+      signature: signature.toUint8Array(),
+    });
+    let publicKeysHex: string[] = publicKeys.map((key) => key.toString());
+    expect(publicKeysHex).toContain(secp256r1TestObject.publicKey);
+
+    // Test public key recovery with two signatures. Should return one valid public key
+    // UTF-8 -> Hex of "hello blockchain"
+    const message2 = Hex.fromHexString("68656c6c6f20626c6f636b636861696e");
+    const privateKey = new Secp256r1PrivateKey(secp256r1TestObject.privateKey);
+    const signature2 = privateKey.signArbitraryMessage(message2.toUint8Array());
+    publicKeys = await Secp256r1PublicKey.recoverPublicKeyFromTwoSignatures([
+      {
+        message: message.toUint8Array(),
+        signature: signature.toUint8Array(),
+      },
+      {
+        message: message2.toUint8Array(),
+        signature: signature2.toUint8Array(),
+      }
+    ])
+    publicKeysHex = publicKeys.map((key) => key.toString());
+    expect(publicKeys.length).toEqual(1);
+
+    // Asserted there is only one public key in array from the expect array.length === 1 invariant above
+    const publicKeyHex = publicKeysHex[0];
+    expect(publicKeyHex).toEqual(secp256r1TestObject.publicKey);
   });
 });
 

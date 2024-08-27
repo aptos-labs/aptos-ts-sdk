@@ -15,8 +15,26 @@ import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 import type { WebAuthnSignature } from "./webauthn";
-import type { ProjPointType } from "@noble/curves/abstract/weierstrass";
 
+export interface RecoverPasskeyPublicKeyArgsInput {
+  authenticatorData: Uint8Array;
+  clientDataJSON: Uint8Array;
+  signature: Uint8Array;
+}
+
+/**
+ * Recover Passkey Public Key Args
+ *
+ *
+ */
+export type RecoverPasskeyPublicKeyArgs = [RecoverPasskeyPublicKeyArgsInput, RecoverPasskeyPublicKeyArgsInput];
+
+export interface RecoverPublicKeyArgsInput {
+  message: Uint8Array;
+  signature: Uint8Array;
+}
+
+export type RecoverPublicKeyArgs = [RecoverPublicKeyArgsInput, RecoverPublicKeyArgsInput]
 /**
  * Represents the Secp256r1 public key
  *
@@ -142,25 +160,50 @@ export class Secp256r1PublicKey extends AccountPublicKey {
   /**
    * Recover Secp256r1 Ecdsa Public Key from Passkey Signature
    *
-   * @param authenticatorData authenticatorData
-   * @param clientDataJSON clientDataJSON
-   * @param signature signature
-   * @returns Secp256r1PublicKey
+   * @param args RecoverPasskeyPublicKeyArgsInput
+   * @returns Secp256r1PublicKey[]
    *
    * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
    */
-  static async recoverPasskeyPublicKey(
-    authenticatorData: Uint8Array,
-    clientDataJSON: Uint8Array,
-    signature: Uint8Array,
-  ): Promise<Secp256r1PublicKey | null> {
+  static async recoverPasskeyPublicKey({
+    clientDataJSON,
+    authenticatorData,
+    signature,
+  }: RecoverPasskeyPublicKeyArgsInput): Promise<Secp256r1PublicKey[]> {
     const shaClientDataJSON = sha256(clientDataJSON);
 
     // Construct verificationData, where verificationData is defined as
     // verificationData = authenticator_data || sha256(clientDataJson)
     // https://www.w3.org/TR/webauthn-3/#sctn-verifying-assertion
     const verificationData = new Uint8Array([...authenticatorData, ...shaClientDataJSON]);
-    return await Secp256r1PublicKey.recoverPublicKey(verificationData, signature);
+    return await Secp256r1PublicKey.recoverPublicKey({ message: verificationData, signature });
+  }
+
+  /**
+   * Recover Secp256r1 Ecdsa Public Key from Passkey Signature
+   *
+   * @param args RecoverPasskeyPublicKeyArgs
+   * @returns Secp256r1PublicKey
+   *
+   * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
+   */
+  static async recoverPasskeyPublicKeyFromTwoSignatures(
+    args: RecoverPasskeyPublicKeyArgs,
+  ): Promise<Secp256r1PublicKey[]> {
+    let publicKeys: HexInput[] = [];
+
+    for (const { authenticatorData, clientDataJSON, signature } of args) {
+      let recoveredPublicKeys = await Secp256r1PublicKey.recoverPasskeyPublicKey({
+        clientDataJSON,
+        authenticatorData,
+        signature,
+      });
+      recoveredPublicKeys.map((publicKey) => publicKeys.push(publicKey.toString()));
+    }
+
+    // Public Key needs to appear more than once in the list
+    const commonKeys = [...new Set(publicKeys.filter((item, i, arr) => arr.indexOf(item) !== i))];
+    return commonKeys.map((key) => new Secp256r1PublicKey(key));
   }
 
   /**
@@ -173,32 +216,50 @@ export class Secp256r1PublicKey extends AccountPublicKey {
    *
    * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
    */
-  static async recoverPublicKey(
-    message: Uint8Array,
-    signature: Uint8Array,
-  ): Promise<Secp256r1PublicKey | null> {
+  static async recoverPublicKey({ message, signature }: RecoverPublicKeyArgsInput): Promise<Secp256r1PublicKey[]> {
+    const publicKeys: Secp256r1PublicKey[] = [];
     const msgHash = sha256(message);
     const sig = secp256r1.Signature.fromCompact(signature);
 
     // TODO Double check recovery bit logic
     // Cycle through all potential recovery bits (0, 1, 2, 3)
     // to recover the one that is correct for the given signature
-    let publicKey: ProjPointType<bigint>;
     for (let recid = 0; recid < 4; recid++) {
       try {
-        publicKey = sig.addRecoveryBit(recid).recoverPublicKey(msgHash);
+        let publicKey = sig.addRecoveryBit(recid).recoverPublicKey(msgHash);
         let secp256r1PublicKey = new Secp256r1PublicKey(publicKey.toRawBytes(false));
 
-        // If the Public Key verifies the signature correctly, return it
+        // If the Public Key verifies the signature correctly, add it to the publicKeys
         if (p256.verify(signature, msgHash, secp256r1PublicKey.toUint8Array())) {
-          return secp256r1PublicKey;
+          publicKeys.push(secp256r1PublicKey);
         }
       } catch (err) {
         // Ignore and continue
       }
     }
 
-    return null;
+    return publicKeys;
+  }
+
+  /**
+   * Recover Secp256r1 Ecdsa Public Key from Signature
+   *
+   * @returns Secp256r1PublicKey
+   *
+   * @see https://github.com/ethereum/js-ethereum-cryptography/blob/9faadf5f1dda4aa95cc675d927281862ac7bf7e7/src/secp256k1-compat.ts#L47
+   * @param args {RecoverPublicKeyArgs}
+   */
+  static async recoverPublicKeyFromTwoSignatures(args: RecoverPublicKeyArgs): Promise<Secp256r1PublicKey[]> {
+    let publicKeys: HexInput[] = [];
+
+    for (const { message, signature } of args) {
+      let recoveredPublicKeys = await Secp256r1PublicKey.recoverPublicKey({ message, signature });
+      recoveredPublicKeys.map((publicKey) => publicKeys.push(publicKey.toString()));
+    }
+
+    // Public Key needs to appear more than once in the list
+    const commonKeys = [...new Set(publicKeys.filter((item, i, arr) => arr.indexOf(item) !== i))];
+    return commonKeys.map((key) => new Secp256r1PublicKey(key));
   }
 }
 

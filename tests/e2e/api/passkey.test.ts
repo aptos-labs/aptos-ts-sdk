@@ -10,7 +10,8 @@ import {
   AnyRawTransaction,
   ClientDataJSON,
   generateSigningMessageForTransaction,
-  Secp256r1PrivateKey, Secp256r1PublicKey,
+  Secp256r1PrivateKey,
+  Secp256r1PublicKey,
 } from "../../../src";
 import { clientDataToJsonBytes, getPasskeyAccountAddress, parsePublicKey } from "../../../src/internal/passkey";
 import { FUND_AMOUNT } from "../../unit/helper";
@@ -209,7 +210,7 @@ describe("passkey api", () => {
         const authenticatorData = new Uint8Array(base64URLStringToBuffer(mockedResponse.response.authenticatorData));
 
         // Test Passkey Public Key Recovery Works as Expected
-        const recoveredPublicKey = await Secp256r1PublicKey.recoverPasskeyPublicKey(authenticatorData, clientDataBytes, signature);
+        const recoveredPublicKey = await Secp256r1PublicKey.recoverPasskeyPublicKey(authenticatorData);
         expect(recoveredPublicKey?.toString()).toEqual(publicKey.toString());
 
         const p256PublicKey = p256.getPublicKey(privateKey.toUint8Array());
