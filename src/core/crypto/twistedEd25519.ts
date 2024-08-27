@@ -56,8 +56,6 @@ export class TwistedEd25519PublicKey {
     return this.key.toString();
   }
 
-  // endregion
-
   // region Serializable
 
   serialize(serializer: Serializer): void {
@@ -70,10 +68,6 @@ export class TwistedEd25519PublicKey {
   }
 
   // endregion
-
-  static isInstance(publicKey: TwistedEd25519PublicKey): publicKey is TwistedEd25519PublicKey {
-    return "key" in publicKey && (publicKey.key as any)?.data?.length === TwistedEd25519PublicKey.LENGTH;
-  }
 }
 
 /**
@@ -217,4 +211,3 @@ export class TwistedEd25519PrivateKey extends Serializable {
 
   // endregion
 }
-

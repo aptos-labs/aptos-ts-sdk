@@ -25,15 +25,15 @@ const example = async () => {
   console.log(`Point D: ${ciphertext.D.toString()}\n`);
 
   console.log("=== Decrypting ciphertext ===");
-  console.log("Decrypting the ciphertext starting from 0 amount");
+  console.log("Decrypting the ciphertext using a basic range: from 0 to 2**252");
   const decAmount1 = twistedElGamalInstance.decrypt(ciphertext)
   console.log(`Decrypted amount: ${decAmount1}\n`);
 
-  console.log("Decrypting a ciphertext using a valid range");
+  console.log("Decrypting the ciphertext using a valid range");
   const decAmount2 = twistedElGamalInstance.decrypt(ciphertext, { start: 1_000n, end: 20_000n})
   console.log(`Decrypted amount: ${decAmount2}\n`);
 
-  console.log("Decrypting a ciphertext using a invalid range");
+  console.log("Decrypting the ciphertext using a invalid range");
   try {
     twistedElGamalInstance.decrypt(ciphertext, { start: 1_000n, end: 2_000n})
   } catch (e) {

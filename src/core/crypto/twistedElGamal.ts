@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE, ensureBytes } from "@noble/curves/abstract/utils";
@@ -55,7 +58,7 @@ export class TwistedElGamal {
    * @param decryptionRange The range of amounts to be used in decryption
    */
   public decrypt(ciphertext: TwistedElGamalCiphertext, decryptionRange?: DecryptionRange): bigint {
-    return TwistedElGamal.decryptWithSK(ciphertext, this.privateKey, decryptionRange)
+    return TwistedElGamal.decryptWithPK(ciphertext, this.privateKey, decryptionRange)
   }
 
   /**
@@ -92,7 +95,7 @@ export class TwistedElGamal {
    * @param privateKey Twisted ElGamal Ed25519 private key.
    * @param decryptionRange The range of amounts to be used in decryption
    */
-  static decryptWithSK(
+  static decryptWithPK(
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
     decryptionRange?: DecryptionRange
@@ -103,6 +106,7 @@ export class TwistedElGamal {
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS)
     const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD)
 
+    // TODO: Replace brute-force search with another algorithm for optimization
     let amount = decryptionRange?.start ?? BigInt(0)
     if (amount === BigInt(0)){
       if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0)
@@ -115,7 +119,7 @@ export class TwistedElGamal {
 
     while (!mH.equals(searchablePoint)) {
       if (amount >= endAmount)
-        throw new Error("Error when decrypting the amount: it is not possible to decrypt the amount in the specified range")
+        throw new Error("Error while decrypting amount in specified range")
 
       amount += BigInt(1)
       searchablePoint = searchablePoint.add(H)
