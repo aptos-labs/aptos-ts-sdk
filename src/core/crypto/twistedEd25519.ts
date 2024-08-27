@@ -48,10 +48,10 @@ export class TwistedEd25519PublicKey {
   }
 
   /**
-  * Get the public key as a hex string with the 0x prefix.
-  *
-  * @returns string representation of the public key
-  */
+   * Get the public key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the public key
+   */
   toString(): string {
     return this.key.toString();
   }
@@ -147,7 +147,11 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @param offset the offset used for key derivation, defaults to 0x80000000
    * @returns
    */
-  private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): TwistedEd25519PrivateKey {
+  private static fromDerivationPathInner(
+    path: string,
+    seed: Uint8Array,
+    offset = HARDENED_OFFSET,
+  ): TwistedEd25519PrivateKey {
     const { key, chainCode } = deriveKey(TwistedEd25519PrivateKey.SLIP_0010_SEED, seed);
 
     const segments = splitPath(path).map((el) => parseInt(el, 10));
@@ -170,10 +174,10 @@ export class TwistedEd25519PrivateKey extends Serializable {
    * @returns TwistedEd25519PublicKey
    */
   publicKey(): TwistedEd25519PublicKey {
-    const scalarLE = bytesToNumberLE(this.key.toUint8Array())
-    const modScalarLE = mod(scalarLE, ed25519.CURVE.n)
-    const invertModScalarLE = invert(modScalarLE, ed25519.CURVE.n)
-    const key = RistrettoPoint.BASE.multiply(invertModScalarLE).toRawBytes()
+    const scalarLE = bytesToNumberLE(this.key.toUint8Array());
+    const modScalarLE = mod(scalarLE, ed25519.CURVE.n);
+    const invertModScalarLE = invert(modScalarLE, ed25519.CURVE.n);
+    const key = RistrettoPoint.BASE.multiply(invertModScalarLE).toRawBytes();
 
     return new TwistedEd25519PublicKey(key);
   }

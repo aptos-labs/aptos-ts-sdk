@@ -8,7 +8,7 @@ import { randomBytes } from "crypto";
 import { HexInput } from "../../types";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 
-export type RistPoint = InstanceType<typeof RistrettoPoint>
+export type RistPoint = InstanceType<typeof RistrettoPoint>;
 
 export interface DecryptionRange {
   start?: bigint;
@@ -36,56 +36,52 @@ export class TwistedElGamal {
    * @param privateKey TwistedEd25519PrivateKey or HexInput (string or Uint8Array)
    */
   constructor(privateKey: TwistedEd25519PrivateKey | HexInput) {
-    this.privateKey = privateKey instanceof TwistedEd25519PrivateKey
-      ? privateKey
-      : new TwistedEd25519PrivateKey(privateKey)
+    this.privateKey =
+      privateKey instanceof TwistedEd25519PrivateKey ? privateKey : new TwistedEd25519PrivateKey(privateKey);
   }
 
   /**
    * Encrypts the amount with Twisted ElGamal
-   * 
+   *
    * @param amount amount for encryption
    * @param random random 32 bytes
    */
   public encrypt(amount: bigint, random?: Uint8Array): TwistedElGamalCiphertext {
-    return TwistedElGamal.encryptWithPK(amount, this.privateKey.publicKey(), random)
+    return TwistedElGamal.encryptWithPK(amount, this.privateKey.publicKey(), random);
   }
 
   /**
    * Decrypts the amount with Twisted ElGamal
-   * 
+   *
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
    * @param decryptionRange The range of amounts to be used in decryption
    */
   public decrypt(ciphertext: TwistedElGamalCiphertext, decryptionRange?: DecryptionRange): bigint {
-    return TwistedElGamal.decryptWithPK(ciphertext, this.privateKey, decryptionRange)
+    return TwistedElGamal.decryptWithPK(ciphertext, this.privateKey, decryptionRange);
   }
 
   /**
    * Encrypts the amount with Twisted ElGamal
-   * 
+   *
    * @param amount amount for encryption
    * @param publicKey Twisted ElGamal Ed25519 public key.
    * @param random random 32 bytes
    */
   static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: Uint8Array) {
-    if (amount < 0n && amount >= ed25519.CURVE.n) throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`)
+    if (amount < 0n && amount >= ed25519.CURVE.n)
+      throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
 
-    const rBytes = random
-      ? ensureBytes("Random bytes", random, 32)
-      : randomBytes(32)
+    const rBytes = random ? ensureBytes("Random bytes", random, 32) : randomBytes(32);
 
-    const m = amount
-    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT)
-    const r = mod(bytesToNumberLE(rBytes), ed25519.CURVE.n)
-    const rG = RistrettoPoint.BASE.multiply(r)
-    const mH = m === BigInt(0)
-      ? RistrettoPoint.ZERO
-      : H.multiply(m)
+    const m = amount;
+    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT);
+    const r = mod(bytesToNumberLE(rBytes), ed25519.CURVE.n);
+    const rG = RistrettoPoint.BASE.multiply(r);
+    const mH = m === BigInt(0) ? RistrettoPoint.ZERO : H.multiply(m);
 
-    const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r)
-    const C = mH.add(rG)
-  
+    const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r);
+    const C = mH.add(rG);
+
     return new TwistedElGamalCiphertext(C, D);
   }
 
@@ -98,33 +94,32 @@ export class TwistedElGamal {
   static decryptWithPK(
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
-    decryptionRange?: DecryptionRange
+    decryptionRange?: DecryptionRange,
   ): bigint {
-    const { C, D } = ciphertext
-    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT)
-    const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n)
-    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS)
-    const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD)
+    const { C, D } = ciphertext;
+    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT);
+    const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n);
+    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
+    const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
 
     // TODO: Replace brute-force search with another algorithm for optimization
-    let amount = decryptionRange?.start ?? BigInt(0)
-    if (amount === BigInt(0)){
-      if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0)
+    let amount = decryptionRange?.start ?? BigInt(0);
+    if (amount === BigInt(0)) {
+      if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0);
 
-      amount += BigInt(1)
-    } 
+      amount += BigInt(1);
+    }
 
-    let searchablePoint = H.multiply(amount)
-    const endAmount = decryptionRange?.end ?? ed25519.CURVE.n
+    let searchablePoint = H.multiply(amount);
+    const endAmount = decryptionRange?.end ?? ed25519.CURVE.n;
 
     while (!mH.equals(searchablePoint)) {
-      if (amount >= endAmount)
-        throw new Error("Error while decrypting amount in specified range")
+      if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
 
-      amount += BigInt(1)
-      searchablePoint = searchablePoint.add(H)
+      amount += BigInt(1);
+      searchablePoint = searchablePoint.add(H);
     }
-    return amount
+    return amount;
   }
 }
 
@@ -137,11 +132,7 @@ export class TwistedElGamalCiphertext {
   readonly D: RistPoint;
 
   constructor(C: HexInput | RistPoint, D: HexInput | RistPoint) {
-    this.C = C instanceof RistrettoPoint
-      ? C
-      : RistrettoPoint.fromHex(C);
-    this.D = D instanceof RistrettoPoint 
-      ? D
-      : RistrettoPoint.fromHex(D);
+    this.C = C instanceof RistrettoPoint ? C : RistrettoPoint.fromHex(C);
+    this.D = D instanceof RistrettoPoint ? D : RistrettoPoint.fromHex(D);
   }
 }
