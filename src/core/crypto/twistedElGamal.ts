@@ -15,6 +15,8 @@ export interface DecryptionRange {
   end?: bigint;
 }
 
+export type ModifyCiphertextOperation = "add" | "subtract";
+
 /**
  * Twisted ElGamal encryption/decryption
  * @see {@link https://drive.google.com/file/d/1wGo-pIOPOcCQA0gjngE5kmWUQ-TxktAF/view | Veiled coins with twisted ElGamal}
@@ -24,6 +26,11 @@ export class TwistedElGamal {
    * The hash of the basepoint of the Ristretto255 group using SHA3_512
    */
   public static readonly HASH_BASE_POINT: string = "8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd7b46f34048871134";
+
+  /**
+   * Ristretto point from TwistedElGamal.HASH_BASE_POINT
+   */
+  public static readonly H: RistPoint = RistrettoPoint.fromHex(this.HASH_BASE_POINT);
 
   /**
    * The private key of an Twisted ElGamal Ed25519 key pair.
@@ -121,6 +128,48 @@ export class TwistedElGamal {
     }
     return amount;
   }
+
+  /**
+   * Modify ciphertext by amount
+   * @param ciphertext Сiphertext points encrypted by Twisted ElGamal
+   * @param operation Operation to change ciphertext points
+   * @param amount Natural number or 0
+   */
+  static modifyCiphertextByAmount(
+    ciphertext: TwistedElGamalCiphertext,
+    operation: ModifyCiphertextOperation,
+    amount: bigint,
+  ): TwistedElGamalCiphertext {
+    switch (operation) {
+      case "add":
+        return ciphertext.addAmount(amount);
+      case "subtract":
+        return ciphertext.subtractAmount(amount);
+      default:
+        throw new Error("Unsupported operation");
+    }
+  }
+
+  /**
+   * Modify ciphertext by ciphertext
+   * @param operand1 Сiphertext points encrypted by Twisted ElGamal
+   * @param operation Operation to change ciphertext points
+   * @param operand1 Сiphertext points encrypted by Twisted ElGamal
+   */
+  static modifyCiphertextByCiphertext(
+    operand1: TwistedElGamalCiphertext,
+    operation: ModifyCiphertextOperation,
+    operand2: TwistedElGamalCiphertext,
+  ): TwistedElGamalCiphertext {
+    switch (operation) {
+      case "add":
+        return operand1.addCiphertext(operand2);
+      case "subtract":
+        return operand1.subtractCiphertext(operand2);
+      default:
+        throw new Error("Unsupported operation");
+    }
+  }
 }
 
 /**
@@ -134,5 +183,33 @@ export class TwistedElGamalCiphertext {
   constructor(C: HexInput | RistPoint, D: HexInput | RistPoint) {
     this.C = C instanceof RistrettoPoint ? C : RistrettoPoint.fromHex(C);
     this.D = D instanceof RistrettoPoint ? D : RistrettoPoint.fromHex(D);
+  }
+
+  public addAmount(amount: bigint): TwistedElGamalCiphertext {
+    const aH = TwistedElGamal.H.multiply(amount);
+    const updatedC = this.C.add(aH);
+
+    return new TwistedElGamalCiphertext(updatedC, this.D);
+  }
+
+  public subtractAmount(amount: bigint): TwistedElGamalCiphertext {
+    const aH = TwistedElGamal.H.multiply(amount);
+    const updatedC = this.C.subtract(aH);
+
+    return new TwistedElGamalCiphertext(updatedC, this.D);
+  }
+
+  public addCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
+    const updatedC = this.C.add(ciphertext.C);
+    const updatedD = this.D.add(ciphertext.D);
+
+    return new TwistedElGamalCiphertext(updatedC, updatedD);
+  }
+
+  public subtractCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
+    const updatedC = this.C.subtract(ciphertext.C);
+    const updatedD = this.D.subtract(ciphertext.D);
+
+    return new TwistedElGamalCiphertext(updatedC, updatedD);
   }
 }
