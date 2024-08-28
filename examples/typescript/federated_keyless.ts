@@ -5,7 +5,7 @@
  * This example shows how to use the Keyless accounts on Aptos
  */
 
-import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Aptos, AptosConfig, Ed25519PrivateKey, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
@@ -35,11 +35,11 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({ network: Network.DEVNET });
+  const config = new AptosConfig({ network: Network.LOCAL });
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
-  const aliceEphem = EphemeralKeyPair.generate();
+  const aliceEphem = new EphemeralKeyPair({ privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"), expiryDateSecs: 1725497501, blinder: new Uint8Array(31) });
 
   console.log("\n=== Federated Keyless Account Example ===\n");
 

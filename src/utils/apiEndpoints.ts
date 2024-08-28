@@ -27,8 +27,10 @@ export const NetworkToPepperAPI: Record<string, string> = {
   testnet: "https://api.testnet.aptoslabs.com/keyless/pepper/v0",
   devnet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
   // Use the devnet service for local environment
-  local: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
+  local: "http://localhost:8000/v0",
 };
+
+
 
 export const NetworkToProverAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/prover/v0",
