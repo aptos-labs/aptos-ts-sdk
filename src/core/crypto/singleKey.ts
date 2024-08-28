@@ -6,6 +6,7 @@ import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
 
 /**
  * Represents any public key supported by Aptos.
@@ -37,6 +38,8 @@ export class AnyPublicKey extends AccountPublicKey {
       this.variant = AnyPublicKeyVariant.Secp256k1;
     } else if (publicKey instanceof KeylessPublicKey) {
       this.variant = AnyPublicKeyVariant.Keyless;
+    } else if (publicKey instanceof FederatedKeylessPublicKey) {
+      this.variant = AnyPublicKeyVariant.FederatedKeyless;
     } else {
       throw new Error("Unsupported public key type");
     }
@@ -90,6 +93,9 @@ export class AnyPublicKey extends AccountPublicKey {
         break;
       case AnyPublicKeyVariant.Keyless:
         publicKey = KeylessPublicKey.deserialize(deserializer);
+        break;
+      case AnyPublicKeyVariant.FederatedKeyless:
+        publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
         break;
       default:
         throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
