@@ -2,7 +2,7 @@
 /// deployer will be creating a new managed fungible asset with the hardcoded supply config, name, symbol, and decimals.
 /// The address of the asset can be obtained via get_metadata(). As a simple version, it only deals with primary stores.
 module FACoin::fa_coin {
-    use aptos_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata, FungibleAsset};
+    use aptos_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata, FungibleAsset, FungibleStore};
     use aptos_framework::object::{Self, Object};
     use aptos_framework::primary_fungible_store;
     use std::error;
@@ -14,6 +14,8 @@ module FACoin::fa_coin {
     const ENOT_OWNER: u64 = 1;
 
     const ASSET_SYMBOL: vector<u8> = b"FA";
+
+    const SECONDARY_ASSET_SYMBOL: vector<u8> = b"FA2";
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// Hold refs to control the minting, transfer and burning of fungible assets.
@@ -36,12 +38,19 @@ module FACoin::fa_coin {
             utf8(b"http://example.com/favicon.ico"), /* icon */
             utf8(b"http://example.com"), /* project */
         );
+        let asset_metadata = object::address_to_object<Metadata>(object::create_object_address(&@FACoin, ASSET_SYMBOL)); 
 
         // Create mint/burn/transfer refs to allow creator to manage the fungible asset.
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
         let burn_ref = fungible_asset::generate_burn_ref(constructor_ref);
         let transfer_ref = fungible_asset::generate_transfer_ref(constructor_ref);
         let metadata_object_signer = object::generate_signer(constructor_ref);
+
+        // Initialize secondary store for the fungible asset.
+        let constructor_ref = &object::create_named_object(admin, SECONDARY_ASSET_SYMBOL);
+        fungible_asset::create_store(constructor_ref, asset_metadata);
+
+        // Transfer the refs to the metadata object and give them to the signer
         move_to(
             &metadata_object_signer,
             ManagedFungibleAsset { mint_ref, transfer_ref, burn_ref }
@@ -55,6 +64,19 @@ module FACoin::fa_coin {
         object::address_to_object<Metadata>(asset_address)
     }
 
+    #[view]
+    /// Return the address of the secondary managed fungible asset that's created when this module is deployed.
+    public fun get_secondary_store(): Object<FungibleStore> {
+        let asset_address = object::create_object_address(&@FACoin, SECONDARY_ASSET_SYMBOL);
+        object::address_to_object<FungibleStore>(asset_address)
+    }
+
+    #[view]
+    /// Return the address of the primary store of a user
+    public fun get_primary_store(user: address): Object<FungibleStore> {
+        primary_fungible_store::ensure_primary_store_exists(user, get_metadata())
+    }
+
     // :!:>mint
     /// Mint as the owner of metadata object and deposit to a specific account.
     public entry fun mint(admin: &signer, to: address, amount: u64) acquires ManagedFungibleAsset {
@@ -64,6 +86,15 @@ module FACoin::fa_coin {
         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
         fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
     }// <:!:mint_to
+
+    // :!:>mint_secondary
+    /// Mint as the owner of secondary metadata object and deposit to a specific account.
+    public entry fun mint_secondary(admin: &signer, store: Object<FungibleStore>, amount: u64) acquires ManagedFungibleAsset {
+        let asset = get_metadata();
+        let managed_fungible_asset = authorized_borrow_refs(admin, asset);
+        let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
+        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, store, fa);
+    } // <:!:mint_secondary
 
     /// Transfer as the owner of metadata object ignoring `frozen` field.
     public entry fun transfer(admin: &signer, from: address, to: address, amount: u64) acquires ManagedFungibleAsset {
