@@ -102,11 +102,7 @@ export const GetAccountCoinsData = `
     order_by: $order_by
   ) {
     amount
-    amount_v1
-    amount_v2
     asset_type
-    asset_type_v1
-    asset_type_v2
     is_frozen
     is_primary
     last_transaction_timestamp
@@ -270,11 +266,7 @@ export const GetCurrentFungibleAssetBalances = `
     limit: $limit
   ) {
     amount
-    amount_v1
-    amount_v2
     asset_type
-    asset_type_v1
-    asset_type_v2
     is_frozen
     is_primary
     last_transaction_timestamp

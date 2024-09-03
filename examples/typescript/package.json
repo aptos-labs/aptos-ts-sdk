@@ -21,6 +21,7 @@
     "local_node": "ts-node local_node.ts",
     "fungible_asset_migration_e2e": "ts-node fungible_asset_migration_e2e.ts",
     "fungible_asset_migration_queries": "ts-node fungible_asset_migration_queries.ts",
+    "fungible_asset_migration_setup_account": "ts-node fungible_asset_migration_setup_account.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct publish_package_from_filepath external_signing your_coin your_fungible_asset"
   },
   "keywords": [],

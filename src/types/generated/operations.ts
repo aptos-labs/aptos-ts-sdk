@@ -97,11 +97,7 @@ export type GetAccountCoinsDataQueryVariables = Types.Exact<{
 export type GetAccountCoinsDataQuery = {
   current_fungible_asset_balances: Array<{
     amount?: any | null;
-    amount_v1?: any | null;
-    amount_v2?: any | null;
     asset_type?: string | null;
-    asset_type_v1?: string | null;
-    asset_type_v2?: string | null;
     is_frozen: boolean;
     is_primary?: boolean | null;
     last_transaction_timestamp?: any | null;
@@ -399,11 +395,7 @@ export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
 export type GetCurrentFungibleAssetBalancesQuery = {
   current_fungible_asset_balances: Array<{
     amount?: any | null;
-    amount_v1?: any | null;
-    amount_v2?: any | null;
     asset_type?: string | null;
-    asset_type_v1?: string | null;
-    asset_type_v2?: string | null;
     is_frozen: boolean;
     is_primary?: boolean | null;
     last_transaction_timestamp?: any | null;
