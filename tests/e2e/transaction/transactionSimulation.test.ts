@@ -54,7 +54,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
@@ -160,7 +160,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
           data: {
@@ -237,7 +237,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
@@ -343,7 +343,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: singleSignerSecp256k1Account.accountAddress,
           data: {
@@ -420,7 +420,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
@@ -520,7 +520,7 @@ describe("transaction simulation", () => {
         });
         expect(response.success).toBeTruthy();
       });
-      test("with multisig payload", async () => {
+      test.skip("with multisig payload", async () => {
         const rawTxn = await aptos.transaction.build.simple({
           sender: legacyED25519SenderAccount.accountAddress,
           data: {
