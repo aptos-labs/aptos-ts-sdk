@@ -2,17 +2,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  Ed25519PrivateKey,
-  EphemeralKeyPair,
-  KeylessAccount,
-  KeylessPublicKey,
-  ProofFetchStatus,
-} from "../../../src";
+import { Account, KeylessAccount, KeylessPublicKey, ProofFetchStatus } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
+import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
 
 export const TEST_JWT_TOKENS = [
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0wIiwiZW1haWwiOiJ0ZXN0QGFwdG9zbGFicy5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaWF0IjoxNzI1NDc1MTEyLCJleHAiOjI3MDAwMDAwMDAsIm5vbmNlIjoiNzA5NTI0MjMzMzk2NDQ1NzI2NzkzNDcyMzc2ODA4MDMwMzMyNDQ2MjgyMTE5MTc1NjQwOTQ1MDA5OTUxOTc4MTA1MTkxMDE4NzExOCJ9.eHqJLdje0FRD3UPmSw8sFHRYe9lwqSydAMcfHcpxkFwew2OTy6bWFsLQTdJp-eCZPhNzlfBXwNxaAJZksCWFWkzCz2913a5b88XRT9Im7JBDtA1e1IBXrnfXG0MDpsVRAuRNzLWqDi_4Fl1OELvoEOK-Tl4cmIwOhBr943S-b14PRVhrQ1XBD5MXaHWcJyxMaEtZfu_xxCQ-jjR---iguD243Ze98JlcOIV8VmEBg3YiSyVdMDZ8cgRia0DI8DwFn7rIxaV2H5FXb9JcehLgNP82-gsfEGV0iAXuBk7ZvRzMVA-srE9JvxVOyq5UkYu0Ss9LjKzX0KVojl7Au_OxGA",
@@ -36,12 +29,6 @@ export const TEST_JWT_TOKENS = [
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xOCIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.sQjWTpenq4VJPq3kvCcJIIbTcZvOT64AgZ7yEMNHM2Nx5RHARzvnqfGwUOxEHzO0bwKNzEvVJR86D2QQnoUOPXK0QdeZuI1olhVof4i1gq3VeL9xi94mWSEgjnZorJCBma5I5djq2cbnIuMTCpHmvgLLIqZyZFJydcaBY9gQAFaFkD2DWfz3J38E-guuRwjV0G76gfiAU7mRNEkT1cZX57HxABJzrEMmri5wmY7dfErdwuqU5hLBzJiD5jPMy9QiZ_xjVnkSZ8NEtOXQjT9i69MHdnpnKxVSAqoMBHdplJgvNixgUnX3zoecHVlxPQInYNvATgtMMlSLOX1euKUykw",
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xOSIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.elbm8TQ1qHbxKmTPq0ShHiRNiqZ_bF_GG25Gjeb4JliYz4PTrxtocXX4Frez_4nf7mCbgcB37fkuJrcyHQ5QaCxjWrVzqUzgMWnRt2ryMnj4tN9Oz4O3Yidoqkxz726iJ7X1FnRgNaG4OGLUItLfYDKTBbuSKzdHyGA5zsBEKVmz0FKL9HdD66D44alUddg1MUAbphxBG4ghh0mZg8DjsXCCsxO547xvgScK-tGt3_I8wEyS-D_-bEElaLPnW87wFoLosHIZucf38PdadWxk6gSt3MRdErLHeP42DwsVwv7vF2b1aTek5au-f-FUXTkidyEfKKuHtmIS3ZKltyJ1Pw",
 ];
-
-export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
-  privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
-  expiryDateSecs: 1735475012, // Expires Sunday, December 29, 2024 12:23:32 PM GMT
-  blinder: new Uint8Array(31),
-});
 
 const KEYLESS_TEST_TIMEOUT = 12000;
 

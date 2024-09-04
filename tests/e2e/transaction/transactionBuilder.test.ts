@@ -28,9 +28,14 @@ import {
   KeylessPublicKey,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
-import { EPHEMERAL_KEY_PAIR } from "../api/keyless.test";
 import { getAptosClient } from "../helper";
-import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, TYPED_SCRIPT_TEST } from "./helper";
+import {
+  EPHEMERAL_KEY_PAIR,
+  fundAccounts,
+  multiSignerScriptBytecode,
+  publishTransferPackage,
+  TYPED_SCRIPT_TEST,
+} from "./helper";
 
 const { aptos, config } = getAptosClient();
 

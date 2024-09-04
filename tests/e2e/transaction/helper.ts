@@ -14,8 +14,16 @@ import {
   MoveVector,
   AnyRawTransaction,
   isUserTransactionResponse,
+  Ed25519PrivateKey,
+  EphemeralKeyPair,
 } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
+
+export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
+  privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
+  expiryDateSecs: 1735475012, // Expires Sunday, December 29, 2024 12:23:32 PM GMT
+  blinder: new Uint8Array(31),
+});
 
 export async function publishPackage(
   aptos: Aptos,
