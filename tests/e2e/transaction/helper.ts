@@ -101,6 +101,7 @@ export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, 
     accountAddress: sender.accountAddress,
     minimumLedgerVersion: Number(senderFundTxn.version),
   });
+  console.log(`senderOldBalance ${senderOldBalance}`)
   const recipientOldBalance = await aptos.getAccountAPTAmount({
     accountAddress: recipient.accountAddress,
     minimumLedgerVersion: Number(recipientFundTxn.version),
@@ -124,6 +125,7 @@ export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, 
     accountAddress: recipient.accountAddress,
     minimumLedgerVersion: version,
   });
+  console.log(`senderNewBalance ${senderNewBalance}`)
 
   expect(senderOldBalance - senderNewBalance).toBeGreaterThan(TRANSFER_AMOUNT);
   expect(recipientNewBalance - recipientOldBalance).toEqual(TRANSFER_AMOUNT);
