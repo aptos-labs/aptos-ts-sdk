@@ -2,13 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { invert, mod } from "@noble/curves/abstract/modular";
+import { invert } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
+
+export type RistPoint = InstanceType<typeof RistrettoPoint>;
+
+/**
+ * The hash of the basepoint of the Ristretto255 group using SHA3_512
+ */
+export const HASH_BASE_POINT = "8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd7b46f34048871134";
+/**
+ * Ristretto point from HASH_BASE_POINT
+ */
+export const H_RISTRETTO: RistPoint = RistrettoPoint.fromHex(HASH_BASE_POINT);
 
 /**
  * Represents the public key of an Twisted ElGamal Ed25519 key pair.
@@ -175,9 +186,8 @@ export class TwistedEd25519PrivateKey extends Serializable {
    */
   publicKey(): TwistedEd25519PublicKey {
     const scalarLE = bytesToNumberLE(this.key.toUint8Array());
-    const modScalarLE = mod(scalarLE, ed25519.CURVE.n);
-    const invertModScalarLE = invert(modScalarLE, ed25519.CURVE.n);
-    const key = RistrettoPoint.BASE.multiply(invertModScalarLE).toRawBytes();
+    const invertModScalarLE = invert(scalarLE, ed25519.CURVE.n);
+    const key = H_RISTRETTO.multiply(invertModScalarLE).toRawBytes();
 
     return new TwistedEd25519PublicKey(key);
   }
