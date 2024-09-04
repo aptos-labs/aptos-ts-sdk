@@ -48,13 +48,16 @@ const example = async () => {
     changedBalance: BALANCE - AMOUNT,
   });
   console.log("Generated withdraw proof");
-  console.log({
-    X1: bytesToHex(withdrawProof.X1),
-    X2: bytesToHex(withdrawProof.X2),
-    alpha1: bytesToHex(withdrawProof.alpha1),
-    alpha2: bytesToHex(withdrawProof.alpha2),
-    alpha3: bytesToHex(withdrawProof.alpha3)
-  }, "\n");
+  console.log(
+    {
+      X1: bytesToHex(withdrawProof.X1),
+      X2: bytesToHex(withdrawProof.X2),
+      alpha1: bytesToHex(withdrawProof.alpha1),
+      alpha2: bytesToHex(withdrawProof.alpha2),
+      alpha3: bytesToHex(withdrawProof.alpha3),
+    },
+    "\n",
+  );
 
   const isWithdrawProfValid = verifyVeiledWithdrawProof({
     publicKey: privateKeyAlice.publicKey(),
@@ -82,18 +85,21 @@ const example = async () => {
     random,
   });
   console.log("Generated transfer proof");
-  console.log({
-    X1: bytesToHex(transferProof.X1),
-    X2: bytesToHex(transferProof.X2),
-    X3: bytesToHex(transferProof.X3),
-    X4: bytesToHex(transferProof.X4),
-    X5: bytesToHex(transferProof.X5),
-    alpha1: bytesToHex(transferProof.alpha1),
-    alpha2: bytesToHex(transferProof.alpha2),
-    alpha3: bytesToHex(transferProof.alpha3),
-    alpha4: bytesToHex(transferProof.alpha4),
-    alpha5: bytesToHex(transferProof.alpha5),
-  }, "\n");
+  console.log(
+    {
+      X1: bytesToHex(transferProof.X1),
+      X2: bytesToHex(transferProof.X2),
+      X3: bytesToHex(transferProof.X3),
+      X4: bytesToHex(transferProof.X4),
+      X5: bytesToHex(transferProof.X5),
+      alpha1: bytesToHex(transferProof.alpha1),
+      alpha2: bytesToHex(transferProof.alpha2),
+      alpha3: bytesToHex(transferProof.alpha3),
+      alpha4: bytesToHex(transferProof.alpha4),
+      alpha5: bytesToHex(transferProof.alpha5),
+    },
+    "\n",
+  );
 
   const rAmount = mod(bytesToNumberLE(random), ed25519.CURVE.n);
   const receiverPKRistretto = RistrettoPoint.fromHex(privateKeyBob.publicKey().toUint8Array());

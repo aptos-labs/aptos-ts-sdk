@@ -77,7 +77,7 @@ function modN(a: bigint): bigint {
 /*
  * Little-endian random bytes modulo order of curve
  */
-function genModRandom (): bigint {
+function genModRandom(): bigint {
   return modN(bytesToNumberLE(randomBytes(32)));
 }
 
@@ -86,24 +86,24 @@ function genModRandom (): bigint {
  */
 function genFiatShamirChallenge(...arrays: Uint8Array[]): bigint {
   const hash = sha512(concatBytes(...arrays));
-  return modN(bytesToNumberLE(hash))
+  return modN(bytesToNumberLE(hash));
 }
 
 /**
  * Generates Zero Knowledge Proofs for withdraw from the veiled balance
- * 
+ *
  * @param opts.privateKey Twisted ElGamal Ed25519 private key.
  * @param opts.encryptedBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of withdraw
  * @param opts.changedBalance Balance after withdraw
  */
-export function generateVeiledWithdrawProof (opts: VeiledWithdrawProofOptions): VeiledWithdrawProof {
+export function generateVeiledWithdrawProof(opts: VeiledWithdrawProofOptions): VeiledWithdrawProof {
   const x1 = genModRandom();
   const x2 = genModRandom();
   const x3 = genModRandom();
 
   const X1 = RistrettoPoint.BASE.multiply(x1).add(opts.encryptedBalance.D.multiply(x2));
-  const X2 = H_RISTRETTO.multiply(x3)
+  const X2 = H_RISTRETTO.multiply(x3);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
@@ -115,18 +115,18 @@ export function generateVeiledWithdrawProof (opts: VeiledWithdrawProofOptions): 
     H_RISTRETTO.toRawBytes(),
     X1.toRawBytes(),
     X2.toRawBytes(),
-  )
+  );
 
   const sLE = bytesToNumberLE(opts.privateKey.toUint8Array());
   const invertSLE = invert(sLE, ed25519.CURVE.n);
 
-  const pt = modN(p * opts.changedBalance)
-  const ps = modN(p * sLE)
-  const psInvert = modN(p * invertSLE)
+  const pt = modN(p * opts.changedBalance);
+  const ps = modN(p * sLE);
+  const psInvert = modN(p * invertSLE);
 
-  const alpha1 = modN(x1 - pt)
-  const alpha2 = modN(x2 - ps)
-  const alpha3 = modN(x3 - psInvert)
+  const alpha1 = modN(x1 - pt);
+  const alpha2 = modN(x2 - ps);
+  const alpha3 = modN(x3 - psInvert);
 
   return {
     alpha1: numberToBytesLE(alpha1, 32),
@@ -134,12 +134,12 @@ export function generateVeiledWithdrawProof (opts: VeiledWithdrawProofOptions): 
     alpha3: numberToBytesLE(alpha3, 32),
     X1: X1.toRawBytes(),
     X2: X2.toRawBytes(),
-  }
+  };
 }
 
 /**
  * Generate Zero Knowledge Proofs for transfer
- * 
+ *
  * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
  * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Ciphertext points encrypted by Twisted ElGamal
@@ -147,7 +147,7 @@ export function generateVeiledWithdrawProof (opts: VeiledWithdrawProofOptions): 
  * @param opts.changedSenderBalance Balance after transfer
  * @param opts.random Random 32 bytes (Uint8Array)
  */
-export function generateVeiledTransferProof (opts: VeiledTransferProofOptions): VeiledTransferProof {
+export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): VeiledTransferProof {
   const x1 = genModRandom();
   const x2 = genModRandom();
   const x3 = genModRandom();
@@ -155,22 +155,22 @@ export function generateVeiledTransferProof (opts: VeiledTransferProofOptions): 
   const x5 = genModRandom();
 
   const rBytes = ensureBytes("Random bytes", opts.random ?? randomBytes(32), 32);
-  const rAmount = modN(bytesToNumberLE(rBytes))
+  const rAmount = modN(bytesToNumberLE(rBytes));
 
-  const senderPublicKey = opts.senderPrivateKey.publicKey()
-  const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKey.toUint8Array())
-  const receiverPKRistretto = RistrettoPoint.fromHex(opts.receiverPublicKey.toUint8Array())
-  const receiverDRistretto = receiverPKRistretto.multiply(rAmount)
+  const senderPublicKey = opts.senderPrivateKey.publicKey();
+  const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKey.toUint8Array());
+  const receiverPKRistretto = RistrettoPoint.fromHex(opts.receiverPublicKey.toUint8Array());
+  const receiverDRistretto = receiverPKRistretto.multiply(rAmount);
 
-  const amountCiphertext = TwistedElGamal.encryptWithPK(opts.amount, senderPublicKey, rBytes)
+  const amountCiphertext = TwistedElGamal.encryptWithPK(opts.amount, senderPublicKey, rBytes);
 
-  const X1 = RistrettoPoint.BASE
-    .multiply(x1)
-    .add(opts.encryptedSenderBalance.D.subtract(amountCiphertext.D).multiply(x2));
-  const X2 = senderPKRistretto.multiply(x3)
-  const X3 = receiverPKRistretto.multiply(x3)
-  const X4 = RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3))
-  const X5 = H_RISTRETTO.multiply(x5)
+  const X1 = RistrettoPoint.BASE.multiply(x1).add(
+    opts.encryptedSenderBalance.D.subtract(amountCiphertext.D).multiply(x2),
+  );
+  const X2 = senderPKRistretto.multiply(x3);
+  const X3 = receiverPKRistretto.multiply(x3);
+  const X4 = RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3));
+  const X5 = H_RISTRETTO.multiply(x5);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
@@ -188,11 +188,10 @@ export function generateVeiledTransferProof (opts: VeiledTransferProofOptions): 
     X3.toRawBytes(),
     X4.toRawBytes(),
     X5.toRawBytes(),
-  )
+  );
 
   const sLE = bytesToNumberLE(opts.senderPrivateKey.toUint8Array());
   const invertSLE = invert(sLE, ed25519.CURVE.n);
-  
 
   const alpha1 = modN(x1 - p * opts.changedSenderBalance);
   const alpha2 = modN(x2 - p * sLE);
@@ -211,25 +210,25 @@ export function generateVeiledTransferProof (opts: VeiledTransferProofOptions): 
     X3: X3.toRawBytes(),
     X4: X4.toRawBytes(),
     X5: X5.toRawBytes(),
-  }
+  };
 }
 
 /**
  * Verify Zero Knowledge Proofs for withdraw from the veiled balance
- * 
+ *
  * @param opts.publicKey Twisted ElGamal Ed25519 public key.
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.amount Amount of withdraw
  * @param opts.proof Zero Knowledge Proofs for withdraw
  */
-export function verifyVeiledWithdrawProof (opts: VerifyVeiledWithdrawProofOptions): boolean {
-  const alpha1LE = bytesToNumberLE(opts.proof.alpha1)
-  const alpha2LE = bytesToNumberLE(opts.proof.alpha2)
-  const alpha3LE = bytesToNumberLE(opts.proof.alpha3)
+export function verifyVeiledWithdrawProof(opts: VerifyVeiledWithdrawProofOptions): boolean {
+  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
+  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
+  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
 
-  const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE)
-  const alpha2D = opts.encryptedBalance.D.multiply(alpha2LE)
-  const alpha3H = H_RISTRETTO.multiply(alpha3LE)
+  const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
+  const alpha2D = opts.encryptedBalance.D.multiply(alpha2LE);
+  const alpha3H = H_RISTRETTO.multiply(alpha3LE);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
@@ -241,20 +240,20 @@ export function verifyVeiledWithdrawProof (opts: VerifyVeiledWithdrawProofOption
     H_RISTRETTO.toRawBytes(),
     opts.proof.X1,
     opts.proof.X2,
-  )
+  );
 
-  const pP = RistrettoPoint.fromHex(opts.publicKey.toUint8Array()).multiply(p)
+  const pP = RistrettoPoint.fromHex(opts.publicKey.toUint8Array()).multiply(p);
   const X1 = alpha1G
     .add(alpha2D)
-    .add(opts.encryptedBalance.C.subtract(RistrettoPoint.BASE.multiply(opts.amount)).multiply(p))
-  const X2 = alpha3H.add(pP)
+    .add(opts.encryptedBalance.C.subtract(RistrettoPoint.BASE.multiply(opts.amount)).multiply(p));
+  const X2 = alpha3H.add(pP);
 
-  return X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) && X2.equals(RistrettoPoint.fromHex(opts.proof.X2))
+  return X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) && X2.equals(RistrettoPoint.fromHex(opts.proof.X2));
 }
 
 /**
  * Verify Zero Knowledge Proofs for transfer
- * 
+ *
  * @param opts.senderPublicKey Sender public key (Twisted ElGamal Ed25519).
  * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Encrypted sender balance (Ciphertext points encrypted by Twisted ElGamal)
@@ -262,20 +261,19 @@ export function verifyVeiledWithdrawProof (opts: VerifyVeiledWithdrawProofOption
  * @param opts.receiverDa The recipient's public key multiplied by the randomness used to encrypt the amount being sent
  * @param opts.proof Zero Knowledge Proofs for transfer
  */
-export function verifyVeiledTransferProof (opts: VerifyVeiledTransferProofOptions): boolean {
-  const receiverDRistretto = RistrettoPoint.fromHex(opts.receiverDa)
-  
-  const alpha1LE = bytesToNumberLE(opts.proof.alpha1)
-  const alpha2LE = bytesToNumberLE(opts.proof.alpha2)
-  const alpha3LE = bytesToNumberLE(opts.proof.alpha3)
-  const alpha4LE = bytesToNumberLE(opts.proof.alpha4)
-  const alpha5LE = bytesToNumberLE(opts.proof.alpha5)
+export function verifyVeiledTransferProof(opts: VerifyVeiledTransferProofOptions): boolean {
+  const receiverDRistretto = RistrettoPoint.fromHex(opts.receiverDa);
 
+  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
+  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
+  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
+  const alpha4LE = bytesToNumberLE(opts.proof.alpha4);
+  const alpha5LE = bytesToNumberLE(opts.proof.alpha5);
 
-  const senderPKUint8Array =  opts.senderPublicKey.toUint8Array()
-  const receiverPKUint8Array = opts.receiverPublicKey.toUint8Array()
-  const senderPKRistretto = RistrettoPoint.fromHex(senderPKUint8Array)
-  const receiverPKRistretto = RistrettoPoint.fromHex(receiverPKUint8Array)
+  const senderPKUint8Array = opts.senderPublicKey.toUint8Array();
+  const receiverPKUint8Array = opts.receiverPublicKey.toUint8Array();
+  const senderPKRistretto = RistrettoPoint.fromHex(senderPKUint8Array);
+  const receiverPKRistretto = RistrettoPoint.fromHex(receiverPKUint8Array);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
@@ -293,23 +291,25 @@ export function verifyVeiledTransferProof (opts: VerifyVeiledTransferProofOption
     opts.proof.X3,
     opts.proof.X4,
     opts.proof.X5,
-  )
+  );
 
-  const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE)
-  const alpha2Db = opts.encryptedSenderBalance.D.subtract(opts.encryptedAmountBySender.D).multiply(alpha2LE)
-  const pCb = opts.encryptedSenderBalance.C.subtract(opts.encryptedAmountBySender.C).multiply(p)
+  const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
+  const alpha2Db = opts.encryptedSenderBalance.D.subtract(opts.encryptedAmountBySender.D).multiply(alpha2LE);
+  const pCb = opts.encryptedSenderBalance.C.subtract(opts.encryptedAmountBySender.C).multiply(p);
 
-  const X1 = alpha1G.add(alpha2Db).add(pCb)
-  const X2 = senderPKRistretto.multiply(alpha3LE).add(opts.encryptedAmountBySender.D.multiply(p))
-  const X3 = receiverPKRistretto.multiply(alpha3LE).add(receiverDRistretto.multiply(p))
+  const X1 = alpha1G.add(alpha2Db).add(pCb);
+  const X2 = senderPKRistretto.multiply(alpha3LE).add(opts.encryptedAmountBySender.D.multiply(p));
+  const X3 = receiverPKRistretto.multiply(alpha3LE).add(receiverDRistretto.multiply(p));
   const X4 = RistrettoPoint.BASE.multiply(alpha4LE)
     .add(H_RISTRETTO.multiply(alpha3LE))
-    .add(opts.encryptedAmountBySender.C.multiply(p))
-  const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p))
+    .add(opts.encryptedAmountBySender.C.multiply(p));
+  const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p));
 
-  return X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) &&
+  return (
+    X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) &&
     X2.equals(RistrettoPoint.fromHex(opts.proof.X2)) &&
     X3.equals(RistrettoPoint.fromHex(opts.proof.X3)) &&
     X4.equals(RistrettoPoint.fromHex(opts.proof.X4)) &&
     X5.equals(RistrettoPoint.fromHex(opts.proof.X5))
+  );
 }
