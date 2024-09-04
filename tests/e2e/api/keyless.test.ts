@@ -50,19 +50,6 @@ describe("keyless api", () => {
   // TODO: Make this work for local by spinning up a local proving service.
   const { aptos } = getAptosClient();
 
-  beforeAll(async () => {
-    // Fund the test accounts
-    const promises = TEST_JWT_TOKENS.map(async (jwt) => {
-      const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-      const accountAddress = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper }).authKey().derivedAddress();
-      await aptos.fundAccount({
-        accountAddress,
-        amount: FUND_AMOUNT,
-      });
-    });
-
-    await Promise.all(promises);
-  }, 30000);
   describe("keyless account", () => {
     test(
       "derives the keyless account and submits a transaction",
@@ -148,6 +135,10 @@ describe("keyless api", () => {
         const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const proofFetchCallback = async () => {};
         const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        await aptos.fundAccount({
+          accountAddress: sender.accountAddress,
+          amount: FUND_AMOUNT,
+        });
         const transaction = await aptos.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
@@ -166,6 +157,10 @@ describe("keyless api", () => {
         const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const proofFetchCallback = async () => {};
         const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        await aptos.fundAccount({
+          accountAddress: sender.accountAddress,
+          amount: FUND_AMOUNT,
+        });
         const transaction = await aptos.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
@@ -203,6 +198,10 @@ describe("keyless api", () => {
         // Select a random test token.  Using the same one may encounter rate limits
         const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        await aptos.fundAccount({
+          accountAddress: sender.accountAddress,
+          amount: FUND_AMOUNT,
+        });
         const transaction = await aptos.transferCoinTransaction({
           sender: sender.accountAddress,
           recipient: sender.accountAddress,
