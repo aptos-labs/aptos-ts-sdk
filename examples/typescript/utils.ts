@@ -52,3 +52,19 @@ export function getPackageBytesToPublish(filePath: string) {
 
   return { metadataBytes, byteCode };
 }
+
+/**
+ * A convenience function to get a scripts byteCode
+ * @param filePath
+ */
+export function getMoveBytes(filePath: string) {
+  // current working directory - the root folder of this repo
+  const cwd = process.cwd();
+  // target directory - current working directory + filePath (filePath json file is generated with the prevoius, compilePackage, cli command)
+  const modulePath = path.join(cwd, filePath);
+
+  const buffer = fs.readFileSync(modulePath);
+  const byteCode = Uint8Array.from(buffer);
+
+  return byteCode;
+}
