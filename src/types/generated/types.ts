@@ -2949,36 +2949,28 @@ export type CurrentDelegatorBalancesStreamCursorValueInput = {
   table_handle?: InputMaybe<Scalars["String"]["input"]>;
 };
 
-/** columns and relationships of "current_fungible_asset_balances" */
+/** columns and relationships of "current_fungible_asset_balances_legacy" */
 export type CurrentFungibleAssetBalances = {
-  amount?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v1?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v2?: Maybe<Scalars["numeric"]["output"]>;
-  asset_type?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v1?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v2?: Maybe<Scalars["String"]["output"]>;
+  amount: Scalars["numeric"]["output"];
+  asset_type: Scalars["String"]["output"];
   is_frozen: Scalars["Boolean"]["output"];
-  is_primary?: Maybe<Scalars["Boolean"]["output"]>;
-  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v1?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v2?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["bigint"]["output"]>;
+  is_primary: Scalars["Boolean"]["output"];
+  last_transaction_timestamp: Scalars["timestamp"]["output"];
+  last_transaction_version: Scalars["bigint"]["output"];
   /** An object relationship */
   metadata?: Maybe<FungibleAssetMetadata>;
   owner_address: Scalars["String"]["output"];
   storage_id: Scalars["String"]["output"];
-  token_standard?: Maybe<Scalars["String"]["output"]>;
+  token_standard: Scalars["String"]["output"];
 };
 
-/** aggregated selection of "current_fungible_asset_balances" */
+/** aggregated selection of "current_fungible_asset_balances_legacy" */
 export type CurrentFungibleAssetBalancesAggregate = {
   aggregate?: Maybe<CurrentFungibleAssetBalancesAggregateFields>;
   nodes: Array<CurrentFungibleAssetBalances>;
 };
 
-/** aggregate fields of "current_fungible_asset_balances" */
+/** aggregate fields of "current_fungible_asset_balances_legacy" */
 export type CurrentFungibleAssetBalancesAggregateFields = {
   avg?: Maybe<CurrentFungibleAssetBalancesAvgFields>;
   count: Scalars["Int"]["output"];
@@ -2993,7 +2985,7 @@ export type CurrentFungibleAssetBalancesAggregateFields = {
   variance?: Maybe<CurrentFungibleAssetBalancesVarianceFields>;
 };
 
-/** aggregate fields of "current_fungible_asset_balances" */
+/** aggregate fields of "current_fungible_asset_balances_legacy" */
 export type CurrentFungibleAssetBalancesAggregateFieldsCountArgs = {
   columns?: InputMaybe<Array<CurrentFungibleAssetBalancesSelectColumn>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -3002,32 +2994,20 @@ export type CurrentFungibleAssetBalancesAggregateFieldsCountArgs = {
 /** aggregate avg on columns */
 export type CurrentFungibleAssetBalancesAvgFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** Boolean expression to filter rows from the table "current_fungible_asset_balances". All fields are combined with a logical 'AND'. */
+/** Boolean expression to filter rows from the table "current_fungible_asset_balances_legacy". All fields are combined with a logical 'AND'. */
 export type CurrentFungibleAssetBalancesBoolExp = {
   _and?: InputMaybe<Array<CurrentFungibleAssetBalancesBoolExp>>;
   _not?: InputMaybe<CurrentFungibleAssetBalancesBoolExp>;
   _or?: InputMaybe<Array<CurrentFungibleAssetBalancesBoolExp>>;
   amount?: InputMaybe<NumericComparisonExp>;
-  amount_v1?: InputMaybe<NumericComparisonExp>;
-  amount_v2?: InputMaybe<NumericComparisonExp>;
   asset_type?: InputMaybe<StringComparisonExp>;
-  asset_type_v1?: InputMaybe<StringComparisonExp>;
-  asset_type_v2?: InputMaybe<StringComparisonExp>;
   is_frozen?: InputMaybe<BooleanComparisonExp>;
   is_primary?: InputMaybe<BooleanComparisonExp>;
   last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
-  last_transaction_timestamp_v1?: InputMaybe<TimestampComparisonExp>;
-  last_transaction_timestamp_v2?: InputMaybe<TimestampComparisonExp>;
   last_transaction_version?: InputMaybe<BigintComparisonExp>;
-  last_transaction_version_v1?: InputMaybe<BigintComparisonExp>;
-  last_transaction_version_v2?: InputMaybe<BigintComparisonExp>;
   metadata?: InputMaybe<FungibleAssetMetadataBoolExp>;
   owner_address?: InputMaybe<StringComparisonExp>;
   storage_id?: InputMaybe<StringComparisonExp>;
@@ -3037,17 +3017,9 @@ export type CurrentFungibleAssetBalancesBoolExp = {
 /** aggregate max on columns */
 export type CurrentFungibleAssetBalancesMaxFields = {
   amount?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v1?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v2?: Maybe<Scalars["numeric"]["output"]>;
   asset_type?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v1?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v2?: Maybe<Scalars["String"]["output"]>;
   last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v1?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v2?: Maybe<Scalars["timestamp"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["bigint"]["output"]>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
   storage_id?: Maybe<Scalars["String"]["output"]>;
   token_standard?: Maybe<Scalars["String"]["output"]>;
@@ -3056,38 +3028,109 @@ export type CurrentFungibleAssetBalancesMaxFields = {
 /** aggregate min on columns */
 export type CurrentFungibleAssetBalancesMinFields = {
   amount?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v1?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v2?: Maybe<Scalars["numeric"]["output"]>;
   asset_type?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v1?: Maybe<Scalars["String"]["output"]>;
-  asset_type_v2?: Maybe<Scalars["String"]["output"]>;
   last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v1?: Maybe<Scalars["timestamp"]["output"]>;
-  last_transaction_timestamp_v2?: Maybe<Scalars["timestamp"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** columns and relationships of "current_fungible_asset_balances" */
+export type CurrentFungibleAssetBalancesNew = {
+  amount: Scalars["numeric"]["output"];
+  asset_type: Scalars["String"]["output"];
+  is_frozen: Scalars["Boolean"]["output"];
+  is_primary: Scalars["Boolean"]["output"];
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  /** An object relationship */
+  metadata?: Maybe<FungibleAssetMetadata>;
+  owner_address: Scalars["String"]["output"];
+  storage_id: Scalars["String"]["output"];
+  token_standard: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "current_fungible_asset_balances" */
+export type CurrentFungibleAssetBalancesNewAggregate = {
+  aggregate?: Maybe<CurrentFungibleAssetBalancesNewAggregateFields>;
+  nodes: Array<CurrentFungibleAssetBalancesNew>;
+};
+
+/** aggregate fields of "current_fungible_asset_balances" */
+export type CurrentFungibleAssetBalancesNewAggregateFields = {
+  avg?: Maybe<CurrentFungibleAssetBalancesNewAvgFields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<CurrentFungibleAssetBalancesNewMaxFields>;
+  min?: Maybe<CurrentFungibleAssetBalancesNewMinFields>;
+  stddev?: Maybe<CurrentFungibleAssetBalancesNewStddevFields>;
+  stddev_pop?: Maybe<CurrentFungibleAssetBalancesNewStddevPopFields>;
+  stddev_samp?: Maybe<CurrentFungibleAssetBalancesNewStddevSampFields>;
+  sum?: Maybe<CurrentFungibleAssetBalancesNewSumFields>;
+  var_pop?: Maybe<CurrentFungibleAssetBalancesNewVarPopFields>;
+  var_samp?: Maybe<CurrentFungibleAssetBalancesNewVarSampFields>;
+  variance?: Maybe<CurrentFungibleAssetBalancesNewVarianceFields>;
+};
+
+/** aggregate fields of "current_fungible_asset_balances" */
+export type CurrentFungibleAssetBalancesNewAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<CurrentFungibleAssetBalancesNewSelectColumn>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type CurrentFungibleAssetBalancesNewAvgFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "current_fungible_asset_balances". All fields are combined with a logical 'AND'. */
+export type CurrentFungibleAssetBalancesNewBoolExp = {
+  _and?: InputMaybe<Array<CurrentFungibleAssetBalancesNewBoolExp>>;
+  _not?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
+  _or?: InputMaybe<Array<CurrentFungibleAssetBalancesNewBoolExp>>;
+  amount?: InputMaybe<NumericComparisonExp>;
+  asset_type?: InputMaybe<StringComparisonExp>;
+  is_frozen?: InputMaybe<BooleanComparisonExp>;
+  is_primary?: InputMaybe<BooleanComparisonExp>;
+  last_transaction_timestamp?: InputMaybe<TimestampComparisonExp>;
+  last_transaction_version?: InputMaybe<BigintComparisonExp>;
+  metadata?: InputMaybe<FungibleAssetMetadataBoolExp>;
+  owner_address?: InputMaybe<StringComparisonExp>;
+  storage_id?: InputMaybe<StringComparisonExp>;
+  token_standard?: InputMaybe<StringComparisonExp>;
+};
+
+/** aggregate max on columns */
+export type CurrentFungibleAssetBalancesNewMaxFields = {
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  asset_type?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+  owner_address?: Maybe<Scalars["String"]["output"]>;
+  storage_id?: Maybe<Scalars["String"]["output"]>;
+  token_standard?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type CurrentFungibleAssetBalancesNewMinFields = {
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  asset_type?: Maybe<Scalars["String"]["output"]>;
+  last_transaction_timestamp?: Maybe<Scalars["timestamp"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
   owner_address?: Maybe<Scalars["String"]["output"]>;
   storage_id?: Maybe<Scalars["String"]["output"]>;
   token_standard?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** Ordering options when selecting data from "current_fungible_asset_balances". */
-export type CurrentFungibleAssetBalancesOrderBy = {
+export type CurrentFungibleAssetBalancesNewOrderBy = {
   amount?: InputMaybe<OrderBy>;
-  amount_v1?: InputMaybe<OrderBy>;
-  amount_v2?: InputMaybe<OrderBy>;
   asset_type?: InputMaybe<OrderBy>;
-  asset_type_v1?: InputMaybe<OrderBy>;
-  asset_type_v2?: InputMaybe<OrderBy>;
   is_frozen?: InputMaybe<OrderBy>;
   is_primary?: InputMaybe<OrderBy>;
   last_transaction_timestamp?: InputMaybe<OrderBy>;
-  last_transaction_timestamp_v1?: InputMaybe<OrderBy>;
-  last_transaction_timestamp_v2?: InputMaybe<OrderBy>;
   last_transaction_version?: InputMaybe<OrderBy>;
-  last_transaction_version_v1?: InputMaybe<OrderBy>;
-  last_transaction_version_v2?: InputMaybe<OrderBy>;
   metadata?: InputMaybe<FungibleAssetMetadataOrderBy>;
   owner_address?: InputMaybe<OrderBy>;
   storage_id?: InputMaybe<OrderBy>;
@@ -3095,19 +3138,11 @@ export type CurrentFungibleAssetBalancesOrderBy = {
 };
 
 /** select columns of table "current_fungible_asset_balances" */
-export enum CurrentFungibleAssetBalancesSelectColumn {
+export enum CurrentFungibleAssetBalancesNewSelectColumn {
   /** column name */
   Amount = "amount",
   /** column name */
-  AmountV1 = "amount_v1",
-  /** column name */
-  AmountV2 = "amount_v2",
-  /** column name */
   AssetType = "asset_type",
-  /** column name */
-  AssetTypeV1 = "asset_type_v1",
-  /** column name */
-  AssetTypeV2 = "asset_type_v2",
   /** column name */
   IsFrozen = "is_frozen",
   /** column name */
@@ -3115,15 +3150,106 @@ export enum CurrentFungibleAssetBalancesSelectColumn {
   /** column name */
   LastTransactionTimestamp = "last_transaction_timestamp",
   /** column name */
-  LastTransactionTimestampV1 = "last_transaction_timestamp_v1",
-  /** column name */
-  LastTransactionTimestampV2 = "last_transaction_timestamp_v2",
-  /** column name */
   LastTransactionVersion = "last_transaction_version",
   /** column name */
-  LastTransactionVersionV1 = "last_transaction_version_v1",
+  OwnerAddress = "owner_address",
   /** column name */
-  LastTransactionVersionV2 = "last_transaction_version_v2",
+  StorageId = "storage_id",
+  /** column name */
+  TokenStandard = "token_standard",
+}
+
+/** aggregate stddev on columns */
+export type CurrentFungibleAssetBalancesNewStddevFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type CurrentFungibleAssetBalancesNewStddevPopFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type CurrentFungibleAssetBalancesNewStddevSampFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "current_fungible_asset_balances_new" */
+export type CurrentFungibleAssetBalancesNewStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: CurrentFungibleAssetBalancesNewStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type CurrentFungibleAssetBalancesNewStreamCursorValueInput = {
+  amount?: InputMaybe<Scalars["numeric"]["input"]>;
+  asset_type?: InputMaybe<Scalars["String"]["input"]>;
+  is_frozen?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_primary?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
+  last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
+  owner_address?: InputMaybe<Scalars["String"]["input"]>;
+  storage_id?: InputMaybe<Scalars["String"]["input"]>;
+  token_standard?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type CurrentFungibleAssetBalancesNewSumFields = {
+  amount?: Maybe<Scalars["numeric"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate var_pop on columns */
+export type CurrentFungibleAssetBalancesNewVarPopFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type CurrentFungibleAssetBalancesNewVarSampFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type CurrentFungibleAssetBalancesNewVarianceFields = {
+  amount?: Maybe<Scalars["Float"]["output"]>;
+  last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Ordering options when selecting data from "current_fungible_asset_balances_legacy". */
+export type CurrentFungibleAssetBalancesOrderBy = {
+  amount?: InputMaybe<OrderBy>;
+  asset_type?: InputMaybe<OrderBy>;
+  is_frozen?: InputMaybe<OrderBy>;
+  is_primary?: InputMaybe<OrderBy>;
+  last_transaction_timestamp?: InputMaybe<OrderBy>;
+  last_transaction_version?: InputMaybe<OrderBy>;
+  metadata?: InputMaybe<FungibleAssetMetadataOrderBy>;
+  owner_address?: InputMaybe<OrderBy>;
+  storage_id?: InputMaybe<OrderBy>;
+  token_standard?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "current_fungible_asset_balances_legacy" */
+export enum CurrentFungibleAssetBalancesSelectColumn {
+  /** column name */
+  Amount = "amount",
+  /** column name */
+  AssetType = "asset_type",
+  /** column name */
+  IsFrozen = "is_frozen",
+  /** column name */
+  IsPrimary = "is_primary",
+  /** column name */
+  LastTransactionTimestamp = "last_transaction_timestamp",
+  /** column name */
+  LastTransactionVersion = "last_transaction_version",
   /** column name */
   OwnerAddress = "owner_address",
   /** column name */
@@ -3135,31 +3261,19 @@ export enum CurrentFungibleAssetBalancesSelectColumn {
 /** aggregate stddev on columns */
 export type CurrentFungibleAssetBalancesStddevFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
 export type CurrentFungibleAssetBalancesStddevPopFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
 export type CurrentFungibleAssetBalancesStddevSampFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Streaming cursor of the table "current_fungible_asset_balances" */
@@ -3173,19 +3287,11 @@ export type CurrentFungibleAssetBalancesStreamCursorInput = {
 /** Initial value of the column from where the streaming should start */
 export type CurrentFungibleAssetBalancesStreamCursorValueInput = {
   amount?: InputMaybe<Scalars["numeric"]["input"]>;
-  amount_v1?: InputMaybe<Scalars["numeric"]["input"]>;
-  amount_v2?: InputMaybe<Scalars["numeric"]["input"]>;
   asset_type?: InputMaybe<Scalars["String"]["input"]>;
-  asset_type_v1?: InputMaybe<Scalars["String"]["input"]>;
-  asset_type_v2?: InputMaybe<Scalars["String"]["input"]>;
   is_frozen?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_primary?: InputMaybe<Scalars["Boolean"]["input"]>;
   last_transaction_timestamp?: InputMaybe<Scalars["timestamp"]["input"]>;
-  last_transaction_timestamp_v1?: InputMaybe<Scalars["timestamp"]["input"]>;
-  last_transaction_timestamp_v2?: InputMaybe<Scalars["timestamp"]["input"]>;
   last_transaction_version?: InputMaybe<Scalars["bigint"]["input"]>;
-  last_transaction_version_v1?: InputMaybe<Scalars["bigint"]["input"]>;
-  last_transaction_version_v2?: InputMaybe<Scalars["bigint"]["input"]>;
   owner_address?: InputMaybe<Scalars["String"]["input"]>;
   storage_id?: InputMaybe<Scalars["String"]["input"]>;
   token_standard?: InputMaybe<Scalars["String"]["input"]>;
@@ -3194,41 +3300,25 @@ export type CurrentFungibleAssetBalancesStreamCursorValueInput = {
 /** aggregate sum on columns */
 export type CurrentFungibleAssetBalancesSumFields = {
   amount?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v1?: Maybe<Scalars["numeric"]["output"]>;
-  amount_v2?: Maybe<Scalars["numeric"]["output"]>;
   last_transaction_version?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["bigint"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate var_pop on columns */
 export type CurrentFungibleAssetBalancesVarPopFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
 export type CurrentFungibleAssetBalancesVarSampFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
 export type CurrentFungibleAssetBalancesVarianceFields = {
   amount?: Maybe<Scalars["Float"]["output"]>;
-  amount_v1?: Maybe<Scalars["Float"]["output"]>;
-  amount_v2?: Maybe<Scalars["Float"]["output"]>;
   last_transaction_version?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v1?: Maybe<Scalars["Float"]["output"]>;
-  last_transaction_version_v2?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** columns and relationships of "current_objects" */
@@ -7203,12 +7293,18 @@ export type QueryRoot = {
   current_delegator_balances: Array<CurrentDelegatorBalances>;
   /** fetch data from the table: "current_delegator_balances" using primary key columns */
   current_delegator_balances_by_pk?: Maybe<CurrentDelegatorBalances>;
-  /** fetch data from the table: "current_fungible_asset_balances" */
+  /** fetch data from the table: "current_fungible_asset_balances_legacy" */
   current_fungible_asset_balances: Array<CurrentFungibleAssetBalances>;
-  /** fetch aggregated fields from the table: "current_fungible_asset_balances" */
+  /** fetch aggregated fields from the table: "current_fungible_asset_balances_legacy" */
   current_fungible_asset_balances_aggregate: CurrentFungibleAssetBalancesAggregate;
-  /** fetch data from the table: "current_fungible_asset_balances" using primary key columns */
+  /** fetch data from the table: "current_fungible_asset_balances_legacy" using primary key columns */
   current_fungible_asset_balances_by_pk?: Maybe<CurrentFungibleAssetBalances>;
+  /** fetch data from the table: "current_fungible_asset_balances" */
+  current_fungible_asset_balances_new: Array<CurrentFungibleAssetBalancesNew>;
+  /** fetch aggregated fields from the table: "current_fungible_asset_balances" */
+  current_fungible_asset_balances_new_aggregate: CurrentFungibleAssetBalancesNewAggregate;
+  /** fetch data from the table: "current_fungible_asset_balances" using primary key columns */
+  current_fungible_asset_balances_new_by_pk?: Maybe<CurrentFungibleAssetBalancesNew>;
   /** fetch data from the table: "current_objects" */
   current_objects: Array<CurrentObjects>;
   /** fetch data from the table: "current_objects" using primary key columns */
@@ -7624,6 +7720,26 @@ export type QueryRootCurrentFungibleAssetBalancesAggregateArgs = {
 };
 
 export type QueryRootCurrentFungibleAssetBalancesByPkArgs = {
+  storage_id: Scalars["String"]["input"];
+};
+
+export type QueryRootCurrentFungibleAssetBalancesNewArgs = {
+  distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesNewSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesNewOrderBy>>;
+  where?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
+};
+
+export type QueryRootCurrentFungibleAssetBalancesNewAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesNewSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesNewOrderBy>>;
+  where?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
+};
+
+export type QueryRootCurrentFungibleAssetBalancesNewByPkArgs = {
   storage_id: Scalars["String"]["input"];
 };
 
@@ -8341,13 +8457,21 @@ export type SubscriptionRoot = {
   current_delegator_balances_by_pk?: Maybe<CurrentDelegatorBalances>;
   /** fetch data from the table in a streaming manner: "current_delegator_balances" */
   current_delegator_balances_stream: Array<CurrentDelegatorBalances>;
-  /** fetch data from the table: "current_fungible_asset_balances" */
+  /** fetch data from the table: "current_fungible_asset_balances_legacy" */
   current_fungible_asset_balances: Array<CurrentFungibleAssetBalances>;
-  /** fetch aggregated fields from the table: "current_fungible_asset_balances" */
+  /** fetch aggregated fields from the table: "current_fungible_asset_balances_legacy" */
   current_fungible_asset_balances_aggregate: CurrentFungibleAssetBalancesAggregate;
-  /** fetch data from the table: "current_fungible_asset_balances" using primary key columns */
+  /** fetch data from the table: "current_fungible_asset_balances_legacy" using primary key columns */
   current_fungible_asset_balances_by_pk?: Maybe<CurrentFungibleAssetBalances>;
+  /** fetch data from the table: "current_fungible_asset_balances" */
+  current_fungible_asset_balances_new: Array<CurrentFungibleAssetBalancesNew>;
+  /** fetch aggregated fields from the table: "current_fungible_asset_balances" */
+  current_fungible_asset_balances_new_aggregate: CurrentFungibleAssetBalancesNewAggregate;
+  /** fetch data from the table: "current_fungible_asset_balances" using primary key columns */
+  current_fungible_asset_balances_new_by_pk?: Maybe<CurrentFungibleAssetBalancesNew>;
   /** fetch data from the table in a streaming manner: "current_fungible_asset_balances" */
+  current_fungible_asset_balances_new_stream: Array<CurrentFungibleAssetBalancesNew>;
+  /** fetch data from the table in a streaming manner: "current_fungible_asset_balances_legacy" */
   current_fungible_asset_balances_stream: Array<CurrentFungibleAssetBalances>;
   /** fetch data from the table: "current_objects" */
   current_objects: Array<CurrentObjects>;
@@ -8959,6 +9083,32 @@ export type SubscriptionRootCurrentFungibleAssetBalancesAggregateArgs = {
 
 export type SubscriptionRootCurrentFungibleAssetBalancesByPkArgs = {
   storage_id: Scalars["String"]["input"];
+};
+
+export type SubscriptionRootCurrentFungibleAssetBalancesNewArgs = {
+  distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesNewSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesNewOrderBy>>;
+  where?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
+};
+
+export type SubscriptionRootCurrentFungibleAssetBalancesNewAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CurrentFungibleAssetBalancesNewSelectColumn>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<CurrentFungibleAssetBalancesNewOrderBy>>;
+  where?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
+};
+
+export type SubscriptionRootCurrentFungibleAssetBalancesNewByPkArgs = {
+  storage_id: Scalars["String"]["input"];
+};
+
+export type SubscriptionRootCurrentFungibleAssetBalancesNewStreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<CurrentFungibleAssetBalancesNewStreamCursorInput>>;
+  where?: InputMaybe<CurrentFungibleAssetBalancesNewBoolExp>;
 };
 
 export type SubscriptionRootCurrentFungibleAssetBalancesStreamArgs = {

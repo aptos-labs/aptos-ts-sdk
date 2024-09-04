@@ -14,7 +14,7 @@ import {
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 
-const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.TESTNET];
+const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.MAINNET];
 const aptos = new Aptos(new AptosConfig({ network: APTOS_NETWORK }));
 
 const alice = Account.generate();
@@ -98,11 +98,7 @@ async function main() {
     });
 
     console.log("Alice's FA balances", data);
-    if (
-      data.length !== 2 ||
-      data.find((e) => e.asset_type === moonMetadata)?.amount !== 100 ||
-      data.find((e) => e.asset_type === moonModule)?.amount !== 0
-    ) {
+    if (data.length !== 1 || data[0].amount !== 100) {
       throw new Error("Alice's FA and Module balance should be 100 and 0");
     }
   }
@@ -121,10 +117,7 @@ async function main() {
     });
 
     console.log("Bob's MoonCoin balance", data);
-    if (
-      data.find((e) => e.asset_type === moonMetadata)?.amount !== 50 ||
-      data.find((e) => e.asset_type === moonModule)?.amount !== 100
-    ) {
+    if (data.length !== 1 || data[0].amount !== 150) {
       throw new Error("Bob's FA and Module balance should be 50 and 100");
     }
   }
@@ -144,7 +137,7 @@ async function main() {
     });
 
     console.log("Alice's FACoin balance", data);
-    if (!data.find((e) => e.amount === 50)?.is_frozen) throw new Error("Alice's FACoin balance should be frozen");
+    if (!data[0].is_frozen) throw new Error("Alice's FACoin balance should be frozen");
   }
 
   console.log("\n=== Unfreeze Alice's FACoin ===");
@@ -162,7 +155,7 @@ async function main() {
     });
 
     console.log("Alice's FACoin balance", data);
-    if (data.find((e) => e.amount === 50)?.is_frozen) throw new Error("Alice's FACoin balance should not be frozen");
+    if (data[0].is_frozen) throw new Error("Alice's FACoin balance should not be frozen");
   }
 
   console.log("\n=== Create MoonCoin secondary store for Alice ===");
@@ -178,7 +171,7 @@ async function main() {
       },
     });
     console.log("Alice's MoonCoin balance", data);
-    if (data.length !== 3) throw new Error("Alice's MoonCoin balance should be 3");
+    if (data.length !== 2) throw new Error("Alice's MoonCoin balance should be 2");
   }
 
   console.log("\n=== Mint MoonCoin to Alice and deposit to secondary store ===");

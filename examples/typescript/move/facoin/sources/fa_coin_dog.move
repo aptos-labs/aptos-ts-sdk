@@ -36,7 +36,6 @@ module FACoin::dog {
             utf8(b"http://example.com/favicon.ico"), /* icon */
             utf8(b"http://example.com"), /* project */
         );
-        let asset_metadata = object::address_to_object<Metadata>(object::create_object_address(&@FACoin, ASSET_SYMBOL)); 
 
         // Create mint/burn/transfer refs to allow creator to manage the fungible asset.
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -44,11 +43,6 @@ module FACoin::dog {
         let transfer_ref = fungible_asset::generate_transfer_ref(constructor_ref);
         let metadata_object_signer = object::generate_signer(constructor_ref);
         
-        // Mint to owner
-        let to_wallet = primary_fungible_store::ensure_primary_store_exists(signer::address_of(admin), asset_metadata);
-        let fa = fungible_asset::mint(&mint_ref, 1000000);
-        fungible_asset::deposit_with_ref(&transfer_ref, to_wallet, fa);
-        fungible_asset::set_frozen_flag(&transfer_ref, to_wallet, true);
 
         move_to(
             &metadata_object_signer,

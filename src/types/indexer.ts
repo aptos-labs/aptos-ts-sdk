@@ -52,7 +52,7 @@ export type GetAccountOwnedTokensFromCollectionResponse =
   GetAccountOwnedTokensFromCollectionQuery["current_token_ownerships_v2"];
 export type GetAccountCollectionsWithOwnedTokenResponse =
   GetAccountCollectionsWithOwnedTokensQuery["current_collection_ownership_v2_view"];
-export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances"];
+export type GetAccountCoinsDataResponse = GetAccountCoinsDataQuery["current_fungible_asset_balances_new"];
 export type GetChainTopUserTransactionsResponse = GetChainTopUserTransactionsQuery["user_transactions"];
 export type GetEventsResponse = GetEventsQuery["events"];
 
@@ -64,7 +64,7 @@ export type GetProcessorStatusResponse = GetProcessorStatusQuery["processor_stat
 export type GetFungibleAssetMetadataResponse = GetFungibleAssetMetadataQuery["fungible_asset_metadata"];
 export type GetFungibleAssetActivitiesResponse = GetFungibleAssetActivitiesQuery["fungible_asset_activities"];
 export type GetCurrentFungibleAssetBalancesResponse =
-  GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances"];
+  GetCurrentFungibleAssetBalancesQuery["current_fungible_asset_balances_new"];
 export type GetTokenActivityResponse = GetTokenActivityQuery["token_activities_v2"];
 export type GetCurrentTokenOwnershipResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"][0];
 export type GetOwnedTokensResponse = GetCurrentTokenOwnershipQuery["current_token_ownerships_v2"];

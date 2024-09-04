@@ -46,18 +46,9 @@ module FACoin::fa_coin {
         let transfer_ref = fungible_asset::generate_transfer_ref(constructor_ref);
         let metadata_object_signer = object::generate_signer(constructor_ref);
 
-        // Mint to owner
-        // let to_wallet = primary_fungible_store::ensure_primary_store_exists(signer::address_of(admin), asset_metadata);
-        // let fa = fungible_asset::mint(&mint_ref, 1000000);
-        // fungible_asset::deposit_with_ref(&transfer_ref, to_wallet, fa);
-
         // Initialize secondary store for the fungible asset.
         let constructor_ref = &object::create_named_object(admin, SECONDARY_ASSET_SYMBOL);
-        let secondary_store = fungible_asset::create_store(constructor_ref, asset_metadata);
-
-        // Mint secondary store to owner
-        // let fa = fungible_asset::mint(&mint_ref, 1000000);
-        // fungible_asset::deposit_with_ref(&transfer_ref, secondary_store, fa);
+        fungible_asset::create_store(constructor_ref, asset_metadata);
 
         // Transfer the refs to the metadata object and give them to the signer
         move_to(
