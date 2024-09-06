@@ -11,6 +11,8 @@ import {
   verifyVeiledWithdrawProof,
   generateVeiledTransferProof,
   verifyVeiledTransferProof,
+  generateVeiledKeyRotationProof,
+  verifyVeiledKeyRotationProof,
 } from "@aptos-labs/ts-sdk";
 import { mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
@@ -40,6 +42,8 @@ const example = async () => {
   console.log(`Point C: ${ciphertextAlice.C.toString()}`);
   console.log(`Point D: ${ciphertextAlice.D.toString()}`);
 
+  // Start withdraw prof
+
   console.log("\n\n=== Veiled Withdraw Proof ===");
   const withdrawProof = generateVeiledWithdrawProof({
     privateKey: privateKeyAlice,
@@ -66,6 +70,9 @@ const example = async () => {
     proof: withdrawProof,
   });
   console.log("Is veiled withdraw proof valid:", isWithdrawProfValid);
+
+  // End withdraw prof
+  // Start transfer prof
 
   console.log("\n\n=== Veiled transfer proof ===");
   const random = randomBytes(32);
@@ -117,6 +124,58 @@ const example = async () => {
   });
 
   console.log("Is veiled transfer proof valid:", isTransferProofValid);
+
+  // End transfer prof
+  // Start key rotation proof
+
+  console.log("\n\n=== Veiled key rotation proof ===");
+
+  const newPrivateKeyAlice = TwistedEd25519PrivateKey.generate();
+  console.log("=== The new key pair of veiled balance Alice's ===");
+  console.log(`New Private key: ${privateKeyAlice.toString()}`);
+  console.log(`New Public key: ${privateKeyAlice.publicKey().toString()}\n`);
+
+  const random2 = randomBytes(32);
+  console.log(`Randomness to encrypt the balance: ${bytesToHex(random)}\n`);
+  const newEncryptedBalance = TwistedElGamal.encryptWithPK(BALANCE, newPrivateKeyAlice.publicKey(), random2);
+  console.log("Balance encrypted with new public key (ciphertext)");
+  console.log(`Point C: ${newEncryptedBalance.C.toString()}`);
+  console.log(`Point D: ${newEncryptedBalance.D.toString()}\n`);
+
+  const keyRotationProof = generateVeiledKeyRotationProof({
+    oldPrivateKey: privateKeyAlice,
+    newPrivateKey: newPrivateKeyAlice,
+    balance: BALANCE,
+    encryptedBalance: ciphertextAlice,
+    random: random2,
+  });
+  console.log("Generated key rotation proof");
+  console.log(
+    {
+      X1: bytesToHex(keyRotationProof.X1),
+      X2: bytesToHex(keyRotationProof.X2),
+      X3: bytesToHex(keyRotationProof.X3),
+      X4: bytesToHex(keyRotationProof.X4),
+      alpha1: bytesToHex(keyRotationProof.alpha1),
+      alpha2: bytesToHex(keyRotationProof.alpha2),
+      alpha3: bytesToHex(keyRotationProof.alpha3),
+      alpha4: bytesToHex(keyRotationProof.alpha4),
+      alpha5: bytesToHex(keyRotationProof.alpha5),
+    },
+    "\n",
+  );
+
+  const isKeyRotatingProofValid = verifyVeiledKeyRotationProof({
+    oldPublicKey: privateKeyAlice.publicKey(),
+    newPublicKey: newPrivateKeyAlice.publicKey(),
+    oldEncryptedBalance: ciphertextAlice,
+    newEncryptedBalance,
+    proof: keyRotationProof,
+  });
+
+  console.log("Is key rotation proof valid:", isKeyRotatingProofValid);
+
+  // End key rotation proof
 };
 
 example();

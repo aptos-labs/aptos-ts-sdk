@@ -41,6 +41,34 @@ export interface VerifyVeiledTransferProofOptions {
   proof: VeiledTransferProof;
 }
 
+export interface VeiledKeyRotationProofOptions {
+  oldPrivateKey: TwistedEd25519PrivateKey;
+  newPrivateKey: TwistedEd25519PrivateKey;
+  balance: bigint;
+  encryptedBalance: TwistedElGamalCiphertext;
+  random?: Uint8Array;
+}
+
+export interface VerifyVeiledKeyRotationOptions {
+  oldPublicKey: TwistedEd25519PublicKey;
+  newPublicKey: TwistedEd25519PublicKey;
+  oldEncryptedBalance: TwistedElGamalCiphertext;
+  newEncryptedBalance: TwistedElGamalCiphertext;
+  proof: VeiledKeyRotationProof;
+}
+
+export interface VeiledKeyRotationProof {
+  alpha1: Uint8Array;
+  alpha2: Uint8Array;
+  alpha3: Uint8Array;
+  alpha4: Uint8Array;
+  alpha5: Uint8Array;
+  X1: Uint8Array;
+  X2: Uint8Array;
+  X3: Uint8Array;
+  X4: Uint8Array;
+}
+
 export interface VeiledWithdrawProof {
   alpha1: Uint8Array;
   alpha2: Uint8Array;
@@ -214,6 +242,73 @@ export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): V
 }
 
 /**
+ * Generate Zero Knowledge Proofs for key rotation
+ *
+ * @param opts.oldPrivateKey Old private key (Twisted ElGamal Ed25519).
+ * @param opts.newPrivateKey New private key (Twisted ElGamal Ed25519).
+ * @param opts.balance Decrypted balance
+ * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.random Random 32 bytes (Uint8Array)
+ */
+export function generateVeiledKeyRotationProof(opts: VeiledKeyRotationProofOptions): VeiledKeyRotationProof {
+  const x1 = genModRandom();
+  const x2 = genModRandom();
+  const x3 = genModRandom();
+  const x4 = genModRandom();
+  const x5 = genModRandom();
+
+  const oldPublicKey = opts.oldPrivateKey.publicKey();
+  const newPublicKey = opts.newPrivateKey.publicKey();
+
+  const rBytes = ensureBytes("Random bytes", opts.random ?? randomBytes(32), 32);
+  const r = modN(bytesToNumberLE(rBytes));
+
+  const newCiphertext = TwistedElGamal.encryptWithPK(opts.balance, newPublicKey, rBytes);
+
+  const X1 = opts.encryptedBalance.D.multiply(x1).subtract(newCiphertext.D.multiply(x2));
+  const X2 = RistrettoPoint.BASE.multiply(x3).add(H_RISTRETTO.multiply(x4));
+  const X3 = RistrettoPoint.fromHex(newPublicKey.toUint8Array()).multiply(x4);
+  const X4 = H_RISTRETTO.multiply(x5);
+
+  const p = genFiatShamirChallenge(
+    utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
+    oldPublicKey.toUint8Array(),
+    newPublicKey.toUint8Array(),
+    opts.encryptedBalance.C.toRawBytes(),
+    opts.encryptedBalance.D.toRawBytes(),
+    newCiphertext.C.toRawBytes(),
+    newCiphertext.D.toRawBytes(),
+    RistrettoPoint.BASE.toRawBytes(),
+    H_RISTRETTO.toRawBytes(),
+    X1.toRawBytes(),
+    X2.toRawBytes(),
+    X3.toRawBytes(),
+    X4.toRawBytes(),
+  );
+
+  const oldSLE = bytesToNumberLE(opts.oldPrivateKey.toUint8Array());
+  const invertOldSLE = invert(oldSLE, ed25519.CURVE.n);
+
+  const alpha1 = modN(x1 - p * oldSLE);
+  const alpha2 = modN(x2 - p * bytesToNumberLE(opts.newPrivateKey.toUint8Array()));
+  const alpha3 = modN(x3 - p * opts.balance);
+  const alpha4 = modN(x4 - p * r);
+  const alpha5 = modN(x5 - p * invertOldSLE);
+
+  return {
+    alpha1: numberToBytesLE(alpha1, 32),
+    alpha2: numberToBytesLE(alpha2, 32),
+    alpha3: numberToBytesLE(alpha3, 32),
+    alpha4: numberToBytesLE(alpha4, 32),
+    alpha5: numberToBytesLE(alpha5, 32),
+    X1: X1.toRawBytes(),
+    X2: X2.toRawBytes(),
+    X3: X3.toRawBytes(),
+    X4: X4.toRawBytes(),
+  };
+}
+
+/**
  * Verify Zero Knowledge Proofs for withdraw from the veiled balance
  *
  * @param opts.publicKey Twisted ElGamal Ed25519 public key.
@@ -311,5 +406,60 @@ export function verifyVeiledTransferProof(opts: VerifyVeiledTransferProofOptions
     X3.equals(RistrettoPoint.fromHex(opts.proof.X3)) &&
     X4.equals(RistrettoPoint.fromHex(opts.proof.X4)) &&
     X5.equals(RistrettoPoint.fromHex(opts.proof.X5))
+  );
+}
+
+/**
+ * Verify Zero Knowledge Proofs for key rotation
+ *
+ * @param opts.oldPrivateKey Old public key (Twisted ElGamal Ed25519).
+ * @param opts.newPrivateKey New public key (Twisted ElGamal Ed25519).
+ * @param opts.oldEncryptedBalance Balance encrypted with previous public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.newEncryptedBalance Balance encrypted with new public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.proof Zero Knowledge Proofs for key rotation
+ */
+export function verifyVeiledKeyRotationProof(opts: VerifyVeiledKeyRotationOptions): boolean {
+  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
+  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
+  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
+  const alpha4LE = bytesToNumberLE(opts.proof.alpha4);
+  const alpha5LE = bytesToNumberLE(opts.proof.alpha5);
+
+  const p = genFiatShamirChallenge(
+    utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
+    opts.oldPublicKey.toUint8Array(),
+    opts.newPublicKey.toUint8Array(),
+    opts.oldEncryptedBalance.C.toRawBytes(),
+    opts.oldEncryptedBalance.D.toRawBytes(),
+    opts.newEncryptedBalance.C.toRawBytes(),
+    opts.newEncryptedBalance.D.toRawBytes(),
+    RistrettoPoint.BASE.toRawBytes(),
+    H_RISTRETTO.toRawBytes(),
+    opts.proof.X1,
+    opts.proof.X2,
+    opts.proof.X3,
+    opts.proof.X4,
+  );
+
+  const alpha1DOld = opts.oldEncryptedBalance.D.multiply(alpha1LE);
+  const alpha2DNew = opts.newEncryptedBalance.D.multiply(alpha2LE);
+  const alpha3G = RistrettoPoint.BASE.multiply(alpha3LE);
+  const alpha4H = H_RISTRETTO.multiply(alpha4LE);
+  const pCNew = opts.newEncryptedBalance.C.multiply(p);
+  const pkOldRist = RistrettoPoint.fromHex(opts.oldPublicKey.toUint8Array());
+  const pkNewRist = RistrettoPoint.fromHex(opts.newPublicKey.toUint8Array());
+
+  const X1 = alpha1DOld
+    .subtract(alpha2DNew)
+    .add(opts.oldEncryptedBalance.C.subtract(opts.newEncryptedBalance.C).multiply(p));
+  const X2 = alpha3G.add(alpha4H).add(pCNew);
+  const X3 = pkNewRist.multiply(alpha4LE).add(opts.newEncryptedBalance.D.multiply(p));
+  const X4 = H_RISTRETTO.multiply(alpha5LE).add(pkOldRist.multiply(p));
+
+  return (
+    X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) &&
+    X2.equals(RistrettoPoint.fromHex(opts.proof.X2)) &&
+    X3.equals(RistrettoPoint.fromHex(opts.proof.X3)) &&
+    X4.equals(RistrettoPoint.fromHex(opts.proof.X4))
   );
 }
