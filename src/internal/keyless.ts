@@ -109,27 +109,9 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<KeylessAccount> {
-  const { aptosConfig, jwt, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
-  const proofPromise = getProof({ ...args, pepper });
-  // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
-  // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
-  // allowing for faster rendering of UX.
-  //
-  // If no callback is provided, the just await the proof fetch and continue syncronously.
-  const proof = proofFetchCallback ? proofPromise : await proofPromise;
+}): Promise<KeylessAccount>;
 
-  // Look up the original address to handle key rotations
-  const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
-  const address = await lookupOriginalAccountAddress({
-    aptosConfig,
-    authenticationKey: publicKey.authKey().derivedAddress(),
-  });
-
-  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
-}
-
-export async function deriveFederatedKeylessAccount(args: {
+export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
   ephemeralKeyPair: EphemeralKeyPair;
@@ -137,7 +119,17 @@ export async function deriveFederatedKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<FederatedKeylessAccount> {
+}): Promise<FederatedKeylessAccount>;
+
+export async function deriveKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress?: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
+}): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const proofPromise = getProof({ ...args, pepper });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
@@ -147,12 +139,21 @@ export async function deriveFederatedKeylessAccount(args: {
   // If no callback is provided, the just await the proof fetch and continue syncronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
-  // Look up the original address to handle key rotations
-  const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
+  // Look up the original address to handle key rotations and then instantiate the account.
+  if (jwkAddress !== undefined) {
+    const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
+    const address = await lookupOriginalAccountAddress({
+      aptosConfig,
+      authenticationKey: publicKey.authKey().derivedAddress(),
+    });
+
+    return FederatedKeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, jwkAddress });
+  }
+
+  const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
   const address = await lookupOriginalAccountAddress({
     aptosConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
-
-  return FederatedKeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
 }

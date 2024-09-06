@@ -8,7 +8,6 @@
 import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
@@ -22,13 +21,9 @@ const TRANSFER_AMOUNT = 10_000;
  *
  */
 const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
+  const amount = await aptos.getAccountAPTAmount({
     accountAddress: address,
-    resourceType: COIN_STORE,
   });
-  const amount = Number(resource.coin.value);
-
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
 };

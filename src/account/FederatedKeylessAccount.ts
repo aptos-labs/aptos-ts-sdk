@@ -2,96 +2,32 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
-import EventEmitter from "eventemitter3";
-import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
+import { HexInput } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AnyPublicKey, AnySignature, KeylessSignature, EphemeralCertificate, ZeroKnowledgeSig } from "../core/crypto";
+import { ZeroKnowledgeSig } from "../core/crypto";
 
-import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
-import { Hex } from "../core/hex";
-import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Deserializer, Serializable, Serializer } from "../bcs";
-import { deriveTransactionType } from "../transactions/transactionBuilder/signingMessage";
-import { AnyRawTransaction } from "../transactions/types";
-import { base64UrlDecode } from "../utils/helpers";
+import { Deserializer, Serializer } from "../bcs";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { KeylessAccount, ProofFetchCallback, ProofFetchEvents, TransactionAndProof } from "./KeylessAccount";
+import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon";
 
 /**
- * Account implementation for the Keyless authentication scheme.
+ * Account implementation for the FederatedKeyless authentication scheme.
  *
- * Used to represent a Keyless based account and sign transactions with it.
+ * Used to represent a FederatedKeyless based account and sign transactions with it.
  *
- * Use KeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
+ * Use FederatedKeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof, EphemeralKeyPair and the
+ * address the JWKs are installed that will be used to verify the JWT.
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
-export class FederatedKeylessAccount extends Serializable implements Account {
-  static readonly PEPPER_LENGTH: number = 31;
+export class FederatedKeylessAccount extends KeylessAccountCommon {
 
   /**
-   * The KeylessPublicKey associated with the account
+   * The FederatedKeylessPublicKey associated with the account
    */
   readonly publicKey: FederatedKeylessPublicKey;
-
-  /**
-   * The EphemeralKeyPair used to generate sign.
-   */
-  readonly ephemeralKeyPair: EphemeralKeyPair;
-
-  /**
-   * The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
-   */
-  readonly uidKey: string;
-
-  /**
-   * The value of the uidKey claim on the JWT.  This intended to be a stable user identifier.
-   */
-  readonly uidVal: string;
-
-  /**
-   * The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
-   * OIDC registration with the identity provider.
-   */
-  readonly aud: string;
-
-  /**
-   * A value contains 31 bytes of entropy that preserves privacy of the account. Typically fetched from a pepper provider.
-   */
-  readonly pepper: Uint8Array;
-
-  /**
-   * Account address associated with the account
-   */
-  readonly accountAddress: AccountAddress;
-
-  /**
-   * The zero knowledge signature (if ready) which contains the proof used to validate the EphemeralKeyPair.
-   */
-  proof: ZeroKnowledgeSig | undefined;
-
-  /**
-   * The proof of the EphemeralKeyPair or a promise that provides the proof.  This is used to allow for awaiting on
-   * fetching the proof.
-   */
-  readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
-
-  /**
-   * Signing scheme used to sign transactions
-   */
-  readonly signingScheme: SigningScheme;
-
-  /**
-   * The JWT token used to derive the account
-   */
-  readonly jwt: string;
-
-  /**
-   * An event emitter used to assist in handling asycronous proof fetching.
-   */
-  private readonly emitter: EventEmitter<ProofFetchEvents>;
 
   // Use the static constructor 'create' instead.
   private constructor(args: {
@@ -107,63 +43,19 @@ export class FederatedKeylessAccount extends Serializable implements Account {
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
-    super();
-    const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
-    this.ephemeralKeyPair = ephemeralKeyPair;
+    super(args);
     this.publicKey = FederatedKeylessPublicKey.create(args);
-    this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
-    this.uidKey = uidKey;
-    this.uidVal = uidVal;
-    this.aud = aud;
-    this.jwt = jwt;
-    this.emitter = new EventEmitter<ProofFetchEvents>();
-    this.proofOrPromise = proof;
-    if (proof instanceof ZeroKnowledgeSig) {
-      this.proof = proof;
-    } else {
-      if (proofFetchCallback === undefined) {
-        throw new Error("Must provide callback for async proof fetch");
-      }
-      this.emitter.on("proofFetchFinish", async (status) => {
-        await proofFetchCallback(status);
-        this.emitter.removeAllListeners();
-      });
-      this.init(proof);
-    }
-    this.signingScheme = SigningScheme.SingleKey;
-    const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
-    if (pepperBytes.length !== KeylessAccount.PEPPER_LENGTH) {
-      throw new Error(`Pepper length in bytes should be ${KeylessAccount.PEPPER_LENGTH}`);
-    }
-    this.pepper = pepperBytes;
-  }
-
-  /**
-   * This initializes the asyncronous proof fetch
-   * @return
-   */
-  async init(promise: Promise<ZeroKnowledgeSig>) {
-    try {
-      this.proof = await promise;
-      this.emitter.emit("proofFetchFinish", { status: "Success" });
-    } catch (error) {
-      if (error instanceof Error) {
-        this.emitter.emit("proofFetchFinish", { status: "Failed", error: error.toString() });
-      } else {
-        this.emitter.emit("proofFetchFinish", { status: "Failed", error: "Unknown" });
-      }
-    }
   }
 
   serialize(serializer: Serializer): void {
+    if (this.proof === undefined) {
+      throw new Error("Connot serialize - proof undefined");
+    }
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
     this.publicKey.jwkAddress.serialize(serializer);
     this.ephemeralKeyPair.serialize(serializer);
-    if (this.proof === undefined) {
-      throw new Error("Connot serialize - proof undefined");
-    }
     this.proof.serialize(serializer);
   }
 
@@ -184,112 +76,8 @@ export class FederatedKeylessAccount extends Serializable implements Account {
     });
   }
 
-  /**
-   * Checks if the proof is expired.  If so the account must be rederived with a new EphemeralKeyPair
-   * and JWT token.
-   * @return boolean
-   */
-  isExpired(): boolean {
-    return this.ephemeralKeyPair.isExpired();
-  }
-
-  /**
-   * Sign a message using Keyless.
-   * @param message the message to sign, as binary input
-   * @return the AccountAuthenticator containing the signature, together with the account's public key
-   */
-  signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
-    const signature = new AnySignature(this.sign(message));
-    const publicKey = new AnyPublicKey(this.publicKey);
-    return new AccountAuthenticatorSingleKey(publicKey, signature);
-  }
-
-  /**
-   * Sign a transaction using Keyless.
-   * @param transaction the raw transaction
-   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
-   */
-  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
-    const signature = new AnySignature(this.signTransaction(transaction));
-    const publicKey = new AnyPublicKey(this.publicKey);
-    return new AccountAuthenticatorSingleKey(publicKey, signature);
-  }
-
-  /**
-   * Waits for asyncronous proof fetching to finish.
-   * @return
-   */
-  async waitForProofFetch() {
-    if (this.proofOrPromise instanceof Promise) {
-      await this.proofOrPromise;
-    }
-  }
-
-  /**
-   * Sign the given message using Keyless.
-   * @param message in HexInput format
-   * @returns Signature
-   */
-  sign(data: HexInput): KeylessSignature {
-    const { expiryDateSecs } = this.ephemeralKeyPair;
-    if (this.isExpired()) {
-      throw new Error("EphemeralKeyPair is expired");
-    }
-    if (this.proof === undefined) {
-      throw new Error("Proof not defined");
-    }
-    const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
-    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
-
-    return new KeylessSignature({
-      jwtHeader: base64UrlDecode(this.jwt.split(".")[0]),
-      ephemeralCertificate: new EphemeralCertificate(this.proof, EphemeralCertificateVariant.ZkProof),
-      expiryDateSecs,
-      ephemeralPublicKey,
-      ephemeralSignature,
-    });
-  }
-
-  /**
-   * Sign the given transaction with Keyless.
-   * Signs the transaction and proof to guard against proof malleability.
-   * @param transaction the transaction to be signed
-   * @returns KeylessSignature
-   */
-  signTransaction(transaction: AnyRawTransaction): KeylessSignature {
-    if (this.proof === undefined) {
-      throw new Error("Proof not found");
-    }
-    const raw = deriveTransactionType(transaction);
-    const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
-    const signMess = txnAndProof.hash();
-    return this.sign(signMess);
-  }
-
-  /**
-   * Note - This function is currently incomplete and should only be used to verify ownership of the KeylessAccount
-   *
-   * Verifies a signature given the message.
-   *
-   * TODO: Groth16 proof verification
-   *
-   * @param args.message the message that was signed.
-   * @param args.signature the KeylessSignature to verify
-   * @returns boolean
-   */
-  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    const { message, signature } = args;
-    if (this.isExpired()) {
-      return false;
-    }
-    if (!this.ephemeralKeyPair.getPublicKey().verifySignature({ message, signature: signature.ephemeralSignature })) {
-      return false;
-    }
-    return true;
-  }
-
-  static fromBytes(bytes: Uint8Array): KeylessAccount {
-    return KeylessAccount.deserialize(new Deserializer(bytes));
+  static fromBytes(bytes: Uint8Array): FederatedKeylessAccount {
+    return FederatedKeylessAccount.deserialize(new Deserializer(bytes));
   }
 
   static create(args: {
