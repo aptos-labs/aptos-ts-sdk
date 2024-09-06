@@ -46,7 +46,7 @@ const example = async () => {
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
   const aliceEphem = new EphemeralKeyPair({
     privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
-    expiryDateSecs: 1725497501,
+    expiryDateSecs: 1735497501,
     blinder: new Uint8Array(31),
   });
 
@@ -73,7 +73,7 @@ const example = async () => {
   console.log(`Bob's address is: ${bob.accountAddress}`);
 
   // Derive the Keyless Account from the JWT and ephemeral key pair.
-  const alice = await aptos.deriveFederatedKeylessAccount({
+  const alice = await aptos.deriveKeylessAccount({
     jwt,
     ephemeralKeyPair: aliceEphem,
     jwkAddress: bob.accountAddress,
@@ -109,14 +109,15 @@ const example = async () => {
   const kid = "OYryNKGFtFhtHVOd1d_BU";
   const alg = "RS256";
   const e = "AQAB";
-  const n = "rHZUp7dZTV15qJbH_5lsUZqY0qIDKubQH7TMUoURc_DjUQWCL1o92YKc8WhMcCUdUMq57XrRiAimMzn_hhsPk3vZXBT5V9TJA8SzGR5w9sxDkQklKSNw7EIQw38WwVGeQdrEuGPiNtmNf7NZFbs3U2wJmPVCmS8cQdFEhOpszfL1KpRdCDxQ_3uWpReEKyWfaVJV4M83_q6rw386a20u9w1p3motQjyJHk5tMMvFsyF6iYZebDcY2zGr2kw_1EjDP_Rsk3Vka1sKPg2tghJ00djcmi7Szla6Tz8igkoRI2Tcs0KnnQ-sgcUcm8xIgS3StlhuJiURNclHYbahnLx6ow";
+  const n =
+    "rHZUp7dZTV15qJbH_5lsUZqY0qIDKubQH7TMUoURc_DjUQWCL1o92YKc8WhMcCUdUMq57XrRiAimMzn_hhsPk3vZXBT5V9TJA8SzGR5w9sxDkQklKSNw7EIQw38WwVGeQdrEuGPiNtmNf7NZFbs3U2wJmPVCmS8cQdFEhOpszfL1KpRdCDxQ_3uWpReEKyWfaVJV4M83_q6rw386a20u9w1p3motQjyJHk5tMMvFsyF6iYZebDcY2zGr2kw_1EjDP_Rsk3Vka1sKPg2tghJ00djcmi7Szla6Tz8igkoRI2Tcs0KnnQ-sgcUcm8xIgS3StlhuJiURNclHYbahnLx6ow";
 
   console.log("\n===Publishing FACoin package===");
   const jwkTransaction = await aptos.transaction.build.simple({
     sender: bob.accountAddress,
     data: {
       bytecode,
-      functionArguments: [new MoveString(iss), new MoveString(kid), new MoveString(alg), new MoveString(e), new MoveString(n)],
+      functionArguments: [],
     },
   });
 

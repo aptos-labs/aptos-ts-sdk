@@ -4,9 +4,7 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { HexInput } from "../types";
 import { AccountAddress } from "../core/accountAddress";
-import {
-  ZeroKnowledgeSig,
-} from "../core/crypto";
+import { ZeroKnowledgeSig } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";

@@ -23,7 +23,6 @@ import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon
  * EphemeralKeyPair, and corresponding proof.
  */
 export class FederatedKeylessAccount extends KeylessAccountCommon {
-
   /**
    * The FederatedKeylessPublicKey associated with the account
    */
