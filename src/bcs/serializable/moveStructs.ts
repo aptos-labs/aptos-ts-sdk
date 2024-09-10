@@ -7,7 +7,6 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { Serialized } from "./serialized";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -71,7 +70,8 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
     // This checks if the type of a non-empty vector is of type other than U8.  If so, we use the Serialized
     // transaction argument type to serialize the argument.
     if (this.values[0] !== undefined && !(this.values[0] instanceof U8)) {
-      serializer.serialize(new Serialized(this.bcsToBytes()));
+      const serialized = new Serialized(this.bcsToBytes());
+      serialized.serializeForScriptFunction(serializer);
       return;
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
@@ -221,6 +221,39 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
       values.push(cls.deserialize(deserializer));
     }
     return new MoveVector(values);
+  }
+}
+
+export class Serialized extends Serializable implements TransactionArgument {
+  public readonly value: Uint8Array;
+
+  constructor(value: HexInput) {
+    super();
+    this.value = Hex.fromHexInput(value).toUint8Array();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    this.serialize(serializer);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Serialized);
+    this.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): Serialized {
+    return new Serialized(deserializer.deserializeBytes());
+  }
+
+  toMoveVector<T extends Serializable & EntryFunctionArgument>(cls: Deserializable<T>): MoveVector<T> {
+    const deserializer = new Deserializer(this.bcsToBytes());
+    deserializer.deserializeUleb128AsU32();
+    const vec = deserializer.deserializeVector(cls);
+    return new MoveVector(vec);
   }
 }
 

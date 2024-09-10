@@ -125,14 +125,6 @@ export class Deserializer {
   }
 
   /**
-   * Deserializes a Serialized bytes.
-   *
-   */
-  deserializeSerializedBytes(): Uint8Array {
-    return this.deserializeBytes();
-  }
-
-  /**
    * Deserializes a boolean value.
    *
    * BCS layout for "boolean": One byte. "0x01" for true and "0x00" for false.

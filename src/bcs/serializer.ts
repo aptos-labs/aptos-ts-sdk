@@ -227,16 +227,6 @@ export class Serializer {
   }
 
   /**
-   * Serializes a serialized bytes.
-   *
-   * BCS layout for "serialized bytes": Binary format in little-endian representation.
-   */
-  serializeSerializedBytes(value: Uint8Array) {
-    this.serializeU32AsUleb128(9);
-    this.serializeBytes(value);
-  }
-
-  /**
    * Serializes a uint32 number with uleb128.
    *
    * BCS uses uleb128 encoding in two cases: (1) lengths of variable-length sequences and (2) tags of enum values
