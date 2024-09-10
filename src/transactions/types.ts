@@ -20,6 +20,7 @@ import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
+import { Serialized } from "../bcs";
 
 /**
  * Entry function arguments to be used when building a raw transaction using remote ABI
@@ -64,9 +65,10 @@ export type ScriptFunctionArgumentTypes =
   | U128
   | U256
   | AccountAddress
-  | MoveVector<U8>
+  | MoveVector<ScriptFunctionArgumentTypes>
   | MoveString
-  | FixedBytes;
+  | FixedBytes
+  | Serialized;
 
 /**
  * TypeArgument inputs for Entry functions, view functions, and scripts
