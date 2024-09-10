@@ -45,7 +45,7 @@ describe("Tests for the script transaction argument class", () => {
     scriptBoolBytes = new Uint8Array([5, 0]);
     scriptAddressBytes = new Uint8Array([3, ...AccountAddress.FOUR.data]);
     scriptVectorU8Bytes = new Uint8Array([4, 5, 1, 2, 3, 4, 5]);
-    scriptSerializedBytes = new Uint8Array([9, 1, 2]);
+    scriptSerializedBytes = new Uint8Array([9, 2, 1, 2]);
   });
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
