@@ -19,13 +19,15 @@ import {
   ZkProof,
   getKeylessConfig,
 } from "../core";
-import { HexInput, ZkpVariant } from "../types";
-import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { HexInput, PendingTransactionResponse, ZkpVariant } from "../types";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { nowInSeconds } from "../utils/helpers";
 import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
+import { MoveString, MoveVector } from "../bcs";
+import { generateTransaction, signAndSubmitTransaction } from "./transactionSubmission";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -156,4 +158,49 @@ export async function deriveKeylessAccount(args: {
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+}
+
+interface JWK {
+  kty: string; // Key type
+  kid: string; // Key ID
+  alg: string; // Algorithm used with the key
+  n: string; // Modulus (for RSA keys)
+  e: string; // Exponent (for RSA keys)
+}
+
+interface JWKS {
+  keys: JWK[];
+}
+
+export async function updateFederatedKeylessJwkSet(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  iss: string;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, sender, iss } = args;
+  const jwksUrl = `${iss}.well-known/jwks.json`;
+  const response = await fetch(jwksUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+  }
+  const jwks: JWKS = await response.json();
+  const jwkAddBytecode =
+    // eslint-disable-next-line max-len
+    "a11ceb0b060000000701000602060c03121a042c02052e4707757808ed0120000000010002010307000004070000050700020603040100000705060000080708000009090600000a0a0500000206060c0a020a08000a08000a08000a080008080008000801080008000308020a080201080001060a0900010100010802040800080008000800010801020a02080102060c0a0802046a776b7306737472696e6706766563746f7206537472696e67034a574b0550617463680869735f656d707479146e65775f70617463685f72656d6f76655f616c6c0b6e65775f7273615f6a776b146e65775f70617463685f7570736572745f6a776b1470617463685f6665646572617465645f6a776b730000000000000000000000000000000000000000000000000000000000000001000001500e02380020040505090b0001062a00000000000000270e0241020c0b0e0341020a0b21041205160b0001062a00000000000000270e0441020a0b21041c05200b0001062a00000000000000270e0541020b0b210426052a0b0001062a00000000000000271101400601000000000000000c0d0e02380020044c05320d0245020c090d0345020c060d0445020c070d0545020c0a0b090b060b070b0a11020c080a010b0811030c0c0d0d0b0c4406052d0b000b0d110402";
+  const jwkAddTransaction = await generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      bytecode: jwkAddBytecode,
+      functionArguments: [
+        new MoveString(iss),
+        MoveVector.MoveString(jwks.keys.map((key) => key.kid)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.alg)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.e)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.n)),
+      ],
+    },
+  });
+  const txn = await signAndSubmitTransaction({ aptosConfig, signer: sender, transaction: jwkAddTransaction });
+  return txn;
 }

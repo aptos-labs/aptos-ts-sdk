@@ -1,11 +1,11 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
-import { deriveKeylessAccount, getPepper, getProof } from "../internal/keyless";
-import { HexInput } from "../types";
+import { deriveKeylessAccount, getPepper, getProof, updateFederatedKeylessJwkSet } from "../internal/keyless";
+import { HexInput, PendingTransactionResponse } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -94,5 +94,20 @@ export class Keyless {
     proofFetchCallback?: ProofFetchCallback;
   }): Promise<KeylessAccount | FederatedKeylessAccount> {
     return deriveKeylessAccount({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * This installs a set of FederatedJWKs at an address for a given iss.
+   *
+   * It will fetch the JWK set from the well-known endpoint and update the FederatedJWKs at the sender's address
+   * to reflect it.
+   *
+   * @param args.sender The account that will install the JWKs
+   * @param args.iss the iss claim of the federated OIDC provider.
+   *
+   * @returns The pending transaction that results from submission.
+   */
+  async updateFederatedKeylessJwkSet(args: { sender: Account; iss: string }): Promise<PendingTransactionResponse> {
+    return updateFederatedKeylessJwkSet({ aptosConfig: this.config, ...args });
   }
 }

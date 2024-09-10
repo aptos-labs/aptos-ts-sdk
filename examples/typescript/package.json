@@ -17,6 +17,7 @@
     "your_coin": "ts-node your_coin.ts",
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "federated_keyless": "ts-node federated_keyless.ts",
+    "jwk_update": "ts-node jwk_update.ts",
     "keyless": "ts-node keyless.ts",
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",

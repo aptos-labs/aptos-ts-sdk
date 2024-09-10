@@ -5,18 +5,8 @@
  * This example shows how to use the Keyless accounts on Aptos
  */
 
-import {
-  Account,
-  AccountAddress,
-  Aptos,
-  AptosConfig,
-  Ed25519PrivateKey,
-  EphemeralKeyPair,
-  MoveString,
-  Network,
-} from "@aptos-labs/ts-sdk";
+import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
-import { getMoveBytes } from "./utils";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100_000_000;
@@ -44,15 +34,11 @@ const example = async () => {
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
-  const aliceEphem = new EphemeralKeyPair({
-    privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
-    expiryDateSecs: 1735497501,
-    blinder: new Uint8Array(31),
-  });
+  const ephemeralKeyPair = EphemeralKeyPair.generate();
 
   console.log("\n=== Federated Keyless Account Example ===\n");
 
-  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=openid&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
+  const link = `https://dev-qtdgjv22jh0v1k7g.us.auth0.com/authorize?client_id=dzqI77x0M5YwdOSUx6j25xkdOt8SIxeE&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fcallback&response_type=id_token&scope=openid&nonce=${ephemeralKeyPair.nonce}`;
   console.log(`${link}\n`);
 
   console.log("1. Open the link above");
@@ -61,7 +47,7 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
+    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter:\n\n", {
       hideEchoBack: false,
     });
     return jwt;
@@ -70,19 +56,19 @@ const example = async () => {
   const jwt = inputJwt();
 
   const bob = Account.generate();
-  console.log(`Bob's address is: ${bob.accountAddress}`);
 
   // Derive the Keyless Account from the JWT and ephemeral key pair.
   const alice = await aptos.deriveKeylessAccount({
     jwt,
-    ephemeralKeyPair: aliceEphem,
+    ephemeralKeyPair,
     jwkAddress: bob.accountAddress,
   });
 
-  console.log("=== Addresses ===\n");
+  console.log("\n=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
-  console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
+  console.log(`Alice's nonce is: ${ephemeralKeyPair.nonce}`);
+  console.log(`Alice's ephem pubkey is: ${ephemeralKeyPair.getPublicKey().toString()}`);
+  console.log(`\nBob's account address is: ${bob.accountAddress}`);
 
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
@@ -103,26 +89,10 @@ const example = async () => {
   const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
-  const bytecode = getMoveBytes("move/jwks/script.mv");
-
   const iss = "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/";
-  const kid = "OYryNKGFtFhtHVOd1d_BU";
-  const alg = "RS256";
-  const e = "AQAB";
-  const n =
-    "rHZUp7dZTV15qJbH_5lsUZqY0qIDKubQH7TMUoURc_DjUQWCL1o92YKc8WhMcCUdUMq57XrRiAimMzn_hhsPk3vZXBT5V9TJA8SzGR5w9sxDkQklKSNw7EIQw38WwVGeQdrEuGPiNtmNf7NZFbs3U2wJmPVCmS8cQdFEhOpszfL1KpRdCDxQ_3uWpReEKyWfaVJV4M83_q6rw386a20u9w1p3motQjyJHk5tMMvFsyF6iYZebDcY2zGr2kw_1EjDP_Rsk3Vka1sKPg2tghJ00djcmi7Szla6Tz8igkoRI2Tcs0KnnQ-sgcUcm8xIgS3StlhuJiURNclHYbahnLx6ow";
 
-  console.log("\n===Publishing FACoin package===");
-  const jwkTransaction = await aptos.transaction.build.simple({
-    sender: bob.accountAddress,
-    data: {
-      bytecode,
-      functionArguments: [],
-    },
-  });
-
-  const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: bob, transaction: jwkTransaction });
-
+  console.log("\n=== Installing JWKs ===\n");
+  const committedJwkTxn = await aptos.updateFederatedKeylessJwkSet({ sender: bob, iss });
   await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
   console.log(`Committed transaction: ${committedJwkTxn.hash}`);
 
@@ -133,6 +103,7 @@ const example = async () => {
     amount: TRANSFER_AMOUNT,
   });
 
+  console.log("\n=== Transferring ===\n");
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
