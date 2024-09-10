@@ -30,7 +30,8 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const config = new AptosConfig({ network: Network.DEVNET });
+  const network = Network.DEVNET;
+  const config = new AptosConfig({ network });
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
@@ -96,7 +97,7 @@ const example = async () => {
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  console.log(`Committed transaction: ${committedTxn.hash}`);
+  console.log(`\nCommitted transaction:\nhttps://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=${network}`);
 
   console.log("\n=== Balances after transfer ===\n");
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);

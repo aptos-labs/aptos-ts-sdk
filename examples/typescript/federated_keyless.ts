@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Keyless accounts on Aptos
+ * This example shows how to use the Federated Keyless accounts on Aptos
  */
 
 import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
