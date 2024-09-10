@@ -243,7 +243,8 @@ export class MoveString extends Serializable implements TransactionArgument {
 
   serializeForScriptFunction(serializer: Serializer): void {
     // Serialize the string as a fixed byte string, i.e., without the length prefix
-    const fixedStringBytes = this.bcsToBytes().slice(1);
+    const textEncoder = new TextEncoder();
+    const fixedStringBytes = textEncoder.encode(this.value);
     // Put those bytes into a vector<u8> and serialize it as a script function argument
     const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);

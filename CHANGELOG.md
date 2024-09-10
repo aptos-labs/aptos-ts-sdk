@@ -4,6 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.27.1 (2024-08-23)
+
+- [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1
+
 # 1.27.0 (2024-08-15)
 
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
