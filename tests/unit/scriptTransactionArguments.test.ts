@@ -88,7 +88,9 @@ describe("Tests for the script transaction argument class", () => {
     const scriptArgBool = deserializeAsScriptArg<Bool>(new Bool(false));
     const scriptArgAddress = deserializeAsScriptArg<AccountAddress>(AccountAddress.FOUR);
     const scriptArgU8Vector = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
-    const scriptArgStringVector = deserializeAsScriptArg<Serialized>(MoveVector.MoveString(["1","2"])).toMoveVector(MoveString);
+    const scriptArgStringVector = deserializeAsScriptArg<Serialized>(MoveVector.MoveString(["1", "2"])).toMoveVector(
+      MoveString,
+    );
     const scriptArgSerialized = deserializeAsScriptArg<Serialized>(new Serialized("0x0102"));
 
     expect(scriptArgU8.value).toEqual(1);
