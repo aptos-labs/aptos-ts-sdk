@@ -7,6 +7,7 @@ import { Deserializable, Deserializer } from "../deserializer";
 import { AnyNumber, HexInput, ScriptTransactionArgumentVariants } from "../../types";
 import { Hex } from "../../core/hex";
 import { EntryFunctionArgument, TransactionArgument } from "../../transactions/instances/transactionArgument";
+import { Serialized } from "./serialized";
 
 /**
  * This class is the Aptos Typescript SDK representation of a Move `vector<T>`,
@@ -67,13 +68,11 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * @param serializer
    */
   serializeForScriptFunction(serializer: Serializer): void {
-    // runtime check to ensure that you can't serialize anything other than vector<u8>
-    const isU8 = this.values[0] instanceof U8;
-    // if the inner array is length 0, we can't check the type because it has no instance, so we assume it's a u8
-    // it may not be, but we don't care because regardless of a vector's type,
-    // a zero-length vector is serialized to a single byte value: 0
-    if (!isU8 && this.values[0] !== undefined) {
-      throw new Error("Script function arguments only accept u8 vectors");
+    // This checks if the type of a non-empty vector is of type other than U8.  If so, we use the Serialized
+    // transaction argument type to serialize the argument.
+    if (this.values[0] !== undefined && !(this.values[0] instanceof U8)) {
+      serializer.serialize(new Serialized(this.bcsToBytes()));
+      return;
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
     serializer.serialize(this);
