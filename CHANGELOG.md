@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Support `Serialized Type` to Script txn.  Now can use vector<String> for example.
+
 # 1.27.1 (2024-08-23)
 
 - [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1
@@ -12,7 +14,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Upgrade `@aptos-labs/aptos-cli` version to `0.2.0`
 - Update Indexer GraphQL schema
-- Support `Serialized Type` to Script txn
 - Add `convertAmountFromHumanReadableToOnChain` and `convertAmountFromOnChainToHumanReadable` helper methods
 - Export `helpers.ts` file
 - Add `remaining()` function to deserializer, to tell remaining byte size
