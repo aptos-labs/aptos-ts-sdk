@@ -233,7 +233,7 @@ export class Serializer {
    */
   serializeSerializedBytes(value: Uint8Array) {
     this.serializeU32AsUleb128(9);
-    this.serializeFixedBytes(value);
+    this.serializeBytes(value);
   }
 
   /**
