@@ -1,0 +1,29 @@
+query getCollectionData($where_condition: current_collections_v2_bool_exp!) {
+  current_collections_v2(where: $where_condition) {
+    uri
+    total_minted_v2
+    token_standard
+    table_handle_v1
+    mutable_uri
+    mutable_description
+    max_supply
+    collection_id
+    collection_name
+    creator_address
+    current_supply
+    description
+    last_transaction_timestamp
+    last_transaction_version
+    cdn_asset_uris {
+      cdn_image_uri
+      asset_uri
+      animation_optimizer_retry_count
+      cdn_animation_uri
+      cdn_json_uri
+      image_optimizer_retry_count
+      json_parser_retry_count
+      raw_animation_uri
+      raw_image_uri
+    }
+  }
+}

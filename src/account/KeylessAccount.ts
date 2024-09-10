@@ -143,10 +143,30 @@ export class KeylessAccount extends Serializable implements Account {
     this.pepper = pepperBytes;
   }
 
-  /**
-   * This initializes the asyncronous proof fetch
-   * @return
-   */
+/**
+ * Initializes the asynchronous proof fetch and emits the result status.
+ * This function helps manage the state of proof fetching by notifying listeners of success or failure.
+ * 
+ * @param promise - A promise that resolves to a ZeroKnowledgeSig object.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const proofPromise = aptos.proof.fetch(); // Assume this fetches a proof
+ *   
+ *   // Initialize proof fetching
+ *   await aptos.init(proofPromise);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async init(promise: Promise<ZeroKnowledgeSig>) {
     try {
       this.proof = await promise;
@@ -217,10 +237,30 @@ export class KeylessAccount extends Serializable implements Account {
     return new AccountAuthenticatorSingleKey(publicKey, signature);
   }
 
-  /**
-   * Waits for asyncronous proof fetching to finish.
-   * @return
-   */
+/**
+ * Waits for asynchronous proof fetching to finish.
+ * This function is particularly useful when dealing with accounts that may require proof fetching, such as KeylessAccount or MultiKeyAccount.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, KeylessAccount } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const keylessAccount = new KeylessAccount();
+ * 
+ *   // Wait for proof fetching to complete
+ *   await keylessAccount.waitForProofFetch();
+ * 
+ *   console.log("Proof fetching completed successfully.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async waitForProofFetch() {
     if (this.proofOrPromise instanceof Promise) {
       await this.proofOrPromise;

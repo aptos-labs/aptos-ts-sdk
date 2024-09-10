@@ -15,7 +15,30 @@ import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../ty
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
 import { ProcessorType } from "../utils/const";
 
-export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
+export async
+
+/**
+ * Retrieves information about the current ledger, including the chain ID.
+ * 
+ * @param args - The arguments for retrieving ledger information.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET }); // Specify your network
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Get the current ledger information
+ *   const ledgerInfo = await aptos.getLedgerInfo({ aptosConfig: config });
+ *   console.log(ledgerInfo); // Log the ledger information
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
   const { data } = await getAptosFullNode<{}, LedgerInfo>({
     aptosConfig,
@@ -25,7 +48,36 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
   return data;
 }
 
-export async function getChainTopUserTransactions(args: {
+export async
+
+/**
+ * Retrieves the top user transactions on the Aptos blockchain based on the specified limit.
+ * 
+ * @param args - The parameters for the function.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.limit - The maximum number of user transactions to retrieve.
+ * @returns An array of user transactions.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch the top user transactions with a limit of 5
+ *   const transactions = await aptos.getChainTopUserTransactions({
+ *     aptosConfig: config,
+ *     limit: 5, // specify your desired limit
+ *   });
+ * 
+ *   console.log(transactions);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getChainTopUserTransactions(args: {
   aptosConfig: AptosConfig;
   limit: number;
 }): Promise<GetChainTopUserTransactionsResponse> {
@@ -60,7 +112,31 @@ export async function queryIndexer<T extends {}>(args: {
   return data;
 }
 
-export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
+export async
+
+/**
+ * Retrieves the current statuses of the processors in the Aptos network.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Getting processor statuses
+ *   const processorStatuses = await aptos.getProcessorStatuses({ aptosConfig: config });
+ * 
+ *   console.log(processorStatuses);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
   const { aptosConfig } = args;
 
   const graphqlQuery = {
@@ -76,12 +152,64 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
   return data.processor_status;
 }
 
-export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
+export async
+
+/**
+ * Retrieves the last successful version from the indexer.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos, which includes network details.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Get the last successful version from the indexer
+ *   const lastSuccessVersion = await aptos.getIndexerLastSuccessVersion({ aptosConfig: config });
+ *   console.log("Last Successful Version:", lastSuccessVersion.toString());
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
   const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
   return BigInt(response[0].last_success_version);
 }
 
-export async function getProcessorStatus(args: {
+export async
+
+/**
+ * Retrieves the status of a specified processor in the Aptos network.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.processorType - The type of processor whose status is being queried.
+ * @returns The status of the specified processor.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Get the status of the specified processor
+ *   const processorStatus = await aptos.getProcessorStatus({
+ *     aptosConfig: config,
+ *     processorType: "someProcessorType", // replace with a real processor type
+ *   });
+ * 
+ *   console.log(processorStatus);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getProcessorStatus(args: {
   aptosConfig: AptosConfig;
   processorType: ProcessorType;
 }): Promise<GetProcessorStatusResponse[0]> {

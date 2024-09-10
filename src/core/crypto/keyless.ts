@@ -167,6 +167,39 @@ export class KeylessPublicKey extends AccountPublicKey {
     return KeylessPublicKey.create({ iss, uidKey, uidVal, aud, pepper });
   }
 
+/**
+ * Checks if the provided public key is an instance of the expected structure.
+ * This ensures that the public key has the correct properties and types.
+ * 
+ * @param publicKey - The public key to validate.
+ * @param publicKey.iss - The issuer string of the public key.
+ * @param publicKey.idCommitment - The ID commitment as a Uint8Array.
+ * 
+ * @returns A boolean indicating whether the public key is a valid instance.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const publicKey = {
+ *     iss: "exampleIssuer", // replace with a real issuer
+ *     idCommitment: new Uint8Array([1, 2, 3, 4]) // replace with a real Uint8Array
+ *   };
+ * 
+ *   // Check if the public key is a valid instance
+ *   const isValid = aptos.isInstance(publicKey);
+ * 
+ *   console.log("Is the public key valid?", isValid);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   static isInstance(publicKey: PublicKey) {
     return (
       "iss" in publicKey &&
@@ -627,7 +660,35 @@ class Groth16VerificationKey {
  * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
  * @returns KeylessConfiguration
  */
-export async function getKeylessConfig(args: {
+export async
+
+/**
+ * Retrieves the keyless configuration for the specified Aptos configuration.
+ * This function helps ensure that the keyless account setup adheres to the maximum expiration horizon.
+ * 
+ * @param args - The arguments for retrieving the keyless configuration.
+ * @param args.aptosConfig - The Aptos configuration object containing network details.
+ * @param args.options - Optional parameters for specifying ledger version.
+ * 
+ * @returns A promise that resolves to the keyless configuration object.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Retrieve the keyless configuration
+ *   const keylessConfig = await aptos.getKeylessConfig({ aptosConfig: config });
+ * 
+ *   console.log(keylessConfig);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getKeylessConfig(args: {
   aptosConfig: AptosConfig;
   options?: LedgerVersionArg;
 }): Promise<KeylessConfiguration> {
@@ -649,7 +710,37 @@ export async function getKeylessConfig(args: {
  * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
  * @returns KeylessConfigurationResponse
  */
-async function getKeylessConfigurationResource(args: {
+async
+
+/**
+ * Retrieves the KeylessConfiguration set on chain.
+ * 
+ * @param args - The arguments for retrieving the configuration.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+ * @returns KeylessConfigurationResponse - The response containing the keyless configuration data.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching the KeylessConfiguration resource
+ *   const keylessConfig = await aptos.getKeylessConfigurationResource({
+ *     aptosConfig: config,
+ *     options: { ledgerVersion: 0 }, // replace with a real ledger version if needed
+ *   });
+ * 
+ *   console.log(keylessConfig);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getKeylessConfigurationResource(args: {
   aptosConfig: AptosConfig;
   options?: LedgerVersionArg;
 }): Promise<KeylessConfigurationResponse> {
@@ -671,7 +762,37 @@ async function getKeylessConfigurationResource(args: {
  * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
  * @returns Groth16VerificationKeyResponse
  */
-async function getGroth16VerificationKeyResource(args: {
+async
+
+/**
+ * Retrieves the Groth16VerificationKey resource set on the blockchain.
+ * 
+ * @param args - The arguments for retrieving the verification key.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+ * @returns Groth16VerificationKeyResponse - The Groth16VerificationKey resource response.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Getting the Groth16VerificationKey resource
+ *   const verificationKey = await aptos.getGroth16VerificationKeyResource({
+ *     aptosConfig: config,
+ *     options: { ledgerVersion: 1 }, // specify your own ledger version if needed
+ *   });
+ * 
+ *   console.log(verificationKey);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getGroth16VerificationKeyResource(args: {
   aptosConfig: AptosConfig;
   options?: LedgerVersionArg;
 }): Promise<Groth16VerificationKeyResponse> {

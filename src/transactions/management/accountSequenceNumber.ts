@@ -72,11 +72,29 @@ export class AccountSequenceNumber {
     this.sleepTime = sleepTime;
   }
 
-  /**
-   * Returns the next available sequence number for this account
-   *
-   * @returns next available sequence number
-   */
+/**
+ * Returns the next available sequence number for the account, ensuring that the number is synchronized and ready for use in transactions.
+ * This function is essential for managing transaction sequencing effectively, especially when multiple transactions are in flight.
+ * 
+ * @returns {BigInt} The next available sequence number for this account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ *
+ * async function runExample() {
+ *   // Get the next sequence number for the account
+ *   const sequenceNumber = await aptos.accountSequnceNumber.nextSequenceNumber();
+ *   console.log("Next sequence number:", sequenceNumber.toString());
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async nextSequenceNumber(): Promise<bigint | null> {
     /* eslint-disable no-await-in-loop */
     while (this.lock) {
@@ -117,9 +135,28 @@ export class AccountSequenceNumber {
     return nextNumber;
   }
 
-  /**
-   * Initializes this account with the sequence number on chain
-   */
+/**
+ * Initializes this account with the sequence number on chain.
+ * This function retrieves the current sequence number for the account and updates the internal state accordingly.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Initialize the account with the sequence number
+ *   await aptos.initialize();
+ * 
+ *   console.log("Account initialized with sequence number.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async initialize(): Promise<void> {
     const { sequence_number: sequenceNumber } = await getInfo({
       aptosConfig: this.aptosConfig,
@@ -129,11 +166,29 @@ export class AccountSequenceNumber {
     this.lastUncommintedNumber = BigInt(sequenceNumber);
   }
 
-  /**
-   * Updates this account sequence number with the one on-chain
-   *
-   * @returns on-chain sequence number for this account
-   */
+/**
+ * Updates the account's sequence number with the current on-chain value.
+ * 
+ * @returns The on-chain sequence number for this account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Update the account's sequence number
+ *   const sequenceNumber = await aptos.account.update();
+ * 
+ *   console.log("Updated sequence number:", sequenceNumber);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async update(): Promise<bigint> {
     const { sequence_number: sequenceNumber } = await getInfo({
       aptosConfig: this.aptosConfig,
@@ -143,12 +198,27 @@ export class AccountSequenceNumber {
     return this.lastUncommintedNumber;
   }
 
-  /**
-   * Synchronizes local sequence number with the seqeunce number on chain for this account.
-   *
-   * Poll the network until all submitted transactions have either been committed or until
-   * the maximum wait time has elapsed
-   */
+/**
+ * Synchronizes the local sequence number with the sequence number on chain for this account.
+ * This function polls the network until all submitted transactions have either been committed or until the maximum wait time has elapsed.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Synchronizing the account's sequence number with the on-chain number
+ *   await aptos.account.synchronize();
+ *   console.log("Synchronization complete.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async synchronize(): Promise<void> {
     if (this.lastUncommintedNumber === this.currentNumber) return;
 

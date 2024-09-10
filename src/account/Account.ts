@@ -132,6 +132,31 @@ export abstract class Account {
   static generate(args: GenerateEd25519SingleKeyAccountArgs): SingleKeyAccount;
   static generate(args: GenerateSingleKeyAccountArgs): SingleKeyAccount;
   static generate(args: GenerateAccountArgs): Account;
+
+/**
+ * Generates a new account based on the specified signing scheme and legacy option.
+ * This function allows you to create accounts with different signing schemes, providing flexibility for various use cases.
+ * 
+ * @param args - The arguments for generating the account.
+ * @param args.scheme - The signing scheme to use for the account. Defaults to `SigningSchemeInput.Ed25519`.
+ * @param args.legacy - Indicates whether to use the legacy account generation method. Defaults to `true`.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, SigningSchemeInput } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Generate a new account using the default signing scheme
+ *   const account = aptos.account.generate();
+ * 
+ *   console.log("Generated account:", account);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
   static generate(args: GenerateAccountArgs = {}) {
     const { scheme = SigningSchemeInput.Ed25519, legacy = true } = args;
     if (scheme === SigningSchemeInput.Ed25519 && legacy) {
@@ -151,6 +176,36 @@ export abstract class Account {
   static fromPrivateKey(args: CreateEd25519SingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
   static fromPrivateKey(args: CreateSingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
   static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): Account;
+
+/**
+ * Creates an account from a given private key and address, optionally supporting legacy Ed25519 accounts.
+ * This function helps in initializing accounts for users who have existing private keys.
+ * 
+ * @param args - The arguments required to create the account.
+ * @param args.privateKey - The private key used to create the account. This can be an instance of Ed25519PrivateKey.
+ * @param args.address - The address associated with the account. 
+ * @param args.legacy - A boolean indicating whether to create a legacy Ed25519 account. Defaults to true.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Create an account from a private key
+ *   const privateKey = Ed25519PrivateKey.fromString("0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"); // replace with a real private key
+ *   const address = "0x1"; // replace with a real address
+ * 
+ *   const newAccount = Account.fromPrivateKey({ privateKey, address, legacy: true });
+ * 
+ *   console.log("New account created:", newAccount);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
   static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs) {
     const { privateKey, address, legacy = true } = args;
     if (privateKey instanceof Ed25519PrivateKey && legacy) {
@@ -162,18 +217,40 @@ export abstract class Account {
     return new SingleKeyAccount({ privateKey, address });
   }
 
-  /**
-   * @deprecated use `fromPrivateKey` instead.
-   * Instantiates an account given a private key and a specified account address.
-   * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
-   *
-   * @param args.privateKey PrivateKey - the underlying private key for the account
-   * @param args.address AccountAddress - The account address the `Account` will sign for
-   * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
-   * to generating a Legacy Ed25519 keypair
-   *
-   * @returns Account
-   */
+/**
+ * Instantiates an account using a private key and a specified account address.
+ * This is primarily used to create an `Account` that has had its authentication key rotated.
+ * 
+ * @param args - The arguments for creating the account.
+ * @param args.privateKey - The underlying private key for the account.
+ * @param args.address - The account address the `Account` will sign for.
+ * @param args.legacy - Optional. If set to false, the keypair generated is a Unified keypair. Defaults to generating a Legacy Ed25519 keypair.
+ * 
+ * @returns Account
+ * 
+ * @deprecated use `fromPrivateKey` instead.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const privateKey = "0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"; // replace with a real private key
+ *   const address = "0x1"; // replace with a real account address
+ * 
+ *   // Instantiate the account from the private key and address
+ *   const account = await aptos.fromPrivateKeyAndAddress({ privateKey, address });
+ * 
+ *   console.log(account);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   static fromPrivateKeyAndAddress(args: CreateAccountFromPrivateKeyArgs) {
     return this.fromPrivateKey(args);
   }
@@ -193,6 +270,42 @@ export abstract class Account {
   ): SingleKeyAccount;
   static fromDerivationPath(args: GenerateSingleKeyAccountArgs & PrivateKeyFromDerivationPathArgs): SingleKeyAccount;
   static fromDerivationPath(args: GenerateAccountArgs & PrivateKeyFromDerivationPathArgs): Account;
+
+/**
+ * Generates an account from a specified derivation path using a mnemonic phrase.
+ * This function allows you to create accounts based on a hierarchical deterministic (HD) wallet structure.
+ * 
+ * @param args - The arguments for generating the account.
+ * @param args.scheme - The signing scheme to use. Defaults to Ed25519 if not specified.
+ * @param args.mnemonic - The mnemonic phrase used to derive the account.
+ * @param args.path - The derivation path to use for account generation.
+ * @param args.legacy - A boolean indicating whether to use legacy behavior. Defaults to true.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * import { SigningSchemeInput } from "@aptos-labs/ts-sdk"; // Importing the signing scheme input
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const mnemonic = "test test test test test test test test test test test test"; // replace with a real mnemonic
+ *   const path = "m/44'/637'/0'/0'/0'"; // replace with a real derivation path
+ * 
+ *   // Generating an account from the derivation path
+ *   const account = aptos.account.fromDerivationPath({
+ *     scheme: SigningSchemeInput.Ed25519,
+ *     mnemonic,
+ *     path,
+ *   });
+ * 
+ *   console.log("Generated Account Address:", account.accountAddress);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
   static fromDerivationPath(args: GenerateAccountArgs & PrivateKeyFromDerivationPathArgs) {
     const { scheme = SigningSchemeInput.Ed25519, mnemonic, path, legacy = true } = args;
     if (scheme === SigningSchemeInput.Ed25519 && legacy) {

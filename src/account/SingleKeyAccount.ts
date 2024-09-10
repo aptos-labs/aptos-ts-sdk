@@ -53,11 +53,33 @@ export class SingleKeyAccount implements Account {
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
   }
 
-  /**
-   * Derives an account from a randomly generated private key.
-   * Default generation is using an Ed25519 key
-   * @returns Account with the given signature scheme
-   */
+/**
+ * Derives an account from a randomly generated private key using the specified signing scheme.
+ * This function allows you to create an account with either Ed25519 or Secp256k1 ECDSA signature schemes.
+ * 
+ * @param args - The arguments for generating the account.
+ * @param args.scheme - The signature scheme to use for generating the private key. Defaults to `SigningSchemeInput.Ed25519`.
+ * 
+ * @returns An account with the generated private key based on the specified signature scheme.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, SigningSchemeInput } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Generate an account using the default Ed25519 scheme
+ *   const account = aptos.account.generate();
+ * 
+ *   console.log("Generated account:", account);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   static generate(args: SingleKeySignerGenerateArgs = {}) {
     const { scheme = SigningSchemeInput.Ed25519 } = args;
     let privateKey: PrivateKey;
@@ -74,16 +96,41 @@ export class SingleKeyAccount implements Account {
     return new SingleKeyAccount({ privateKey });
   }
 
-  /**
-   * Derives an account with bip44 path and mnemonics,
-   * Default to using an Ed25519 signature scheme.
-   *
-   * @param args.scheme The signature scheme to derive the private key with
-   * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
-   * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
-   * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param args.mnemonic the mnemonic seed phrase of the account
-   */
+/**
+ * Derives an account using a BIP44 path and mnemonic, defaulting to the Ed25519 signature scheme.
+ * This function allows you to create a new account based on a specified derivation path and mnemonic seed phrase.
+ * 
+ * @param args - The arguments for deriving the account.
+ * @param args.scheme - The signature scheme to derive the private key with. Defaults to Ed25519.
+ * @param args.path - The BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
+ * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1.
+ * @param args.mnemonic - The mnemonic seed phrase of the account.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, SigningSchemeInput } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Deriving an account from a mnemonic and path
+ *   const mnemonic = "abandon abandon ability able about above absent absorb abstract absurd abuse access"; // replace with a real mnemonic
+ *   const path = "m/44'/637'/0'/0'/0"; // replace with a real path if needed
+ *   
+ *   const account = aptos.account.fromDerivationPath({
+ *     scheme: SigningSchemeInput.Ed25519, // specify the signing scheme if needed
+ *     path,
+ *     mnemonic,
+ *   });
+ *   
+ *   console.log("Derived account:", account);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   static fromDerivationPath(args: SingleKeySignerFromDerivationPathArgs) {
     const { scheme = SigningSchemeInput.Ed25519, path, mnemonic } = args;
     let privateKey: PrivateKey;

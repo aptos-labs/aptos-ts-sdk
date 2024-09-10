@@ -50,24 +50,49 @@ export class Table {
     return getTableItem<T>({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Queries for a table items data.
-   *
-   * Optional `options.where` param can be passed to filter the response.
-   *
-   * Note, this query calls the indexer server
-   *
-   * @example
-   * const data = await aptos.getTableItemsData({
-   *  options: { where: {
-   *      table_handle: { _eq: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca" },
-   *      transaction_version: { _eq: "0" }
-   *    }
-   *  },
-   * });
-   *
-   * @returns GetTableItemsDataResponse
-   */
+/**
+ * Queries for table items data, allowing for optional filtering and pagination.
+ * 
+ * @param args - The arguments for querying table items data.
+ * @param args.minimumLedgerVersion - Optional minimum ledger version to wait for before querying.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.where - Conditions to filter the response.
+ * @param args.options.offset - The number of items to skip before starting to collect the result set.
+ * @param args.options.limit - The maximum number of items to return.
+ * @param args.options.orderBy - The order in which to return the items.
+ * 
+ * Note: This query calls the indexer server.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Querying for table items data with specific filters
+ *   const data = await aptos.getTableItemsData({
+ *     minimumLedgerVersion: 1, // replace with a real ledger version if needed
+ *     options: {
+ *       where: {
+ *         table_handle: { _eq: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca" },
+ *         transaction_version: { _eq: "0" }
+ *       },
+ *       limit: 10, // specify the maximum number of items to return
+ *       offset: 0, // specify the number of items to skip
+ *     },
+ *   });
+ * 
+ *   console.log(data);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ * 
+ * @returns GetTableItemsDataResponse
+ */
+
+
   async getTableItemsData(args: {
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & WhereArg<TableItemsBoolExp> & OrderByArg<GetTableItemsDataResponse[0]>;
@@ -80,20 +105,44 @@ export class Table {
     return getTableItemsData({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Queries for a table items metadata.
-   *
-   * Optional `options.where` param can be passed to filter the response.
-   *
-   * Note, this query calls the indexer server
-   *
-   * @example
-   * const data = await aptos.getTableItemsMetadata({
-   *  options: { where: { handle: { _eq: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca" } } },
-   * });
-   *
-   * @returns GetTableItemsMetadataResponse
-   */
+/**
+ * Queries for metadata of table items, allowing for filtering and pagination.
+ * 
+ * @param args - The arguments for querying table items metadata.
+ * @param args.minimumLedgerVersion - Optional minimum ledger version to wait for before querying.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.where - Conditions to filter the response.
+ * @param args.options.offset - The number of items to skip before starting to collect the result set.
+ * @param args.options.limit - The maximum number of items to return.
+ * @param args.options.orderBy - The order in which to return the items.
+ * 
+ * @returns GetTableItemsMetadataResponse - The metadata of the queried table items.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Querying for table items metadata with a specific filter
+ *   const data = await aptos.getTableItemsMetadata({
+ *     minimumLedgerVersion: 1, // replace with a real ledger version if needed
+ *     options: {
+ *       where: { handle: { _eq: "0x1b854694ae746cdbd8d44186ca4929b2b337df21d1c74633be19b2710552fdca" } },
+ *       limit: 10,
+ *       offset: 0,
+ *     },
+ *   });
+ * 
+ *   console.log(data);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getTableItemsMetadata(args: {
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & WhereArg<TableMetadatasBoolExp> & OrderByArg<GetTableItemsMetadataResponse[0]>;

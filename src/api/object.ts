@@ -14,17 +14,35 @@ import { getObjectDataByObjectAddress } from "../internal/object";
 export class AptosObject {
   constructor(readonly config: AptosConfig) {}
 
-  /**
-   * Fetch the object data based on the oabject address
-   *
-   * @example
-   * const object = await aptos.getObjectDataByObjectAddress({objectAddress:"0x123"})
-   *
-   * @param args.objectAddress The object address
-   * @param args.options Configuration options for waitForTransaction
-   *
-   * @returns The object data
-   */
+/**
+ * Fetch the object data based on the specified object address.
+ * 
+ * @param args.objectAddress - The object address to retrieve data for.
+ * @param args.minimumLedgerVersion - The minimum ledger version to wait for before fetching the data.
+ * @param args.options - Configuration options for pagination and ordering of the results.
+ * 
+ * @returns The object data associated with the given address.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching object data for a specific object address
+ *   const objectData = await aptos.getObjectDataByObjectAddress({
+ *     objectAddress: "0x123", // replace with a real object address
+ *   });
+ * 
+ *   console.log(objectData);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getObjectDataByObjectAddress(args: {
     objectAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;

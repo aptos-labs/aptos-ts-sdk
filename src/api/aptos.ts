@@ -92,13 +92,46 @@ export interface Aptos
     Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
 
 /**
-In TypeScript, we can’t inherit or extend from more than one class,
-Mixins helps us to get around that by creating a partial classes
-that we can combine to form a single class that contains all the methods and properties from the partial classes.
-{@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
+ * Mixes in instance methods from a base class into a target class, allowing for multiple inheritance-like behavior.
+ * This enables the creation of classes that combine functionality from multiple sources, facilitating code reuse.
+ * 
+ * @param targetClass - The class that will receive the mixed-in methods.
+ * @param baseClass - The class from which methods will be mixed in.
+ * @param baseClassProp - The property name on the target class that will hold the instance of the base class.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * class Base {
+ *   greet() {
+ *     return "Hello from Base!";
+ *   }
+ * }
+ * 
+ * class Target {
+ *   constructor(public base: Base) {}
+ * }
+ * 
+ * // Applying the mixin
+ * applyMixin(Target, Base, 'base');
+ * 
+ * async function runExample() {
+ *   const baseInstance = new Base();
+ *   const targetInstance = new Target(baseInstance);
+ * 
+ *   // Calling the mixed-in method
+ *   const message = targetInstance.greet();
+ *   console.log(message); // Outputs: Hello from Base!
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
 
-Here, we combine any subclass and the Aptos class.
-*/
+
 function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   // Mixin instance methods
   Object.getOwnPropertyNames(baseClass.prototype).forEach((propertyName) => {

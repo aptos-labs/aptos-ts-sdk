@@ -94,7 +94,41 @@ export async function generateTransactionPayload(
  *
  * @return TransactionPayload
  */
-export async function generateTransactionPayload(
+export async
+
+/**
+ * Generates a transaction payload based on the provided arguments and ABI.
+ * This function helps in creating a payload that can be submitted to the Aptos blockchain.
+ * 
+ * @param args - The input data required to generate the transaction payload.
+ * @param args.function - The function identifier in the format "moduleAddress::moduleName::functionName".
+ * @param args.functionArguments - The arguments to be passed to the function.
+ * @param args.typeArguments - The type arguments for the function, if any.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.abi - The ABI of the function, if already available.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const transactionPayload = await aptos.transaction.generateTransactionPayload({
+ *     function: "0x1::aptos_account::transfer", // specify the function to call
+ *     functionArguments: ["0x2", 100], // replace with a real account address and amount
+ *     typeArguments: [], // specify type arguments if needed
+ *     aptosConfig: config,
+ *     abi: undefined // ABI can be provided if available
+ *   });
+ * 
+ *   console.log(transactionPayload); // Output the generated transaction payload
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
 ): Promise<AnyTransactionPayloadInstance> {
   if (isScriptDataInput(args)) {
@@ -167,7 +201,40 @@ export function generateTransactionPayloadWithABI(
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
 }
 
-export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
+export async
+
+/**
+ * Generates the payload for a view function call using the provided arguments and ABI.
+ * This function helps in constructing the necessary payload to interact with a specific view function on the Aptos blockchain.
+ * 
+ * @param args - The input data required to generate the view function payload.
+ * @param args.function - The fully qualified name of the function in the format "moduleAddress::moduleName::functionName".
+ * @param args.aptosConfig - Configuration settings for connecting to the Aptos network.
+ * @param args.abi - The ABI of the contract, if already available.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const args = {
+ *     function: "0x1::moduleName::functionName", // replace with a real function
+ *     aptosConfig: config,
+ *     abi: null, // specify your ABI if available
+ *   };
+ * 
+ *   // Generating the view function payload
+ *   const payload = await aptos.generateViewFunctionPayload(args);
+ * 
+ *   console.log("Generated payload:", payload);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
   const functionAbi = await fetchAbi({
@@ -214,6 +281,39 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   return EntryFunction.build(`${moduleAddress}::${moduleName}`, functionName, typeArguments, functionArguments);
 }
 
+/**
+ * Generates a transaction payload script from the provided input data.
+ * This function allows you to create a transaction payload that can be executed on the Aptos blockchain.
+ * 
+ * @param args - The input data for generating the transaction payload.
+ * @param args.bytecode - The bytecode of the script to be executed.
+ * @param args.typeArguments - The type arguments for the script.
+ * @param args.functionArguments - The arguments to be passed to the function in the script.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, InputScriptData } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const args: InputScriptData = {
+ *     bytecode: "0x1::aptos_account::transfer", // replace with actual bytecode
+ *     typeArguments: [],
+ *     functionArguments: ["0x1", 100], // replace with actual account address and amount
+ *   };
+ *   
+ *   // Generating the transaction payload script
+ *   const payloadScript = aptos.generateTransactionPayloadScript(args);
+ *   
+ *   console.log(payloadScript);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
 function generateTransactionPayloadScript(args: InputScriptData) {
   return new TransactionPayloadScript(
     new Script(
@@ -233,7 +333,48 @@ function generateTransactionPayloadScript(args: InputScriptData) {
  *
  * @returns RawTransaction
  */
-export async function generateRawTransaction(args: {
+export async
+
+/**
+ * Generates a raw transaction based on the provided parameters.
+ * This function helps in creating a transaction that can be submitted to the Aptos blockchain.
+ * 
+ * @param args - The parameters for generating the raw transaction.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.sender - The address of the account sending the transaction.
+ * @param args.payload - The payload containing the transaction data.
+ * @param args.options - Optional parameters for transaction generation.
+ * @param args.feePayerAddress - The address of the account responsible for paying the transaction fees.
+ * @returns A RawTransaction object that can be submitted to the Aptos blockchain.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account, RawTransaction } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = Account.generate(); // Generate a new account for sending the transaction
+ *   const payload = { /* transaction payload data */ }; // Define the transaction payload
+ * 
+ *   // Generate the raw transaction
+ *   const rawTransaction = await aptos.transaction.generateRawTransaction({
+ *     aptosConfig: config,
+ *     sender: sender.accountAddress,
+ *     payload: payload,
+ *     options: {
+ *       maxGasAmount: 10000, // Specify the maximum gas amount
+ *       gasUnitPrice: 1, // Specify the gas unit price
+ *     },
+ *   });
+ * 
+ *   console.log("Generated Raw Transaction:", rawTransaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function generateRawTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   payload: AnyTransactionPayloadInstance;
@@ -338,7 +479,48 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * }
  * ```
  */
-export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
+export async
+
+/**
+ * Builds a transaction based on the provided parameters and returns either a simple or multi-agent transaction.
+ * This function allows you to create a transaction that can be signed by multiple agents if necessary.
+ * 
+ * @param args - The arguments for generating the raw transaction.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.sender - The account address of the sender.
+ * @param args.payload - The payload containing the transaction data.
+ * @param args.options - Additional options for the transaction.
+ * @param args.feePayerAddress - The account address that will pay the transaction fee.
+ * @param args.secondarySignerAddresses - (Optional) An array of account addresses for secondary signers.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = Account.generate(); // Generate a new sender account
+ *   const payload = {
+ *     function: "0x1::aptos_account::transfer",
+ *     functionArguments: [Account.generate().accountAddress, 100],
+ *   };
+ * 
+ *   const transaction = await aptos.transaction.buildTransaction({
+ *     aptosConfig: config,
+ *     sender: sender.accountAddress,
+ *     payload: payload,
+ *     options: {}, // Specify any additional options if needed
+ *     feePayerAddress: sender.accountAddress, // Use the sender as the fee payer
+ *   });
+ * 
+ *   console.log("Transaction built successfully:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
   // generate raw transaction
   const rawTxn = await generateRawTransaction({
@@ -444,7 +626,35 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   return new SignedTransaction(transaction.rawTransaction, transactionAuthenticator).bcsToBytes();
 }
 
-export function getAuthenticatorForSimulation(publicKey: PublicKey) {
+export
+
+/**
+ * Retrieves an authenticator for a given public key suitable for simulation purposes.
+ * This function helps in creating an authenticator that does not require a valid signature, 
+ * which is useful for testing scenarios.
+ * 
+ * @param publicKey - The public key for which to retrieve the authenticator.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * import { Ed25519PublicKey } from "@aptos-labs/ts-sdk"; // Import necessary classes
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const publicKey = new Ed25519PublicKey(new Uint8Array(32)); // Replace with a real public key
+ * 
+ *   // Get the authenticator for simulation
+ *   const authenticator = aptos.getAuthenticatorForSimulation(publicKey);
+ * 
+ *   console.log(authenticator); // Log the authenticator to verify it works
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
   const invalidSignature = new Ed25519Signature(new Uint8Array(64));
 

@@ -34,17 +34,39 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 export class FungibleAsset {
   constructor(readonly config: AptosConfig) {}
 
-  /**
-   * Queries all fungible asset metadata.
-   *
-   * @example
-   * const fungibleAsset = await aptos.getFungibleAssetMetadata()
-   *
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options Optional configuration for pagination and filtering
-   *
-   * @returns A list of fungible asset metadata
-   */
+/**
+ * Queries all fungible asset metadata.
+ * 
+ * @param args Optional parameters for the query.
+ * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+ * @param args.options Optional configuration for pagination and filtering.
+ * 
+ * @returns A list of fungible asset metadata.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetching fungible asset metadata
+ *   const fungibleAssets = await aptos.getFungibleAssetMetadata({
+ *     minimumLedgerVersion: 1, // replace with a real ledger version if needed
+ *     options: {
+ *       limit: 10, // specify the number of results to return
+ *       offset: 0, // specify the starting point for results
+ *     },
+ *   });
+ * 
+ *   console.log(fungibleAssets);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getFungibleAssetMetadata(args?: {
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
@@ -57,22 +79,38 @@ export class FungibleAsset {
     return getFungibleAssetMetadata({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Queries a fungible asset metadata by the asset type
-   *
-   * This query returns the fungible asset metadata for a specific fungible asset.
-   *
-   * @example
-   * const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({assetType:"0x123::test_coin::TestCoin"})
-   *
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.assetType The asset type of the fungible asset.
-   * e.g
-   * "0x1::aptos_coin::AptosCoin" for Aptos Coin
-   * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" - address format if this is fungible asset
-   *
-   * @returns A fungible asset metadata item
-   */
+/**
+ * Queries fungible asset metadata by the specified asset type.
+ * This function retrieves detailed metadata for a specific fungible asset.
+ * 
+ * @param args - The arguments for the query.
+ * @param args.assetType - The asset type of the fungible asset, e.g., 
+ * "0x1::aptos_coin::AptosCoin" for Aptos Coin or 
+ * "0xc2948283c2ce03aafbb294821de7ee684b06116bb378ab614fa2de07a99355a8" for address format.
+ * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+ * 
+ * @returns A fungible asset metadata item.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch fungible asset metadata for a specific asset type
+ *   const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({
+ *     assetType: "0x1::aptos_coin::AptosCoin" // replace with a real asset type if needed
+ *   });
+ * 
+ *   console.log(fungibleAsset);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getFungibleAssetMetadataByAssetType(args: {
     assetType: string;
     minimumLedgerVersion?: AnyNumber;
@@ -94,19 +132,36 @@ export class FungibleAsset {
     return data[0];
   }
 
-  /**
-   * Queries a fungible asset metadata by the creator address
-   *
-   * This query returns the fungible asset metadata for a specific fungible asset.
-   *
-   * @example
-   * const fungibleAsset = await aptos.getFungibleAssetMetadataByCreatorAddress({creatorAddress:"0x123"})
-   *
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.creatorAddress The creator address of the fungible asset.
-   *
-   * @returns A fungible asset metadata item
-   */
+/**
+ * Queries fungible asset metadata by the creator address.
+ * This function retrieves the metadata for a specific fungible asset created by the provided address.
+ * 
+ * @param args - The parameters for the query.
+ * @param args.creatorAddress - The creator address of the fungible asset.
+ * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+ * 
+ * @returns A fungible asset metadata item.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fetch fungible asset metadata by creator address
+ *   const fungibleAsset = await aptos.getFungibleAssetMetadataByCreatorAddress({
+ *     creatorAddress: "0x123", // replace with a real creator address
+ *   });
+ * 
+ *   console.log(fungibleAsset);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getFungibleAssetMetadataByCreatorAddress(args: {
     creatorAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
@@ -128,17 +183,39 @@ export class FungibleAsset {
     return data;
   }
 
-  /**
-   * Queries all fungible asset activities
-   *
-   * @example
-   * const fungibleAssetActivities = await aptos.getFungibleAssetActivities()
-   *
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options Optional configuration for pagination and filtering
-   *
-   * @returns A list of fungible asset metadata
-   */
+/**
+ * Queries all fungible asset activities.
+ *
+ * @param args Optional parameters for querying fungible asset activities.
+ * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+ * @param args.options Optional configuration for pagination and filtering.
+ *
+ * @returns A list of fungible asset metadata.
+ *
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ *
+ * async function runExample() {
+ *   // Fetching fungible asset activities
+ *   const fungibleAssetActivities = await aptos.getFungibleAssetActivities({
+ *     minimumLedgerVersion: 1, // specify your own ledger version if needed
+ *     options: {
+ *       limit: 10, // specify your own limit if needed
+ *       offset: 0, // specify your own offset if needed
+ *     },
+ *   });
+ *
+ *   console.log(fungibleAssetActivities);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getFungibleAssetActivities(args?: {
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
@@ -151,17 +228,33 @@ export class FungibleAsset {
     return getFungibleAssetActivities({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Queries all fungible asset balances
-   *
-   * @example
-   * const fungibleAssetBalances = await aptos.getCurrentFungibleAssetBalances()
-   *
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options Optional configuration for pagination and filtering
-   *
-   * @returns A list of fungible asset metadata
-   */
+/**
+ * Queries all fungible asset balances.
+ *
+ * @param args Optional parameters for querying fungible asset balances.
+ * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+ * @param args.options Optional configuration for pagination and filtering.
+ *
+ * @returns A list of fungible asset metadata.
+ *
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ *
+ * async function runExample() {
+ *   // Fetch current fungible asset balances
+ *   const fungibleAssetBalances = await aptos.getCurrentFungibleAssetBalances();
+ *
+ *   console.log(fungibleAssetBalances);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async getCurrentFungibleAssetBalances(args?: {
     minimumLedgerVersion?: AnyNumber;
     options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
@@ -174,27 +267,46 @@ export class FungibleAsset {
     return getCurrentFungibleAssetBalances({ aptosConfig: this.config, ...args });
   }
 
-  /**
-   * Transfer `amount` of fungible asset from sender's primary store to recipient's primary store.
-   *
-   * Use this method to transfer any fungible asset including fungible token.
-   *
-   * @example
-   * const transaction = await aptos.transferFungibleAsset({
-   *  sender: alice,
-   *  fungibleAssetMetadataAddress: "0x123",
-   *  recipient: "0x456",
-   *  amount: 5
-   * })
-   *
-   * @param sender The sender account
-   * @param fungibleAssetMetadataAddress The fungible asset account address.
-   * For example if you’re transferring USDT this would be the USDT address
-   * @param recipient The recipient account address
-   * @param amount Number of assets to transfer
-   *
-   * @returns A SimpleTransaction that can be simulated or submitted to chain.
-   */
+/**
+ * Transfer a specified amount of fungible asset from the sender's primary store to the recipient's primary store.
+ * This method can be used to transfer any fungible asset, including fungible tokens.
+ *
+ * @param args - The parameters for the transfer operation.
+ * @param args.sender - The sender account.
+ * @param args.fungibleAssetMetadataAddress - The fungible asset account address. For example, if you’re transferring USDT, this would be the USDT address.
+ * @param args.recipient - The recipient account address.
+ * @param args.amount - The number of assets to transfer.
+ * @param args.options - Optional parameters for generating the transaction.
+ *
+ * @returns A SimpleTransaction that can be simulated or submitted to the chain.
+ *
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const sender = Account.generate(); // Replace with a real sender account
+ *   const recipient = "0x456"; // Replace with a real recipient account
+ *   const fungibleAssetMetadataAddress = "0x123"; // Replace with a real fungible asset address
+ * 
+ *   // Transfer 5 units of the fungible asset
+ *   const transaction = await aptos.transferFungibleAsset({
+ *     sender,
+ *     fungibleAssetMetadataAddress,
+ *     recipient,
+ *     amount: 5,
+ *   });
+ * 
+ *   console.log("Transaction created:", transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async transferFungibleAsset(args: {
     sender: Account;
     fungibleAssetMetadataAddress: AccountAddressInput;

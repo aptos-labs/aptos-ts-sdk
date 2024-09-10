@@ -79,7 +79,35 @@ export class AuthenticationKey extends Serializable {
    *
    * @param args - the public key and scheme to use for the derivation
    */
-  public static fromPublicKeyAndScheme(args: { publicKey: AccountPublicKey; scheme: AuthenticationKeyScheme }) {
+  public
+
+/**
+ * Generates an authentication key from the provided public key and scheme.
+ * 
+ * @param args - The arguments for generating the authentication key.
+ * @param args.publicKey - The public key from which to derive the authentication key.
+ * @param args.scheme - The scheme used for authentication key generation.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, AccountPublicKey, AuthenticationKeyScheme } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *     const publicKey = new AccountPublicKey("0x1"); // replace with a real public key
+ *     const scheme = AuthenticationKeyScheme.SCHEME; // specify the appropriate scheme
+ *     
+ *     // Generate the authentication key
+ *     const authKey = aptos.fromPublicKeyAndScheme({ publicKey, scheme });
+ *     
+ *     console.log("Generated Authentication Key:", authKey);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ static fromPublicKeyAndScheme(args: { publicKey: AccountPublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey } = args;
     return publicKey.authKey();
   }

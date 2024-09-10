@@ -15,7 +15,42 @@ import { TransactionResponseType, UserTransactionResponse, WaitForTransactionOpt
 import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils/const";
 import { waitForTransaction } from "./transaction";
 
-export async function fundAccount(args: {
+export async
+
+/**
+ * Funds the specified account with the given amount of tokens.
+ * This function is useful for providing initial tokens to an account for transaction purposes.
+ * 
+ * @param args - The arguments for funding the account.
+ * @param args.aptosConfig - The configuration for the Aptos client.
+ * @param args.accountAddress - The address of the account to fund.
+ * @param args.amount - The amount of tokens to fund the account with.
+ * @param args.options - Optional parameters for the transaction.
+ * @param args.options.timeoutSecs - The timeout in seconds for waiting for the transaction to complete.
+ * @param args.options.checkSuccess - Whether to check if the transaction was successful.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Fund the account with 100 tokens
+ *   const fundTxn = await aptos.fundAccount({
+ *     aptosConfig: config,
+ *     accountAddress: "0x1", // replace with a real account address
+ *     amount: 100,
+ *     options: { timeoutSecs: 30 } // specify your own timeout if needed
+ *   });
+ * 
+ *   console.log("Funding transaction:", fundTxn);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function fundAccount(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
   amount: number;

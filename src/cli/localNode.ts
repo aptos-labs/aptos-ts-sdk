@@ -11,10 +11,28 @@ export class LocalNode {
 
   process: ChildProcessWithoutNullStreams | null = null;
 
-  /**
-   * kills all the descendent processes
-   * of the node process, including the node process itself
-   */
+/**
+ * Terminates the current process and all its descendant processes.
+ * 
+ * @returns {Promise<boolean>} A promise that resolves to true if the process was successfully terminated.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // This function stops the current process and its descendants.
+ *   await aptos.stop();
+ *   console.log("Process terminated successfully.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async stop() {
     await new Promise((resolve, reject) => {
       if (!this.process?.pid) return;
@@ -28,12 +46,27 @@ export class LocalNode {
     });
   }
 
-  /**
-   * Runs a local testnet and waits for process to be up.
-   *
-   * If local node process is already up it returns and does
-   * not start the process
-   */
+/**
+ * Runs a local testnet and waits for the process to be up. 
+ * If the local node process is already running, it returns without starting a new process.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // This will start the local testnet if it is not already running
+ *   await aptos.run();
+ *   console.log("Local testnet is up and running.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async run() {
     const nodeIsUp = await this.checkIfProcessIsUp();
     if (nodeIsUp) {
@@ -76,11 +109,30 @@ export class LocalNode {
     });
   }
 
-  /**
-   * Waits for the local testnet process to be up
-   *
-   * @returns Promise<boolean>
-   */
+/**
+ * Waits for the local testnet process to be up.
+ * This function will continuously check if the process is operational until it either becomes operational or the maximum wait time is exceeded.
+ *
+ * @returns Promise<boolean> - Resolves to true if the process is up, otherwise throws an error.
+ * @throws Error - If the process fails to start within the maximum wait time.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Wait for the local testnet process to be up
+ *   const isProcessUp = await aptos.waitUntilProcessIsUp();
+ *   console.log("Is the process up?", isProcessUp);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async waitUntilProcessIsUp(): Promise<boolean> {
     let operational = await this.checkIfProcessIsUp();
     const start = Date.now() / 1000;
@@ -103,11 +155,28 @@ export class LocalNode {
     return true;
   }
 
-  /**
-   * Checks if the local testnet is up
-   *
-   * @returns Promise<boolean>
-   */
+/**
+ * Checks if the local testnet is up.
+ * 
+ * @returns Promise<boolean> - Resolves to true if the testnet is operational, otherwise false.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Check if the local testnet is up
+ *   const isUp = await aptos.checkIfProcessIsUp();
+ *   console.log("Is the testnet up?", isUp);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async checkIfProcessIsUp(): Promise<boolean> {
     try {
       // Query readiness endpoint

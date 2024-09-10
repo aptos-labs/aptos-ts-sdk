@@ -124,11 +124,31 @@ export class MultiKeyAccount implements Account {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
   }
 
-  /**
-   * Waits for any proofs on any KeylessAccount signers to be fetched. If the proof is fetched a syncronously, call this
-   * to ensure signing with the KeylessAccount does not fail as the proof must be ready.
-   * @return
-   */
+/**
+ * Waits for any proofs on KeylessAccount signers to be fetched. This ensures that signing with the KeylessAccount does not fail, as the proof must be ready.
+ * 
+ * @returns {Promise<void>} A promise that resolves when all proofs have been fetched.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, KeylessAccount } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   const keylessAccount = new KeylessAccount();
+ * 
+ *   // Call waitForProofFetch to ensure the proof is ready for signing
+ *   await keylessAccount.waitForProofFetch();
+ * 
+ *   console.log("Proof fetching completed.");
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async waitForProofFetch() {
     const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());

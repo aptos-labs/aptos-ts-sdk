@@ -14,23 +14,39 @@ import { AptosConfig } from "./aptosConfig";
 export class Coin {
   constructor(readonly config: AptosConfig) {}
 
-  /**
-   * Generate a transfer coin transaction that can be simulated and/or signed and submitted
-   *
-   * @example
-   * const transferCoinTransaction = await aptos.transferCoinTransaction({
-   * sender: "0x123",
-   * recipient:"0x456",
-   * amount: 10,
-   * })
-   *
-   * @param args.sender The sender account
-   * @param args.recipient The recipient address
-   * @param args.amount The amount to transfer
-   * @param args.coinType optional. The coin struct type to transfer. Defaults to 0x1::aptos_coin::AptosCoin
-   *
-   * @returns SimpleTransaction
-   */
+/**
+ * Generate a transfer coin transaction that can be simulated, signed, and submitted.
+ * 
+ * @param args.sender The sender account.
+ * @param args.recipient The recipient address.
+ * @param args.amount The amount to transfer.
+ * @param args.coinType Optional. The coin struct type to transfer. Defaults to 0x1::aptos_coin::AptosCoin.
+ * @param args.options Optional. Additional options for generating the transaction.
+ * 
+ * @returns SimpleTransaction
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Generate a transfer coin transaction
+ *   const transaction = await aptos.transferCoinTransaction({
+ *     sender: "0x1", // replace with a real sender account
+ *     recipient: "0x2", // replace with a real recipient account
+ *     amount: 10,
+ *   });
+ * 
+ *   console.log(transaction);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+
+
   async transferCoinTransaction(args: {
     sender: AccountAddressInput;
     recipient: AccountAddressInput;

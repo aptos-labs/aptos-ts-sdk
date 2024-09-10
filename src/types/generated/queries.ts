@@ -510,7 +510,34 @@ export type SdkFunctionWrapper = <T>(
 
 const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
 
-export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
+export
+
+/**
+ * Retrieves the count of coins held by a specific account.
+ * 
+ * @param variables - Optional parameters to specify the account details.
+ * @param requestHeaders - Optional headers for the request.
+ * @returns A promise that resolves to the account's coins count.
+ * 
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const aptos = new Aptos(config);
+ * 
+ * async function runExample() {
+ *   // Getting the count of coins for a specific account
+ *   const accountAddress = "0x1"; // replace with a real account address
+ *   const response = await aptos.getSdk().getAccountCoinsCount({
+ *     accountAddress,
+ *   });
+ *   console.log(response);
+ * }
+ * runExample().catch(console.error);
+ * ```
+ */
+ function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
