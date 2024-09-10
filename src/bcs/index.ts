@@ -7,4 +7,3 @@ export * from "./serializable/entryFunctionBytes";
 export * from "./serializable/fixedBytes";
 export * from "./serializable/movePrimitives";
 export * from "./serializable/moveStructs";
-export * from "./serializable/serialized";
