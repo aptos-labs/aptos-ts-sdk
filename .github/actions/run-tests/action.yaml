@@ -35,8 +35,6 @@ runs:
         timeout_minutes: 25
         # This runs all the tests, both unit and e2e.
         command: pnpm run test
-        # This runs all failing tests on retry.
-        new_command_on_retry: pnpm run jest --onlyFailures
 
     - name: Print local testnet logs on failure
       shell: bash
