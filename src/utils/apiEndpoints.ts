@@ -25,17 +25,17 @@ export const NetworkToFaucetAPI: Record<string, string> = {
 export const NetworkToPepperAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/pepper/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/pepper/v0",
-  devnet: "https://pepper.keyless.devnet.aptoslabs.com/v0",
+  devnet: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
   // Use the devnet service for local environment
-  local: "https://pepper.keyless.devnet.aptoslabs.com/v0",
+  local: "https://api.devnet.aptoslabs.com/keyless/pepper/v0",
 };
 
 export const NetworkToProverAPI: Record<string, string> = {
   mainnet: "https://api.mainnet.aptoslabs.com/keyless/prover/v0",
   testnet: "https://api.testnet.aptoslabs.com/keyless/prover/v0",
-  devnet: "https://prover.keyless.devnet.aptoslabs.com/v0",
+  devnet: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
   // Use the devnet service for local environment
-  local: "https://prover.keyless.devnet.aptoslabs.com/v0",
+  local: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
 };
 
 export enum Network {
