@@ -5,7 +5,7 @@ import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from ".
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
 import { deriveKeylessAccount, getPepper, getProof, updateFederatedKeylessJwkSet } from "../internal/keyless";
-import { HexInput, PendingTransactionResponse } from "../types";
+import { HexInput, UserTransactionResponse, WaitForTransactionOptions } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -107,7 +107,11 @@ export class Keyless {
    *
    * @returns The pending transaction that results from submission.
    */
-  async updateFederatedKeylessJwkSet(args: { sender: Account; iss: string }): Promise<PendingTransactionResponse> {
+  async updateFederatedKeylessJwkSet(args: {
+    sender: Account;
+    iss: string;
+    options?: WaitForTransactionOptions;
+  }): Promise<UserTransactionResponse> {
     return updateFederatedKeylessJwkSet({ aptosConfig: this.config, ...args });
   }
 }
