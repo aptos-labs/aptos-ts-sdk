@@ -67,13 +67,12 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * @param serializer
    */
   serializeForScriptFunction(serializer: Serializer): void {
-    // runtime check to ensure that you can't serialize anything other than vector<u8>
-    const isU8 = this.values[0] instanceof U8;
-    // if the inner array is length 0, we can't check the type because it has no instance, so we assume it's a u8
-    // it may not be, but we don't care because regardless of a vector's type,
-    // a zero-length vector is serialized to a single byte value: 0
-    if (!isU8 && this.values[0] !== undefined) {
-      throw new Error("Script function arguments only accept u8 vectors");
+    // This checks if the type of a non-empty vector is of type other than U8.  If so, we use the Serialized
+    // transaction argument type to serialize the argument.
+    if (this.values[0] !== undefined && !(this.values[0] instanceof U8)) {
+      const serialized = new Serialized(this.bcsToBytes());
+      serialized.serializeForScriptFunction(serializer);
+      return;
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
     serializer.serialize(this);
@@ -225,6 +224,39 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 }
 
+export class Serialized extends Serializable implements TransactionArgument {
+  public readonly value: Uint8Array;
+
+  constructor(value: HexInput) {
+    super();
+    this.value = Hex.fromHexInput(value).toUint8Array();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    this.serialize(serializer);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Serialized);
+    this.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): Serialized {
+    return new Serialized(deserializer.deserializeBytes());
+  }
+
+  toMoveVector<T extends Serializable & EntryFunctionArgument>(cls: Deserializable<T>): MoveVector<T> {
+    const deserializer = new Deserializer(this.bcsToBytes());
+    deserializer.deserializeUleb128AsU32();
+    const vec = deserializer.deserializeVector(cls);
+    return new MoveVector(vec);
+  }
+}
+
 export class MoveString extends Serializable implements TransactionArgument {
   public value: string;
 
@@ -244,7 +276,8 @@ export class MoveString extends Serializable implements TransactionArgument {
 
   serializeForScriptFunction(serializer: Serializer): void {
     // Serialize the string as a fixed byte string, i.e., without the length prefix
-    const fixedStringBytes = this.bcsToBytes().slice(1);
+    const textEncoder = new TextEncoder();
+    const fixedStringBytes = textEncoder.encode(this.value);
     // Put those bytes into a vector<u8> and serialize it as a script function argument
     const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);
