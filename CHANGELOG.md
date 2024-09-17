@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Support `Serialized Type` to Script txn.  Now can use vector<String> for example.
 - Populate `coinType` for `getAccountCoinAmount` if only `faMetadataAddress` is provided.
+- [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
 
 # 1.27.1 (2024-08-23)
 
