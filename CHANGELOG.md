@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Support `Serialized Type` to Script txn.  Now can use vector<String> for example.
+- Add optional address parameter to MultiKeyAccount constructor.
 - Populate `coinType` for `getAccountCoinAmount` if only `faMetadataAddress` is provided.
 - [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
 
