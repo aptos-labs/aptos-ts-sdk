@@ -4,8 +4,14 @@
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
-import { deriveKeylessAccount, getPepper, getProof, updateFederatedKeylessJwkSet } from "../internal/keyless";
-import { HexInput, UserTransactionResponse, WaitForTransactionOptions } from "../types";
+import {
+  deriveKeylessAccount,
+  getPepper,
+  getProof,
+  updateFederatedKeylessJwkSetTransaction,
+} from "../internal/keyless";
+import { SimpleTransaction } from "../transactions";
+import { HexInput, WaitForTransactionOptions } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -107,11 +113,11 @@ export class Keyless {
    *
    * @returns The pending transaction that results from submission.
    */
-  async updateFederatedKeylessJwkSet(args: {
+  async updateFederatedKeylessJwkSetTransaction(args: {
     sender: Account;
     iss: string;
     options?: WaitForTransactionOptions;
-  }): Promise<UserTransactionResponse> {
-    return updateFederatedKeylessJwkSet({ aptosConfig: this.config, ...args });
+  }): Promise<SimpleTransaction> {
+    return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
   }
 }

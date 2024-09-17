@@ -19,13 +19,7 @@ import {
   ZkProof,
   getKeylessConfig,
 } from "../core";
-import {
-  HexInput,
-  TransactionResponseType,
-  UserTransactionResponse,
-  WaitForTransactionOptions,
-  ZkpVariant,
-} from "../types";
+import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { nowInSeconds } from "../utils/helpers";
@@ -33,9 +27,8 @@ import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { MoveVector } from "../bcs";
-import { generateTransaction, signAndSubmitTransaction } from "./transactionSubmission";
-import { waitForIndexer, waitForTransaction } from "./transaction";
-import { DEFAULT_TXN_TIMEOUT_SEC } from "../utils";
+import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -180,13 +173,12 @@ interface JWKS {
   keys: JWK[];
 }
 
-export async function updateFederatedKeylessJwkSet(args: {
+export async function updateFederatedKeylessJwkSetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   iss: string;
-  options?: WaitForTransactionOptions;
-}): Promise<UserTransactionResponse> {
-  const { aptosConfig, sender, iss, options } = args;
+}): Promise<SimpleTransaction> {
+  const { aptosConfig, sender, iss } = args;
   // TODO: do a regex check for supported providers here
   const jwksUrl = `${iss}.well-known/jwks.json`;
   const response = await fetch(jwksUrl);
@@ -194,7 +186,7 @@ export async function updateFederatedKeylessJwkSet(args: {
     throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
   }
   const jwks: JWKS = await response.json();
-  const jwkAddTransaction = await generateTransaction({
+  return generateTransaction({
     aptosConfig,
     sender: sender.accountAddress,
     data: {
@@ -208,32 +200,4 @@ export async function updateFederatedKeylessJwkSet(args: {
       ],
     },
   });
-  const pendingTransaction = await signAndSubmitTransaction({
-    aptosConfig,
-    signer: sender,
-    transaction: jwkAddTransaction,
-  });
-
-  const res = await waitForTransaction({
-    aptosConfig,
-    transactionHash: pendingTransaction.hash,
-    options: {
-      timeoutSecs: options?.timeoutSecs || DEFAULT_TXN_TIMEOUT_SEC,
-      checkSuccess: options?.checkSuccess,
-    },
-  });
-
-  if (options?.waitForIndexer === undefined || options?.waitForIndexer) {
-    await waitForIndexer({
-      aptosConfig,
-      minimumLedgerVersion: BigInt(res.version),
-    });
-  }
-
-  // Response is always User transaction for a user submitted transaction
-  if (res.type === TransactionResponseType.User) {
-    return res;
-  }
-
-  throw new Error(`Unexpected transaction received for fund account: ${res.type}`);
 }
