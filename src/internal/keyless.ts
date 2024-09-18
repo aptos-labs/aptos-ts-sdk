@@ -177,10 +177,10 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
   iss: string;
+  jwksUrl?: string;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss } = args;
-  // TODO: do a regex check for supported providers here
-  const jwksUrl = `${iss}.well-known/jwks.json`;
+  const jwksUrl = args.jwksUrl ?? iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}.well-known/jwks.json`;
   const response = await fetch(jwksUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);

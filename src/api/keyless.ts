@@ -11,7 +11,7 @@ import {
   updateFederatedKeylessJwkSetTransaction,
 } from "../internal/keyless";
 import { SimpleTransaction } from "../transactions";
-import { HexInput, WaitForTransactionOptions } from "../types";
+import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -110,13 +110,14 @@ export class Keyless {
    *
    * @param args.sender The account that will install the JWKs
    * @param args.iss the iss claim of the federated OIDC provider.
+   * @param args.jwksUrl the URL to find the corresponding JWKs. For supported IDP providers this parameter in not necessary.
    *
    * @returns The pending transaction that results from submission.
    */
   async updateFederatedKeylessJwkSetTransaction(args: {
     sender: Account;
     iss: string;
-    options?: WaitForTransactionOptions;
+    jwksUrl?: string;
   }): Promise<SimpleTransaction> {
     return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
   }
