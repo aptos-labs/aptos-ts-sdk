@@ -24,6 +24,8 @@ export abstract class AccountAuthenticator extends Serializable {
         return AccountAuthenticatorSingleKey.load(deserializer);
       case AccountAuthenticatorVariant.MultiKey:
         return AccountAuthenticatorMultiKey.load(deserializer);
+      case AccountAuthenticatorVariant.Abstraction:
+        return AccountAuthenticatorAbstraction.load(deserializer);
       default:
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
@@ -44,6 +46,10 @@ export abstract class AccountAuthenticator extends Serializable {
   isMultiKey(): this is AccountAuthenticatorMultiKey {
     return this instanceof AccountAuthenticatorMultiKey;
   }
+
+  isAbstraction(): this is AccountAuthenticatorAbstraction {
+    return this instanceof AccountAuthenticatorAbstraction;
+  }
 }
 
 /**
@@ -55,7 +61,6 @@ export abstract class AccountAuthenticator extends Serializable {
  */
 export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   public readonly public_key: Ed25519PublicKey;
-
   public readonly signature: Ed25519Signature;
 
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
@@ -167,5 +172,39 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
     const public_keys = MultiKey.deserialize(deserializer);
     const signatures = MultiKeySignature.deserialize(deserializer);
     return new AccountAuthenticatorMultiKey(public_keys, signatures);
+  }
+}
+
+/**
+ * AccountAuthenticatorAbstraction
+ *
+ * @param function_info FunctionInfo of the aa auth function
+ * @param signature Signature passed to auth function
+ *
+ */
+export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
+  public readonly public_key: Ed25519PublicKey;
+  public readonly function_info: string;
+  public readonly signature: Ed25519Signature;
+
+  constructor(public_key: Ed25519PublicKey, function_info: string, signature: Ed25519Signature) {
+    super();
+    this.public_key = public_key;
+    this.function_info = function_info;
+    this.signature = signature;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
+    serializer.serializeStr(this.function_info);
+    this.public_key.serialize(serializer);
+    this.signature.serialize(serializer);
+  }
+
+  static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
+    const function_info = deserializer.deserializeStr();
+    const public_key = Ed25519PublicKey.deserialize(deserializer);
+    const signature = Ed25519Signature.deserialize(deserializer);
+    return new AccountAuthenticatorAbstraction(public_key, function_info, signature);
   }
 }

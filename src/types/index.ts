@@ -104,6 +104,7 @@ export enum AccountAuthenticatorVariant {
   MultiEd25519 = 1,
   SingleKey = 2,
   MultiKey = 3,
+  Abstraction = 4,
 }
 
 export enum AnyPublicKeyVariant {
@@ -751,7 +752,7 @@ export type TransactionSignature =
   | TransactionSecp256k1Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
-  | TransactionFeePayerSignature;
+  | TransactionFeePayerSignature
 
 export function isEd25519Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
   return "signature" in signature && signature.signature === "ed25519_signature";
@@ -1130,6 +1131,8 @@ export enum SigningScheme {
   SingleKey = 2,
 
   MultiKey = 3,
+
+  Abstraction = 4,
 }
 
 export enum SigningSchemeInput {

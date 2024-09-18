@@ -17,18 +17,20 @@ import {
   TransactionPayloadScript,
   generateRawTransaction,
   SimpleTransaction,
-  Network,
+  Network, AccountAddress,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
 
 const { aptos } = getAptosClient();
 
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+  const singleSignerAbstractionSenderAccount = AbstractedEd25519Account.generate();
   const legacyED25519SenderAccount = Account.generate();
   const receiverAccounts = [Account.generate(), Account.generate()];
   const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
@@ -69,7 +71,7 @@ describe("transaction submission", () => {
       });
       test("with batch payload", async () => {
         initSync(await get_wasm())
-        let _aptos = getAptosClient({ network: Network.CUSTOM ,fullnode : "http://127.0.0.1:8080/v1",faucet: "http://127.0.0.1:8081",indexer: "http://127.0.0.1:8090"})
+        let _aptos = getAptosClient({ network: Network.CUSTOM, fullnode: "http://127.0.0.1:8080/v1", faucet: "http://127.0.0.1:8081", indexer: "http://127.0.0.1:8090" })
         const builder = new AptosIntentBuilder(_aptos.config);
         await builder.add_batched_calls({
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
@@ -92,33 +94,42 @@ describe("transaction submission", () => {
 
         expect(response.signature?.type).toBe("single_sender");
       });
-      test.only("with batch withdraw payload", async () => {
-        let _aptos = getAptosClient({ network: Network.CUSTOM ,fullnode : "http://127.0.0.1:8080/v1",faucet: "http://127.0.0.1:8081",indexer: "http://127.0.0.1:8090"})
-        
-        const transaction = await _aptos.aptos.transaction.build.batched_intents({
+      test.only("with batch setup aa payload", async () => {
+        let _aptos = getAptosClient({ network: Network.CUSTOM, fullnode: "http://127.0.0.1:8080/v1", faucet: "http://127.0.0.1:8081", indexer: "http://127.0.0.1:8090" })
+
+        // step 1: setup.
+        let transaction = await _aptos.aptos.transaction.build.batched_intents({
           sender: singleSignerED25519SenderAccount.accountAddress,
           builder: async (builder) => {
-            let return_1 = await builder.add_batched_calls({
-              function: `0x1::coin::withdraw`,
-              functionArguments: [BatchArgument.new_signer(0), 1],
-              typeArguments: ["0x1::aptos_coin::AptosCoin"]
+            let permissioned_signer_handle = await builder.add_batched_calls({
+              function: `0x1::permissioned_signer::create_permissioned_handle`,
+              functionArguments: [BatchArgument.new_signer(0).borrow()],
+              typeArguments: []
             });
-    
-            let return_2 = await builder.add_batched_calls({
-              function: `0x1::coin::coin_to_fungible_asset`,
-              functionArguments: [return_1[0]],
-              typeArguments: ["0x1::aptos_coin::AptosCoin"]
+            let permissioned_signer = await builder.add_batched_calls({
+              function: `0x1::permissioned_signer::signer_from_permissioned`,
+              functionArguments: [permissioned_signer_handle[0].borrow()],
+              typeArguments: []
             });
-    
             await builder.add_batched_calls({
-              function: `0x1::primary_fungible_store::deposit`,
-              functionArguments: [singleSignerED25519SenderAccount.accountAddress, return_2[0]],
+              function: `0x1::permissioned_signer::grant_permission`,
+              functionArguments: [BatchArgument.new_signer(0).borrow(), permissioned_signer[0].borrow(), AccountAddress.A, 10 /* limit */],
+              typeArguments: []
+            });
+            await builder.add_batched_calls({
+              function: `0x1::permissioned_delegation::add_permissioned_handle`,
+              functionArguments: [BatchArgument.new_signer(0).borrow(), singleSignerAbstractionSenderAccount.publicKey.toUint8Array(), permissioned_signer_handle[0]],
+              typeArguments: []
+            });
+            await builder.add_batched_calls({
+              function: `0x1::lite_account::add_dispatchable_authentication_function`,
+              functionArguments: [BatchArgument.new_signer(0).borrow(), AccountAddress.ONE, "permissioned_delegation", "authenticate"],
               typeArguments: []
             });
             return builder;
           }
         });
-        const response = await _aptos.aptos.signAndSubmitTransaction({
+        let response = await _aptos.aptos.signAndSubmitTransaction({
           signer: singleSignerED25519SenderAccount,
           transaction: transaction,
         });
@@ -126,7 +137,34 @@ describe("transaction submission", () => {
         await _aptos.aptos.waitForTransaction({
           transactionHash: response.hash,
         });
+        expect(response.signature?.type).toBe("single_sender");
 
+        // step 2: use AA to send APT FA.
+        transaction = await aptos.transaction.build.simple({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          data: {
+            function: `0x1::primary_fungible_store::transfer`,
+            functionArguments: [10, receiverAccounts[0].accountAddress],
+          },
+        });
+        response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerAbstractionSenderAccount,
+          transaction,
+        });
+        expect(response.signature?.type).toBe("single_sender");
+
+        // step 2: use AA to send APT FA again. should fail.
+        transaction = await aptos.transaction.build.simple({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          data: {
+            function: `0x1::primary_fungible_store::transfer`,
+            functionArguments: [10, receiverAccounts[0].accountAddress],
+          },
+        });
+        response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerAbstractionSenderAccount,
+          transaction,
+        });
         expect(response.signature?.type).toBe("single_sender");
       });
       test("with entry function payload", async () => {
