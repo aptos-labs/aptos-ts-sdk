@@ -7,6 +7,7 @@
  * other namespaces and processes can access these methods without depending on the entire
  * keyless namespace and without having a dependency cycle error.
  */
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
 import {
@@ -22,7 +23,6 @@ import {
 import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
-import { nowInSeconds } from "../utils/helpers";
 import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
@@ -69,7 +69,7 @@ export async function getProof(args: {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - nowInSeconds()) {
+  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - jwtDecode<JwtPayload>(jwt).iat!) {
     throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
@@ -180,7 +180,7 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   jwksUrl?: string;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss } = args;
-  const jwksUrl = args.jwksUrl ?? iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}.well-known/jwks.json`;
+  const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}.well-known/jwks.json`);
   const response = await fetch(jwksUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
