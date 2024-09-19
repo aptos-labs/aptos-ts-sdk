@@ -1,0 +1,30 @@
+{
+    "entryPoints": ["src/index.ts"],
+    "exclude": ["tests/**/*"],
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "hideGenerator": true,
+    "pretty": true,
+    "theme": "default",
+    "categorizeByGroup": true,
+    "navigation": {
+        "includeCategories": true,
+        "includeGroups": true,
+        "includeFolders": true
+    },
+    "groupOrder": [
+        "Client",
+        "Implementation",
+    ],
+    "categoryOrder": [
+        "Account (On-Chain Model)",
+        "BCS",
+        "CLI",
+        "Client",
+        "Network",
+        "Serialization",
+        "Transactions",
+        "Types",
+        "Utils"
+    ]
+}

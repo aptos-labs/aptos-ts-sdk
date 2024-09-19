@@ -15,7 +15,9 @@ if [ -d "docs/@aptos-labs/ts-sdk-$npm_package_version" ]; then
   echo "WARNING! Docs folder already exists, overwriting docs for version $npm_package_version";
 fi
 
-npx typedoc src/index.ts --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --cleanOutputDir --excludeInternal --includeVersion;
+# TODO: This uses the --skipErrorChecking flag as otherwise it incorrectly tries to compile the tests folder. 
+# Remove this once test compiler errors are not intefering with docs generation.
+npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
 
 # Update the main page
 INDEX_FILE='docs/index.md';
