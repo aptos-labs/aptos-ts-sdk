@@ -8,6 +8,7 @@ import { AnyPublicKey, AnySignature } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
+import { FunctionInfo } from "../../internal/function_info";
 import { AccountAuthenticatorVariant } from "../../types";
 
 export abstract class AccountAuthenticator extends Serializable {
@@ -184,10 +185,10 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
  */
 export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   public readonly public_key: Ed25519PublicKey;
-  public readonly function_info: string;
+  public readonly function_info: FunctionInfo;
   public readonly signature: Ed25519Signature;
 
-  constructor(public_key: Ed25519PublicKey, function_info: string, signature: Ed25519Signature) {
+  constructor(public_key: Ed25519PublicKey, function_info: FunctionInfo, signature: Ed25519Signature) {
     super();
     this.public_key = public_key;
     this.function_info = function_info;
@@ -195,16 +196,21 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
-    serializer.serializeStr(this.function_info);
-    this.public_key.serialize(serializer);
-    this.signature.serialize(serializer);
+    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Abstraction);
+    this.function_info.serialize(serializer);
+    var ser = new Serializer;
+    this.public_key.serialize(ser);
+    this.signature.serialize(ser);
+    const aa_signature = ser.toUint8Array();
+    serializer.serializeBytes(aa_signature)
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
-    const function_info = deserializer.deserializeStr();
-    const public_key = Ed25519PublicKey.deserialize(deserializer);
-    const signature = Ed25519Signature.deserialize(deserializer);
+    const function_info = FunctionInfo.deserialize(deserializer);
+    const aa_signature = deserializer.deserializeBytes()
+    var der = new Deserializer(aa_signature);
+    const public_key = Ed25519PublicKey.deserialize(der);
+    const signature = Ed25519Signature.deserialize(der);
     return new AccountAuthenticatorAbstraction(public_key, function_info, signature);
   }
 }

@@ -5,6 +5,7 @@ import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/c
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
+import { FunctionInfo } from "../internal/function_info";
 
 export interface Ed25519SignerConstructorArgs {
   privateKey: Ed25519PrivateKey;
@@ -90,7 +91,7 @@ export class AbstractedEd25519Account implements Account {
    * @return the AccountAuthenticator containing the signature, together with the account's public key
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
-    return new AccountAuthenticatorAbstraction(this.publicKey, "0x1::permissioned_delegation::authenticate", this.privateKey.sign(message));
+    return new AccountAuthenticatorAbstraction(this.publicKey, new FunctionInfo(AccountAddress.ONE, "permissioned_delegation", "authenticate"), this.privateKey.sign(message));
   }
 
   /**
@@ -99,7 +100,7 @@ export class AbstractedEd25519Account implements Account {
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
-    return new AccountAuthenticatorAbstraction(this.publicKey, "0x1::permissioned_delegation::authenticate", this.signTransaction(transaction));
+    return new AccountAuthenticatorAbstraction(this.publicKey, new FunctionInfo(AccountAddress.ONE, "permissioned_delegation", "authenticate"), this.signTransaction(transaction));
   }
 
   /**
@@ -117,7 +118,9 @@ export class AbstractedEd25519Account implements Account {
    * @returns Signature
    */
   signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
-    return this.sign(generateSigningMessageForTransaction(transaction));
+    const r = this.sign(new Uint8Array([1, 2, 3]));
+    console.log(r);
+    return r;
   }
 
   // endregion

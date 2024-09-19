@@ -104,7 +104,8 @@ export enum AccountAuthenticatorVariant {
   MultiEd25519 = 1,
   SingleKey = 2,
   MultiKey = 3,
-  Abstraction = 4,
+  NoAccountAuthenticator = 4,
+  Abstraction = 5,
 }
 
 export enum AnyPublicKeyVariant {
