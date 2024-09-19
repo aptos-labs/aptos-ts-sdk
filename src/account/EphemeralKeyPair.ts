@@ -13,8 +13,9 @@ import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
 const TWO_WEEKS_IN_SECONDS = 1_209_600;
 
 /**
- * A class which contains a key pair that is used in signing transactions via the Keyless authentication scheme. This key pair
- * is ephemeral and has an expiration time.  For more details on how this class is used -
+ * Represents an ephemeral key pair used for signing transactions via the Keyless authentication scheme. 
+ * This key pair is temporary and includes an expiration time. 
+ * For more details on how this class is used, refer to the documentation: 
  * https://aptos.dev/guides/keyless-accounts/#1-present-the-user-with-a-sign-in-with-idp-button-on-the-ui
  */
 export class EphemeralKeyPair extends Serializable {
@@ -50,6 +51,16 @@ export class EphemeralKeyPair extends Serializable {
    */
   private publicKey: EphemeralPublicKey;
 
+  /**
+   * Creates an instance of the class with a specified private key, optional expiry date, and optional blinder.
+   * This constructor initializes the public key, sets the expiry date to a default value if not provided, 
+   * generates a blinder if not supplied, and calculates the nonce based on the public key, expiry date, and blinder.
+   * 
+   * @param args - The parameters for constructing the instance.
+   * @param args.privateKey - The private key used for creating the instance.
+   * @param args.expiryDateSecs - Optional expiry date in seconds from the current time. Defaults to two weeks from now.
+   * @param args.blinder - Optional blinder value. If not provided, a new blinder will be generated.
+   */
   constructor(args: { privateKey: PrivateKey; expiryDateSecs?: number; blinder?: HexInput }) {
     super();
     const { privateKey, expiryDateSecs, blinder } = args;
@@ -76,14 +87,20 @@ export class EphemeralKeyPair extends Serializable {
   }
 
   /**
-   * Returns the public key of the key pair.
-   * @return boolean
+   * Checks if the current time has surpassed the expiry date of the key pair.
+   * @return boolean - Returns true if the key pair is expired, otherwise false.
    */
   isExpired(): boolean {
     const currentTimeSecs: number = Math.floor(Date.now() / 1000);
     return currentTimeSecs > this.expiryDateSecs;
   }
 
+  /**
+   * Serializes the object's properties into a format suitable for transmission or storage.
+   * This function is essential for preparing the object data for serialization processes.
+   * 
+   * @param serializer - The serializer instance used to serialize the object's properties.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.publicKey.variant);
     serializer.serializeBytes(this.privateKey.toUint8Array());
@@ -91,6 +108,12 @@ export class EphemeralKeyPair extends Serializable {
     serializer.serializeFixedBytes(this.blinder);
   }
 
+  /**
+   * Deserializes an ephemeral key pair from the provided deserializer.
+   * This function helps in reconstructing an ephemeral key pair, which is essential for cryptographic operations.
+   * 
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   */
   static deserialize(deserializer: Deserializer): EphemeralKeyPair {
     const variantIndex = deserializer.deserializeUleb128AsU32();
     let privateKey: PrivateKey;
@@ -106,15 +129,24 @@ export class EphemeralKeyPair extends Serializable {
     return new EphemeralKeyPair({ privateKey, expiryDateSecs: Number(expiryDateSecs), blinder });
   }
 
+  /**
+   * Deserialize a byte array into an EphemeralKeyPair object.
+   * This function allows you to reconstruct an EphemeralKeyPair from its serialized byte representation.
+   * 
+   * @param bytes - The byte array representing the serialized EphemeralKeyPair.
+   */
   static fromBytes(bytes: Uint8Array): EphemeralKeyPair {
     return EphemeralKeyPair.deserialize(new Deserializer(bytes));
   }
 
   /**
-   * Returns the public key of the key pair.
-   * @param scheme the type of keypair to use for the EphemeralKeyPair.  Only Ed25519 supported for now.
-   * @param expiryDateSecs the date of expiry.
-   * @return boolean
+   * Generates a new ephemeral key pair with an optional expiry date.
+   * This function allows you to create a temporary key pair for secure operations.
+   * 
+   * @param args - Optional parameters for key pair generation.
+   * @param args.scheme - The type of key pair to use for the EphemeralKeyPair. Only Ed25519 is supported for now.
+   * @param args.expiryDateSecs - The date of expiry for the key pair in seconds.
+   * @returns An instance of EphemeralKeyPair containing the generated private key and expiry date.
    */
   static generate(args?: { scheme?: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
     let privateKey: PrivateKey;
@@ -129,9 +161,12 @@ export class EphemeralKeyPair extends Serializable {
   }
 
   /**
-   * Sign the given message with the private key.
-   * @param data in HexInput format
-   * @returns EphemeralSignature
+   * Sign the given data using the private key, returning an ephemeral signature.
+   * This function is essential for creating a secure signature that can be used for authentication or verification purposes.
+   * 
+   * @param data - The data to be signed, provided in HexInput format.
+   * @returns EphemeralSignature - The resulting ephemeral signature.
+   * @throws Error - Throws an error if the EphemeralKeyPair has expired.
    */
   sign(data: HexInput): EphemeralSignature {
     if (this.isExpired()) {
@@ -142,8 +177,8 @@ export class EphemeralKeyPair extends Serializable {
 }
 
 /**
- * Generates a random byte array of length EphemeralKeyPair.BLINDER_LENGTH
- * @returns Uint8Array
+ * Generates a random byte array of length EphemeralKeyPair.BLINDER_LENGTH.
+ * @returns Uint8Array A random byte array used for blinding.
  */
 function generateBlinder(): Uint8Array {
   return randomBytes(EphemeralKeyPair.BLINDER_LENGTH);

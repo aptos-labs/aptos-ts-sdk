@@ -52,21 +52,48 @@ import { isEncodedStruct, parseEncodedStruct } from "../utils";
  * A class to query all `Account` related queries on Aptos.
  */
 export class Account {
+
+  /**
+   * Creates an instance of the Aptos client with the provided configuration.
+   * 
+   * @param config - The configuration settings for the Aptos client.
+   * 
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * async function runExample() {
+   *     // Initialize the Aptos client with testnet configuration
+   *     const config = new AptosConfig({ network: Network.TESTNET }); // specify your own network if needed
+   *     const aptos = new Aptos(config);
+   * 
+   *     console.log("Aptos client initialized:", aptos);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   */
   constructor(readonly config: AptosConfig) {}
 
   /**
-   * Queries the current state for an Aptos account given its account address
+   * Queries the current state for an Aptos account given its account address.
    *
-   * @param args.accountAddress Aptos account address
+   * @param args - The arguments for retrieving account information.
+   * @param args.accountAddress - The Aptos account address to query.
+   * @returns The account data.
    *
-   * @returns The account data
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * @example An example of the returned account
-   * ```
-   * {
-   *    sequence_number: "1",
-   *    authentication_key: "0x5307b5f4bc67829097a8ba9b43dba3b88261eeccd1f709d9bde240fc100fbb69"
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *     // Retrieve account information for a specific address
+   *     const accountInfo = await aptos.getAccountInfo({ accountAddress: "0x1" }); // replace with a real account address
+   *     console.log(accountInfo);
    * }
+   * runExample().catch(console.error);
    * ```
    */
   async getAccountInfo(args: { accountAddress: AccountAddressInput }): Promise<AccountData> {
@@ -74,19 +101,38 @@ export class Account {
   }
 
   /**
-   * Queries for all modules in an account given an account address
-   *
-   * Note: In order to get all account modules, this function may call the API
-   * multiple times as it auto paginates.
-   *
-   * @param args.accountAddress Aptos account address
-   * @param args.options.offset The number module to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   *
-   * @returns Account modules
+   * Queries for all modules in an account given an account address.
+   * This function may call the API multiple times to auto paginate through results.
+   * 
+   * @param args.accountAddress - The Aptos account address to query modules for.
+   * @param args.options.offset - The number of modules to start returning results from.
+   * @param args.options.limit - The maximum number of results to return.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
+   * 
+   * @returns - The account modules associated with the specified address.
+   * 
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Fetching account modules for a specific account
+   *   const accountModules = await aptos.getAccountModules({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       offset: 0, // starting from the first module
+   *       limit: 10, // limiting to 10 modules
+   *     },
+   *   });
+   * 
+   *   console.log(accountModules);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
-
   async getAccountModules(args: {
     accountAddress: AccountAddressInput;
     options?: PaginationArgs & LedgerVersionArg;
@@ -95,22 +141,31 @@ export class Account {
   }
 
   /**
-   * Queries for a specific account module given account address and module name
-   *
-   * @param args.accountAddress Aptos account address
-   * @param args.moduleName The name of the module
-   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   *
-   * @returns Account module
-   *
+   * Queries for a specific account module given an account address and module name.
+   * 
+   * @param args.accountAddress - The Aptos account address.
+   * @param args.moduleName - The name of the module.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+   * 
+   * @returns The account module associated with the specified account address and module name.
+   * 
    * @example
-   * const module = await aptos.getAccountModule({accountAddress:"0x456"})
-   * // An example of an account module response
-   * ```
-   * {
-   *    bytecode: "0xa11ceb0b0600000006010002030206050807070f0d081c200",
-   *    abi: { address: "0x1" }
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the account module for a specific account address and module name
+   *   const module = await aptos.getAccountModule({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     moduleName: "MyModule" // specify the module name
+   *   });
+   * 
+   *   console.log(module);
    * }
+   * runExample().catch(console.error);
    * ```
    */
   async getAccountModule(args: {
@@ -122,19 +177,37 @@ export class Account {
   }
 
   /**
-   * Queries account transactions given an account address
+   * Queries account transactions given an account address.
+   * This function may call the API multiple times to auto paginate and retrieve all account transactions.
    *
-   * Note: In order to get all account transactions, this function may call the API
-   * multiple times as it auto paginates.
+   * @param args.accountAddress - The Aptos account address to query transactions for.
+   * @param args.options - Optional pagination arguments.
+   * @param args.options.offset - The number of transactions to start returning results from.
+   * @param args.options.limit - The maximum number of results to return.
+   *
+   * @returns The account transactions.
    *
    * @example
-   * const transactions = await aptos.getAccountTransactions({accountAddress:"0x456"})
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * @param args.accountAddress Aptos account address
-   * @param args.options.offset The number transaction to start returning results from
-   * @param args.options.limit The number of results to return
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
    *
-   * @returns The account transactions
+   * async function runExample() {
+   *   // Fetch transactions for a specific account
+   *   const transactions = await aptos.getAccountTransactions({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       offset: 0, // starting from the first transaction
+   *       limit: 10, // limiting to 10 transactions
+   *     },
+   *   });
+   *
+   *   console.log(transactions);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountTransactions(args: {
     accountAddress: AccountAddressInput;
@@ -147,19 +220,29 @@ export class Account {
   }
 
   /**
-   * Queries all account resources given an account address
-   *
-   * Note: In order to get all account resources, this function may call the API
-   * multiple times as it auto paginates.
-   *
+   * Queries all account resources given an account address.
+   * This function may call the API multiple times to auto paginate through results.
+   * 
+   * @param args.accountAddress - The Aptos account address to query resources for.
+   * @param args.options.offset - The number of resources to start returning results from.
+   * @param args.options.limit - The maximum number of results to return.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+   * @returns Account resources.
+   * 
    * @example
-   * const resources = await aptos.getAccountResources({accountAddress:"0x456"})
-   *
-   * @param args.accountAddress Aptos account address
-   * @param args.options.offset The number resource to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   * @returns Account resources
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Fetching account resources for a specific account address
+   *   const resources = await aptos.getAccountResources({ accountAddress: "0x1" }); // replace with a real account address
+   *   console.log(resources);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountResources(args: {
     accountAddress: AccountAddressInput;
@@ -169,19 +252,32 @@ export class Account {
   }
 
   /**
-   * Queries a specific account resource given account address and resource type. Note that the default is `any` in order
-   * to allow for ease of accessing properties of the object.
-   *
-   * @type The typed output of the resource
-   * @param args.accountAddress Aptos account address
-   * @param args.resourceType String representation of an on-chain Move struct type, i.e "0x1::aptos_coin::AptosCoin"
-   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   *
-   * @returns Account resource
-   *
+   * Queries a specific account resource given an account address and resource type. 
+   * 
+   * @template T - The typed output of the resource.
+   * @param args.accountAddress - The Aptos account address to query.
+   * @param args.resourceType - The string representation of an on-chain Move struct type, e.g., "0x1::aptos_coin::AptosCoin".
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+   * @returns The account resource of the specified type.
+   * 
    * @example
-   * const resource = await aptos.getAccountResource({accountAddress:"0x456"})
-   *
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the account resource for a specific account address and resource type
+   *   const resource = await aptos.getAccountResource({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     resourceType: "0x1::aptos_coin::AptosCoin"
+   *   });
+   * 
+   *   console.log(resource);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountResource<T extends {} = any>(args: {
     accountAddress: AccountAddressInput;
@@ -192,17 +288,30 @@ export class Account {
   }
 
   /**
-   * Looks up the account address for a given authentication key
-   *
-   * This handles both if the account's authentication key has been rotated or not.
-   *
+   * Looks up the account address for a given authentication key, handling both rotated and non-rotated keys.
+   * 
+   * @param args.authenticationKey - The authentication key for which to look up the account address.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+   * @returns Promise<AccountAddress> - The account address associated with the authentication key.
+   * 
    * @example
-   * const accountAddress = await aptos.lookupOriginalAccountAddress({authenticationKey:account.accountAddress})
-   *
-   * @param args.authenticationKey The authentication key
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
-   * @returns Promise<AccountAddress> The accountAddress associated with the authentication key
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Look up the original account address for a given authentication key
+   *   const accountAddress = await aptos.lookupOriginalAccountAddress({
+   *     authenticationKey: "0x1", // replace with a real authentication key
+   *   });
+   * 
+   *   console.log("Original Account Address:", accountAddress);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async lookupOriginalAccountAddress(args: {
     authenticationKey: AccountAddressInput;
@@ -213,14 +322,27 @@ export class Account {
   }
 
   /**
-   * Queries the current count of tokens owned by an account
-   *
+   * Queries the current count of tokens owned by a specified account.
+   * 
+   * @param args - The parameters for the query.
+   * @param args.accountAddress - The account address to query the token count for.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+   * @returns The current count of tokens owned by the account.
+   * 
    * @example
-   * const tokensCount = await aptos.getAccountTokensCount({accountAddress:"0x456"})
-   *
-   * @param args.accountAddress The account address
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns Current count of tokens owned by the account
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the count of tokens owned by the account
+   *   const tokensCount = await aptos.getAccountTokensCount({ accountAddress: "0x1" }); // replace with a real account address
+   *   console.log(`Tokens Count: ${tokensCount}`);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountTokensCount(args: {
     accountAddress: AccountAddressInput;
@@ -238,21 +360,38 @@ export class Account {
   }
 
   /**
-   * Queries the account's current owned tokens.
+   * Queries the tokens currently owned by a specified account, including NFTs and fungible tokens.
+   * If desired, you can filter the results by a specific token standard.
    *
-   * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
+   * @param args.accountAddress The account address for which to retrieve owned tokens.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @param args.options.tokenStandard Optional filter for the NFT standard to query for.
+   * @param args.options.offset Optional number to start returning results from.
+   * @param args.options.limit Optional number of results to return.
+   * @param args.options.orderBy Optional order to sort the tokens by.
+   * @returns An array of tokens with their respective data.
    *
    * @example
-   * const accountOwnedTokens = await aptos.getAccountOwnedTokens({accountAddress:"0x456"})
-   *
-   * @param args.accountAddress The account address we want to get the tokens for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.offset The number token to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.orderBy The order to sort the tokens by
-   * @returns Tokens array with the token data
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the tokens owned by a specific account
+   *   const accountOwnedTokens = await aptos.getAccountOwnedTokens({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       limit: 10, // specify how many tokens to return
+   *       orderBy: "created_at", // specify the order of the results
+   *     },
+   *   });
+   * 
+   *   console.log(accountOwnedTokens);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountOwnedTokens(args: {
     accountAddress: AccountAddressInput;
@@ -271,22 +410,37 @@ export class Account {
   }
 
   /**
-   * Queries all current tokens of a specific collection that an account owns by the collection address
-   *
-   * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
-   *
+   * Queries all current tokens of a specific collection that an account owns by the collection address.
+   * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc. 
+   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard parameter.
+   * 
+   * @param args.accountAddress - The account address we want to get the tokens for.
+   * @param args.collectionAddress - The address of the collection being queried.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to, before querying.
+   * @param args.options.tokenStandard - The NFT standard to query for.
+   * @param args.options.offset - The number token to start returning results from.
+   * @param args.options.limit - The number of results to return.
+   * @param args.options.orderBy - The order to sort the tokens by.
+   * @returns Tokens array with the token data.
+   * 
    * @example
-   * const accountOwnedTokens = await aptos.getAccountOwnedTokensFromCollectionAddress({accountAddress:"0x123", collectionAddress:"0x456"})
-   *
-   * @param args.accountAddress The account address we want to get the tokens for
-   * @param args.collectionAddress The address of the collection being queried
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.offset The number token to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.orderBy The order to sort the tokens by
-   * @returns Tokens array with the token data
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get tokens owned by a specific account in a specific collection
+   *   const accountOwnedTokens = await aptos.getAccountOwnedTokensFromCollectionAddress({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     collectionAddress: "0x2", // replace with a real collection address
+   *   });
+   * 
+   *   console.log(accountOwnedTokens);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountOwnedTokensFromCollectionAddress(args: {
     accountAddress: AccountAddressInput;
@@ -306,21 +460,38 @@ export class Account {
   }
 
   /**
-   * Queries for all collections that an account currently has tokens for.
+   * Queries for all collections that an account currently has tokens for, including NFTs, fungible tokens, and soulbound tokens. 
+   * If you want to filter by a specific token standard, you can pass an optional tokenStandard parameter.
    *
-   * This query returns all tokens (v1 and v2 standards) an account owns, including NFTs, fungible, soulbound, etc.
-   * If you want to get only the token from a specific standard, you can pass an optional tokenStandard param
+   * @param args.accountAddress - The account address we want to get the collections for.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+   * @param args.options.tokenStandard - The NFT standard to query for.
+   * @param args.options.offset - The number of the collection to start returning results from.
+   * @param args.options.limit - The number of results to return.
+   * @param args.options.orderBy - The order to sort the tokens by.
+   * @returns Collections array with the collections data.
    *
    * @example
-   * const accountCollectionsWithOwnedTokens = await aptos.getAccountCollectionsWithOwnedTokens({accountAddress:"0x123"})
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * @param args.accountAddress The account address we want to get the collections for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.tokenStandard The NFT standard to query for
-   * @param args.options.offset The number collection to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.orderBy The order to sort the tokens by
-   * @returns Collections array with the collections data
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Get account collections with owned tokens for a specific account
+   *   const accountCollectionsWithOwnedTokens = await aptos.getAccountCollectionsWithOwnedTokens({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       tokenStandard: "NFT", // specify the token standard if needed
+   *       limit: 10, // specify the number of results to return
+   *     },
+   *   });
+   *
+   *   console.log(accountCollectionsWithOwnedTokens);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountCollectionsWithOwnedTokens(args: {
     accountAddress: AccountAddressInput;
@@ -339,14 +510,31 @@ export class Account {
   }
 
   /**
-   * Queries the current count of transactions submitted by an account
+   * Queries the current count of transactions submitted by an account.
+   *
+   * @param args - The parameters for the query.
+   * @param args.accountAddress - The account address we want to get the total count for.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+   * @returns Current count of transactions made by an account.
    *
    * @example
-   * const accountTransactionsCount = await aptos.getAccountTransactionsCount({accountAddress:"0x123"})
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * @param args.accountAddress The account address we want to get the total count for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns Current count of transactions made by an account
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Get the count of transactions for a specific account
+   *   const accountTransactionsCount = await aptos.getAccountTransactionsCount({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     minimumLedgerVersion: 1, // specify your own minimum ledger version if needed
+   *   });
+   *
+   *   console.log(accountTransactionsCount);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountTransactionsCount(args: {
     accountAddress: AccountAddressInput;
@@ -364,18 +552,37 @@ export class Account {
   }
 
   /**
-   * Queries an account's coins data
-   *
+   * Retrieves the coins data for a specified account.
+   * 
+   * @param args.accountAddress - The account address for which to retrieve the coins data.
+   * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
+   * @param args.options.offset - Optional. The number of coins to start returning results from.
+   * @param args.options.limit - Optional. The number of results to return.
+   * @param args.options.orderBy - Optional. The order to sort the coins by.
+   * @param args.options.where - Optional. Filter the results by specific criteria.
+   * @returns An array containing the coins data for the specified account.
+   * 
    * @example
-   * const accountCoinsData = await aptos.getAccountCoinsData({accountAddress:"0x123"})
-   *
-   * @param args.accountAddress The account address we want to get the coins data for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.offset optional. The number coin to start returning results from
-   * @param args.options.limit optional. The number of results to return
-   * @param args.options.orderBy optional. The order to sort the coins by
-   * @param args.options.where optional. Filter the results by
-   * @returns Array with the coins data
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Fetching coins data for a specific account
+   *   const accountCoinsData = await aptos.getAccountCoinsData({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       limit: 10, // specify the number of results to return
+   *       orderBy: { asset_type: "asc" }, // specify the order of results
+   *     },
+   *   });
+   * 
+   *   console.log(accountCoinsData);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountCoinsData(args: {
     accountAddress: AccountAddressInput;
@@ -396,14 +603,27 @@ export class Account {
   }
 
   /**
-   * Queries the current count of an account's coins aggregated
-   *
+   * Retrieves the current count of an account's coins aggregated across all types.
+   * 
+   * @param args The parameters for the account coins count query.
+   * @param args.accountAddress The account address we want to get the total count for.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @returns The current count of the aggregated coins for the specified account.
+   * 
    * @example
-   * const accountCoinsCount = await aptos.getAccountCoinsCount({accountAddress:"0x123"})
-   *
-   * @param args.accountAddress The account address we want to get the total count for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns Current count of the aggregated count of all account's coins
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Getting the account coins count for a specific account
+   *   const accountCoinsCount = await aptos.getAccountCoinsCount({ accountAddress: "0x1" }); // replace with a real account address
+   *   console.log("Account Coins Count:", accountCoinsCount);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountCoinsCount(args: {
     accountAddress: AccountAddressInput;
@@ -418,14 +638,27 @@ export class Account {
   }
 
   /**
-   * Queries the account's APT amount
-   *
+   * Retrieves the current amount of APT for a specified account.
+   * 
+   * @param args The arguments for the account query.
+   * @param args.accountAddress The account address for which to retrieve the APT amount.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @returns The current amount of APT for the specified account.
+   * 
    * @example
-   * const accountAPTAmount = await aptos.getAccountAPTAmount({accountAddress:"0x123"})
-   *
-   * @param args.accountAddress The account address we want to get the total count for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns Current amount of account's APT
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the APT amount for a specific account
+   *   const accountAPTAmount = await aptos.getAccountAPTAmount({ accountAddress: "0x1" }); // replace with a real account address
+   *   console.log("Account APT Amount:", accountAPTAmount);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountAPTAmount(args: {
     accountAddress: AccountAddressInput;
@@ -435,18 +668,33 @@ export class Account {
   }
 
   /**
-   * Queries the account's coin amount by the coin type
-   *
+   * Queries the current amount of a specified coin held by an account.
+   * 
+   * @param args The parameters for querying the account's coin amount.
+   * @param args.accountAddress The account address to query for the coin amount.
+   * @param args.coinType The coin type to query. Note: If not provided, it may be automatically populated if `faMetadataAddress` is specified.
+   * @param args.faMetadataAddress The fungible asset metadata address to query. Note: If not provided, it may be automatically populated if `coinType` is specified.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @returns The current amount of the specified coin held by the account.
+   * 
    * @example
-   * const accountCoinAmount = await aptos.getAccountCoinAmount({accountAddress:"0x123", coinType:"0x1::aptos_coin::AptosCoin"})
-   *
-   * @param args.accountAddress The account address we want to get the total count for
-   * @param args.coinType The coin type to query.
-   *        Note: faMetadataAddress will automatically fill this in if not provided when migrated to fungible assets
-   * @param args.faMetadataAddress The fungible asset metadata address to query.
-   *        Note: coinType will automatically fill this in if not provided when migrated to fungible assets
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @returns Current amount of account's coin
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Query the account's coin amount for a specific coin type
+   *   const accountCoinAmount = await aptos.getAccountCoinAmount({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     coinType: "0x1::aptos_coin::AptosCoin" // specify the coin type
+   *   });
+   * 
+   *   console.log(`Account coin amount: ${accountCoinAmount}`);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountCoinAmount(args: {
     accountAddress: AccountAddressInput;
@@ -486,17 +734,38 @@ export class Account {
   }
 
   /**
-   * Queries an account's owned objects
-   *
+   * Queries an account's owned objects.
+   * 
+   * @param args.accountAddress The account address we want to get the objects for.
+   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @param args.options.offset The starting position to start returning results from.
+   * @param args.options.limit The number of results to return.
+   * @param args.options.orderBy The order to sort the objects by.
+   * @returns Objects array with the object data.
+   * 
    * @example
-   * const accountOwnedObjects = await aptos.getAccountOwnedObjects({accountAddress:"0x123"})
-   *
-   * @param args.accountAddress The account address we want to get the objects for
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
-   * @param args.options.offset The starting position to start returning results from
-   * @param args.options.limit The number of results to return
-   * @param args.options.orderBy The order to sort the objects by
-   * @returns Objects array with the object data
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *   // Get the objects owned by the specified account
+   *   const accountOwnedObjects = await aptos.getAccountOwnedObjects({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     minimumLedgerVersion: 1, // optional, specify if needed
+   *     options: {
+   *       offset: 0, // optional, specify if needed
+   *       limit: 10, // optional, specify if needed
+   *       orderBy: "created_at", // optional, specify if needed
+   *     },
+   *   });
+   * 
+   *   console.log(accountOwnedObjects);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
@@ -515,21 +784,32 @@ export class Account {
   }
 
   /**
-   * Derives an account by providing a private key.
-   * This functions resolves the provided private key type and derives the public key from it.
-   *
-   * If the privateKey is a Secp256k1 type, it derives the account using the derived public key and
-   * auth key using the SingleKey scheme locally.
-   *
-   * If the privateKey is a ED25519 type, it looks up the authentication key on chain, and uses it to resolve
-   * whether it is a Legacy ED25519 key or a Unified ED25519 key. It then derives the account based
-   * on that.
-   *
+   * Derives an account by providing a private key. This function resolves the provided private key type and derives the public key from it.
+   * 
+   * If the privateKey is a Secp256k1 type, it derives the account using the derived public key and auth key using the SingleKey scheme locally. 
+   * If the privateKey is an ED25519 type, it looks up the authentication key on chain to determine whether it is a Legacy ED25519 key or a Unified ED25519 key, and then derives the account based on that.
+   * 
+   * @param args - The arguments for deriving the account.
+   * @param args.privateKey - An account private key.
+   * @returns The derived Account type.
+   * 
    * @example
-   * const account = await aptos.deriveAccountFromPrivateKey({privateKey:new Ed25519PrivateKey("0x123")})
-   *
-   * @param args.privateKey An account private key
-   * @returns Account type
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, Ed25519PrivateKey } from "@aptos-labs/ts-sdk";
+   * 
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   * 
+   * async function runExample() {
+   *     // Deriving an account from a private key
+   *     const account = await aptos.deriveAccountFromPrivateKey({
+   *         privateKey: new Ed25519PrivateKey("0x123") // replace with a real private key
+   *     });
+   * 
+   *     console.log(account);
+   * }
+   * runExample().catch(console.error);
+   * ```
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });

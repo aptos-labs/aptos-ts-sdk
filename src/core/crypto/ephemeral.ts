@@ -7,8 +7,8 @@ import { Hex } from "../hex";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.
- *
- * These are not public keys used as a public key on an account.  They are only used ephemerally on Keyless accounts.
+ * 
+ * These keys are used only temporarily within Keyless accounts and are not utilized as public keys for account identification.
  */
 export class EphemeralPublicKey extends PublicKey {
   /**
@@ -21,6 +21,14 @@ export class EphemeralPublicKey extends PublicKey {
    */
   public readonly variant: EphemeralPublicKeyVariant;
 
+  /**
+   * Creates an instance of EphemeralSignature using the provided signature.
+   * This constructor ensures that only supported signature types are accepted.
+   * 
+   * @param signature - The signature to be used for creating the EphemeralSignature instance. 
+   * It must be of type Ed25519Signature.
+   * @throws Error if the signature type is unsupported.
+   */
   constructor(publicKey: PublicKey) {
     super();
     const publicKeyType = publicKey.constructor.name;
@@ -35,26 +43,34 @@ export class EphemeralPublicKey extends PublicKey {
   }
 
   /**
-   * Get the public key in bytes (Uint8Array).
+   * Get the public key in bytes as a Uint8Array.
    *
-   * @returns Uint8Array representation of the public key
+   * @returns Uint8Array representation of the public key.
    */
   toUint8Array(): Uint8Array {
     return this.bcsToBytes();
   }
 
   /**
-   * Verifies a signed data with a the ephemeral public key
-   *
-   * @param args.message message
-   * @param args.signature The signature that was signed by the private key of the ephemeral public key
-   * @returns true if the signature is valid
+   * Verifies a signed message using the ephemeral public key.
+   * 
+   * @param args - The arguments for the verification.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature that was signed by the private key of the ephemeral public key.
+   * @returns true if the signature is valid, otherwise false.
    */
   verifySignature(args: { message: HexInput; signature: EphemeralSignature }): boolean {
     const { message, signature } = args;
     return this.publicKey.verifySignature({ message, signature: signature.signature });
   }
 
+  /**
+   * Serializes the current instance, specifically handling the Ed25519 signature type.
+   * This function ensures that the signature is properly serialized using the provided serializer.
+   * 
+   * @param serializer - The serializer instance used to serialize the signature.
+   * @throws Error if the signature type is unknown.
+   */
   serialize(serializer: Serializer): void {
     if (this.publicKey instanceof Ed25519PublicKey) {
       serializer.serializeU32AsUleb128(EphemeralPublicKeyVariant.Ed25519);
@@ -64,6 +80,12 @@ export class EphemeralPublicKey extends PublicKey {
     }
   }
 
+  /**
+   * Deserializes an EphemeralSignature from the provided deserializer.
+   * This function allows you to retrieve an EphemeralSignature based on the deserialized data.
+   * 
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   */
   static deserialize(deserializer: Deserializer): EphemeralPublicKey {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
@@ -74,6 +96,12 @@ export class EphemeralPublicKey extends PublicKey {
     }
   }
 
+  /**
+   * Determines if the provided public key is an instance of `EphemeralPublicKey`.
+   * 
+   * @param publicKey - The public key to check.
+   * @returns A boolean indicating whether the public key is an ephemeral type.
+   */
   static isPublicKey(publicKey: PublicKey): publicKey is EphemeralPublicKey {
     return publicKey instanceof EphemeralPublicKey;
   }
@@ -81,8 +109,8 @@ export class EphemeralPublicKey extends PublicKey {
 
 /**
  * Represents ephemeral signatures used in Aptos Keyless accounts.
- *
- * These signatures are used inside of KeylessSignature
+ * 
+ * These signatures are utilized within the KeylessSignature framework.
  */
 export class EphemeralSignature extends Signature {
   /**
@@ -111,6 +139,12 @@ export class EphemeralSignature extends Signature {
     return this.bcsToBytes();
   }
 
+  /**
+   * Deserializes an ephemeral signature from a hexadecimal input.
+   * This function allows you to convert a hexadecimal representation of an ephemeral signature into its deserialized form for further processing.
+   * 
+   * @param hexInput - The hexadecimal input representing the ephemeral signature.
+   */
   static fromHex(hexInput: HexInput): EphemeralSignature {
     const data = Hex.fromHexInput(hexInput);
     const deserializer = new Deserializer(data.toUint8Array());

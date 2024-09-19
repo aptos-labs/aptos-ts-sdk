@@ -17,15 +17,28 @@ import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
 
 /**
- * This class is the main entry point into Aptos's
- * APIs and separates functionality into different namespaces.
- *
- * To use the SDK, create a new Aptos instance to get access
- * to all the sdk functionality.
+ * The main entry point for interacting with the Aptos APIs, 
+ * providing access to various functionalities organized into 
+ * distinct namespaces. 
+ * 
+ * To utilize the SDK, instantiate a new Aptos object to gain 
+ * access to the complete range of SDK features.
  *
  * @example
- *
- * const aptos = new Aptos();
+ * ```typescript
+ * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+ * 
+ * async function runExample() {
+ *     // Create a configuration for connecting to the Aptos testnet
+ *     const config = new AptosConfig({ network: Network.TESTNET });
+ *     
+ *     // Initialize the Aptos client with the configuration
+ *     const aptos = new Aptos(config);
+ *     
+ *     console.log("Aptos client initialized:", aptos);
+ * }
+ * runExample().catch(console.error);
+ * ```
  */
 export class Aptos {
   readonly config: AptosConfig;
@@ -56,6 +69,26 @@ export class Aptos {
 
   readonly object: AptosObject;
 
+  /**
+   * Initializes a new instance of the Aptos client with the provided configuration settings.
+   * This allows you to interact with various Aptos functionalities such as accounts, transactions, and events.
+   * 
+   * @param settings - Configuration settings for the Aptos client.
+   * 
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   * 
+   * async function runExample() {
+   *     // Create a new Aptos client with default settings
+   *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your own settings if needed
+   *     const aptos = new Aptos(config);
+   * 
+   *     console.log("Aptos client initialized:", aptos);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   */
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
