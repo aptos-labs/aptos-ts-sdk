@@ -130,6 +130,9 @@ devDependencies:
   typedoc:
     specifier: ^0.25.4
     version: 0.25.13(typescript@5.4.5)
+  typedoc-plugin-missing-exports:
+    specifier: ^3.0.0
+    version: 3.0.0(typedoc@0.25.13)
   typescript:
     specifier: ^5.3.3
     version: 5.4.5
@@ -7820,6 +7823,14 @@ packages:
       has-proto: 1.0.3
       is-typed-array: 1.1.13
       possible-typed-array-names: 1.0.0
+    dev: true
+
+  /typedoc-plugin-missing-exports@3.0.0(typedoc@0.25.13):
+    resolution: {integrity: sha512-R7D8fYrK34mBFZSlF1EqJxfqiUSlQSmyrCiQgTQD52nNm6+kUtqwiaqaNkuJ2rA2wBgWFecUA8JzHT7x2r7ePg==}
+    peerDependencies:
+      typedoc: 0.26.x
+    dependencies:
+      typedoc: 0.25.13(typescript@5.4.5)
     dev: true
 
   /typedoc@0.25.13(typescript@5.4.5):

@@ -93,6 +93,7 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
     "typedoc": "^0.25.4",
+    "typedoc-plugin-missing-exports": "^3.0.0",
     "typescript": "^5.3.3"
   },
   "version": "1.27.1"
