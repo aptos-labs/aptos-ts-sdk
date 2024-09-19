@@ -7,16 +7,17 @@
 import {
   TwistedElGamal,
   TwistedEd25519PrivateKey,
-  generateVeiledWithdrawProof,
-  verifyVeiledWithdrawProof,
-  generateVeiledTransferProof,
-  verifyVeiledTransferProof,
-  generateVeiledKeyRotationProof,
-  verifyVeiledKeyRotationProof,
+  genProofsVeiledWithdraw,
+  verifyProofsVeiledWithdraw,
+  genProofsVeiledTransfer,
+  verifyProofsVeiledTransfer,
+  genSigmaProofVeiledKeyRotation,
+  verifySigmaProofVeiledKeyRotation,
+  RistrettoPoint,
 } from "@aptos-labs/ts-sdk";
 import { mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
-import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
+import { ed25519 } from "@noble/curves/ed25519";
 import { bytesToHex, randomBytes } from "@noble/hashes/utils";
 
 const BALANCE = BigInt(70);
@@ -36,7 +37,7 @@ const example = async () => {
   console.log(`Public key: ${privateKeyBob.publicKey().toString()}\n\n`);
 
   const twistedElGamalAliceInstance = new TwistedElGamal(privateKeyAlice);
-  const ciphertextAlice = await twistedElGamalAliceInstance.encrypt(BALANCE);
+  const ciphertextAlice = twistedElGamalAliceInstance.encrypt(BALANCE);
   console.log("=== Ciphertext points ===");
   console.log("This ciphertext represents Alice's encrypted balance");
   console.log(`Point C: ${ciphertextAlice.C.toString()}`);
@@ -45,36 +46,33 @@ const example = async () => {
   // Start withdraw prof
 
   console.log("\n\n=== Veiled Withdraw Proof ===");
-  const withdrawProof = generateVeiledWithdrawProof({
+  const withdrawProofs = await genProofsVeiledWithdraw({
     privateKey: privateKeyAlice,
     encryptedBalance: ciphertextAlice,
     amount: AMOUNT,
     changedBalance: BALANCE - AMOUNT,
   });
-  console.log("Generated withdraw proof");
-  console.log(
-    {
-      X1: bytesToHex(withdrawProof.X1),
-      X2: bytesToHex(withdrawProof.X2),
-      alpha1: bytesToHex(withdrawProof.alpha1),
-      alpha2: bytesToHex(withdrawProof.alpha2),
-      alpha3: bytesToHex(withdrawProof.alpha3),
-    },
-    "\n",
-  );
+  console.log("Generated withdraw proofs");
+  console.log("Sigma Proof:");
+  console.log(bytesToHex(withdrawProofs.sigma), "\n");
+  console.log("Range Proof:");
+  console.log(bytesToHex(withdrawProofs.range), "\n");
 
-  const isWithdrawProfValid = verifyVeiledWithdrawProof({
+  const rangeProofCommitment = ciphertextAlice.C.subtract(RistrettoPoint.BASE.multiply(AMOUNT));
+
+  const isWithdrawProofsValid = await verifyProofsVeiledWithdraw({
     publicKey: privateKeyAlice.publicKey(),
     encryptedBalance: ciphertextAlice,
     amount: AMOUNT,
-    proof: withdrawProof,
+    proofs: withdrawProofs,
+    rangeProofCommitment: rangeProofCommitment.toRawBytes(),
   });
-  console.log("Is veiled withdraw proof valid:", isWithdrawProfValid);
+  console.log("Is veiled withdraw proofs valid:", isWithdrawProofsValid);
 
   // End withdraw prof
   // Start transfer prof
 
-  console.log("\n\n=== Veiled transfer proof ===");
+  console.log("\n\n=== Veiled transfer proofs ===");
   const random = randomBytes(32);
   console.log(`Randomness to encrypt the amount: ${bytesToHex(random)}\n`);
 
@@ -83,7 +81,7 @@ const example = async () => {
   console.log(`Point C: ${amountCiphertext.C.toString()}`);
   console.log(`Point D: ${amountCiphertext.D.toString()}\n`);
 
-  const transferProof = generateVeiledTransferProof({
+  const transferProofs = await genProofsVeiledTransfer({
     senderPrivateKey: privateKeyAlice,
     receiverPublicKey: privateKeyBob.publicKey(),
     encryptedSenderBalance: ciphertextAlice,
@@ -91,22 +89,13 @@ const example = async () => {
     changedSenderBalance: BALANCE - AMOUNT,
     random,
   });
-  console.log("Generated transfer proof");
-  console.log(
-    {
-      X1: bytesToHex(transferProof.X1),
-      X2: bytesToHex(transferProof.X2),
-      X3: bytesToHex(transferProof.X3),
-      X4: bytesToHex(transferProof.X4),
-      X5: bytesToHex(transferProof.X5),
-      alpha1: bytesToHex(transferProof.alpha1),
-      alpha2: bytesToHex(transferProof.alpha2),
-      alpha3: bytesToHex(transferProof.alpha3),
-      alpha4: bytesToHex(transferProof.alpha4),
-      alpha5: bytesToHex(transferProof.alpha5),
-    },
-    "\n",
-  );
+  console.log("Generated transfer proofs");
+  console.log("Sigma Proof:");
+  console.log(bytesToHex(transferProofs.sigma), "\n");
+  console.log("Range Proof for amount:");
+  console.log(bytesToHex(transferProofs.rangeAmount), "\n");
+  console.log("Range Proof for new balance:");
+  console.log(bytesToHex(transferProofs.rangeNewBalance), "\n");
 
   const rAmount = mod(bytesToNumberLE(random), ed25519.CURVE.n);
   const receiverPKRistretto = RistrettoPoint.fromHex(privateKeyBob.publicKey().toUint8Array());
@@ -114,16 +103,16 @@ const example = async () => {
   console.log("The recipient's public key multiplied by the randomness used to encrypt the amount being sent:");
   console.log(bytesToHex(receiverDa), "\n");
 
-  const isTransferProofValid = verifyVeiledTransferProof({
+  const isTransferProofsValid = await verifyProofsVeiledTransfer({
     senderPublicKey: privateKeyAlice.publicKey(),
     receiverPublicKey: privateKeyBob.publicKey(),
     encryptedSenderBalance: ciphertextAlice,
     encryptedAmountBySender: amountCiphertext,
     receiverDa,
-    proof: transferProof,
+    proofs: transferProofs,
   });
 
-  console.log("Is veiled transfer proof valid:", isTransferProofValid);
+  console.log("Is veiled transfer proofs valid:", isTransferProofsValid);
 
   // End transfer prof
   // Start key rotation proof
@@ -131,18 +120,18 @@ const example = async () => {
   console.log("\n\n=== Veiled key rotation proof ===");
 
   const newPrivateKeyAlice = TwistedEd25519PrivateKey.generate();
-  console.log("=== The new key pair of veiled balance Alice's ===");
+  console.log("=== The new key pair of Alice's veiled balance  ===");
   console.log(`New Private key: ${privateKeyAlice.toString()}`);
   console.log(`New Public key: ${privateKeyAlice.publicKey().toString()}\n`);
 
   const random2 = randomBytes(32);
-  console.log(`Randomness to encrypt the balance: ${bytesToHex(random)}\n`);
+  console.log(`Randomness to encrypt the balance: ${bytesToHex(random2)}\n`);
   const newEncryptedBalance = TwistedElGamal.encryptWithPK(BALANCE, newPrivateKeyAlice.publicKey(), random2);
   console.log("Balance encrypted with new public key (ciphertext)");
   console.log(`Point C: ${newEncryptedBalance.C.toString()}`);
   console.log(`Point D: ${newEncryptedBalance.D.toString()}\n`);
 
-  const keyRotationProof = generateVeiledKeyRotationProof({
+  const keyRotationProof = genSigmaProofVeiledKeyRotation({
     oldPrivateKey: privateKeyAlice,
     newPrivateKey: newPrivateKeyAlice,
     balance: BALANCE,
@@ -150,22 +139,9 @@ const example = async () => {
     random: random2,
   });
   console.log("Generated key rotation proof");
-  console.log(
-    {
-      X1: bytesToHex(keyRotationProof.X1),
-      X2: bytesToHex(keyRotationProof.X2),
-      X3: bytesToHex(keyRotationProof.X3),
-      X4: bytesToHex(keyRotationProof.X4),
-      alpha1: bytesToHex(keyRotationProof.alpha1),
-      alpha2: bytesToHex(keyRotationProof.alpha2),
-      alpha3: bytesToHex(keyRotationProof.alpha3),
-      alpha4: bytesToHex(keyRotationProof.alpha4),
-      alpha5: bytesToHex(keyRotationProof.alpha5),
-    },
-    "\n",
-  );
+  console.log(bytesToHex(keyRotationProof), "\n");
 
-  const isKeyRotatingProofValid = verifyVeiledKeyRotationProof({
+  const isKeyRotatingProofValid = verifySigmaProofVeiledKeyRotation({
     oldPublicKey: privateKeyAlice.publicKey(),
     newPublicKey: newPrivateKeyAlice.publicKey(),
     oldEncryptedBalance: ciphertextAlice,

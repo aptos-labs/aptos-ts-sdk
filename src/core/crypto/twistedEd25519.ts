@@ -10,8 +10,8 @@ import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 
+export { RistrettoPoint } from "@noble/curves/ed25519";
 export type RistPoint = InstanceType<typeof RistrettoPoint>;
-
 /**
  * The hash of the basepoint of the Ristretto255 group using SHA3_512
  */

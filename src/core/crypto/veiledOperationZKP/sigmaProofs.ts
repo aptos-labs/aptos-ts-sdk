@@ -6,24 +6,32 @@ import { invert, mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE, concatBytes, ensureBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { sha512 } from "@noble/hashes/sha512";
 import { randomBytes, utf8ToBytes } from "@noble/hashes/utils";
-import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
+import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
+import {
+  deserializeSigmaProofVeiledKeyRotation,
+  deserializeSigmaProofVeiledTransfer,
+  deserializeSigmaProofVeiledWithdraw,
+  serializeSigmaProofVeiledKeyRotation,
+  serializeSigmaProofVeiledTransfer,
+  serializeVeiledWithdrawSigmaProof,
+} from "./sigmaProofsSerializers";
 
-export interface VeiledWithdrawProofOptions {
+export interface SigmaProofVeiledWithdrawOptions {
   privateKey: TwistedEd25519PrivateKey;
   encryptedBalance: TwistedElGamalCiphertext;
   amount: bigint;
   changedBalance: bigint;
 }
 
-export interface VerifyVeiledWithdrawProofOptions {
+export interface VerifySigmaProofVeiledWithdrawOptions {
   publicKey: TwistedEd25519PublicKey;
   encryptedBalance: TwistedElGamalCiphertext;
   amount: bigint;
-  proof: VeiledWithdrawProof;
+  proof: Uint8Array;
 }
 
-export interface VeiledTransferProofOptions {
+export interface SigmaProofVeiledTransferOptions {
   senderPrivateKey: TwistedEd25519PrivateKey;
   receiverPublicKey: TwistedEd25519PublicKey;
   encryptedSenderBalance: TwistedElGamalCiphertext;
@@ -32,16 +40,16 @@ export interface VeiledTransferProofOptions {
   random?: Uint8Array;
 }
 
-export interface VerifyVeiledTransferProofOptions {
+export interface VerifySigmaProofVeiledTransferOptions {
   senderPublicKey: TwistedEd25519PublicKey;
   receiverPublicKey: TwistedEd25519PublicKey;
   encryptedSenderBalance: TwistedElGamalCiphertext;
   encryptedAmountBySender: TwistedElGamalCiphertext;
   receiverDa: string | Uint8Array;
-  proof: VeiledTransferProof;
+  proof: Uint8Array;
 }
 
-export interface VeiledKeyRotationProofOptions {
+export interface SigmaProofVeiledKeyRotationOptions {
   oldPrivateKey: TwistedEd25519PrivateKey;
   newPrivateKey: TwistedEd25519PrivateKey;
   balance: bigint;
@@ -49,45 +57,12 @@ export interface VeiledKeyRotationProofOptions {
   random?: Uint8Array;
 }
 
-export interface VerifyVeiledKeyRotationOptions {
+export interface VerifySigmaProofVeiledKeyRotationOptions {
   oldPublicKey: TwistedEd25519PublicKey;
   newPublicKey: TwistedEd25519PublicKey;
   oldEncryptedBalance: TwistedElGamalCiphertext;
   newEncryptedBalance: TwistedElGamalCiphertext;
-  proof: VeiledKeyRotationProof;
-}
-
-export interface VeiledKeyRotationProof {
-  alpha1: Uint8Array;
-  alpha2: Uint8Array;
-  alpha3: Uint8Array;
-  alpha4: Uint8Array;
-  alpha5: Uint8Array;
-  X1: Uint8Array;
-  X2: Uint8Array;
-  X3: Uint8Array;
-  X4: Uint8Array;
-}
-
-export interface VeiledWithdrawProof {
-  alpha1: Uint8Array;
-  alpha2: Uint8Array;
-  alpha3: Uint8Array;
-  X1: Uint8Array;
-  X2: Uint8Array;
-}
-
-export interface VeiledTransferProof {
-  alpha1: Uint8Array;
-  alpha2: Uint8Array;
-  alpha3: Uint8Array;
-  alpha4: Uint8Array;
-  alpha5: Uint8Array;
-  X1: Uint8Array;
-  X2: Uint8Array;
-  X3: Uint8Array;
-  X4: Uint8Array;
-  X5: Uint8Array;
+  proof: Uint8Array;
 }
 
 /*
@@ -118,14 +93,14 @@ function genFiatShamirChallenge(...arrays: Uint8Array[]): bigint {
 }
 
 /**
- * Generates Zero Knowledge Proofs for withdraw from the veiled balance
+ * Generates Sigma Zero Knowledge Proof for withdraw from the veiled balance
  *
  * @param opts.privateKey Twisted ElGamal Ed25519 private key.
  * @param opts.encryptedBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of withdraw
  * @param opts.changedBalance Balance after withdraw
  */
-export function generateVeiledWithdrawProof(opts: VeiledWithdrawProofOptions): VeiledWithdrawProof {
+export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawOptions): Uint8Array {
   const x1 = genModRandom();
   const x2 = genModRandom();
   const x3 = genModRandom();
@@ -156,17 +131,17 @@ export function generateVeiledWithdrawProof(opts: VeiledWithdrawProofOptions): V
   const alpha2 = modN(x2 - ps);
   const alpha3 = modN(x3 - psInvert);
 
-  return {
+  return serializeVeiledWithdrawSigmaProof({
     alpha1: numberToBytesLE(alpha1, 32),
     alpha2: numberToBytesLE(alpha2, 32),
     alpha3: numberToBytesLE(alpha3, 32),
     X1: X1.toRawBytes(),
     X2: X2.toRawBytes(),
-  };
+  });
 }
 
 /**
- * Generate Zero Knowledge Proofs for transfer
+ * Generate Sigma Zero Knowledge Proof for transfer between veiled balances
  *
  * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
  * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
@@ -175,7 +150,7 @@ export function generateVeiledWithdrawProof(opts: VeiledWithdrawProofOptions): V
  * @param opts.changedSenderBalance Balance after transfer
  * @param opts.random Random 32 bytes (Uint8Array)
  */
-export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): VeiledTransferProof {
+export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOptions): Uint8Array {
   const x1 = genModRandom();
   const x2 = genModRandom();
   const x3 = genModRandom();
@@ -227,7 +202,7 @@ export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): V
   const alpha4 = modN(x4 - p * opts.amount);
   const alpha5 = modN(x5 - p * invertSLE);
 
-  return {
+  return serializeSigmaProofVeiledTransfer({
     alpha1: numberToBytesLE(alpha1, 32),
     alpha2: numberToBytesLE(alpha2, 32),
     alpha3: numberToBytesLE(alpha3, 32),
@@ -238,11 +213,11 @@ export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): V
     X3: X3.toRawBytes(),
     X4: X4.toRawBytes(),
     X5: X5.toRawBytes(),
-  };
+  });
 }
 
 /**
- * Generate Zero Knowledge Proofs for key rotation
+ * Generate Sigma Zero Knowledge Proof for key rotation
  *
  * @param opts.oldPrivateKey Old private key (Twisted ElGamal Ed25519).
  * @param opts.newPrivateKey New private key (Twisted ElGamal Ed25519).
@@ -250,7 +225,7 @@ export function generateVeiledTransferProof(opts: VeiledTransferProofOptions): V
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.random Random 32 bytes (Uint8Array)
  */
-export function generateVeiledKeyRotationProof(opts: VeiledKeyRotationProofOptions): VeiledKeyRotationProof {
+export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotationOptions): Uint8Array {
   const x1 = genModRandom();
   const x2 = genModRandom();
   const x3 = genModRandom();
@@ -295,7 +270,7 @@ export function generateVeiledKeyRotationProof(opts: VeiledKeyRotationProofOptio
   const alpha4 = modN(x4 - p * r);
   const alpha5 = modN(x5 - p * invertOldSLE);
 
-  return {
+  return serializeSigmaProofVeiledKeyRotation({
     alpha1: numberToBytesLE(alpha1, 32),
     alpha2: numberToBytesLE(alpha2, 32),
     alpha3: numberToBytesLE(alpha3, 32),
@@ -305,21 +280,23 @@ export function generateVeiledKeyRotationProof(opts: VeiledKeyRotationProofOptio
     X2: X2.toRawBytes(),
     X3: X3.toRawBytes(),
     X4: X4.toRawBytes(),
-  };
+  });
 }
 
 /**
- * Verify Zero Knowledge Proofs for withdraw from the veiled balance
+ * Verify Sigma Zero Knowledge Proof of withdraw from the veiled balance
  *
  * @param opts.publicKey Twisted ElGamal Ed25519 public key.
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.amount Amount of withdraw
- * @param opts.proof Zero Knowledge Proofs for withdraw
+ * @param opts.proof Sigma Zero Knowledge Proof for veiled withdraw
  */
-export function verifyVeiledWithdrawProof(opts: VerifyVeiledWithdrawProofOptions): boolean {
-  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
-  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
-  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
+export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithdrawOptions): boolean {
+  const proof = deserializeSigmaProofVeiledWithdraw(opts.proof);
+
+  const alpha1LE = bytesToNumberLE(proof.alpha1);
+  const alpha2LE = bytesToNumberLE(proof.alpha2);
+  const alpha3LE = bytesToNumberLE(proof.alpha3);
 
   const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
   const alpha2D = opts.encryptedBalance.D.multiply(alpha2LE);
@@ -333,8 +310,8 @@ export function verifyVeiledWithdrawProof(opts: VerifyVeiledWithdrawProofOptions
     opts.encryptedBalance.D.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
-    opts.proof.X1,
-    opts.proof.X2,
+    proof.X1,
+    proof.X2,
   );
 
   const pP = RistrettoPoint.fromHex(opts.publicKey.toUint8Array()).multiply(p);
@@ -343,27 +320,28 @@ export function verifyVeiledWithdrawProof(opts: VerifyVeiledWithdrawProofOptions
     .add(opts.encryptedBalance.C.subtract(RistrettoPoint.BASE.multiply(opts.amount)).multiply(p));
   const X2 = alpha3H.add(pP);
 
-  return X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) && X2.equals(RistrettoPoint.fromHex(opts.proof.X2));
+  return X1.equals(RistrettoPoint.fromHex(proof.X1)) && X2.equals(RistrettoPoint.fromHex(proof.X2));
 }
 
 /**
- * Verify Zero Knowledge Proofs for transfer
+ * Verify Sigma Zero Knowledge Proof of veiled transfer
  *
  * @param opts.senderPublicKey Sender public key (Twisted ElGamal Ed25519).
  * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Encrypted sender balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.encryptedAmountBySender Amount of transfer encrypted by sender using Twisted ElGamal
  * @param opts.receiverDa The recipient's public key multiplied by the randomness used to encrypt the amount being sent
- * @param opts.proof Zero Knowledge Proofs for transfer
+ * @param opts.proof Sigma Zero Knowledge Proof for veiled transfer
  */
-export function verifyVeiledTransferProof(opts: VerifyVeiledTransferProofOptions): boolean {
+export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTransferOptions): boolean {
+  const proof = deserializeSigmaProofVeiledTransfer(opts.proof);
   const receiverDRistretto = RistrettoPoint.fromHex(opts.receiverDa);
 
-  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
-  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
-  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
-  const alpha4LE = bytesToNumberLE(opts.proof.alpha4);
-  const alpha5LE = bytesToNumberLE(opts.proof.alpha5);
+  const alpha1LE = bytesToNumberLE(proof.alpha1);
+  const alpha2LE = bytesToNumberLE(proof.alpha2);
+  const alpha3LE = bytesToNumberLE(proof.alpha3);
+  const alpha4LE = bytesToNumberLE(proof.alpha4);
+  const alpha5LE = bytesToNumberLE(proof.alpha5);
 
   const senderPKUint8Array = opts.senderPublicKey.toUint8Array();
   const receiverPKUint8Array = opts.receiverPublicKey.toUint8Array();
@@ -381,11 +359,11 @@ export function verifyVeiledTransferProof(opts: VerifyVeiledTransferProofOptions
     receiverDRistretto.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
-    opts.proof.X1,
-    opts.proof.X2,
-    opts.proof.X3,
-    opts.proof.X4,
-    opts.proof.X5,
+    proof.X1,
+    proof.X2,
+    proof.X3,
+    proof.X4,
+    proof.X5,
   );
 
   const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
@@ -401,29 +379,31 @@ export function verifyVeiledTransferProof(opts: VerifyVeiledTransferProofOptions
   const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p));
 
   return (
-    X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) &&
-    X2.equals(RistrettoPoint.fromHex(opts.proof.X2)) &&
-    X3.equals(RistrettoPoint.fromHex(opts.proof.X3)) &&
-    X4.equals(RistrettoPoint.fromHex(opts.proof.X4)) &&
-    X5.equals(RistrettoPoint.fromHex(opts.proof.X5))
+    X1.equals(RistrettoPoint.fromHex(proof.X1)) &&
+    X2.equals(RistrettoPoint.fromHex(proof.X2)) &&
+    X3.equals(RistrettoPoint.fromHex(proof.X3)) &&
+    X4.equals(RistrettoPoint.fromHex(proof.X4)) &&
+    X5.equals(RistrettoPoint.fromHex(proof.X5))
   );
 }
 
 /**
- * Verify Zero Knowledge Proofs for key rotation
+ * Verify Sigma Zero Knowledge Proof of key rotation
  *
  * @param opts.oldPrivateKey Old public key (Twisted ElGamal Ed25519).
  * @param opts.newPrivateKey New public key (Twisted ElGamal Ed25519).
  * @param opts.oldEncryptedBalance Balance encrypted with previous public key (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.newEncryptedBalance Balance encrypted with new public key (Ciphertext points encrypted by Twisted ElGamal)
- * @param opts.proof Zero Knowledge Proofs for key rotation
+ * @param opts.proof Sigma Zero Knowledge Proof for veiled balance key rotation
  */
-export function verifyVeiledKeyRotationProof(opts: VerifyVeiledKeyRotationOptions): boolean {
-  const alpha1LE = bytesToNumberLE(opts.proof.alpha1);
-  const alpha2LE = bytesToNumberLE(opts.proof.alpha2);
-  const alpha3LE = bytesToNumberLE(opts.proof.alpha3);
-  const alpha4LE = bytesToNumberLE(opts.proof.alpha4);
-  const alpha5LE = bytesToNumberLE(opts.proof.alpha5);
+export function verifySigmaProofVeiledKeyRotation(opts: VerifySigmaProofVeiledKeyRotationOptions): boolean {
+  const proof = deserializeSigmaProofVeiledKeyRotation(opts.proof);
+
+  const alpha1LE = bytesToNumberLE(proof.alpha1);
+  const alpha2LE = bytesToNumberLE(proof.alpha2);
+  const alpha3LE = bytesToNumberLE(proof.alpha3);
+  const alpha4LE = bytesToNumberLE(proof.alpha4);
+  const alpha5LE = bytesToNumberLE(proof.alpha5);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
@@ -435,10 +415,10 @@ export function verifyVeiledKeyRotationProof(opts: VerifyVeiledKeyRotationOption
     opts.newEncryptedBalance.D.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
-    opts.proof.X1,
-    opts.proof.X2,
-    opts.proof.X3,
-    opts.proof.X4,
+    proof.X1,
+    proof.X2,
+    proof.X3,
+    proof.X4,
   );
 
   const alpha1DOld = opts.oldEncryptedBalance.D.multiply(alpha1LE);
@@ -457,9 +437,9 @@ export function verifyVeiledKeyRotationProof(opts: VerifyVeiledKeyRotationOption
   const X4 = H_RISTRETTO.multiply(alpha5LE).add(pkOldRist.multiply(p));
 
   return (
-    X1.equals(RistrettoPoint.fromHex(opts.proof.X1)) &&
-    X2.equals(RistrettoPoint.fromHex(opts.proof.X2)) &&
-    X3.equals(RistrettoPoint.fromHex(opts.proof.X3)) &&
-    X4.equals(RistrettoPoint.fromHex(opts.proof.X4))
+    X1.equals(RistrettoPoint.fromHex(proof.X1)) &&
+    X2.equals(RistrettoPoint.fromHex(proof.X2)) &&
+    X3.equals(RistrettoPoint.fromHex(proof.X3)) &&
+    X4.equals(RistrettoPoint.fromHex(proof.X4))
   );
 }

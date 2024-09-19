@@ -93,12 +93,12 @@ export class TwistedElGamal {
     const { C, D } = ciphertext;
     const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n);
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
-    const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
+    const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
 
     // TODO: Replace brute-force search with another algorithm for optimization
     let amount = decryptionRange?.start ?? BigInt(0);
     if (amount === BigInt(0)) {
-      if (mH.equals(RistrettoPoint.ZERO)) return BigInt(0);
+      if (mG.equals(RistrettoPoint.ZERO)) return BigInt(0);
 
       amount += BigInt(1);
     }
@@ -106,7 +106,7 @@ export class TwistedElGamal {
     let searchablePoint = RistrettoPoint.BASE.multiply(amount);
     const endAmount = decryptionRange?.end ?? ed25519.CURVE.n;
 
-    while (!mH.equals(searchablePoint)) {
+    while (!mG.equals(searchablePoint)) {
       if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
 
       amount += BigInt(1);
