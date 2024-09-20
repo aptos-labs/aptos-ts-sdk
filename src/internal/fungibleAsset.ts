@@ -45,6 +45,17 @@ import {
 import { generateTransaction } from "./transactionSubmission";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
+/**
+ * Retrieves metadata for fungible assets based on specified criteria.
+ * This function allows you to filter and paginate through fungible asset metadata.
+ * 
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration for Aptos.
+ * @param [args.options] - Optional parameters for pagination and filtering.
+ * @param [args.options.limit] - The maximum number of results to return.
+ * @param [args.options.offset] - The number of results to skip before starting to collect the result set.
+ * @param [args.options.where] - Conditions to filter the results.
+ */
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
   options?: PaginationArgs & WhereArg<FungibleAssetMetadataBoolExp>;
@@ -69,6 +80,18 @@ export async function getFungibleAssetMetadata(args: {
   return data.fungible_asset_metadata;
 }
 
+/**
+ * Retrieves the activities associated with fungible assets.
+ * This function allows you to filter and paginate through the activities based on specified conditions.
+ * 
+ * @param args - The arguments for retrieving fungible asset activities.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param [args.options] - Optional parameters for pagination and filtering.
+ * @param [args.options.limit] - The maximum number of activities to retrieve.
+ * @param [args.options.offset] - The number of activities to skip before starting to collect the result set.
+ * @param [args.options.where] - Conditions to filter the activities.
+ * @returns A promise that resolves to an array of fungible asset activities.
+ */
 export async function getFungibleAssetActivities(args: {
   aptosConfig: AptosConfig;
   options?: PaginationArgs & WhereArg<FungibleAssetActivitiesBoolExp>;
@@ -93,6 +116,17 @@ export async function getFungibleAssetActivities(args: {
   return data.fungible_asset_activities;
 }
 
+/**
+ * Retrieves the current balances of fungible assets for a specified configuration.
+ * 
+ * @param args - The arguments for retrieving fungible asset balances.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.options - Optional parameters for pagination and filtering.
+ * @param args.options.limit - The maximum number of results to return.
+ * @param args.options.offset - The number of results to skip before starting to collect the results.
+ * @param args.options.where - Conditions to filter the results based on specific criteria.
+ * @returns The current balances of fungible assets.
+ */
 export async function getCurrentFungibleAssetBalances(args: {
   aptosConfig: AptosConfig;
   options?: PaginationArgs & WhereArg<CurrentFungibleAssetBalancesBoolExp>;
@@ -122,6 +156,18 @@ const faTransferAbi: EntryFunctionABI = {
   parameters: [parseTypeTag("0x1::object::Object"), new TypeTagAddress(), new TypeTagU64()],
 };
 
+/**
+ * Transfers a specified amount of a fungible asset from the sender to the recipient. 
+ * This function helps facilitate the transfer of digital assets between accounts on the Aptos blockchain.
+ * 
+ * @param args - The parameters for the transfer operation.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.sender - The account initiating the transfer.
+ * @param args.fungibleAssetMetadataAddress - The address of the fungible asset's metadata.
+ * @param args.recipient - The address of the account receiving the asset.
+ * @param args.amount - The amount of the fungible asset to transfer.
+ * @param args.options - Optional settings for generating the transaction.
+ */
 export async function transferFungibleAsset(args: {
   aptosConfig: AptosConfig;
   sender: Account;
