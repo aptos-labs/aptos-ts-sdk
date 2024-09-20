@@ -2,7 +2,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, FederatedKeylessAccount, KeylessAccount, KeylessPublicKey, ProofFetchStatus } from "../../../src";
+import { Account, FederatedKeylessAccount, FederatedKeylessPublicKey, KeylessAccount, KeylessPublicKey, ProofFetchStatus } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
@@ -57,7 +57,6 @@ const KEYLESS_TEST_TIMEOUT = 12000;
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
-  // TODO: Make this work for local by spinning up a local proving service.
   const { aptos } = getAptosClient();
   const jwkAccount = Account.generate();
 
@@ -66,19 +65,14 @@ describe("keyless api", () => {
       accountAddress: jwkAccount.accountAddress,
       amount: FUND_AMOUNT,
     });
-    // This bytecode is a script that installs the secure test JWK at the signer's address
-    const bytecode =
-      "a11ceb0b060000000701000402040c031019052936075f6d08cc012006ec019903000000010102070000030700000407000005020300010604050000070607000008080300000909020001060c0808000800080108000800080208020a080200010802010a02010800040800080008000800010801020a02080102060c0a0802046a776b7306737472696e6706537472696e67034a574b055061746368146e65775f70617463685f72656d6f76655f616c6c04757466380b6e65775f7273615f6a776b146e65775f70617463685f7570736572745f6a776b1470617463685f6665646572617465645f6a776b7300000000000000000000000000000000000000000000000000000000000000010a020908746573742d7273610a02060552533235360a020504415141420a02d802d6027935456673315a7a69734c4c4b4341525376547a7467576a354a465033373738645a57742d6f643738666d4f5a4678656d33615f6159624f58534a546f5270383632646f3050784a3450444d706d7177563566374b706c4649364e737751562d57507566514838496148585a74755064436a504f634879626344694c6b4f31326430644736695a51557a79706a414a6636334150636164696f2d344a444e576c4743355f4f775f5851396c495937316b544d6954396c6b434364305a787145696647746e4a653578536f5a6f614d524b72766c4f772d523669566a4c557450416b356879555839354c444b787741522d6f73686e6a37676d4154656a676132457648396f7a646e334d38476f31315053446130344f517850634132354f6f445466784c765432384c5270535872626d55575a2d4f5f6c4774446c335a41746a4967755947456f62546b344e31316552737343393543770a021d1c746573742e6665646572617465642e6f6964632e70726f76696465720000012011000c06070011010c04070111010c01070211010c02070311010c050b040b010b020b0511020c0307040b0311030c070b060b07400302000000000000000c080b000b08110402";
-    const jwkTransaction = await aptos.transaction.build.simple({
-      sender: jwkAccount.accountAddress,
-      data: {
-        bytecode,
-        functionArguments: [],
-      },
+    const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      sender: jwkAccount,
+      iss: "test.federated.oidc.provider",
+      jwksUrl: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
     });
     const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
     await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
-  }, 30000);
+  });
 
   describe.each([
     { jwts: TEST_JWT_TOKENS, jwkAddress: undefined },
@@ -108,7 +102,10 @@ describe("keyless api", () => {
       "creates the keyless account via the static constructor and submits a transaction",
       async () => {
         const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-        const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
+        const publicKey =
+          jwkAddress === undefined
+            ? KeylessPublicKey.fromJwtAndPepper({ jwt, pepper })
+            : FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress });
         const address = await aptos.lookupOriginalAccountAddress({
           authenticationKey: publicKey.authKey().derivedAddress(),
         });
@@ -291,7 +288,8 @@ describe("keyless api", () => {
             ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
             : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const bytes = sender.bcsToBytes();
-        const deserializedAccount = KeylessAccount.fromBytes(bytes);
+        const deserializedAccount =
+          jwkAddress === undefined ? KeylessAccount.fromBytes(bytes) : FederatedKeylessAccount.fromBytes(bytes);
         expect(bytes).toEqual(deserializedAccount.bcsToBytes());
       },
       KEYLESS_TEST_TIMEOUT,
