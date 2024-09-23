@@ -80,6 +80,20 @@ export class TwistedElGamal {
   }
 
   /**
+   * Encrypts the amount with Twisted ElGamal with no randomness
+   *
+   * @param amount amount for encryption
+   */
+  static encryptWithNoRandomness(amount: bigint) {
+    if (amount < 0n && amount >= ed25519.CURVE.n)
+      throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
+
+    const C = amount === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(amount);
+
+    return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
+  }
+
+  /**
    * Decrypts the amount with Twisted ElGamal
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
    * @param privateKey Twisted ElGamal Ed25519 private key.

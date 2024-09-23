@@ -164,7 +164,7 @@ const example = async () => {
   console.log("\n\n=== Veiled key rotation proof ===");
 
   const newPrivateKeyAlice = TwistedEd25519PrivateKey.generate();
-  console.log("=== The new key pair of Alice's veiled balance  ===");
+  console.log("=== The new key pair of Alice's veiled balance ===");
   console.log(`New Private key: ${privateKeyAlice.toString()}`);
   console.log(`New Public key: ${privateKeyAlice.publicKey().toString()}\n`);
 
