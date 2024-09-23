@@ -1,3 +1,6 @@
+// Copyright © Aptos Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 import { invert, mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
