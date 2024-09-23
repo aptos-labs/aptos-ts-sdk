@@ -20,6 +20,7 @@
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",
     "twisted_el_gamal": "ts-node twisted_el_gamal.ts",
+    "veiled_operations_zkp": "ts-node veiled_operations_zkp.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct publish_package_from_filepath external_signing your_coin your_fungible_asset"
   },
   "keywords": [],
@@ -27,6 +28,7 @@
   "license": "ISC",
   "dependencies": {
     "@noble/curves": "^1.4.0",
+    "@noble/hashes": "^1.5.0",
     "@types/readline-sync": "^1.4.8",
     "dotenv": "^16.3.1",
     "npm-run-all": "latest",

@@ -11,6 +11,9 @@ dependencies:
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.4.0
+  '@noble/hashes':
+    specifier: ^1.5.0
+    version: 1.5.0
   '@types/readline-sync':
     specifier: ^1.4.8
     version: 1.4.8
@@ -72,6 +75,11 @@ packages:
   /@noble/hashes@1.4.0:
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
+    dev: false
+
+  /@noble/hashes@1.5.0:
+    resolution: {integrity: sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA==}
+    engines: {node: ^14.21.3 || >=16}
     dev: false
 
   /@tsconfig/node10@1.0.9:

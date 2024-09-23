@@ -4,11 +4,9 @@
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE, ensureBytes } from "@noble/curves/abstract/utils";
-import { randomBytes } from "crypto";
+import { randomBytes } from "@noble/hashes/utils";
 import { HexInput } from "../../types";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
-
-export type RistPoint = InstanceType<typeof RistrettoPoint>;
+import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -22,16 +20,6 @@ export type ModifyCiphertextOperation = "add" | "subtract";
  * @see {@link https://drive.google.com/file/d/1wGo-pIOPOcCQA0gjngE5kmWUQ-TxktAF/view | Veiled coins with twisted ElGamal}
  */
 export class TwistedElGamal {
-  /**
-   * The hash of the basepoint of the Ristretto255 group using SHA3_512
-   */
-  public static readonly HASH_BASE_POINT: string = "8c9240b456a9e6dc65c377a1048d745f94a08cdb7f44cbcd7b46f34048871134";
-
-  /**
-   * Ristretto point from TwistedElGamal.HASH_BASE_POINT
-   */
-  public static readonly H: RistPoint = RistrettoPoint.fromHex(this.HASH_BASE_POINT);
-
   /**
    * The private key of an Twisted ElGamal Ed25519 key pair.
    */
@@ -78,18 +66,17 @@ export class TwistedElGamal {
     if (amount < 0n && amount >= ed25519.CURVE.n)
       throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
 
-    const rBytes = random ? ensureBytes("Random bytes", random, 32) : randomBytes(32);
+    const rBytes = ensureBytes("Random bytes", random ?? randomBytes(32), 32);
 
     const m = amount;
-    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT);
     const r = mod(bytesToNumberLE(rBytes), ed25519.CURVE.n);
-    const rG = RistrettoPoint.BASE.multiply(r);
-    const mH = m === BigInt(0) ? RistrettoPoint.ZERO : H.multiply(m);
+    const rH = H_RISTRETTO.multiply(r);
+    const mG = m === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(m);
 
     const D = RistrettoPoint.fromHex(publicKey.toUint8Array()).multiply(r);
-    const C = mH.add(rG);
+    const C = mG.add(rH);
 
-    return new TwistedElGamalCiphertext(C, D);
+    return new TwistedElGamalCiphertext(C.toRawBytes(), D.toRawBytes());
   }
 
   /**
@@ -104,7 +91,6 @@ export class TwistedElGamal {
     decryptionRange?: DecryptionRange,
   ): bigint {
     const { C, D } = ciphertext;
-    const H = RistrettoPoint.fromHex(TwistedElGamal.HASH_BASE_POINT);
     const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n);
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
     const mH = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
@@ -117,14 +103,14 @@ export class TwistedElGamal {
       amount += BigInt(1);
     }
 
-    let searchablePoint = H.multiply(amount);
+    let searchablePoint = RistrettoPoint.BASE.multiply(amount);
     const endAmount = decryptionRange?.end ?? ed25519.CURVE.n;
 
     while (!mH.equals(searchablePoint)) {
       if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
 
       amount += BigInt(1);
-      searchablePoint = searchablePoint.add(H);
+      searchablePoint = searchablePoint.add(RistrettoPoint.BASE);
     }
     return amount;
   }
@@ -180,36 +166,36 @@ export class TwistedElGamalCiphertext {
 
   readonly D: RistPoint;
 
-  constructor(C: HexInput | RistPoint, D: HexInput | RistPoint) {
-    this.C = C instanceof RistrettoPoint ? C : RistrettoPoint.fromHex(C);
-    this.D = D instanceof RistrettoPoint ? D : RistrettoPoint.fromHex(D);
+  constructor(C: HexInput, D: HexInput) {
+    this.C = RistrettoPoint.fromHex(C);
+    this.D = RistrettoPoint.fromHex(D);
   }
 
   public addAmount(amount: bigint): TwistedElGamalCiphertext {
-    const aH = TwistedElGamal.H.multiply(amount);
-    const updatedC = this.C.add(aH);
+    const aG = RistrettoPoint.BASE.multiply(amount);
+    const updatedC = this.C.add(aG);
 
-    return new TwistedElGamalCiphertext(updatedC, this.D);
+    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), this.D.toRawBytes());
   }
 
   public subtractAmount(amount: bigint): TwistedElGamalCiphertext {
-    const aH = TwistedElGamal.H.multiply(amount);
-    const updatedC = this.C.subtract(aH);
+    const aG = RistrettoPoint.BASE.multiply(amount);
+    const updatedC = this.C.subtract(aG);
 
-    return new TwistedElGamalCiphertext(updatedC, this.D);
+    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), this.D.toRawBytes());
   }
 
   public addCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
     const updatedC = this.C.add(ciphertext.C);
     const updatedD = this.D.add(ciphertext.D);
 
-    return new TwistedElGamalCiphertext(updatedC, updatedD);
+    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
   }
 
   public subtractCiphertext(ciphertext: TwistedElGamalCiphertext): TwistedElGamalCiphertext {
     const updatedC = this.C.subtract(ciphertext.C);
     const updatedD = this.D.subtract(ciphertext.D);
 
-    return new TwistedElGamalCiphertext(updatedC, updatedD);
+    return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
   }
 }
