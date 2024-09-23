@@ -67,6 +67,15 @@ export class TwistedEd25519PublicKey {
     return this.key.toString();
   }
 
+  /**
+   * Get the public key as a hex string without the 0x prefix.
+   *
+   * @returns string representation of the public key
+   */
+  toStringWithoutPrefix(): string {
+    return this.key.toStringWithoutPrefix();
+  }
+
   // region Serializable
 
   serialize(serializer: Serializer): void {
@@ -208,6 +217,15 @@ export class TwistedEd25519PrivateKey extends Serializable {
    */
   toString(): string {
     return this.key.toString();
+  }
+
+  /**
+   * Get the private key as a hex string without the 0x prefix.
+   *
+   * @returns string representation of the private key
+   */
+  toStringWithoutPrefix(): string {
+    return this.key.toStringWithoutPrefix();
   }
 
   // endregion

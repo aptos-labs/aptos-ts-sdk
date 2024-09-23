@@ -22,6 +22,7 @@ export interface VeiledTransferProof {
   X3: Uint8Array;
   X4: Uint8Array;
   X5: Uint8Array;
+  auditorsX?: Uint8Array[];
 }
 
 export interface VeiledKeyRotationProof {
@@ -90,7 +91,10 @@ export function deserializeSigmaProofVeiledWithdraw(proof: Uint8Array): VeiledWi
  * @returns A Uint8Array containing the serialized sigma proof of veiled transfer.
  */
 export function serializeSigmaProofVeiledTransfer(proof: VeiledTransferProof): Uint8Array {
+  const auditorsX = proof.auditorsX ?? [];
+
   return concatBytes(
+    ...auditorsX,
     proof.X5,
     proof.X4,
     proof.X3,
@@ -105,26 +109,46 @@ export function serializeSigmaProofVeiledTransfer(proof: VeiledTransferProof): U
 }
 
 /**
- * Deserializes a Uint8Array containing a sigma proof of veiled transfer into a VeiledWithdrawSigmaProof object.
+ * Deserializes a Uint8Array containing a sigma proof of veiled transfer into a VeiledTransferProof object.
  *
  * @param proof - The Uint8Array containing the serialized sigma proof of veiled transfer.
- * @returns A VeiledWithdrawSigmaProof object containing the deserialized sigma proof of transfer.
+ * @returns A VeiledTransferProof object containing the deserialized sigma proof of transfer.
  */
 export function deserializeSigmaProofVeiledTransfer(proof: Uint8Array): VeiledTransferProof {
-  if (proof.length !== SIGMA_PROOF_TRANSFER_SIZE) {
+  if (proof.length % PROOF_CHUNK_SIZE !== 0) {
     throw new Error(
-      `Invalid sigma proof length of veiled withdraw: got ${proof.length}, expected ${SIGMA_PROOF_TRANSFER_SIZE}`,
+      `Invalid sigma proof length of veiled transfer: got ${proof.length}, expected ${SIGMA_PROOF_TRANSFER_SIZE}`,
     );
   }
 
-  const array: Uint8Array[] = [];
-  for (let i = 0; i < SIGMA_PROOF_TRANSFER_SIZE; i += PROOF_CHUNK_SIZE) {
-    array.push(proof.subarray(i, i + PROOF_CHUNK_SIZE));
+  if (proof.length < SIGMA_PROOF_TRANSFER_SIZE) {
+    throw new Error(
+      `Invalid sigma proof length of veiled transfer: got ${proof.length}, expected ${SIGMA_PROOF_TRANSFER_SIZE}`,
+    );
   }
 
-  const [X5, X4, X3, X2, X1, alpha5, alpha4, alpha3, alpha2, alpha1] = array;
+  const baseProof = proof.slice(-SIGMA_PROOF_TRANSFER_SIZE);
+
+  const auditorsX: Uint8Array[] = [];
+  const baseProofArray: Uint8Array[] = [];
+
+  for (let i = 0; i < SIGMA_PROOF_TRANSFER_SIZE; i += PROOF_CHUNK_SIZE) {
+    baseProofArray.push(baseProof.subarray(i, i + PROOF_CHUNK_SIZE));
+  }
+
+  if (proof.length > SIGMA_PROOF_TRANSFER_SIZE) {
+    const auditorsPartLength = proof.length - SIGMA_PROOF_TRANSFER_SIZE;
+    const auditorsPart = proof.slice(0, auditorsPartLength);
+
+    for (let i = 0; i < auditorsPartLength; i += PROOF_CHUNK_SIZE) {
+      auditorsX.push(auditorsPart.subarray(i, i + PROOF_CHUNK_SIZE));
+    }
+  }
+
+  const [X5, X4, X3, X2, X1, alpha5, alpha4, alpha3, alpha2, alpha1] = baseProofArray;
 
   return {
+    auditorsX,
     X5,
     X4,
     X3,
@@ -159,15 +183,15 @@ export function serializeSigmaProofVeiledKeyRotation(proof: VeiledKeyRotationPro
 }
 
 /**
- * Deserializes a Uint8Array containing a sigma proof of key rotation of veiled into a VeiledWithdrawSigmaProof object.
+ * Deserializes a Uint8Array containing a sigma proof of key rotation of veiled into a VeiledKeyRotationProof object.
  *
  * @param proof - The Uint8Array containing the serialized sigma proof of key rotation of veiled.
- * @returns A VeiledWithdrawSigmaProof object containing the deserialized sigma proof of key rotation of veiled.
+ * @returns A VeiledKeyRotationProof object containing the deserialized sigma proof of key rotation of veiled.
  */
 export function deserializeSigmaProofVeiledKeyRotation(proof: Uint8Array): VeiledKeyRotationProof {
   if (proof.length !== SIGMA_PROOF_KEY_ROTATION_SIZE) {
     throw new Error(
-      `Invalid sigma proof length of veiled withdraw: got ${proof.length}, expected ${SIGMA_PROOF_KEY_ROTATION_SIZE}`,
+      `Invalid sigma proof length of veiled key rotation: got ${proof.length}, expected ${SIGMA_PROOF_KEY_ROTATION_SIZE}`,
     );
   }
 

@@ -3,18 +3,21 @@
 
 import { ensureBytes } from "@noble/curves/abstract/utils";
 import { randomBytes } from "@noble/hashes/utils";
-import { H_RISTRETTO, TwistedEd25519PublicKey, RistrettoPoint } from "../twistedEd25519";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
+import { H_RISTRETTO, RistrettoPoint } from "../twistedEd25519";
+import { TwistedElGamal } from "../twistedElGamal";
 import {
   genSigmaProofVeiledTransfer,
   genSigmaProofVeiledWithdraw,
   SigmaProofVeiledTransferOptions,
   SigmaProofVeiledWithdrawOptions,
   verifySigmaProofVeiledTransfer,
+  VerifySigmaProofVeiledTransferOptions,
   verifySigmaProofVeiledWithdraw,
+  VerifySigmaProofVeiledWithdrawOptions,
 } from "./sigmaProofs";
 
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { toTwistedEd25519PrivateKey } from "./helpers";
 
 export interface VeiledWithdrawProofs {
   sigma: Uint8Array;
@@ -29,19 +32,11 @@ export interface VeiledTransferProofs {
 export type ProofsVeiledWithdrawOptions = SigmaProofVeiledWithdrawOptions;
 export type ProofsVeiledTransferOptions = SigmaProofVeiledTransferOptions;
 
-export interface VerifyProofsVeiledWithdrawOptions {
-  publicKey: TwistedEd25519PublicKey;
-  encryptedBalance: TwistedElGamalCiphertext;
-  amount: bigint;
+export interface VerifyProofsVeiledWithdrawOptions extends Omit<VerifySigmaProofVeiledWithdrawOptions, "proof"> {
   proofs: VeiledWithdrawProofs;
   rangeProofCommitment: Uint8Array;
 }
-export interface VerifyProofsVeiledTransferOptions {
-  senderPublicKey: TwistedEd25519PublicKey;
-  receiverPublicKey: TwistedEd25519PublicKey;
-  encryptedSenderBalance: TwistedElGamalCiphertext;
-  encryptedAmountBySender: TwistedElGamalCiphertext;
-  receiverDa: string | Uint8Array;
+export interface VerifyProofsVeiledTransferOptions extends Omit<VerifySigmaProofVeiledTransferOptions, "proof"> {
   proofs: VeiledTransferProofs;
 }
 
@@ -54,10 +49,11 @@ export interface VerifyProofsVeiledTransferOptions {
  * @param opts.changedBalance Balance after withdraw
  */
 export async function genProofsVeiledWithdraw(opts: ProofsVeiledWithdrawOptions): Promise<VeiledWithdrawProofs> {
+  const privateKey = toTwistedEd25519PrivateKey(opts.privateKey);
   const sigmaProof = genSigmaProofVeiledWithdraw(opts);
   const rangeProof = await generateRangeZKP({
     v: opts.changedBalance,
-    r: opts.privateKey.toUint8Array(),
+    r: privateKey.toUint8Array(),
     valBase: RistrettoPoint.BASE.toRawBytes(),
     randBase: opts.encryptedBalance.D.toRawBytes(),
   });
@@ -80,8 +76,9 @@ export async function genProofsVeiledWithdraw(opts: ProofsVeiledWithdrawOptions)
  */
 export async function genProofsVeiledTransfer(opts: ProofsVeiledTransferOptions): Promise<VeiledTransferProofs> {
   const rBytes = ensureBytes("Random bytes", opts.random ?? randomBytes(32), 32);
+  const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
 
-  const { D: amountD } = TwistedElGamal.encryptWithPK(opts.amount, opts.senderPrivateKey.publicKey(), rBytes);
+  const { D: amountD } = TwistedElGamal.encryptWithPK(opts.amount, senderPrivateKey.publicKey(), rBytes);
 
   const sigmaProof = genSigmaProofVeiledTransfer({
     ...opts,
@@ -97,7 +94,7 @@ export async function genProofsVeiledTransfer(opts: ProofsVeiledTransferOptions)
     }),
     generateRangeZKP({
       v: opts.changedSenderBalance,
-      r: opts.senderPrivateKey.toUint8Array(),
+      r: senderPrivateKey.toUint8Array(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
       randBase: opts.encryptedSenderBalance.D.subtract(amountD).toRawBytes(),
     }),
@@ -156,6 +153,7 @@ export async function verifyProofsVeiledTransfer(opts: VerifyProofsVeiledTransfe
     encryptedSenderBalance: opts.encryptedSenderBalance,
     encryptedAmountBySender: opts.encryptedAmountBySender,
     receiverDa: opts.receiverDa,
+    auditors: opts.auditors,
     proof: opts.proofs.sigma,
   });
 

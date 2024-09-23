@@ -89,7 +89,7 @@ const example = async () => {
     changedSenderBalance: BALANCE - AMOUNT,
     random,
   });
-  console.log("Generated transfer proofs");
+  console.log("=== Generated transfer proofs ===");
   console.log("Sigma Proof:");
   console.log(bytesToHex(transferProofs.sigma), "\n");
   console.log("Range Proof for amount:");
@@ -113,6 +113,50 @@ const example = async () => {
   });
 
   console.log("Is veiled transfer proofs valid:", isTransferProofsValid);
+
+  const privateKeyAuditor1 = TwistedEd25519PrivateKey.generate();
+  const privateKeyAuditor2 = TwistedEd25519PrivateKey.generate();
+
+  const auditorPKs = [
+    privateKeyAuditor1.publicKey().toStringWithoutPrefix(),
+    privateKeyAuditor2.publicKey().toStringWithoutPrefix(),
+  ];
+  const auditorDecryptionKeys = auditorPKs.map((key) => RistrettoPoint.fromHex(key).multiply(rAmount).toHex());
+
+  const transferProofsWithAuditors = await genProofsVeiledTransfer({
+    senderPrivateKey: privateKeyAlice,
+    receiverPublicKey: privateKeyBob.publicKey(),
+    encryptedSenderBalance: ciphertextAlice,
+    amount: AMOUNT,
+    changedSenderBalance: BALANCE - AMOUNT,
+    auditorPublicKeys: auditorPKs,
+    random,
+  });
+  console.log("\n=== Generated transfer proofs with auditors ===");
+  console.log("Sigma Proof:");
+  console.log(bytesToHex(transferProofsWithAuditors.sigma), "\n");
+  console.log("Range Proof for amount:");
+  console.log(bytesToHex(transferProofsWithAuditors.rangeAmount), "\n");
+  console.log("Range Proof for new balance:");
+  console.log(bytesToHex(transferProofsWithAuditors.rangeNewBalance), "\n");
+
+  try {
+    const isTransferProofsWithAuditorsValid = await verifyProofsVeiledTransfer({
+      senderPublicKey: privateKeyAlice.publicKey(),
+      receiverPublicKey: privateKeyBob.publicKey(),
+      encryptedSenderBalance: ciphertextAlice,
+      encryptedAmountBySender: amountCiphertext,
+      receiverDa,
+      proofs: transferProofsWithAuditors,
+      auditors: {
+        publicKeys: auditorPKs,
+        decryptionKeys: auditorDecryptionKeys,
+      },
+    });
+    console.log("Is veiled transfer proofs with auditors valid:", isTransferProofsWithAuditorsValid);
+  } catch (e) {
+    console.log(e);
+  }
 
   // End transfer prof
   // Start key rotation proof
