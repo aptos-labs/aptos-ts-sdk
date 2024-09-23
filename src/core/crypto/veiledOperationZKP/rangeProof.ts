@@ -28,6 +28,7 @@ const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindi
  * @param opts.r A vector of bytes representing the blinding scalar used to hide the value.
  * @param opts.valBase A vector of bytes representing the generator point for the value.
  * @param opts.randBase A vector of bytes representing the generator point for the randomness.
+ * @param opts.bits Bits size of value to create the range proof
  */
 export async function generateRangeZKP(opts: RangeProofOptions) {
   await initWasm(RANGE_PROOF_WASM_URL);
@@ -46,6 +47,7 @@ export async function generateRangeZKP(opts: RangeProofOptions) {
  * @param opts.commitment A vector of bytes representing the Pedersen commitment the range proof is generated for.
  * @param opts.valBase A vector of bytes representing the generator point for the value.
  * @param opts.randBase A vector of bytes representing the generator point for the randomness.
+ * @param opts.bits Bits size of the value for range proof
  */
 export async function verifyRangeZKP(opts: VerifyRangeProofOptions) {
   await initWasm(RANGE_PROOF_WASM_URL);

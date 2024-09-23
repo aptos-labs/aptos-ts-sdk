@@ -117,11 +117,11 @@ const example = async () => {
   const privateKeyAuditor1 = TwistedEd25519PrivateKey.generate();
   const privateKeyAuditor2 = TwistedEd25519PrivateKey.generate();
 
-  const auditorPKs = [
+  const auditorPublicKeys = [
     privateKeyAuditor1.publicKey().toStringWithoutPrefix(),
     privateKeyAuditor2.publicKey().toStringWithoutPrefix(),
   ];
-  const auditorDecryptionKeys = auditorPKs.map((key) => RistrettoPoint.fromHex(key).multiply(rAmount).toHex());
+  const auditorDecryptionKeys = auditorPublicKeys.map((key) => RistrettoPoint.fromHex(key).multiply(rAmount).toHex());
 
   const transferProofsWithAuditors = await genProofsVeiledTransfer({
     senderPrivateKey: privateKeyAlice,
@@ -129,7 +129,7 @@ const example = async () => {
     encryptedSenderBalance: ciphertextAlice,
     amount: AMOUNT,
     changedSenderBalance: BALANCE - AMOUNT,
-    auditorPublicKeys: auditorPKs,
+    auditorPublicKeys,
     random,
   });
   console.log("\n=== Generated transfer proofs with auditors ===");
@@ -149,7 +149,7 @@ const example = async () => {
       receiverDa,
       proofs: transferProofsWithAuditors,
       auditors: {
-        publicKeys: auditorPKs,
+        publicKeys: auditorPublicKeys,
         decryptionKeys: auditorDecryptionKeys,
       },
     });

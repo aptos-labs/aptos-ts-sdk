@@ -117,7 +117,7 @@ export function serializeSigmaProofVeiledTransfer(proof: VeiledTransferProof): U
 export function deserializeSigmaProofVeiledTransfer(proof: Uint8Array): VeiledTransferProof {
   if (proof.length % PROOF_CHUNK_SIZE !== 0) {
     throw new Error(
-      `Invalid sigma proof length of veiled transfer: got ${proof.length}, expected ${SIGMA_PROOF_TRANSFER_SIZE}`,
+      `Invalid sigma proof length: the length must be a multiple of ${PROOF_CHUNK_SIZE}`,
     );
   }
 
