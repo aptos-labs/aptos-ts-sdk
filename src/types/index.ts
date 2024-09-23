@@ -1014,6 +1014,12 @@ export type MoveStruct = {
    */
   is_native: boolean;
   /**
+   * Whether the struct is a module event (aka v2 event). This will be false for v1
+   * events because the value is derived from the #[event] attribute on the struct in
+   * the Move source code. This attribute is only relevant for v2 events.
+   */
+  is_event: boolean;
+  /**
    * Abilities associated with the struct
    */
   abilities: Array<MoveAbility>;
