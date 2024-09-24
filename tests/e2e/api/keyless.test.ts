@@ -93,7 +93,7 @@ describe("keyless api", () => {
         sender,
         iss: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/",
       });
-      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
+      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
       await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
     },
     KEYLESS_TEST_TIMEOUT,
