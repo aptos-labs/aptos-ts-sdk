@@ -85,6 +85,10 @@ describe("keyless api", () => {
     "installs jwks for an auth0 iss",
     async () => {
       const sender = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: sender.accountAddress,
+        amount: FUND_AMOUNT,
+      });
       const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
         sender,
         iss: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/",
