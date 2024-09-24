@@ -92,7 +92,8 @@ const example = async () => {
   const iss = "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/";
 
   console.log("\n=== Installing JWKs ===\n");
-  const committedJwkTxn = await aptos.updateFederatedKeylessJwkSet({ sender: bob, iss });
+  const jwkTxn = await aptos.updateFederatedKeylessJwkSetTransaction({ sender: bob, iss });
+  const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: bob, transaction: jwkTxn });
   await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
   console.log(`Committed transaction: ${committedJwkTxn.hash}`);
 

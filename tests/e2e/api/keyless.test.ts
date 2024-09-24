@@ -81,6 +81,20 @@ describe("keyless api", () => {
     await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
   });
 
+  test(
+    "installs jwks for an auth0 iss",
+    async () => {
+      const sender = Account.generate();
+      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+        sender,
+        iss: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/",
+      });
+      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
+      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+    },
+    KEYLESS_TEST_TIMEOUT,
+  );
+
   describe.each([
     { jwts: TEST_JWT_TOKENS, jwkAddress: undefined },
     { jwts: TEST_FEDERATED_JWT_TOKENS, jwkAddress: jwkAccount.accountAddress },

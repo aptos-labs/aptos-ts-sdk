@@ -54,7 +54,8 @@ const example = async () => {
     amount: 100_000_000,
   });
 
-  aptos.updateFederatedKeylessJwkSet({ sender: alice, iss });
+  const jwkTxn = await aptos.updateFederatedKeylessJwkSetTransaction({ sender: alice, iss });
+  await aptos.signAndSubmitTransaction({ signer: alice, transaction: jwkTxn });
 
   console.log("\n=== Addresses ===\n");
   console.log(`JWKs were installed at - ${alice.accountAddress}\n`);
