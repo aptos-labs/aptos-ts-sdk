@@ -2,14 +2,14 @@
 /* eslint-disable no-console */
 
 /**
- * This example shows how to use the Keyless accounts on Aptos
+ * This example shows how to use the Federated Keyless accounts on Aptos
  */
 
 import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
 const ALICE_INITIAL_BALANCE = 100_000_000;
-const BOB_INITIAL_BALANCE = 100;
+const BOB_INITIAL_BALANCE = 100_000_000;
 const TRANSFER_AMOUNT = 10_000;
 
 /**
@@ -30,16 +30,15 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const network = Network.DEVNET;
-  const config = new AptosConfig({ network });
+  const config = new AptosConfig({ network: Network.DEVNET });
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
-  const aliceEphem = EphemeralKeyPair.generate();
+  const ephemeralKeyPair = EphemeralKeyPair.generate();
 
-  console.log("\n=== Keyless Account Example ===\n");
+  console.log("\n=== Federated Keyless Account Example ===\n");
 
-  const link = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?redirect_uri=https%3A%2F%2Fdevelopers.google.com%2Foauthplayground&prompt=consent&response_type=code&client_id=407408718192.apps.googleusercontent.com&scope=openid&access_type=offline&service=lso&o2v=2&theme=glif&flowName=GeneralOAuthFlow&nonce=${aliceEphem.nonce}`;
+  const link = `https://dev-qtdgjv22jh0v1k7g.us.auth0.com/authorize?client_id=dzqI77x0M5YwdOSUx6j25xkdOt8SIxeE&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fcallback&response_type=id_token&scope=openid&nonce=${ephemeralKeyPair.nonce}`;
   console.log(`${link}\n`);
 
   console.log("1. Open the link above");
@@ -48,26 +47,28 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
+    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter:\n\n", {
       hideEchoBack: false,
     });
     return jwt;
   }
 
   const jwt = inputJwt();
+
+  const bob = Account.generate();
+
   // Derive the Keyless Account from the JWT and ephemeral key pair.
   const alice = await aptos.deriveKeylessAccount({
     jwt,
-    ephemeralKeyPair: aliceEphem,
+    ephemeralKeyPair,
+    jwkAddress: bob.accountAddress,
   });
 
-  console.log("=== Addresses ===\n");
+  console.log("\n=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
-  console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
-
-  const bob = Account.generate();
-  console.log(`Bob's address is: ${bob.accountAddress}`);
+  console.log(`Alice's nonce is: ${ephemeralKeyPair.nonce}`);
+  console.log(`Alice's ephem pubkey is: ${ephemeralKeyPair.getPublicKey().toString()}`);
+  console.log(`\nBob's account address is: ${bob.accountAddress}`);
 
   // Fund the accounts
   console.log("\n=== Funding accounts ===\n");
@@ -75,6 +76,7 @@ const example = async () => {
   await aptos.fundAccount({
     accountAddress: alice.accountAddress,
     amount: ALICE_INITIAL_BALANCE,
+    options: { waitForIndexer: false },
   });
   await aptos.fundAccount({
     accountAddress: bob.accountAddress,
@@ -87,6 +89,14 @@ const example = async () => {
   const aliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const bobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
+  const iss = "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/";
+
+  console.log("\n=== Installing JWKs ===\n");
+  const jwkTxn = await aptos.updateFederatedKeylessJwkSetTransaction({ sender: bob, iss });
+  const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: bob, transaction: jwkTxn });
+  await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+  console.log(`Committed transaction: ${committedJwkTxn.hash}`);
+
   // Transfer between users
   const transaction = await aptos.transferCoinTransaction({
     sender: alice.accountAddress,
@@ -94,17 +104,18 @@ const example = async () => {
     amount: TRANSFER_AMOUNT,
   });
 
+  console.log("\n=== Transferring ===\n");
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  console.log(`\nCommitted transaction:\nhttps://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=${network}`);
+  console.log(`Committed transaction: ${committedTxn.hash}`);
 
   console.log("\n=== Balances after transfer ===\n");
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);
   const newBobBalance = await balance(aptos, "Bob", bob.accountAddress);
 
-  // Bob should have the transfer amount
-  if (TRANSFER_AMOUNT !== newBobBalance - bobBalance) throw new Error("Bob's balance after transfer is incorrect");
+  // Bob should have the transfer amount minus gas to insert jwk
+  if (TRANSFER_AMOUNT <= newBobBalance - bobBalance) throw new Error("Bob's balance after transfer is incorrect");
 
   // Alice should have the remainder minus gas
   if (TRANSFER_AMOUNT >= aliceBalance - newAliceBalance) throw new Error("Alice's balance after transfer is incorrect");

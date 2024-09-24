@@ -6,6 +6,7 @@ export * from "./hdKey";
 export * from "./multiEd25519";
 export * from "./multiKey";
 export * from "./ephemeral";
+export * from "./federatedKeyless";
 export * from "./keyless";
 export * from "./privateKey";
 export * from "./publicKey";

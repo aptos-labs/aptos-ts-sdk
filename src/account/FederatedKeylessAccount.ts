@@ -3,24 +3,31 @@
 
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { HexInput } from "../types";
-import { AccountAddress } from "../core/accountAddress";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { ZeroKnowledgeSig } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon";
 
 /**
- * Account implementation for the Keyless authentication scheme.
+ * Account implementation for the FederatedKeyless authentication scheme.
  *
- * Used to represent a Keyless based account and sign transactions with it.
+ * Used to represent a FederatedKeyless based account and sign transactions with it.
  *
- * Use KeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
+ * Use FederatedKeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof, EphemeralKeyPair and the
+ * address the JWKs are installed that will be used to verify the JWT.
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
-export class KeylessAccount extends KeylessAccountCommon {
+export class FederatedKeylessAccount extends KeylessAccountCommon {
+  /**
+   * The FederatedKeylessPublicKey associated with the account
+   */
+  readonly publicKey: FederatedKeylessPublicKey;
+
   // Use the static constructor 'create' instead.
   private constructor(args: {
     address?: AccountAddress;
@@ -30,41 +37,46 @@ export class KeylessAccount extends KeylessAccountCommon {
     uidVal: string;
     aud: string;
     pepper: HexInput;
+    jwkAddress: AccountAddress;
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
     super(args);
+    this.publicKey = FederatedKeylessPublicKey.create(args);
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.jwt);
-    serializer.serializeStr(this.uidKey);
-    serializer.serializeFixedBytes(this.pepper);
-    this.ephemeralKeyPair.serialize(serializer);
     if (this.proof === undefined) {
       throw new Error("Connot serialize - proof undefined");
     }
+    serializer.serializeStr(this.jwt);
+    serializer.serializeStr(this.uidKey);
+    serializer.serializeFixedBytes(this.pepper);
+    this.publicKey.jwkAddress.serialize(serializer);
+    this.ephemeralKeyPair.serialize(serializer);
     this.proof.serialize(serializer);
   }
 
-  static deserialize(deserializer: Deserializer): KeylessAccount {
+  static deserialize(deserializer: Deserializer): FederatedKeylessAccount {
     const jwt = deserializer.deserializeStr();
     const uidKey = deserializer.deserializeStr();
     const pepper = deserializer.deserializeFixedBytes(31);
+    const jwkAddress = AccountAddress.deserialize(deserializer);
     const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
     const proof = ZeroKnowledgeSig.deserialize(deserializer);
-    return KeylessAccount.create({
+    return FederatedKeylessAccount.create({
       proof,
       pepper,
+      jwkAddress,
       uidKey,
       jwt,
       ephemeralKeyPair,
     });
   }
 
-  static fromBytes(bytes: Uint8Array): KeylessAccount {
-    return KeylessAccount.deserialize(new Deserializer(bytes));
+  static fromBytes(bytes: Uint8Array): FederatedKeylessAccount {
+    return FederatedKeylessAccount.deserialize(new Deserializer(bytes));
   }
 
   static create(args: {
@@ -73,10 +85,11 @@ export class KeylessAccount extends KeylessAccountCommon {
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
     pepper: HexInput;
+    jwkAddress: AccountAddressInput;
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
-  }): KeylessAccount {
-    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
+  }): FederatedKeylessAccount {
+    const { address, proof, jwt, ephemeralKeyPair, pepper, jwkAddress, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
     const iss = jwtPayload.iss!;
@@ -85,7 +98,7 @@ export class KeylessAccount extends KeylessAccountCommon {
     }
     const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
-    return new KeylessAccount({
+    return new FederatedKeylessAccount({
       address,
       proof,
       ephemeralKeyPair,
@@ -94,6 +107,7 @@ export class KeylessAccount extends KeylessAccountCommon {
       uidVal,
       aud,
       pepper,
+      jwkAddress: AccountAddress.from(jwkAddress),
       jwt,
       proofFetchCallback,
     });
