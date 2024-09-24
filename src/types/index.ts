@@ -6,6 +6,9 @@ import { OrderBy, TokenStandard } from "./indexer";
 
 export * from "./indexer";
 
+/**
+ * Different MIME types used for data interchange in transactions and responses.
+ */
 export enum MimeType {
   /**
    * JSON representation, used for transaction submission and accept type JSON output
@@ -23,12 +26,12 @@ export enum MimeType {
 }
 
 /**
- * Hex data as input to a function
+ * Hexadecimal data input for functions, supporting both string and Uint8Array formats.
  */
 export type HexInput = string | Uint8Array;
 
 /**
- * TypeTag enum as they are represented in Rust
+ * Variants of type tags used in the system, encompassing various data types and structures.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
  */
 export enum TypeTagVariants {
@@ -48,7 +51,7 @@ export enum TypeTagVariants {
 }
 
 /**
- * Script transaction arguments enum as they are represented in Rust
+ * Variants of script transaction arguments used in Rust, encompassing various data types for transaction processing.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/transaction_argument.rs#L11}
  */
 export enum ScriptTransactionArgumentVariants {
@@ -65,7 +68,7 @@ export enum ScriptTransactionArgumentVariants {
 }
 
 /**
- * Transaction payload enum as they are represented in Rust
+ * The payload for various transaction types in the system.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L478}
  */
 export enum TransactionPayloadVariants {
@@ -75,7 +78,7 @@ export enum TransactionPayloadVariants {
 }
 
 /**
- * Transaction variants enum as they are represented in Rust
+ * Variants of transactions used in the system.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/mod.rs#L440}
  */
 export enum TransactionVariants {
@@ -84,7 +87,7 @@ export enum TransactionVariants {
 }
 
 /**
- * Transaction Authenticator enum as they are represented in Rust
+ * Variants of transaction authenticators used in the system.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs#L44}
  */
 export enum TransactionAuthenticatorVariant {
@@ -96,7 +99,7 @@ export enum TransactionAuthenticatorVariant {
 }
 
 /**
- * Transaction Authenticator enum as they are represented in Rust
+ * Variants of account authenticators used in transactions.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs#L414}
  */
 export enum AccountAuthenticatorVariant {
@@ -106,30 +109,48 @@ export enum AccountAuthenticatorVariant {
   MultiKey = 3,
 }
 
+/**
+ * Variants of public keys used in cryptographic operations.
+ */
 export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
   Keyless = 3,
 }
 
+/**
+ * Variants of signature types used for cryptographic operations.
+ */
 export enum AnySignatureVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
   Keyless = 3,
 }
 
+/**
+ * Variants of ephemeral public keys used in cryptographic operations.
+ */
 export enum EphemeralPublicKeyVariant {
   Ed25519 = 0,
 }
 
+/**
+ * Variants of ephemeral signatures used for secure communication.
+ */
 export enum EphemeralSignatureVariant {
   Ed25519 = 0,
 }
 
+/**
+ * Variants of ephemeral certificates used in secure transactions.
+ */
 export enum EphemeralCertificateVariant {
   ZkProof = 0,
 }
 
+/**
+ * Variants of zero-knowledge proofs used in cryptographic operations.
+ */
 export enum ZkpVariant {
   Groth16 = 0,
 }
@@ -138,17 +159,39 @@ export enum ZkpVariant {
  * BCS types
  */
 export type Uint8 = number;
+
+/**
+ * A 16-bit unsigned integer.
+ */
 export type Uint16 = number;
+
+/**
+ * A 32-bit unsigned integer.
+ */
 export type Uint32 = number;
+
+/**
+ * A 64-bit unsigned integer value.
+ */
 export type Uint64 = bigint;
+
+/**
+ * A 128-bit unsigned integer used for precise arithmetic operations.
+ */
 export type Uint128 = bigint;
+
+/**
+ * A 256-bit unsigned integer used for precise numerical calculations.
+ */
 export type Uint256 = bigint;
+
+/**
+ * A number or a bigint value.
+ */
 export type AnyNumber = number | bigint;
 
 /**
- * Set of configuration options that can be provided when initializing the SDK.
- * The purpose of these options is to configure various aspects of the SDK's
- * behavior and interaction with the Aptos network
+ * Configuration options for initializing the SDK, allowing customization of its behavior and interaction with the Aptos network.
  */
 export type AptosSettings = {
   readonly network?: Network;
@@ -175,16 +218,20 @@ export type AptosSettings = {
 };
 
 /**
- *
- * Controls the number of results that are returned and the starting position of those results.
- * @param offset parameter specifies the starting position of the query result within the set of data. Default is 0.
- * @param limit specifies the maximum number of items or records to return in a query result. Default is 25.
+ * Defines the parameters for paginating query results, including the starting position and maximum number of items to return.
+ * @param offset Specifies the starting position of the query result. Default is 0.
+ * @param limit Specifies the maximum number of items to return. Default is 25.
  */
 export interface PaginationArgs {
   offset?: AnyNumber;
   limit?: number;
 }
 
+/**  
+ * Represents the arguments for specifying a token standard.  
+ *  
+ * @param tokenStandard - Optional standard of the token.  
+ */
 export interface TokenStandardArg {
   tokenStandard?: TokenStandard;
 }
@@ -202,11 +249,7 @@ export interface WhereArg<T extends {}> {
  */
 
 /**
- * A configuration object we can pass with the request to the server.
- *
- * @param API_KEY - api key generated from developer portal {@link https://developers.aptoslabs.com/manage/api-keys}}
- * @param HEADERS - extra headers we want to send with the request
- * @param WITH_CREDENTIALS - whether to carry cookies. By default, it is set to true and cookies will be sent
+ * A configuration object for requests to the server, including API key, extra headers, and cookie handling options.
  */
 export type ClientConfig = ClientHeadersType & {
   WITH_CREDENTIALS?: boolean;
@@ -214,36 +257,35 @@ export type ClientConfig = ClientHeadersType & {
 };
 
 /**
- * A Fullnode only configuration object
- *
- * @param HEADERS - extra headers we want to send with the request
+ * A configuration object for a Fullnode, allowing for the inclusion of extra headers in requests.
  */
 export type FullNodeConfig = ClientHeadersType;
 
 /**
- * An Indexer only configuration object
- *
- * @param HEADERS - extra headers we want to send with the request
+ * An Indexer configuration object for sending requests with additional headers.
  */
 export type IndexerConfig = ClientHeadersType;
 
 /**
- * A Faucet only configuration object
- *
- * @param HEADERS - extra headers we want to send with the request
- * @param AUTH_TOKEN - an auth token to send with a faucet request
+ * A configuration object for a faucet, including optional authentication and headers for requests.
  */
 export type FaucetConfig = ClientHeadersType & {
   AUTH_TOKEN?: string;
 };
 
 /**
- * General type definition for client HEADERS
+ * General type definition for client headers.
  */
 export type ClientHeadersType = {
   HEADERS?: Record<string, string | number | boolean>;
 };
 
+/**
+ * Represents a client for making requests to a service provider.
+ *
+ * @param Req - The type of the request payload.
+ * @param Res - The type of the response payload.
+ */
 export interface ClientRequest<Req> {
   url: string;
   method: "GET" | "POST";
@@ -266,6 +308,21 @@ export interface ClientResponse<Res> {
 }
 
 export interface Client {
+
+  /**
+   * Sends a request to the specified URL with the given options.
+   * 
+   * @param requestOptions - The options for the request.
+   * @param requestOptions.url - The URL to send the request to.
+   * @param requestOptions.method - The HTTP method to use, either "GET" or "POST".
+   * @param requestOptions.path - An optional path to append to the URL.
+   * @param requestOptions.body - The body of the request, applicable for POST requests.
+   * @param requestOptions.contentType - The content type of the request body.
+   * @param requestOptions.acceptType - The expected content type of the response.
+   * @param requestOptions.params - Optional parameters to include in the request.
+   * @param requestOptions.originMethod - An optional method to specify the origin of the request.
+   * @param requestOptions.overrides - Optional configuration overrides for the request.
+   */
   provider<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>>;
 }
 
@@ -295,7 +352,7 @@ export type AptosRequest = {
 };
 
 /**
- * Specifies ledger version of transactions. By default latest version will be used
+ * The ledger version of transactions, defaulting to the latest version if not specified.
  */
 export type LedgerVersionArg = {
   ledgerVersion?: AnyNumber;
@@ -306,7 +363,7 @@ export type LedgerVersionArg = {
  */
 
 /**
- * Type holding the outputs of the estimate gas API
+ * The output of the estimate gas API, including the deprioritized estimate for the gas unit price.
  */
 export type GasEstimation = {
   /**
@@ -328,11 +385,17 @@ export type MoveResource<T = {}> = {
   data: T;
 };
 
+/**
+ * The data associated with an account, including its sequence number.
+ */
 export type AccountData = {
   sequence_number: string;
   authentication_key: string;
 };
 
+/**
+ * A Move module containing an address.
+ */
 export type MoveModuleBytecode = {
   bytecode: string;
   abi?: MoveModule;
@@ -342,6 +405,9 @@ export type MoveModuleBytecode = {
  * TRANSACTION TYPES
  */
 
+/**
+ * Different types of transaction responses that can occur in the system.
+ */
 export enum TransactionResponseType {
   Pending = "pending_transaction",
   User = "user_transaction",
@@ -352,7 +418,14 @@ export enum TransactionResponseType {
   BlockEpilogue = "block_epilogue_transaction",
 }
 
+/**
+ * The response for a transaction, which can be either pending or committed.
+ */
 export type TransactionResponse = PendingTransactionResponse | CommittedTransactionResponse;
+
+/**
+ * The response for a committed transaction, which can be one of several transaction types.
+ */
 export type CommittedTransactionResponse =
   | UserTransactionResponse
   | GenesisTransactionResponse
@@ -361,42 +434,87 @@ export type CommittedTransactionResponse =
   | ValidatorTransactionResponse
   | BlockEpilogueTransactionResponse;
 
+/**
+ * Determine if the given transaction response is currently pending.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the transaction is pending.
+ */
 export function isPendingTransactionResponse(response: TransactionResponse): response is PendingTransactionResponse {
   return response.type === TransactionResponseType.Pending;
 }
 
+/**
+ * Determines if the given transaction response is a user transaction.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the transaction is of type User.
+ */
 export function isUserTransactionResponse(response: TransactionResponse): response is UserTransactionResponse {
   return response.type === TransactionResponseType.User;
 }
 
+/**
+ * Determines if the given transaction response is a Genesis transaction.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the transaction is a Genesis transaction.
+ */
 export function isGenesisTransactionResponse(response: TransactionResponse): response is GenesisTransactionResponse {
   return response.type === TransactionResponseType.Genesis;
 }
 
+/**
+ * Determine if the given transaction response is of type BlockMetadata.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the response is a BlockMetadata transaction.
+ */
 export function isBlockMetadataTransactionResponse(
   response: TransactionResponse,
 ): response is BlockMetadataTransactionResponse {
   return response.type === TransactionResponseType.BlockMetadata;
 }
 
+/**
+ * Determines if the provided transaction response is a state checkpoint transaction.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the transaction response is of type StateCheckpoint.
+ */
 export function isStateCheckpointTransactionResponse(
   response: TransactionResponse,
 ): response is StateCheckpointTransactionResponse {
   return response.type === TransactionResponseType.StateCheckpoint;
 }
 
+/**
+ * Determine if the given transaction response is of type Validator.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the transaction response is a Validator type.
+ */
 export function isValidatorTransactionResponse(
   response: TransactionResponse,
 ): response is ValidatorTransactionResponse {
   return response.type === TransactionResponseType.Validator;
 }
 
+/**
+ * Determines if the given transaction response is of the type Block Epilogue.
+ * 
+ * @param response - The transaction response to evaluate.
+ * @returns A boolean indicating whether the response is a Block Epilogue transaction.
+ */
 export function isBlockEpilogueTransactionResponse(
   response: TransactionResponse,
 ): response is BlockEpilogueTransactionResponse {
   return response.type === TransactionResponseType.BlockEpilogue;
 }
 
+/**
+ * The response for a pending transaction, indicating that the transaction is still being processed.
+ */
 export type PendingTransactionResponse = {
   type: TransactionResponseType.Pending;
   hash: string;
@@ -409,6 +527,9 @@ export type PendingTransactionResponse = {
   signature?: TransactionSignature;
 };
 
+/**
+ * The response structure for a user transaction.
+ */
 export type UserTransactionResponse = {
   type: TransactionResponseType.User;
   version: string;
@@ -444,6 +565,9 @@ export type UserTransactionResponse = {
   timestamp: string;
 };
 
+/**
+ * The response for a genesis transaction, indicating the type of transaction.
+ */
 export type GenesisTransactionResponse = {
   type: TransactionResponseType.Genesis;
   version: string;
@@ -472,6 +596,9 @@ export type GenesisTransactionResponse = {
   events: Array<Event>;
 };
 
+/**
+ * The structure representing a blockchain block with its height.
+ */
 export type BlockMetadataTransactionResponse = {
   type: TransactionResponseType.BlockMetadata;
   version: string;
@@ -512,6 +639,9 @@ export type BlockMetadataTransactionResponse = {
   timestamp: string;
 };
 
+/**
+ * The response for a state checkpoint transaction, indicating the type of transaction.
+ */
 export type StateCheckpointTransactionResponse = {
   type: TransactionResponseType.StateCheckpoint;
   version: string;
@@ -536,6 +666,9 @@ export type StateCheckpointTransactionResponse = {
   timestamp: string;
 };
 
+/**
+ * The response for a validator transaction, indicating the type of transaction.
+ */
 export type ValidatorTransactionResponse = {
   type: TransactionResponseType.Validator;
   version: string;
@@ -565,7 +698,7 @@ export type ValidatorTransactionResponse = {
 };
 
 /**
- * BlockEndInfo describes the gas state of the block
+ * Describes the gas state of the block, indicating whether the block gas limit has been reached.
  */
 export type BlockEndInfo = {
   block_gas_limit_reached: boolean;
@@ -575,8 +708,7 @@ export type BlockEndInfo = {
 };
 
 /**
- * BlockEpilogueTransactionResponse is a transaction that is executed at the end of a block keeping track of data from
- * the whole block
+ * A transaction executed at the end of a block that tracks data from the entire block.
  */
 export type BlockEpilogueTransactionResponse = {
   type: TransactionResponseType.BlockEpilogue;
@@ -607,6 +739,9 @@ export type BlockEpilogueTransactionResponse = {
  * WRITESET CHANGE TYPES
  */
 
+/**
+ * A union type that encompasses both script and direct write sets for data operations.
+ */
 export type WriteSetChange =
   | WriteSetChangeDeleteModule
   | WriteSetChangeDeleteResource
@@ -615,6 +750,9 @@ export type WriteSetChange =
   | WriteSetChangeWriteResource
   | WriteSetChangeWriteTableItem;
 
+/**
+ * The structure for a module deletion change in a write set.
+ */
 export type WriteSetChangeDeleteModule = {
   type: string;
   address: string;
@@ -625,6 +763,9 @@ export type WriteSetChangeDeleteModule = {
   module: MoveModuleId;
 };
 
+/**
+ * The payload for a resource deletion in a write set change.
+ */
 export type WriteSetChangeDeleteResource = {
   type: string;
   address: string;
@@ -632,6 +773,9 @@ export type WriteSetChangeDeleteResource = {
   resource: string;
 };
 
+/**
+ * The payload for a write set change that deletes a table item.
+ */
 export type WriteSetChangeDeleteTableItem = {
   type: string;
   state_key_hash: string;
@@ -640,6 +784,9 @@ export type WriteSetChangeDeleteTableItem = {
   data?: DeletedTableData;
 };
 
+/**
+ * The structure for a write module change in a write set.
+ */
 export type WriteSetChangeWriteModule = {
   type: string;
   address: string;
@@ -647,6 +794,9 @@ export type WriteSetChangeWriteModule = {
   data: MoveModuleBytecode;
 };
 
+/**
+ * The resource associated with a write set change, identified by its type.
+ */
 export type WriteSetChangeWriteResource = {
   type: string;
   address: string;
@@ -654,6 +804,9 @@ export type WriteSetChangeWriteResource = {
   data: MoveResource;
 };
 
+/**
+ * The structure for a write operation on a table in a write set change.
+ */
 export type WriteSetChangeWriteTableItem = {
   type: string;
   state_key_hash: string;
@@ -663,6 +816,9 @@ export type WriteSetChangeWriteTableItem = {
   data?: DecodedTableData;
 };
 
+/**
+ * The decoded data for a table, including its key in JSON format.
+ */
 export type DecodedTableData = {
   /**
    * Key of table in JSON
@@ -683,7 +839,7 @@ export type DecodedTableData = {
 };
 
 /**
- * Deleted table data
+ * Data for a deleted table entry.
  */
 export type DeletedTableData = {
   /**
@@ -696,8 +852,14 @@ export type DeletedTableData = {
   key_type: string;
 };
 
+/**
+ * The payload for a transaction response, which can be an entry function, script, or multisig payload.
+ */
 export type TransactionPayloadResponse = EntryFunctionPayloadResponse | ScriptPayloadResponse | MultisigPayloadResponse;
 
+/**
+ * The response payload for an entry function, containing the type of the entry.
+ */
 export type EntryFunctionPayloadResponse = {
   type: string;
   function: MoveFunctionId;
@@ -711,6 +873,9 @@ export type EntryFunctionPayloadResponse = {
   arguments: Array<any>;
 };
 
+/**
+ * The payload for a script response, containing the type of the script.
+ */
 export type ScriptPayloadResponse = {
   type: string;
   code: MoveScriptBytecode;
@@ -724,19 +889,25 @@ export type ScriptPayloadResponse = {
   arguments: Array<any>;
 };
 
+/**
+ * The response payload for a multisig transaction, containing the type of the transaction.
+ */
 export type MultisigPayloadResponse = {
   type: string;
   multisig_address: string;
   transaction_payload?: EntryFunctionPayloadResponse;
 };
 
+/**
+ * The payload for the genesis block containing the type of the payload.
+ */
 export type GenesisPayload = {
   type: string;
   write_set: WriteSet;
 };
 
 /**
- * Move script bytecode
+ * The bytecode for a Move script.
  */
 export type MoveScriptBytecode = {
   bytecode: string;
@@ -744,7 +915,7 @@ export type MoveScriptBytecode = {
 };
 
 /**
- * These are the JSON representations of transaction signatures returned from the node API.
+ * JSON representations of transaction signatures returned from the node API.
  */
 export type TransactionSignature =
   | TransactionEd25519Signature
@@ -753,40 +924,81 @@ export type TransactionSignature =
   | TransactionMultiAgentSignature
   | TransactionFeePayerSignature;
 
+/**
+ * Determine if the provided signature is an Ed25519 signature.
+ * This function checks for the presence of the "signature" property 
+ * and verifies that its value is "ed25519_signature".
+ * 
+ * @param signature - The transaction signature to be checked.
+ * @returns A boolean indicating whether the signature is an Ed25519 signature.
+ */
 export function isEd25519Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
   return "signature" in signature && signature.signature === "ed25519_signature";
 }
 
+/**
+ * Determine if the provided signature is a valid secp256k1 ECDSA signature.
+ * 
+ * @param signature - The transaction signature to validate.
+ * @returns A boolean indicating whether the signature is a secp256k1 ECDSA signature.
+ */
 export function isSecp256k1Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
   return "signature" in signature && signature.signature === "secp256k1_ecdsa_signature";
 }
 
+/**
+ * Determine if the provided transaction signature is a multi-agent signature.
+ * 
+ * @param signature - The transaction signature to evaluate.
+ * @returns A boolean indicating whether the signature is a multi-agent signature.
+ */
 export function isMultiAgentSignature(signature: TransactionSignature): signature is TransactionMultiAgentSignature {
   return signature.type === "multi_agent_signature";
 }
 
+/**
+ * Determine if the provided signature is a fee payer signature.
+ * 
+ * @param signature - The transaction signature to evaluate.
+ * @returns A boolean indicating whether the signature is a fee payer signature.
+ */
 export function isFeePayerSignature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
   return signature.type === "fee_payer_signature";
 }
 
+/**
+ * Determine if the provided signature is of type "multi_ed25519_signature".
+ * 
+ * @param signature - The transaction signature to check.
+ * @returns A boolean indicating whether the signature is a multi-ed25519 signature.
+ */
 export function isMultiEd25519Signature(
   signature: TransactionSignature,
 ): signature is TransactionMultiEd25519Signature {
   return signature.type === "multi_ed25519_signature";
 }
 
+/**
+ * The signature for a transaction using the Ed25519 algorithm.
+ */
 export type TransactionEd25519Signature = {
   type: string;
   public_key: string;
   signature: "ed25519_signature";
 };
 
+/**
+ * The structure for a Secp256k1 signature in a transaction.
+ */
 export type TransactionSecp256k1Signature = {
   type: string;
   public_key: string;
   signature: "secp256k1_ecdsa_signature";
 };
 
+/**
+ * The structure for a multi-signature transaction using Ed25519.
+ */
 export type TransactionMultiEd25519Signature = {
   type: "multi_ed25519_signature";
   /**
@@ -804,6 +1016,9 @@ export type TransactionMultiEd25519Signature = {
   bitmap: string;
 };
 
+/**
+ * The structure for a multi-agent signature in a transaction.
+ */
 export type TransactionMultiAgentSignature = {
   type: "multi_agent_signature";
   sender: AccountSignature;
@@ -817,6 +1032,9 @@ export type TransactionMultiAgentSignature = {
   secondary_signers: Array<AccountSignature>;
 };
 
+/**
+ * The signature of the fee payer in a transaction.
+ */
 export type TransactionFeePayerSignature = {
   type: "fee_payer_signature";
   sender: AccountSignature;
@@ -833,7 +1051,7 @@ export type TransactionFeePayerSignature = {
 };
 
 /**
- * The union of all single account signatures.
+ * The union of all single account signatures, including Ed25519, Secp256k1, and MultiEd25519 signatures.
  */
 export type AccountSignature =
   | TransactionEd25519Signature
@@ -842,18 +1060,31 @@ export type AccountSignature =
 
 export type WriteSet = ScriptWriteSet | DirectWriteSet;
 
+/**
+ * The set of properties for writing scripts, including the type of script.
+ */
 export type ScriptWriteSet = {
   type: string;
   execute_as: string;
   script: ScriptPayloadResponse;
 };
 
+/**
+ * The set of direct write operations, identified by a type string.
+ */
 export type DirectWriteSet = {
   type: string;
   changes: Array<WriteSetChange>;
   events: Array<Event>;
 };
 
+/**
+ * The structure for an event's unique identifier, including its creation number.
+ */
+
+/**
+ * The structure for an event, identified by a unique GUID.
+ */
 export type EventGuid = {
   creation_number: string;
   account_address: string;
@@ -870,28 +1101,66 @@ export type Event = {
 };
 
 /**
- * Map of Move types to local TypeScript types
+ * A number representing a Move uint8 type.
  */
 export type MoveUint8Type = number;
-export type MoveUint16Type = number;
-export type MoveUint32Type = number;
-export type MoveUint64Type = string;
-export type MoveUint128Type = string;
-export type MoveUint256Type = string;
-export type MoveAddressType = string;
-export type MoveObjectType = string;
-export type MoveOptionType = MoveType | null | undefined;
+
 /**
- * This is the format for a fully qualified struct, resource, or entry function in Move.
+ * A 16-bit unsigned integer used in the Move programming language.
+ */
+export type MoveUint16Type = number;
+
+/**
+ * A 32-bit unsigned integer type used in Move programming.
+ */
+export type MoveUint32Type = number;
+
+/**
+ * A string representation of a 64-bit unsigned integer used in Move programming.
+ */
+export type MoveUint64Type = string;
+
+/**
+ * A string representing a 128-bit unsigned integer in the Move programming language.
+ */
+export type MoveUint128Type = string;
+
+/**
+ * A string representation of a 256-bit unsigned integer used in Move programming.
+ */
+export type MoveUint256Type = string;
+
+/**
+ * A string representing a Move address.
+ */
+export type MoveAddressType = string;
+
+/**
+ * The type for identifying objects to be moved within the system.
+ */
+export type MoveObjectType = string;
+
+/**
+ * The type for move options, which can be a MoveType, null, or undefined.
+ */
+export type MoveOptionType = MoveType | null | undefined;
+
+/**
+ * A structure representing a move with a name.
  */
 export type MoveStructId = `${string}::${string}::${string}`;
-// These are the same, unfortunately, it reads really strangely to take a StructId for a Function and there wasn't a
-// good middle ground name.
+
+/**
+ * The move function containing its name. Same as MoveStructId since it reads weird to take a StructId for a Function.
+ */
 export type MoveFunctionId = MoveStructId;
 
 // TODO: Add support for looking up ABI to add proper typing
 export type MoveStructType = {};
 
+/**
+ * A union type that encompasses various data types used in Move, including primitive types, address types, object types, and arrays of MoveType.
+ */
 export type MoveType =
   | boolean
   | string
@@ -945,13 +1214,13 @@ export type MoveValue =
   | Array<MoveValue>;
 
 /**
- * Move module id is a string representation of Move module.
- * Module name is case-sensitive.
+ * A string representation of a Move module, formatted as `module_name::function_name`. 
+ * Module names are case-sensitive.
  */
 export type MoveModuleId = `${string}::${string}`;
 
 /**
- * Move function visibility
+ * Specifies the visibility levels for move functions, controlling access permissions.
  */
 export enum MoveFunctionVisibility {
   PRIVATE = "private",
@@ -960,7 +1229,7 @@ export enum MoveFunctionVisibility {
 }
 
 /**
- * Move function ability
+ * Abilities related to moving items within the system.
  */
 export enum MoveAbility {
   STORE = "store",
@@ -970,14 +1239,14 @@ export enum MoveAbility {
 }
 
 /**
- * Move abilities tied to the generic type param and associated with the function that uses it
+ * Move abilities associated with the generic type parameter of a function.
  */
 export type MoveFunctionGenericTypeParam = {
   constraints: Array<MoveAbility>;
 };
 
 /**
- * Move struct field
+ * A field in a Move struct, identified by its name.
  */
 export type MoveStructField = {
   name: string;
@@ -1055,11 +1324,17 @@ export type MoveFunction = {
   return: Array<string>;
 };
 
+/**
+ * Roles that can be assigned within the system, indicating different levels of access and functionality.
+ */
 export enum RoleType {
   VALIDATOR = "validator",
   FULL_NODE = "full_node",
 }
 
+/**
+ * Information about the current blockchain ledger, including its chain ID.
+ */
 export type LedgerInfo = {
   /**
    * Chain ID of the current chain
@@ -1097,7 +1372,7 @@ export type Block = {
 // REQUEST TYPES
 
 /**
- * Table Item request for the GetTableItem API
+ * The request payload for the GetTableItem API.
  */
 export type TableItemRequest = {
   key_type: MoveValue;
@@ -1109,12 +1384,13 @@ export type TableItemRequest = {
 };
 
 /**
- * A list of Authentication Key schemes that are supported by Aptos.
- *
- * They are combinations of signing schemes and derive schemes.
+ * A list of supported Authentication Key schemes in Aptos, consisting of combinations of signing schemes and derive schemes.
  */
 export type AuthenticationKeyScheme = SigningScheme | DeriveScheme;
 
+/**
+ * Different schemes for signing keys used in cryptographic operations.
+ */
 export enum SigningScheme {
   /**
    * For Ed25519PublicKey
@@ -1132,6 +1408,9 @@ export enum SigningScheme {
   MultiKey = 3,
 }
 
+/**
+ * Specifies the signing schemes available for cryptographic operations.
+ */
 export enum SigningSchemeInput {
   /**
    * For Ed25519PublicKey
@@ -1144,7 +1423,7 @@ export enum SigningSchemeInput {
 }
 
 /**
- * Scheme used for deriving account addresses from other data
+ * Specifies the schemes for deriving account addresses from various data sources.
  */
 export enum DeriveScheme {
   /**
@@ -1170,7 +1449,7 @@ export enum DeriveScheme {
 }
 
 /**
- * Option properties to pass for waitForTransaction() function
+ * Options for configuring the behavior of the waitForTransaction() function.
  */
 export type WaitForTransactionOptions = {
   timeoutSecs?: number;
@@ -1180,8 +1459,7 @@ export type WaitForTransactionOptions = {
 };
 
 /**
- * Input type to generate an account using Single Signer
- * Ed25519 or Legacy Ed25519
+ * Input type to generate an account using the Ed25519 signing scheme.
  */
 export type GenerateAccountWithEd25519 = {
   scheme: SigningSchemeInput.Ed25519;
@@ -1189,8 +1467,7 @@ export type GenerateAccountWithEd25519 = {
 };
 
 /**
- * Input type to generate an account using Single Signer
- * Secp256k1
+ * Input type to generate an account with a Single Signer using Secp256k1.
  */
 export type GenerateAccountWithSingleSignerSecp256k1Key = {
   scheme: SigningSchemeInput.Secp256k1Ecdsa;
