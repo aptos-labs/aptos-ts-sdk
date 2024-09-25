@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { mod } from "@noble/curves/abstract/modular";
-import { bytesToNumberLE, ensureBytes } from "@noble/curves/abstract/utils";
-import { randomBytes } from "@noble/hashes/utils";
+import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { HexInput } from "../../types";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { ed25519GenRandom, ed25519modN } from "./utils";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -41,7 +40,7 @@ export class TwistedElGamal {
    * @param amount amount for encryption
    * @param random random 32 bytes
    */
-  public encrypt(amount: bigint, random?: Uint8Array): TwistedElGamalCiphertext {
+  public encrypt(amount: bigint, random?: bigint): TwistedElGamalCiphertext {
     return TwistedElGamal.encryptWithPK(amount, this.privateKey.publicKey(), random);
   }
 
@@ -60,16 +59,17 @@ export class TwistedElGamal {
    *
    * @param amount amount for encryption
    * @param publicKey Twisted ElGamal Ed25519 public key.
-   * @param random random 32 bytes
+   * @param random Random number less than ed25519.CURVE.n (bigint)
    */
-  static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: Uint8Array) {
+  static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: bigint) {
     if (amount < 0n && amount >= ed25519.CURVE.n)
       throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
 
-    const rBytes = ensureBytes("Random bytes", random ?? randomBytes(32), 32);
+    if (random !== undefined && (random < 0n && random > ed25519.CURVE.n))
+      throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
 
     const m = amount;
-    const r = mod(bytesToNumberLE(rBytes), ed25519.CURVE.n);
+    const r = random ?? ed25519GenRandom();
     const rH = H_RISTRETTO.multiply(r);
     const mG = m === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(m);
 
@@ -105,7 +105,7 @@ export class TwistedElGamal {
     decryptionRange?: DecryptionRange,
   ): bigint {
     const { C, D } = ciphertext;
-    const modS = mod(bytesToNumberLE(privateKey.toUint8Array()), ed25519.CURVE.n);
+    const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
     const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
 

@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { invert } from "@noble/curves/abstract/modular";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
+import { ed25519InvertN } from "./utils";
 
 export { RistrettoPoint } from "@noble/curves/ed25519";
 export type RistPoint = InstanceType<typeof RistrettoPoint>;
@@ -195,7 +195,7 @@ export class TwistedEd25519PrivateKey extends Serializable {
    */
   publicKey(): TwistedEd25519PublicKey {
     const scalarLE = bytesToNumberLE(this.key.toUint8Array());
-    const invertModScalarLE = invert(scalarLE, ed25519.CURVE.n);
+    const invertModScalarLE = ed25519InvertN(scalarLE);
     const key = H_RISTRETTO.multiply(invertModScalarLE).toRawBytes();
 
     return new TwistedEd25519PublicKey(key);

@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ensureBytes } from "@noble/curves/abstract/utils";
-import { randomBytes } from "@noble/hashes/utils";
+import { numberToBytesLE } from "@noble/curves/abstract/utils";
+import { ed25519 } from "@noble/curves/ed25519";
 import { H_RISTRETTO, RistrettoPoint } from "../twistedEd25519";
 import { TwistedElGamal } from "../twistedElGamal";
 import {
@@ -18,6 +18,7 @@ import {
 
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
 import { toTwistedEd25519PrivateKey } from "./helpers";
+import { ed25519GenRandom } from "../utils";
 
 export interface VeiledWithdrawProofs {
   sigma: Uint8Array;
@@ -75,20 +76,20 @@ export async function genProofsVeiledWithdraw(opts: ProofsVeiledWithdrawOptions)
  * @param opts.random Random 32 bytes (Uint8Array)
  */
 export async function genProofsVeiledTransfer(opts: ProofsVeiledTransferOptions): Promise<VeiledTransferProofs> {
-  const rBytes = ensureBytes("Random bytes", opts.random ?? randomBytes(32), 32);
+  if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
+    throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
+
+  const random = opts.random ?? ed25519GenRandom();
   const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
 
-  const { D: amountD } = TwistedElGamal.encryptWithPK(opts.amount, senderPrivateKey.publicKey(), rBytes);
+  const { D: amountD } = TwistedElGamal.encryptWithPK(opts.amount, senderPrivateKey.publicKey(), random);
 
-  const sigmaProof = genSigmaProofVeiledTransfer({
-    ...opts,
-    random: rBytes,
-  });
+  const sigmaProof = genSigmaProofVeiledTransfer(opts);
 
   const [rangeProofAmount, rangeProofNewBalance] = await Promise.all([
     generateRangeZKP({
       v: opts.amount,
-      r: rBytes,
+      r: numberToBytesLE(random, 32),
       valBase: RistrettoPoint.BASE.toRawBytes(),
       randBase: H_RISTRETTO.toRawBytes(),
     }),

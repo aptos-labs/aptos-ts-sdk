@@ -15,13 +15,22 @@ import {
   verifySigmaProofVeiledKeyRotation,
   RistrettoPoint,
 } from "@aptos-labs/ts-sdk";
-import { mod } from "@noble/curves/abstract/modular";
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
 import { bytesToHex, randomBytes } from "@noble/hashes/utils";
 
 const BALANCE = BigInt(70);
 const AMOUNT = BigInt(50);
+
+function ed25519GenRandom(): bigint {
+  let rand: bigint;
+  do {
+    rand = bytesToNumberBE(randomBytes(32))
+  } while (rand >= ed25519.CURVE.n)
+
+  return rand;
+}
+
 
 const example = async () => {
   console.log("Creating a key pairs Twisted ElGamal");
@@ -73,8 +82,8 @@ const example = async () => {
   // Start transfer prof
 
   console.log("\n\n=== Veiled transfer proofs ===");
-  const random = randomBytes(32);
-  console.log(`Randomness to encrypt the amount: ${bytesToHex(random)}\n`);
+  const random = ed25519GenRandom();
+  console.log(`Randomness to encrypt the amount: ${random}\n`);
 
   const amountCiphertext = twistedElGamalAliceInstance.encrypt(AMOUNT, random);
   console.log("The amount encrypted by Alice");
@@ -97,9 +106,8 @@ const example = async () => {
   console.log("Range Proof for new balance:");
   console.log(bytesToHex(transferProofs.rangeNewBalance), "\n");
 
-  const rAmount = mod(bytesToNumberLE(random), ed25519.CURVE.n);
   const receiverPKRistretto = RistrettoPoint.fromHex(privateKeyBob.publicKey().toUint8Array());
-  const receiverDa = receiverPKRistretto.multiply(rAmount).toRawBytes();
+  const receiverDa = receiverPKRistretto.multiply(random).toRawBytes();
   console.log("The recipient's public key multiplied by the randomness used to encrypt the amount being sent:");
   console.log(bytesToHex(receiverDa), "\n");
 
@@ -121,7 +129,7 @@ const example = async () => {
     privateKeyAuditor1.publicKey().toStringWithoutPrefix(),
     privateKeyAuditor2.publicKey().toStringWithoutPrefix(),
   ];
-  const auditorDecryptionKeys = auditorPublicKeys.map((key) => RistrettoPoint.fromHex(key).multiply(rAmount).toHex());
+  const auditorDecryptionKeys = auditorPublicKeys.map((key) => RistrettoPoint.fromHex(key).multiply(random).toHex());
 
   const transferProofsWithAuditors = await genProofsVeiledTransfer({
     senderPrivateKey: privateKeyAlice,
@@ -168,8 +176,8 @@ const example = async () => {
   console.log(`New Private key: ${privateKeyAlice.toString()}`);
   console.log(`New Public key: ${privateKeyAlice.publicKey().toString()}\n`);
 
-  const random2 = randomBytes(32);
-  console.log(`Randomness to encrypt the balance: ${bytesToHex(random2)}\n`);
+  const random2 = ed25519GenRandom();
+  console.log(`Randomness to encrypt the balance: ${random2}\n`);
   const newEncryptedBalance = TwistedElGamal.encryptWithPK(BALANCE, newPrivateKeyAlice.publicKey(), random2);
   console.log("Balance encrypted with new public key (ciphertext)");
   console.log(`Point C: ${newEncryptedBalance.C.toString()}`);
