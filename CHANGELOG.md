@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Remove usage of Buffer.from and replace with TextEncoder for greater compatibility
+- Switch `getAccountCoinAmount` to use a `view` function for more up to date data
 
 # 1.28.0 (2024-09-19)
 
