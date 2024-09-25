@@ -159,8 +159,8 @@ export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawInputs
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
 export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs): SigmaProofVeiledTransferOutputs {
-  if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
-    throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
+  if (opts.random !== undefined && (opts.random < 0n && opts.random >= ed25519.CURVE.n))
+    throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
   const x1 = ed25519GenRandom();
   const x2 = ed25519GenRandom();
@@ -251,8 +251,8 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
 export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotationInputs): SigmaProofVeiledKeyRotationOutputs {
-  if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
-    throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
+  if (opts.random !== undefined && (opts.random < 0n && opts.random >= ed25519.CURVE.n))
+    throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
   const x1 = ed25519GenRandom();
   const x2 = ed25519GenRandom();

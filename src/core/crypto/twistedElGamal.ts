@@ -63,10 +63,10 @@ export class TwistedElGamal {
    */
   static encryptWithPK(amount: bigint, publicKey: TwistedEd25519PublicKey, random?: bigint) {
     if (amount < 0n && amount >= ed25519.CURVE.n)
-      throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
-
-    if (random !== undefined && (random < 0n && random > ed25519.CURVE.n))
-      throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
+      throw new Error(`The amount must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
+  
+    if (random !== undefined && (random < 0n && random >= ed25519.CURVE.n))
+      throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
     const m = amount;
     const r = random ?? ed25519GenRandom();
@@ -86,7 +86,7 @@ export class TwistedElGamal {
    */
   static encryptWithNoRandomness(amount: bigint) {
     if (amount < 0n && amount >= ed25519.CURVE.n)
-      throw new Error(`The amount must be in the range 0 to ${ed25519.CURVE.n}`);
+      throw new Error(`The amount must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
     const C = amount === BigInt(0) ? RistrettoPoint.ZERO : RistrettoPoint.BASE.multiply(amount);
 
@@ -118,7 +118,7 @@ export class TwistedElGamal {
     }
 
     let searchablePoint = RistrettoPoint.BASE.multiply(amount);
-    const endAmount = decryptionRange?.end ?? ed25519.CURVE.n;
+    const endAmount = decryptionRange?.end ?? (ed25519.CURVE.n - 1n);
 
     while (!mG.equals(searchablePoint)) {
       if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");

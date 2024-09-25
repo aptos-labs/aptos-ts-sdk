@@ -57,14 +57,14 @@ const example = async () => {
 
   const rangeProofCommitment = ciphertextAlice.C.subtract(RistrettoPoint.BASE.multiply(AMOUNT));
 
-  const isWithdrawProofsValid = await verifyProofVeiledWithdraw({
+  const isWithdrawProofValid = await verifyProofVeiledWithdraw({
     publicKey: privateKeyAlice.publicKey(),
     encryptedBalance: ciphertextAlice,
     amount: AMOUNT,
     proof: withdrawProof,
     rangeProofCommitment: rangeProofCommitment.toRawBytes(),
   });
-  console.log("Is veiled withdraw proof valid:", isWithdrawProofsValid);
+  console.log("Is veiled withdraw proof valid:", isWithdrawProofValid);
 
   // End withdraw prof
   // Start transfer prof
@@ -86,7 +86,7 @@ const example = async () => {
   console.log("Range Proof for new balance:");
   console.log(bytesToHex(transferProofOutput.proof.rangeNewBalance), "\n");
 
-  const isTransferProofsValid = await verifyProofVeiledTransfer({
+  const isTransferProofValid = await verifyProofVeiledTransfer({
     senderPublicKey: privateKeyAlice.publicKey(),
     recipientPublicKey: privateKeyBob.publicKey(),
     encryptedSenderBalance: ciphertextAlice,
@@ -95,7 +95,7 @@ const example = async () => {
     proof: transferProofOutput.proof,
   });
 
-  console.log("Is veiled transfer proof valid:", isTransferProofsValid);
+  console.log("Is veiled transfer proof valid:", isTransferProofValid);
 
   const privateKeyAuditor1 = TwistedEd25519PrivateKey.generate();
   const privateKeyAuditor2 = TwistedEd25519PrivateKey.generate();
@@ -105,7 +105,7 @@ const example = async () => {
     privateKeyAuditor2.publicKey(),
   ];
 
-  const transferProofsWithAuditorsOutputs = await genProofVeiledTransfer({
+  const transferProofWithAuditorsOutputs = await genProofVeiledTransfer({
     senderPrivateKey: privateKeyAlice,
     recipientPublicKey: privateKeyBob.publicKey(),
     encryptedSenderBalance: ciphertextAlice,
@@ -115,26 +115,26 @@ const example = async () => {
   });
   console.log("\n=== Generated transfer proof with auditors ===");
   console.log("Sigma Proof:");
-  console.log(bytesToHex(transferProofsWithAuditorsOutputs.proof.sigma), "\n");
+  console.log(bytesToHex(transferProofWithAuditorsOutputs.proof.sigma), "\n");
   console.log("Range Proof for amount:");
-  console.log(bytesToHex(transferProofsWithAuditorsOutputs.proof.rangeAmount), "\n");
+  console.log(bytesToHex(transferProofWithAuditorsOutputs.proof.rangeAmount), "\n");
   console.log("Range Proof for new balance:");
-  console.log(bytesToHex(transferProofsWithAuditorsOutputs.proof.rangeNewBalance), "\n");
+  console.log(bytesToHex(transferProofWithAuditorsOutputs.proof.rangeNewBalance), "\n");
 
   try {
-    const isTransferProofsWithAuditorsValid = await verifyProofVeiledTransfer({
+    const isTransferProofWithAuditorsValid = await verifyProofVeiledTransfer({
       senderPublicKey: privateKeyAlice.publicKey(),
       recipientPublicKey: privateKeyBob.publicKey(),
       encryptedSenderBalance: ciphertextAlice,
-      encryptedAmountBySender: transferProofsWithAuditorsOutputs.encryptedAmountBySender,
-      maskedRecipientPublicKey: transferProofsWithAuditorsOutputs.maskedRecipientPublicKey,
-      proof: transferProofsWithAuditorsOutputs.proof,
+      encryptedAmountBySender: transferProofWithAuditorsOutputs.encryptedAmountBySender,
+      maskedRecipientPublicKey: transferProofWithAuditorsOutputs.maskedRecipientPublicKey,
+      proof: transferProofWithAuditorsOutputs.proof,
       auditors: {
         publicKeys: auditorPublicKeys,
-        decryptionKeys: transferProofsWithAuditorsOutputs.maskedAuditorsPublicKeys,
+        decryptionKeys: transferProofWithAuditorsOutputs.maskedAuditorsPublicKeys,
       },
     });
-    console.log("Is veiled transfer proof with auditors valid:", isTransferProofsWithAuditorsValid);
+    console.log("Is veiled transfer proof with auditors valid:", isTransferProofWithAuditorsValid);
   } catch (e) {
     console.log(e);
   }
