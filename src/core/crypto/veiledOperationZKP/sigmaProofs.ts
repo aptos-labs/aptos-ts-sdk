@@ -19,23 +19,23 @@ import { HexInput } from "../../../types";
 import { publicKeyToU8, toTwistedEd25519PrivateKey } from "./helpers";
 import { ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
 
-export interface SigmaProofVeiledWithdrawOptions {
+export interface SigmaProofVeiledWithdrawInputs {
   privateKey: TwistedEd25519PrivateKey | HexInput;
   encryptedBalance: TwistedElGamalCiphertext;
   amount: bigint;
   changedBalance: bigint;
 }
 
-export interface VerifySigmaProofVeiledWithdrawOptions {
+export interface VerifySigmaProofVeiledWithdrawInputs {
   publicKey: TwistedEd25519PublicKey | HexInput;
   encryptedBalance: TwistedElGamalCiphertext;
   amount: bigint;
   proof: Uint8Array;
 }
 
-export interface SigmaProofVeiledTransferOptions {
+export interface SigmaProofVeiledTransferInputs {
   senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
-  receiverPublicKey: TwistedEd25519PublicKey | HexInput;
+  recipientPublicKey: TwistedEd25519PublicKey | HexInput;
   encryptedSenderBalance: TwistedElGamalCiphertext;
   amount: bigint;
   changedSenderBalance: bigint;
@@ -43,12 +43,19 @@ export interface SigmaProofVeiledTransferOptions {
   auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
 }
 
-export interface VerifySigmaProofVeiledTransferOptions {
+export interface SigmaProofVeiledTransferOutputs {
+  proof: Uint8Array;
+  encryptedAmountBySender: TwistedElGamalCiphertext;
+  maskedRecipientPublicKey: Uint8Array;
+  maskedAuditorsPublicKeys: Uint8Array[];
+}
+
+export interface VerifySigmaProofVeiledTransferInputs {
   senderPublicKey: TwistedEd25519PublicKey | HexInput;
-  receiverPublicKey: TwistedEd25519PublicKey | HexInput;
+  recipientPublicKey: TwistedEd25519PublicKey | HexInput;
   encryptedSenderBalance: TwistedElGamalCiphertext;
   encryptedAmountBySender: TwistedElGamalCiphertext;
-  receiverDa: string | Uint8Array;
+  maskedRecipientPublicKey: string | Uint8Array;
   proof: Uint8Array;
   auditors?: {
     publicKeys: (TwistedEd25519PublicKey | HexInput)[];
@@ -56,7 +63,7 @@ export interface VerifySigmaProofVeiledTransferOptions {
   };
 }
 
-export interface SigmaProofVeiledKeyRotationOptions {
+export interface SigmaProofVeiledKeyRotationInputs {
   oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
   newPrivateKey: TwistedEd25519PrivateKey | HexInput;
   balance: bigint;
@@ -64,7 +71,12 @@ export interface SigmaProofVeiledKeyRotationOptions {
   random?: bigint;
 }
 
-export interface VerifySigmaProofVeiledKeyRotationOptions {
+export interface SigmaProofVeiledKeyRotationOutputs {
+  proof: Uint8Array;
+  encryptedBalanceByNewPublicKey: TwistedElGamalCiphertext;
+}
+
+export interface VerifySigmaProofVeiledKeyRotationInputs {
   oldPublicKey: TwistedEd25519PublicKey;
   newPublicKey: TwistedEd25519PublicKey;
   oldEncryptedBalance: TwistedElGamalCiphertext;
@@ -93,7 +105,7 @@ function genFiatShamirChallenge(...arrays: Uint8Array[]): bigint {
  * @param opts.amount Amount of withdraw
  * @param opts.changedBalance Balance after withdraw
  */
-export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawOptions): Uint8Array {
+export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawInputs): Uint8Array {
   const privateKey = toTwistedEd25519PrivateKey(opts.privateKey);
 
   const x1 = ed25519GenRandom();
@@ -139,13 +151,14 @@ export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawOption
  * Generate Sigma Zero Knowledge Proof for transfer between veiled balances
  *
  * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
- * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
+ * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of transfer
  * @param opts.changedSenderBalance Balance after transfer
+ * @param opts.auditorPublicKeys The list of auditors's public keys (Twisted ElGamal Ed25519).
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
-export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOptions): Uint8Array {
+export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs): SigmaProofVeiledTransferOutputs {
   if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
     throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
 
@@ -158,37 +171,34 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOption
   const random = opts.random ?? ed25519GenRandom();
 
   const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
-  const receiverPublicKeyU8 = publicKeyToU8(opts.receiverPublicKey);
+  const recipientPublicKeyU8 = publicKeyToU8(opts.recipientPublicKey);
   const senderPublicKey = senderPrivateKey.publicKey();
   const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKey.toUint8Array());
-  const receiverPKRistretto = RistrettoPoint.fromHex(receiverPublicKeyU8);
-  const receiverDRistretto = receiverPKRistretto.multiply(random);
+  const recipientPKRistretto = RistrettoPoint.fromHex(recipientPublicKeyU8);
+  const recipientDRistretto = recipientPKRistretto.multiply(random);
 
   const amountCiphertext = TwistedElGamal.encryptWithPK(opts.amount, senderPublicKey, random);
 
-  const auditorsX =
-    opts.auditorPublicKeys?.map((pk) => {
-      const publicKeyU8 = publicKeyToU8(pk);
-      return RistrettoPoint.fromHex(publicKeyU8).multiply(x3).toRawBytes();
-    }) ?? [];
+  const auditorsU8PublicKeys = opts.auditorPublicKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
+  const auditorsX = auditorsU8PublicKeys.map((pk) => RistrettoPoint.fromHex(pk).multiply(x3).toRawBytes());
 
   const X1 = RistrettoPoint.BASE.multiply(x1).add(
     opts.encryptedSenderBalance.D.subtract(amountCiphertext.D).multiply(x2),
   );
   const X2 = senderPKRistretto.multiply(x3);
-  const X3 = receiverPKRistretto.multiply(x3);
+  const X3 = recipientPKRistretto.multiply(x3);
   const X4 = RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3));
   const X5 = H_RISTRETTO.multiply(x5);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
     senderPublicKey.toUint8Array(),
-    receiverPublicKeyU8,
+    recipientPublicKeyU8,
     opts.encryptedSenderBalance.C.toRawBytes(),
     opts.encryptedSenderBalance.D.toRawBytes(),
     amountCiphertext.C.toRawBytes(),
     amountCiphertext.D.toRawBytes(),
-    receiverDRistretto.toRawBytes(),
+    recipientDRistretto.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
     X1.toRawBytes(),
@@ -208,7 +218,7 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOption
   const alpha4 = ed25519modN(x4 - p * opts.amount);
   const alpha5 = ed25519modN(x5 - p * invertSLE);
 
-  return serializeSigmaProofVeiledTransfer({
+  const proof = serializeSigmaProofVeiledTransfer({
     alpha1: numberToBytesLE(alpha1, 32),
     alpha2: numberToBytesLE(alpha2, 32),
     alpha3: numberToBytesLE(alpha3, 32),
@@ -220,7 +230,15 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOption
     X4: X4.toRawBytes(),
     X5: X5.toRawBytes(),
     auditorsX,
-  });
+  })
+
+  const maskedAuditorsPublicKeys = auditorsU8PublicKeys.map((pk) => RistrettoPoint.fromHex(pk).multiply(random).toRawBytes())
+  return {
+    proof,
+    maskedAuditorsPublicKeys,
+    encryptedAmountBySender: amountCiphertext,
+    maskedRecipientPublicKey: recipientDRistretto.toRawBytes(),
+  };
 }
 
 /**
@@ -232,7 +250,7 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferOption
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
-export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotationOptions): Uint8Array {
+export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotationInputs): SigmaProofVeiledKeyRotationOutputs {
   if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
     throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
 
@@ -281,7 +299,7 @@ export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotation
   const alpha4 = ed25519modN(x4 - p * random);
   const alpha5 = ed25519modN(x5 - p * invertOldSLE);
 
-  return serializeSigmaProofVeiledKeyRotation({
+  const proof = serializeSigmaProofVeiledKeyRotation({
     alpha1: numberToBytesLE(alpha1, 32),
     alpha2: numberToBytesLE(alpha2, 32),
     alpha3: numberToBytesLE(alpha3, 32),
@@ -292,6 +310,11 @@ export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotation
     X3: X3.toRawBytes(),
     X4: X4.toRawBytes(),
   });
+
+  return {
+    proof,
+    encryptedBalanceByNewPublicKey: newCiphertext,
+  }
 }
 
 /**
@@ -302,7 +325,7 @@ export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotation
  * @param opts.amount Amount of withdraw
  * @param opts.proof Sigma Zero Knowledge Proof for veiled withdraw
  */
-export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithdrawOptions): boolean {
+export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithdrawInputs): boolean {
   const proof = deserializeSigmaProofVeiledWithdraw(opts.proof);
   const publicKeyU8 = publicKeyToU8(opts.publicKey);
 
@@ -339,15 +362,15 @@ export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithd
  * Verify Sigma Zero Knowledge Proof of veiled transfer
  *
  * @param opts.senderPublicKey Sender public key (Twisted ElGamal Ed25519).
- * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
+ * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Encrypted sender balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.encryptedAmountBySender Amount of transfer encrypted by sender using Twisted ElGamal
- * @param opts.receiverDa The recipient's public key multiplied by the randomness used to encrypt the amount being sent
+ * @param opts.maskedRecipientPublicKey The recipient's public key multiplied by the randomness used to encrypt the amount being sent
  * @param opts.proof Sigma Zero Knowledge Proof for veiled transfer
  * @param opts.auditors.auditorPKs The list of auditors's public keys (Twisted ElGamal Ed25519).
- * @param opts.auditors.auditorDecryptionKeys The list of corresponding auditors' decryption keys
+ * @param opts.auditors.auditorDecryptionKeys The list of corresponding auditor's decryption keys
  */
-export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTransferOptions): boolean {
+export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTransferInputs): boolean {
   const proof = deserializeSigmaProofVeiledTransfer(opts.proof);
   const auditorsX = proof.auditorsX ?? [];
   const auditorPKs = opts.auditors?.publicKeys ?? [];
@@ -357,7 +380,7 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
     throw new Error("The number of auditors does not match the proof handed over.");
   }
 
-  const receiverDRistretto = RistrettoPoint.fromHex(opts.receiverDa);
+  const recipientDRistretto = RistrettoPoint.fromHex(opts.maskedRecipientPublicKey);
 
   const alpha1LE = bytesToNumberLE(proof.alpha1);
   const alpha2LE = bytesToNumberLE(proof.alpha2);
@@ -366,19 +389,19 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
   const alpha5LE = bytesToNumberLE(proof.alpha5);
 
   const senderPublicKeyU8 = publicKeyToU8(opts.senderPublicKey);
-  const receiverPublicKeyU8 = publicKeyToU8(opts.receiverPublicKey);
+  const recipientPublicKeyU8 = publicKeyToU8(opts.recipientPublicKey);
   const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKeyU8);
-  const receiverPKRistretto = RistrettoPoint.fromHex(receiverPublicKeyU8);
+  const recipientPKRistretto = RistrettoPoint.fromHex(recipientPublicKeyU8);
 
   const p = genFiatShamirChallenge(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
     senderPublicKeyU8,
-    receiverPublicKeyU8,
+    recipientPublicKeyU8,
     opts.encryptedSenderBalance.C.toRawBytes(),
     opts.encryptedSenderBalance.D.toRawBytes(),
     opts.encryptedAmountBySender.C.toRawBytes(),
     opts.encryptedAmountBySender.D.toRawBytes(),
-    receiverDRistretto.toRawBytes(),
+    recipientDRistretto.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
     proof.X1,
@@ -395,7 +418,7 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
 
   const X1 = alpha1G.add(alpha2Db).add(pCb);
   const X2 = senderPKRistretto.multiply(alpha3LE).add(opts.encryptedAmountBySender.D.multiply(p));
-  const X3 = receiverPKRistretto.multiply(alpha3LE).add(receiverDRistretto.multiply(p));
+  const X3 = recipientPKRistretto.multiply(alpha3LE).add(recipientDRistretto.multiply(p));
   const X4 = RistrettoPoint.BASE.multiply(alpha4LE)
     .add(H_RISTRETTO.multiply(alpha3LE))
     .add(opts.encryptedAmountBySender.C.multiply(p));
@@ -429,7 +452,7 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
  * @param opts.newEncryptedBalance Balance encrypted with new public key (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.proof Sigma Zero Knowledge Proof for veiled balance key rotation
  */
-export function verifySigmaProofVeiledKeyRotation(opts: VerifySigmaProofVeiledKeyRotationOptions): boolean {
+export function verifySigmaProofVeiledKeyRotation(opts: VerifySigmaProofVeiledKeyRotationInputs): boolean {
   const proof = deserializeSigmaProofVeiledKeyRotation(opts.proof);
 
   const alpha1LE = bytesToNumberLE(proof.alpha1);

@@ -4,52 +4,57 @@
 import { numberToBytesLE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
 import { H_RISTRETTO, RistrettoPoint } from "../twistedEd25519";
-import { TwistedElGamal } from "../twistedElGamal";
 import {
   genSigmaProofVeiledTransfer,
   genSigmaProofVeiledWithdraw,
-  SigmaProofVeiledTransferOptions,
-  SigmaProofVeiledWithdrawOptions,
+  SigmaProofVeiledTransferInputs,
+  SigmaProofVeiledTransferOutputs,
+  SigmaProofVeiledWithdrawInputs,
   verifySigmaProofVeiledTransfer,
-  VerifySigmaProofVeiledTransferOptions,
+  VerifySigmaProofVeiledTransferInputs,
   verifySigmaProofVeiledWithdraw,
-  VerifySigmaProofVeiledWithdrawOptions,
+  VerifySigmaProofVeiledWithdrawInputs,
 } from "./sigmaProofs";
 
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
 import { toTwistedEd25519PrivateKey } from "./helpers";
 import { ed25519GenRandom } from "../utils";
 
-export interface VeiledWithdrawProofs {
+export interface VeiledWithdrawProof {
   sigma: Uint8Array;
   range: Uint8Array;
 }
-export interface VeiledTransferProofs {
+export interface VeiledTransferProof {
   sigma: Uint8Array;
   rangeAmount: Uint8Array;
   rangeNewBalance: Uint8Array;
 }
 
-export type ProofsVeiledWithdrawOptions = SigmaProofVeiledWithdrawOptions;
-export type ProofsVeiledTransferOptions = SigmaProofVeiledTransferOptions;
+export type ProofVeiledWithdrawInputs = SigmaProofVeiledWithdrawInputs;
+export type ProofVeiledTransferInputs = SigmaProofVeiledTransferInputs;
 
-export interface VerifyProofsVeiledWithdrawOptions extends Omit<VerifySigmaProofVeiledWithdrawOptions, "proof"> {
-  proofs: VeiledWithdrawProofs;
+export interface VeiledTransferProofOutputs extends Omit<SigmaProofVeiledTransferOutputs, "proof"> {
+  proof: VeiledTransferProof;
+}
+
+export interface VerifyProofVeiledWithdrawInputs extends Omit<VerifySigmaProofVeiledWithdrawInputs, "proof"> {
+  proof: VeiledWithdrawProof;
   rangeProofCommitment: Uint8Array;
 }
-export interface VerifyProofsVeiledTransferOptions extends Omit<VerifySigmaProofVeiledTransferOptions, "proof"> {
-  proofs: VeiledTransferProofs;
+
+export interface VerifyProofVeiledTransferInputs extends Omit<VerifySigmaProofVeiledTransferInputs, "proof"> {
+  proof: VeiledTransferProof;
 }
 
 /**
- * Generates sigma and range Zero Knowledge Proofs for withdraw from the veiled balance
+ * Generates sigma and range Zero Knowledge Proof for withdraw from the veiled balance
  *
  * @param opts.privateKey Twisted ElGamal Ed25519 private key.
  * @param opts.encryptedBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of withdraw
  * @param opts.changedBalance Balance after withdraw
  */
-export async function genProofsVeiledWithdraw(opts: ProofsVeiledWithdrawOptions): Promise<VeiledWithdrawProofs> {
+export async function genProofVeiledWithdraw(opts: ProofVeiledWithdrawInputs): Promise<VeiledWithdrawProof> {
   const privateKey = toTwistedEd25519PrivateKey(opts.privateKey);
   const sigmaProof = genSigmaProofVeiledWithdraw(opts);
   const rangeProof = await generateRangeZKP({
@@ -66,25 +71,29 @@ export async function genProofsVeiledWithdraw(opts: ProofsVeiledWithdrawOptions)
 }
 
 /**
- * Generate sigma and range Zero Knowledge Proofs for transfer
+ * Generate sigma and range Zero Knowledge Proof for transfer
  *
  * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
- * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
+ * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of transfer
  * @param opts.changedSenderBalance Balance after transfer
+ * @param opts.auditorPublicKeys The list of auditors's public keys (Twisted ElGamal Ed25519).
  * @param opts.random Random 32 bytes (Uint8Array)
  */
-export async function genProofsVeiledTransfer(opts: ProofsVeiledTransferOptions): Promise<VeiledTransferProofs> {
+export async function genProofVeiledTransfer(opts: ProofVeiledTransferInputs): Promise<VeiledTransferProofOutputs> {
   if (opts.random !== undefined && (opts.random < 0n && opts.random > ed25519.CURVE.n))
     throw new Error(`The random must be in the range 0 to ${ed25519.CURVE.n - 1n}`);
 
   const random = opts.random ?? ed25519GenRandom();
   const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
 
-  const { D: amountD } = TwistedElGamal.encryptWithPK(opts.amount, senderPrivateKey.publicKey(), random);
-
-  const sigmaProof = genSigmaProofVeiledTransfer(opts);
+  const {
+    proof: sigmaProof,
+    encryptedAmountBySender,
+    maskedRecipientPublicKey,
+    maskedAuditorsPublicKeys,
+  } = genSigmaProofVeiledTransfer({ ...opts, random });
 
   const [rangeProofAmount, rangeProofNewBalance] = await Promise.all([
     generateRangeZKP({
@@ -97,36 +106,41 @@ export async function genProofsVeiledTransfer(opts: ProofsVeiledTransferOptions)
       v: opts.changedSenderBalance,
       r: senderPrivateKey.toUint8Array(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: opts.encryptedSenderBalance.D.subtract(amountD).toRawBytes(),
+      randBase: opts.encryptedSenderBalance.D.subtract(encryptedAmountBySender.D).toRawBytes(),
     }),
   ]);
 
   return {
-    sigma: sigmaProof,
-    rangeAmount: rangeProofAmount.proof,
-    rangeNewBalance: rangeProofNewBalance.proof,
+    proof: {
+      sigma: sigmaProof,
+      rangeAmount: rangeProofAmount.proof,
+      rangeNewBalance: rangeProofNewBalance.proof,
+    },
+    encryptedAmountBySender,
+    maskedRecipientPublicKey,
+    maskedAuditorsPublicKeys,
   };
 }
 
 /**
- * Verify sigma and range Zero Knowledge Proofs of withdraw from the veiled balance
+ * Verify sigma and range Zero Knowledge Proof of withdraw from the veiled balance
  *
  * @param opts.publicKey Twisted ElGamal Ed25519 public key.
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.amount Amount of withdraw
- * @param opts.proof.sigma Sigma Zero Knowledge Proof of veiled withdraw
- * @param opts.proof.range Range Zero Knowledge Proof of veiled withdraw
+ * @param opts.proof.sigma Sigma proof of veiled withdraw
+ * @param opts.proof.range Range proof of veiled withdraw
  */
-export async function verifyProofsVeiledWithdraw(opts: VerifyProofsVeiledWithdrawOptions): Promise<boolean> {
+export async function verifyProofVeiledWithdraw(opts: VerifyProofVeiledWithdrawInputs): Promise<boolean> {
   const isSigmaProofValid = verifySigmaProofVeiledWithdraw({
     publicKey: opts.publicKey,
     encryptedBalance: opts.encryptedBalance,
     amount: opts.amount,
-    proof: opts.proofs.sigma,
+    proof: opts.proof.sigma,
   });
 
   const isRangeProofValid = await verifyRangeZKP({
-    proof: opts.proofs.range,
+    proof: opts.proof.range,
     commitment: opts.rangeProofCommitment,
     valBase: RistrettoPoint.BASE.toRawBytes(),
     randBase: opts.encryptedBalance.D.toRawBytes(),
@@ -136,39 +150,41 @@ export async function verifyProofsVeiledWithdraw(opts: VerifyProofsVeiledWithdra
 }
 
 /**
- * Verify sigma and range Zero Knowledge Proofs of veiled transfer
+ * Verify sigma and range Zero Knowledge Proof of veiled transfer
  *
  * @param opts.senderPublicKey Sender public key (Twisted ElGamal Ed25519).
- * @param opts.receiverPublicKey Receiver public key (Twisted ElGamal Ed25519).
+ * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
  * @param opts.encryptedSenderBalance Encrypted sender balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.encryptedAmountBySender Amount of transfer encrypted by sender using Twisted ElGamal
- * @param opts.receiverDa The recipient's public key multiplied by the randomness used to encrypt the amount being sent
- * @param opts.proofs.sigma Sigma Zero Knowledge Proof for veiled transfer
- * @param opts.proofs.rangeAmount Range Zero Knowledge Proof of amount of transfer
- * @param opts.proofs.rangeNewBalance Range Zero Knowledge Proof of sender's new balance after transfer
+ * @param opts.maskedRecipientPublicKey The recipient's public key multiplied by the randomness used to encrypt the amount being sent
+ * @param opts.proof.sigma Sigma proof for veiled transfer
+ * @param opts.proof.rangeAmount Range proof of amount of transfer
+ * @param opts.proof.rangeNewBalance Range proof of sender's new balance after transfer
+ * @param opts.auditors.auditorPKs The list of auditors's public keys (Twisted ElGamal Ed25519).
+ * @param opts.auditors.auditorDecryptionKeys The list of corresponding auditor's decryption keys
  */
-export async function verifyProofsVeiledTransfer(opts: VerifyProofsVeiledTransferOptions): Promise<boolean> {
+export async function verifyProofVeiledTransfer(opts: VerifyProofVeiledTransferInputs): Promise<boolean> {
   const isSigmaProofValid = verifySigmaProofVeiledTransfer({
     senderPublicKey: opts.senderPublicKey,
-    receiverPublicKey: opts.receiverPublicKey,
+    recipientPublicKey: opts.recipientPublicKey,
     encryptedSenderBalance: opts.encryptedSenderBalance,
     encryptedAmountBySender: opts.encryptedAmountBySender,
-    receiverDa: opts.receiverDa,
+    maskedRecipientPublicKey: opts.maskedRecipientPublicKey,
     auditors: opts.auditors,
-    proof: opts.proofs.sigma,
+    proof: opts.proof.sigma,
   });
 
   const rangeProofNewBalanceCommitment = opts.encryptedSenderBalance.C.subtract(opts.encryptedAmountBySender.C);
 
   const [isRangeProofAmountValid, isRangeProofNewBalanceValid] = await Promise.all([
     verifyRangeZKP({
-      proof: opts.proofs.rangeAmount,
+      proof: opts.proof.rangeAmount,
       commitment: opts.encryptedAmountBySender.C.toRawBytes(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
       randBase: H_RISTRETTO.toRawBytes(),
     }),
     verifyRangeZKP({
-      proof: opts.proofs.rangeNewBalance,
+      proof: opts.proof.rangeNewBalance,
       commitment: rangeProofNewBalanceCommitment.toRawBytes(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
       randBase: opts.encryptedSenderBalance.D.subtract(opts.encryptedAmountBySender.D).toRawBytes(),

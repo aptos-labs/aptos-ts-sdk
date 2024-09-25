@@ -3,7 +3,7 @@
 
 import initWasm, { range_proof as rangeProof, verify_proof as verifyProof } from "@distributedlab/aptos-wasm-bindings";
 
-export interface RangeProofOptions {
+export interface RangeProofInputs {
   v: bigint;
   r: Uint8Array;
   valBase: Uint8Array;
@@ -11,7 +11,7 @@ export interface RangeProofOptions {
   bits?: number;
 }
 
-export interface VerifyRangeProofOptions {
+export interface VerifyRangeProofInputs {
   proof: Uint8Array;
   commitment: Uint8Array;
   valBase: Uint8Array;
@@ -30,7 +30,7 @@ const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindi
  * @param opts.randBase A vector of bytes representing the generator point for the randomness.
  * @param opts.bits Bits size of value to create the range proof
  */
-export async function generateRangeZKP(opts: RangeProofOptions) {
+export async function generateRangeZKP(opts: RangeProofInputs) {
   await initWasm(RANGE_PROOF_WASM_URL);
   const proof = rangeProof(opts.v, opts.r, opts.valBase, opts.randBase, opts.bits ?? 32);
 
@@ -49,7 +49,7 @@ export async function generateRangeZKP(opts: RangeProofOptions) {
  * @param opts.randBase A vector of bytes representing the generator point for the randomness.
  * @param opts.bits Bits size of the value for range proof
  */
-export async function verifyRangeZKP(opts: VerifyRangeProofOptions) {
+export async function verifyRangeZKP(opts: VerifyRangeProofInputs) {
   await initWasm(RANGE_PROOF_WASM_URL);
 
   return verifyProof(opts.proof, opts.commitment, opts.valBase, opts.randBase, opts.bits ?? 32);
