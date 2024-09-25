@@ -47,8 +47,8 @@ export function ed25519InvertN(a: bigint): bigint {
 export function ed25519GenRandom(): bigint {
   let rand: bigint;
   do {
-    rand = bytesToNumberBE(randomBytes(32))
-  } while (rand >= ed25519.CURVE.n)
+    rand = bytesToNumberBE(randomBytes(32));
+  } while (rand >= ed25519.CURVE.n);
 
   return rand;
 }

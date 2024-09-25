@@ -4,7 +4,6 @@
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { HexInput } from "../../../types";
 
-
 /*
  * Transform public keys to Uint8Array
  */

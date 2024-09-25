@@ -159,7 +159,7 @@ export function genSigmaProofVeiledWithdraw(opts: SigmaProofVeiledWithdrawInputs
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
 export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs): SigmaProofVeiledTransferOutputs {
-  if (opts.random !== undefined && (opts.random < 0n && opts.random >= ed25519.CURVE.n))
+  if (opts.random !== undefined && opts.random < 0n && opts.random >= ed25519.CURVE.n)
     throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
   const x1 = ed25519GenRandom();
@@ -230,9 +230,11 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
     X4: X4.toRawBytes(),
     X5: X5.toRawBytes(),
     auditorsX,
-  })
+  });
 
-  const maskedAuditorsPublicKeys = auditorsU8PublicKeys.map((pk) => RistrettoPoint.fromHex(pk).multiply(random).toRawBytes())
+  const maskedAuditorsPublicKeys = auditorsU8PublicKeys.map((pk) =>
+    RistrettoPoint.fromHex(pk).multiply(random).toRawBytes(),
+  );
   return {
     proof,
     maskedAuditorsPublicKeys,
@@ -250,8 +252,10 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
  * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
-export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotationInputs): SigmaProofVeiledKeyRotationOutputs {
-  if (opts.random !== undefined && (opts.random < 0n && opts.random >= ed25519.CURVE.n))
+export function genSigmaProofVeiledKeyRotation(
+  opts: SigmaProofVeiledKeyRotationInputs,
+): SigmaProofVeiledKeyRotationOutputs {
+  if (opts.random !== undefined && opts.random < 0n && opts.random >= ed25519.CURVE.n)
     throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
   const x1 = ed25519GenRandom();
@@ -314,7 +318,7 @@ export function genSigmaProofVeiledKeyRotation(opts: SigmaProofVeiledKeyRotation
   return {
     proof,
     encryptedBalanceByNewPublicKey: newCiphertext,
-  }
+  };
 }
 
 /**

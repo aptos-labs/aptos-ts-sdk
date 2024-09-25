@@ -82,7 +82,7 @@ export async function genProofVeiledWithdraw(opts: ProofVeiledWithdrawInputs): P
  * @param opts.random Random 32 bytes (Uint8Array)
  */
 export async function genProofVeiledTransfer(opts: ProofVeiledTransferInputs): Promise<VeiledTransferProofOutputs> {
-  if (opts.random !== undefined && (opts.random < 0n && opts.random >= ed25519.CURVE.n))
+  if (opts.random !== undefined && opts.random < 0n && opts.random >= ed25519.CURVE.n)
     throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
 
   const random = opts.random ?? ed25519GenRandom();

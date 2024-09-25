@@ -100,10 +100,7 @@ const example = async () => {
   const privateKeyAuditor1 = TwistedEd25519PrivateKey.generate();
   const privateKeyAuditor2 = TwistedEd25519PrivateKey.generate();
 
-  const auditorPublicKeys = [
-    privateKeyAuditor1.publicKey(),
-    privateKeyAuditor2.publicKey(),
-  ];
+  const auditorPublicKeys = [privateKeyAuditor1.publicKey(), privateKeyAuditor2.publicKey()];
 
   const transferProofWithAuditorsOutputs = await genProofVeiledTransfer({
     senderPrivateKey: privateKeyAlice,
