@@ -4,7 +4,6 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
-import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import {
   HexInput,
@@ -25,6 +24,8 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress } from "../accountAddress";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;

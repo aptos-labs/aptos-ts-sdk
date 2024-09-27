@@ -5,7 +5,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import { AptosApiError, AptosResponse } from "./types";
 import { VERSION } from "../version";
 import { AnyNumber, AptosRequest, Client, ClientRequest, ClientResponse, MimeType } from "../types";
-import { AptosApiType } from "../utils";
+import { AptosApiType } from "../utils/const";
 
 /**
  * Given a url and method, sends the request with axios and

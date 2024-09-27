@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountPublicKey, PublicKey } from "./publicKey";
-import { Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
+import { Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 
 /**
  * Represents the FederatedKeylessPublicKey public key
