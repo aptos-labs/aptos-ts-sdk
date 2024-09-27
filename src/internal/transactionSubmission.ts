@@ -33,9 +33,10 @@ import {
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
-import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
+import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
+import { TypeTagU8, TypeTagVector } from "../transactions/typeTag";
 
 /**
  * We are defining function signatures, each with its specific input and output.
