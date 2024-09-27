@@ -1,6 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { BatchArgument, get_wasm, initSync } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
   U64,
@@ -23,12 +24,14 @@ import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
+import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
 
 const { aptos } = getAptosClient();
 
 describe("transaction submission", () => {
   const contractPublisherAccount = Account.generate();
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+  const singleSignerAbstractionSenderAccount = AbstractedEd25519Account.generate();
   const legacyED25519SenderAccount = Account.generate();
   const receiverAccounts = [Account.generate(), Account.generate()];
   const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
