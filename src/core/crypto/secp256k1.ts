@@ -4,7 +4,6 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
-import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
@@ -12,6 +11,8 @@ import { PrivateKey } from "./privateKey";
 import { PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 
 /**
  * Represents a Secp256k1 ECDSA public key.
