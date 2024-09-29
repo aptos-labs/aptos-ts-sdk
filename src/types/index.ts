@@ -61,6 +61,7 @@ export enum ScriptTransactionArgumentVariants {
   U16 = 6,
   U32 = 7,
   U256 = 8,
+  Serialized = 9,
 }
 
 /**
@@ -109,6 +110,7 @@ export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
   Keyless = 3,
+  FederatedKeyless = 4,
 }
 
 export enum AnySignatureVariant {

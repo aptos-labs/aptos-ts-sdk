@@ -7,9 +7,11 @@
  * other namespaces and processes can access these methods without depending on the entire
  * keyless namespace and without having a dependency cycle error.
  */
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
 import { postAptosPepperService, postAptosProvingService } from "../client";
 import {
+  AccountAddressInput,
   EphemeralSignature,
   Groth16Zkp,
   Hex,
@@ -19,10 +21,14 @@ import {
   getKeylessConfig,
 } from "../core";
 import { HexInput, ZkpVariant } from "../types";
-import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
-import { nowInSeconds } from "../utils/helpers";
 import { lookupOriginalAccountAddress } from "./account";
+import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
+import { MoveVector } from "../bcs";
+import { generateTransaction } from "./transactionSubmission";
+import { SimpleTransaction } from "../transactions";
 
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -63,7 +69,7 @@ export async function getProof(args: {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - nowInSeconds()) {
+  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - jwtDecode<JwtPayload>(jwt).iat!) {
     throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
@@ -106,8 +112,28 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<KeylessAccount> {
-  const { aptosConfig, jwt, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+}): Promise<KeylessAccount>;
+
+export async function deriveKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
+}): Promise<FederatedKeylessAccount>;
+
+export async function deriveKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress?: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
+}): Promise<KeylessAccount | FederatedKeylessAccount> {
+  const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const proofPromise = getProof({ ...args, pepper });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
@@ -116,14 +142,62 @@ export async function deriveKeylessAccount(args: {
   // If no callback is provided, the just await the proof fetch and continue syncronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
-  // Look up the original address to handle key rotations
+  // Look up the original address to handle key rotations and then instantiate the account.
+  if (jwkAddress !== undefined) {
+    const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
+    const address = await lookupOriginalAccountAddress({
+      aptosConfig,
+      authenticationKey: publicKey.authKey().derivedAddress(),
+    });
+
+    return FederatedKeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, jwkAddress });
+  }
+
   const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
   const address = await lookupOriginalAccountAddress({
     aptosConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
+  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+}
 
-  const keylessAccount = KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+interface JWK {
+  kty: string; // Key type
+  kid: string; // Key ID
+  alg: string; // Algorithm used with the key
+  n: string; // Modulus (for RSA keys)
+  e: string; // Exponent (for RSA keys)
+}
 
-  return keylessAccount;
+interface JWKS {
+  keys: JWK[];
+}
+
+export async function updateFederatedKeylessJwkSetTransaction(args: {
+  aptosConfig: AptosConfig;
+  sender: Account;
+  iss: string;
+  jwksUrl?: string;
+}): Promise<SimpleTransaction> {
+  const { aptosConfig, sender, iss } = args;
+  const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
+  const response = await fetch(jwksUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+  }
+  const jwks: JWKS = await response.json();
+  return generateTransaction({
+    aptosConfig,
+    sender: sender.accountAddress,
+    data: {
+      function: "0x1::jwks::update_federated_jwk_set",
+      functionArguments: [
+        iss,
+        MoveVector.MoveString(jwks.keys.map((key) => key.kid)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.alg)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.e)),
+        MoveVector.MoveString(jwks.keys.map((key) => key.n)),
+      ],
+    },
+  });
 }

@@ -409,26 +409,27 @@ export async function getAccountCoinAmount(args: {
   faMetadataAddress?: AccountAddressInput;
 }): Promise<number> {
   const { aptosConfig, accountAddress, coinType, faMetadataAddress } = args;
-  let coinAssetType: string | undefined;
+
+  let coinAssetType: string | undefined = coinType;
   let faAddress: string;
 
   if (coinType !== undefined && faMetadataAddress !== undefined) {
     faAddress = AccountAddress.from(faMetadataAddress).toStringLong();
   } else if (coinType !== undefined && faMetadataAddress === undefined) {
-    coinAssetType = coinType;
     // TODO Move to a separate function as defined in the AIP for coin migration
-    if (args.coinType === APTOS_COIN) {
+    if (coinType === APTOS_COIN) {
       faAddress = AccountAddress.A.toStringLong();
     } else {
       faAddress = createObjectAddress(AccountAddress.A, coinType).toStringLong();
     }
   } else if (coinType === undefined && faMetadataAddress !== undefined) {
-    // TODO: add a view function lookup for non-APT migrated coins
     const addr = AccountAddress.from(faMetadataAddress);
     faAddress = addr.toStringLong();
     if (addr === AccountAddress.A) {
       coinAssetType = APTOS_COIN;
     }
+    // The paired CoinType should be populated outside of this function in another
+    // async call. We cannot do this internally due to dependency cycles issue.
   } else {
     throw new Error("Either coinType, fungibleAssetAddress, or both must be provided");
   }
@@ -436,7 +437,7 @@ export async function getAccountCoinAmount(args: {
 
   // Search by fungible asset address, unless it has a coin it migrated from
   let where: any = { asset_type: { _eq: faAddress } };
-  if (coinType !== undefined) {
+  if (coinAssetType !== undefined) {
     where = { asset_type: { _in: [coinAssetType, faAddress] } };
   }
 
