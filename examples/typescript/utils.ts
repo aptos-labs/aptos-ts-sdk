@@ -52,3 +52,14 @@ export function getPackageBytesToPublish(filePath: string) {
 
   return { metadataBytes, byteCode };
 }
+
+/**
+ * A convenience function to get a scripts byteCode
+ * @param filePath a path relative to the current working directory
+ */
+export function getMoveBytes(filePath: string) {
+  const cwd = process.cwd();
+  const modulePath = path.join(cwd, filePath);
+  const buffer = fs.readFileSync(modulePath);
+  return Uint8Array.from(buffer);
+}
