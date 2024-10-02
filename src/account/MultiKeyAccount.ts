@@ -7,7 +7,7 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-import { KeylessAccount } from "./KeylessAccount";
+import { KeylessAccountCommon } from "./KeylessAccountCommon";
 
 export interface VerifyMultiKeySignatureArgs {
   message: HexInput;
@@ -130,7 +130,7 @@ export class MultiKeyAccount implements Account {
    * @return
    */
   async waitForProofFetch() {
-    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
+    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccountCommon) as KeylessAccountCommon[];
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());
     await Promise.all(promises);
   }

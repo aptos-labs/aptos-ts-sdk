@@ -206,6 +206,24 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
   return signer.signTransactionWithAuthenticator(transaction);
 }
 
+export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  const { signer, transaction } = args;
+
+  // if transaction doesnt hold a "feePayerAddress" prop it means
+  // this is not a fee payer transaction
+  if (!transaction.feePayerAddress) {
+    throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
+  }
+
+  // Set the feePayerAddress to the signer account address
+  transaction.feePayerAddress = signer.accountAddress;
+
+  return signTransaction({
+    signer,
+    transaction,
+  });
+}
+
 /**
  * Simulates a transaction before singing it.
  *
@@ -273,18 +291,51 @@ export async function signAndSubmitTransaction(args: {
   aptosConfig: AptosConfig;
   signer: Account;
   transaction: AnyRawTransaction;
+  feePayerAuthenticator?: AccountAuthenticator;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, transaction } = args;
+  const { aptosConfig, signer, feePayerAuthenticator, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asyncronously.
   if (signer instanceof KeylessAccountCommon || signer instanceof MultiKeyAccount) {
     await signer.waitForProofFetch();
   }
-  const authenticator = signTransaction({ signer, transaction });
+  const senderAuthenticator = signTransaction({ signer, transaction });
   return submitTransaction({
     aptosConfig,
     transaction,
-    senderAuthenticator: authenticator,
+    senderAuthenticator,
+    feePayerAuthenticator,
+  });
+}
+export type SignerOrSignerAuthenticator = 
+| { signer: Account; signerAuthenticator?: never }
+| { signer?: never; signerAuthenticator: AccountAuthenticator }
+
+export async function signAndSubmitAsFeePayer(args: SignerOrSignerAuthenticator & {
+  aptosConfig: AptosConfig;
+  feePayer: Account;
+  transaction: AnyRawTransaction;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, signer, signerAuthenticator, feePayer, transaction } = args;
+
+  // If the signer contains a KeylessAccount, await proof fetching in case the proof
+  // was fetched asyncronously.
+  if (signer instanceof KeylessAccountCommon || signer instanceof MultiKeyAccount) {
+    await signer.waitForProofFetch();
+  }
+
+  if (feePayer instanceof KeylessAccountCommon || feePayer instanceof MultiKeyAccount) {
+    await feePayer.waitForProofFetch();
+  }
+
+  const senderAuthenticator = signerAuthenticator || signTransaction({ signer, transaction });
+  const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });
+
+  return submitTransaction({
+    aptosConfig,
+    transaction,
+    senderAuthenticator,
+    feePayerAuthenticator,
   });
 }
 
