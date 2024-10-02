@@ -346,13 +346,15 @@ export class Transaction {
    *
    * @return PendingTransactionResponse
    */
-  async signAndSubmitTransaction(args: FeePayerOrFeePayerAuthenticatorOrNeither & {
-    signer: Account;
-    transaction: AnyRawTransaction;
-  }): Promise<PendingTransactionResponse> {
+  async signAndSubmitTransaction(
+    args: FeePayerOrFeePayerAuthenticatorOrNeither & {
+      signer: Account;
+      transaction: AnyRawTransaction;
+    },
+  ): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
       aptosConfig: this.config,
-      ...args
+      ...args,
     });
   }
 
@@ -374,13 +376,11 @@ export class Transaction {
    *
    * @return PendingTransactionResponse
    */
-  async signAndSubmitAsFeePayer(
-    args: {
-      feePayer: Account;
-      senderAuthenticator: AccountAuthenticator;
-      transaction: AnyRawTransaction;
-    },
-  ): Promise<PendingTransactionResponse> {
+  async signAndSubmitAsFeePayer(args: {
+    feePayer: Account;
+    senderAuthenticator: AccountAuthenticator;
+    transaction: AnyRawTransaction;
+  }): Promise<PendingTransactionResponse> {
     return signAndSubmitAsFeePayer({
       aptosConfig: this.config,
       ...args,

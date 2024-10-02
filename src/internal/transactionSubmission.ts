@@ -286,16 +286,18 @@ export async function submitTransaction(
   });
   return data;
 }
-export type FeePayerOrFeePayerAuthenticatorOrNeither = 
-| { feePayer: Account; feePayerAuthenticator?: never }
-| { feePayer?: never; feePayerAuthenticator: AccountAuthenticator }
-| { feePayer?: never; feePayerAuthenticator?: never }
+export type FeePayerOrFeePayerAuthenticatorOrNeither =
+  | { feePayer: Account; feePayerAuthenticator?: never }
+  | { feePayer?: never; feePayerAuthenticator: AccountAuthenticator }
+  | { feePayer?: never; feePayerAuthenticator?: never };
 
-export async function signAndSubmitTransaction(args: FeePayerOrFeePayerAuthenticatorOrNeither & {
-  aptosConfig: AptosConfig;
-  signer: Account;
-  transaction: AnyRawTransaction;
-}): Promise<PendingTransactionResponse> {
+export async function signAndSubmitTransaction(
+  args: FeePayerOrFeePayerAuthenticatorOrNeither & {
+    aptosConfig: AptosConfig;
+    signer: Account;
+    transaction: AnyRawTransaction;
+  },
+): Promise<PendingTransactionResponse> {
   const { aptosConfig, signer, feePayer, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asyncronously.
@@ -305,7 +307,8 @@ export async function signAndSubmitTransaction(args: FeePayerOrFeePayerAuthentic
   if (feePayer instanceof KeylessAccountCommon || feePayer instanceof MultiKeyAccount) {
     await feePayer.waitForProofFetch();
   }
-  const feePayerAuthenticator = args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
+  const feePayerAuthenticator =
+    args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
 
   const senderAuthenticator = signTransaction({ signer, transaction });
   return submitTransaction({

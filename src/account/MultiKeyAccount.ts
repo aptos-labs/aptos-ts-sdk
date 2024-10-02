@@ -130,7 +130,9 @@ export class MultiKeyAccount implements Account {
    * @return
    */
   async waitForProofFetch() {
-    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccountCommon) as KeylessAccountCommon[];
+    const keylessSigners = this.signers.filter(
+      (signer) => signer instanceof KeylessAccountCommon,
+    ) as KeylessAccountCommon[];
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());
     await Promise.all(promises);
   }
