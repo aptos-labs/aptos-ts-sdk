@@ -4,6 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.28.0 (2024-09-19)
+
+- Support `Serialized Type` to Script txn. Now can use vector<String> for example.
+- Add optional address parameter to MultiKeyAccount constructor.
+- Populate `coinType` for `getAccountCoinAmount` if only `faMetadataAddress` is provided.
+- [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
+- [`Hot Fix`] change regex to find object address when using `createObjectAndPublishPackage` move function
+- Add support for federated keyless accounts as defined in AIP-96
+
 # 1.27.1 (2024-08-23)
 
 - [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1

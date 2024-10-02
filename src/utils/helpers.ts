@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { decode } from "js-base64";
+import { MoveStructId } from "../types";
 
 /**
  * Sleep the current thread for the given amount of time
@@ -58,3 +59,72 @@ export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: 
  * @returns The value is smallest units
  */
 export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: number) => value / 10 ** decimal;
+
+/**
+ * Convert a hex string to an ascii string with the `0x` prefix.
+ *
+ * `0x6170746f735f636f696e` --> `aptos_coin`
+ *
+ * @param hex The hex string to convert (e.g. `0x6170746f735f636f696e`)
+ * @returns The ascii string
+ */
+const hexToAscii = (hex: string) => {
+  let str = "";
+  for (let n = 2; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substring(n, n + 2), 16));
+  }
+  return str;
+};
+
+/**
+ * Convert an encoded struct to a MoveStructId.
+ *
+ * @example
+ * const structObj = {
+ *   account_address: "0x1",
+ *   module_name: "0x6170746f735f636f696e",
+ *   struct_name: "0x4170746f73436f696e",
+ * };
+ * // structId is "0x1::aptos_coin::AptosCoin"
+ * const structId = parseEncodedStruct(structObj);
+ *
+ * @param structObj The struct with account_address, module_name, and struct_name properties
+ * @returns The MoveStructId
+ */
+export const parseEncodedStruct = (structObj: {
+  account_address: string;
+  module_name: string;
+  struct_name: string;
+}): MoveStructId => {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { account_address, module_name, struct_name } = structObj;
+  const moduleName = hexToAscii(module_name);
+  const structName = hexToAscii(struct_name);
+  return `${account_address}::${moduleName}::${structName}`;
+};
+
+/**
+ * Determines whether the given object is an encoded struct type with the following properties:
+ * - account_address: string
+ * - module_name: string
+ * - struct_name: string
+ *
+ * @param structObj The object to check
+ * @returns Whether the object is an encoded struct type
+ */
+export const isEncodedStruct = (
+  structObj: any,
+): structObj is {
+  account_address: string;
+  module_name: string;
+  struct_name: string;
+} =>
+  typeof structObj === "object" &&
+  !Array.isArray(structObj) &&
+  structObj !== null &&
+  "account_address" in structObj &&
+  "module_name" in structObj &&
+  "struct_name" in structObj &&
+  typeof structObj.account_address === "string" &&
+  typeof structObj.module_name === "string" &&
+  typeof structObj.struct_name === "string";

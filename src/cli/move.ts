@@ -425,7 +425,7 @@ export class Move {
    */
   // eslint-disable-next-line class-methods-use-this
   private extractAddressFromOutput(output: string): string {
-    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)\\.");
+    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)");
     if (match) {
       return match[1];
     }

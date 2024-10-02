@@ -3,7 +3,7 @@
 
 import { Account } from "./Account";
 import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
-import { AccountAddress } from "../core/accountAddress";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
@@ -61,13 +61,13 @@ export class MultiKeyAccount implements Account {
    * @param args.signers an array of M signers that will be used to sign the transaction
    * @returns MultiKeyAccount
    */
-  constructor(args: { multiKey: MultiKey; signers: Account[] }) {
-    const { multiKey, signers } = args;
+  constructor(args: { multiKey: MultiKey; signers: Account[]; address?: AccountAddressInput }) {
+    const { multiKey, signers, address } = args;
 
     this.publicKey = multiKey;
     this.signingScheme = SigningScheme.MultiKey;
 
-    this.accountAddress = this.publicKey.authKey().derivedAddress();
+    this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
 
     // Get the index of each respective signer in the bitmap
     const bitPositions: number[] = [];

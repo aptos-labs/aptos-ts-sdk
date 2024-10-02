@@ -15,6 +15,7 @@ import {
   MoveModuleBytecode,
   MoveResource,
   MoveStructId,
+  MoveValue,
   OrderByArg,
   PaginationArgs,
   TokenStandardArg,
@@ -40,10 +41,12 @@ import {
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
-import { APTOS_COIN, ProcessorType } from "../utils/const";
+import { APTOS_COIN, APTOS_FA, ProcessorType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
+import { view } from "../internal/view";
+import { isEncodedStruct, parseEncodedStruct } from "../utils";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -428,7 +431,7 @@ export class Account {
     accountAddress: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    return this.getAccountCoinAmount({ coinType: APTOS_COIN, ...args });
+    return this.getAccountCoinAmount({ coinType: APTOS_COIN, faMetadataAddress: APTOS_FA, ...args });
   }
 
   /**
@@ -438,7 +441,8 @@ export class Account {
    * const accountCoinAmount = await aptos.getAccountCoinAmount({accountAddress:"0x123", coinType:"0x1::aptos_coin::AptosCoin"})
    *
    * @param args.accountAddress The account address we want to get the total count for
-   * @param args.coinType The coin type to query
+   * @param args.coinType The coin type to query.
+   *        Note: faMetadataAddress will automatically fill this in if not provided when migrated to fungible assets
    * @param args.faMetadataAddress The fungible asset metadata address to query.
    *        Note: coinType will automatically fill this in if not provided when migrated to fungible assets
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying
@@ -450,12 +454,35 @@ export class Account {
     faMetadataAddress?: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
+    const { coinType, faMetadataAddress } = args;
     await waitForIndexerOnVersion({
       config: this.config,
       minimumLedgerVersion: args.minimumLedgerVersion,
       processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
     });
-    return getAccountCoinAmount({ aptosConfig: this.config, ...args });
+
+    // Attempt to populate the CoinType field if the FA address is provided.
+    // We cannot do this internally due to dependency cycles issue.
+    let coinAssetType: MoveStructId | undefined = coinType;
+    if (coinType === undefined && faMetadataAddress !== undefined) {
+      try {
+        const pairedCoinTypeStruct = (
+          await view({
+            aptosConfig: this.config,
+            payload: { function: "0x1::coin::paired_coin", functionArguments: [faMetadataAddress] },
+          })
+        ).at(0) as { vec: MoveValue[] };
+
+        // Check if the Option has a value, and if so, parse the struct
+        if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
+          coinAssetType = parseEncodedStruct(pairedCoinTypeStruct.vec[0]);
+        }
+      } catch (error) {
+        /* No paired coin type found */
+      }
+    }
+
+    return getAccountCoinAmount({ aptosConfig: this.config, ...args, coinType: coinAssetType });
   }
 
   /**
