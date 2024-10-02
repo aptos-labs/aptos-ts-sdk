@@ -21,6 +21,7 @@ import {
   WaitForTransactionOptions,
 } from "../types";
 import {
+  FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
   publicPackageTransaction,
   rotateAuthKey,
@@ -346,9 +347,8 @@ export class Transaction {
    *
    * @return PendingTransactionResponse
    */
-  async signAndSubmitTransaction(args: {
+  async signAndSubmitTransaction(args: FeePayerOrFeePayerAuthenticatorOrNeither & {
     signer: Account;
-    feePayerAuthenticator: AccountAuthenticator;
     transaction: AnyRawTransaction;
   }): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
