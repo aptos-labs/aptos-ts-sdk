@@ -315,28 +315,19 @@ export async function signAndSubmitTransaction(args: FeePayerOrFeePayerAuthentic
     feePayerAuthenticator,
   });
 }
-export type SignerOrSignerAuthenticator = 
-| { signer: Account; signerAuthenticator?: never }
-| { signer?: never; signerAuthenticator: AccountAuthenticator }
 
-export async function signAndSubmitAsFeePayer(args: SignerOrSignerAuthenticator & {
+export async function signAndSubmitAsFeePayer(args: {
   aptosConfig: AptosConfig;
   feePayer: Account;
+  senderAuthenticator: AccountAuthenticator;
   transaction: AnyRawTransaction;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, signerAuthenticator, feePayer, transaction } = args;
-
-  // If the signer contains a KeylessAccount, await proof fetching in case the proof
-  // was fetched asyncronously.
-  if (signer instanceof KeylessAccountCommon || signer instanceof MultiKeyAccount) {
-    await signer.waitForProofFetch();
-  }
+  const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
   if (feePayer instanceof KeylessAccountCommon || feePayer instanceof MultiKeyAccount) {
     await feePayer.waitForProofFetch();
   }
 
-  const senderAuthenticator = signerAuthenticator || signTransaction({ signer, transaction });
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });
 
   return submitTransaction({
