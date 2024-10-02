@@ -216,12 +216,6 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
 It could be your `tsconfig.json` is not using `node`. Make sure your `moduleResolution` in the `tsconfig.json` is set to `node` instead of `bundler`.
 
-## Experimental Development Version
-
-[![NPM Experimental Version](https://img.shields.io/npm/v/%40aptos-labs/ts-sdk/experimental)][experimental-url]
-![Experimental Node Version](https://img.shields.io/node/v/%40aptos-labs%2Fts-sdk/experimental)
-![Experimental bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk/experimental)
-
 ## Contributing
 
 If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose).
