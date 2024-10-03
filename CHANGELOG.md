@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Remove usage of Buffer.from and replace with TextEncoder for greater compatibility
+
 # 1.28.0 (2024-09-19)
 
 - Support `Serialized Type` to Script txn. Now can use vector<String> for example.
