@@ -1,5 +1,6 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable import/extensions */
+/* eslint-disable no-console */
 
 /**
  * Example to show how one can require the CLI module and use it
