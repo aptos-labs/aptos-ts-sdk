@@ -1,5 +1,5 @@
 {
-  "name": "ts-test",
+  "name": "ts-test-esm",
   "version": "1.0.0",
   "description": "",
   "main": "./dist/simple_transfer.ts",
