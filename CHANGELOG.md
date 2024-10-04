@@ -15,6 +15,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
 - [`Hot Fix`] change regex to find object address when using `createObjectAndPublishPackage` move function
 - Add support for federated keyless accounts as defined in AIP-96
+- Add a `signAndSubmitAsFeePayer` function to the API to allow for submission by the fee payer.
+- Add an optional `feePayerAuthenticator` and `feePayer` parameter to `signAndSubmitTransaction` to support signing and submitting in one line.
 
 # 1.27.1 (2024-08-23)
 

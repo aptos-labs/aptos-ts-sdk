@@ -9,7 +9,7 @@ import { ZeroKnowledgeSig } from "../core/crypto";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon";
+import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
 
 /**
  * Account implementation for the FederatedKeyless authentication scheme.
@@ -22,7 +22,7 @@ import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
-export class FederatedKeylessAccount extends KeylessAccountCommon {
+export class FederatedKeylessAccount extends AbstractKeylessAccount {
   /**
    * The FederatedKeylessPublicKey associated with the account
    */

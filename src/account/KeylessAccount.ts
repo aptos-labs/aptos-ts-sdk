@@ -8,7 +8,7 @@ import { ZeroKnowledgeSig } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
-import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon";
+import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
 
 /**
  * Account implementation for the Keyless authentication scheme.
@@ -20,7 +20,7 @@ import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
  */
-export class KeylessAccount extends KeylessAccountCommon {
+export class KeylessAccount extends AbstractKeylessAccount {
   // Use the static constructor 'create' instead.
   private constructor(args: {
     address?: AccountAddress;
