@@ -43,7 +43,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
     serializer.serializeFixedBytes(this.pepper);
     this.ephemeralKeyPair.serialize(serializer);
     if (this.proof === undefined) {
-      throw new Error("Connot serialize - proof undefined");
+      throw new Error("Cannot serialize - proof undefined");
     }
     this.proof.serialize(serializer);
   }
@@ -79,20 +79,21 @@ export class KeylessAccount extends AbstractKeylessAccount {
     const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-    const iss = jwtPayload.iss!;
+    if (typeof jwtPayload.iss !== "string") {
+      throw new Error("iss was not found");
+    }
     if (typeof jwtPayload.aud !== "string") {
       throw new Error("aud was not found or an array of values");
     }
-    const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
     return new KeylessAccount({
       address,
       proof,
       ephemeralKeyPair,
-      iss,
+      iss: jwtPayload.iss,
       uidKey,
       uidVal,
-      aud,
+      aud: jwtPayload.aud,
       pepper,
       jwt,
       proofFetchCallback,

@@ -48,7 +48,7 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
 
   serialize(serializer: Serializer): void {
     if (this.proof === undefined) {
-      throw new Error("Connot serialize - proof undefined");
+      throw new Error("Cannot serialize - proof undefined");
     }
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
@@ -92,20 +92,21 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
     const { address, proof, jwt, ephemeralKeyPair, pepper, jwkAddress, uidKey = "sub", proofFetchCallback } = args;
 
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-    const iss = jwtPayload.iss!;
+    if (typeof jwtPayload.iss !== "string") {
+      throw new Error("iss was not found");
+    }
     if (typeof jwtPayload.aud !== "string") {
       throw new Error("aud was not found or an array of values");
     }
-    const aud = jwtPayload.aud!;
     const uidVal = jwtPayload[uidKey];
     return new FederatedKeylessAccount({
       address,
       proof,
       ephemeralKeyPair,
-      iss,
+      iss: jwtPayload.iss,
       uidKey,
       uidVal,
-      aud,
+      aud: jwtPayload.aud,
       pepper,
       jwkAddress: AccountAddress.from(jwkAddress),
       jwt,
