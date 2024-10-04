@@ -15,7 +15,7 @@ import { KeylessAccountCommon, ProofFetchCallback } from "./KeylessAccountCommon
  *
  * Used to represent a Keyless based account and sign transactions with it.
  *
- * Use KeylessAccount.fromJWTAndProof to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
+ * Use KeylessAccount.create to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.

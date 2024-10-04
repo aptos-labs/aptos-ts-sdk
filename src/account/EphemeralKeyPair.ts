@@ -3,9 +3,16 @@
 
 import { randomBytes } from "@noble/hashes/utils";
 
-import { Ed25519PrivateKey, EphemeralPublicKey, EphemeralSignature, PrivateKey } from "../core/crypto";
+import {
+  bytesToBigIntLE,
+  padAndPackBytesWithLen,
+  poseidonHash,
+  Ed25519PrivateKey,
+  EphemeralPublicKey,
+  EphemeralSignature,
+  PrivateKey,
+} from "../core/crypto";
 import { Hex } from "../core/hex";
-import { bytesToBigIntLE, padAndPackBytesWithLen, poseidonHash } from "../core/crypto/poseidon";
 import { EphemeralPublicKeyVariant, HexInput } from "../types";
 import { Deserializer, Serializable, Serializer } from "../bcs";
 import { floorToWholeHour, nowInSeconds } from "../utils/helpers";
