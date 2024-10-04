@@ -98,8 +98,9 @@ export async function publishAnsContract(
     const contracts = ["core", "core_v2", "router"];
     // eslint-disable-next-line no-restricted-syntax
     for (const contract of contracts) {
+      // TODO: This is a temporary fix to unblock CI (`--max-gas`), the CLI should handle simulation correctly, and this hack shouldn't be necessary.
       execCmdBuffer(
-        `${cliInvocation} move publish --package-dir ${repoDir}/${contract} --assume-yes --private-key=${LOCAL_ANS_ACCOUNT_PK} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
+        `${cliInvocation} move publish --max-gas 100000 --package-dir ${repoDir}/${contract} --assume-yes --private-key=${LOCAL_ANS_ACCOUNT_PK} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
           AptosApiType.FULLNODE,
         )}`,
       );

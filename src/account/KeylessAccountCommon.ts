@@ -217,7 +217,7 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
       throw new Error("EphemeralKeyPair is expired");
     }
     if (this.proof === undefined) {
-      throw new Error("Proof not defined");
+      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(data);
@@ -239,7 +239,7 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
    */
   signTransaction(transaction: AnyRawTransaction): KeylessSignature {
     if (this.proof === undefined) {
-      throw new Error("Proof not found");
+      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
     }
     const raw = deriveTransactionType(transaction);
     const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
