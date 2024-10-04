@@ -400,7 +400,12 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
         getAuthenticatorForSimulation(publicKey),
       );
     }
-    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey!);
+    if (!feePayerPublicKey) {
+      throw new Error(
+        "Must provide a feePayerPublicKey argument to generate a signed fee payer transaction for simulation",
+      );
+    }
+    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey);
 
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
@@ -423,7 +428,13 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 
-    secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
+    if (!secondarySignersPublicKeys) {
+      throw new Error(
+        "Must provide a secondarySignersPublicKeys argument to generate a signed multi agent transaction for simulation",
+      );
+    }
+
+    secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
       getAuthenticatorForSimulation(publicKey),
     );
 

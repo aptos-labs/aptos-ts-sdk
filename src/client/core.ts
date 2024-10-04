@@ -59,7 +59,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
 
   const aptosResponse: AptosResponse<Req, Res> = {
     status: clientResponse.status,
-    statusText: clientResponse.statusText!,
+    statusText: clientResponse.statusText ?? "No status text provided",
     data: clientResponse.data,
     headers: clientResponse.headers,
     config: clientResponse.config,
