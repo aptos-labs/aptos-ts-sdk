@@ -103,8 +103,8 @@ export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Ar
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i += 1) {
     bytes[i] = Number(val & BigInt(0xff));
+    val >>= BigInt(8);
   }
-  val >>= BigInt(8);
   return bytes;
 }
 
