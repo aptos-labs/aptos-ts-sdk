@@ -99,13 +99,12 @@ export function bytesToBigIntLE(bytes: Uint8Array): bigint {
 }
 
 export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Array {
-  if (typeof value === "number") {
-    // eslint-disable-next-line no-param-reassign
-    value = BigInt(value);
-  }
+  let val = BigInt(value);
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i += 1) {
-    bytes[i] = Number(value & BigInt(0xff));
+    bytes[i] = Number(val & BigInt(0xff));
+  }
+  val >>= BigInt(8);
     // eslint-disable-next-line no-param-reassign
     value >>= BigInt(8);
   }
