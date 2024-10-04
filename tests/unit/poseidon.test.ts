@@ -31,7 +31,7 @@ describe("Poseidon", () => {
       "41010000000000000000000000000000000000000000000000000000000000",
     ];
     for (let i = 0; i < input.length; i += 1) {
-      expect(bigIntToBytesLE(input[i], 31)).toEqual(Hex.fromHexInput(intermediateResult[i]).toUint8Array())
+      expect(bigIntToBytesLE(input[i], 31)).toEqual(Hex.fromHexInput(intermediateResult[i]).toUint8Array());
       expect(input[i]).toEqual(bytesToBigIntLE(bigIntToBytesLE(input[i], 31)));
     }
   });
