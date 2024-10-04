@@ -70,8 +70,11 @@ const example = async () => {
     },
   });
 
+  // Sponsor signs
+  const sponsorSignature = aptos.transaction.signAsFeePayer({ signer: sponsor, transaction });
+
   // Submit the transaction to chain
-  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, feePayer: sponsor, transaction });
+  const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, feePayerAuthenticator: sponsorSignature, transaction });
 
   console.log(`Submitted transaction: ${committedTxn.hash}`);
   const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
