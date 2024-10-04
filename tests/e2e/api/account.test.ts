@@ -10,6 +10,7 @@ import {
   Network,
   SigningSchemeInput,
   U64,
+  AccountAddress,
 } from "../../../src";
 import { getAptosClient } from "../helper";
 
@@ -196,13 +197,21 @@ describe("account api", () => {
       });
 
       await aptos.waitForTransaction({ transactionHash: fundTxn.hash });
-      // custom coin type
-      const accountCoinsAmount = await aptos.getAccountCoinAmount({
+      // custom coin type that doesn't exist, will throw an error
+      const getInvalidCoinAmount = aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
-        coinType: "my::coin::type",
+        coinType: "0x12345::coin::Coin",
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
-      expect(accountCoinsAmount).toBe(0);
+      await expect(getInvalidCoinAmount).rejects.toThrow();
+      // custom coin type struct that does exist, but is not a coin, will return 0, similar to a coin that exists
+      const getOtherCoinAmount = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: "0x1::string::String",
+        minimumLedgerVersion: BigInt(fundTxn.version),
+      });
+      expect(getOtherCoinAmount).toBe(0);
+
       // APT Aptos coin
       const accountAPTAmount = await aptos.getAccountCoinAmount({
         accountAddress: senderAccount.accountAddress,
@@ -210,6 +219,29 @@ describe("account api", () => {
         minimumLedgerVersion: BigInt(fundTxn.version),
       });
       expect(accountAPTAmount).toBe(100000000);
+
+      // APT Aptos coin by fungible asset metadata
+      const accountAPTAmount2 = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        faMetadataAddress: AccountAddress.A,
+        minimumLedgerVersion: BigInt(fundTxn.version),
+      });
+      expect(accountAPTAmount2).toBe(100000000);
+      // By both
+      // APT Aptos coin by fungible asset metadata
+      const accountAPTAmount3 = await aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        coinType: APTOS_COIN,
+        faMetadataAddress: "0xA",
+        minimumLedgerVersion: BigInt(fundTxn.version),
+      });
+      expect(accountAPTAmount3).toBe(100000000);
+      // By neither
+      const failForNoCoinTypeGiven = aptos.getAccountCoinAmount({
+        accountAddress: senderAccount.accountAddress,
+        minimumLedgerVersion: BigInt(fundTxn.version),
+      });
+      await expect(failForNoCoinTypeGiven).rejects.toThrow();
     });
 
     test("lookupOriginalAccountAddress - Look up account address before key rotation", async () => {
@@ -226,7 +258,7 @@ describe("account api", () => {
       expect(lookupAccount).toStrictEqual(account.accountAddress);
     });
 
-    test("it fetches account owned token fron collection", async () => {
+    test("it fetches account owned token from collection", async () => {
       const config = new AptosConfig({ network: Network.LOCAL });
       const aptos = new Aptos(config);
       const creator = Account.generate();
