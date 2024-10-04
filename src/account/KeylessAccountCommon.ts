@@ -89,12 +89,12 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
   readonly jwt: string;
 
   /**
-   * An event emitter used to assist in handling asycronous proof fetching.
+   * An event emitter used to assist in handling asynchronous proof fetching.
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
 
   // Use the static constructor 'create' instead.
-  constructor(args: {
+  protected constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;
@@ -160,7 +160,7 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
     serializer.serializeFixedBytes(this.pepper);
     this.ephemeralKeyPair.serialize(serializer);
     if (this.proof === undefined) {
-      throw new Error("Connot serialize - proof undefined");
+      throw new Error("Cannot serialize - proof undefined");
     }
     this.proof.serialize(serializer);
   }
@@ -211,7 +211,7 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
    * @param message in HexInput format
    * @returns Signature
    */
-  sign(data: HexInput): KeylessSignature {
+  sign(message: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
       throw new Error("EphemeralKeyPair is expired");
@@ -220,7 +220,7 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
       throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
-    const ephemeralSignature = this.ephemeralKeyPair.sign(data);
+    const ephemeralSignature = this.ephemeralKeyPair.sign(message);
 
     return new KeylessSignature({
       jwtHeader: base64UrlDecode(this.jwt.split(".")[0]),
