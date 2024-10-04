@@ -827,9 +827,6 @@ describe("transaction submission", () => {
       // expect transaction is a sponsored transaction
       expect(response.signature?.type).toBe("fee_payer_signature");
 
-      // expect transaction is a sponsored transaction
-      expect(response.signature?.type).toBe("fee_payer_signature");
-
       const uncreatedAccountInfo = await aptos.account.getAccountInfo({
         accountAddress: uncreatedAccount.accountAddress,
       });
@@ -859,9 +856,6 @@ describe("transaction submission", () => {
       await aptos.waitForTransaction({
         transactionHash: response.hash,
       });
-      // expect transaction is a sponsored transaction
-      expect(response.signature?.type).toBe("fee_payer_signature");
-
       // expect transaction is a sponsored transaction
       expect(response.signature?.type).toBe("fee_payer_signature");
 
