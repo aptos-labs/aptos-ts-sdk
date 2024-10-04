@@ -28,7 +28,7 @@ import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
  * Account implementation for the Keyless authentication scheme.  This abstract class is used for standard Keyless Accounts
  * and Federated Keyless Accounts.
  */
-export abstract class KeylessAccountCommon extends Serializable implements Account {
+export abstract class AbstractKeylessAccount extends Serializable implements Account {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
@@ -131,8 +131,8 @@ export abstract class KeylessAccountCommon extends Serializable implements Accou
     }
     this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
-    if (pepperBytes.length !== KeylessAccountCommon.PEPPER_LENGTH) {
-      throw new Error(`Pepper length in bytes should be ${KeylessAccountCommon.PEPPER_LENGTH}`);
+    if (pepperBytes.length !== AbstractKeylessAccount.PEPPER_LENGTH) {
+      throw new Error(`Pepper length in bytes should be ${AbstractKeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
   }
