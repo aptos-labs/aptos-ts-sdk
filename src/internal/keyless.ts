@@ -69,7 +69,11 @@ export async function getProof(args: {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
   const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
-  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - jwtDecode<JwtPayload>(jwt).iat!) {
+  const decodedJwt = jwtDecode<JwtPayload>(jwt);
+  if (typeof decodedJwt.iat !== "number") {
+    throw new Error("iat was not found");
+  }
+  if (maxExpHorizonSecs < ephemeralKeyPair.expiryDateSecs - decodedJwt.iat) {
     throw Error(`The EphemeralKeyPair is too long lived.  It's lifespan must be less than ${maxExpHorizonSecs}`);
   }
   const json = {
