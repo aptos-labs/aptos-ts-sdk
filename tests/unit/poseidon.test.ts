@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "../../src/core/crypto/poseidon";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, Hex, poseidonHash } from "../../src";
 
 describe("Poseidon", () => {
   it("should hash correctly", () => {
@@ -26,7 +26,12 @@ describe("Poseidon", () => {
   });
   it("should convert bigint to array and back correctly", () => {
     const input = [BigInt(123), BigInt(321)];
+    const intermediateResult = [
+      "7b000000000000000000000000000000000000000000000000000000000000",
+      "41010000000000000000000000000000000000000000000000000000000000",
+    ];
     for (let i = 0; i < input.length; i += 1) {
+      expect(bigIntToBytesLE(input[i], 31)).toEqual(Hex.fromHexInput(intermediateResult[i]).toUint8Array());
       expect(input[i]).toEqual(bytesToBigIntLE(bigIntToBytesLE(input[i], 31)));
     }
   });
