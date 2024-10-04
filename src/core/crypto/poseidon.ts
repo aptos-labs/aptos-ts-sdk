@@ -105,9 +105,6 @@ export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Ar
     bytes[i] = Number(val & BigInt(0xff));
   }
   val >>= BigInt(8);
-    // eslint-disable-next-line no-param-reassign
-    value >>= BigInt(8);
-  }
   return bytes;
 }
 
