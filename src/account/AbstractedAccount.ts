@@ -57,6 +57,11 @@ export class AbstractedEd25519Account implements Account {
     return new AbstractedEd25519Account({ privateKey });
   }
 
+  // TODO: Alternatively add a case to Account.fromPrivateKey that detects if the private key is type Ed25519PrivateKey
+  static fromPrivateKey(args: Ed25519SignerConstructorArgs) {
+    return new AbstractedEd25519Account(args);
+  }
+
   /**
    * Derives an account with bip44 path and mnemonics
    *
