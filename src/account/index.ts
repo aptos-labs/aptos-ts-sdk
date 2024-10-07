@@ -7,3 +7,4 @@ export * from "./AbstractKeylessAccount";
 export * from "./FederatedKeylessAccount";
 export * from "./MultiKeyAccount";
 export * from "./AccountUtils";
+export { AbstractedEd25519Account } from "./AbstractedAccount";
