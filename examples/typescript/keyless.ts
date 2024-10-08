@@ -30,8 +30,15 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 
 const example = async () => {
   // Setup the client
-  const network = Network.DEVNET;
-  const config = new AptosConfig({ network });
+  const network = Network.CUSTOM;
+  const config = new AptosConfig({
+    faucet: "http://127.0.0.1:8081",
+    fullnode: "http://127.0.0.1:8080/v1",
+    indexer: "http://127.0.0.1:8090/v1/graphql",
+    network,
+    pepper: "https://api.mainnet.aptoslabs.com/keyless/pepper/v0",
+    prover: "https://api.mainnet.aptoslabs.com/keyless/prover/v0",
+  });
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
@@ -111,3 +118,97 @@ const example = async () => {
 };
 
 example();
+
+
+// const testPermissioned = () => {
+
+//   const subAccount = AbstractedEd25519Account.generate();
+
+//   const receiverAccounts = [Account.generate(), Account.generate()];
+
+//   console.log('singleSignerED25519SenderAccount', activeAccount.address.toString());
+//   console.log('singleSignerAbstractionSenderAccount', subAccount.accountAddress.toString());
+//   console.log(
+//     'receiverAccounts',
+//     receiverAccounts.map((a) => a.accountAddress.toString()),
+//   );
+
+//   console.log('batcharg', BatchArgument);
+//   console.log('batcharg', BatchArgument.new_signer(0));
+
+//   // fund accounts
+//   await aptos.fundAccount({ accountAddress: activeAccount.address, amount: 100_000_000 });
+//   console.log('-----');
+//   await aptos.fundAccount({
+//     accountAddress: subAccount.accountAddress,
+//     amount: 100_000_000,
+//   });
+
+//   console.log('=====================');
+//   console.log('activeAccount', activeAccount.address.toString());
+//   console.log('activeSigner', activeSigner.accountAddress.toString());
+//   console.log('=====================');
+
+//   // step 1: setup.
+//   const transaction = await aptos.transaction.build.batched_intents({
+//     builder: async (builder) => {
+//       // convert apt to fa
+//       await builder.add_batched_calls({
+//         function: '0x1::coin::migrate_to_fungible_store',
+//         functionArguments: [BatchArgument.new_signer(0)],
+//         typeArguments: ['0x1::aptos_coin::AptosCoin'],
+//       });
+//       // set up aa with permissioned signer
+//       const permissioned_signer_handle = await builder.add_batched_calls({
+//         function: '0x1::permissioned_signer::create_permissioned_handle',
+//         functionArguments: [BatchArgument.new_signer(0)],
+//         typeArguments: [],
+//       });
+//       const permissioned_signer = await builder.add_batched_calls({
+//         function: '0x1::permissioned_signer::signer_from_permissioned',
+//         functionArguments: [permissioned_signer_handle[0].borrow()],
+//         typeArguments: [],
+//       });
+//       await builder.add_batched_calls({
+//         function: '0x1::fungible_asset::grant_permission',
+//         functionArguments: [
+//           BatchArgument.new_signer(0),
+//           permissioned_signer[0].borrow(),
+//           AccountAddress.A,
+//           10 /* limit */,
+//         ],
+//         typeArguments: [],
+//       });
+//       await builder.add_batched_calls({
+//         function: '0x1::permissioned_delegation::add_permissioned_handle',
+//         functionArguments: [
+//           BatchArgument.new_signer(0),
+//           subAccount.publicKey.toUint8Array(),
+//           permissioned_signer_handle[0],
+//         ],
+//         typeArguments: [],
+//       });
+//       await builder.add_batched_calls({
+//         function: '0x1::lite_account::add_dispatchable_authentication_function',
+//         functionArguments: [
+//           BatchArgument.new_signer(0),
+//           AccountAddress.ONE,
+//           new MoveString('permissioned_delegation'),
+//           new MoveString('authenticate'),
+//         ],
+//         typeArguments: [],
+//       });
+//       return builder;
+//     },
+//     sender: activeAccount.address,
+//   });
+
+//   const response = await aptos.signAndSubmitTransaction({
+//     signer: activeSigner,
+//     transaction,
+//   });
+//   await aptos.waitForTransaction({
+//     transactionHash: response.hash,
+//   });
+
+// }
