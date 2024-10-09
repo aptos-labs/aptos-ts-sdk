@@ -4,7 +4,7 @@
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { HexInput } from "../types";
 import { AccountAddress } from "../core/accountAddress";
-import { ZeroKnowledgeSig } from "../core/crypto";
+import { KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
@@ -21,6 +21,12 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  * EphemeralKeyPair, and corresponding proof.
  */
 export class KeylessAccount extends AbstractKeylessAccount {
+
+  /**
+   * The KeylessPublicKey associated with the account
+   */
+  readonly publicKey: KeylessPublicKey
+
   // Use the static constructor 'create' instead.
   private constructor(args: {
     address?: AccountAddress;
@@ -34,7 +40,9 @@ export class KeylessAccount extends AbstractKeylessAccount {
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
-    super(args);
+    const publicKey = KeylessPublicKey.create(args);
+    super({ publicKey, ...args });
+    this.publicKey = publicKey;
   }
 
   serialize(serializer: Serializer): void {

@@ -96,6 +96,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   // Use the static constructor 'create' instead.
   protected constructor(args: {
     address?: AccountAddress;
+    publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;
     uidKey: string;
@@ -107,9 +108,9 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     jwt: string;
   }) {
     super();
-    const { address, ephemeralKeyPair, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
+    const { address, ephemeralKeyPair, publicKey, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
-    this.publicKey = KeylessPublicKey.create(args);
+    this.publicKey = publicKey;
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
     this.uidKey = uidKey;
     this.uidVal = uidVal;
