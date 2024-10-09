@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account, KeylessAccount, MultiKeyAccount } from "../account";
+import { Account, AbstractKeylessAccount, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -233,6 +233,24 @@ export function signTransaction(args: { signer: Account; transaction: AnyRawTran
   return signer.signTransactionWithAuthenticator(transaction);
 }
 
+export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
+  const { signer, transaction } = args;
+
+  // if transaction doesnt hold a "feePayerAddress" prop it means
+  // this is not a fee payer transaction
+  if (!transaction.feePayerAddress) {
+    throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
+  }
+
+  // Set the feePayerAddress to the signer account address
+  transaction.feePayerAddress = signer.accountAddress;
+
+  return signTransaction({
+    signer,
+    transaction,
+  });
+}
+
 /**
  * Simulates a transaction before signing it to evaluate its potential outcome.
  * 
@@ -302,32 +320,58 @@ export async function submitTransaction(
   });
   return data;
 }
+export type FeePayerOrFeePayerAuthenticatorOrNeither =
+  | { feePayer: Account; feePayerAuthenticator?: never }
+  | { feePayer?: never; feePayerAuthenticator: AccountAuthenticator }
+  | { feePayer?: never; feePayerAuthenticator?: never };
 
-/**
- * Signs and submits a transaction using the provided signer and Aptos configuration.
- * This function ensures that the transaction is properly authenticated before submission.
- * 
- * @param args - The arguments for signing and submitting the transaction.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
- * @param args.signer - The account used to sign the transaction.
- * @param args.transaction - The raw transaction data to be signed and submitted.
- */
-export async function signAndSubmitTransaction(args: {
-  aptosConfig: AptosConfig;
-  signer: Account;
-  transaction: AnyRawTransaction;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, signer, transaction } = args;
+export async function signAndSubmitTransaction(
+  args: FeePayerOrFeePayerAuthenticatorOrNeither & {
+    aptosConfig: AptosConfig;
+    signer: Account;
+    transaction: AnyRawTransaction;
+  },
+): Promise<PendingTransactionResponse> {
+  const { aptosConfig, signer, feePayer, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asyncronously.
-  if (signer instanceof KeylessAccount || signer instanceof MultiKeyAccount) {
+  if (signer instanceof AbstractKeylessAccount || signer instanceof MultiKeyAccount) {
     await signer.waitForProofFetch();
   }
-  const authenticator = signTransaction({ signer, transaction });
+  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
+    await feePayer.waitForProofFetch();
+  }
+  const feePayerAuthenticator =
+    args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
+
+  const senderAuthenticator = signTransaction({ signer, transaction });
   return submitTransaction({
     aptosConfig,
     transaction,
-    senderAuthenticator: authenticator,
+    senderAuthenticator,
+    feePayerAuthenticator,
+  });
+}
+
+export async function signAndSubmitAsFeePayer(args: {
+  aptosConfig: AptosConfig;
+  feePayer: Account;
+  senderAuthenticator: AccountAuthenticator;
+  transaction: AnyRawTransaction;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
+
+  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
+    await feePayer.waitForProofFetch();
+  }
+
+  const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });
+
+  return submitTransaction({
+    aptosConfig,
+    transaction,
+    senderAuthenticator,
+    feePayerAuthenticator,
   });
 }
 

@@ -1,9 +1,16 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
-import { ZeroKnowledgeSig } from "../core";
-import { deriveKeylessAccount, getPepper, getProof } from "../internal/keyless";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
+import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
+import {
+  deriveKeylessAccount,
+  getPepper,
+  getProof,
+  updateFederatedKeylessJwkSetTransaction,
+} from "../internal/keyless";
+import { SimpleTransaction } from "../transactions";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -123,12 +130,30 @@ export class Keyless {
     return getProof({ aptosConfig: this.config, ...args });
   }
 
+  async deriveKeylessAccount(args: {
+    jwt: string;
+    ephemeralKeyPair: EphemeralKeyPair;
+    uidKey?: string;
+    pepper?: HexInput;
+    proofFetchCallback?: ProofFetchCallback;
+  }): Promise<KeylessAccount>;
+
+  async deriveKeylessAccount(args: {
+    jwt: string;
+    ephemeralKeyPair: EphemeralKeyPair;
+    jwkAddress: AccountAddressInput;
+    uidKey?: string;
+    pepper?: HexInput;
+    proofFetchCallback?: ProofFetchCallback;
+  }): Promise<FederatedKeylessAccount>;
+
   /**
    * Derives a Keyless Account from the provided JWT token and corresponding EphemeralKeyPair. This function computes the proof via the proving service and can fetch the pepper from the pepper service if not explicitly provided.
    * 
    * @param args - The arguments required to derive the Keyless Account.
    * @param args.jwt - The JWT token used for deriving the account.
    * @param args.ephemeralKeyPair - The EphemeralKeyPair used to generate the nonce in the JWT token.
+   * @param args.jwkAddress - The address the where the JWKs used to verify signatures are found.  Setting the value derives a FederatedKeylessAccount
    * @param args.uidKey - An optional key in the JWT token to set the uidVal in the IdCommitment.
    * @param args.pepper - An optional pepper value.
    * @param args.proofFetchCallback - An optional callback function for fetching the proof in the background, allowing for a more responsive user experience.
@@ -162,10 +187,31 @@ export class Keyless {
   async deriveKeylessAccount(args: {
     jwt: string;
     ephemeralKeyPair: EphemeralKeyPair;
+    jwkAddress?: AccountAddressInput;
     uidKey?: string;
     pepper?: HexInput;
     proofFetchCallback?: ProofFetchCallback;
-  }): Promise<KeylessAccount> {
+  }): Promise<KeylessAccount | FederatedKeylessAccount> {
     return deriveKeylessAccount({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * This installs a set of FederatedJWKs at an address for a given iss.
+   *
+   * It will fetch the JWK set from the well-known endpoint and update the FederatedJWKs at the sender's address
+   * to reflect it.
+   *
+   * @param args.sender The account that will install the JWKs
+   * @param args.iss the iss claim of the federated OIDC provider.
+   * @param args.jwksUrl the URL to find the corresponding JWKs. For supported IDP providers this parameter in not necessary.
+   *
+   * @returns The pending transaction that results from submission.
+   */
+  async updateFederatedKeylessJwkSetTransaction(args: {
+    sender: Account;
+    iss: string;
+    jwksUrl?: string;
+  }): Promise<SimpleTransaction> {
+    return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
   }
 }

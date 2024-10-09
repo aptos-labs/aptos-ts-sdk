@@ -380,7 +380,7 @@ export class Move {
    * @throws Error if the object address cannot be extracted from the output.
    */
   private extractAddressFromOutput(output: string): string {
-    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)\\.");
+    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)");
     if (match) {
       return match[1];
     }

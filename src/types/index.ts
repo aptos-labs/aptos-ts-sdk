@@ -116,6 +116,7 @@ export enum AnyPublicKeyVariant {
   Ed25519 = 0,
   Secp256k1 = 1,
   Keyless = 3,
+  FederatedKeyless = 4,
 }
 
 /**
@@ -1282,6 +1283,12 @@ export type MoveStruct = {
    * Whether the struct is a native struct of Move
    */
   is_native: boolean;
+  /**
+   * Whether the struct is a module event (aka v2 event). This will be false for v1
+   * events because the value is derived from the #[event] attribute on the struct in
+   * the Move source code. This attribute is only relevant for v2 events.
+   */
+  is_event: boolean;
   /**
    * Abilities associated with the struct
    */

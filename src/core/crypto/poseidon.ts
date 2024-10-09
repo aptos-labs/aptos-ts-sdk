@@ -151,16 +151,16 @@ export function bytesToBigIntLE(bytes: Uint8Array): bigint {
  * Converts a bigint value into a little-endian byte array of a specified length.
  * This function is useful for representing large integers in a byte format, which is often required for cryptographic operations or binary data manipulation.
  * 
- * @param value - The bigint value to convert into bytes.
+ * @param value - The number to convert into bytes.
  * @param length - The desired length of the resulting byte array.
  * @returns A Uint8Array containing the little-endian representation of the bigint value.
  */
-export function bigIntToBytesLE(value: bigint, length: number): Uint8Array {
+export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Array {
+  let val = BigInt(value);
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i += 1) {
-    bytes[i] = Number(value & BigInt(0xff));
-    // eslint-disable-next-line no-param-reassign
-    value >>= BigInt(8);
+    bytes[i] = Number(val & BigInt(0xff));
+    val >>= BigInt(8);
   }
   return bytes;
 }

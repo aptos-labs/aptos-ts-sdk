@@ -2,7 +2,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, KeylessAccount, KeylessPublicKey, ProofFetchStatus } from "../../../src";
+import { Account, FederatedKeylessAccount, KeylessAccount, ProofFetchStatus } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
@@ -30,22 +30,88 @@ export const TEST_JWT_TOKENS = [
   "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlci0xOSIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.elbm8TQ1qHbxKmTPq0ShHiRNiqZ_bF_GG25Gjeb4JliYz4PTrxtocXX4Frez_4nf7mCbgcB37fkuJrcyHQ5QaCxjWrVzqUzgMWnRt2ryMnj4tN9Oz4O3Yidoqkxz726iJ7X1FnRgNaG4OGLUItLfYDKTBbuSKzdHyGA5zsBEKVmz0FKL9HdD66D44alUddg1MUAbphxBG4ghh0mZg8DjsXCCsxO547xvgScK-tGt3_I8wEyS-D_-bEElaLPnW87wFoLosHIZucf38PdadWxk6gSt3MRdErLHeP42DwsVwv7vF2b1aTek5au-f-FUXTkidyEfKKuHtmIS3ZKltyJ1Pw",
 ];
 
+export const TEST_FEDERATED_JWT_TOKENS = [
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMCIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.fZPN9kj5H1xf7YS81Rll_3-BC1yOIngoAmr4rFdvMtLqRxNPfLncyUFjsTfsf5USh-LwjQli8fb6uDSmnueGCbQQyw5CDSaALFmSMqzzr_ZezQv8Bv7iXrLPKei9Xp0eogoYsbb3_2PEu8DxwjXAD285uj5QPx0cTaoo--yf80rvvQYbHJp62XEd82mpM0vvaZqF6T_33STfj06Yj8B0RhAfKTSCTCa_7njriykbxIN7O5b_xPnhkRSJIjqD0ZmvNex4MuxMaHgd6Zgs9OIymzYh5dgsrC4Z0OawXCjK56N7SdaXwE6iFRF1g6Yy0pFxhMsX6_KtZR3-xzDndUvxwg",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMSIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.N7s0TZyE6bRjxWPGIlpjVb9c0jI_5dWgJsdWyYj6WQ1FEK4zb4b6nmCjHAJ-3dVrU9vJkOZruWqnpk-c7KcbS4Ouq4TzQj6FMbE4DBDvG0GF_TDvw5-Wbs_KU7dWcStqvDaq1ugzs2ZVnYlIp_p-VfK1kTY-N-4-nk2Xmv62mStF5ShORBUOraKmrWuwC6gnYC6-srZbvufdN-9GOXqMNiJMHonrEM66qDjsSCl44_lmj91ze5GzLKv0ggCNc-ZVm5Tj4fmre6Ba6RUxNi9xUHrzNoEZHg-Y1ZlNXgfozw3pkSrA5CDp5xonjVFfHQR_J_sXHKozk_9K3dNkOeBA5Q",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMiIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.fLiHkTWpSR-ux61nlRLBIGE8XDYP23DE1h9VJpb3CXX-LYj3A9B7YvvLRXUZ4Ffl3DLV97GsT_tHEEB71VHiJ56xpwxUWxkHdgWgxFLaWgtuW4kBvydIvyMOWbYIoeO2Np6Ef1q58VjY5xs8RAMSFHhY6VDJ0vTZn1hgw01Qf041boIFNjIYvxSvLtA0-B99uq0mI2TOquLBjG-N57mnukW6oLSWUNOC1ysmrWavYIklTJxTShOpufNzB-oH3zD7O_INSWnboyIabGz8TC2njMd4mub4KwlyZJZ00zyHs5sMLG1W6M0V8RHrPIas1G4ic0drvHRlkiLLDlCcEZkYbg",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMyIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.Ccm2d37bJ1GGaodtzztPWlmp_Aa8XdrvtIpB84JPjJKlijIwvRiENC9p_9EwinpTEAZqyJHDniHw1mn29p1tXjoA1rGwj0YmcbtS3oYdXgiva8leuPzAUfRmwIxateIjIoY6ggYVctPLa_yIomVPhB8TBS2sGq0kTA_VAiQ2MnU8RuPJyXhl_bE27DbVLzTaESDIN56SO7Hwz5EwsSNzt8hiFKScppRpzUEEQ2EIIUkGePpnVxNtGAmi7DXVvd17AoYADnjQZCelpQcBE6_WUMc1_9MHUFVTJwTdf3lPYIlGAXCqmHNvaz1sUf7gzrkZCub2BYzhq8zg458EvG8E6g",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItNCIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.aMFGHKNeIHkBE8woc-jiTFAB1sm7RE0sCxQcNKkiaak7zCXbUrdKtImhht9yx_VmJ8e2FubH8eVh92P8tlIGaTpwdtu5qq8i71l7nX3Qk2DFxUAbAkG92suTnzCQE91D5Rtt8dlvmwHytx-a7Dr0Gv4M1JPon1y5vSkBrSsLIqiK6CA9othikadZRVUwO0ubckNldlhPjE7wz59Qf9Q3UNFFcIFVaGM5BsLIpMiZZOwEuNqitD243kPXR3gBBmPwYygMV_HtpSA8IXl95Aojg4KftZFJG7cZkLd-g_tz5KW-4YptrB7-3URK4K4IwNQJ9XUHbzDrMcYaY534YCVoVw",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItNSIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.HZFhdvodQLF3fGH9u6beqWsfugFS1OHkZMMhkTWRVhbzREs5g91_GzJcchXetotbhBmcCuQ_apLFFwOWHyx0VFTm2WvJdd1uUYrn4sKllFok9709ZLOfBlbo4218C-xA8LEIBoz6AxXfm8CVIy3FFjUGaKkniWjCdofWa6bSkxCXqMrGk84IaQP96S_d52ooG_B3H-Gb9mbEYRgBP3zEgVEq0bqMiJQJ-CNPBIeKAkUp189kOS3EHhheggNPbR8g3ee0AtNXlHbDDWdIQFb223ufFuX6igA5aWoIUFIBZ-URx0oy099ua8Pem5GuB-rzaC6BN14AabsqCievoGh8Yw",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItNiIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.WoFAo8QOdYU5TWFxFo01n1ZfJaMlhbMb5cq82x0YvlBnA39ureqQ4f5kiB5Y0fMzqhJsfzVUq3lZBmCK5xYkhUUM-IoYhxW0R1efe7Hb1I1rD4OLwntxECSEvuftTqOYPDQRzatI1JORMrWYmRYsPlkgyrlnpq7GkVVd_gjlrTPKwMNTBxc6oXjgkjl7MqAir0KIo0gii-Yb_ApXHP17QpMjL5mVgqjYLDY3p5FeKRV3N6UyMCcIyWKDRs1qkeskhku-b52t-CU1jiaYtfzRI_bG_IMJjInT4QpFmaRr3sYS2sz1fX8oXSWxAxgbgc4nYqlAHJ5r6v-UYdBVGCA7yA",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItNyIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.Nz9PusTXc77ql77jZwMaA5qM69k38kRa7R9fKMIjpQ_ZFCyGa-d43cy6z0iqkjox9MAooNc1iE14aYAa-kFYGl8HREbmRD8o7pM4QaUi7J29jJcQ5xSTQQPH2skgQ3Yp32KsAFP1KvLtl2k9IGB5D-4uinpjxcfjFP55Xv50IkHLS4l3HoxBKpg7UzcFTfZ8hVsHwH7Z34LEb5HG7ZP-68gCTQjlDocZu5fXKOOZSVyQYQQ7cHni_y6c7YmWueDCCmZAbR1eqL9ttVGEmj5hzXDqsKPZuAlLf-nZgsIv3o3970D6mcgqdDy5qaRRm2Ch6Y9E2Z7pdNRImN-nY1mH6Q",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItOCIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.f1XRod-ZDlUcbkxAfgKZzSUTs9TuObPw0_K4EE9SsNUf9cDz976E3StiqNqtbuT5kWt_eb8sUsy82hlr0aZD5vMwlyM6J_SSp_lqsxZAKgmLdB07-YO0acdx0ElRNrFjVH8JlDKrPPhke83f4FU4lWN6EEnx6JqcNkh2YEA9r1FektH-54nc1ucjfBZwIgwC3PAex0mfYLq8E9g-cWNPlAZhVCcqdK0q0WfD4PBDrmUBREPYoAsZI6vmBx08m3OuhUJYTCTd4EFijlZcY8vdIxzXwe7VsZm3GeavzlsOpPjMoyPk06VvQtqvTlEm_yvTcjVrVXmWwkFr_v1-Mu_dZg",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItOSIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6MTcyNTQ3NTExMiwiZXhwIjoyNzAwMDAwMDAwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.nNETD85nln2HOqbJ1rQZ9keQM9TAwRJ0qqnUY_srBubPScowk9MxibHtUM8paDTKviGJY8G4GxCIb4A-Pk6CdgmbfRAyx8DMVf0Z-I_bfrVp64ZDU090fuZv7-uU0QgZYSvOMOibBz1oun-Ybuv5hqmruVq4OHmWcoB8fjofaV1GOauk7L4tAJ7nhCrBuZuPbBLCTMwYz7-0cLjPQ0L6bk9WcIW355Xu5w8hTuq-5ccI2zMyaFUmGA81-V5sVl_HTaX3x8X5JBi6JRL55De-BqQ8-TzJW44i2WU-gC9p6SeHnPXdQESjf8YdRmSumnupk5aoMOtYr2OVdzFM0O06SQ",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTAiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.i_awHcWeU39k9no2klEajvTevA95naoquvzKu2DrS9lS_7Fm52pezCSb2e3M1ovvkoITpTb5IfRCo2PrP8AuGUv2srZU3GqDoyZaMYguvKJLLeqV670i4knGFWqfUegAJh1VB_-yN4nlbV9SXG7D7yk0WwWEUUGfWB7_NGqsHX2B84f_U_Dus14x7za7Y1t91EeXhzwCgZJMB0DfXT2Y3VUTU1O1abUKJ866V5pdQC7HJv2qUthmn-TlSIl6qac5dQQ14YxQtyEKXeTP74guxArcdvCsPuC8TAAnP_f_NxehFRRSQ-HJ3tJ5ym7PwQ4L1uaW5Rxc7duqsrk1JdX-zA",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTEiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.Z_5NEdbvnP9kqsCrOPIqCrR8iYX9kCIFsCMFiU9ozmkNjCDHgU5XQKuYRfsi7Mfq1CQL7gZVtJsDXWmv6ENBRJFFu9BHORuTZrMZi-on5yVZVf4J1RaxcRAdFOCIznN6DT6DyAFxq0vyCutUI76BtmYr17g-SUrESUkgG4jgL0xIcMNcitKWQ35o8fYJWeaTAa2x3SbX1IgCAFdjsD6DLm-LY5t7MicHekrpkHDBv_PuP9xzxRbNJfGnNnnB41h9sfATqiIMJXLvUfuDKmN43MQAowODTtgDfnuLNwBuXkGOCLQmtLjdNYqLRGHccFwEsanfUimOCmsjRMvJSt1o7A",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTIiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.Yq69UbPUVLTG6IMnqwiqf-sMnm42JMdTfOIv-8bjQfIPRQauofFeqEYY5ls6i41DbU9dLkMofoOshm04NI2zk0W3lE-6USak4Tq2xnnWYsPuWlXV7P1w7f6_KwPD8BYnGiWw5DTZVG4tjn3El9D8lPikkWlEAE0Z-aR1p3ezwzqIoRokeN4A7uxvcAzTWSqYQ-JkF_GAMbnLScfjXVEpCjiDnF-ydW3Aj6B87S8K_EWOKptFpswS1UVCuwVDm1wGouvK9WbBSAdtZhdl95p_geke_l53z3PZdjYMYrmtTSxJdBAL-iJ-UpODqzz8sh9rGXBv70wM14oW19IboX9q7g",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTMiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.ZT_zGYMcj4hyzIAyqE3VAte_pxiPxF1cnUBpgcSl7NCIRCO3ErpmsXlvas438UO03tj8mqpyuwFuTEHjSAVZRSU_rOgGowtTnwBRBJJH3pFzvv3JE3mnRro_7nQWXRZqYzmUNAxzEEhn5fJQGyYXilT7Rc-5E9CHtcjxnpN-4eC9oNfQiw4hOG5nzx54PxQwirlLfS0l0zc4-qRmS31vNJBKIULD_6y0MUrr94dZk-M6fBGqGVuCLgMfh3jlCFgMjpE5BBBCvoodRu5mJ8aNWa6DgqHUlc3LXqL_Q9IezFS4KIP2KYASe10sRVRs16_dZXy_ng5Ny9shzNRKMZiNCw",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTQiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.PDY8M4wnfh1gQ-DLnozLekWRCIJAL6y-8ceK7tlrFcLaoiNfnP2pPfgY-cUKAV7hEkKAt89PTUXOa_d0JUmjh0XkZUn28KqXK229Mnp-wUE114GD-Bu1rlQLQoJ5m_sWWLBEV4_FlKx0igyJSWb0YYYl5BfgxDGoyCnQTfXXC4Ha6OJQo88qcQD_K-PRmZ558fhAWrRJaeukegbXpGfw6Hhyw4z73GhYvEiupXuGB34UiWxWsTHyH9EzY61wIQQLGs0qjXMa2QMDEnApqWYnVWcug86IHz5JX5fxxmVz9qzMufc-WArplFnD5LLulZdg9zQdXODcyEyRZbtuBfEcdw",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTUiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.cVzffagURHwPU-5c-NYAKoPF9_43d74ashqvCOzbWGL7PyQY_mNZs-2oev_QHXyrjl4PkmCvviiaawTKyQP9gWFFVfnyQYicP8M1gCvVUKenPYLpzYAp8SEUCISyKkDE3qPc73pf2FQZDl6815edBKiVaIoomdoJs_7QE28Ipo4d8D1g61cetE5sc_JMYDWg_PpeTdB5vBPuPKzr8Mc1zz9u8AJhLn8c-XaDDubhvwj36xsgVY3nw61FQxW9SBwLoTmoTakV57SP49Z2glzMrY5hsfrXyWynkJQadg-ZiJbpoqXfrXINdGr7y9Iboh2g18D7Cu3vlFpv_PQx6cYJZQ",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTYiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.WEDo0H753toeCM9OnbeTL5ofJAAmjv7crP9FHrGA_YcPRnfMdmnjpa3cI4olloSDI2j69BGOK05CEjumCXjz-YPoZDgiEuJtDSEZA-1CRUXTMvbERjK47o2X82T_iVLRBVihDEbmyxAnCnwPNLTGMMr2-2o2RCzlHhOTryih-7CNj6ty9HMlOmlIA12FWj5Ik8G0BdDaWhBClaGh9UYiDKXWUvBLFVD_p8FA-GJ6D9ivwj10HIMHnYxCNxDMxBYytS0Kr64AJ6Pe5Chrhq2u-XlrnVDJVWmgoMlsoMAZ2EVzVOU_s_cHK_7QIaySaSTEO-rkdhFMulqYMHDc9JWkpA",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTciLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.WtLlWEKtNeI2HmYdIJam_bWLGxvOVTSj4ohxJuB1NBfSZxQbuAgQ3_pnXVd7uioQyUm5JEloG4FkJFYE7hmrlL5ocCqufws40HQJQx2bJm_8dePccMNRyjsk7Ya7_1dp0d5QEH-Ckob_MxIAawHqhMUGTExVXuk83STXCVN3e9HHzo7UiekuYIaAbSlBpX_ySkfAPDHvkKpXwg25w9zI3y0JrVGwoKlGNzwasFiY0RVtLNLQPpjz_LEdH9xappg36M75SP-q0lJO5KaWtmNHHTTQ11GXs3xXwMCn9mU6kk_sBy3N_GVtkSP_qjCAdHYKUPhx4Pe1Xajb_trvvCCk9g",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTgiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.CFK5gunymQ7Jf7stOsWdEVO1y275eSefL0LsQku-Gdn_iWVFmzY_ASQqBJt8jmfM17zht5NUrASm095yn3vDRYnx-CgtDwJrpF3jeLbt101ld8VytJxng4CjyznzrVuSPLM4DMiUjILG4vd9wNOkEUgPQzu5qdqEGckxj-c1lMpWhyWDR9pZaX_BryNGNdQvw4auJFuHcWl4HeVLYhdcZulbz_OAq1huYZgrjzDgVrMjXOxo2SF6ObmnJzrRllrynwingLAsGQtiNWppVNcpeG-DxFhWYhnb_w-oTk2HcwFoecWr0R_ran_UY1n0aPZ_2MzZ_NsIaeG0VyIk0SxbHw",
+  "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhIn0.eyJpc3MiOiJ0ZXN0LmZlZGVyYXRlZC5vaWRjLnByb3ZpZGVyIiwiYXVkIjoidGVzdC1rZXlsZXNzLWRhcHAiLCJzdWIiOiJ0ZXN0LXVzZXItMTkiLCJlbWFpbCI6InRlc3RAYXB0b3NsYWJzLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3MjU0NzUxMTIsImV4cCI6MjcwMDAwMDAwMCwibm9uY2UiOiI3MDk1MjQyMzMzOTY0NDU3MjY3OTM0NzIzNzY4MDgwMzAzMzI0NDYyODIxMTkxNzU2NDA5NDUwMDk5NTE5NzgxMDUxOTEwMTg3MTE4In0.cOZY1MKhMYDv6GNAI61ojFKtZS6M1a_5eOkuVVVFk1aEpvMqe12irXy8WZOxSauIcZvy9CazXPZprkEhnGIExV4LFzbelG4T2DP7cvO9zmJXb481p3g5U0tWfahvh5EqZp9j3fxvKGcEYNA8CH3rFpYwltCxk_yKNkQFJvXcUOyLbu9t98HBvhcl2-vL-g61K7f9v_ZEvRuhJFbGNXRY4GZdvEuzsKacNcYOMPELptoEZpgeHvilfqPtIGhQJbl5f8m4etXfHlC29N7dAd3avkiqfE_4zpUGe9t8ZGonpZkzvBgsknK_g7pCwI8SstBKJJm6s9etbbmQJsHO1mwLdw",
+];
+
 const KEYLESS_TEST_TIMEOUT = 12000;
 
 describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
-  // TODO: Make this work for local by spinning up a local proving service.
   const { aptos } = getAptosClient();
+  const jwkAccount = Account.generate();
 
-  describe("keyless account", () => {
+  beforeAll(async () => {
+    await aptos.fundAccount({
+      accountAddress: jwkAccount.accountAddress,
+      amount: FUND_AMOUNT,
+    });
+    const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+      sender: jwkAccount,
+      iss: "test.federated.oidc.provider",
+      jwksUrl: "https://github.com/aptos-labs/aptos-core/raw/main/types/src/jwks/rsa/secure_test_jwk.json",
+    });
+    const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: jwkAccount, transaction: jwkTransaction });
+    await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+  });
+
+  test(
+    "installs jwks for an auth0 iss",
+    async () => {
+      const sender = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: sender.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+        sender,
+        iss: "https://dev-qtdgjv22jh0v1k7g.us.auth0.com/",
+      });
+      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+    },
+    KEYLESS_TEST_TIMEOUT,
+  );
+
+  describe.each([
+    { jwts: TEST_JWT_TOKENS, jwkAddress: undefined },
+    { jwts: TEST_FEDERATED_JWT_TOKENS, jwkAddress: jwkAccount.accountAddress },
+  ])("keyless account", ({ jwts, jwkAddress }) => {
+    let i = 0;
+    let jwt: string;
+    beforeEach(async () => {
+      jwt = jwts[i % jwts.length];
+      i += 1;
+    });
+
     test(
       "derives the keyless account and submits a transaction",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const account = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const recipient = Account.generate();
-        await simpleCoinTransactionHelper(aptos, account, recipient);
+        await simpleCoinTransactionHelper(aptos, sender, recipient);
       },
       KEYLESS_TEST_TIMEOUT,
     );
@@ -53,16 +119,13 @@ describe("keyless api", () => {
     test(
       "creates the keyless account via the static constructor and submits a transaction",
       async () => {
-        const jwt = TEST_JWT_TOKENS[0];
-
         const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-        const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper });
-        const address = await aptos.lookupOriginalAccountAddress({
-          authenticationKey: publicKey.authKey().derivedAddress(),
-        });
         const proof = await aptos.getProof({ jwt, ephemeralKeyPair, pepper });
 
-        const account = KeylessAccount.create({ address, proof, jwt, ephemeralKeyPair, pepper });
+        const account =
+          jwkAddress === undefined
+            ? KeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper })
+            : FederatedKeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper, jwkAddress });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, account, recipient);
       },
@@ -72,9 +135,10 @@ describe("keyless api", () => {
     test(
       "derives the keyless account with email uidKey and submits a transaction",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, uidKey: "email" })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, uidKey: "email" });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, sender, recipient);
       },
@@ -84,9 +148,10 @@ describe("keyless api", () => {
     test(
       "derives the keyless account with custom pepper and submits a transaction",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, pepper: new Uint8Array(31) })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress, pepper: new Uint8Array(31) });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, sender, recipient);
       },
@@ -96,8 +161,6 @@ describe("keyless api", () => {
     test(
       "deriving keyless account with async proof fetch executes callback",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         let succeeded = false;
         const proofFetchCallback = async (res: ProofFetchStatus) => {
           if (res.status === "Failed") {
@@ -105,7 +168,10 @@ describe("keyless api", () => {
           }
           succeeded = true;
         };
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
         expect(succeeded).toBeFalsy();
         await sender.waitForProofFetch();
         expect(succeeded).toBeTruthy();
@@ -118,10 +184,11 @@ describe("keyless api", () => {
     test(
       "derives the keyless account with async proof fetch and submits a transaction",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const proofFetchCallback = async () => {};
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
         await aptos.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
@@ -140,10 +207,11 @@ describe("keyless api", () => {
     test(
       "deriving keyless account with async proof fetch throws when trying to immediately sign",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const proofFetchCallback = async () => {};
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, proofFetchCallback, jwkAddress });
         await aptos.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
@@ -163,16 +231,25 @@ describe("keyless api", () => {
     test(
       "deriving keyless account using all parameters",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
         const proofFetchCallback = async () => {};
-        const sender = await aptos.deriveKeylessAccount({
-          jwt,
-          ephemeralKeyPair,
-          uidKey: "email",
-          pepper: new Uint8Array(31),
-          proofFetchCallback,
-        });
+
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({
+                jwt,
+                ephemeralKeyPair,
+                uidKey: "email",
+                pepper: new Uint8Array(31),
+                proofFetchCallback,
+              })
+            : await aptos.deriveKeylessAccount({
+                jwt,
+                ephemeralKeyPair,
+                uidKey: "email",
+                pepper: new Uint8Array(31),
+                proofFetchCallback,
+                jwkAddress,
+              });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, sender, recipient);
       },
@@ -182,9 +259,10 @@ describe("keyless api", () => {
     test(
       "simulation works correctly",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         await aptos.fundAccount({
           accountAddress: sender.accountAddress,
           amount: FUND_AMOUNT,
@@ -202,9 +280,10 @@ describe("keyless api", () => {
     test(
       "keyless account verifies signature for arbitrary message correctly",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const message = "hello world";
         const signature = sender.sign(message);
         expect(sender.verifySignature({ message, signature })).toBe(true);
@@ -215,11 +294,13 @@ describe("keyless api", () => {
     test(
       "serializes and deserializes",
       async () => {
-        // Select a random test token.  Using the same one may encounter rate limits
-        const jwt = TEST_JWT_TOKENS[Math.floor(Math.random() * TEST_JWT_TOKENS.length)];
-        const sender = await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair });
+        const sender =
+          jwkAddress === undefined
+            ? await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair })
+            : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const bytes = sender.bcsToBytes();
-        const deserializedAccount = KeylessAccount.fromBytes(bytes);
+        const deserializedAccount =
+          jwkAddress === undefined ? KeylessAccount.fromBytes(bytes) : FederatedKeylessAccount.fromBytes(bytes);
         expect(bytes).toEqual(deserializedAccount.bcsToBytes());
       },
       KEYLESS_TEST_TIMEOUT,

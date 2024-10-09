@@ -21,10 +21,13 @@ import {
   WaitForTransactionOptions,
 } from "../types";
 import {
+  FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
   publicPackageTransaction,
   rotateAuthKey,
+  signAndSubmitAsFeePayer,
   signAndSubmitTransaction,
+  signAsFeePayer,
   signTransaction,
 } from "../internal/transactionSubmission";
 import {
@@ -573,20 +576,8 @@ export class Transaction {
    * ```
    */
   signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
-    const { signer, transaction } = args;
-
-    // if transaction doesnt hold a "feePayerAddress" prop it means
-    // this is not a fee payer transaction
-    if (!transaction.feePayerAddress) {
-      throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);
-    }
-
-    // Set the feePayerAddress to the signer account address
-    transaction.feePayerAddress = signer.accountAddress;
-
-    return signTransaction({
-      signer,
-      transaction,
+    return signAsFeePayer({
+      ...args,
     });
   }
 
@@ -680,15 +671,44 @@ export class Transaction {
    * ```
    * @return PendingTransactionResponse
    */
-  async signAndSubmitTransaction(args: {
-    signer: Account;
-    transaction: AnyRawTransaction;
-  }): Promise<PendingTransactionResponse> {
-    const { signer, transaction } = args;
+  async signAndSubmitTransaction(
+    args: FeePayerOrFeePayerAuthenticatorOrNeither & {
+      signer: Account;
+      transaction: AnyRawTransaction;
+    },
+  ): Promise<PendingTransactionResponse> {
     return signAndSubmitTransaction({
       aptosConfig: this.config,
-      signer,
-      transaction,
+      ...args,
+    });
+  }
+
+  /**
+   * Sign and submit a single signer transaction as the fee payer to chain given an authenticator by the sender of the transaction.
+   *
+   * @param args.feePayer The fee payer account to sign the transaction
+   * @param args.senderAuthenticator The AccountAuthenticator signed by the sender of the transaction
+   * @param args.transaction An instance of a RawTransaction, plus optional secondary/fee payer addresses
+   *
+   * @example
+   * const transaction = await aptos.transaction.build.simple({sender: alice.accountAddress, feePayer: true ...})
+   * const senderAuthenticator = alice.signTransactionWithAuthenticator(transaction)
+   * const pendingTransaction = await aptos.signAndSubmitAsFeePayer({
+   *  senderAuthenticator,
+   *  feePayer: bob,
+   *  transaction,
+   * })
+   *
+   * @return PendingTransactionResponse
+   */
+  async signAndSubmitAsFeePayer(args: {
+    feePayer: Account;
+    senderAuthenticator: AccountAuthenticator;
+    transaction: AnyRawTransaction;
+  }): Promise<PendingTransactionResponse> {
+    return signAndSubmitAsFeePayer({
+      aptosConfig: this.config,
+      ...args,
     });
   }
 }

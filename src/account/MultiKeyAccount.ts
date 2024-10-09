@@ -7,7 +7,7 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-import { KeylessAccount } from "./KeylessAccount";
+import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
 
 /**  
  * Arguments required to verify a multi-key signature against a given message.  
@@ -142,7 +142,9 @@ export class MultiKeyAccount implements Account {
    * @return {Promise<void>} A promise that resolves when all proofs have been fetched.
    */
   async waitForProofFetch() {
-    const keylessSigners = this.signers.filter((signer) => signer instanceof KeylessAccount) as KeylessAccount[];
+    const keylessSigners = this.signers.filter(
+      (signer) => signer instanceof AbstractKeylessAccount,
+    ) as AbstractKeylessAccount[];
     const promises = keylessSigners.map(async (signer) => signer.waitForProofFetch());
     await Promise.all(promises);
   }

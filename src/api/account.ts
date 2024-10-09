@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account as AccountModule } from "../account";
-import { AccountAddress, PrivateKey, AccountAddressInput } from "../core";
+import { AccountAddress, PrivateKey, AccountAddressInput, createObjectAddress } from "../core";
 import {
   AccountData,
   AnyNumber,
@@ -24,7 +24,6 @@ import {
 } from "../types";
 import {
   deriveAccountFromPrivateKey,
-  getAccountCoinAmount,
   getAccountCoinsCount,
   getAccountCoinsData,
   getAccountCollectionsWithOwnedTokens,
@@ -47,6 +46,7 @@ import { waitForIndexerOnVersion } from "./utils";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { view } from "../internal/view";
 import { isEncodedStruct, parseEncodedStruct } from "../utils";
+import { memoizeAsync } from "../utils/memoize";
 
 /**
  * A class to query all `Account` related queries on Aptos.
@@ -702,35 +702,81 @@ export class Account {
     faMetadataAddress?: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    const { coinType, faMetadataAddress } = args;
-    await waitForIndexerOnVersion({
-      config: this.config,
-      minimumLedgerVersion: args.minimumLedgerVersion,
-      processorType: ProcessorType.FUNGIBLE_ASSET_PROCESSOR,
-    });
+    const { accountAddress, coinType, faMetadataAddress } = args;
 
     // Attempt to populate the CoinType field if the FA address is provided.
     // We cannot do this internally due to dependency cycles issue.
     let coinAssetType: MoveStructId | undefined = coinType;
     if (coinType === undefined && faMetadataAddress !== undefined) {
-      try {
-        const pairedCoinTypeStruct = (
-          await view({
-            aptosConfig: this.config,
-            payload: { function: "0x1::coin::paired_coin", functionArguments: [faMetadataAddress] },
-          })
-        ).at(0) as { vec: MoveValue[] };
+      coinAssetType = await memoizeAsync(
+        async () => {
+          try {
+            const pairedCoinTypeStruct = (
+              await view({
+                aptosConfig: this.config,
+                payload: { function: "0x1::coin::paired_coin", functionArguments: [faMetadataAddress] },
+              })
+            ).at(0) as { vec: MoveValue[] };
 
-        // Check if the Option has a value, and if so, parse the struct
-        if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
-          coinAssetType = parseEncodedStruct(pairedCoinTypeStruct.vec[0]);
-        }
-      } catch (error) {
-        /* No paired coin type found */
-      }
+            // Check if the Option has a value, and if so, parse the struct
+            if (pairedCoinTypeStruct.vec.length > 0 && isEncodedStruct(pairedCoinTypeStruct.vec[0])) {
+              return parseEncodedStruct(pairedCoinTypeStruct.vec[0]) as MoveStructId;
+            }
+          } catch (error) {
+            /* No paired coin type found */
+          }
+          return undefined;
+        },
+        `coin-mapping-${faMetadataAddress.toString()}`,
+        1000 * 60 * 5, // 5 minutes
+      )();
     }
 
-    return getAccountCoinAmount({ aptosConfig: this.config, ...args, coinType: coinAssetType });
+    let faAddress: string;
+
+    if (coinType !== undefined && faMetadataAddress !== undefined) {
+      faAddress = AccountAddress.from(faMetadataAddress).toStringLong();
+    } else if (coinType !== undefined && faMetadataAddress === undefined) {
+      // TODO Move to a separate function as defined in the AIP for coin migration
+      if (coinType === APTOS_COIN) {
+        faAddress = AccountAddress.A.toStringLong();
+      } else {
+        faAddress = createObjectAddress(AccountAddress.A, coinType).toStringLong();
+      }
+    } else if (coinType === undefined && faMetadataAddress !== undefined) {
+      const addr = AccountAddress.from(faMetadataAddress);
+      faAddress = addr.toStringLong();
+      if (addr === AccountAddress.A) {
+        coinAssetType = APTOS_COIN;
+      }
+      // The paired CoinType should be populated outside of this function in another
+      // async call. We cannot do this internally due to dependency cycles issue.
+    } else {
+      throw new Error("Either coinType, faMetadataAddress, or both must be provided");
+    }
+
+    // When there is a coin mapping, use that first, otherwise use the fungible asset address
+    // TODO: This function's signature at the top, returns number, but it could be greater than can be represented
+    if (coinAssetType !== undefined) {
+      const [balanceStr] = await view<[string]>({
+        aptosConfig: this.config,
+        payload: {
+          function: "0x1::coin::balance",
+          typeArguments: [coinAssetType],
+          functionArguments: [accountAddress],
+        },
+      });
+      return parseInt(balanceStr, 10);
+    }
+    const [balanceStr] = await view<[string]>({
+      aptosConfig: this.config,
+      payload: {
+        function: "0x1::primary_fungible_store::balance",
+        typeArguments: ["0x1::object::ObjectCore"],
+        functionArguments: [accountAddress, faAddress],
+      },
+    });
+    return parseInt(balanceStr, 10);
   }
 
   /**

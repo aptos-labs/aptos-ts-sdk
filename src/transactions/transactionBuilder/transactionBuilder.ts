@@ -9,7 +9,14 @@
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { AptosConfig } from "../../api/aptosConfig";
 import { AccountAddress, AccountAddressInput, Hex, PublicKey } from "../../core";
-import { AnyPublicKey, AnySignature, KeylessPublicKey, KeylessSignature, Secp256k1PublicKey } from "../../core/crypto";
+import {
+  AnyPublicKey,
+  AnySignature,
+  KeylessPublicKey,
+  KeylessSignature,
+  Secp256k1PublicKey,
+  FederatedKeylessPublicKey,
+} from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/account";
 import { getLedgerInfo } from "../../internal/general";
@@ -473,7 +480,12 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
         getAuthenticatorForSimulation(publicKey),
       );
     }
-    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey!);
+    if (!feePayerPublicKey) {
+      throw new Error(
+        "Must provide a feePayerPublicKey argument to generate a signed fee payer transaction for simulation",
+      );
+    }
+    const feePayerAuthenticator = getAuthenticatorForSimulation(feePayerPublicKey);
 
     const transactionAuthenticator = new TransactionAuthenticatorFeePayer(
       accountAuthenticator,
@@ -496,7 +508,13 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 
     let secondaryAccountAuthenticators: Array<AccountAuthenticator> = [];
 
-    secondaryAccountAuthenticators = secondarySignersPublicKeys!.map((publicKey) =>
+    if (!secondarySignersPublicKeys) {
+      throw new Error(
+        "Must provide a secondarySignersPublicKeys argument to generate a signed multi agent transaction for simulation",
+      );
+    }
+
+    secondaryAccountAuthenticators = secondarySignersPublicKeys.map((publicKey) =>
       getAuthenticatorForSimulation(publicKey),
     );
 
@@ -525,25 +543,29 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
 }
 
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
+  // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
+  // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
+  const convertToAnyPublicKey =
+    KeylessPublicKey.isInstance(publicKey) ||
+    FederatedKeylessPublicKey.isInstance(publicKey) ||
+    Secp256k1PublicKey.isInstance(publicKey);
+  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
+
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
   const invalidSignature = new Ed25519Signature(new Uint8Array(64));
 
-  if (Ed25519PublicKey.isInstance(publicKey)) {
-    return new AccountAuthenticatorEd25519(publicKey, invalidSignature);
+  if (Ed25519PublicKey.isInstance(accountPublicKey)) {
+    return new AccountAuthenticatorEd25519(accountPublicKey, invalidSignature);
   }
 
-  if (AnyPublicKey.isInstance(publicKey)) {
-    if (KeylessPublicKey.isInstance(publicKey.publicKey)) {
-      return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(KeylessSignature.getSimulationSignature()));
+  if (AnyPublicKey.isInstance(accountPublicKey)) {
+    if (KeylessPublicKey.isInstance(accountPublicKey.publicKey)) {
+      return new AccountAuthenticatorSingleKey(
+        accountPublicKey,
+        new AnySignature(KeylessSignature.getSimulationSignature()),
+      );
     }
-    return new AccountAuthenticatorSingleKey(publicKey, new AnySignature(invalidSignature));
-  }
-
-  // TODO: remove this, non-account public keys should never make it here
-  if (KeylessPublicKey.isInstance(publicKey) || Secp256k1PublicKey.isInstance(publicKey)) {
-    // eslint-disable-next-line no-console
-    console.warn("Expected AccountPublicKey, but got PublicKey. Please wrap your public key with AnyPublicKey.");
-    return new AccountAuthenticatorSingleKey(new AnyPublicKey(publicKey), new AnySignature(invalidSignature));
+    return new AccountAuthenticatorSingleKey(accountPublicKey, new AnySignature(invalidSignature));
   }
 
   // TODO add support for AnyMultiKey
