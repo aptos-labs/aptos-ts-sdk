@@ -1,17 +1,27 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback, TransactionAndProof } from "../account";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
-import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
+import { Deserializer } from "../bcs/deserializer";
+import { AccountAddressInput, AnyPublicKey, AnySignature, Hex, KeylessPublicKey, KeylessSignature, ZeroKnowledgeSig } from "../core";
 import {
   deriveKeylessAccount,
   getPepper,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
 } from "../internal/keyless";
-import { SimpleTransaction } from "../transactions";
+import {
+  AccountAuthenticatorSingleKey,
+  AnyRawTransaction,
+  AnyRawTransactionInstance,
+  deriveTransactionType,
+  SignedTransaction,
+  SimpleTransaction,
+  TransactionAuthenticatorSingleSender,
+} from "../transactions";
 import { HexInput } from "../types";
+import { AptosApiType } from "../utils/const";
 import { AptosConfig } from "./aptosConfig";
 
 /**
@@ -120,5 +130,55 @@ export class Keyless {
     jwksUrl?: string;
   }): Promise<SimpleTransaction> {
     return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  async verifySignedKeylessTransactionBytes(signedTransactionBytes: HexInput) {
+    const signedTxn = SignedTransaction.deserialize(
+      new Deserializer(Hex.fromHexInput(signedTransactionBytes).toUint8Array()),
+    );
+    const keylessAuthenticator = (signedTxn.authenticator as TransactionAuthenticatorSingleSender)
+      .sender as AccountAuthenticatorSingleKey;
+    await this.verifyKeylessSignature({
+      publicKey: keylessAuthenticator.public_key.publicKey as KeylessPublicKey,
+      signature: keylessAuthenticator.signature.signature as KeylessSignature,
+      transaction: signedTxn.raw_txn,
+    });
+  }
+
+  async verifyKeylessSignature(args: {
+    publicKey: KeylessPublicKey;
+    signature: KeylessSignature;
+    transaction: AnyRawTransactionInstance | AnyRawTransaction;
+  }) {
+    const { publicKey, signature, transaction } = args;
+    const rawTxn = "rawTransaction" in transaction ? deriveTransactionType(transaction) : transaction;
+    const url = this.config.getRequestUrl(AptosApiType.PEPPER);
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const txnAndProof = new TransactionAndProof(
+      rawTxn,
+      (signature.ephemeralCertificate.signature as ZeroKnowledgeSig).proof,
+    );
+    const signMess = txnAndProof.hash();
+    const body = {
+      public_key: new AnyPublicKey(publicKey).toString().slice(2),
+      signature: new AnySignature(signature).toString().slice(2),
+      message: Hex.fromHexInput(signMess).toStringWithoutPrefix(),
+      address: new AnyPublicKey(publicKey).authKey().derivedAddress().toString(),
+    };
+
+    console.log(JSON.stringify(body));
+
+    fetch(`${url}/verify`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error("Error:", error));
   }
 }
