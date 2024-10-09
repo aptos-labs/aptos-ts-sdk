@@ -108,16 +108,29 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @param strict If set, enforces private key has to use AIP-80
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict: boolean = false) {
     super();
-
-    const privateKeyHex = Hex.fromHexInput(hexInput);
-    if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
+    let data: Hex;
+    if (typeof hexInput === "string") {
+      // A non-prefixed input
+      if (!strict && hexInput.startsWith("0x")) {
+        data = Hex.fromHexInput(hexInput);
+      } else if (hexInput.startsWith("secp256k1-priv-")) {
+        // AIP-80 compatible
+        data = Hex.fromHexInput(hexInput.split("-")[3]);
+      } else {
+        throw new Error("Invalid private key input type");
+      }
+    } else {
+      data = Hex.fromHexInput(hexInput);
+    }
+    if (data.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
 
-    this.key = privateKeyHex;
+    this.key = data;
   }
 
   /**
@@ -208,8 +221,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns string representation of the private key
    */
-  toString(): string {
-    return this.key.toString();
+  toString(): `secp256k1-priv-${string}` {
+    return `secp256k1-priv-${this.key.toString()}`;
   }
 
   // endregion
