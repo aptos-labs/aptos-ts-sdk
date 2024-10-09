@@ -4,6 +4,9 @@ import { AptosResponse } from "./types";
 import { AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosApiType } from "../utils/const";
 
+/**
+ * Options for making a GET request, including configuration for the API client.
+ */
 export type GetRequestOptions = {
   /**
    * The config for the API client
@@ -39,13 +42,24 @@ export type GetRequestOptions = {
   overrides?: ClientConfig;
 };
 
+/**
+ * Options for making a request to the Aptos API, excluding the "type" field.
+ */
 export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
 
 /**
- * Main function to do a Get request
+ * Executes a GET request to retrieve data based on the provided options.
  *
- * @param options GetRequestOptions
- * @returns
+ * @param options - The options for the GET request.
+ * @param options.aptosConfig - The configuration object for Aptos requests.
+ * @param options.overrides - Optional overrides for the request configuration.
+ * @param options.params - Query parameters to include in the request.
+ * @param options.contentType - The content type of the request.
+ * @param options.acceptType - The accepted response type.
+ * @param options.path - The specific path for the request.
+ * @param options.originMethod - The original method of the request.
+ * @param options.type - The type of request being made.
+ * @returns The response from the GET request.
  */
 export async function get<Req extends {}, Res extends {}>(
   options: GetRequestOptions,
@@ -72,6 +86,18 @@ export async function get<Req extends {}, Res extends {}>(
   );
 }
 
+/**
+ * Retrieves data from the Aptos full node using the provided options.
+ * 
+ * @param options - The options for the request to the Aptos full node.
+ * @param options.aptosConfig - Configuration settings specific to the Aptos client and full node.
+ * @param options.aptosConfig.clientConfig - The client configuration settings.
+ * @param options.aptosConfig.fullnodeConfig - The full node configuration settings.
+ * @param options.overrides - Additional overrides for the request.
+ * @param options.type - The type of API request being made.
+ * 
+ * @returns A promise that resolves with the response from the Aptos full node.
+ */
 export async function getAptosFullNode<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
@@ -90,10 +116,12 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
 }
 
 /**
- * Makes a get request to the pepper service
+ * Makes a GET request to the Aptos Pepper service to retrieve data.
  *
- * @param options GetAptosRequestOptions
- * @returns AptosResponse
+ * @param options - The options for the request.
+ * @param options.param1 - Description of param1.
+ * @param options.param2 - Description of param2.
+ * @returns AptosResponse - The response from the Aptos Pepper service.
  */
 export async function getAptosPepperService<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,

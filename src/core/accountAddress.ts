@@ -9,7 +9,7 @@ import { TransactionArgument } from "../transactions/instances/transactionArgume
 import { HexInput, ScriptTransactionArgumentVariants } from "../types";
 
 /**
- * This enum is used to explain why an address was invalid.
+ * Provides reasons for an address was invalid.
  */
 export enum AddressInvalidReason {
   INCORRECT_NUMBER_OF_BYTES = "incorrect_number_of_bytes",
@@ -21,6 +21,9 @@ export enum AddressInvalidReason {
   INVALID_PADDING_ZEROES = "INVALID_PADDING_ZEROES",
 }
 
+/**
+ * The input for an account address, which can be either a hexadecimal string or a standard account address.
+ */
 export type AccountAddressInput = HexInput | AccountAddress;
 
 /**
@@ -69,8 +72,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Creates an instance of AccountAddress from a Uint8Array.
-   *
-   * @param args.data A Uint8Array representing an account address.
+   * 
+   * This function ensures that the input data is exactly 32 bytes long, which is required for a valid account address.
+   * 
+   * @param input A Uint8Array representing an account address.
+   * @throws ParsingError if the input length is not equal to 32 bytes.
    */
   constructor(input: Uint8Array) {
     super();
@@ -84,21 +90,20 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Returns whether an address is special, where special is defined as 0x0 to 0xf
-   * inclusive. In other words, the last byte of the address must be < 0b10000 (16)
+   * Determines if the address is classified as special, which is defined as 0x0 to 0xf inclusive.
+   * In other words, the last byte of the address must be < 0b10000 (16)
    * and every other byte must be zero.
-   *
-   * For more information on how special addresses are defined see AIP-40:
+   * 
+   * For more information on how special addresses are defined, see AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   *
-   * @returns true if the address is special, false if not.
+   * 
+   * @returns true if the address is special, false otherwise.
    */
   isSpecial(): boolean {
     return (
       this.data.slice(0, this.data.length - 1).every((byte) => byte === 0) && this.data[this.data.length - 1] < 0b10000
     );
   }
-
   // ===
   // Methods for representing an instance of AccountAddress as other types.
   // ===
@@ -106,11 +111,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Return the AccountAddress as a string as per AIP-40.
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   *
-   * In short, it means that special addresses are represented in SHORT form, meaning
-   * 0x0 through to 0xf inclusive, and every other address is represented in LONG form,
-   * meaning 0x + 64 hex characters.
-   *
+   * This representation returns special addresses in SHORT form (0xf)
+   * and other addresses in LONG form (0x + 64 characters).
+   * 
    * @returns AccountAddress as a string conforming to AIP-40.
    */
   toString(): `0x${string}` {
@@ -118,13 +121,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
+   * Return the AccountAddress as a string conforming to AIP-40 but without the leading 0x.
+   * 
    * NOTE: Prefer to use `toString` where possible.
-   *
-   * Return the AccountAddress as a string as per AIP-40 but without the leading 0x.
-   *
-   * Learn more by reading the docstring of `toString`.
-   *
-   * @returns AccountAddress as a string conforming to AIP-40 but without the leading 0x.
+   * 
+   * @returns AccountAddress as a string without the leading 0x.
    */
   toStringWithoutPrefix(): string {
     let hex = bytesToHex(this.data);
@@ -135,14 +136,10 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * NOTE: Prefer to use `toString` where possible.
-   *
-   * Whereas toString will format special addresses (as defined by isSpecial) using the
-   * SHORT form (no leading 0s), this format the address in the LONG format
-   * unconditionally.
-   *
-   * This means it will be 0x + 64 hex characters.
-   *
+   * Convert the account address to a string in LONG format, which is always 0x followed by 64 hex characters.
+   * 
+   * NOTE: Prefer to use `toString` where possible, as it formats special addresses using the SHORT form (no leading 0s).
+   * 
    * @returns AccountAddress as a string in LONG form.
    */
   toStringLong(): `0x${string}` {
@@ -150,23 +147,20 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * NOTE: Prefer to use `toString` where possible.
-   *
-   * Whereas toString will format special addresses (as defined by isSpecial) using the
-   * SHORT form (no leading 0s), this function will include leading zeroes. The string
-   * will not have a leading zero.
-   *
-   * This means it will be 64 hex characters without a leading 0x.
-   *
-   * @returns AccountAddress as a string in LONG form without a leading 0x.
+   * Returns the account address as a string in LONG form without a leading 0x.
+   * This function will include leading zeroes and will produce a string of 64 hex characters.
+   * 
+   * NOTE: Prefer to use `toString` where possible, as it formats special addresses using the SHORT form (no leading 0s).
+   * 
+   * @returns {string} The account address in LONG form.
    */
   toStringLongWithoutPrefix(): string {
     return bytesToHex(this.data);
   }
 
   /**
-   * Get the inner hex data. The inner data is already a Uint8Array so no conversion
-   * is taking place here, it just returns the inner data.
+   * Get the inner data as a Uint8Array.
+   * The inner data is already a Uint8Array, so no conversion takes place.
    *
    * @returns Hex data as Uint8Array
    */
@@ -189,11 +183,23 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     serializer.serializeFixedBytes(this.data);
   }
 
+  /**
+   * Serializes the current instance into a byte sequence suitable for entry functions.
+   * This allows for the proper encoding of data when interacting with entry functions in the blockchain.
+   * 
+   * @param serializer - The serializer instance used to convert the data into bytes.
+   */
   serializeForEntryFunction(serializer: Serializer): void {
     const bcsBytes = this.bcsToBytes();
     serializer.serializeBytes(bcsBytes);
   }
 
+  /**
+   * Serializes the current instance for use in a script function by encoding it into a byte sequence.
+   * This process involves serializing the variant index and the instance data, making it suitable for transmission.
+   * 
+   * @param serializer - The serializer instance used to perform the serialization.
+   */
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Address);
     serializer.serialize(this);
@@ -201,6 +207,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Deserialize an AccountAddress from the byte buffer in a Deserializer instance.
+   * This function allows you to convert a byte representation of an AccountAddress into an instance of AccountAddress.
    * @param deserializer The deserializer to deserialize the AccountAddress from.
    * @returns An instance of AccountAddress.
    * @example
@@ -237,12 +244,16 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * This means the following are not accepted:
    * - SHORT for non-special addresses.
    * - Any address without a leading 0x.
-   *
-   * Learn more about the different address formats by reading AIP-40:
+   * 
+   * @param input - A hex string representing an account address.
+   * 
+   * @throws {ParsingError} If the hex string does not start with 0x or is not in a valid format.
+   * 
+   * @note This function has strict parsing behavior. For relaxed behavior, please use the `fromString` function.
+   * 
+   * @see AIP-40 documentation for more details on address formats: 
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   *
-   * @param input A hex string representing an account address.
-   *
+   * 
    * @returns An instance of AccountAddress.
    */
   static fromStringStrict(input: string): AccountAddress {
@@ -294,10 +305,12 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * Learn more about the different address formats by reading AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   *
-   * @param input A hex string representing an account address.
-   *
+   * 
+   * @param input - A hex string representing an account address.
+   * 
    * @returns An instance of AccountAddress.
+   * 
+   * @throws ParsingError if the hex string is too short, too long, or contains invalid characters.
    */
   static fromString(input: string): AccountAddress {
     let parsedInput = input;
@@ -338,10 +351,10 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Convenience method for creating an AccountAddress from all known inputs.
-   *
-   * This handles, Uint8array, string, and AccountAddress itself
-   * @param input
+   * Convenience method for creating an AccountAddress from various input types.
+   * This function accepts a string, Uint8Array, or an existing AccountAddress instance and returns the corresponding AccountAddress.
+   * 
+   * @param input - The input to convert into an AccountAddress. This can be a string representation of an address, a Uint8Array, or an existing AccountAddress.
    */
   static from(input: AccountAddressInput): AccountAddress {
     if (typeof input === "string") {
@@ -354,10 +367,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Convenience method for creating an AccountAddress from all known inputs.
-   *
-   * This handles, Uint8array, string, and AccountAddress itself
-   * @param input
+   * Create an AccountAddress from various input types, including strings, Uint8Array, and AccountAddress instances.
+   * 
+   * @param input - The input to convert into an AccountAddress, which can be a string, a Uint8Array, or an AccountAddress.
    */
   static fromStrict(input: AccountAddressInput): AccountAddress {
     if (typeof input === "string") {
@@ -368,19 +380,19 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     }
     return input;
   }
-
   // ===
   // Methods for checking validity.
   // ===
 
   /**
-   * Check if the string is a valid AccountAddress.
+   * Check if the provided input is a valid AccountAddress.
    *
-   * @param args.input A hex string representing an account address.
-   * @param args.strict If true, use strict parsing behavior. If false, use relaxed parsing behavior.
-   *
-   * @returns valid = true if the string is valid, valid = false if not. If the string
-   * is not valid, invalidReason will be set explaining why it is invalid.
+   * @param args - The arguments for validation.
+   * @param args.input - A hex string representing an account address.
+   * @param args.strict - If true, use strict parsing behavior; if false, use relaxed parsing behavior.
+   * 
+   * @returns An object indicating whether the address is valid. If valid, valid = true; if not, valid = false with additional details.
+   * If the address is invalid, invalidReason will explain why it is invalid, and invalidReasonMessage will provide the error message.
    */
   static isValid(args: { input: AccountAddressInput; strict?: boolean }): ParsingResult<AddressInvalidReason> {
     try {
@@ -400,10 +412,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
-   * Return whether AccountAddresses are equal. AccountAddresses are considered equal
-   * if their underlying byte data is identical.
-   *
-   * @param other The AccountAddress to compare to.
+   * Determine if two AccountAddresses are equal based on their underlying byte data.
+   * 
+   * @param other - The AccountAddress to compare to.
    * @returns true if the AccountAddresses are equal, false if not.
    */
   equals(other: AccountAddress): boolean {

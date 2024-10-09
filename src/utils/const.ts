@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Type of API endpoint for request routing
+ * Types of API endpoints used for routing requests in the Aptos network.
  */
 export enum AptosApiType {
   FULLNODE = "Fullnode",
@@ -50,9 +50,7 @@ export const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
 export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
 
 /**
- * The list of supported Processor types for our indexer api.
- *
- * These can be found from the processor_status table in the indexer database.
+ * Supported processor types for the indexer API, sourced from the processor_status table in the indexer database.
  * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
  */
 export enum ProcessorType {

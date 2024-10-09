@@ -6,26 +6,44 @@ import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 
+/** 
+ * Arguments required to create an instance of an Ed25519 signer.
+ * 
+ * @param privateKey - The private key used for signing.
+ * @param address - Optional account address associated with the signer.
+ */
 export interface Ed25519SignerConstructorArgs {
   privateKey: Ed25519PrivateKey;
   address?: AccountAddressInput;
 }
 
+/** 
+ * Arguments for creating an Ed25519 signer from a derivation path. 
+ * 
+ * @param path - The derivation path for the Ed25519 key. 
+ * @param mnemonic - The mnemonic phrase used to generate the key. 
+ */
 export interface Ed25519SignerFromDerivationPathArgs {
   path: string;
   mnemonic: string;
 }
 
+/**
+ * Arguments required to verify an Ed25519 signature against a given message.
+ * 
+ * @param message - The message to be verified, represented in hexadecimal format.
+ * @param signature - The Ed25519 signature to validate.
+ */
 export interface VerifyEd25519SignatureArgs {
   message: HexInput;
   signature: Ed25519Signature;
 }
 
 /**
- * Signer implementation for the Ed25519 authentication scheme.
- * This extends an {@link Ed25519Account} by adding signing capabilities through an {@link Ed25519PrivateKey}.
- *
- * Note: Generating a signer instance does not create the account on-chain.
+ * Represents an Ed25519 account that provides signing capabilities through an Ed25519 private key.
+ * This class allows for the creation of accounts, signing messages and transactions, and verifying signatures.
+ * 
+ * Note: Generating an instance of this class does not create the account on-chain.
  */
 export class Ed25519Account implements Account {
   /**
@@ -41,6 +59,14 @@ export class Ed25519Account implements Account {
 
   // region Constructors
 
+  /**
+   * Creates an instance of the Ed25519Signer with the specified parameters.
+   * This constructor initializes the private key, public key, and account address for the signer.
+   * 
+   * @param args - The constructor arguments for the Ed25519Signer.
+   * @param args.privateKey - The private key used for signing.
+   * @param args.address - The optional account address; if not provided, it will derive the address from the public key.
+   */
   constructor(args: Ed25519SignerConstructorArgs) {
     const { privateKey, address } = args;
     this.privateKey = privateKey;
@@ -49,7 +75,10 @@ export class Ed25519Account implements Account {
   }
 
   /**
-   * Derives a signer from a randomly generated private key
+   * Generates a new Ed25519 account using a randomly generated private key.
+   * This function is useful for creating a signer that can be used for cryptographic operations.
+   * 
+   * @returns {Ed25519Account} The newly generated Ed25519 account.
    */
   static generate() {
     const privateKey = Ed25519PrivateKey.generate();
@@ -57,28 +86,28 @@ export class Ed25519Account implements Account {
   }
 
   /**
-   * Derives an account with bip44 path and mnemonics
-   *
-   * @param args.path the BIP44 derive hardened path e.g. m/44'/637'/0'/0'/0'
+   * Derives an Ed25519 account using a specified BIP44 path and mnemonic seed phrase.
+   * 
+   * @param args - The arguments for deriving the account.
+   * @param args.path - The BIP44 derive hardened path, e.g., m/44'/637'/0'/0'/0'.
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param args.mnemonic the mnemonic seed phrase of the account
+   * @param args.mnemonic - The mnemonic seed phrase of the account.
    */
   static fromDerivationPath(args: Ed25519SignerFromDerivationPathArgs) {
     const { path, mnemonic } = args;
     const privateKey = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);
     return new Ed25519Account({ privateKey });
   }
-
   // endregion
 
   // region Account
-
   /**
    * Verify the given message and signature with the public key.
-   *
-   * @param args.message raw message data in HexInput format
-   * @param args.signature signed message Signature
-   * @returns
+   * 
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - Raw message data in HexInput format.
+   * @param args.signature - Signed message signature.
+   * @returns A boolean indicating whether the signature is valid.
    */
   verifySignature(args: VerifyEd25519SignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
@@ -86,8 +115,10 @@ export class Ed25519Account implements Account {
 
   /**
    * Sign a message using the account's Ed25519 private key.
-   * @param message the signing message, as binary input
-   * @return the AccountAuthenticator containing the signature, together with the account's public key
+   * This function returns an AccountAuthenticator containing the signature along with the account's public key.
+   * 
+   * @param message - The signing message, represented as hexadecimal input.
+   * @returns An AccountAuthenticator containing the signature and the account's public key.
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorEd25519 {
     return new AccountAuthenticatorEd25519(this.publicKey, this.privateKey.sign(message));
@@ -95,8 +126,10 @@ export class Ed25519Account implements Account {
 
   /**
    * Sign a transaction using the account's Ed25519 private key.
-   * @param transaction the raw transaction
-   * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   * This function returns an AccountAuthenticator that contains the signature of the transaction along with the account's public key.
+   * 
+   * @param transaction - The raw transaction to be signed.
+   * @returns An AccountAuthenticator containing the signature and the public key.
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorEd25519 {
     return new AccountAuthenticatorEd25519(this.publicKey, this.signTransaction(transaction));
@@ -104,8 +137,8 @@ export class Ed25519Account implements Account {
 
   /**
    * Sign the given message using the account's Ed25519 private key.
-   * @param message in HexInput format
-   * @returns Signature
+   * @param message - The message to be signed in HexInput format.
+   * @returns Signature - The resulting signature of the signed message.
    */
   sign(message: HexInput): Ed25519Signature {
     return this.privateKey.sign(message);
@@ -113,8 +146,10 @@ export class Ed25519Account implements Account {
 
   /**
    * Sign the given transaction using the available signing capabilities.
-   * @param transaction the transaction to be signed
-   * @returns Signature
+   * This function helps ensure that the transaction is properly authenticated before submission.
+   * 
+   * @param transaction - The transaction to be signed.
+   * @returns Signature - The resulting signature for the transaction.
    */
   signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
     return this.sign(generateSigningMessageForTransaction(transaction));

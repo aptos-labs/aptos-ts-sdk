@@ -5,8 +5,10 @@ import { decode } from "js-base64";
 import { MoveStructId } from "../types";
 
 /**
- * Sleep the current thread for the given amount of time
- * @param timeMs time in milliseconds to sleep
+ * Sleep for the specified amount of time in milliseconds.
+ * This function can be used to introduce delays in asynchronous operations.
+ * 
+ * @param timeMs - The time in milliseconds to sleep.
  */
 export async function sleep(timeMs: number): Promise<null> {
   return new Promise((resolve) => {
@@ -16,6 +18,12 @@ export async function sleep(timeMs: number): Promise<null> {
 
 export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
+/**
+ * Floors the given timestamp to the nearest whole hour.
+ * This function is useful for normalizing timestamps to hourly intervals.
+ * 
+ * @param timestampInSeconds - The timestamp in seconds to be floored.
+ */
 export function floorToWholeHour(timestampInSeconds: number): number {
   const date = new Date(timestampInSeconds * 1000);
   // Reset minutes and seconds to zero
@@ -25,6 +33,13 @@ export function floorToWholeHour(timestampInSeconds: number): number {
   return Math.floor(date.getTime() / 1000);
 }
 
+/**
+ * Decodes a base64 URL-encoded string into its original form.
+ * This function is useful for converting base64 URL-encoded data back to a readable format.
+ * 
+ * @param base64Url - The base64 URL-encoded string to decode.
+ * @returns The decoded string.
+ */
 export function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");

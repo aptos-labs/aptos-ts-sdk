@@ -20,11 +20,9 @@ export class AsyncQueue<T> {
   private cancelled: boolean = false;
 
   /**
-   * The enqueue method adds an item to the queue. If there are pending dequeued promises,
-   * in the pendingDequeue, it resolves the oldest promise with the enqueued item immediately.
-   * Otherwise, it adds the item to the queue.
+   * Adds an item to the queue. If there are pending dequeued promises, it resolves the oldest promise with the enqueued item immediately; otherwise, it adds the item to the queue.
    *
-   * @param item T
+   * @param item - The item to be added to the queue.
    */
   enqueue(item: T): void {
     this.cancelled = false;
@@ -41,11 +39,8 @@ export class AsyncQueue<T> {
   }
 
   /**
-   * The dequeue method returns a promise that resolves to the next item in the queue.
-   * If the queue is not empty, it resolves the promise immediately with the next item.
-   * Otherwise, it creates a new promise. The promise's resolve function is stored
-   * in the pendingDequeue with a unique counter value as the key.
-   * The newly created promise is then returned, and it will be resolved later when an item is enqueued.
+   * Dequeues the next item from the queue and returns a promise that resolves to it.
+   * If the queue is empty, it creates a new promise that will be resolved when an item is enqueued.
    *
    * @returns Promise<T>
    */
@@ -60,18 +55,19 @@ export class AsyncQueue<T> {
   }
 
   /**
-   * The isEmpty method returns whether the queue is empty or not.
-   *
-   * @returns boolean
+   * Determine whether the queue is empty.
+   * 
+   * @returns boolean - Returns true if the queue has no elements, otherwise false.
    */
   isEmpty(): boolean {
     return this.queue.length === 0;
   }
 
   /**
-   * The cancel method cancels all pending promises in the queue.
-   * It rejects the promises with a AsyncQueueCancelledError error,
-   * ensuring that any awaiting code can handle the cancellation appropriately.
+   * Cancels all pending promises in the queue and rejects them with an AsyncQueueCancelledError. 
+   * This ensures that any awaiting code can handle the cancellation appropriately.
+   *
+   * @returns {void}
    */
   cancel(): void {
     this.cancelled = true;
@@ -86,22 +82,28 @@ export class AsyncQueue<T> {
   }
 
   /**
-   * The isCancelled method returns whether the queue is cancelled or not.
+   * Determine whether the queue has been cancelled.
    *
-   * @returns boolean
+   * @returns boolean - Returns true if the queue is cancelled, otherwise false.
    */
   isCancelled(): boolean {
     return this.cancelled;
   }
 
   /**
-   * The pendingDequeueLength method returns the length of the pendingDequeue.
+   * Retrieve the length of the pending dequeue.
    *
-   * @returns number
+   * @returns number - The number of items currently in the pending dequeue.
    */
   pendingDequeueLength(): number {
     return this.pendingDequeue.length;
   }
 }
 
+/**  
+ * Represents an error that occurs when an asynchronous queue operation is cancelled.  
+ * This error extends the built-in Error class to provide additional context for cancellation events.  
+ *  
+ * @extends Error  
+ */
 export class AsyncQueueCancelledError extends Error {}
