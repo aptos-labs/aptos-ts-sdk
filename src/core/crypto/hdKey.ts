@@ -83,7 +83,7 @@ export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): Derived
   return deriveKey(chainCode, data);
 };
 
-const removeApostrophes = (val: string): string => val.replace("'", "");
+const removeApostrophes = (val: string): string => val.replace(/'/g, "");
 
 /**
  * Splits derive path into segments
