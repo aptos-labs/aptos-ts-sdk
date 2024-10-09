@@ -42,8 +42,9 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
   }) {
-    super(args);
-    this.publicKey = FederatedKeylessPublicKey.create(args);
+    const publicKey = FederatedKeylessPublicKey.create(args);
+    super({ publicKey, ...args });
+    this.publicKey = publicKey;
   }
 
   serialize(serializer: Serializer): void {

@@ -2,14 +2,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  FederatedKeylessAccount,
-  FederatedKeylessPublicKey,
-  KeylessAccount,
-  KeylessPublicKey,
-  ProofFetchStatus,
-} from "../../../src";
+import { Account, FederatedKeylessAccount, KeylessAccount, ProofFetchStatus } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
@@ -127,19 +120,12 @@ describe("keyless api", () => {
       "creates the keyless account via the static constructor and submits a transaction",
       async () => {
         const pepper = await aptos.getPepper({ jwt, ephemeralKeyPair });
-        const publicKey =
-          jwkAddress === undefined
-            ? KeylessPublicKey.fromJwtAndPepper({ jwt, pepper })
-            : FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress });
-        const address = await aptos.lookupOriginalAccountAddress({
-          authenticationKey: publicKey.authKey().derivedAddress(),
-        });
         const proof = await aptos.getProof({ jwt, ephemeralKeyPair, pepper });
 
         const account =
           jwkAddress === undefined
-            ? KeylessAccount.create({ address, proof, jwt, ephemeralKeyPair, pepper })
-            : FederatedKeylessAccount.create({ address, proof, jwt, ephemeralKeyPair, pepper, jwkAddress });
+            ? KeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper })
+            : FederatedKeylessAccount.create({ proof, jwt, ephemeralKeyPair, pepper, jwkAddress });
         const recipient = Account.generate();
         await simpleCoinTransactionHelper(aptos, account, recipient);
       },
