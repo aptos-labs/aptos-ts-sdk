@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
+
 # 1.29.1 (2024-10-09)
 - Fix the `FederatedKeylessAccount` constructor to derive the correct address.
 
