@@ -21,11 +21,10 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  * EphemeralKeyPair, and corresponding proof.
  */
 export class KeylessAccount extends AbstractKeylessAccount {
-
   /**
    * The KeylessPublicKey associated with the account
    */
-  readonly publicKey: KeylessPublicKey
+  readonly publicKey: KeylessPublicKey;
 
   // Use the static constructor 'create' instead.
   private constructor(args: {

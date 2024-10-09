@@ -2,12 +2,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Account,
-  FederatedKeylessAccount,
-  KeylessAccount,
-  ProofFetchStatus,
-} from "../../../src";
+import { Account, FederatedKeylessAccount, KeylessAccount, ProofFetchStatus } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { EPHEMERAL_KEY_PAIR, simpleCoinTransactionHeler as simpleCoinTransactionHelper } from "../transaction/helper";
