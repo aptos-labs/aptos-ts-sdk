@@ -1,13 +1,27 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable no-lone-blocks */
+/* eslint-disable no-console */
+
 import { BatchArgument } from "@wgb5445/aptos-intent-npm";
-import { Account, SigningSchemeInput, MoveString, Network, AccountAddress } from "../../../src";
+import {
+  Account,
+  SigningSchemeInput,
+  MoveString,
+  Network,
+  AccountAddress,
+  Ed25519Account,
+  SingleKeyAccount,
+  SimpleTransaction,
+  PendingTransactionResponse,
+} from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
 
+const LOCAL_NET = getAptosClient();
 const { aptos } = getAptosClient({
   network: Network.CUSTOM,
   fullnode: "http://127.0.0.1:8080/v1",
@@ -16,21 +30,30 @@ const { aptos } = getAptosClient({
 });
 
 describe("transaction submission", () => {
-  const contractPublisherAccount = Account.generate();
-  const primaryAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-  const subAccount = AbstractedEd25519Account.generate();
-  const receiverAccounts = [Account.generate(), Account.generate()];
+  let contractPublisherAccount: Ed25519Account;
+  let primaryAccount: SingleKeyAccount;
+  let subAccount: AbstractedEd25519Account;
+  let receiverAccounts: Ed25519Account[];
+
+  let transaction: SimpleTransaction;
+  let response: PendingTransactionResponse;
 
   beforeAll(async () => {
-    // NOTE: this is the built in testnet, not the custom network
-    const LOCAL_NET = getAptosClient();
-    await fundAccounts(LOCAL_NET.aptos, [contractPublisherAccount, primaryAccount, ...receiverAccounts]);
+    contractPublisherAccount = Account.generate();
+    await fundAccounts(LOCAL_NET.aptos, [contractPublisherAccount]);
     await publishTransferPackage(LOCAL_NET.aptos, contractPublisherAccount);
+  });
+
+  beforeEach(async () => {
+    primaryAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+    subAccount = AbstractedEd25519Account.generate();
+    receiverAccounts = [Account.generate(), Account.generate()];
+    await fundAccounts(LOCAL_NET.aptos, [primaryAccount, ...receiverAccounts]);
   }, longTestTimeout);
 
   test("Aaron's test case", async () => {
     // step 1: setup.
-    let transaction = await aptos.transaction.build.batched_intents({
+    transaction = await aptos.transaction.build.batched_intents({
       sender: primaryAccount.accountAddress,
       builder: async (builder) => {
         // convert apt to fa
@@ -82,7 +105,7 @@ describe("transaction submission", () => {
         return builder;
       },
     });
-    let response = await aptos.signAndSubmitTransaction({
+    response = await aptos.signAndSubmitTransaction({
       signer: primaryAccount,
       transaction,
     });
