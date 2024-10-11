@@ -132,7 +132,7 @@ export class AbstractedEd25519Account implements Account {
    */
   signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
     const r = this.sign(new Uint8Array([1, 2, 3]));
-    console.log(r);
+    // console.log(r);
     return r;
   }
 

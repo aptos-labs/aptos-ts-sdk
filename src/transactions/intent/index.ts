@@ -39,7 +39,7 @@ export class AptosIntentBuilder {
 
   async add_batched_calls(input: InputBatchedFunctionData): Promise<BatchArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
-    console.log(this.config);
+    // console.log(this.config);
     await this.builder.load_module(this.config.fullnode!, `${moduleAddress} ${moduleName}`);
     const typeArguments = standardizeTypeTags(input.typeArguments);
     const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);
