@@ -31,6 +31,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagBool correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagBool();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -40,6 +41,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU8 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU8();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -49,6 +51,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU16 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU16();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -58,6 +61,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU32 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU32();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -67,6 +71,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU64 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU64();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -76,6 +81,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU128 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU128();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -85,6 +91,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagU256 correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagU256();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -94,6 +101,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagAddress correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagAddress();
+    expect(tag.isPrimitive()).toBe(true);
 
     tag.serialize(serializer);
 
@@ -112,6 +120,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagVector correctly", () => {
     const serializer = new Serializer();
     const tag = new TypeTagVector(new TypeTagU32());
+    expect(tag.isPrimitive()).toBe(false);
 
     tag.serialize(serializer);
     const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));
@@ -124,6 +133,7 @@ describe("Deserialize TypeTags", () => {
   test("deserializes a TypeTagStruct correctly", () => {
     const serializer = new Serializer();
     const tag = parseTypeTag(expectedTypeTag.string);
+    expect(tag.isPrimitive()).toBe(false);
 
     tag.serialize(serializer);
     const deserialized = TypeTag.deserialize(new Deserializer(serializer.toUint8Array()));

@@ -95,6 +95,20 @@ export abstract class TypeTag extends Serializable {
   isU256(): this is TypeTagU256 {
     return this instanceof TypeTagU256;
   }
+
+  isPrimitive(): boolean {
+    return (
+      this instanceof TypeTagSigner ||
+      this instanceof TypeTagAddress ||
+      this instanceof TypeTagBool ||
+      this instanceof TypeTagU8 ||
+      this instanceof TypeTagU16 ||
+      this instanceof TypeTagU32 ||
+      this instanceof TypeTagU64 ||
+      this instanceof TypeTagU128 ||
+      this instanceof TypeTagU256
+    );
+  }
 }
 
 export class TypeTagBool extends TypeTag {
