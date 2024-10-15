@@ -21,7 +21,7 @@ export class Simulate {
   /**
    * Simulate a simple transaction
    *
-   * @param args.signerPublicKey The signer public key
+   * @param args.signerPublicKey optional. The signer public key
    * @param args.transaction An instance of a raw transaction
    * @param args.options optional. Optional transaction configurations
    * @param args.feePayerPublicKey optional. The fee payer public key if it is a fee payer transaction
@@ -30,7 +30,7 @@ export class Simulate {
    */
   @ValidateFeePayerDataOnSimulation
   async simple(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey?: PublicKey;
     transaction: AnyRawTransaction;
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
@@ -41,9 +41,10 @@ export class Simulate {
   /**
    * Simulate a multi agent transaction
    *
-   * @param args.signerPublicKey The signer public key
+   * @param args.signerPublicKey optional. The signer public key
    * @param args.transaction An instance of a raw transaction
-   * @param args.secondarySignersPublicKeys An array of the secondary signers public keys
+   * @param args.secondarySignersPublicKeys optional. An array of the secondary signers' public keys.
+   *        Each element of the array can be optional, allowing the corresponding key check to be skipped.
    * @param args.options optional. Optional transaction configurations
    * @param args.feePayerPublicKey optional. The fee payer public key if it is a fee payer transaction
    *
@@ -51,9 +52,9 @@ export class Simulate {
    */
   @ValidateFeePayerDataOnSimulation
   async multiAgent(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey?: PublicKey;
     transaction: AnyRawTransaction;
-    secondarySignersPublicKeys: Array<PublicKey>;
+    secondarySignersPublicKeys?: Array<PublicKey | undefined>;
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {

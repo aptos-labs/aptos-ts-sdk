@@ -227,7 +227,7 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
 /**
  * Simulates a transaction before singing it.
  *
- * @param args.signerPublicKey The signer public key
+ * @param args.signerPublicKey optional. The signer public key
  * @param args.transaction The raw transaction to simulate
  * @param args.secondarySignersPublicKeys optional. For when the transaction is a multi signers transaction
  * @param args.feePayerPublicKey optional. For when the transaction is a fee payer (aka sponsored) transaction

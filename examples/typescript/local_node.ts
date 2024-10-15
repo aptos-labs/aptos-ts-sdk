@@ -108,6 +108,7 @@ async function stopLocalNode() {
     // Query localnet endpoint
     await fetch("http://localhost:8080");
   } catch (err: any) {
+    // eslint-disable-next-line no-console
     console.log("localnet stopped");
   }
 }
