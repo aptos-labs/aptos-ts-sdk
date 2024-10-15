@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import kill from "tree-kill";
 import { platform } from "os";
@@ -9,7 +11,13 @@ export class LocalNode {
 
   readonly READINESS_ENDPOINT = "http://127.0.0.1:8070/";
 
+  showStdout: boolean = true;
+
   process: ChildProcessWithoutNullStreams | null = null;
+
+  constructor(args?: { showStdout?: boolean }) {
+    this.showStdout = args?.showStdout ?? true;
+  }
 
   /**
    * kills all the descendent processes
@@ -64,15 +72,17 @@ export class LocalNode {
     childProcess.stderr?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
-      // eslint-disable-next-line no-console
-      console.log(str);
+      if (this.showStdout) {
+        console.log(str);
+      }
     });
 
     childProcess.stdout?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
-      // eslint-disable-next-line no-console
-      console.log(str);
+      if (this.showStdout) {
+        console.log(str);
+      }
     });
   }
 
