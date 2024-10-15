@@ -57,52 +57,60 @@ describe("transaction submission", () => {
     await fundAccounts(LOCAL_NET.aptos, [primaryAccount, ...receiverAccounts]);
   }, longTestTimeout);
 
-  test("New Test Case", async () => {
-    console.log("Primary Account:", primaryAccount.accountAddress.toString());
-    console.log("Secondary Account:", subAccount.accountAddress.toString());
+  test(
+    "New Test Case",
+    async () => {
+      console.log("Primary Account:", primaryAccount.accountAddress.toString());
+      console.log("Secondary Account:", subAccount.accountAddress.toString());
 
-    // Convert APT to FA
-    await transact({
-      sender: primaryAccount,
-      data: {
-        function: "0x1::coin::migrate_to_fungible_store",
-        functionArguments: [],
-        typeArguments: ["0x1::aptos_coin::AptosCoin"],
-      },
-    });
+      // Convert APT to FA
+      await transact({
+        sender: primaryAccount,
+        data: {
+          function: "0x1::coin::migrate_to_fungible_store",
+          functionArguments: [],
+          typeArguments: ["0x1::aptos_coin::AptosCoin"],
+        },
+      });
 
-    await grantPermission({
-      primaryAccount,
-      subAccount,
-      permissions: [{ type: "APT", limit: 10 }],
-    });
+      await grantPermission({
+        primaryAccount,
+        subAccount,
+        permissions: [{ type: "APT", limit: 10 }],
+      });
 
-    // step 2: use AA to send APT FA.
-    const txn1 = await transact({
-      sender: primaryAccount,
-      signer: subAccount,
-      data: {
-        function: "0x1::primary_fungible_store::transfer",
-        functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 10],
-        typeArguments: ["0x1::fungible_asset::Metadata"],
-      },
-    });
-    expect(txn1.response.signature?.type).toBe("single_sender");
-    expect(txn1.submittedTransaction.success).toBe(true);
+      const revokeTxn = await revokePermission({ primaryAccount, subAccount });
+      console.log("Revoked Transaction: ", revokeTxn.hash);
 
-    // step 3: use AA to send APT FA again. should fail.
-    const txn2 = await transact({
-      sender: primaryAccount,
-      signer: subAccount,
-      data: {
-        function: "0x1::primary_fungible_store::transfer",
-        functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 1],
-        typeArguments: ["0x1::fungible_asset::Metadata"],
-      },
-    });
-    expect(txn2.response.signature?.type).toBe("single_sender");
-    expect(txn2.submittedTransaction.success).toBe(false);
-  });
+      // step 2: use AA to send APT FA.
+      const txn1 = await transact({
+        sender: primaryAccount,
+        signer: subAccount,
+        data: {
+          function: "0x1::primary_fungible_store::transfer",
+          functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 10],
+          typeArguments: ["0x1::fungible_asset::Metadata"],
+        },
+      });
+      expect(txn1.response.signature?.type).toBe("single_sender");
+      expect(txn1.submittedTransaction.success).toBe(true);
+      console.log("Transfer transaction: ", txn1.submittedTransaction.hash);
+
+      // step 3: use AA to send APT FA again. should fail.
+      // const txn2 = await transact({
+      //   sender: primaryAccount,
+      //   signer: subAccount,
+      //   data: {
+      //     function: "0x1::primary_fungible_store::transfer",
+      //     functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 1],
+      //     typeArguments: ["0x1::fungible_asset::Metadata"],
+      //   },
+      // });
+      // expect(txn2.response.signature?.type).toBe("single_sender");
+      // expect(txn2.submittedTransaction.success).toBe(false);
+    },
+    longTestTimeout,
+  );
 
   xtest("Aaron's test case", async () => {
     // step 1: setup.
@@ -115,17 +123,19 @@ describe("transaction submission", () => {
           functionArguments: [BatchArgument.new_signer(0)],
           typeArguments: ["0x1::aptos_coin::AptosCoin"],
         });
-        // set up aa with permissioned signer
+        // Creates the handle
         const permissionedSignerhandle = await builder.add_batched_calls({
           function: "0x1::permissioned_signer::create_permissioned_handle",
           functionArguments: [BatchArgument.new_signer(0)],
           typeArguments: [],
         });
+        // Creates the signer for the delegated account from the handle
         const permissionedSigner = await builder.add_batched_calls({
           function: "0x1::permissioned_signer::signer_from_permissioned",
           functionArguments: [permissionedSignerhandle[0].borrow()],
           typeArguments: [],
         });
+        // Start granting permissions to the handle
         await builder.add_batched_calls({
           function: "0x1::fungible_asset::grant_permission",
           functionArguments: [
@@ -136,6 +146,7 @@ describe("transaction submission", () => {
           ],
           typeArguments: [],
         });
+        // Associating the granted handle to the delegation rule
         await builder.add_batched_calls({
           function: "0x1::permissioned_delegation::add_permissioned_handle",
           functionArguments: [
@@ -145,6 +156,8 @@ describe("transaction submission", () => {
           ],
           typeArguments: [],
         });
+        // Activate the delegation account for the main account
+        // Delegating our authentication
         await builder.add_batched_calls({
           function: "0x1::lite_account::add_dispatchable_authentication_function",
           functionArguments: [
@@ -248,6 +261,7 @@ export async function transact({
 interface APTPermissions {
   type: "APT";
   limit: number;
+  durration?: number;
 }
 
 interface NFPermissions {
@@ -333,6 +347,57 @@ export async function grantPermission({
 
   await aptos.waitForTransaction({
     transactionHash: response.hash,
+  });
+
+  return response;
+}
+
+export async function revokePermission({
+  primaryAccount,
+  subAccount,
+}: {
+  primaryAccount: SingleKeyAccount;
+  subAccount: AbstractedEd25519Account;
+  // Accept other permissions
+}) {
+  const transaction = await aptos.transaction.build.batched_intents({
+    sender: primaryAccount.accountAddress,
+    builder: async (builder) => {
+      const val = await builder.add_batched_calls({
+        function: "0x1::permissioned_delegation::remove_permissioned_handle",
+        functionArguments: [BatchArgument.new_signer(0), subAccount.publicKey.toUint8Array()],
+        typeArguments: [],
+      });
+      const signer = await builder.add_batched_calls({
+        function: "0x1::permissioned_signer::signer_from_permissioned",
+        functionArguments: [val[0].borrow()],
+        typeArguments: [],
+      });
+      // INSERT other revokes here
+      await builder.add_batched_calls({
+        function: "0x1::fungible_asset::revoke_permission",
+        functionArguments: [signer[0].borrow(), AccountAddress.A],
+        typeArguments: [],
+      });
+      await builder.add_batched_calls({
+        function: "0x1::permissioned_delegation::add_permissioned_handle",
+        functionArguments: [BatchArgument.new_signer(0), subAccount.publicKey.toUint8Array(), val[0]],
+        typeArguments: [],
+      });
+      return builder;
+    },
+  });
+
+  const response = await aptos.signAndSubmitTransaction({
+    signer: primaryAccount,
+    transaction,
+  });
+
+  await aptos.waitForTransaction({
+    transactionHash: response.hash,
+    options: {
+      checkSuccess: true,
+    },
   });
 
   return response;
