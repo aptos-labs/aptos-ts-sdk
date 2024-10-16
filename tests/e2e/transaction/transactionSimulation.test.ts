@@ -1,5 +1,13 @@
-import { Account, U64, SigningSchemeInput, InputEntryFunctionData } from "../../../src";
-import { longTestTimeout } from "../../unit/helper";
+import {
+  Account,
+  U64,
+  SigningSchemeInput,
+  InputEntryFunctionData,
+  MultiKeyAccount,
+  MultiKey,
+  KeylessPublicKey,
+} from "../../../src";
+import { ed25519, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {
   createAndFundMultisigAccount,
@@ -16,6 +24,18 @@ describe("transaction simulation", () => {
   const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
   const legacyED25519SenderAccount = Account.generate();
   const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
+  const multiKeyAccount = new MultiKeyAccount({
+    multiKey: new MultiKey({
+      publicKeys: [
+        singleSignerED25519SenderAccount.publicKey,
+        legacyED25519SenderAccount.publicKey,
+        singleSignerSecp256k1Account.publicKey,
+        new KeylessPublicKey("google", ed25519.publicKey),
+      ],
+      signaturesRequired: 3,
+    }),
+    signers: [singleSignerED25519SenderAccount, legacyED25519SenderAccount, singleSignerSecp256k1Account],
+  });
   const receiverAccounts = [Account.generate(), Account.generate()];
   const secondarySignerAccount = Account.generate();
   const feePayerAccount = Account.generate();
@@ -30,6 +50,7 @@ describe("transaction simulation", () => {
       singleSignerED25519SenderAccount,
       singleSignerSecp256k1Account,
       legacyED25519SenderAccount,
+      multiKeyAccount,
       ...receiverAccounts,
       secondarySignerAccount,
       feePayerAccount,
@@ -577,6 +598,181 @@ describe("transaction simulation", () => {
 
         const [response] = await aptos.transaction.simulate.multiAgent({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
+          transaction: rawTxn,
+          secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
+          feePayerPublicKey: feePayerAccount.publicKey,
+        });
+        expect(response.success).toBeTruthy();
+      });
+    });
+  });
+  describe("MultiKey", () => {
+    beforeAll(async () => {
+      multisigAddress = await createAndFundMultisigAccount(multiKeyAccount);
+      await createMultisigTransaction(multiKeyAccount, multisigAddress, multisigEntryFunction);
+    }, longTestTimeout);
+    describe("single signer", () => {
+      test("with script payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            bytecode: singleSignerScriptBytecode,
+            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          },
+        });
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+        });
+        expect(response.success).toBeTruthy();
+      });
+      test("with entry function payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+            functionArguments: [1, receiverAccounts[0].accountAddress],
+          },
+        });
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+        });
+        expect(response.success).toBeTruthy();
+      });
+      test("with multisig payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            multisigAddress,
+            function: multisigEntryFunction.function,
+            functionArguments: multisigEntryFunction.functionArguments,
+          },
+        });
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+        });
+        expect(response.success).toBeTruthy();
+      });
+    });
+    describe("multi agent", () => {
+      test("with script payload", async () => {
+        const rawTxn = await aptos.transaction.build.multiAgent({
+          sender: multiKeyAccount.accountAddress,
+          secondarySignerAddresses: [secondarySignerAccount.accountAddress],
+          data: {
+            bytecode: multiSignerScriptBytecode,
+            functionArguments: [
+              new U64(BigInt(100)),
+              new U64(BigInt(200)),
+              receiverAccounts[0].accountAddress,
+              receiverAccounts[1].accountAddress,
+              new U64(BigInt(50)),
+            ],
+          },
+        });
+
+        const [response] = await aptos.transaction.simulate.multiAgent({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+          secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
+        });
+        expect(response.success).toBeTruthy();
+      });
+
+      test(
+        "with entry function payload",
+        async () => {
+          const rawTxn = await aptos.transaction.build.multiAgent({
+            sender: multiKeyAccount.accountAddress,
+            secondarySignerAddresses: [secondarySignerAccount.accountAddress],
+            data: {
+              function: `${contractPublisherAccount.accountAddress}::transfer::two_by_two`,
+              functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
+            },
+          });
+
+          const [response] = await aptos.transaction.simulate.multiAgent({
+            signerPublicKey: multiKeyAccount.publicKey,
+            transaction: rawTxn,
+            secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
+          });
+          expect(response.success).toBeTruthy();
+        },
+        longTestTimeout,
+      );
+    });
+    describe("fee payer", () => {
+      test("with script payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            bytecode: singleSignerScriptBytecode,
+            functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          },
+          withFeePayer: true,
+        });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+          feePayerPublicKey: feePayerAccount.publicKey,
+        });
+        expect(response.success).toBeTruthy();
+      });
+      test("with entry function payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+            functionArguments: [1, receiverAccounts[0].accountAddress],
+          },
+          withFeePayer: true,
+        });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+          feePayerPublicKey: feePayerAccount.publicKey,
+        });
+        expect(response.success).toBeTruthy();
+      });
+      test("with multisig payload", async () => {
+        const rawTxn = await aptos.transaction.build.simple({
+          sender: multiKeyAccount.accountAddress,
+          data: {
+            multisigAddress,
+            function: multisigEntryFunction.function,
+            functionArguments: multisigEntryFunction.functionArguments,
+          },
+          withFeePayer: true,
+        });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+        const [response] = await aptos.transaction.simulate.simple({
+          signerPublicKey: multiKeyAccount.publicKey,
+          transaction: rawTxn,
+          feePayerPublicKey: feePayerAccount.publicKey,
+        });
+        expect(response.success).toBeTruthy();
+      });
+      test("with multi agent transaction", async () => {
+        const rawTxn = await aptos.transaction.build.multiAgent({
+          sender: multiKeyAccount.accountAddress,
+          secondarySignerAddresses: [secondarySignerAccount.accountAddress],
+          data: {
+            function: `${contractPublisherAccount.accountAddress}::transfer::two_by_two`,
+            functionArguments: [100, 200, receiverAccounts[0].accountAddress, receiverAccounts[1].accountAddress, 50],
+          },
+          withFeePayer: true,
+        });
+        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
+
+        const [response] = await aptos.transaction.simulate.multiAgent({
+          signerPublicKey: multiKeyAccount.publicKey,
           transaction: rawTxn,
           secondarySignersPublicKeys: [secondarySignerAccount.publicKey],
           feePayerPublicKey: feePayerAccount.publicKey,

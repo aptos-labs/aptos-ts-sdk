@@ -16,6 +16,8 @@ import {
   KeylessSignature,
   Secp256k1PublicKey,
   FederatedKeylessPublicKey,
+  MultiKey,
+  MultiKeySignature,
 } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { getInfo } from "../../internal/account";
@@ -27,6 +29,7 @@ import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiKey,
   AccountAuthenticatorSingleKey,
 } from "../authenticator/account";
 import {
@@ -454,7 +457,10 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
       accountAuthenticator.public_key,
       accountAuthenticator.signature,
     );
-  } else if (accountAuthenticator instanceof AccountAuthenticatorSingleKey) {
+  } else if (
+    accountAuthenticator instanceof AccountAuthenticatorSingleKey ||
+    accountAuthenticator instanceof AccountAuthenticatorMultiKey
+  ) {
     transactionAuthenticator = new TransactionAuthenticatorSingleSender(accountAuthenticator);
   } else {
     throw new Error("Invalid public key");
@@ -488,8 +494,21 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
     return new AccountAuthenticatorSingleKey(accountPublicKey, new AnySignature(invalidSignature));
   }
 
-  // TODO add support for AnyMultiKey
-  throw new Error("Unsupported public key");
+  if (MultiKey.isInstance(accountPublicKey)) {
+    return new AccountAuthenticatorMultiKey(
+      accountPublicKey,
+      new MultiKeySignature({
+        signatures: accountPublicKey.publicKeys.map(() => new AnySignature(invalidSignature)),
+        bitmap: accountPublicKey.createBitmap({
+          bits: Array(accountPublicKey.publicKeys.length)
+            .fill(0)
+            .map((_, i) => i),
+        }),
+      }),
+    );
+  }
+
+  throw new Error("Unsupported PublicKey used for simulations");
 }
 
 /**

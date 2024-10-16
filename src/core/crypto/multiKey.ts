@@ -155,6 +155,10 @@ export class MultiKey extends AccountPublicKey {
     }
     throw new Error("Public key not found in MultiKey");
   }
+
+  public static isInstance(value: PublicKey): value is MultiKey {
+    return "publicKeys" in value && "signaturesRequired" in value;
+  }
 }
 
 export class MultiKeySignature extends Signature {
