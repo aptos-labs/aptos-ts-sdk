@@ -246,6 +246,15 @@ export class KeylessSignature extends Signature {
     return this.bcsToBytes();
   }
 
+  /**
+   * Get the kid of the JWT used to derive the Keyless Account used to sign.
+   *
+   * @returns the kid as a string
+   */
+  getJwkKid(): string {
+    return parseJwtHeader(this.jwtHeader).kid;
+  }
+
   serialize(serializer: Serializer): void {
     this.ephemeralCertificate.serialize(serializer);
     serializer.serializeStr(this.jwtHeader);
@@ -709,14 +718,14 @@ interface JwtHeader {
  * Fetches the JWK from the issuer's well-known JWKS endpoint.
  *
  * @param args.publicKey The keyless public key to query
- * @param args.signature The signature to validate against the public key
+ * @param args.kid The kid of the JWK to fetch
  * @returns A JWK matching the `kid` in the JWT header.
  */
 export async function fetchJWK(args: {
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
-  signature: KeylessSignature;
+  kid: string;
 }): Promise<JWK> {
-  const { publicKey, signature } = args;
+  const { publicKey, kid } = args;
   const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
   const { iss } = keylessPubKey;
 
@@ -730,14 +739,11 @@ export async function fetchJWK(args: {
 
   const jwks: JWKS = await response.json();
 
-  // Extract the key ID from the JWT header
-  const header: JwtHeader = parseJwtHeader(signature.jwtHeader);
-
   // Find the corresponding JWK by `kid`
-  const jwk = jwks.keys.find((key) => key.kid === header.kid);
+  const jwk = jwks.keys.find((key) => key.kid === kid);
 
   if (!jwk) {
-    throw new Error(`JWK with kid ${header.kid} not found in the fetched JWKS.`);
+    throw new Error(`JWK with kid ${kid} not found in the fetched JWKS.`);
   }
 
   return jwk;

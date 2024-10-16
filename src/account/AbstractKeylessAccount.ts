@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import EventEmitter from "eventemitter3";
+import { jwtDecode } from "jwt-decode";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
@@ -12,6 +13,7 @@ import {
   EphemeralCertificate,
   ZeroKnowledgeSig,
   ZkProof,
+  fetchJWK,
 } from "../core/crypto";
 
 import { Account } from "./Account";
@@ -208,6 +210,19 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   }
 
   /**
+   * Validates that the Keyless Account can be used to sign transactions.
+   * @return
+   */
+  async checkAccountValidity() {
+    await this.waitForProofFetch();
+    const header = jwtDecode(this.jwt, { header: true });
+    if (header.kid === undefined) {
+      throw Error("JWT is missing 'kid' in header");
+    }
+    await AbstractKeylessAccount.checkJWKRotation({ publicKey: this.publicKey, kid: header.kid });
+  }
+
+  /**
    * Sign the given message using Keyless.
    * @param message in HexInput format
    * @returns Signature
@@ -268,6 +283,19 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
       return false;
     }
     return true;
+  }
+
+  static async checkJWKRotation(args: { publicKey: KeylessPublicKey | FederatedKeylessPublicKey; kid: string }) {
+    const { publicKey, kid } = args;
+    try {
+      await fetchJWK({
+        publicKey,
+        kid,
+      });
+    } catch (error) {
+      const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
+      throw new Error(`JWK with kid ${kid} for issuer ${keylessPubKey.iss} not found. Re-authentication required`);
+    }
   }
 }
 

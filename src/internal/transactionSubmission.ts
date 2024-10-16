@@ -10,14 +10,7 @@ import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, MultiKeyAccount } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import {
-  FederatedKeylessPublicKey,
-  fetchJWK,
-  KeylessPublicKey,
-  KeylessSignature,
-  parseJwtHeader,
-  PrivateKey,
-} from "../core/crypto";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
@@ -301,30 +294,12 @@ export async function submitTransaction(
       (signedTxn.authenticator.sender.public_key.publicKey instanceof KeylessPublicKey ||
         signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
     ) {
-      await checkJWKRotation({
+      await AbstractKeylessAccount.checkJWKRotation({
         publicKey: signedTxn.authenticator.sender.public_key.publicKey,
-        signature: signedTxn.authenticator.sender.signature.signature as KeylessSignature,
+        kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
       });
     }
     throw e;
-  }
-}
-
-async function checkJWKRotation(args: {
-  publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
-  signature: KeylessSignature;
-}) {
-  const { publicKey, signature } = args;
-  try {
-    await fetchJWK({
-      publicKey,
-      signature,
-    });
-  } catch (error) {
-    const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
-    throw new Error(
-      `JWK with kid ${parseJwtHeader(signature.jwtHeader).kid} for issuer ${keylessPubKey.iss} not found. Re-authentication required`,
-    );
   }
 }
 
@@ -344,10 +319,10 @@ export async function signAndSubmitTransaction(
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asyncronously.
   if (signer instanceof AbstractKeylessAccount || signer instanceof MultiKeyAccount) {
-    await signer.waitForProofFetch();
+    await signer.checkAccountValidity();
   }
   if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.waitForProofFetch();
+    await feePayer.checkAccountValidity();
   }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
@@ -370,7 +345,7 @@ export async function signAndSubmitAsFeePayer(args: {
   const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
   if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.waitForProofFetch();
+    await feePayer.checkAccountValidity();
   }
 
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });

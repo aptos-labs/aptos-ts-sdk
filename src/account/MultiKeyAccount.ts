@@ -138,6 +138,18 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
+   * Validates that the Keyless Account can be used to sign transactions.
+   * @return
+   */
+    async checkAccountValidity() {
+      const keylessSigners = this.signers.filter(
+        (signer) => signer instanceof AbstractKeylessAccount,
+      ) as AbstractKeylessAccount[];
+      const promises = keylessSigners.map(async (signer) => signer.checkAccountValidity());
+      await Promise.all(promises);
+    }
+
+  /**
    * Sign the given message using the MultiKeyAccount's signers
    * @param message in HexInput format
    * @returns MultiKeySignature
