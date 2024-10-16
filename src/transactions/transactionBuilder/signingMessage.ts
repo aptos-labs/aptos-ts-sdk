@@ -12,7 +12,7 @@ import { Serializable } from "../../bcs";
 
 /**
  * Derives the appropriate raw transaction type based on the provided transaction details.
- * This function helps in identifying whether the transaction is a FeePayerRawTransaction, 
+ * This function helps in identifying whether the transaction is a FeePayerRawTransaction,
  * MultiAgentRawTransaction, or a standard RawTransaction.
  *
  * @param transaction - An object representing an Aptos transaction, which may include:
@@ -69,11 +69,12 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
 /**
  * @deprecated
  * Use CryptoHashable instead by having your class implement it and call hash() to get the signing message.
- * 
- * Generates the 'signing message' form of a serializable value by serializing it and using the constructor name as the domain separator.
- * 
+ *
+ * Generates the 'signing message' form of a serializable value by serializing it and using the constructor name as the domain
+ * separator.
+ *
  * @param serializable - An object that has a BCS serialized form.
- * 
+ *
  * @returns The Uint8Array of the signing message.
  */
 export function generateSigningMessageForSerializable(serializable: Serializable): Uint8Array {
@@ -81,10 +82,11 @@ export function generateSigningMessageForSerializable(serializable: Serializable
 }
 
 /**
- * Generates the 'signing message' form of a transaction by deriving the type of transaction and applying the appropriate domain separator based on the presence of a fee payer or secondary signers. 
- * 
+ * Generates the 'signing message' form of a transaction by deriving the type of transaction and applying the appropriate domain
+ * separator based on the presence of a fee payer or secondary signers.
+ *
  * @param transaction - A transaction that is to be signed, which can include a fee payer address or secondary signer addresses.
- * 
+ *
  * @returns The Uint8Array of the signing message.
  */
 export function generateSigningMessageForTransaction(transaction: AnyRawTransaction): Uint8Array {

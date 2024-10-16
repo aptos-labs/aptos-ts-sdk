@@ -35,7 +35,7 @@ export class RotationProofChallenge extends Serializable {
   /**
    * Initializes a new instance of the class with the specified parameters.
    * This constructor sets up the necessary attributes for managing account keys.
-   * 
+   *
    * @param args - The parameters required to create the instance.
    * @param args.sequenceNumber - The sequence number associated with the transaction.
    * @param args.originator - The account address of the originator.
@@ -58,7 +58,7 @@ export class RotationProofChallenge extends Serializable {
   /**
    * Serializes the properties of the current instance for transmission or storage.
    * This function helps in converting the instance data into a format suitable for serialization.
-   * 
+   *
    * @param serializer - The serializer used to serialize the instance properties.
    * @param serializer.accountAddress - The account address to serialize.
    * @param serializer.moduleName - The module name to serialize.

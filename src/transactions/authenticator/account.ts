@@ -14,7 +14,7 @@ import { AccountAuthenticatorVariant } from "../../types";
  * Represents an account authenticator that can handle multiple authentication variants.
  * This class serves as a base for different types of account authenticators, allowing for serialization
  * and deserialization of various authenticator types.
- * 
+ *
  * @extends Serializable
  */
 export abstract class AccountAuthenticator extends Serializable {
@@ -23,7 +23,7 @@ export abstract class AccountAuthenticator extends Serializable {
   /**
    * Deserializes an AccountAuthenticator from the provided deserializer.
    * This function helps in reconstructing the AccountAuthenticator object based on the variant index.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): AccountAuthenticator {
@@ -44,7 +44,7 @@ export abstract class AccountAuthenticator extends Serializable {
 
   /**
    * Determines if the current instance is an Ed25519 account authenticator.
-   * 
+   *
    * @returns {boolean} True if the instance is of type AccountAuthenticatorEd25519, otherwise false.
    */
   isEd25519(): this is AccountAuthenticatorEd25519 {
@@ -53,7 +53,7 @@ export abstract class AccountAuthenticator extends Serializable {
 
   /**
    * Determines if the current instance is of type AccountAuthenticatorMultiEd25519.
-   * 
+   *
    * @returns {boolean} True if the instance is a multi-signature Ed25519 account authenticator, otherwise false.
    */
   isMultiEd25519(): this is AccountAuthenticatorMultiEd25519 {
@@ -71,7 +71,7 @@ export abstract class AccountAuthenticator extends Serializable {
 
   /**
    * Determine if the current instance is of type AccountAuthenticatorMultiKey.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is an AccountAuthenticatorMultiKey, otherwise false.
    */
   isMultiKey(): this is AccountAuthenticatorMultiKey {
@@ -93,9 +93,9 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
 
   /**
    * Creates an instance of the class with the specified public keys and signatures.
-   * 
-   * @param public_keys The public keys used for verification.
-   * @param signatures The signatures corresponding to the public keys.
+   *
+   * @param public_key The public key used for verification.
+   * @param signature The signatures corresponding to the public keys.
    */
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
     super();
@@ -106,7 +106,7 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   /**
    * Serializes the account authenticator data into the provided serializer.
    * This function captures the multi-key variant, public keys, and signatures for serialization.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -118,7 +118,7 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   /**
    * Loads an instance of AccountAuthenticatorMultiKey from the provided deserializer.
    * This function helps in reconstructing the authenticator object using the deserialized public keys and signatures.
-   * 
+   *
    * @param deserializer - The deserializer used to extract the necessary data for loading the authenticator.
    */
   static load(deserializer: Deserializer): AccountAuthenticatorEd25519 {
@@ -130,7 +130,7 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
 
 /**
  * Represents a transaction authenticator for Multi Ed25519, designed for multi-signer transactions.
- * 
+ *
  * @param public_key - The MultiEd25519 public key of the account.
  * @param signature - The MultiEd25519 signature of the account.
  */

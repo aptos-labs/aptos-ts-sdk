@@ -51,7 +51,7 @@ export interface CreateSingleKeyAccountFromPrivateKeyArgs {
 
 /**
  * Arguments for creating an `Account` from a private key when the key type is unknown at compile time.
- * 
+ *
  * @param privateKey - The private key used to create the account.
  * @param address - Optional address for the account.
  * @param legacy - Optional flag indicating if the account is a legacy account.
@@ -64,7 +64,7 @@ export interface CreateAccountFromPrivateKeyArgs {
 
 /**
  * Arguments for generating an Ed25519 account, specifying the signing scheme and legacy option.
- * 
+ *
  * @param scheme - The signing scheme to use for the account.
  * @param legacy - Indicates if the account should be created in legacy mode.
  */
@@ -99,7 +99,7 @@ export interface GenerateSingleKeyAccountArgs {
 
 /**
  * Arguments for generating an opaque `Account` when the input signature scheme is unknown at compile time.
- * 
+ *
  * @param scheme - The signing scheme to use for account generation.
  * @param legacy - Indicates whether to use legacy account generation methods.
  */
@@ -110,7 +110,7 @@ export interface GenerateAccountArgs {
 
 /**
  * Arguments for deriving a private key using a mnemonic phrase and a specified BIP44 path.
- * 
+ *
  * @param path - The BIP44 derivation path for the key.
  * @param mnemonic - The mnemonic phrase used for key generation.
  */
@@ -121,11 +121,11 @@ export interface PrivateKeyFromDerivationPathArgs {
 
 /**
  * Abstract class representing a generic Aptos account.
- * 
+ *
  * This class serves as a single entry point for account generation, allowing accounts to be created
  * either through `Account.generate()` or `Account.fromDerivationPath`. Although it is defined as an
  * abstract class, it should be treated as an interface and enforced using the `implements` keyword.
- * 
+ *
  * Note: Generating an account instance does not create the account on-chain.
  */
 export abstract class Account {
@@ -147,7 +147,7 @@ export abstract class Account {
   /**
    * Generates a new account based on the specified signing scheme and legacy option.
    * This function allows you to create an account with either the Ed25519 signing scheme or a different scheme as specified.
-   * 
+   *
    * @param args - The arguments for generating the account.
    * @param args.scheme - The signing scheme to use for account generation. Defaults to Ed25519.
    * @param args.legacy - Indicates whether to use the legacy account generation method. Defaults to true.
@@ -165,10 +165,10 @@ export abstract class Account {
   }
 
   /**
-   * Creates an account from a given private key and address. 
-   * This function allows you to instantiate an account based on the provided private key, 
+   * Creates an account from a given private key and address.
+   * This function allows you to instantiate an account based on the provided private key,
    * and it can differentiate between legacy and non-legacy accounts.
-   * 
+   *
    * @param args - The arguments for creating the account.
    * @param args.privateKey - The private key used to create the account.
    * @param args.address - The address associated with the account.
@@ -192,12 +192,14 @@ export abstract class Account {
 
   /**
    * @deprecated use `fromPrivateKey` instead.
-   * Instantiates an account using a private key and a specified account address. This is primarily used to instantiate an `Account` that has had its authentication key rotated.
+   * Instantiates an account using a private key and a specified account address. This is primarily used to instantiate an
+   * `Account` that has had its authentication key rotated.
    *
    * @param args - The arguments required to create an account from a private key.
    * @param args.privateKey - The underlying private key for the account.
    * @param args.address - The account address the `Account` will sign for.
-   * @param args.legacy - Optional. If set to false, the keypair generated is a Unified keypair. Defaults to generating a Legacy Ed25519 keypair.
+   * @param args.legacy - Optional. If set to false, the keypair generated is a Unified keypair. Defaults to generating a Legacy
+   * Ed25519 keypair.
    *
    * @returns Account
    */
@@ -208,7 +210,7 @@ export abstract class Account {
   /**
    * Generates an account from a specified derivation path and mnemonic.
    * This function allows you to create an account using different signing schemes based on the provided arguments.
-   * 
+   *
    * @param args - The arguments for generating the account.
    * @param args.scheme - The signing scheme to use for account generation. Defaults to Ed25519.
    * @param args.mnemonic - The mnemonic phrase used to derive the account.
@@ -231,7 +233,8 @@ export abstract class Account {
 
   /**
    * Retrieve the authentication key for the associated account using the provided public key.
-   * This key enables account owners to rotate their private key(s) associated with the account without changing the address that hosts their account.
+   * This key enables account owners to rotate their private key(s) associated with the account without changing the address that
+   * hosts their account.
    * See here for more info: {@link https://aptos.dev/concepts/accounts#single-signer-authentication}
    *
    * @param args - The arguments for retrieving the authentication key.
@@ -274,7 +277,7 @@ export abstract class Account {
   /**
    * Verify the given message and signature with the public key.
    * This function helps ensure the integrity and authenticity of a message by validating its signature.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The raw message data in HexInput format.
    * @param args.signature - The signed message signature.

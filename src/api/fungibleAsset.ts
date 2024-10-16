@@ -32,24 +32,23 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  * A class for querying and managing fungible asset-related operations on the Aptos blockchain.
  */
 export class FungibleAsset {
-
   /**
    * Initializes a new instance of the Aptos class with the provided configuration.
    * This allows you to interact with the Aptos blockchain using the specified network settings.
-   * 
+   *
    * @param config - The configuration settings for connecting to the Aptos network.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
    *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your own network if needed
-   *     
+   *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
-   *     
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -59,20 +58,20 @@ export class FungibleAsset {
 
   /**
    * Queries all fungible asset metadata.
-   * 
+   *
    * @param args Optional parameters for the query.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
    * @param args.options Optional configuration for pagination and filtering.
-   * 
+   *
    * @returns A list of fungible asset metadata.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching fungible asset metadata
    *   const fungibleAssets = await aptos.getFungibleAssetMetadata();
@@ -96,26 +95,26 @@ export class FungibleAsset {
   /**
    * Queries the fungible asset metadata for a specific asset type.
    * This function helps retrieve detailed information about a fungible asset based on its type.
-   * 
+   *
    * @param args - The parameters for the query.
    * @param args.assetType - The asset type of the fungible asset, e.g., "0x1::aptos_coin::AptosCoin" for Aptos Coin.
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
-   * 
+   *
    * @returns A fungible asset metadata item.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Retrieve fungible asset metadata by asset type
    *   const fungibleAsset = await aptos.getFungibleAssetMetadataByAssetType({
    *     assetType: "0x1::aptos_coin::AptosCoin" // replace with your asset type
    *   });
-   * 
+   *
    *   console.log(fungibleAsset);
    * }
    * runExample().catch(console.error);
@@ -144,28 +143,28 @@ export class FungibleAsset {
 
   /**
    * Retrieves fungible asset metadata based on the creator address.
-   * 
+   *
    * This function allows you to query metadata for a specific fungible asset created by a given address.
-   * 
+   *
    * @param args - The parameters for the query.
    * @param args.creatorAddress - The creator address of the fungible asset.
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
-   * 
+   *
    * @returns A fungible asset metadata item.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Retrieve fungible asset metadata by creator address
    *   const fungibleAsset = await aptos.getFungibleAssetMetadataByCreatorAddress({
    *     creatorAddress: "0x123", // replace with a real creator address
    *   });
-   * 
+   *
    *   console.log(fungibleAsset);
    * }
    * runExample().catch(console.error);
@@ -194,19 +193,19 @@ export class FungibleAsset {
 
   /**
    * Queries all fungible asset activities and returns a list of their metadata.
-   * 
+   *
    * @param args Optional parameters for the query.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to, before querying.
    * @param args.options Optional configuration for pagination and filtering.
    * @returns A list of fungible asset metadata.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching fungible asset activities
    *   const fungibleAssetActivities = await aptos.getFungibleAssetActivities();
@@ -270,7 +269,8 @@ export class FungibleAsset {
    *
    * @param args - The arguments for the transfer operation.
    * @param args.sender - The sender account.
-   * @param args.fungibleAssetMetadataAddress - The fungible asset account address. For example, if you’re transferring USDT, this would be the USDT address.
+   * @param args.fungibleAssetMetadataAddress - The fungible asset account address. For example, if you’re transferring USDT,
+   * this would be the USDT address.
    * @param args.recipient - The recipient account address.
    * @param args.amount - The number of assets to transfer.
    * @param args.options - Optional parameters for generating the transaction.
@@ -280,10 +280,10 @@ export class FungibleAsset {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Transfer fungible asset from sender to recipient
    *   const transaction = await aptos.transferFungibleAsset({
@@ -292,7 +292,7 @@ export class FungibleAsset {
    *     recipient: "0x456", // replace with a real recipient account
    *     amount: 5
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);

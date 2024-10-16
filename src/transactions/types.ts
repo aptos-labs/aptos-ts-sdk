@@ -71,8 +71,9 @@ export type ScriptFunctionArgumentTypes =
   | Serialized;
 
 /**
- * Inputs for Entry functions, view functions, and scripts, which can be a string representation of various types including primitive types, vectors, and structured types.
- * 
+ * Inputs for Entry functions, view functions, and scripts, which can be a string representation of various types including
+ * primitive types, vectors, and structured types.
+ *
  *  *
  * This can be a string version of the type argument such as:
  * - u8
@@ -108,7 +109,8 @@ export type InputGenerateTransactionOptions = {
 };
 
 /**
- * The transaction payload type generated from the `generateTransactionPayload()` function, which can be an entry function, script, or multi-signature payload.
+ * The transaction payload type generated from the `generateTransactionPayload()` function, which can be an entry function,
+ * script, or multi-signature payload.
  */
 export type AnyTransactionPayloadInstance =
   | TransactionPayloadEntryFunction
@@ -121,7 +123,8 @@ export type AnyTransactionPayloadInstance =
 export type InputGenerateTransactionPayloadData = InputEntryFunctionData | InputScriptData | InputMultiSigData;
 
 /**
- * The payload for generating a transaction, which can be either script data, entry function data with remote ABI, or multi-signature data.
+ * The payload for generating a transaction, which can be either script data, entry function data with remote ABI, or
+ * multi-signature data.
  */
 export type InputGenerateTransactionPayloadDataWithRemoteABI =
   | InputScriptData
@@ -246,7 +249,7 @@ export type ViewFunctionABI = FunctionABI & {
 
 /**
  * Arguments for generating a single signer raw transaction, used in the transaction builder flow.
- * 
+ *
  * @param aptosConfig - Configuration settings for Aptos.
  * @param sender - The address of the sender.
  * @param payload - The transaction payload.
@@ -263,7 +266,7 @@ export interface InputGenerateSingleSignerRawTransactionArgs {
 
 /**
  * Arguments for generating a multi-agent transaction, used in the `generateTransaction()` method of the transaction builder flow.
- * 
+ *
  * @param aptosConfig - Configuration settings for Aptos.
  * @param sender - The address of the transaction sender.
  * @param payload - The transaction payload.
@@ -330,7 +333,7 @@ export type InputSimulateTransactionOptions = {
 
 /**
  * Holds user input data for generating a single signer transaction.
- * 
+ *
  * @param sender - The address of the account sending the transaction.
  * @param data - The payload data for the transaction.
  * @param options - Optional transaction options.
@@ -347,7 +350,7 @@ export interface InputGenerateSingleSignerRawTransactionData {
 
 /**
  * Holds user data input for generating a multi-agent transaction.
- * 
+ *
  * @param sender - The address of the primary sender.
  * @param data - The payload data for the transaction.
  * @param secondarySignerAddresses - An array of addresses for secondary signers.
@@ -371,7 +374,7 @@ export type InputGenerateTransactionData =
 
 /**
  * Holds user data input for submitting a transaction.
- * 
+ *
  * @param transaction - The raw transaction data.
  * @param senderAuthenticator - The authenticator for the sender's account.
  * @param feePayerAuthenticator - Optional authenticator for the fee payer's account.

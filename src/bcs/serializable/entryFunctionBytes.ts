@@ -10,9 +10,9 @@ import { HexInput } from "../../types";
 /**
  * This class exists solely to represent a sequence of fixed bytes as a serialized entry function, because
  * serializing an entry function appends a prefix that's *only* used for entry function arguments.
- * 
+ *
  * NOTE: Using this class for serialized script functions will lead to erroneous and unexpected behavior.
- * 
+ *
  * If you wish to convert this class back to a TransactionArgument, you must know the type
  * of the argument beforehand, and use the appropriate class to deserialize the bytes within
  * an instance of this class.
@@ -22,7 +22,7 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
 
   /**
    * Creates an instance of the class with a specified hexadecimal input value.
-   * 
+   *
    * @param value - The hexadecimal input to be converted into FixedBytes.
    */
   private constructor(value: HexInput) {
@@ -40,10 +40,10 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
   /**
    * Serializes the value using the provided serializer.
    * This function is essential for accurately representing a sequence of bytes that are already BCS-serialized as a type.
-   * 
+   *
    * Note that to see the Move, BCS-serialized representation of the underlying fixed byte vector,
    * we must not serialize the length prefix.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -57,9 +57,10 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
   // class and FixedBytes.
 
   /**
-   * Serializes the current instance for use as an entry function argument by converting the underlying fixed byte vector to a type-agnostic byte vector. 
+   * Serializes the current instance for use as an entry function argument by converting the underlying fixed byte vector to a
+   * type-agnostic byte vector.
    * This process includes serializing the length prefix of the byte vector.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serializeForEntryFunction(serializer: Serializer): void {

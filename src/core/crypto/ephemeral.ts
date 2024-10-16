@@ -7,7 +7,7 @@ import { Hex } from "../hex";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.
- * 
+ *
  * These keys are used only temporarily within Keyless accounts and are not utilized as public keys for account identification.
  */
 export class EphemeralPublicKey extends PublicKey {
@@ -22,11 +22,10 @@ export class EphemeralPublicKey extends PublicKey {
   public readonly variant: EphemeralPublicKeyVariant;
 
   /**
-   * Creates an instance of EphemeralSignature using the provided signature.
+   * Creates an instance of EphemeralPublicKey using the provided public key.
    * This constructor ensures that only supported signature types are accepted.
-   * 
-   * @param signature - The signature to be used for creating the EphemeralSignature instance. 
-   * It must be of type Ed25519Signature.
+   *
+   * @param publicKey - The public key to be used for the ephemeral public key.
    * @throws Error if the signature type is unsupported.
    */
   constructor(publicKey: PublicKey) {
@@ -53,7 +52,7 @@ export class EphemeralPublicKey extends PublicKey {
 
   /**
    * Verifies a signed message using the ephemeral public key.
-   * 
+   *
    * @param args - The arguments for the verification.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature that was signed by the private key of the ephemeral public key.
@@ -67,7 +66,7 @@ export class EphemeralPublicKey extends PublicKey {
   /**
    * Serializes the current instance, specifically handling the Ed25519 signature type.
    * This function ensures that the signature is properly serialized using the provided serializer.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the signature.
    * @throws Error if the signature type is unknown.
    */
@@ -83,7 +82,7 @@ export class EphemeralPublicKey extends PublicKey {
   /**
    * Deserializes an EphemeralSignature from the provided deserializer.
    * This function allows you to retrieve an EphemeralSignature based on the deserialized data.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): EphemeralPublicKey {
@@ -98,7 +97,7 @@ export class EphemeralPublicKey extends PublicKey {
 
   /**
    * Determines if the provided public key is an instance of `EphemeralPublicKey`.
-   * 
+   *
    * @param publicKey - The public key to check.
    * @returns A boolean indicating whether the public key is an ephemeral type.
    */
@@ -109,7 +108,7 @@ export class EphemeralPublicKey extends PublicKey {
 
 /**
  * Represents ephemeral signatures used in Aptos Keyless accounts.
- * 
+ *
  * These signatures are utilized within the KeylessSignature framework.
  */
 export class EphemeralSignature extends Signature {
@@ -141,8 +140,9 @@ export class EphemeralSignature extends Signature {
 
   /**
    * Deserializes an ephemeral signature from a hexadecimal input.
-   * This function allows you to convert a hexadecimal representation of an ephemeral signature into its deserialized form for further processing.
-   * 
+   * This function allows you to convert a hexadecimal representation of an ephemeral signature into its deserialized form for
+   * further processing.
+   *
    * @param hexInput - The hexadecimal input representing the ephemeral signature.
    */
   static fromHex(hexInput: HexInput): EphemeralSignature {

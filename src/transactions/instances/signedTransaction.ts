@@ -11,7 +11,7 @@ import { RawTransaction } from "./rawTransaction";
 /**
  * Represents a signed transaction that includes a raw transaction and an authenticator.
  * The authenticator contains a client's public key and the signature of the raw transaction.
- * 
+ *
  * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
  * @param raw_txn - The raw transaction to be signed.
  * @param authenticator - Contains a client's public key and the signature of the raw transaction.
@@ -24,12 +24,13 @@ export class SignedTransaction extends Serializable {
   public readonly authenticator: TransactionAuthenticator;
 
   /**
-   * Represents a signed transaction that includes a raw transaction and an authenticator. 
-   * The authenticator contains a client's public key and the signature of the raw transaction, 
+   * Represents a signed transaction that includes a raw transaction and an authenticator.
+   * The authenticator contains a client's public key and the signature of the raw transaction,
    * which can be of three types: single signature, multi-signature, and multi-agent.
    *
    * @param raw_txn The raw transaction to be signed.
-   * @param authenticator Contains a client's public key and the signature of the raw transaction. The authenticator has 3 flavors: single signature, multi-signature and multi-agent.
+   * @param authenticator Contains a client's public key and the signature of the raw transaction. The authenticator has 3
+   * flavors: single signature, multi-signature and multi-agent.
    * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
    * @see {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs} for details.
    */
@@ -42,7 +43,7 @@ export class SignedTransaction extends Serializable {
   /**
    * Serializes the raw transaction and its authenticator using the provided serializer.
    * This function is essential for preparing the transaction data for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the transaction and authenticator.
    */
   serialize(serializer: Serializer): void {
@@ -53,7 +54,7 @@ export class SignedTransaction extends Serializable {
   /**
    * Deserializes a signed transaction from the provided deserializer.
    * This function allows you to reconstruct a SignedTransaction object from its serialized form, enabling further processing or validation.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): SignedTransaction {

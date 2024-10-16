@@ -9,11 +9,11 @@ import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/acco
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
 
-/**  
- * Arguments required to verify a multi-key signature against a given message.  
- *  
- * @param message - The original message that was signed.  
- * @param signature - The multi-key signature to be verified.  
+/**
+ * Arguments required to verify a multi-key signature against a given message.
+ *
+ * @param message - The original message that was signed.
+ * @param signature - The multi-key signature to be verified.
  */
 export interface VerifyMultiKeySignatureArgs {
   message: HexInput;
@@ -22,10 +22,10 @@ export interface VerifyMultiKeySignatureArgs {
 
 /**
  * Signer implementation for the MultiKey authentication scheme.
- * 
- * This account utilizes an M of N signing scheme, where M and N are specified in the {@link MultiKey}. 
+ *
+ * This account utilizes an M of N signing scheme, where M and N are specified in the {@link MultiKey}.
  * It signs messages using an array of M accounts, each corresponding to a public key in the {@link MultiKey}.
- * 
+ *
  * Note: Generating a signer instance does not create the account on-chain.
  */
 export class MultiKeyAccount implements Account {
@@ -52,16 +52,17 @@ export class MultiKeyAccount implements Account {
   readonly signers: Account[];
 
   /**
-   * An array of indicies where for signer[i], signerIndicies[i] is the index of the corresponding public key in
+   * An array of indices where for signer[i], signerIndicies[i] is the index of the corresponding public key in
    * publicKey.publicKeys.  Used to derive the right public key to use for verification.
    */
+  // TODO: Rename Indicies to Indices
   readonly signerIndicies: number[];
 
   readonly signaturesBitmap: Uint8Array;
 
   /**
    * Constructs a MultiKeyAccount instance, which requires multiple signatures for transactions.
-   * 
+   *
    * @param args - The arguments for creating a MultiKeyAccount.
    * @param args.multiKey - The multikey of the account consisting of N public keys and a number M representing the required signatures.
    * @param args.signers - An array of M signers that will be used to sign the transaction.
@@ -111,7 +112,7 @@ export class MultiKeyAccount implements Account {
 
   /**
    * Determines if the provided account is a multi-key account.
-   * 
+   *
    * @param account - The account to check.
    * @returns A boolean indicating whether the account is a multi-key account.
    */
@@ -120,7 +121,8 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Sign a message using the account's signers and return an AccountAuthenticator containing the signature along with the account's public key.
+   * Sign a message using the account's signers and return an AccountAuthenticator containing the signature along with the
+   * account's public key.
    * @param message - The signing message, represented as binary input in hexadecimal format.
    * @returns An instance of AccountAuthenticatorMultiKey that includes the signature and the public key.
    */
@@ -129,7 +131,8 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Sign a transaction using the account's signers, returning an AccountAuthenticator that contains the signature and the account's public key.
+   * Sign a transaction using the account's signers, returning an AccountAuthenticator that contains the signature and the
+   * account's public key.
    * @param transaction - The raw transaction to be signed.
    * @returns An AccountAuthenticatorMultiKey containing the signature of the transaction along with the account's public key.
    */
@@ -138,10 +141,11 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Waits for any proofs on KeylessAccount signers to be fetched. This ensures that signing with the KeylessAccount does not fail due to missing proofs.
+   * Waits for any proofs on KeylessAccount signers to be fetched. This ensures that signing with the KeylessAccount does not
+   * fail due to missing proofs.
    * @return {Promise<void>} A promise that resolves when all proofs have been fetched.
    */
-  async waitForProofFetch() {
+  async waitForProofFetch(): Promise<void> {
     const keylessSigners = this.signers.filter(
       (signer) => signer instanceof AbstractKeylessAccount,
     ) as AbstractKeylessAccount[];
@@ -165,7 +169,7 @@ export class MultiKeyAccount implements Account {
   /**
    * Sign the given transaction using the MultiKeyAccount's signers.
    * This function aggregates signatures from all signers associated with the MultiKeyAccount.
-   * 
+   *
    * @param transaction - The transaction to be signed.
    * @returns MultiKeySignature - An object containing the aggregated signatures and a bitmap of the signatures.
    */
@@ -179,7 +183,7 @@ export class MultiKeyAccount implements Account {
 
   /**
    * Verify the given message and signature with the public keys.
-   * 
+   *
    * This function checks if the provided signatures are valid for the given message using the corresponding public keys.
    *
    * @param args - The arguments for verifying the signature.
@@ -189,10 +193,10 @@ export class MultiKeyAccount implements Account {
    */
   verifySignature(args: VerifyMultiKeySignatureArgs): boolean {
     const { message, signature } = args;
-    const isSignerIndiciesSorted = this.signerIndicies.every(
+    const isSignerIndicesSorted = this.signerIndicies.every(
       (value, i) => i === 0 || value >= this.signerIndicies[i - 1],
     );
-    if (!isSignerIndiciesSorted) {
+    if (!isSignerIndicesSorted) {
       return false;
     }
     for (let i = 0; i < signature.signatures.length; i += 1) {

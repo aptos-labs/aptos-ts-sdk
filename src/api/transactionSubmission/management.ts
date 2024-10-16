@@ -14,26 +14,26 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
   /**
    * Initializes a new instance of the Aptos client with the provided configuration settings.
    * This allows you to interact with the Aptos blockchain using the specified network and options.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
    * @param config.nodeUrl - The URL of the Aptos node to connect to.
    * @param config.account - Optional account settings for authentication.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ 
+   *     const config = new AptosConfig({
    *         network: Network.TESTNET, // specify the network to use
    *         nodeUrl: "https://testnet.aptos.dev" // replace with your node URL
    *     });
-   *     
+   *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
-   *     
+   *
    *     console.log("Aptos client initialized successfully.");
    * }
    * runExample().catch(console.error);
@@ -47,23 +47,23 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
   /**
    * Initializes the transaction worker using the provided sender account and begins listening for events.
    * This function is essential for setting up the transaction processing environment.
-   * 
+   *
    * @param args - The arguments for starting the transaction worker.
    * @param args.sender - The sender account to sign and submit the transaction.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *     const sender = Account.generate(); // Generate a new account for sending transactions
-   * 
+   *
    *     // Start the transaction worker with the sender account
    *     aptos.start({ sender });
-   * 
+   *
    *     console.log("Transaction worker started with sender:", sender.accountAddress);
    * }
    * runExample().catch(console.error);
@@ -80,30 +80,30 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
 
   /**
    * Pushes transaction data to the transaction worker for processing.
-   * 
+   *
    * @param args.data An array of transaction payloads to be processed.
    * @param args.options Optional. Transaction generation configurations (excluding accountSequenceNumber).
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Prepare transaction payloads
    *   const payloads = [
    *      {}, // Build your first transaction payload
    *      {}, // Build your second transaction payload
    *   ];
-   * 
+   *
    *   // Push transaction data to the worker
    *   aptos.push({
    *     data: payloads,
    *     {}, // Specify options as needed
    *   });
-   * 
+   *
    *   console.log("Transaction data pushed successfully.");
    * }
    * runExample().catch(console.error);
@@ -123,7 +123,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
   /**
    * Starts listening to transaction worker events, allowing the application to respond to transaction status changes.
    * This function enables the application to handle events such as transaction sent, execution success, or failure.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
@@ -179,7 +179,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * This function uses a transaction worker that receives payloads to be processed
    * and submitted to chain.
    * Note that this process is best for submitting multiple transactions that
-   * dont rely on each other, i.e batch funds, batch token mints, etc.
+   * don't rely on each other, i.e. batch funds, batch token mints, etc.
    *
    * If any worker failure, the functions throws an error.
    *

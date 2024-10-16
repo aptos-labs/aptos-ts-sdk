@@ -33,9 +33,9 @@ export const HARDENED_OFFSET = 0x80000000;
  * This function checks if the provided path adheres to the BIP-44 standard for Secp256k1.
  * Parse and validate a path that is compliant to BIP-44 in form m/44'/637'/{account_index}'/{change_index}/{address_index}
  * for Secp256k1
- * 
+ *
  * Note that for Secp256k1, the last two components must be non-hardened.
- * 
+ *
  * @param path - The path string to validate (e.g. `m/44'/637'/0'/0/0`).
  */
 export function isValidBIP44Path(path: string): boolean {

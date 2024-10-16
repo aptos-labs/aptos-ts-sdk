@@ -58,7 +58,7 @@ export function hashStrToField(str: string, maxSizeBytes: number): bigint {
 /**
  * Computes a Poseidon hash of the provided byte array, ensuring that the byte array does not exceed the specified maximum size.
  * This function is useful for generating a hash from a byte array while enforcing size constraints.
- * 
+ *
  * @param bytes - The byte array to be hashed.
  * @param maxSizeBytes - The maximum allowed size for the byte array.
  * @throws Error if the length of the inputted bytes exceeds the specified maximum size.
@@ -74,7 +74,7 @@ function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
 /**
  * Pads the input byte array with zeros to a specified maximum size and then packs the bytes.
  * This function ensures that the byte array does not exceed the specified maximum size, throwing an error if it does.
- * 
+ *
  * @param bytes - The byte array to be padded and packed.
  * @param maxSizeBytes - The maximum size in bytes that the input array can have.
  * @throws Error if the input byte array exceeds the specified maximum size.
@@ -89,9 +89,9 @@ function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[]
 
 /**
  * Pads and packs the given byte array to a specified maximum size and appends its length.
- * This function ensures that the byte array does not exceed the maximum size, throwing an error if it does. 
+ * This function ensures that the byte array does not exceed the maximum size, throwing an error if it does.
  * It is useful for preparing byte data for further processing or transmission by ensuring a consistent format.
- * 
+ *
  * @param bytes - The byte array to be padded and packed.
  * @param maxSizeBytes - The maximum allowed size for the byte array.
  * @throws Error if the length of the input bytes exceeds the maximum size.
@@ -119,7 +119,7 @@ function packBytes(bytes: Uint8Array): bigint[] {
 /**
  * Splits a Uint8Array into smaller chunks of the specified size.
  * This function is useful for processing large arrays in manageable segments.
- * 
+ *
  * @param array - The Uint8Array to be split into chunks.
  * @param chunkSize - The size of each chunk.
  * @returns An array of Uint8Array chunks.
@@ -135,7 +135,7 @@ function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
 /**
  * Converts a little-endian byte array into a BigInt.
  * This function is useful for interpreting byte data as a numerical value in a way that respects the little-endian format.
- * 
+ *
  * @param bytes - The byte array to convert.
  * @returns The resulting BigInt representation of the byte array.
  */
@@ -149,8 +149,9 @@ export function bytesToBigIntLE(bytes: Uint8Array): bigint {
 
 /**
  * Converts a bigint value into a little-endian byte array of a specified length.
- * This function is useful for representing large integers in a byte format, which is often required for cryptographic operations or binary data manipulation.
- * 
+ * This function is useful for representing large integers in a byte format, which is often required for cryptographic operations
+ * or binary data manipulation.
+ *
  * @param value - The number to convert into bytes.
  * @param length - The desired length of the resulting byte array.
  * @returns A Uint8Array containing the little-endian representation of the bigint value.
@@ -168,7 +169,7 @@ export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Ar
 /**
  * Pads the input Uint8Array with zeros to achieve the specified size.
  * This function is useful for ensuring that a byte array meets a required length for further processing.
- * 
+ *
  * @param inputArray - The Uint8Array to be padded.
  * @param paddedSize - The desired size of the padded array, which must be greater than or equal to the input array size.
  * @throws Error if paddedSize is less than the length of inputArray.
@@ -195,7 +196,7 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
 /**
  * Hashes up to 16 scalar elements via the Poseidon hashing algorithm.
  * Each element must be scalar fields of the BN254 elliptic curve group.
- * 
+ *
  * @param inputs - An array of elements to be hashed, which can be of type number, bigint, or string.
  * @returns bigint - The result of the hash.
  * @throws Error - Throws an error if the input length exceeds the maximum allowed.

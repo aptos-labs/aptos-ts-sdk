@@ -10,10 +10,12 @@ import { Serializable, Serializer } from "../bcs/serializer";
 import { Deserializer } from "../bcs/deserializer";
 
 /**
- * Represents an authentication key used for account management. Each account stores an authentication key that enables account owners to rotate their private key(s) without changing the address that hosts their account. The authentication key is a SHA3-256 hash of data and is always 32 bytes in length. 
- * 
+ * Represents an authentication key used for account management. Each account stores an authentication key that enables account
+ * owners to rotate their private key(s) without changing the address that hosts their account. The authentication key is a
+ * SHA3-256 hash of data and is always 32 bytes in length.
+ *
  * @see {@link https://aptos.dev/concepts/accounts | Account Basics}
- * 
+ *
  * Account addresses can be derived from the AuthenticationKey.
  */
 export class AuthenticationKey extends Serializable {
@@ -32,10 +34,11 @@ export class AuthenticationKey extends Serializable {
   /**
    * Creates an instance of the AuthenticationKey using the provided hex input.
    * This ensures that the hex input is valid and conforms to the required length for an Authentication Key.
-   * 
+   *
    * @param args - The arguments for constructing the AuthenticationKey.
    * @param args.data - The hex input data to be used for the Authentication Key.
-   * @throws {Error} Throws an error if the length of the provided hex input is not equal to the required Authentication Key length.
+   * @throws {Error} Throws an error if the length of the provided hex input is not equal to the required Authentication Key
+   * length.
    */
   constructor(args: { data: HexInput }) {
     super();
@@ -49,7 +52,7 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Serializes the fixed bytes data into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -68,7 +71,7 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Converts the internal data representation to a string format.
-   * 
+   *
    * @returns {string} The string representation of the internal data.
    */
   toString(): string {
@@ -77,9 +80,9 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Convert the internal data representation to a Uint8Array.
-   * 
+   *
    * This function is useful for obtaining a byte representation of the data, which can be utilized for serialization or transmission.
-   * 
+   *
    * @returns Uint8Array representation of the internal data.
    */
   toUint8Array(): Uint8Array {
@@ -89,7 +92,7 @@ export class AuthenticationKey extends Serializable {
   /**
    * Generates an AuthenticationKey from the specified scheme and input bytes.
    * This function is essential for creating a valid authentication key based on a given scheme.
-   * 
+   *
    * @param args - The arguments for generating the AuthenticationKey.
    * @param args.scheme - The authentication key scheme to use.
    * @param args.input - The input data in hexadecimal format to derive the key.
@@ -107,7 +110,7 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Derives an AuthenticationKey from the provided public key using a specified derivation scheme.
-   * 
+   *
    * @deprecated Use `fromPublicKey` instead.
    * @param args - The arguments for deriving the authentication key.
    * @param args.publicKey - The public key used for the derivation.
@@ -120,7 +123,7 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Converts a PublicKey to an AuthenticationKey using the derivation scheme inferred from the provided PublicKey instance.
-   * 
+   *
    * @param args - The arguments for the function.
    * @param args.publicKey - The PublicKey to be converted.
    * @returns AuthenticationKey - The derived AuthenticationKey.
@@ -132,7 +135,7 @@ export class AuthenticationKey extends Serializable {
 
   /**
    * Derives an account address from an AuthenticationKey by translating the AuthenticationKey bytes directly to an AccountAddress.
-   * 
+   *
    * @returns AccountAddress - The derived account address.
    */
   derivedAddress(): AccountAddress {

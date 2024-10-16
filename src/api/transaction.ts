@@ -45,47 +45,47 @@ import { TransactionManagement } from "./transactionSubmission/management";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
- * Represents a transaction in the Aptos blockchain, 
+ * Represents a transaction in the Aptos blockchain,
  * providing methods to build, simulate, submit, and manage transactions.
- * This class encapsulates functionalities for querying transaction details, 
+ * This class encapsulates functionalities for querying transaction details,
  * estimating gas prices, signing transactions, and handling transaction states.
- * 
+ *
  * This class is used as part of the Aptos object, so should be called like so:
  * @example
- * ```typescript 
+ * ```typescript
  * import { Account, Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
- *  
+ *
  * const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
  * const COIN_STORE = `0x1::coin::CoinStore<${APTOS_COIN}>`;
  * const ALICE_INITIAL_BALANCE = 100_000_000;
  * const TRANSFER_AMOUNT = 100;
- *  
+ *
  * async function example() {
  *   console.log(
  *     "This example will create two accounts (Alice and Bob), fund them, and transfer between them.",
  *   );
- *  
- *   // Setup the client
+ *
+ *   // Set up the client
  *   const config = new AptosConfig({ network: Network.TESTNET });
  *   const aptos = new Aptos(config);
- *  
+ *
  *   // Generate two account credentials
  *   // Each account has a private key, a public key, and an address
  *   const alice = Account.generate();
  *   const bob = Account.generate();
- *  
+ *
  *   console.log("=== Addresses ===\n");
  *   console.log(`Alice's address is: ${alice.accountAddress}`);
  *   console.log(`Bob's address is: ${bob.accountAddress}`);
- *  
+ *
  *   // Fund the accounts using a faucet
  *   console.log("\n=== Funding accounts ===\n");
- *  
+ *
  *   await aptos.fundAccount({
  *     accountAddress: alice.accountAddress,
  *     amount: ALICE_INITIAL_BALANCE,
  *   });
- *  
+ *
  *   // Send a transaction from Alice's account to Bob's account
  *   const txn = await aptos.transaction.build.simple({
  *     sender: alice.accountAddress,
@@ -95,7 +95,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *       functionArguments: [bob.accountAddress, 100],
  *     },
  *   });
- *  
+ *
  *   console.log("\n=== Transfer transaction ===\n");
  *   // Both signs and submits
  *   const committedTxn = await aptos.signAndSubmitTransaction({
@@ -107,7 +107,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *     transactionHash: committedTxn.hash,
  *   });
  *   console.log("Transaction hash:", executedTransaction.hash);
- *  
+ *
  *  console.log("\n=== Balances after transfer ===\n");
  *  const newAliceAccountBalance = await aptos.getAccountResource({
  *    accountAddress: alice.accountAddress,
@@ -115,7 +115,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *  });
  *  const newAliceBalance = Number(newAliceAccountBalance.coin.value);
  *  console.log(`Alice's balance is: ${newAliceBalance}`);
- * 
+ *
  *  const newBobAccountBalance = await aptos.getAccountResource({
  *    accountAddress: bob.accountAddress,
  *    resourceType: COIN_STORE,
@@ -123,7 +123,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *  const newBobBalance = Number(newBobAccountBalance.coin.value);
  *  console.log(`Bob's balance is: ${newBobBalance}`);
  * }
- *  
+ *
  * example();
  * ```
  */
@@ -141,20 +141,20 @@ export class Transaction {
   /**
    * Creates an instance of the Aptos client with the specified configuration.
    * This allows you to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
    * @param config.network - The network to connect to (e.g., Testnet, Mainnet).
    * @param config.nodeUrl - The URL of the Aptos node to connect to.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a new Aptos client instance
    *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify the network
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     console.log("Aptos client created successfully:", aptos);
    * }
    * runExample().catch(console.error);
@@ -169,7 +169,7 @@ export class Transaction {
   }
 
   /**
-   * Queries on-chain transactions, excluding pending transactions. 
+   * Queries on-chain transactions, excluding pending transactions.
    * Use this function to retrieve historical transactions from the blockchain.
    *
    * @param args Optional parameters for pagination.
@@ -270,18 +270,18 @@ export class Transaction {
   /**
    * Defines if the specified transaction is currently in a pending state.
    * This function helps you determine the status of a transaction using its hash.
-   * 
+   *
    * @param args - The arguments for the function.
    * @param args.transactionHash - A hash of the transaction in hexadecimal format.
    * @returns `true` if the transaction is in a pending state and `false` otherwise.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Check if the transaction is pending using its hash
    *   const isPendingTransaction = await aptos.isPendingTransaction({ transactionHash: "0x123" }); // replace with a real transaction hash
@@ -310,20 +310,21 @@ export class Transaction {
    *      If `checkSuccess` is false, the function will resolve with the transaction response where the `success` field is false.
    * 4. Transaction does not move past the pending state within `args.options.timeoutSecs` seconds.
    *    - The function will throw a WaitForTransactionError
-   * 
+   *
    * @param args.transactionHash - The hash of a transaction previously submitted to the blockchain.
    * @param args.options - Optional parameters for waiting behavior.
    * @param args.options.timeoutSecs - Timeout in seconds. Defaults to 20 seconds.
-   * @param args.options.checkSuccess - A boolean which controls whether the function will error if the transaction failed. Defaults to true.
+   * @param args.options.checkSuccess - A boolean which controls whether the function will error if the transaction failed.
+   * Defaults to true.
    * @returns The transaction on-chain response.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Wait for a transaction to complete using its hash
    *   const transactionHash = "0x123"; // replace with a real transaction hash
@@ -334,7 +335,7 @@ export class Transaction {
    *       checkSuccess: true,
    *     },
    *   });
-   * 
+   *
    *   console.log(transactionResponse);
    * }
    * runExample().catch(console.error);
@@ -381,17 +382,17 @@ export class Transaction {
 
   /**
    * Returns a signing message for a transaction, allowing a user to sign it using their preferred method before submission to the network.
-   * 
+   *
    * @param args - The arguments for obtaining the signing message.
    * @param args.transaction - A raw transaction for signing elsewhere.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *     const transaction = await aptos.transaction.build.simple({
    *         sender: "0x1", // replace with a real sender address
@@ -400,13 +401,14 @@ export class Transaction {
    *             functionArguments: ["0x2", 100], // replace with a real destination address
    *         },
    *     });
-   * 
+   *
    *     const message = await aptos.getSigningMessage({ transaction });
    *     console.log(message);
    * }
    * runExample().catch(console.error);
    * ```
    */
+  // eslint-disable-next-line class-methods-use-this
   getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
     return getSigningMessage(args);
   }
@@ -414,12 +416,12 @@ export class Transaction {
   /**
    * Generates a transaction to publish a Move package to the blockchain.
    * This function helps you create a transaction that can be simulated or submitted to the chain for publishing a package.
-   * 
+   *
    * To get the `metadataBytes` and `byteCode`, can compile using Aptos CLI with command
    * `aptos move compile --save-metadata ...`,
-   * 
+   *
    * {@link https://aptos.dev/tutorials/your-first-dapp/#step-4-publish-a-move-module}
-   * 
+   *
    * @param args The arguments for publishing the package.
    * @param args.account The publisher account.
    * @param args.metadataBytes The package metadata bytes.
@@ -437,7 +439,7 @@ export class Transaction {
    *
    * async function runExample() {
    *   // Replace with a real account address
-   *   const account = "0x1"; 
+   *   const account = "0x1";
    *   const metadataBytes = "0x..."; // replace with real metadata bytes
    *   const byteCode = "0x..."; // replace with real module bytecode
    *
@@ -463,7 +465,7 @@ export class Transaction {
 
   /**
    * Rotate an account's authentication key. After rotation, only the new private key can be used to sign transactions for the account.
-   * Note: Only legacy Ed25519 scheme is supported for now. 
+   * Note: Only legacy Ed25519 scheme is supported for now.
    * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}
    *
    * @param args The arguments for rotating the auth key.
@@ -482,8 +484,10 @@ export class Transaction {
    * async function runExample() {
    *   // Rotate the authentication key for an account
    *   const response = await aptos.rotateAuthKey({
-   *     fromAccount: Account.generate(), // replace with a real account
-   *     toNewPrivateKey: new PrivateKey("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"), // replace with a real private key
+   *     // replace with a real account
+   *     fromAccount: Account.generate(),
+   *     // replace with a real private key
+   *     toNewPrivateKey: new PrivateKey("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
    *   });
    *
    *   console.log(response);
@@ -498,20 +502,20 @@ export class Transaction {
   /**
    * Sign a transaction that can later be submitted to the chain.
    * This function is essential for ensuring the authenticity of the transaction by using the provided account's signing capabilities.
-   * 
+   *
    * @param args - The arguments for signing the transaction.
    * @param args.signer - The account that will sign the transaction.
    * @param args.transaction - A raw transaction to sign.
-   * 
+   *
    * @returns AccountAuthenticator - The authenticator for the signed transaction.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for signing
    *   const transaction = await aptos.transaction.build.simple({
@@ -521,18 +525,18 @@ export class Transaction {
    *       functionArguments: [ "0x1", 100 ], // replace with a real account address and amount
    *     },
    *   });
-   * 
+   *
    *   const signedTransaction = await aptos.transaction.sign({
    *     signer: sender,
    *     transaction,
    *   }); // Sign the transaction
-   * 
+   *
    *   console.log("Signed Transaction:", signedTransaction);
    * }
    * runExample().catch(console.error);
    * ```
    */
-  
+  // eslint-disable-next-line class-methods-use-this
   sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signTransaction({
       ...args,
@@ -546,16 +550,16 @@ export class Transaction {
    * @param args - The arguments for signing the transaction.
    * @param args.signer - The fee payer signer account.
    * @param args.transaction - A raw transaction to sign on. This transaction must include a `feePayerAddress` property.
-   * 
+   *
    * @returns AccountAuthenticator - The authenticator for the signed transaction.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for the fee payer
    *   const transaction = await aptos.transaction.build.simple({
@@ -564,17 +568,18 @@ export class Transaction {
    *     functionArguments: [sender.accountAddress, 100],
    *     feePayerAddress: sender.accountAddress, // Set the fee payer address
    *   });
-   * 
+   *
    *   const signedTransaction = await aptos.transaction.signAsFeePayer({
    *     signer: sender,
    *     transaction,
    *   });
-   * 
+   *
    *   console.log("Signed transaction as fee payer:", signedTransaction);
    * }
    * runExample().catch(console.error);
    * ```
    */
+  // eslint-disable-next-line class-methods-use-this
   signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     return signAsFeePayer({
       ...args,
@@ -587,7 +592,8 @@ export class Transaction {
    * @deprecated Prefer to use `aptos.transaction.batch.forSingleAccount()`
    *
    * Batch transactions for a single account by submitting multiple transaction payloads.
-   * This function is useful for efficiently processing and submitting transactions that do not depend on each other, such as batch funding or batch token minting.
+   * This function is useful for efficiently processing and submitting transactions that do not depend on each other, such as
+   * batch funding or batch token minting.
    *
    * @param args - The arguments for batching transactions.
    * @param args.sender - The sender account to sign and submit the transactions.
@@ -645,10 +651,10 @@ export class Transaction {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for sending the transaction
    *   const transaction = await aptos.transaction.build.simple({
@@ -658,13 +664,13 @@ export class Transaction {
    *       functionArguments: [ "0x1", 100 ], // replace with a real account address
    *     },
    *   });
-   * 
+   *
    *   // Sign and submit the transaction
    *   const pendingTransaction = await aptos.signAndSubmitTransaction({
    *     signer: sender,
    *     transaction,
    *   });
-   * 
+   *
    *   console.log(pendingTransaction);
    * }
    * runExample().catch(console.error);

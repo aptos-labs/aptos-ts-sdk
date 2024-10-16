@@ -12,9 +12,9 @@ import { TypeTagVariants } from "../../types";
 
 /**
  * Represents a type tag in the serialization framework, serving as a base class for various specific type tags.
- * This class provides methods for serialization and deserialization of type tags, as well as type checking methods 
+ * This class provides methods for serialization and deserialization of type tags, as well as type checking methods
  * to determine the specific type of the tag at runtime.
- * 
+ *
  * @extends Serializable
  */
 export abstract class TypeTag extends Serializable {
@@ -23,16 +23,17 @@ export abstract class TypeTag extends Serializable {
   /**
    * Deserializes a StructTag from the provided deserializer.
    * This function allows you to reconstruct a StructTag object from its serialized form.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   deserialize(deserializer: Deserializer): StructTag {
-      const address = AccountAddress.deserialize(deserializer);
-      const moduleName = Identifier.deserialize(deserializer);
-      const name = Identifier.deserialize(deserializer);
-      const typeArgs = deserializer.deserializeVector(TypeTag);
-      return new StructTag(address, moduleName, name, typeArgs);
+    const address = AccountAddress.deserialize(deserializer);
+    const moduleName = Identifier.deserialize(deserializer);
+    const name = Identifier.deserialize(deserializer);
+    const typeArgs = deserializer.deserializeVector(TypeTag);
+    return new StructTag(address, moduleName, name, typeArgs);
   }
+
   static deserialize(deserializer: Deserializer): TypeTag {
     const index = deserializer.deserializeUleb128AsU32();
     switch (index) {
@@ -70,7 +71,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is of type TypeTagBool.
-   * 
+   *
    * @returns {boolean} True if the instance is a TypeTagBool, otherwise false.
    */
   isBool(): this is TypeTagBool {
@@ -79,7 +80,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is of type TypeTagAddress.
-   * 
+   *
    * @returns {boolean} True if the instance is a TypeTagAddress, otherwise false.
    */
   isAddress(): this is TypeTagAddress {
@@ -88,7 +89,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is of type TypeTagGeneric.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is a TypeTagGeneric, otherwise false.
    */
   isGeneric(): this is TypeTagGeneric {
@@ -97,7 +98,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determine if the current instance is a TypeTagSigner.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is a TypeTagSigner, otherwise false.
    */
   isSigner(): this is TypeTagSigner {
@@ -107,7 +108,7 @@ export abstract class TypeTag extends Serializable {
   /**
    * Checks if the current instance is a vector type.
    * This can help determine the specific type of data structure being used.
-   * 
+   *
    * @returns {boolean} True if the instance is of type TypeTagVector, otherwise false.
    */
   isVector(): this is TypeTagVector {
@@ -116,7 +117,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is a structure type.
-   * 
+   *
    * @returns {boolean} True if the instance is of type TypeTagStruct, otherwise false.
    */
   isStruct(): this is TypeTagStruct {
@@ -125,7 +126,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is of type `TypeTagU8`.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is of type `TypeTagU8`, otherwise false.
    */
   isU8(): this is TypeTagU8 {
@@ -134,7 +135,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Checks if the current instance is of type TypeTagU16.
-   * 
+   *
    * @returns {boolean} True if the instance is TypeTagU16, otherwise false.
    */
   isU16(): this is TypeTagU16 {
@@ -143,7 +144,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Checks if the current instance is of type TypeTagU32.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is TypeTagU32, otherwise false.
    */
   isU32(): this is TypeTagU32 {
@@ -152,7 +153,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Checks if the current instance is of type TypeTagU64.
-   * 
+   *
    * @returns {boolean} True if the instance is a TypeTagU64, otherwise false.
    */
   isU64(): this is TypeTagU64 {
@@ -161,7 +162,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Determines if the current instance is of the TypeTagU128 type.
-   * 
+   *
    * @returns {boolean} True if the instance is of TypeTagU128, otherwise false.
    */
   isU128(): this is TypeTagU128 {
@@ -170,7 +171,7 @@ export abstract class TypeTag extends Serializable {
 
   /**
    * Checks if the current instance is of type TypeTagU256.
-   * 
+   *
    * @returns {boolean} Returns true if the instance is of type TypeTagU256, otherwise false.
    */
   isU256(): this is TypeTagU256 {
@@ -201,10 +202,9 @@ export abstract class TypeTag extends Serializable {
  * @extends TypeTag
  */
 export class TypeTagBool extends TypeTag {
-
   /**
    * Returns the string representation of the object.
-   * 
+   *
    * @returns {string} The string representation of the object.
    */
   toString(): string {
@@ -214,7 +214,7 @@ export class TypeTagBool extends TypeTag {
   /**
    * Serializes the current instance's properties into a provided serializer.
    * This function ensures that the address, module name, name, and type arguments are properly serialized.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the properties.
    */
   serialize(serializer: Serializer): void {
@@ -223,8 +223,8 @@ export class TypeTagBool extends TypeTag {
 
   /**
    * Deserializes a StructTag and returns a new TypeTagStruct instance.
-   * 
-   * @param deserializer - The deserializer used to read the StructTag data.
+   *
+   * @param _deserializer - The deserializer used to read the StructTag data.
    */
   static load(_deserializer: Deserializer): TypeTagBool {
     return new TypeTagBool();
@@ -233,9 +233,9 @@ export class TypeTagBool extends TypeTag {
 
 /**
  * Represents a type tag for an 8-bit unsigned integer (u8).
- * This class extends the base TypeTag class and provides methods 
+ * This class extends the base TypeTag class and provides methods
  * for serialization and deserialization specific to the u8 type.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU8 extends TypeTag {
@@ -255,7 +255,7 @@ export class TypeTagU8 extends TypeTag {
 /**
  * Represents a type tag for unsigned 16-bit integers (u16).
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU16 extends TypeTag {
@@ -274,9 +274,9 @@ export class TypeTagU16 extends TypeTag {
 
 /**
  * Represents a type tag for a 32-bit unsigned integer (u32).
- * This class extends the base TypeTag class and provides methods for serialization 
+ * This class extends the base TypeTag class and provides methods for serialization
  * and deserialization specific to the u32 type.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU32 extends TypeTag {
@@ -296,7 +296,7 @@ export class TypeTagU32 extends TypeTag {
 /**
  * Represents a type tag for 64-bit unsigned integers (u64).
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU64 extends TypeTag {
@@ -316,7 +316,7 @@ export class TypeTagU64 extends TypeTag {
 /**
  * Represents a type tag for the u128 data type.
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU128 extends TypeTag {
@@ -336,7 +336,7 @@ export class TypeTagU128 extends TypeTag {
 /**
  * Represents a type tag for the U256 data type.
  * This class extends the base TypeTag class and provides methods for serialization and deserialization.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagU256 extends TypeTag {
@@ -399,7 +399,7 @@ export class TypeTagSigner extends TypeTag {
  * Represents a reference to a type tag in the type system.
  * This class extends the TypeTag class and provides functionality
  * to serialize and deserialize type tag references.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagReference extends TypeTag {
@@ -409,11 +409,8 @@ export class TypeTagReference extends TypeTag {
 
   /**
    * Initializes a new instance of the class with the specified parameters.
-   * 
-   * @param address - The address of the account associated with this instance.
-   * @param module_name - The name of the module where this instance is defined.
-   * @param name - The name of the instance.
-   * @param type_args - An array of type arguments for the instance.
+   *
+   * @param value - The TypeTag to reference.
    */
   constructor(public readonly value: TypeTag) {
     super();
@@ -460,7 +457,7 @@ export class TypeTagGeneric extends TypeTag {
  * Represents a vector type tag, which encapsulates a single type tag value.
  * This class extends the base TypeTag class and provides methods for serialization,
  * deserialization, and string representation of the vector type tag.
- * 
+ *
  * @extends TypeTag
  */
 export class TypeTagVector extends TypeTag {
@@ -474,7 +471,7 @@ export class TypeTagVector extends TypeTag {
 
   /**
    * Creates a new TypeTagVector instance with a TypeTagU8 type.
-   * 
+   *
    * @returns {TypeTagVector} A new TypeTagVector initialized with TypeTagU8.
    */
   static u8(): TypeTagVector {
@@ -496,7 +493,7 @@ export class TypeTagVector extends TypeTag {
  * Represents a structured type tag in the system, extending the base TypeTag class.
  * This class encapsulates information about a specific structure, including its address,
  * module name, and type arguments, and provides methods for serialization and type checking.
- * 
+ *
  * @param value - The StructTag instance containing the details of the structured type.
  */
 export class TypeTagStruct extends TypeTag {
@@ -528,7 +525,7 @@ export class TypeTagStruct extends TypeTag {
 
   /**
    * Determines if the provided address, module name, and struct name match the current type tag.
-   * 
+   *
    * @param address - The account address to compare against the type tag.
    * @param moduleName - The name of the module to compare against the type tag.
    * @param structName - The name of the struct to compare against the type tag.
@@ -545,7 +542,7 @@ export class TypeTagStruct extends TypeTag {
   /**
    * Checks if the provided value is of type string.
    * This function can help ensure that the data being processed is in the correct format before further operations.
-   * 
+   *
    * @returns {boolean} Returns true if the value is a string, otherwise false.
    */
   isString(): boolean {
@@ -554,7 +551,7 @@ export class TypeTagStruct extends TypeTag {
 
   /**
    * Checks if the specified account address is of type "option".
-   * 
+   *
    * @returns {boolean} Returns true if the account address is an option type, otherwise false.
    */
   isOption(): boolean {
@@ -564,7 +561,7 @@ export class TypeTagStruct extends TypeTag {
   /**
    * Checks if the provided value is of type 'object'.
    * This function helps determine if a value can be treated as an object type in the context of the SDK.
-   * 
+   *
    * @returns {boolean} Returns true if the value is an object, otherwise false.
    */
   isObject(): boolean {
@@ -573,10 +570,10 @@ export class TypeTagStruct extends TypeTag {
 }
 
 /**
- * Represents a structured tag that includes an address, module name, 
- * name, and type arguments. This class is used to define and manage 
+ * Represents a structured tag that includes an address, module name,
+ * name, and type arguments. This class is used to define and manage
  * structured data types within the SDK.
- * 
+ *
  * @property {AccountAddress} address - The address associated with the struct tag.
  * @property {Identifier} moduleName - The name of the module that contains the struct.
  * @property {Identifier} name - The name of the struct.
@@ -617,7 +614,7 @@ export class StructTag extends Serializable {
 
 /**
  * Retrieves the StructTag for the AptosCoin, which represents the Aptos Coin in the Aptos blockchain.
- * 
+ *
  * @returns {StructTag} The StructTag for the AptosCoin.
  */
 export function aptosCoinStructTag(): StructTag {
@@ -626,7 +623,7 @@ export function aptosCoinStructTag(): StructTag {
 
 /**
  * Returns a new StructTag representing a string type.
- * 
+ *
  * @returns {StructTag} A StructTag for the string type.
  */
 export function stringStructTag(): StructTag {
@@ -636,7 +633,7 @@ export function stringStructTag(): StructTag {
 /**
  * Creates a new StructTag for the Option type with the specified type argument.
  * This can help in defining a specific instance of an Option type in your application.
- * 
+ *
  * @param typeArg - The type tag that specifies the type of the value contained in the Option.
  */
 export function optionStructTag(typeArg: TypeTag): StructTag {
@@ -646,7 +643,7 @@ export function optionStructTag(typeArg: TypeTag): StructTag {
 /**
  * Creates a new StructTag for the Object type with the specified type argument.
  * This function helps in defining a structured representation of an Object with a specific type.
- * 
+ *
  * @param typeArg - The type tag that specifies the type of the Object.
  */
 export function objectStructTag(typeArg: TypeTag): StructTag {

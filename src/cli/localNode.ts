@@ -26,17 +26,17 @@ export class LocalNode {
 
   /**
    * Kills the current process and all its descendant processes.
-   * 
-   * @returns {Promise<boolean>} A promise that resolves to true if the process was successfully killed.
+   *
+   * @returns {Promise<void>} A promise that resolves to true if the process was successfully killed.
    * @throws {Error} If there is an error while attempting to kill the process.
    */
-  async stop() {
+  async stop(): Promise<void> {
     await new Promise((resolve, reject) => {
       if (!this.process?.pid) return;
 
       /**
        * Terminates the process associated with the given process ID.
-       * 
+       *
        * @param pid - The process ID of the process to be terminated.
        * @param callback - A function that is called after the termination attempt is complete.
        * @param callback.err - An error object if the termination failed; otherwise, null.
@@ -58,7 +58,7 @@ export class LocalNode {
    *
    * @returns {Promise<void>} A promise that resolves when the process is up.
    */
-  async run() {
+  async run(): Promise<void> {
     const nodeIsUp = await this.checkIfProcessIsUp();
     if (nodeIsUp) {
       return;
@@ -69,12 +69,12 @@ export class LocalNode {
 
   /**
    * Starts the local testnet by running the Aptos node with the specified command-line arguments.
-   * 
-   * @returns {void} 
-   * 
+   *
+   * @returns {void}
+   *
    * @throws {Error} If there is an issue starting the local testnet.
    */
-  start() {
+  start(): void {
     const cliCommand = "npx";
     const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 

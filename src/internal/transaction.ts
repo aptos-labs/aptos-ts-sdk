@@ -28,12 +28,12 @@ import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
 
 /**
  * Retrieve a list of transactions based on the specified options.
- * 
- * @param {Object} params - The parameters for retrieving transactions.
- * @param {Object} params.aptosConfig - The configuration object for Aptos.
- * @param {Object} params.options - The options for pagination.
- * @param {number} params.options.offset - The number of transactions to skip before starting to collect the result set.
- * @param {number} params.options.limit - The maximum number of transactions to return.
+ *
+ * @param {Object} args - The parameters for retrieving transactions.
+ * @param {Object} args.aptosConfig - The configuration object for Aptos.
+ * @param {Object} args.options - The options for pagination.
+ * @param {number} args.options.offset - The number of transactions to skip before starting to collect the result set.
+ * @param {number} args.options.limit - The maximum number of transactions to return.
  */
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -51,7 +51,7 @@ export async function getTransactions(args: {
 /**
  * Retrieves the estimated gas price for transactions on the Aptos network.
  * This function helps users understand the current gas price, which is essential for transaction planning and cost estimation.
- * 
+ *
  * @param args - The configuration parameters for the Aptos network.
  * @param args.aptosConfig - The configuration object containing network details.
  */
@@ -74,7 +74,7 @@ export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) 
 
 /**
  * Retrieves the transaction details associated with a specific ledger version.
- * 
+ *
  * @param args - The arguments for the transaction retrieval.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.ledgerVersion - The ledger version for which to retrieve the transaction.
@@ -95,7 +95,7 @@ export async function getTransactionByVersion(args: {
 
 /**
  * Retrieves transaction details using the specified transaction hash.
- * 
+ *
  * @param args - The arguments for retrieving the transaction.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.transactionHash - The hash of the transaction to retrieve.
@@ -117,7 +117,7 @@ export async function getTransactionByHash(args: {
 /**
  * Checks if a transaction is currently pending based on its hash.
  * This function helps determine the status of a transaction in the Aptos network.
- * 
+ *
  * @param args - The arguments for checking the transaction status.
  * @param args.aptosConfig - The configuration settings for connecting to the Aptos network.
  * @param args.transactionHash - The hash of the transaction to check.
@@ -143,7 +143,7 @@ export async function isTransactionPending(args: {
 /**
  * Waits for a transaction to be confirmed by its hash.
  * This function allows you to monitor the status of a transaction until it is finalized.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.transactionHash - The hash of the transaction to wait for.
@@ -164,7 +164,7 @@ export async function longWaitForTransaction(args: {
 /**
  * Waits for a transaction to be confirmed on the blockchain and handles potential errors during the process.
  * This function allows you to monitor the status of a transaction until it is either confirmed or fails.
- * 
+ *
  * @param args - The arguments for waiting for a transaction.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.transactionHash - The hash of the transaction to wait for.
@@ -193,7 +193,7 @@ export async function waitForTransaction(args: {
 
   /**
    * Handles API errors by throwing the last error or a timeout error for a failed transaction.
-   * 
+   *
    * @param e - The error object that occurred during the API call.
    * @throws {Error} Throws the last error if it exists; otherwise, throws a WaitForTransactionError indicating a timeout.
    */
@@ -286,7 +286,7 @@ export async function waitForTransaction(args: {
 
 /**
  * Waits for the indexer to sync up to the specified ledger version. The timeout is 3 seconds.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.minimumLedgerVersion - The minimum ledger version that the indexer should sync to.
@@ -343,9 +343,9 @@ export class WaitForTransactionError extends Error {
 
   /**
    * Constructs an instance of the class with a specified message and transaction response.
-   * 
+   *
    * @param message - The message associated with the transaction.
-   * @param transaction - The transaction response object containing details about the transaction.
+   * @param lastSubmittedTransaction - The transaction response object containing details about the transaction.
    */
   constructor(message: string, lastSubmittedTransaction: TransactionResponse | undefined) {
     super(message);
@@ -356,7 +356,7 @@ export class WaitForTransactionError extends Error {
 /**
  * Represents an error that occurs when a transaction fails.
  * This error is thrown by the `waitForTransaction` function when the `checkSuccess` parameter is set to true.
- * 
+ *
  * @param message - A description of the error.
  * @param transaction - The transaction response associated with the failure.
  */
@@ -372,7 +372,7 @@ export class FailedTransactionError extends Error {
 /**
  * Retrieves a block from the Aptos blockchain by its ledger version.
  * This function allows you to obtain detailed information about a specific block, including its transactions if requested.
- * 
+ *
  * @param args - The arguments for retrieving the block.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos node.
  * @param args.ledgerVersion - The ledger version of the block to retrieve.
@@ -397,7 +397,7 @@ export async function getBlockByVersion(args: {
 
 /**
  * Retrieves a block from the Aptos blockchain by its height.
- * 
+ *
  * @param args - The parameters for retrieving the block.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
  * @param args.blockHeight - The height of the block to retrieve.
@@ -421,7 +421,8 @@ export async function getBlockByHeight(args: {
 }
 
 /**
- * Fills in the block with transactions if not enough were returned. This function ensures that the block contains all relevant transactions by fetching any missing ones based on the specified options.
+ * Fills in the block with transactions if not enough were returned. This function ensures that the block contains all relevant
+ * transactions by fetching any missing ones based on the specified options.
  * @param args - The arguments for filling the block transactions.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.block - The block object that will be filled with transactions.

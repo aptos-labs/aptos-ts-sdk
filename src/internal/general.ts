@@ -17,7 +17,7 @@ import { ProcessorType } from "../utils/const";
 
 /**
  * Retrieves information about the current ledger.
- * 
+ *
  * @param args - The arguments for retrieving ledger information.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
  */
@@ -33,7 +33,7 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
 
 /**
  * Retrieves the top user transactions for a specific blockchain chain.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.limit - The maximum number of transactions to retrieve.
@@ -60,7 +60,7 @@ export async function getChainTopUserTransactions(args: {
 
 /**
  * Executes a GraphQL query against the Aptos indexer and retrieves the resulting data.
- * 
+ *
  * @param args - The arguments for the query.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.query - The GraphQL query to be executed.
@@ -85,7 +85,7 @@ export async function queryIndexer<T extends {}>(args: {
 
 /**
  * Retrieves the current statuses of processors.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @returns The statuses of the processors.
@@ -108,7 +108,7 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
 
 /**
  * Retrieves the last success version from the indexer.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @returns The last success version as a BigInt.
@@ -121,7 +121,7 @@ export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosCon
 /**
  * Retrieves the status of a specified processor in the Aptos network.
  * This function allows you to check the current operational status of a processor, which can be useful for monitoring and troubleshooting.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
  * @param args.processorType - The type of processor whose status you want to retrieve.

@@ -89,7 +89,8 @@ import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.abi - The ABI to use for the transaction, if not using the RemoteABI.
  *
- * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript, TransactionPayloadMultiSig, or TransactionPayloadEntryFunction.
+ * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript,
+ * TransactionPayloadMultiSig, or TransactionPayloadEntryFunction.
  */
 export async function generateTransactionPayload(args: InputScriptData): Promise<TransactionPayloadScript>;
 export async function generateTransactionPayload(
@@ -134,14 +135,14 @@ export async function generateTransactionPayload(
 /**
  * Generates a transaction payload using the provided ABI and function details.
  * This function helps create a properly structured transaction payload for executing a specific function on a module.
- * 
+ *
  * @param args - The input data required to generate the transaction payload.
  * @param args.abi - The ABI of the function to be executed.
  * @param args.function - The fully qualified name of the function in the format `moduleAddress::moduleName::functionName`.
  * @param args.typeArguments - An array of type arguments that correspond to the function's type parameters.
  * @param args.functionArguments - An array of arguments to be passed to the function.
  * @param args.multisigAddress - (Optional) The address for a multisig transaction if applicable.
- * 
+ *
  * @throws Error if the type argument count does not match the ABI or if the number of function arguments is incorrect.
  */
 export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
@@ -164,11 +165,10 @@ export function generateTransactionPayloadWithABI(
 
   // Check all BCS types, and convert any non-BCS types
   const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
-
     /**
      * Converts the argument for a specified function using its ABI and type arguments.
      * This function helps ensure that the correct number of arguments is provided for the function call.
-     * 
+     *
      * @param args - The arguments for the function call.
      * @param args.function - The specific function to be invoked.
      * @param functionAbi - The ABI (Application Binary Interface) of the function, which includes parameter details.
@@ -176,6 +176,7 @@ export function generateTransactionPayloadWithABI(
      * @param i - The index of the argument in the function call.
      * @param typeArguments - Additional type arguments that may be required for the conversion.
      */
+    // TODO: Fix JSDoc
     convertArgument(args.function, functionAbi, arg, i, typeArguments),
   );
 
@@ -210,12 +211,12 @@ export function generateTransactionPayloadWithABI(
 /**
  * Generates the payload for a view function call using the provided arguments.
  * This function helps in preparing the necessary data to interact with a specific view function on the blockchain.
- * 
+ *
  * @param args - The input data required to generate the view function payload.
  * @param args.function - The function identifier in the format "moduleAddress::moduleName::functionName".
  * @param args.aptosConfig - Configuration settings for the Aptos client.
  * @param args.abi - The ABI (Application Binary Interface) of the module.
- * 
+ *
  * @returns The generated payload for the view function call.
  */
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
@@ -237,16 +238,16 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
 
 /**
  * Generates a payload for a view function call using the provided ABI and arguments.
- * This function ensures that the type arguments and function arguments are correctly formatted 
+ * This function ensures that the type arguments and function arguments are correctly formatted
  * and match the expected counts as defined in the ABI.
- * 
+ *
  * @param args - The input data for generating the view function payload.
  * @param args.abi - The ABI of the function to be called.
  * @param args.function - The full name of the function in the format "moduleAddress::moduleName::functionName".
  * @param args.typeArguments - An array of type arguments to be used in the function call.
  * @param args.functionArguments - An array of arguments to be passed to the function.
- * 
- * @throws Error if the type argument count does not match the ABI or if the function arguments 
+ *
+ * @throws Error if the type argument count does not match the ABI or if the function arguments
  * do not match the expected parameters defined in the ABI.
  */
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
@@ -282,7 +283,7 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
 /**
  * Generates a transaction payload script based on the provided input data.
  * This function helps in creating a structured script for transaction processing.
- * 
+ *
  * @param args - The input data required to generate the transaction payload script.
  * @param args.bytecode - The bytecode to be converted into a Uint8Array.
  * @param args.typeArguments - The type arguments that will be standardized.
@@ -301,14 +302,14 @@ function generateTransactionPayloadScript(args: InputScriptData) {
 
 /**
  * Generates a raw transaction that can be sent to the Aptos network.
- * 
+ *
  * @param args - The arguments for generating the raw transaction.
  * @param args.aptosConfig - The configuration for the Aptos network.
  * @param args.sender - The transaction's sender account address as a hex input.
  * @param args.payload - The transaction payload, which can be created using generateTransactionPayload().
  * @param args.options - Optional parameters for transaction generation.
  * @param args.feePayerAddress - The address of the fee payer for sponsored transactions.
- * 
+ *
  * @returns RawTransaction - The generated raw transaction.
  */
 export async function generateRawTransaction(args: {
@@ -418,7 +419,7 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * ```
  * {
  *  rawTransaction: RawTransaction,
- *  secondarySignerAddresses? : Array<AccountAddress>,
+ *  secondarySignerAddresses?: Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
  * ```
@@ -581,9 +582,9 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  * @param args.senderAuthenticator - The account authenticator of the transaction sender.
  * @param args.feePayerAuthenticator - The authenticator for the fee payer, required if the transaction has a fee payer address.
  * @param args.additionalSignersAuthenticators - Optional authenticators for additional signers in a multi-signer transaction.
- * 
+ *
  * @returns A Uint8Array representing the signed transaction in bytes.
- * 
+ *
  * @throws Error if the feePayerAuthenticator is not provided for a fee payer transaction.
  * @throws Error if additionalSignersAuthenticators are not provided for a multi-signer transaction.
  */
@@ -641,14 +642,14 @@ export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
 }
 
 /**
- * The domain separated prefix for hashing transacitons
+ * The domain separated prefix for hashing transactions
  */
 const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
 
 /**
- * Generates a user transaction hash for the provided transaction payload, which must already have an authenticator. 
+ * Generates a user transaction hash for the provided transaction payload, which must already have an authenticator.
  * This function helps ensure the integrity and uniqueness of the transaction by producing a hash based on the signed transaction data.
- * 
+ *
  * @param args - The input data required to submit the transaction.
  * @param args.authenticator - The authenticator for the transaction.
  * @param args.payload - The payload containing the transaction details.
@@ -666,7 +667,7 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
 
 /**
  * Fetches and caches ABIs while allowing for pass-through on provided ABIs.
- * 
+ *
  * @param key - A unique identifier for the cached ABI.
  * @param moduleAddress - The address of the module from which to fetch the ABI.
  * @param moduleName - The name of the module containing the function.

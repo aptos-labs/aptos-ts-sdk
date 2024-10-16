@@ -77,7 +77,7 @@ function isPrimitive(str: string) {
 
 /**
  * Consumes all whitespace characters in a string starting from a specified position.
- * 
+ *
  * @param tagStr - The string from which to consume whitespace.
  * @param pos - The position in the string to start consuming whitespace from.
  * @returns The new position in the string after consuming whitespace.
@@ -128,16 +128,15 @@ export enum TypeTagParserErrorType {
  * Represents an error that occurs during the parsing of a type tag.
  * This error extends the built-in Error class and provides additional context
  * regarding the specific type tag that failed to parse and the reason for the failure.
- * 
+ *
  * @param typeTagStr - The type tag string that failed to be parsed.
  * @param invalidReason - The reason why the type tag string is considered invalid.
  */
 export class TypeTagParserError extends Error {
-
   /**
    * Constructs an error indicating a failure to parse a type tag.
    * This error provides details about the specific type tag that could not be parsed and the reason for the failure.
-   * 
+   *
    * @param typeTagStr - The string representation of the type tag that failed to parse.
    * @param invalidReason - The reason why the type tag is considered invalid.
    */
@@ -147,9 +146,11 @@ export class TypeTagParserError extends Error {
 }
 
 /**
- * Parses a type string into a structured representation of type tags, accommodating various formats including generics and nested types.
- * 
- * This function can help you accurately interpret type strings, which can include simple types, standalone structs, and complex nested generics. 
+ * Parses a type string into a structured representation of type tags, accommodating various formats including generics and
+ * nested types.
+ *
+ * This function can help you accurately interpret type strings, which can include simple types, standalone structs, and complex
+ * nested generics.
  * It supports multiple generics, spacing within generics, and nested generics of varying depths.
  * All types are made of a few parts they're either:
  * 1. A simple type e.g. u8
@@ -157,10 +158,10 @@ export class TypeTagParserError extends Error {
  * 3. A nested struct e.g. 0x1::coin::Coin<0x1234::coin::MyCoin>
  *
  * There are a few more special cases that need to be handled, however.
- * 1. Multiple generics e.g 0x1::pair::Pair<u8, u16>
+ * 1. Multiple generics e.g. 0x1::pair::Pair<u8, u16>
  * 2. Spacing in the generics e.g. 0x1::pair::Pair< u8 , u16>
  * 3. Nested generics of different depths e.g. 0x1::pair::Pair<0x1::coin::Coin<0x1234::coin::MyCoin>, u8>
- * 4. Generics for types in ABIs are filled in with placeholders e.g T1, T2, T3
+ * 4. Generics for types in ABIs are filled in with placeholders e.g. T1, T2, T3
  * @param typeStr - The string representation of the type to be parsed.
  * @param options - Optional settings for parsing behavior.
  * @param options.allowGenerics - A flag indicating whether to allow generics in the parsing process.
@@ -294,8 +295,9 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
 }
 
 /**
- * Parses a type tag with internal types associated, allowing for the inclusion of generics if specified. This function helps in constructing the appropriate type tags based on the provided string representation and associated types.
- * 
+ * Parses a type tag with internal types associated, allowing for the inclusion of generics if specified. This function helps in
+ * constructing the appropriate type tags based on the provided string representation and associated types.
+ *
  * @param str - The string representation of the type tag to parse.
  * @param types - An array of TypeTag instances that represent internal types associated with the type tag.
  * @param allowGenerics - A boolean indicating whether generics are allowed in the parsing of the type tag.

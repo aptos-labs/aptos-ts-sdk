@@ -7,7 +7,7 @@ import { MoveStructId } from "../types";
 /**
  * Sleep for the specified amount of time in milliseconds.
  * This function can be used to introduce delays in asynchronous operations.
- * 
+ *
  * @param timeMs - The time in milliseconds to sleep.
  */
 export async function sleep(timeMs: number): Promise<null> {
@@ -21,7 +21,7 @@ export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 /**
  * Floors the given timestamp to the nearest whole hour.
  * This function is useful for normalizing timestamps to hourly intervals.
- * 
+ *
  * @param timestampInSeconds - The timestamp in seconds to be floored.
  */
 export function floorToWholeHour(timestampInSeconds: number): number {
@@ -36,7 +36,7 @@ export function floorToWholeHour(timestampInSeconds: number): number {
 /**
  * Decodes a base64 URL-encoded string into its original form.
  * This function is useful for converting base64 URL-encoded data back to a readable format.
- * 
+ *
  * @param base64Url - The base64 URL-encoded string to decode.
  * @returns The decoded string.
  */
@@ -51,27 +51,27 @@ export function base64UrlDecode(base64Url: string): string {
 
 /**
  * Amount is represented in the smallest unit format on chain, this function converts
- * a human readable amount format to the smallest unit format
+ * a human-readable amount format to the smallest unit format
  * @example
- * human readable amount format: 500
+ * human-readable amount format: 500
  * on chain amount format when decimal is 8: 50000000000
  *
- * @param value The value in human readable format
+ * @param value The value in human-readable format
  * @param decimal The token decimal
- * @returns The value is smallest units
+ * @returns The value in the smallest units
  */
 export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) => value * 10 ** decimal;
 
 /**
  * Amount is represented in the smallest unit format on chain, this function converts
- * the smallest unit format to a human readable amount format
+ * the smallest unit format to a human-readable amount format
  * @example
- * human readable amount format: 500
+ * human-readable amount format: 500
  * on chain amount format when decimal is 8: 50000000000
  *
- * @param value The value in human readable format
+ * @param value The value in human-readable format
  * @param decimal The token decimal
- * @returns The value is smallest units
+ * @returns The value in the smallest units
  */
 export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: number) => value / 10 ** decimal;
 

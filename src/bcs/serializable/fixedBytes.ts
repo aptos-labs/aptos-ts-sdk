@@ -43,7 +43,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
   /**
    * Creates an instance of the class with a specified hexadecimal input.
    * The value is converted from hexadecimal format to a Uint8Array.
-   * 
+   *
    * @param value - The hexadecimal input to be converted.
    */
   constructor(value: HexInput) {
@@ -54,7 +54,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
   /**
    * Serializes the fixed bytes value using the provided serializer.
    * This function is essential for converting the fixed bytes into a format suitable for storage or transmission.
-   * 
+   *
    * @param serializer - The serializer instance used for serialization.
    */
   serialize(serializer: Serializer): void {
@@ -64,7 +64,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
   /**
    * Serializes the current instance for an entry function using the provided serializer.
    * This allows the instance to be converted into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer used to perform the serialization.
    */
   serializeForEntryFunction(serializer: Serializer): void {
@@ -74,7 +74,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
   /**
    * Serializes the current instance using the provided serializer.
    * This function is essential for preparing data to be passed as arguments in script functions.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serializeForScriptFunction(serializer: Serializer): void {
@@ -84,7 +84,7 @@ export class FixedBytes extends Serializable implements TransactionArgument {
   /**
    * Deserializes a fixed-length byte array from the provided deserializer.
    * This function helps in reconstructing a FixedBytes object from the serialized data.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the byte data.
    * @param length - The length of the byte array to be deserialized.
    */

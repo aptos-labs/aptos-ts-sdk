@@ -18,7 +18,7 @@ import { waitForTransaction } from "./transaction";
 /**
  * Funds an account with a specified amount of tokens from the Aptos faucet.
  * This function is useful for quickly providing a new or existing account with tokens to facilitate transactions.
- * 
+ *
  * @param args - The arguments for funding the account.
  * @param args.aptosConfig - The configuration settings for connecting to the Aptos network.
  * @param args.accountAddress - The address of the account to be funded.
@@ -26,7 +26,7 @@ import { waitForTransaction } from "./transaction";
  * @param args.options - Optional parameters for the transaction.
  * @param args.options.timeoutSecs - The maximum time to wait for the transaction to complete, in seconds.
  * @param args.options.checkSuccess - A flag indicating whether to check if the transaction was successful.
- * 
+ *
  * @throws Error if the transaction does not return a user transaction type.
  */
 export async function fundAccount(args: {

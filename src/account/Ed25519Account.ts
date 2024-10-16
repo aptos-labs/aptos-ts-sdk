@@ -6,9 +6,9 @@ import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 
-/** 
+/**
  * Arguments required to create an instance of an Ed25519 signer.
- * 
+ *
  * @param privateKey - The private key used for signing.
  * @param address - Optional account address associated with the signer.
  */
@@ -17,11 +17,11 @@ export interface Ed25519SignerConstructorArgs {
   address?: AccountAddressInput;
 }
 
-/** 
- * Arguments for creating an Ed25519 signer from a derivation path. 
- * 
- * @param path - The derivation path for the Ed25519 key. 
- * @param mnemonic - The mnemonic phrase used to generate the key. 
+/**
+ * Arguments for creating an Ed25519 signer from a derivation path.
+ *
+ * @param path - The derivation path for the Ed25519 key.
+ * @param mnemonic - The mnemonic phrase used to generate the key.
  */
 export interface Ed25519SignerFromDerivationPathArgs {
   path: string;
@@ -30,7 +30,7 @@ export interface Ed25519SignerFromDerivationPathArgs {
 
 /**
  * Arguments required to verify an Ed25519 signature against a given message.
- * 
+ *
  * @param message - The message to be verified, represented in hexadecimal format.
  * @param signature - The Ed25519 signature to validate.
  */
@@ -42,7 +42,7 @@ export interface VerifyEd25519SignatureArgs {
 /**
  * Represents an Ed25519 account that provides signing capabilities through an Ed25519 private key.
  * This class allows for the creation of accounts, signing messages and transactions, and verifying signatures.
- * 
+ *
  * Note: Generating an instance of this class does not create the account on-chain.
  */
 export class Ed25519Account implements Account {
@@ -62,7 +62,7 @@ export class Ed25519Account implements Account {
   /**
    * Creates an instance of the Ed25519Signer with the specified parameters.
    * This constructor initializes the private key, public key, and account address for the signer.
-   * 
+   *
    * @param args - The constructor arguments for the Ed25519Signer.
    * @param args.privateKey - The private key used for signing.
    * @param args.address - The optional account address; if not provided, it will derive the address from the public key.
@@ -77,17 +77,17 @@ export class Ed25519Account implements Account {
   /**
    * Generates a new Ed25519 account using a randomly generated private key.
    * This function is useful for creating a signer that can be used for cryptographic operations.
-   * 
+   *
    * @returns {Ed25519Account} The newly generated Ed25519 account.
    */
-  static generate() {
+  static generate(): Ed25519Account {
     const privateKey = Ed25519PrivateKey.generate();
     return new Ed25519Account({ privateKey });
   }
 
   /**
    * Derives an Ed25519 account using a specified BIP44 path and mnemonic seed phrase.
-   * 
+   *
    * @param args - The arguments for deriving the account.
    * @param args.path - The BIP44 derive hardened path, e.g., m/44'/637'/0'/0'/0'.
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
@@ -103,7 +103,7 @@ export class Ed25519Account implements Account {
   // region Account
   /**
    * Verify the given message and signature with the public key.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - Raw message data in HexInput format.
    * @param args.signature - Signed message signature.
@@ -116,7 +116,7 @@ export class Ed25519Account implements Account {
   /**
    * Sign a message using the account's Ed25519 private key.
    * This function returns an AccountAuthenticator containing the signature along with the account's public key.
-   * 
+   *
    * @param message - The signing message, represented as hexadecimal input.
    * @returns An AccountAuthenticator containing the signature and the account's public key.
    */
@@ -127,7 +127,7 @@ export class Ed25519Account implements Account {
   /**
    * Sign a transaction using the account's Ed25519 private key.
    * This function returns an AccountAuthenticator that contains the signature of the transaction along with the account's public key.
-   * 
+   *
    * @param transaction - The raw transaction to be signed.
    * @returns An AccountAuthenticator containing the signature and the public key.
    */
@@ -147,7 +147,7 @@ export class Ed25519Account implements Account {
   /**
    * Sign the given transaction using the available signing capabilities.
    * This function helps ensure that the transaction is properly authenticated before submission.
-   * 
+   *
    * @param transaction - The transaction to be signed.
    * @returns Signature - The resulting signature for the transaction.
    */

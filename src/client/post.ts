@@ -95,7 +95,7 @@ export async function post<Req extends {}, Res extends {}>(
 /**
  * Sends a request to the Aptos full node using the specified options.
  * This function allows you to interact with the Aptos blockchain by sending requests to the full node.
- * 
+ *
  * @param options - The options for the request.
  * @param options.aptosConfig - Configuration settings for the Aptos client.
  * @param options.aptosConfig.clientConfig - Client-specific configuration settings.
@@ -122,7 +122,7 @@ export async function postAptosFullNode<Req extends {}, Res extends {}>(
 /**
  * Sends a request to the Aptos indexer with the specified options.
  * This function allows you to interact with the Aptos indexer and customize the request using various configurations.
- * 
+ *
  * @param options - The options for the request to the Aptos indexer.
  * @param options.aptosConfig - Configuration settings specific to the Aptos client and indexer.
  * @param options.aptosConfig.clientConfig - The client configuration settings.
@@ -150,7 +150,7 @@ export async function postAptosIndexer<Req extends {}, Res extends {}>(
 /**
  * Sends a request to the Aptos faucet to obtain test tokens.
  * This function modifies the provided configuration to ensure that the API_KEY is not included in the request.
- * 
+ *
  * @param options - The options for the request.
  * @param options.aptosConfig - The configuration settings for the Aptos client.
  * @param options.aptosConfig.clientConfig - The client-specific configuration settings.
@@ -185,7 +185,7 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
 
 /**
  * Makes a post request to the pepper service.
- * 
+ *
  * @param options - The options for the request.
  * @param options.url - The URL to which the request is sent.
  * @param options.headers - The headers to include in the request.
@@ -200,7 +200,7 @@ export async function postAptosPepperService<Req extends {}, Res extends {}>(
 
 /**
  * Sends a request to the Aptos proving service with the specified options.
- * 
+ *
  * @param options - The options for the request to the Aptos proving service.
  * @param options.type - The type of the request, which should be set to AptosApiType.PROVER.
  * @param options.data - The data to be included in the request.

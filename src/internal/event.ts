@@ -26,7 +26,7 @@ const checkEventTypeLength = (eventType?: InputMaybe<string>) => {
 /**
  * Retrieves events associated with a specific module event type.
  * This function allows you to filter events based on the event type and pagination options.
- * 
+ *
  * @param args - The arguments for retrieving module events.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.eventType - The MoveStructId representing the type of event to retrieve.
@@ -58,7 +58,7 @@ export async function getModuleEventsByEventType(args: {
 
 /**
  * Retrieve events associated with a specific account and creation number.
- * 
+ *
  * @param args - The parameters for retrieving account events.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.accountAddress - The address of the account for which events are being retrieved.
@@ -84,7 +84,7 @@ export async function getAccountEventsByCreationNumber(args: {
 
 /**
  * Retrieves events associated with a specific account and event type.
- * 
+ *
  * @param args - The parameters for retrieving account events.
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.accountAddress - The address of the account for which to retrieve events.
@@ -110,7 +110,7 @@ export async function getAccountEventsByEventType(args: {
 
 /**
  * Retrieves a list of events based on specified filtering and pagination options.
- * 
+ *
  * @param args - The arguments for retrieving events.
  * @param args.aptosConfig - The configuration for connecting to the Aptos network.
  * @param [args.options] - Optional parameters for pagination and filtering.
@@ -128,7 +128,7 @@ export async function getEvents(args: {
 
   /**
    * Checks the length of event types based on the provided filtering options.
-   * 
+   *
    * @param options - The options for querying event types.
    * @param options.where - The conditions to filter the event types.
    * @param options.where.indexed_type - The indexed type to filter by.

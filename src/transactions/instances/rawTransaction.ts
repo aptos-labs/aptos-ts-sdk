@@ -45,14 +45,6 @@ export class RawTransaction extends Serializable {
    * @param expiration_timestamp_secs The blockchain timestamp at which the blockchain would discard this transaction.
    * @param chain_id The chain ID of the blockchain that this transaction is intended to be run on.
    */
-
-  /**
-   * Creates a new transaction with the specified parameters.
-   * 
-   * @param raw_txn The raw transaction data to be processed.
-   * @param secondary_signer_addresses An array of account addresses for secondary signers.
-   * @param fee_payer_address The account address that will pay the transaction fee.
-   */
   constructor(
     sender: AccountAddress,
     sequence_number: bigint,
@@ -73,9 +65,10 @@ export class RawTransaction extends Serializable {
   }
 
   /**
-   * Serializes the transaction data, including the fee payer transaction type, raw transaction, secondary signer addresses, and fee payer address.
+   * Serializes the transaction data, including the fee payer transaction type, raw transaction, secondary signer addresses,
+   * and fee payer address.
    * This function is essential for preparing the transaction for transmission or storage in a serialized format.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the transaction data.
    */
   serialize(serializer: Serializer): void {
@@ -91,7 +84,7 @@ export class RawTransaction extends Serializable {
   /**
    * Deserialize a Raw Transaction With Data.
    * This function retrieves the appropriate raw transaction based on the variant index provided by the deserializer.
-   * 
+   *
    * @param deserializer - An instance of the Deserializer used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): RawTransaction {
@@ -116,7 +109,7 @@ export class RawTransaction extends Serializable {
 
 /**
  * Represents a raw transaction with associated data that can be serialized and deserialized.
- * 
+ *
  * @extends Serializable
  */
 export abstract class RawTransactionWithData extends Serializable {
@@ -144,7 +137,7 @@ export abstract class RawTransactionWithData extends Serializable {
 
 /**
  * Represents a multi-agent transaction that can be serialized and deserialized.
- * 
+ *
  * @extends RawTransactionWithData
  */
 export class MultiAgentRawTransaction extends RawTransactionWithData {
@@ -172,8 +165,9 @@ export class MultiAgentRawTransaction extends RawTransactionWithData {
 
   /**
    * Deserializes a Fee Payer Raw Transaction from the provided deserializer.
-   * This function allows you to reconstruct a Fee Payer Raw Transaction object, which includes the raw transaction data, secondary signer addresses, and the fee payer address.
-   * 
+   * This function allows you to reconstruct a Fee Payer Raw Transaction object, which includes the raw transaction data,
+   * secondary signer addresses, and the fee payer address.
+   *
    * @param deserializer - The deserializer used to read the raw transaction data.
    * @returns A FeePayerRawTransaction object constructed from the deserialized data.
    */

@@ -18,7 +18,7 @@ export class ModuleId extends Serializable {
 
   /**
    * Initializes a new instance of the module with the specified account address and name.
-   * 
+   *
    * @param address - The account address, e.g., "0x1".
    * @param name - The module name under the specified address, e.g., "coin".
    */
@@ -45,7 +45,7 @@ export class ModuleId extends Serializable {
   /**
    * Serializes the address and name properties using the provided serializer.
    * This function is essential for converting the object's data into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -56,7 +56,7 @@ export class ModuleId extends Serializable {
   /**
    * Deserializes a ModuleId from the provided deserializer.
    * This function retrieves the account address and identifier to construct a ModuleId instance.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the data.
    */
   static deserialize(deserializer: Deserializer): ModuleId {

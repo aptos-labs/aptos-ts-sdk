@@ -88,14 +88,14 @@ export async function get<Req extends {}, Res extends {}>(
 
 /**
  * Retrieves data from the Aptos full node using the provided options.
- * 
+ *
  * @param options - The options for the request to the Aptos full node.
  * @param options.aptosConfig - Configuration settings specific to the Aptos client and full node.
  * @param options.aptosConfig.clientConfig - The client configuration settings.
  * @param options.aptosConfig.fullnodeConfig - The full node configuration settings.
  * @param options.overrides - Additional overrides for the request.
  * @param options.type - The type of API request being made.
- * 
+ *
  * @returns A promise that resolves with the response from the Aptos full node.
  */
 export async function getAptosFullNode<Req extends {}, Res extends {}>(

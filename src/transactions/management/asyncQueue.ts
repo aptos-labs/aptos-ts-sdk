@@ -2,7 +2,7 @@
  * The AsyncQueue class is an async-aware data structure that provides a queue-like
  * behavior for managing asynchronous tasks or operations.
  * It allows to enqueue items and dequeue them asynchronously.
- * This is not thread-safe but it is async concurrency safe and
+ * This is not thread-safe, but it is async concurrency safe, and
  * it does not guarantee ordering for those that call into and await on enqueue.
  */
 
@@ -20,7 +20,8 @@ export class AsyncQueue<T> {
   private cancelled: boolean = false;
 
   /**
-   * Adds an item to the queue. If there are pending dequeued promises, it resolves the oldest promise with the enqueued item immediately; otherwise, it adds the item to the queue.
+   * Adds an item to the queue. If there are pending dequeued promises, it resolves the oldest promise with the enqueued item
+   * immediately; otherwise, it adds the item to the queue.
    *
    * @param item - The item to be added to the queue.
    */
@@ -56,7 +57,7 @@ export class AsyncQueue<T> {
 
   /**
    * Determine whether the queue is empty.
-   * 
+   *
    * @returns boolean - Returns true if the queue has no elements, otherwise false.
    */
   isEmpty(): boolean {
@@ -64,7 +65,7 @@ export class AsyncQueue<T> {
   }
 
   /**
-   * Cancels all pending promises in the queue and rejects them with an AsyncQueueCancelledError. 
+   * Cancels all pending promises in the queue and rejects them with an AsyncQueueCancelledError.
    * This ensures that any awaiting code can handle the cancellation appropriately.
    *
    * @returns {void}
@@ -100,10 +101,10 @@ export class AsyncQueue<T> {
   }
 }
 
-/**  
- * Represents an error that occurs when an asynchronous queue operation is cancelled.  
- * This error extends the built-in Error class to provide additional context for cancellation events.  
- *  
- * @extends Error  
+/**
+ * Represents an error that occurs when an asynchronous queue operation is cancelled.
+ * This error extends the built-in Error class to provide additional context for cancellation events.
+ *
+ * @extends Error
  */
 export class AsyncQueueCancelledError extends Error {}

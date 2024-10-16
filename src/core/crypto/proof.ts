@@ -6,10 +6,9 @@ import { Hex } from "../hex";
  * zero-knowledge proof schemes, such as Groth16 and PLONK.
  */
 export abstract class Proof extends Serializable {
-
   /**
    * Get the proof as a hex string with a 0x prefix.
-   * 
+   *
    * @returns The proof represented as a hex string.
    */
   toString(): string {

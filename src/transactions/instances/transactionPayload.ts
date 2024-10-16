@@ -18,7 +18,7 @@ import { TypeTag } from "../typeTag";
 /**
  * Deserialize a Script Transaction Argument.
  * This function retrieves and deserializes various types of script transaction arguments based on the provided deserializer.
- * 
+ *
  * @param deserializer - The deserializer used to read the script transaction argument.
  * @returns The deserialized script transaction argument.
  * @throws Error if the variant index is unknown.
@@ -54,7 +54,7 @@ export function deserializeFromScriptArgument(deserializer: Deserializer): Trans
 
 /**
  * Represents a supported Transaction Payload that can be serialized and deserialized.
- * 
+ *
  * This class serves as a base for different types of transaction payloads, allowing for
  * their serialization into a format suitable for transmission and deserialization back
  * into their original form.
@@ -72,7 +72,7 @@ export abstract class TransactionPayload extends Serializable {
   /**
    * Deserializes a multisig transaction payload from the provided deserializer.
    * This function enables the reconstruction of a MultiSigTransactionPayload object from its serialized form.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): TransactionPayload {
@@ -93,9 +93,9 @@ export abstract class TransactionPayload extends Serializable {
 
 /**
  * Represents a transaction payload script that can be serialized and deserialized.
- * 
+ *
  * This class encapsulates a script that defines the logic for a transaction payload.
- * 
+ *
  * @extends TransactionPayload
  */
 export class TransactionPayloadScript extends TransactionPayload {
@@ -104,7 +104,8 @@ export class TransactionPayloadScript extends TransactionPayload {
   /**
    * Initializes a multi-sig account transaction with the provided payload.
    *
-   * @param transaction_payload - The payload of the multi-sig transaction. This can only be an EntryFunction for now, but Script might be supported in the future.
+   * @param script - The payload of the multi-sig transaction. This can only be an EntryFunction for now, but Script might be
+   * supported in the future.
    */
   constructor(script: Script) {
     super();
@@ -113,7 +114,7 @@ export class TransactionPayloadScript extends TransactionPayload {
 
   /**
    * Serializes the transaction payload, enabling future support for multiple types of inner transaction payloads.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the transaction data.
    */
   serialize(serializer: Serializer): void {
@@ -124,7 +125,7 @@ export class TransactionPayloadScript extends TransactionPayload {
   /**
    * Loads a MultiSig transaction payload from the provided deserializer.
    * This function helps in reconstructing a MultiSig transaction payload from its serialized form.
-   * 
+   *
    * @param deserializer - The deserializer used to read the serialized data.
    */
   static load(deserializer: Deserializer): TransactionPayloadScript {
@@ -135,7 +136,7 @@ export class TransactionPayloadScript extends TransactionPayload {
 
 /**
  * Represents a transaction payload entry function that can be serialized and deserialized.
- * 
+ *
  * @extends TransactionPayload
  */
 export class TransactionPayloadEntryFunction extends TransactionPayload {
@@ -183,7 +184,7 @@ export class TransactionPayloadMultiSig extends TransactionPayload {
  * Represents an entry function that can be serialized and deserialized.
  * This class encapsulates the details required to invoke a function within a module,
  * including the module name, function name, type arguments, and function arguments.
- * 
+ *
  * @param module_name - Fully qualified module name in the format "account_address::module_name" (e.g., "0x1::coin").
  * @param function_name - The name of the function (e.g., "transfer").
  * @param type_args - Type arguments required by the Move function.
@@ -231,23 +232,23 @@ export class EntryFunction {
 
   /**
    * Build an EntryFunction payload from raw primitive values.
-   * 
+   *
    * @param module_id - Fully qualified module name in the format "AccountAddress::module_id", e.g., "0x1::coin".
    * @param function_name - The name of the function to be called.
    * @param type_args - Type arguments that the Move function requires.
    * @param args - Arguments to the Move function.
-   * 
+   *
    * @example
    * A coin transfer function has one type argument "CoinType".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
-   * 
+   *
    * A coin transfer function has three arguments "from", "to", and "amount".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
-   * 
+   *
    * @returns EntryFunction
    */
   static build(
@@ -334,14 +335,14 @@ export class Script {
    * @example
    * A coin transfer function has one type argument "CoinType".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    * @param args The arguments that the bytecode function requires.
    *
    * @example
    * A coin transfer function has three arguments "from", "to" and "amount".
    * ```
-   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64,)
+   * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
    */
   constructor(bytecode: Uint8Array, type_args: Array<TypeTag>, args: Array<ScriptFunctionArgument>) {
@@ -377,8 +378,8 @@ export class Script {
 
 /**
  * Represents a MultiSig account that can be serialized and deserialized.
- * 
- * This class encapsulates the functionality to manage multi-signature transactions, including the address of the 
+ *
+ * This class encapsulates the functionality to manage multi-signature transactions, including the address of the
  * multi-sig account and the associated transaction payload.
  */
 export class MultiSig {

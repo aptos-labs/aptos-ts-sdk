@@ -55,8 +55,8 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Initializes a new instance of the class with an optional value.
    * This constructor sets up the internal vector based on the provided value.
-   * 
-   * @param value - The initial value to be stored in the vector, or null to initialize an empty vector.
+   *
+   * @param values - The initial value to be stored in the vector, or null to initialize an empty vector.
    */
   constructor(values: Array<T>) {
     super();
@@ -66,7 +66,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows the data to be properly formatted for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the byte sequence.
    */
   serializeForEntryFunction(serializer: Serializer): void {
@@ -97,12 +97,14 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Factory method to generate a MoveVector<U8> from a `number` or `undefined`.
-   * 
-   * This method allows you to create a MoveVector that encapsulates a U8 value, enabling you to handle optional U8 values effectively.
-   * 
-   * @param value - The value used to fill the MoveVector. If `value` is undefined or null, the resulting MoveVector's .isSome() method will return false.
+   *
+   * This method allows you to create a MoveVector that encapsulates a U8 value, enabling you to handle optional U8 values
+   * effectively.
+   *
+   * @param values - The values used to fill the MoveVector. If `values` is undefined or null, the resulting MoveVector's
+   * `.isSome()` method will return false.
    * @returns A MoveVector<U8> with an inner value `value`.
-   * 
+   *
    * @example
    * ```typescript
    * const v = MoveVector.U8([1, 2, 3, 4]);
@@ -133,7 +135,8 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * 
    * This method allows you to create a MoveVector that can either hold a U16 value or be empty. 
    * 
-   * @param value - The value used to fill the MoveVector. If `value` is null or undefined, the resulting MoveVector's .isSome() method will return false.
+   * @param values - The value used to fill the MoveVector. If `value` is null or undefined, the resulting MoveVector's
+   * `.isSome()` method will return false.
    * @returns A MoveVector<U16> with an inner value `value`.
    * @example
    * ```typescript
@@ -150,7 +153,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * 
    * This method allows you to create a MoveVector that can either hold a U32 value or be empty. 
    * 
-   * @param value - The value used to fill the MoveVector. If `value` is null or undefined, 
+   * @param values - The value used to fill the MoveVector. If `value` is null or undefined,
    * the resulting MoveVector's .isSome() method will return false.
    * @returns A MoveVector<U32> with an inner value `value`.
    * 
@@ -168,9 +171,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * Factory method to generate a MoveVector<U64> from a number, bigint, or null/undefined.
    * This allows for the creation of an optional U64 value that can be checked for presence.
    *
-   * @param value - The value used to fill the MoveVector. If `value` is undefined or null, the resulting MoveVector's .isSome() method will return false.
+   * @param values - The value used to fill the MoveVector. If `value` is undefined or null, the resulting MoveVector's
+   * `.isSome()` method will return false.
    * @returns A MoveVector<U64> with an inner value `value`.
-   * 
+   *
    * @example
    * ```typescript
    * const v = MoveVector.U64([1, 2, 3, 4]);
@@ -182,10 +186,11 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Factory method to generate a MoveVector<U128> from a number, bigint, or undefined.
-   * 
-   * @param value - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method will return false.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's `.isSome()`
+   * method will return false.
    * @returns A MoveVector<U128> with an inner value `value`.
-   * 
+   *
    * @example
    * ```typescript
    * const v = MoveVector.U128([1, 2, 3, 4]);
@@ -199,10 +204,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * Factory method to generate a MoveVector<U256> from a number, bigint, or null/undefined.
    * This allows for the creation of an optional U256 value, enabling checks for presence or absence of a value.
    *
-   * @param value - The value used to fill the MoveVector. If `value` is undefined or null, 
+   * @param values - The value used to fill the MoveVector. If `value` is undefined or null,
    *                the resulting MoveVector's .isSome() method will return false.
    * @returns A MoveVector<U256> with an inner value `value`.
-   * 
+   *
    * @example
    * ```typescript
    * const v = MoveVector.U256([1, 2, 3, 4]);
@@ -214,11 +219,13 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Factory method to generate a MoveVector<Bool> from a `boolean` or `undefined`.
-   * This method allows you to create an optional boolean value that can be used in various contexts where a boolean may or may not be present.
+   * This method allows you to create an optional boolean value that can be used in various contexts where a boolean may or may
+   * not be present.
    *
-   * @param value - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method will return false.
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method
+   * will return false.
    * @returns A MoveVector<Bool> with an inner value `value`.
-   * 
+   *
    * @example
    *    * const v = MoveVector.Bool([true, false, true, false]);
    */
@@ -230,9 +237,10 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    * Factory method to generate a MoveVector<MoveString> from a `string` or `undefined`.
    * This function creates a MoveVector that encapsulates a MoveString if the provided value is not null or undefined.
    *
-   * @param value - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method will return false.
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method
+   * will return false.
    * @returns A MoveVector<MoveString> with an inner value `value`.
-   * 
+   *
    * @example
    * const v = MoveVector.MoveString(["hello", "world"]);
    */
@@ -243,7 +251,7 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * Serializes the current object using the provided serializer.
    * This function will serialize the value if it is present.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void;
@@ -263,8 +271,8 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
-   * @param deserializer: the Deserializer instance to use, with bytes loaded into it already.
-   * @param cls: the class to typecast the input values to, must be a Serializable and Deserializable type.
+   * @param deserializer the Deserializer instance to use, with bytes loaded into it already.
+   * @param cls the class to typecast the input values to, must be a Serializable and Deserializable type.
    * @returns a MoveVector of the corresponding class T
    *
    */
@@ -316,7 +324,7 @@ export class Serialized extends Serializable implements TransactionArgument {
   /**
    * Deserialize the bytecode into a MoveVector of the specified type.
    * This function allows you to convert serialized data into a usable MoveVector format.
-   * 
+   *
    * @param cls - The class type of the elements in the MoveVector.
    */
   toMoveVector<T extends Serializable & EntryFunctionArgument>(cls: Deserializable<T>): MoveVector<T> {
@@ -392,16 +400,16 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Retrieves the inner value of the MoveOption.
-   * 
-   * This method is inspired by Rust's `Option<T>.unwrap()`, where attempting to unwrap a `None` value results in a panic. 
+   *
+   * This method is inspired by Rust's `Option<T>.unwrap()`, where attempting to unwrap a `None` value results in a panic.
    * This method will throw an error if the value is not present.
-   * 
+   *
    * @example
    * const option = new MoveOption<Bool>(new Bool(true));
    * const value = option.unwrap();  // Returns the Bool instance
-   * 
+   *
    * @throws {Error} Throws an error if the MoveOption does not contain a value.
-   * 
+   *
    * @returns {T} The contained value if present.
    */
   unwrap(): T {

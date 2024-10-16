@@ -16,14 +16,14 @@ export enum HexInvalidReason {
 
 /**
  * NOTE: Do not use this class when working with account addresses; use AccountAddress instead.
- * When accepting hex data as input to a function, prefer to accept HexInput and 
+ * When accepting hex data as input to a function, prefer to accept HexInput and
  *
- * A helper class for working with hex data. Hex data, when represented as a string, 
- * generally looks like this, for example: 0xaabbcc, 45cd32, etc. 
- * 
- * then use the static helper methods of this class to convert it into the desired 
+ * A helper class for working with hex data. Hex data, when represented as a string,
+ * generally looks like this, for example: 0xaabbcc, 45cd32, etc.
+ *
+ * then use the static helper methods of this class to convert it into the desired
  * format. This enables the greatest flexibility for the developer.
- * 
+ *
  * Example usage:
  * ```typescript
  * getTransactionByHash(txnHash: HexInput): Promise<Transaction> {
@@ -31,9 +31,9 @@ export enum HexInvalidReason {
  *   return await getTransactionByHashInner(txnHashString);
  * }
  * ```
- * This call to `Hex.fromHexInput().toString()` converts the HexInput to a hex string 
+ * This call to `Hex.fromHexInput().toString()` converts the HexInput to a hex string
  * with a leading 0x prefix, regardless of what the input format was.
- * 
+ *
  * Other ways to chain the functions together:
  * - `Hex.fromHexString({ hexInput: "0x1f" }).toUint8Array()`
  * - `new Hex([1, 3]).toStringWithoutPrefix()`
@@ -43,7 +43,7 @@ export class Hex {
 
   /**
    * Create a new Hex instance from a Uint8Array.
-   * 
+   *
    * @param data - The Uint8Array containing the data to initialize the Hex instance.
    */
   constructor(data: Uint8Array) {
@@ -87,11 +87,11 @@ export class Hex {
 
   /**
    * Converts a hex string into a Hex instance, allowing for both prefixed and non-prefixed formats.
-   * 
+   *
    * @param str - A hex string, with or without the 0x prefix.
-   * 
+   *
    * @throws ParsingError - If the hex string is too short, has an odd number of characters, or contains invalid hex characters.
-   * 
+   *
    * @returns Hex - The resulting Hex instance created from the provided string.
    */
   static fromHexString(str: string): Hex {
@@ -138,12 +138,11 @@ export class Hex {
   // Methods for checking validity.
   // ===
 
-
   /**
    * Check if the provided string is a valid hexadecimal representation.
    *
    * @param str - A hex string representing byte data.
-   * 
+   *
    * @returns An object containing:
    *  - valid: A boolean indicating whether the string is valid.
    *  - invalidReason: The reason for invalidity if the string is not valid.
@@ -164,7 +163,7 @@ export class Hex {
 
   /**
    * Determine if two Hex instances are equal by comparing their underlying byte data.
-   * 
+   *
    * @param other The Hex instance to compare to.
    * @returns true if the Hex instances are equal, false if not.
    */

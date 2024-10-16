@@ -47,9 +47,9 @@ export class Secp256k1PublicKey extends PublicKey {
   // region PublicKey
   /**
    * Verifies a Secp256k1 signature against the public key.
-   * 
+   *
    * This function checks the validity of a signature for a given message, ensuring that the signature is canonical as a malleability check.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the public key.
@@ -65,7 +65,7 @@ export class Secp256k1PublicKey extends PublicKey {
 
   /**
    * Get the data as a Uint8Array representation.
-   * 
+   *
    * @returns Uint8Array representation of the data.
    */
   toUint8Array(): Uint8Array {
@@ -79,7 +79,7 @@ export class Secp256k1PublicKey extends PublicKey {
   /**
    * Serializes the data into a byte array using the provided serializer.
    * This function is essential for converting data into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to convert the data.
    */
   serialize(serializer: Serializer): void {
@@ -89,13 +89,15 @@ export class Secp256k1PublicKey extends PublicKey {
   /**
    * Deserializes a Secp256k1Signature from the provided deserializer.
    * This function allows you to reconstruct a Secp256k1Signature object from its serialized byte representation.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
+  // eslint-disable-next-line class-methods-use-this
   deserialize(deserializer: Deserializer) {
-      const hex = deserializer.deserializeBytes();
-      return new Secp256k1Signature(hex);
+    const hex = deserializer.deserializeBytes();
+    return new Secp256k1Signature(hex);
   }
+
   static deserialize(deserializer: Deserializer): Secp256k1PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Secp256k1PublicKey(bytes);
@@ -105,7 +107,7 @@ export class Secp256k1PublicKey extends PublicKey {
 
   /**
    * Determine if the provided public key is an instance of Secp256k1PublicKey.
-   * 
+   *
    * @deprecated use `instanceof Secp256k1PublicKey` instead
    * @param publicKey - The public key to check.
    */
@@ -116,7 +118,7 @@ export class Secp256k1PublicKey extends PublicKey {
   /**
    * Determines if the provided public key is a valid instance of a Secp256k1 public key.
    * This function checks for the presence of a "key" property and validates the length of the key data.
-   * 
+   *
    * @param publicKey - The public key to validate.
    * @returns A boolean indicating whether the public key is a valid Secp256k1 public key.
    */
@@ -126,8 +128,8 @@ export class Secp256k1PublicKey extends PublicKey {
 }
 
 /**
- * Represents a Secp256k1 ECDSA private key, providing functionality to create, sign messages, 
- * derive public keys, and serialize/deserialize the key. 
+ * Represents a Secp256k1 ECDSA private key, providing functionality to create, sign messages,
+ * derive public keys, and serialize/deserialize the key.
  */
 export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
@@ -161,7 +163,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
   /**
    * Generate a new random private key.
-   * 
+   *
    * @returns Secp256k1PrivateKey - A newly generated Secp256k1 private key.
    */
   static generate(): Secp256k1PrivateKey {
@@ -171,12 +173,12 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
   /**
    * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
-   * 
+   *
    * @param path - The BIP44 path to derive the key from.
    * @param mnemonics - The mnemonic seed phrase used for key generation.
-   * 
+   *
    * @returns The generated private key.
-   * 
+   *
    * @throws Error if the provided path is not a valid BIP44 path.
    */
   static fromDerivationPath(path: string, mnemonics: string): Secp256k1PrivateKey {
@@ -212,7 +214,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Sign the given message with the private key.
    * This function generates a cryptographic signature for the provided message, ensuring the signature is canonical and non-malleable.
-   * 
+   *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
    */
@@ -269,9 +271,9 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
   /**
    * Determines if the provided private key is an instance of Secp256k1PrivateKey.
-   * 
+   *
    * @param privateKey - The private key to be checked.
-   * 
+   *
    * @deprecated use `instanceof Secp256k1PrivateKey` instead
    */
   static isPrivateKey(privateKey: PrivateKey): privateKey is Secp256k1PrivateKey {
@@ -281,7 +283,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
 /**
  * Represents a signature of a message signed using a Secp256k1 ECDSA private key.
- * 
+ *
  * @static
  * @readonly
  * @length The length of Secp256k1 ECDSA signatures, which is 64 bytes.

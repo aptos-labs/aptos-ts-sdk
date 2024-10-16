@@ -32,7 +32,7 @@ import { SimpleTransaction } from "../transactions";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
- * 
+ *
  * @param args - The arguments required to fetch the pepper.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.jwt - The JSON Web Token used for authentication.
@@ -71,7 +71,7 @@ export async function getPepper(args: {
 /**
  * Generates a zero-knowledge proof based on the provided parameters.
  * This function is essential for creating a signed proof that can be used in various cryptographic operations.
- * 
+ *
  * @param args - The parameters required to generate the proof.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.jwt - The JSON Web Token used for authentication.
@@ -135,7 +135,7 @@ export async function getProof(args: {
 /**
  * Derives a keyless account by fetching the necessary proof and looking up the original account address.
  * This function helps in creating a keyless account that can be used without managing private keys directly.
- * 
+ *
  * @param args - The arguments required to derive the keyless account.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.jwt - The JSON Web Token used for authentication.
@@ -179,7 +179,7 @@ export async function deriveKeylessAccount(args: {
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
   // allowing for faster rendering of UX.
   //
-  // If no callback is provided, the just await the proof fetch and continue syncronously.
+  // If no callback is provided, the just await the proof fetch and continue synchronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
   // Look up the original address to handle key rotations and then instantiate the account.

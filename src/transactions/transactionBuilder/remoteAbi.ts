@@ -51,7 +51,7 @@ const TEXT_ENCODER = new TextEncoder();
 
 /**
  * Convert type arguments to only type tags, allowing for string representations of type tags.
- * 
+ *
  * @param typeArguments - An optional array of type arguments that may include string representations.
  * @returns An array of TypeTag objects derived from the provided type arguments.
  */
@@ -68,8 +68,9 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
 }
 
 /**
- * Fetches the ABI of a specified function from the on-chain module ABI. This function allows you to access the details of a specific function within a module.
- * 
+ * Fetches the ABI of a specified function from the on-chain module ABI. This function allows you to access the details of a
+ * specific function within a module.
+ *
  * @param moduleAddress - The address of the module from which to fetch the function ABI.
  * @param moduleName - The name of the module containing the function.
  * @param functionName - The name of the function whose ABI is to be fetched.
@@ -185,7 +186,7 @@ export async function fetchViewFunctionAbi(
 /**
  * Converts a non-BCS encoded argument into BCS encoded, if necessary.
  * This function checks the provided argument against the expected parameter type and converts it accordingly.
- * 
+ *
  * @param functionName - The name of the function for which the argument is being converted.
  * @param functionAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
  * @param arg - The argument to be converted, which can be of various types.
@@ -211,7 +212,7 @@ export function convertArgument(
 /**
  * Checks if the provided argument is BCS encoded and converts it if necessary, ensuring type compatibility with the ABI.
  * This function helps in validating and converting arguments for entry functions based on their expected types.
- * 
+ *
  * @param arg - The argument to check or convert, which can be either a simple or entry function argument type.
  * @param param - The expected type tag for the argument.
  * @param position - The position of the argument in the function call.
@@ -230,7 +231,7 @@ export function checkOrConvertArgument(
     /**
      * Checks the type of the provided argument against the expected type.
      * This function helps validate that the argument conforms to the specified type requirements.
-     * 
+     *
      * @param typeArgs - The expected type arguments.
      * @param arg - The argument to be checked.
      * @param position - The position of the argument in the context of the check.
@@ -245,8 +246,9 @@ export function checkOrConvertArgument(
 
 /**
  * Parses a non-BCS encoded argument into a BCS encoded argument recursively.
- * This function helps convert various types of input arguments into their corresponding BCS encoded formats based on the specified parameter type.
- * 
+ * This function helps convert various types of input arguments into their corresponding BCS encoded formats based on the
+ * specified parameter type.
+ *
  * @param arg - The argument to be parsed, which can be of various types.
  * @param param - The type tag that defines the expected type of the argument.
  * @param position - The position of the argument in the function call, used for error reporting.
@@ -269,7 +271,7 @@ function parseArg(
 
     /**
      * Throws a type mismatch error for the specified move option.
-     * 
+     *
      * @param moveOption - The name of the move option that caused the type mismatch.
      * @param position - The position where the error occurred.
      */
@@ -322,7 +324,7 @@ function parseArg(
     throwTypeMismatch("bigint | number | string", position);
   }
 
-  // Generic needs to use the sub-type
+  // Generic needs to use the subtype
   if (param.isGeneric()) {
     const genericIndex = param.value;
     if (genericIndex < 0 || genericIndex >= genericTypeParams.length) {
@@ -336,7 +338,7 @@ function parseArg(
   if (param.isVector()) {
     // Check special case for Vector<u8>
     if (param.value.isU8()) {
-      // We don't allow vector<u8>, but we convert strings to UTF8 uint8array
+      // We don't allow vector<u8>, but we convert strings to UTF8 Uint8Array
       // This is legacy behavior from the original SDK
       if (isString(arg)) {
         return MoveVector.U8(TEXT_ENCODER.encode(arg));
@@ -419,7 +421,7 @@ function parseArg(
 }
 
 /**
- * Checks that the type of an already BCS encoded argument matches the ABI
+ * Checks that the type of the BCS encoded argument matches the ABI
  * @param param
  * @param arg
  * @param position

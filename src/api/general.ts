@@ -33,25 +33,25 @@ export class General {
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
    * This allows users to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
    * @param config.nodeUrl - The URL of the Aptos node to connect to.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ 
+   *     const config = new AptosConfig({
    *         network: Network.TESTNET, // specify the network
    *         nodeUrl: "https://testnet.aptos.dev" // specify the node URL
    *     });
-   *     
+   *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
-   *     
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -92,10 +92,10 @@ export class General {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching the chain ID
    *   const chainId = await aptos.getChainId();
@@ -113,21 +113,21 @@ export class General {
 
   /**
    * Retrieves block information by the specified ledger version.
-   * 
+   *
    * @param args - The arguments for retrieving the block.
    * @param args.ledgerVersion - The ledger version to lookup block information for.
    * @param args.options - Optional parameters for the request.
    * @param args.options.withTransactions - If set to true, include all transactions in the block.
-   * 
+   *
    * @returns Block information with optional transactions.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Retrieve block information for a specific ledger version
    *   const block = await aptos.getBlockByVersion({ ledgerVersion: 5 });
@@ -148,21 +148,21 @@ export class General {
 
   /**
    * Retrieve a block by its height, allowing for the inclusion of transactions if specified.
-   * 
+   *
    * @param args - The parameters for the block retrieval.
    * @param args.blockHeight - The block height to look up, starting at 0.
    * @param args.options - Optional settings for the retrieval.
    * @param args.options.withTransactions - If set to true, includes all transactions in the block.
-   * 
+   *
    * @returns The block with optional transactions included.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Retrieve the block at height 5, including transactions
    *   const block = await aptos.getBlockByHeight({ blockHeight: 5, options: { withTransactions: true } });
@@ -290,15 +290,16 @@ export class General {
   }
 
   /**
-   * Queries for the last successful indexer version, providing insight into the ledger version the indexer is updated to, which may lag behind the full nodes.
-   * 
+   * Queries for the last successful indexer version, providing insight into the ledger version the indexer is updated to, which
+   * may lag behind the full nodes.
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Get the last successful indexer version
    *   const version = await aptos.getIndexerLastSuccessVersion();

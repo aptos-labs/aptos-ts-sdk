@@ -17,26 +17,26 @@ export class Build {
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
    * This allows you to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
    * @param config.nodeUrl - The URL of the Aptos node to connect to.
    * @param config.account - The account details for authentication.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
    *     const config = new AptosConfig({
    *         network: Network.TESTNET, // specify the network
    *         nodeUrl: "https://testnet.aptos.dev", // specify the node URL
    *     });
-   * 
+   *
    *     // Initialize the Aptos client
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -48,23 +48,23 @@ export class Build {
 
   /**
    * Build a simple transaction.
-   * 
-   * This function allows you to create a transaction with specified sender and data. 
-   * 
+   *
+   * This function allows you to create a transaction with specified sender and data.
+   *
    * @param args.sender - The sender account address.
    * @param args.data - The transaction data.
    * @param args.options - Optional transaction configurations.
    * @param args.withFeePayer - Whether there is a fee payer for the transaction.
-   * 
+   *
    * @returns SimpleTransaction
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Build a simple transaction
    *   const transaction = await aptos.transaction.simple({
@@ -78,7 +78,7 @@ export class Build {
    *       maxGasAmount: 1000, // specify your own max gas amount if needed
    *     },
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -95,23 +95,23 @@ export class Build {
 
   /**
    * Build a multi-agent transaction that allows multiple signers to authorize a transaction.
-   * 
+   *
    * @param args - The parameters for creating the multi-agent transaction.
    * @param args.sender - The sender account address.
    * @param args.data - The transaction data.
    * @param args.secondarySignerAddresses - An array of the secondary signers' account addresses.
    * @param args.options - Optional transaction configurations.
    * @param args.withFeePayer - Whether there is a fee payer for the transaction.
-   * 
+   *
    * @returns MultiAgentTransaction
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Build a multi-agent transaction
    *   const transaction = await aptos.multiAgent({
@@ -128,7 +128,7 @@ export class Build {
    *       gasUnitPrice: "1",
    *     },
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);

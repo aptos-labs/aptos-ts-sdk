@@ -228,10 +228,10 @@ export interface PaginationArgs {
   limit?: number;
 }
 
-/**  
- * Represents the arguments for specifying a token standard.  
- *  
- * @param tokenStandard - Optional standard of the token.  
+/**
+ * Represents the arguments for specifying a token standard.
+ *
+ * @param tokenStandard - Optional standard of the token.
  */
 export interface TokenStandardArg {
   tokenStandard?: TokenStandard;
@@ -309,10 +309,9 @@ export interface ClientResponse<Res> {
 }
 
 export interface Client {
-
   /**
    * Sends a request to the specified URL with the given options.
-   * 
+   *
    * @param requestOptions - The options for the request.
    * @param requestOptions.url - The URL to send the request to.
    * @param requestOptions.method - The HTTP method to use, either "GET" or "POST".
@@ -330,9 +329,9 @@ export interface Client {
 /**
  * The API request type
  *
- * @param url - the url to make the request to, i.e https://fullnode.devnet.aptoslabs.com/v1
+ * @param url - the url to make the request to, i.e. https://fullnode.devnet.aptoslabs.com/v1
  * @param method - the request method "GET" | "POST"
- * @param endpoint (optional) - the endpoint to make the request to, i.e transactions
+ * @param endpoint (optional) - the endpoint to make the request to, i.e. transactions
  * @param body (optional) - the body of the request
  * @param contentType (optional) - the content type to set the `content-type` header to,
  * by default is set to `application/json`
@@ -437,7 +436,7 @@ export type CommittedTransactionResponse =
 
 /**
  * Determine if the given transaction response is currently pending.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the transaction is pending.
  */
@@ -447,7 +446,7 @@ export function isPendingTransactionResponse(response: TransactionResponse): res
 
 /**
  * Determines if the given transaction response is a user transaction.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the transaction is of type User.
  */
@@ -457,7 +456,7 @@ export function isUserTransactionResponse(response: TransactionResponse): respon
 
 /**
  * Determines if the given transaction response is a Genesis transaction.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the transaction is a Genesis transaction.
  */
@@ -467,7 +466,7 @@ export function isGenesisTransactionResponse(response: TransactionResponse): res
 
 /**
  * Determine if the given transaction response is of type BlockMetadata.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the response is a BlockMetadata transaction.
  */
@@ -479,7 +478,7 @@ export function isBlockMetadataTransactionResponse(
 
 /**
  * Determines if the provided transaction response is a state checkpoint transaction.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the transaction response is of type StateCheckpoint.
  */
@@ -491,7 +490,7 @@ export function isStateCheckpointTransactionResponse(
 
 /**
  * Determine if the given transaction response is of type Validator.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the transaction response is a Validator type.
  */
@@ -503,7 +502,7 @@ export function isValidatorTransactionResponse(
 
 /**
  * Determines if the given transaction response is of the type Block Epilogue.
- * 
+ *
  * @param response - The transaction response to evaluate.
  * @returns A boolean indicating whether the response is a Block Epilogue transaction.
  */
@@ -927,9 +926,9 @@ export type TransactionSignature =
 
 /**
  * Determine if the provided signature is an Ed25519 signature.
- * This function checks for the presence of the "signature" property 
+ * This function checks for the presence of the "signature" property
  * and verifies that its value is "ed25519_signature".
- * 
+ *
  * @param signature - The transaction signature to be checked.
  * @returns A boolean indicating whether the signature is an Ed25519 signature.
  */
@@ -939,7 +938,7 @@ export function isEd25519Signature(signature: TransactionSignature): signature i
 
 /**
  * Determine if the provided signature is a valid secp256k1 ECDSA signature.
- * 
+ *
  * @param signature - The transaction signature to validate.
  * @returns A boolean indicating whether the signature is a secp256k1 ECDSA signature.
  */
@@ -949,7 +948,7 @@ export function isSecp256k1Signature(signature: TransactionSignature): signature
 
 /**
  * Determine if the provided transaction signature is a multi-agent signature.
- * 
+ *
  * @param signature - The transaction signature to evaluate.
  * @returns A boolean indicating whether the signature is a multi-agent signature.
  */
@@ -959,7 +958,7 @@ export function isMultiAgentSignature(signature: TransactionSignature): signatur
 
 /**
  * Determine if the provided signature is a fee payer signature.
- * 
+ *
  * @param signature - The transaction signature to evaluate.
  * @returns A boolean indicating whether the signature is a fee payer signature.
  */
@@ -969,7 +968,7 @@ export function isFeePayerSignature(signature: TransactionSignature): signature 
 
 /**
  * Determine if the provided signature is of type "multi_ed25519_signature".
- * 
+ *
  * @param signature - The transaction signature to check.
  * @returns A boolean indicating whether the signature is a multi-ed25519 signature.
  */
@@ -1160,7 +1159,8 @@ export type MoveFunctionId = MoveStructId;
 export type MoveStructType = {};
 
 /**
- * A union type that encompasses various data types used in Move, including primitive types, address types, object types, and arrays of MoveType.
+ * A union type that encompasses various data types used in Move, including primitive types, address types, object types, and
+ * arrays of MoveType.
  */
 export type MoveType =
   | boolean
@@ -1215,7 +1215,7 @@ export type MoveValue =
   | Array<MoveValue>;
 
 /**
- * A string representation of a Move module, formatted as `module_name::function_name`. 
+ * A string representation of a Move module, formatted as `module_name::function_name`.
  * Module names are case-sensitive.
  */
 export type MoveModuleId = `${string}::${string}`;

@@ -9,7 +9,7 @@ import { AptosApiType } from "../utils";
 
 /**
  * Sends a request using the specified options and returns the response.
- * 
+ *
  * @param options - The options for the request.
  * @param options.url - The URL to send the request to.
  * @param options.method - The HTTP method to use for the request.
@@ -22,7 +22,7 @@ import { AptosApiType } from "../utils";
  * @param options.overrides.API_KEY - The API key for the request.
  * @param options.originMethod - The origin method for the request.
  * @param client - The client used to make the request.
- * 
+ *
  * @returns The response from the request.
  */
 export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
@@ -57,7 +57,7 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
 
 /**
  * The main function to use when making an API request, returning the response or throwing an AptosApiError on failure.
- * 
+ *
  * @param aptosRequestOpts - Options for the Aptos request, including the URL and path.
  * @param aptosConfig - The configuration information for the SDK client instance.
  * @param apiType - The type of API being accessed, which determines how the response is handled.
@@ -82,7 +82,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     url: fullUrl,
   };
 
-  // Handle case for `Unauthorized` error (i.e API_KEY error)
+  // Handle case for `Unauthorized` error (i.e. API_KEY error)
   if (aptosResponse.status === 401) {
     throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });
   }

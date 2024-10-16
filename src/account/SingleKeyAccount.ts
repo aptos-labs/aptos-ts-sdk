@@ -8,7 +8,7 @@ import { AnyRawTransaction } from "../transactions/types";
 
 /**
  * Arguments required to create a single key signer.
- * 
+ *
  * @param privateKey - The private key used for signing.
  * @param address - Optional account address associated with the signer.
  */
@@ -17,10 +17,10 @@ export interface SingleKeySignerConstructorArgs {
   address?: AccountAddressInput;
 }
 
-/**  
- * Arguments for generating a single key signer.  
- *  
- * @param scheme - The signing scheme to be used.  
+/**
+ * Arguments for generating a single key signer.
+ *
+ * @param scheme - The signing scheme to be used.
  */
 export interface SingleKeySignerGenerateArgs {
   scheme?: SigningSchemeInput;
@@ -36,7 +36,7 @@ export type SingleKeySignerFromDerivationPathArgs = SingleKeySignerGenerateArgs 
 
 /**
  * Arguments required to verify a single key signature for a given message.
- * 
+ *
  * @param message - The message to be verified, represented in hexadecimal format.
  * @param signature - The signature that corresponds to the message.
  */
@@ -49,7 +49,7 @@ export interface VerifySingleKeySignatureArgs {
  * Signer implementation for the SingleKey authentication scheme.
  * This class extends a SingleKeyAccount by adding signing capabilities through a valid private key.
  * Currently, the only supported signature schemes are Ed25519 and Secp256k1.
- * 
+ *
  * Note: Generating a signer instance does not create the account on-chain.
  */
 export class SingleKeyAccount implements Account {
@@ -67,7 +67,7 @@ export class SingleKeyAccount implements Account {
   /**
    * Creates an instance of the SingleKeySigner using the provided private key and address.
    * This allows for signing transactions and messages with the specified private key.
-   * 
+   *
    * @param args - The constructor arguments for initializing the SingleKeySigner.
    * @param args.privateKey - The private key used for signing.
    * @param args.address - The optional account address; if not provided, it will derive the address from the public key.
@@ -82,7 +82,7 @@ export class SingleKeyAccount implements Account {
   /**
    * Derives an account from a randomly generated private key based on the specified signing scheme.
    * The default generation scheme is Ed25519, but it can also support Secp256k1Ecdsa.
-   * 
+   *
    * @param args - The arguments for generating the account.
    * @param args.scheme - The signing scheme to use for generating the private key. Defaults to SigningSchemeInput.Ed25519.
    * @returns An account with the generated private key based on the specified signing scheme.
@@ -110,7 +110,8 @@ export class SingleKeyAccount implements Account {
    *
    * @param args - The arguments for deriving the account.
    * @param args.scheme - The signature scheme to derive the private key with. Defaults to Ed25519.
-   * @param args.path - The BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519, or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1.
+   * @param args.path - The BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519, or non-hardened path
+   * (e.g. m/44'/637'/0'/0/0) for secp256k1.
    * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
    * @param args.mnemonic - The mnemonic seed phrase of the account.
    */
@@ -132,7 +133,7 @@ export class SingleKeyAccount implements Account {
 
   /**
    * Verify the given message and signature with the public key.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The raw message data in HexInput format.
    * @param args.signature - The signed message signature.
@@ -143,7 +144,8 @@ export class SingleKeyAccount implements Account {
   }
 
   /**
-   * Sign a message using the account's private key and return an AccountAuthenticator containing the signature along with the account's public key.
+   * Sign a message using the account's private key and return an AccountAuthenticator containing the signature along with the
+   * account's public key.
    * @param message - The signing message, represented as binary input in hexadecimal format.
    * @returns An instance of AccountAuthenticatorSingleKey containing the signature and the public key.
    */
@@ -173,7 +175,7 @@ export class SingleKeyAccount implements Account {
   /**
    * Sign the given transaction using the account's private key.
    * This function generates a signing message for the transaction and then signs it.
-   * 
+   *
    * @param transaction - The transaction to be signed.
    * @returns Signature - The resulting signature for the signed transaction.
    */

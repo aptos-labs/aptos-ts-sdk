@@ -4,8 +4,8 @@ import { Hex } from "../hex";
 /**
  * An abstract representation of a crypto signature,
  * associated with a specific signature scheme, e.g., Ed25519 or Secp256k1.
- * 
- * This class represents the product of signing a message directly from a 
+ *
+ * This class represents the product of signing a message directly from a
  * PrivateKey and can be verified against a CryptoPublicKey.
  */
 export abstract class Signature extends Serializable {

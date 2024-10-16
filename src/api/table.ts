@@ -23,18 +23,18 @@ export class Table {
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
    * This allows you to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a new Aptos client with testnet configuration
    *     const config = new AptosConfig({ network: Network.TESTNET });
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -139,7 +139,7 @@ export class Table {
 
   /**
    * Queries for the metadata of table items, allowing for filtering and pagination.
-   * 
+   *
    * @param args - The parameters for the query.
    * @param args.minimumLedgerVersion - Optional minimum ledger version to wait for before querying.
    * @param args.options - Optional parameters for pagination and filtering.
@@ -147,16 +147,16 @@ export class Table {
    * @param args.options.offset - The offset for pagination.
    * @param args.options.limit - The maximum number of items to return.
    * @param args.options.orderBy - The order in which to return the items.
-   * 
+   *
    * Note that this query calls the indexer server.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching table items metadata with a filter condition
    *   const data = await aptos.getTableItemsMetadata({
@@ -166,12 +166,12 @@ export class Table {
    *       limit: 10, // specify your own limit if needed
    *     },
    *   });
-   * 
+   *
    *   console.log(data);
    * }
    * runExample().catch(console.error);
    * ```
-   * 
+   *
    * @returns GetTableItemsMetadataResponse
    */
   async getTableItemsMetadata(args: {

@@ -8,7 +8,7 @@ import { queryIndexer } from "./general";
 
 /**
  * Retrieves the current objects based on specified filtering and pagination options.
- * 
+ *
  * @param args - The arguments for retrieving object data.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param [args.options] - Optional parameters for pagination and filtering.
@@ -45,7 +45,7 @@ export async function getObjectData(args: {
 /**
  * Retrieves the object data associated with a specific object address.
  * This function allows you to access detailed information about an object in the Aptos blockchain.
- * 
+ *
  * @param args - The arguments for retrieving object data.
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.objectAddress - The address of the object whose data is being retrieved.

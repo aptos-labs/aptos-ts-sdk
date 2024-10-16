@@ -9,7 +9,7 @@ import { AnyPublicKey, AnySignature } from "./singleKey";
 /**
  * Counts the number of set bits (1s) in a byte.
  * This function can help you determine the population count of a given byte value.
- * 
+ *
  * @param byte - The byte value for which to count the number of set bits.
  */
 /* eslint-disable no-bitwise */
@@ -47,9 +47,11 @@ export class MultiKey extends AccountPublicKey {
    *
    * @param args An object containing the parameters for the multi-signature transaction.
    * @param args.signatures A list of signatures.
-   * @param args.bitmap A bitmap represented as a Uint8Array or an array of numbers, where each bit indicates whether a corresponding signature is present. A maximum of 32 signatures is supported, and the length of the bitmap must be 4 bytes.
-   * 
-   * @throws Error if the number of signatures exceeds the maximum supported, if the bitmap length is incorrect, or if the number of signatures does not match the bitmap.
+   * @param args.bitmap A bitmap represented as a Uint8Array or an array of numbers, where each bit indicates whether a
+   * corresponding signature is present. A maximum of 32 signatures is supported, and the length of the bitmap must be 4 bytes.
+   *
+   * @throws Error if the number of signatures exceeds the maximum supported, if the bitmap length is incorrect, or if the number
+   * of signatures does not match the bitmap.
    */
   // region Constructors
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
@@ -83,7 +85,7 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Verifies the provided signature against the given message.
    * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify.
@@ -96,7 +98,7 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Generates an authentication key based on the current instance's byte representation.
    * This key can be used for secure authentication processes within the system.
-   * 
+   *
    * @returns {AuthenticationKey} The generated authentication key.
    */
   authKey(): AuthenticationKey {
@@ -109,7 +111,7 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Convert the current instance to a Uint8Array representation.
    * This is useful for serializing data for transmission or storage.
-   * 
+   *
    * @returns Uint8Array representation of the instance.
    */
   toUint8Array(): Uint8Array {
@@ -120,11 +122,10 @@ export class MultiKey extends AccountPublicKey {
 
   // region Serializable
 
-
   /**
    * Serializes the object by writing its signatures and bitmap to the provided serializer.
    * This allows the object to be converted into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -135,7 +136,7 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Deserializes a MultiKeySignature from the provided deserializer.
    * This function retrieves the signatures and bitmap necessary for creating a MultiKeySignature object.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): MultiKey {
@@ -191,7 +192,7 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Get the index of the provided public key.
    *
-   * This function retrieves the index of a specified public key within the MultiKey. 
+   * This function retrieves the index of a specified public key within the MultiKey.
    * If the public key does not exist, it throws an error.
    *
    * @param publicKey - The public key to find the index for.
@@ -213,7 +214,7 @@ export class MultiKey extends AccountPublicKey {
  * Represents a multi-signature transaction using Ed25519 signatures.
  * This class allows for the creation and management of a K-of-N multi-signature scheme,
  * where a specified number of signatures are required to authorize a transaction.
- * 
+ *
  * It includes functionality to validate the number of signatures against a bitmap,
  * which indicates which public keys have signed the transaction.
  */

@@ -16,7 +16,7 @@ import { queryIndexer } from "./general";
 
 /**
  * Retrieves a specific item from a table in the Aptos blockchain.
- * 
+ *
  * @param args - The arguments for retrieving the table item.
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.handle - The identifier for the table from which to retrieve the item.
@@ -42,7 +42,7 @@ export async function getTableItem<T>(args: {
 
 /**
  * Retrieves table items data based on specified conditions and pagination options.
- * 
+ *
  * @param args - The arguments for retrieving table items data.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.options - Optional parameters for pagination and filtering.
@@ -78,7 +78,7 @@ export async function getTableItemsData(args: {
 
 /**
  * Retrieves metadata for table items based on specified options.
- * 
+ *
  * @param args - The arguments for retrieving table items metadata.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.options - Optional parameters for pagination and filtering.

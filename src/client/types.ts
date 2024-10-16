@@ -58,13 +58,13 @@ export class AptosApiError extends Error {
 
   /**
    * Constructs an instance of AptosApiError with relevant error details.
-   * 
+   *
    * @param opts - The options for creating the AptosApiError.
    * @param opts.apiType - The type of API that generated the error.
    * @param opts.aptosRequest - The request object that caused the error.
    * @param opts.aptosResponse - The response object containing error details.
-   * 
-   * @internal This constructor is for SDK internal use - do not instantiate outside of the SDK codebase.
+   *
+   * @internal This constructor is for SDK internal use - do not instantiate outside the SDK codebase.
    */
   constructor({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts) {
     super(deriveErrorMessage({ apiType, aptosRequest, aptosResponse }));
@@ -81,14 +81,14 @@ export class AptosApiError extends Error {
 /**
  * Derives an error message from the Aptos API response, providing context for debugging.
  * This function helps in understanding the nature of the error encountered during an API request.
- * 
+ *
  * @param {AptosApiErrorOpts} opts - The options for deriving the error message.
  * @param {AptosApiType} opts.apiType - The type of API being called.
  * @param {AptosRequest} opts.aptosRequest - The original request made to the Aptos API.
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
  */
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
-  // extract the W3C trace_id from the response headers if it exists. Some services set this in the response and it's useful for debugging.
+  // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
   // See https://www.w3.org/TR/trace-context/#relationship-between-the-headers .
   const traceId = aptosResponse.headers?.traceparent?.split("-")[1];
   const traceIdString = traceId ? `(trace_id:${traceId}) ` : "";
@@ -108,7 +108,7 @@ function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiEr
     return `${errorPrelude}: ${JSON.stringify(aptosResponse.data)}`;
   }
 
-  // This is the generic/catch-all case. We received some response from the API but it doesn't appear to be a well-known structure.
+  // This is the generic/catch-all case. We received some response from the API, but it doesn't appear to be a well-known structure.
   // We print http status codes and the response body (after some trimming),
   // in the hope that this gives enough context what went wrong without printing overly huge messages.
   return `${errorPrelude} status: ${aptosResponse.statusText}(code:${
@@ -120,10 +120,10 @@ const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
 
 /**
  * This function accepts a payload of any type (probably an object) and serializes it to a string
- * Since we don't know the type or size of the payload and we don't want to add a huge object in full to the error message
+ * Since we don't know the type or size of the payload, and we don't want to add a huge object in full to the error message
  * we limit the to the first 200 and last 200 characters of the serialized payload and put a "..." in the middle.
  * @param payload - The payload to serialize, which can be of any type.
- * 
+ *
  * @returns A string representation of the serialized payload, potentially truncated.
  */
 function serializeAnyPayloadForErrorMessage(payload: any): string {

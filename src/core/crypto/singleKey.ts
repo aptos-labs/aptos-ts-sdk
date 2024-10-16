@@ -10,10 +10,10 @@ import { FederatedKeylessPublicKey } from "./federatedKeyless";
 
 /**
  * Represents any public key supported by Aptos.
- * 
+ *
  * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
  * `Legacy` and `Unified` authentication keys.
- * 
+ *
  * Any unified authentication key is represented in the SDK as `AnyPublicKey`.
  */
 export class AnyPublicKey extends AccountPublicKey {
@@ -32,8 +32,8 @@ export class AnyPublicKey extends AccountPublicKey {
   /**
    * Creates an instance of the signature class based on the provided signature type.
    * This allows for the handling of different signature variants such as Ed25519, Secp256k1, and Keyless.
-   * 
-   * @param signature - The signature object which determines the variant to be used.
+   *
+   * @param publicKey - The publicKey object which determines the variant to be used.
    * @throws Error if the provided signature type is unsupported.
    */
   constructor(publicKey: PublicKey) {
@@ -59,7 +59,7 @@ export class AnyPublicKey extends AccountPublicKey {
   /**
    * Verifies the provided signature against the given message.
    * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
-   * 
+   *
    * @param args - The arguments for signature verification.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify, which must be an instance of AnySignature.
@@ -80,7 +80,7 @@ export class AnyPublicKey extends AccountPublicKey {
   /**
    * Generates an authentication key from the current instance's byte representation.
    * This function is essential for creating a unique identifier for authentication purposes.
-   * 
+   *
    * @returns {AuthenticationKey} The generated authentication key.
    */
   authKey(): AuthenticationKey {
@@ -92,10 +92,10 @@ export class AnyPublicKey extends AccountPublicKey {
 
   /**
    * Get the signature in bytes (Uint8Array).
-   * 
-   * This function is a warning that it will soon return the underlying signature bytes directly. 
+   *
+   * This function is a warning that it will soon return the underlying signature bytes directly.
    * Use AnySignature.bcsToBytes() instead.
-   * 
+   *
    * @returns Uint8Array representation of the signature.
    */
   toUint8Array() {
@@ -109,7 +109,7 @@ export class AnyPublicKey extends AccountPublicKey {
   /**
    * Serializes the current object using the provided serializer.
    * This function helps in converting the object into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -120,7 +120,7 @@ export class AnyPublicKey extends AccountPublicKey {
   /**
    * Deserializes an AnySignature from the provided deserializer.
    * This function helps in reconstructing the AnySignature object from its serialized form, allowing for further processing or validation.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): AnyPublicKey {
@@ -148,7 +148,7 @@ export class AnyPublicKey extends AccountPublicKey {
 
   /**
    * Determines if the provided public key is an instance of AnyPublicKey.
-   * 
+   *
    * @param publicKey - The public key to check.
    * @deprecated Use `instanceof AnyPublicKey` instead.
    */
@@ -158,7 +158,7 @@ export class AnyPublicKey extends AccountPublicKey {
 
   /**
    * Determines if the current public key is an instance of Ed25519PublicKey.
-   * 
+   *
    * @deprecated use `publicKey instanceof Ed25519PublicKey` instead.
    */
   isEd25519(): boolean {
@@ -167,7 +167,7 @@ export class AnyPublicKey extends AccountPublicKey {
 
   /**
    * Checks if the public key is an instance of Secp256k1PublicKey.
-   * 
+   *
    * @deprecated use `publicKey instanceof Secp256k1PublicKey` instead.
    */
   isSecp256k1PublicKey(): boolean {
@@ -175,10 +175,10 @@ export class AnyPublicKey extends AccountPublicKey {
   }
 
   /**
-   * Determines if the provided signature is an instance of a valid Signature object.
-   * 
-   * @param signature - The signature to be checked for validity.
-   * @param signature.signature - The actual signature object that needs to be validated.
+   * Determines if the provided publicKey is an instance of a valid PublicKey object.
+   *
+   * @param publicKey - The publicKey to be checked for validity.
+   * @param publicKey.publicKey - The actual publicKey object that needs to be validated.
    * @returns True if the signature is a valid instance; otherwise, false.
    */
   static isInstance(publicKey: PublicKey): publicKey is AnyPublicKey {

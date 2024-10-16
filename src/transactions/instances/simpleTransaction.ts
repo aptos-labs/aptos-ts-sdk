@@ -10,10 +10,10 @@ import { RawTransaction } from "./rawTransaction";
 
 /**
  * Represents a simple transaction type that can be submitted to the Aptos chain for execution.
- * 
+ *
  * This transaction type is designed for a single signer and includes metadata such as the Raw Transaction
  * and an optional sponsor Account Address to cover gas fees.
- * 
+ *
  * @param rawTransaction - The Raw Transaction.
  * @param feePayerAddress - The optional sponsor Account Address.
  */
@@ -22,14 +22,14 @@ export class SimpleTransaction extends Serializable {
 
   public feePayerAddress?: AccountAddress | undefined;
 
-  // We dont really need it, we add it for type checkings we do
+  // We don't really need it, we add it for type checking we do
   // throughout the SDK
   public readonly secondarySignerAddresses: undefined;
 
   /**
-   * SimpleTransaction represents a simple transaction type of a single signer that
+   * SimpleTransaction represents a transaction signed by a single account that
    * can be submitted to the Aptos chain for execution.
-   * 
+   *
    * @param rawTransaction The Raw Transaction.
    * @param feePayerAddress The optional sponsor Account Address to pay the gas fees.
    */
@@ -42,7 +42,7 @@ export class SimpleTransaction extends Serializable {
   /**
    * Serializes the transaction data using the provided serializer.
    * This function ensures that the raw transaction and fee payer address are properly serialized for further processing.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the transaction data.
    */
   serialize(serializer: Serializer): void {
@@ -59,14 +59,14 @@ export class SimpleTransaction extends Serializable {
   /**
    * Deserializes a SimpleTransaction from the given deserializer.
    * This function helps in reconstructing a SimpleTransaction object from its serialized form.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): SimpleTransaction {
     const rawTransaction = RawTransaction.deserialize(deserializer);
-    const feepayerPresent = deserializer.deserializeBool();
+    const feePayerPresent = deserializer.deserializeBool();
     let feePayerAddress;
-    if (feepayerPresent) {
+    if (feePayerPresent) {
       feePayerAddress = AccountAddress.deserialize(deserializer);
     }
 

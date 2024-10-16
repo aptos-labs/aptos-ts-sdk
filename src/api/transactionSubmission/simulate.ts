@@ -17,22 +17,22 @@ export class Simulate {
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
    * This allows you to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
    * @param config.network - The network to connect to (e.g., TESTNET, MAINNET).
    * @param config.nodeUrl - The URL of the Aptos node to connect to.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
    *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your desired network
-   *     
+   *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
-   *     
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -45,13 +45,13 @@ export class Simulate {
   /**
    * Simulates a transaction based on the provided parameters and returns the result.
    * This function helps you understand the outcome of a transaction before executing it on the blockchain.
-   * 
+   *
    * @param args - The parameters for simulating the transaction.
    * @param args.signerPublicKey - The public key of the signer for the transaction.
    * @param args.transaction - The raw transaction data to simulate.
    * @param args.feePayerPublicKey - The public key of the fee payer (optional).
    * @param args.options - Additional options for simulating the transaction (optional).
-   * 
+   *
    * @example
    * ```typescript
    * import {
@@ -60,20 +60,20 @@ export class Simulate {
    *     AptosConfig,
    *     Network,
    * } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function example() {
    *     let sender = Account.generate();
    *     let receiver = Account.generate();
-   * 
-   *     // 0. Setup the client and test accounts
+   *
+   *     // 0. Set up the client and test accounts
    *     const config = new AptosConfig({ network: Network.DEVNET });
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     await aptos.fundAccount({
    *         accountAddress: sender.accountAddress,
    *         amount: 100_000_000,
-   *     }); 
-   * 
+   *     });
+   *
    *     // 1. Build the transaction to preview the impact of it
    *     const transaction = await aptos.transaction.build.simple({
    *         sender: sender.accountAddress,
@@ -83,18 +83,18 @@ export class Simulate {
    *             functionArguments: [receiver.accountAddress, 100],
    *         },
    *     });
-   * 
+   *
    *     // 2. Simulate to see what would happen if we execute this transaction
    *     const [userTransactionResponse] = await aptos.transaction.simulate.simple({
    *         signerPublicKey: sender.publicKey,
    *         transaction,
    *     });
    *     console.log(userTransactionResponse);
-   * 
+   *
    *     // If the fee looks ok, continue to signing!
    *     // ...
    * }
-   * 
+   *
    * example();
    * ```
    */
@@ -111,14 +111,14 @@ export class Simulate {
   /**
    * Simulates a multi-agent transaction by generating a signed transaction and posting it to the Aptos full node.
    * This function helps in understanding the outcome of a transaction involving multiple signers before it is executed.
-   * 
+   *
    * @param args - The parameters for simulating the transaction.
    * @param args.signerPublicKey - The public key of the primary signer.
    * @param args.transaction - The raw transaction to be simulated.
    * @param args.secondarySignersPublicKeys - An array of public keys for secondary signers.
-   * @param args.feePayerPublicKey - (Optional) The public key of the fee payer. 
+   * @param args.feePayerPublicKey - (Optional) The public key of the fee payer.
    * @param args.options - (Optional) Options for simulating the transaction.
-   * 
+   *
    * @example
    * ```typescript
    * import {
@@ -127,21 +127,21 @@ export class Simulate {
    *     AptosConfig,
    *     Network,
    * } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function example() {
    *     let sender1 = Account.generate();
    *     let sender2 = Account.generate();
    *     let receiver = Account.generate();
-   * 
-   *     // 0. Setup the client and test accounts
+   *
+   *     // 0. Set up the client and test accounts
    *     const config = new AptosConfig({ network: Network.DEVNET });
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     await aptos.fundAccount({
    *         accountAddress: sender.accountAddress,
    *         amount: 100_000_000,
-   *     }); 
-   * 
+   *     });
+   *
    *     // 1. Build
    *     console.log("\n=== 1. Building the transaction ===\n");
    *     const transaction = await aptos.transaction.build.multiAgent({
@@ -155,7 +155,7 @@ export class Simulate {
    *        },
    *      });
    *      console.log("Transaction:", transaction);
-   *  
+   *
    *      // 2. Simulate (Optional)
    *      console.log("\n === 2. Simulating Response (Optional) === \n");
    *      const [userTransactionResponse] = await aptos.transaction.simulate.multiAgent(
@@ -166,11 +166,11 @@ export class Simulate {
    *        },
    *      );
    *      console.log(userTransactionResponse);
-   * 
+   *
    *      // If the fee looks ok, continue to signing!
    *      // ...
    * }
-   * 
+   *
    * example();
    * ```
    */

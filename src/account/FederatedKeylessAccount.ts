@@ -16,7 +16,7 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  *
  * Used to represent a FederatedKeyless based account and sign transactions with it.
  *
- * Use FederatedKeylessAccount.create to instantiate a KeylessAccount with a JWT, proof, EphemeralKeyPair and the
+ * Use `FederatedKeylessAccount.create()` to instantiate a KeylessAccount with a JWT, proof, EphemeralKeyPair and the
  * address the JWKs are installed that will be used to verify the JWT.
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,

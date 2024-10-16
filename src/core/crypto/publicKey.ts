@@ -6,7 +6,7 @@ import { Signature } from "./signature";
 
 /**
  * Represents the arguments required to verify a digital signature.
- * 
+ *
  * @param message - The original message that was signed.
  * @param signature - The signature to be verified against the message.
  */
@@ -17,7 +17,7 @@ export interface VerifySignatureArgs {
 
 /**
  * Represents an abstract public key.
- * 
+ *
  * This class provides a common interface for verifying signatures associated with the public key.
  * It allows for the retrieval of the raw public key bytes and the public key in a hexadecimal string format.
  */
@@ -36,7 +36,7 @@ export abstract class PublicKey extends Serializable {
 
   /**
    * Get the public key as a hex string with a 0x prefix.
-   * 
+   *
    * @returns The public key in hex format.
    */
   toString(): string {

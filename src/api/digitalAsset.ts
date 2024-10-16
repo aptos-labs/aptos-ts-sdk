@@ -54,24 +54,23 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  * A class to query all `DigitalAsset` related queries on Aptos.
  */
 export class DigitalAsset {
-
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
    * This allows you to interact with the Aptos blockchain using the provided settings.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
    *     const config = new AptosConfig({ network: Network.TESTNET }); // Specify your desired network
-   *     
+   *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
-   *     
+   *
    *     console.log("Aptos client initialized:", aptos);
    * }
    * runExample().catch(console.error);
@@ -83,7 +82,8 @@ export class DigitalAsset {
    * Queries data of a specific collection by the collection creator address and the collection name.
    * This function is deprecated; use `getCollectionDataByCreatorAddressAndCollectionName` instead.
    *
-   * If a creator account has two collections with the same name in v1 and v2, you can pass an optional `tokenStandard` parameter to query a specific standard.
+   * If a creator account has two collections with the same name in v1 and v2, you can pass an optional `tokenStandard` parameter
+   * to query a specific standard.
    *
    * @param args - The arguments for querying the collection data.
    * @param args.creatorAddress - The address of the collection's creator.
@@ -92,21 +92,21 @@ export class DigitalAsset {
    * @param args.options - Optional parameters for the query.
    * @param args.options.tokenStandard - The token standard to query.
    * @returns GetCollectionDataResponse - The response type containing the collection data.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Querying collection data by creator address and collection name
    *   const collection = await aptos.getCollectionData({
    *     creatorAddress: "0x1", // replace with a real creator address
    *     collectionName: "myCollection", // specify your collection name
    *   });
-   * 
+   *
    *   console.log(collection);
    * }
    * runExample().catch(console.error);
@@ -140,7 +140,7 @@ export class DigitalAsset {
 
   /**
    * Queries data of a specific collection by the collection creator address and the collection name.
-   * If a creator account has multiple collections with the same name across different versions, 
+   * If a creator account has multiple collections with the same name across different versions,
    * specify the `tokenStandard` parameter to query a specific standard.
    *
    * @param args.creatorAddress - The address of the collection's creator.
@@ -234,25 +234,25 @@ export class DigitalAsset {
 
   /**
    * Queries data of a specific collection by the collection ID.
-   * 
+   *
    * @param args.collectionId - The ID of the collection, which is the same as the address of the collection object.
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
    * @param args.options - Optional parameters for token standard and pagination.
    * @returns GetCollectionDataResponse - The response type containing the collection data.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching collection data by collection ID
    *   const collection = await aptos.getCollectionDataByCollectionId({
    *     collectionId: "0x123", // replace with a real collection ID
    *   });
-   * 
+   *
    *   console.log(collection);
    * }
    * runExample().catch(console.error);
@@ -280,21 +280,21 @@ export class DigitalAsset {
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
    * @param args.options.tokenStandard - The token standard to query.
    * @returns The collection ID.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching the collection ID for a specific creator and collection name
    *   const collectionId = await aptos.getCollectionId({
    *     creatorAddress: "0x1", // replace with a real creator address
    *     collectionName: "myCollection"
    *   });
-   * 
+   *
    *   console.log("Collection ID:", collectionId);
    * }
    * runExample().catch(console.error);
@@ -316,25 +316,25 @@ export class DigitalAsset {
 
   /**
    * Retrieves digital asset data using the address of a digital asset.
-   * 
+   *
    * @param args - The parameters for the request.
    * @param args.digitalAssetAddress - The address of the digital asset.
    * @param args.minimumLedgerVersion - Optional ledger version to sync up to before querying.
    * @returns GetTokenDataResponse containing relevant data for the digital asset.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching digital asset data for a specific address
    *   const digitalAsset = await aptos.getDigitalAssetData({
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(digitalAsset);
    * }
    * runExample().catch(console.error);
@@ -354,26 +354,26 @@ export class DigitalAsset {
 
   /**
    * Retrieves the current ownership data of a specified digital asset using its address.
-   * 
+   *
    * @param args The parameters for the request.
    * @param args.digitalAssetAddress The address of the digital asset.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
-   * 
+   *
    * @returns GetCurrentTokenOwnershipResponse containing relevant ownership data of the digital asset.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Getting the current ownership of a digital asset
    *   const digitalAssetOwner = await aptos.getCurrentDigitalAssetOwnership({
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(digitalAssetOwner);
    * }
    * runExample().catch(console.error);
@@ -393,26 +393,26 @@ export class DigitalAsset {
 
   /**
    * Retrieves the digital assets owned by a specified address.
-   * 
+   *
    * @param args.ownerAddress The address of the owner.
    * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
    * @param args.options Optional pagination and ordering parameters for the response.
-   * 
+   *
    * @returns GetOwnedTokensResponse containing ownership data of the digital assets belonging to the ownerAddress.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Fetching the digital assets owned by the specified address
    *   const digitalAssets = await aptos.getOwnedDigitalAssets({
    *     ownerAddress: "0x1", // replace with a real account address
    *   });
-   * 
+   *
    *   console.log(digitalAssets);
    * }
    * runExample().catch(console.error);
@@ -474,13 +474,13 @@ export class DigitalAsset {
 
   /**
    * Creates a new collection within the specified account.
-   * 
+   *
    * @param args.creator - The account of the collection's creator.
    * @param args.description - The description of the collection.
    * @param args.name - The name of the collection.
    * @param args.uri - The URI to additional info about the collection.
    * @param args.options - Optional parameters for generating the transaction.
-   * 
+   *
    * The parameters below are optional:
    * @param args.maxSupply - Controls the max supply of the digital assets. Defaults to MAX_U64_BIG_INT.
    * @param args.mutableDescription - Controls mutability of the collection's description. Defaults to true.
@@ -492,18 +492,20 @@ export class DigitalAsset {
    * @param args.mutableTokenUri - Controls mutability of the digital asset's URI. Defaults to true.
    * @param args.tokensBurnableByCreator - Controls whether digital assets can be burnable by the creator. Defaults to true.
    * @param args.tokensFreezableByCreator - Controls whether digital assets can be frozen by the creator. Defaults to true.
-   * @param args.royaltyNumerator - The numerator of the royalty to be paid to the creator when a digital asset is transferred. Defaults to 0.
-   * @param args.royaltyDenominator - The denominator of the royalty to be paid to the creator when a digital asset is transferred. Defaults to 1.
-   * 
+   * @param args.royaltyNumerator - The numerator of the royalty to be paid to the creator when a digital asset is transferred.
+   * Defaults to 0.
+   * @param args.royaltyDenominator - The denominator of the royalty to be paid to the creator when a digital asset is
+   * transferred. Defaults to 1.
+   *
    * @returns A SimpleTransaction that when submitted will create the collection.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Creating a new collection transaction
    *   const transaction = await aptos.createCollectionTransaction({
@@ -512,7 +514,7 @@ export class DigitalAsset {
    *     name: "My Digital Collection",
    *     uri: "https://mycollection.com",
    *   });
-   * 
+   *
    *   console.log("Transaction created:", transaction);
    * }
    * runExample().catch(console.error);
@@ -646,10 +648,10 @@ export class DigitalAsset {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Mint a soul bound digital asset
    *   const transaction = await aptos.mintSoulBoundTransaction({
@@ -660,7 +662,7 @@ export class DigitalAsset {
    *     uri: "digital-asset-uri.com",
    *     recipient: "0x123" // Replace with a real recipient account address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -683,29 +685,29 @@ export class DigitalAsset {
 
   /**
    * Burn a digital asset by its creator, allowing for the removal of a specified digital asset from the blockchain.
-   * 
+   *
    * @param args The arguments for burning the digital asset.
    * @param args.creator The creator account that is burning the digital asset.
    * @param args.digitalAssetAddress The address of the digital asset to be burned.
    * @param args.digitalAssetType Optional. The type of the digital asset being burned.
    * @param args.options Optional. Additional options for generating the transaction.
-   * 
+   *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const creator = Account.generate(); // Replace with a real creator account
    *   const transaction = await aptos.burnDigitalAssetTransaction({
    *     creator: creator,
    *     digitalAssetAddress: "0x123", // Replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -767,7 +769,7 @@ export class DigitalAsset {
    * @param args The parameters for unfreezing the digital asset transfer.
    * @param args.creator The creator account that is unfreezing the digital asset transfer.
    * @param args.digitalAssetAddress The address of the digital asset to unfreeze.
-   * @param args.digitalAssetType Optional. The type of the digital asset being unfreezed.
+   * @param args.digitalAssetType Optional. The type of the digital asset being unfrozen.
    * @param args.options Optional. Additional options for generating the transaction.
    *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
@@ -791,6 +793,7 @@ export class DigitalAsset {
    * runExample().catch(console.error);
    * ```
    */
+  // TODO: Rename Transafer to Transfer
   async unfreezeDigitalAssetTransaferTransaction(args: {
     creator: Account;
     digitalAssetAddress: AccountAddressInput;
@@ -802,23 +805,23 @@ export class DigitalAsset {
 
   /**
    * Set the digital asset description to provide additional context or information about the asset.
-   * 
+   *
    * @param args The parameters for setting the digital asset description.
    * @param args.creator The creator account responsible for the digital asset.
    * @param args.description The digital asset description to be set.
    * @param args.digitalAssetAddress The address of the digital asset.
    * @param args.digitalAssetType Optional. The type of the digital asset.
    * @param args.options Optional. Additional options for generating the transaction.
-   * 
+   *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Set the digital asset description
    *   const transaction = await aptos.setDigitalAssetDescriptionTransaction({
@@ -826,7 +829,7 @@ export class DigitalAsset {
    *     description: "This is a digital asset description.",
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -945,10 +948,10 @@ export class DigitalAsset {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Add a digital asset property
    *   const transaction = await aptos.addDigitalAssetPropertyTransaction({
@@ -958,7 +961,7 @@ export class DigitalAsset {
    *     propertyValue: true,
    *     digitalAssetAddress: "0x123", // Replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -1027,7 +1030,7 @@ export class DigitalAsset {
 
   /**
    * Update a digital asset property on-chain.
-   * 
+   *
    * @param args The parameters for updating the digital asset property.
    * @param args.creator The account that mints the digital asset.
    * @param args.digitalAssetAddress The address of the digital asset.
@@ -1036,16 +1039,16 @@ export class DigitalAsset {
    * @param args.propertyValue The property value to be stored on-chain.
    * @param args.digitalAssetType Optional. The type of the digital asset.
    * @param args.options Optional. Additional options for generating the transaction.
-   * 
+   *
    * @returns A SimpleTransaction that can be simulated or submitted to the chain.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Update a digital asset property
    *   const transaction = await aptos.updateDigitalAssetPropertyTransaction({
@@ -1055,7 +1058,7 @@ export class DigitalAsset {
    *     propertyValue: false,
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -1075,7 +1078,8 @@ export class DigitalAsset {
 
   /**
    * Add a typed digital asset property to the blockchain.
-   * This function allows you to define and store a specific property for a digital asset, enabling better categorization and management of digital assets.
+   * This function allows you to define and store a specific property for a digital asset, enabling better categorization and
+   * management of digital assets.
    *
    * @param args - The parameters for adding the typed property.
    * @param args.creator - The account that mints the digital asset.
@@ -1091,10 +1095,10 @@ export class DigitalAsset {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Adding a typed digital asset property
    *   const transaction = await aptos.addDigitalAssetTypedPropertyTransaction({
@@ -1104,7 +1108,7 @@ export class DigitalAsset {
    *     propertyValue: "hello",
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);
@@ -1140,10 +1144,10 @@ export class DigitalAsset {
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   // Update a typed digital asset property
    *   const transaction = await aptos.updateDigitalAssetTypedPropertyTransaction({
@@ -1153,7 +1157,7 @@ export class DigitalAsset {
    *     propertyValue: 2,
    *     digitalAssetAddress: "0x123", // replace with a real digital asset address
    *   });
-   * 
+   *
    *   console.log(transaction);
    * }
    * runExample().catch(console.error);

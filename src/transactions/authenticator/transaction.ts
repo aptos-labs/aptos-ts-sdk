@@ -13,7 +13,7 @@ import { TransactionAuthenticatorVariant } from "../../types";
 /**
  * Represents an abstract base class for transaction authenticators.
  * This class provides methods for serializing and deserializing different types of transaction authenticators.
- * 
+ *
  * @extends Serializable
  */
 export abstract class TransactionAuthenticator extends Serializable {
@@ -22,7 +22,7 @@ export abstract class TransactionAuthenticator extends Serializable {
   /**
    * Deserializes a TransactionAuthenticator from the provided deserializer.
    * This function helps in reconstructing the TransactionAuthenticator based on the variant index found in the serialized data.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): TransactionAuthenticator {
@@ -47,7 +47,7 @@ export abstract class TransactionAuthenticator extends Serializable {
 /**
  * Represents a transaction authenticator using Ed25519 for a single signer transaction.
  * This class encapsulates the client's public key and the Ed25519 signature of a raw transaction.
- * 
+ *
  * @param public_key - The client's public key.
  * @param signature - The Ed25519 signature of a raw transaction.
  * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
@@ -60,8 +60,9 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
 
   /**
    * Creates an instance of the class with the specified account authenticator.
-   * 
-   * @param sender - The AccountAuthenticator that will be used for authentication.
+   *
+   * @param public_key - The Ed25519PublicKey that will be used for authentication.
+   * @param signature - The Ed25519Signature that will be used for authentication.
    */
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
     super();
@@ -71,7 +72,7 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
 
   /**
    * Serializes the transaction authenticator by encoding the sender information.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serialize(serializer: Serializer): void {
@@ -83,7 +84,7 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
   /**
    * Loads a TransactionAuthenticatorSingleSender instance from the provided deserializer.
    * This function helps in deserializing the sender information to create a transaction authenticator.
-   * 
+   *
    * @param deserializer - The deserializer used to extract the sender data.
    */
   static load(deserializer: Deserializer): TransactionAuthenticatorEd25519 {
@@ -96,7 +97,7 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
 /**
  * Represents a transaction authenticator for multi-signature transactions using Ed25519.
  * This class is used to validate transactions that require multiple signatures from different signers.
- * 
+ *
  * @param public_key - The public key of the client involved in the transaction.
  * @param signature - The multi-signature of the raw transaction.
  */
@@ -126,9 +127,9 @@ export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticat
 
 /**
  * Represents a transaction authenticator for a multi-agent transaction.
- * 
+ *
  * This class manages the authentication process involving a primary sender and multiple secondary signers.
- * 
+ *
  * @param sender - The authenticator for the sender account.
  * @param secondary_signer_addresses - An array of addresses for the secondary signers.
  * @param secondary_signers - An array of authenticators for the secondary signer accounts.
@@ -168,7 +169,7 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
 
 /**
  * Represents a transaction authenticator specifically for fee payer transactions.
- * It encapsulates the sender's account authenticator, addresses of secondary signers, 
+ * It encapsulates the sender's account authenticator, addresses of secondary signers,
  * their respective authenticators, and the fee payer's account information.
  *
  * @param sender - The authenticator for the sender's account.

@@ -72,9 +72,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Creates an instance of AccountAddress from a Uint8Array.
-   * 
+   *
    * This function ensures that the input data is exactly 32 bytes long, which is required for a valid account address.
-   * 
+   *
    * @param input A Uint8Array representing an account address.
    * @throws ParsingError if the input length is not equal to 32 bytes.
    */
@@ -93,10 +93,10 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * Determines if the address is classified as special, which is defined as 0x0 to 0xf inclusive.
    * In other words, the last byte of the address must be < 0b10000 (16)
    * and every other byte must be zero.
-   * 
+   *
    * For more information on how special addresses are defined, see AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   * 
+   *
    * @returns true if the address is special, false otherwise.
    */
   isSpecial(): boolean {
@@ -113,7 +113,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
    * This representation returns special addresses in SHORT form (0xf)
    * and other addresses in LONG form (0x + 64 characters).
-   * 
+   *
    * @returns AccountAddress as a string conforming to AIP-40.
    */
   toString(): `0x${string}` {
@@ -122,9 +122,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Return the AccountAddress as a string conforming to AIP-40 but without the leading 0x.
-   * 
+   *
    * NOTE: Prefer to use `toString` where possible.
-   * 
+   *
    * @returns AccountAddress as a string without the leading 0x.
    */
   toStringWithoutPrefix(): string {
@@ -137,9 +137,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Convert the account address to a string in LONG format, which is always 0x followed by 64 hex characters.
-   * 
+   *
    * NOTE: Prefer to use `toString` where possible, as it formats special addresses using the SHORT form (no leading 0s).
-   * 
+   *
    * @returns AccountAddress as a string in LONG form.
    */
   toStringLong(): `0x${string}` {
@@ -149,9 +149,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Returns the account address as a string in LONG form without a leading 0x.
    * This function will include leading zeroes and will produce a string of 64 hex characters.
-   * 
+   *
    * NOTE: Prefer to use `toString` where possible, as it formats special addresses using the SHORT form (no leading 0s).
-   * 
+   *
    * @returns {string} The account address in LONG form.
    */
   toStringLongWithoutPrefix(): string {
@@ -186,7 +186,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Serializes the current instance into a byte sequence suitable for entry functions.
    * This allows for the proper encoding of data when interacting with entry functions in the blockchain.
-   * 
+   *
    * @param serializer - The serializer instance used to convert the data into bytes.
    */
   serializeForEntryFunction(serializer: Serializer): void {
@@ -197,7 +197,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * Serializes the current instance for use in a script function by encoding it into a byte sequence.
    * This process involves serializing the variant index and the instance data, making it suitable for transmission.
-   * 
+   *
    * @param serializer - The serializer instance used to perform the serialization.
    */
   serializeForScriptFunction(serializer: Serializer): void {
@@ -244,16 +244,16 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * This means the following are not accepted:
    * - SHORT for non-special addresses.
    * - Any address without a leading 0x.
-   * 
+   *
    * @param input - A hex string representing an account address.
-   * 
+   *
    * @throws {ParsingError} If the hex string does not start with 0x or is not in a valid format.
-   * 
+   *
    * @note This function has strict parsing behavior. For relaxed behavior, please use the `fromString` function.
-   * 
-   * @see AIP-40 documentation for more details on address formats: 
+   *
+   * @see AIP-40 documentation for more details on address formats:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   * 
+   *
    * @returns An instance of AccountAddress.
    */
   static fromStringStrict(input: string): AccountAddress {
@@ -305,11 +305,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * Learn more about the different address formats by reading AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
-   * 
+   *
    * @param input - A hex string representing an account address.
-   * 
+   *
    * @returns An instance of AccountAddress.
-   * 
+   *
    * @throws ParsingError if the hex string is too short, too long, or contains invalid characters.
    */
   static fromString(input: string): AccountAddress {
@@ -352,9 +352,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Convenience method for creating an AccountAddress from various input types.
-   * This function accepts a string, Uint8Array, or an existing AccountAddress instance and returns the corresponding AccountAddress.
-   * 
-   * @param input - The input to convert into an AccountAddress. This can be a string representation of an address, a Uint8Array, or an existing AccountAddress.
+   * This function accepts a string, Uint8Array, or an existing AccountAddress instance and returns the corresponding
+   * AccountAddress.
+   *
+   * @param input - The input to convert into an AccountAddress. This can be a string representation of an address, a Uint8Array,
+   * or an existing AccountAddress.
    */
   static from(input: AccountAddressInput): AccountAddress {
     if (typeof input === "string") {
@@ -368,7 +370,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Create an AccountAddress from various input types, including strings, Uint8Array, and AccountAddress instances.
-   * 
+   *
    * @param input - The input to convert into an AccountAddress, which can be a string, a Uint8Array, or an AccountAddress.
    */
   static fromStrict(input: AccountAddressInput): AccountAddress {
@@ -390,7 +392,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * @param args - The arguments for validation.
    * @param args.input - A hex string representing an account address.
    * @param args.strict - If true, use strict parsing behavior; if false, use relaxed parsing behavior.
-   * 
+   *
    * @returns An object indicating whether the address is valid. If valid, valid = true; if not, valid = false with additional details.
    * If the address is invalid, invalidReason will explain why it is invalid, and invalidReasonMessage will provide the error message.
    */
@@ -413,7 +415,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
 
   /**
    * Determine if two AccountAddresses are equal based on their underlying byte data.
-   * 
+   *
    * @param other - The AccountAddress to compare to.
    * @returns true if the AccountAddresses are equal, false if not.
    */

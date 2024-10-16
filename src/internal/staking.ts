@@ -17,7 +17,7 @@ import { queryIndexer } from "./general";
 
 /**
  * Retrieves the number of active delegators for a specified pool address.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.poolAddress - The address of the pool for which to retrieve the number of delegators.
@@ -35,14 +35,14 @@ export async function getNumberOfDelegators(args: {
   };
   const data = await queryIndexer<GetNumberOfDelegatorsQuery>({ aptosConfig, query });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data.num_active_delegator_per_pool[0] ? data.num_active_delegator_per_pool[0].num_active_delegator : 0;
 }
 
 /**
  * Retrieves the number of active delegators for all pools.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration for the Aptos client.
  * @param [args.options] - Optional parameters for ordering the results.
@@ -67,7 +67,7 @@ export async function getNumberOfDelegatorsForAllPools(args: {
 
 /**
  * Retrieves the delegated staking activities for a specified delegator and pool.
- * 
+ *
  * @param args - The parameters for the query.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.delegatorAddress - The address of the delegator whose activities are being queried.

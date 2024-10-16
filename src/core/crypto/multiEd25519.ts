@@ -10,11 +10,11 @@ import { Signature } from "./signature";
 
 /**
  * Represents the public key of a K-of-N Ed25519 multi-sig transaction.
- * 
+ *
  * A K-of-N multi-sig transaction requires at least K out of N authorized signers to sign the transaction
  * for it to be executed. This class encapsulates the logic for managing the public keys and the threshold
  * for valid signatures.
- * 
+ *
  * @see {@link https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
  */
 export class MultiEd25519PublicKey extends AccountPublicKey {
@@ -49,11 +49,11 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
    * and passed the check conducted by the chain.
    *
    * @see {@link
-  * https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
-  * @param args - A wrapper to let you choose the param order.
-  * @param args.publicKeys A list of public keys
-  * @param args.threshold At least "threshold" signatures must be valid
-  */
+   * https://aptos.dev/integration/creating-a-signed-transaction/ | Creating a Signed Transaction}
+   * @param args - A wrapper to let you choose the param order.
+   * @param args.publicKeys A list of public keys
+   * @param args.threshold At least "threshold" signatures must be valid
+   */
   constructor(args: { publicKeys: Ed25519PublicKey[]; threshold: number }) {
     super();
     const { publicKeys, threshold } = args;
@@ -82,7 +82,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
   /**
    * Verifies a multi-signature against a given message.
    * This function ensures that the provided signatures meet the required threshold and are valid for the given message.
-   * 
+   *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The multi-signature containing multiple signatures and a bitmap indicating which signatures are valid.
@@ -127,7 +127,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
   /**
    * Generates an authentication key based on the current instance's byte representation.
    * This function is essential for creating a secure authentication key that can be used for various cryptographic operations.
-   * 
+   *
    * @returns {AuthenticationKey} The generated authentication key.
    */
   authKey(): AuthenticationKey {
@@ -158,7 +158,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
   /**
    * Serializes the current instance into bytes using the provided serializer.
    * This allows for the conversion of the instance's data into a format suitable for transmission or storage.
-   * 
+   *
    * @param serializer - The serializer used to convert the instance into bytes.
    */
   serialize(serializer: Serializer): void {
@@ -168,7 +168,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
   /**
    * Deserializes a MultiEd25519Signature from the provided deserializer.
    * This function helps in reconstructing a MultiEd25519Signature object from its serialized byte representation.
-   * 
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): MultiEd25519PublicKey {
@@ -189,7 +189,7 @@ export class MultiEd25519PublicKey extends AccountPublicKey {
 
 /**
  * Represents the signature of a K-of-N Ed25519 multi-sig transaction.
- * 
+ *
  * @see {@link https://aptos.dev/integration/creating-a-signed-transaction/#multisignature-transactions | Creating a Signed Transaction}
  */
 export class MultiEd25519Signature extends Signature {
@@ -290,10 +290,10 @@ export class MultiEd25519Signature extends Signature {
   /**
    * Helper method to create a bitmap out of the specified bit positions.
    * This function allows you to set specific bits in a 32-bit long bitmap based on the provided positions.
-   * 
+   *
    * @param args The arguments for creating the bitmap.
    * @param args.bits The bitmap positions that should be set. A position starts at index 0. Valid positions should range between 0 and 31.
-   * 
+   *
    * @example
    * Here's an example of valid `bits`
    * ```
@@ -301,7 +301,7 @@ export class MultiEd25519Signature extends Signature {
    * ```
    * `[0, 2, 31]` means the 1st, 3rd and 32nd bits should be set in the bitmap.
    * The result bitmap should be 0b1010000000000000000000000000001
-   * 
+   *
    * @returns bitmap that is 32 bits long.
    */
   static createBitmap(args: { bits: number[] }): Uint8Array {

@@ -15,7 +15,7 @@ import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
 
 /**
  * This class serves as a base class for all serializable types. It facilitates
- * composable serialization of complex types and enables the serialization of 
+ * composable serialization of complex types and enables the serialization of
  * instances to their BCS (Binary Canonical Serialization) representation.
  */
 export abstract class Serializable {
@@ -33,7 +33,7 @@ export abstract class Serializable {
   }
 
   /**
-   * Converts the BCS-serialized bytes of a value into a Hex instance. 
+   * Converts the BCS-serialized bytes of a value into a Hex instance.
    * This function provides a Hex representation of the BCS-serialized data for easier handling and manipulation.
    * @returns A Hex instance with the BCS-serialized bytes loaded into its underlying Uint8Array.
    */
@@ -57,7 +57,7 @@ export class Serializer {
   /**
    * Constructs a serializer with a buffer of size `length` bytes, 64 bytes by default.
    * The `length` must be greater than 0.
-   * 
+   *
    * @param length - The size of the buffer in bytes.
    */
   constructor(length: number = 64) {
@@ -71,7 +71,7 @@ export class Serializer {
   /**
    * Ensures that the internal buffer can accommodate the specified number of bytes.
    * This function dynamically resizes the buffer if the current size is insufficient.
-   * 
+   *
    * @param bytes - The number of bytes to ensure the buffer can handle.
    */
   private ensureBufferWillHandleSize(bytes: number) {
@@ -84,7 +84,7 @@ export class Serializer {
 
   /**
    * Appends the specified values to the buffer, ensuring that the buffer can accommodate the new data.
-   * 
+   *
    * @param {Uint8Array} values - The values to be appended to the buffer.
    */
   protected appendToBuffer(values: Uint8Array) {
@@ -95,12 +95,13 @@ export class Serializer {
 
   /**
    * Serializes a value into the buffer using the provided function, ensuring the buffer can accommodate the size.
-   * 
+   *
    * @param fn - The function to serialize the value, which takes a byte offset, the value to serialize, and an optional little-endian flag.
-   * @param byteOffset - The byte offset at which to write the value.
-   * @param value - The numeric value to serialize into the buffer.
-   * @param littleEndian - Optional flag indicating whether to use little-endian byte order (defaults to true).
+   * @param fn.byteOffset - The byte offset at which to write the value.
+   * @param fn.value - The numeric value to serialize into the buffer.
+   * @param fn.littleEndian - Optional flag indicating whether to use little-endian byte order (defaults to true).
    */
+  // TODO: JSDoc bytesLength and value
   private serializeWithFunction(
     fn: (byteOffset: number, value: number, littleEndian?: boolean) => void,
     bytesLength: number,
@@ -116,12 +117,12 @@ export class Serializer {
    * Serializes a string. UTF8 string is supported.
    * The number of bytes in the string content is serialized first, as a uleb128-encoded u32 integer.
    * Then the string content is serialized as UTF8 encoded bytes.
-   * 
+   *
    * BCS layout for "string": string_length | string_content
    * where string_length is a u32 integer encoded as a uleb128 integer, equal to the number of bytes in string_content.
-   * 
+   *
    * @param value - The string to serialize.
-   * 
+   *
    * @example
    * ```typescript
    * const serializer = new Serializer();
@@ -136,7 +137,7 @@ export class Serializer {
 
   /**
    * Serializes an array of bytes.
-   * 
+   *
    * This function encodes the length of the byte array as a u32 integer in uleb128 format, followed by the byte array itself.
    * BCS layout for "bytes": bytes_length | bytes
    * where bytes_length is a u32 integer encoded as a uleb128 integer, equal to the length of the bytes array.
@@ -148,7 +149,8 @@ export class Serializer {
   }
 
   /**
-   * Serializes an array of bytes with a known length, allowing for efficient deserialization without needing to serialize the length itself.
+   * Serializes an array of bytes with a known length, allowing for efficient deserialization without needing to serialize the
+   * length itself.
    * When deserializing, the number of bytes to deserialize needs to be passed in.
 
    * @param value - The Uint8Array to be serialized.
@@ -159,17 +161,16 @@ export class Serializer {
 
   /**
    * Serializes a boolean value into a byte representation.
-   * 
+   *
    * The BCS layout for a boolean uses one byte, where "0x01" represents true and "0x00" represents false.
-   * 
+   *
    * @param value - The boolean value to serialize.
    */
   serializeBool(value: boolean) {
-
     /**
-     * Ensures that the provided value is a boolean. 
+     * Ensures that the provided value is a boolean.
      * This function throws an error if the value is not a boolean, helping to enforce type safety in your code.
-     * 
+     *
      * @param value - The value to be checked for boolean type.
      * @throws {Error} Throws an error if the value is not a boolean.
      */
@@ -181,7 +182,7 @@ export class Serializer {
   /**
    * Serializes a Uint8 value and appends it to the buffer.
    * BCS layout for "uint8": One byte. Binary format in little-endian representation.
-   * 
+   *
    * @param value - The Uint8 value to serialize.
    */
   @checkNumberRange(0, MAX_U8_NUMBER)
@@ -215,7 +216,7 @@ export class Serializer {
   /**
    * Serializes a 32-bit unsigned integer value into a binary format.
    * This function is useful for encoding data that needs to be stored or transmitted in a compact form.
-  * @example
+   * @example
    * ```typescript
    * const serializer = new Serializer();
    * serializer.serializeU32(305419896);
@@ -231,7 +232,7 @@ export class Serializer {
   /**
    * Serializes a 64-bit unsigned integer into a format suitable for storage or transmission.
    * This function breaks down the value into two 32-bit components and writes them in little-endian order.
-   * 
+   *
    * @param value - The 64-bit unsigned integer to serialize, represented as a number.
    * @example
    * ```ts
@@ -252,7 +253,7 @@ export class Serializer {
 
   /**
    * Serializes a U128 value into a format suitable for storage or transmission.
-   * 
+   *
    * @param value - The U128 value to serialize, represented as a number.
    */
   @checkNumberRange(BigInt(0), MAX_U128_BIG_INT)
@@ -268,7 +269,7 @@ export class Serializer {
   /**
    * Serializes a U256 value into a byte representation.
    * This function is essential for encoding large numbers in a compact format suitable for transmission or storage.
-   * 
+   *
    * @param value - The U256 value to serialize, represented as an AnyNumber.
    */
   @checkNumberRange(BigInt(0), MAX_U256_BIG_INT)
@@ -284,7 +285,7 @@ export class Serializer {
   /**
    * Serializes a 32-bit unsigned integer as a variable-length ULEB128 encoded byte array.
    * BCS uses uleb128 encoding in two cases: (1) lengths of variable-length sequences and (2) tags of enum values
-   * 
+   *
    * @param val - The 32-bit unsigned integer value to be serialized.
    */
   @checkNumberRange(0, MAX_U32_NUMBER)
@@ -301,9 +302,9 @@ export class Serializer {
 
   /**
    * Returns the buffered bytes as a Uint8Array.
-   * 
+   *
    * This function allows you to retrieve the byte representation of the buffer up to the current offset.
-   * 
+   *
    * @returns Uint8Array - The byte array representation of the buffer.
    */
   toUint8Array(): Uint8Array {
@@ -312,9 +313,9 @@ export class Serializer {
 
   /**
    * Serializes a `Serializable` value, facilitating composable serialization.
-   * 
+   *
    * @param value The Serializable value to serialize.
-   * 
+   *
    * @returns the serializer instance
    */
   serialize<T extends Serializable>(value: T): void {
@@ -324,7 +325,7 @@ export class Serializer {
   }
 
   /**
-   * Serializes an array of BCS Serializable values to a serializer instance. 
+   * Serializes an array of BCS Serializable values to a serializer instance.
    * The bytes are added to the serializer instance's byte buffer.
    *
    * @param values The array of BCS Serializable values
@@ -376,13 +377,13 @@ export class Serializer {
   }
 
   /**
-   * Serializes an optional string, supporting UTF8 encoding. 
+   * Serializes an optional string, supporting UTF8 encoding.
    * The function encodes the existence of the string first, followed by the length and content if it exists.
-   * 
+   *
    * BCS layout for optional "string": 1 | string_length | string_content
    * where string_length is a u32 integer encoded as a uleb128 integer, equal to the number of bytes in string_content.
    * BCS layout for undefined: 0
-   * 
+   *
    * @param value - The optional string to serialize. If undefined, it will serialize as 0.
    */
   serializeOptionStr(value?: string): void {
@@ -407,7 +408,7 @@ export const outOfRangeErrorMessage = (value: AnyNumber, min: AnyNumber, max: An
 /**
  * Validates that a given number is within a specified range.
  * This function throws an error if the value is outside the defined minimum and maximum bounds.
- * 
+ *
  * @param value - The number to validate.
  * @param minValue - The minimum allowable value (inclusive).
  * @param maxValue - The maximum allowable value (inclusive).
@@ -422,7 +423,7 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
 /**
  * A decorator that validates that the input argument for a function is within a specified range.
  * This ensures that the function is only called with valid input values, preventing potential errors.
- * 
+ *
  * @param minValue - The input argument must be greater than or equal to this value.
  * @param maxValue - The input argument must be less than or equal to this value.
  */

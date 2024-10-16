@@ -8,7 +8,7 @@ import { AptosConfig } from "../aptosConfig";
 
 /**
  * A class to handle all `Sign` transaction operations.
- * 
+ *
  * @param config - The configuration object for Aptos.
  */
 export class Sign {
@@ -16,18 +16,18 @@ export class Sign {
 
   /**
    * Creates an instance of the Aptos client with the specified configuration.
-   * 
+   *
    * @param config - The configuration settings for the Aptos client.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * async function runExample() {
    *     // Create a new Aptos client with testnet configuration
    *     const config = new AptosConfig({ network: Network.TESTNET });
    *     const aptos = new Aptos(config);
-   * 
+   *
    *     console.log("Aptos client created with config:", config);
    * }
    * runExample().catch(console.error);
@@ -38,19 +38,20 @@ export class Sign {
   }
 
   /**
-   * Signs a transaction using the provided account signer. This function is essential for ensuring that transactions are properly authenticated before being sent to the network.
-   * 
+   * Signs a transaction using the provided account signer. This function is essential for ensuring that transactions are properly
+   * authenticated before being sent to the network.
+   *
    * @param args - The arguments for signing the transaction.
    * @param args.signer - The account that will sign the transaction.
    * @param args.transaction - The raw transaction data to be signed.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for signing
    *   const transaction = await aptos.transaction.build.simple({
@@ -60,13 +61,13 @@ export class Sign {
    *       functionArguments: [ "0x1", 100 ], // replace with a real account address and amount
    *     },
    *   });
-   * 
+   *
    *   // Sign the transaction
    *   const signedTransaction = await aptos.transaction.sign({
    *     signer: sender,
    *     transaction: transaction,
    *   });
-   * 
+   *
    *   console.log("Signed Transaction:", signedTransaction);
    * }
    * runExample().catch(console.error);
@@ -82,20 +83,20 @@ export class Sign {
   /**
    * Sets the fee payer address for a transaction and signs it with the provided account.
    * This function is essential for transactions that require a designated fee payer.
-   * 
+   *
    * @param args - The arguments for the function.
    * @param args.signer - The account that will sign the transaction.
    * @param args.transaction - The transaction object that requires a fee payer address.
-   * 
+   *
    * @throws Error if the transaction does not have a feePayerAddress property.
-   * 
+   *
    * @example
    * ```typescript
    * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
-   * 
+   *
    * const config = new AptosConfig({ network: Network.TESTNET });
    * const aptos = new Aptos(config);
-   * 
+   *
    * async function runExample() {
    *   const sender = Account.generate(); // Generate a new account for signing
    *   const transaction = await aptos.transaction.build.simple({
@@ -105,12 +106,12 @@ export class Sign {
    *       functionArguments: ["0x1", 100], // replace with a real recipient address
    *     },
    *   });
-   * 
+   *
    *   // Set the fee payer for the transaction
    *   transaction.feePayerAddress = "0x1"; // replace with a real fee payer address
-   * 
+   *
    *   const signedTransaction = await aptos.transactionAsFeePayer({ signer: sender, transaction });
-   * 
+   *
    *   console.log("Signed Transaction:", signedTransaction);
    * }
    * runExample().catch(console.error);
@@ -120,7 +121,7 @@ export class Sign {
   transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
     const { signer, transaction } = args;
 
-    // if transaction doesnt hold a "feePayerAddress" prop it means
+    // if transaction doesn't hold a "feePayerAddress" prop it means
     // this is not a fee payer transaction
     if (!transaction.feePayerAddress) {
       throw new Error(`Transaction ${transaction} is not a Fee Payer transaction`);

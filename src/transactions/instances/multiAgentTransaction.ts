@@ -24,7 +24,7 @@ export class MultiAgentTransaction extends Serializable {
   public secondarySignerAddresses: AccountAddress[];
 
   /**
-   * Represents a simple transaction type of a single signer that can be submitted to the Aptos chain for execution.
+   * Represents a MultiAgentTransaction that can be submitted to the Aptos chain for execution.
    * This class encapsulates the raw transaction data, the secondary signer addresses, and an optional fee payer address.
    *
    * @param rawTransaction The raw transaction data.
@@ -45,7 +45,7 @@ export class MultiAgentTransaction extends Serializable {
   /**
    * Serializes the transaction data, including the raw transaction, secondary signer addresses, and fee payer address.
    * This function is essential for preparing the transaction for transmission or storage in a serialized format.
-   * 
+   *
    * @param serializer - The serializer instance used to serialize the transaction data.
    */
   serialize(serializer: Serializer): void {
@@ -63,8 +63,9 @@ export class MultiAgentTransaction extends Serializable {
 
   /**
    * Deserializes a MultiAgentTransaction from the provided deserializer.
-   * This function allows you to reconstruct a MultiAgentTransaction object from its serialized form, including any secondary signer addresses and the fee payer address if present.
-   * 
+   * This function allows you to reconstruct a MultiAgentTransaction object from its serialized form, including any secondary
+   * signer addresses and the fee payer address if present.
+   *
    * @param deserializer - The deserializer instance used to read the serialized data.
    */
   static deserialize(deserializer: Deserializer): MultiAgentTransaction {
@@ -72,9 +73,9 @@ export class MultiAgentTransaction extends Serializable {
 
     const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress);
 
-    const feepayerPresent = deserializer.deserializeBool();
+    const feePayerPresent = deserializer.deserializeBool();
     let feePayerAddress;
-    if (feepayerPresent) {
+    if (feePayerPresent) {
       feePayerAddress = AccountAddress.deserialize(deserializer);
     }
 

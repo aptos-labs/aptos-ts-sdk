@@ -59,7 +59,7 @@ import { APTOS_COIN } from "../utils";
 
 /**
  * Retrieves account information for a specified account address.
- * 
+ *
  * @param args - The arguments for retrieving account information.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.accountAddress - The address of the account to retrieve information for.
@@ -79,7 +79,7 @@ export async function getInfo(args: {
 
 /**
  * Retrieves the modules associated with a specified account address.
- * 
+ *
  * @param args - The arguments for retrieving modules.
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.accountAddress - The address of the account whose modules are to be retrieved.
@@ -139,7 +139,7 @@ export async function getModule(args: {
 
 /**
  * Retrieves the bytecode of a specified module from a given account address.
- * 
+ *
  * @param args - The parameters for retrieving the module bytecode.
  * @param args.aptosConfig - The configuration for connecting to the Aptos network.
  * @param args.accountAddress - The address of the account from which to retrieve the module.
@@ -167,7 +167,7 @@ async function getModuleInner(args: {
 /**
  * Retrieves a list of transactions associated with a specific account address.
  * This function allows you to paginate through the transactions for better performance and usability.
- * 
+ *
  * @param args - The arguments for retrieving transactions.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The account address for which to retrieve transactions.
@@ -191,7 +191,7 @@ export async function getTransactions(args: {
 
 /**
  * Retrieves a list of resources associated with a specific account address.
- * 
+ *
  * @param args - The arguments for retrieving resources.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account to fetch resources for.
@@ -220,7 +220,7 @@ export async function getResources(args: {
 
 /**
  * Retrieves a specific resource of a given type for the specified account address.
- * 
+ *
  * @param args - The arguments for retrieving the resource.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account from which to retrieve the resource.
@@ -245,7 +245,7 @@ export async function getResource<T extends {}>(args: {
 
 /**
  * Retrieves the original account address associated with a given authentication key, which is useful for handling key rotations.
- * 
+ *
  * @param args - The arguments for the lookup.
  * @param args.aptosConfig - The configuration for the Aptos client.
  * @param args.authenticationKey - The authentication key for which to look up the original address.
@@ -301,7 +301,7 @@ export async function lookupOriginalAccountAddress(args: {
 
 /**
  * Retrieves the count of tokens owned by a specific account address.
- * 
+ *
  * @param args - The arguments for retrieving the account tokens count.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.accountAddress - The address of the account for which to count the tokens.
@@ -331,7 +331,7 @@ export async function getAccountTokensCount(args: {
     originMethod: "getAccountTokensCount",
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data.current_token_ownerships_v2_aggregate.aggregate
     ? data.current_token_ownerships_v2_aggregate.aggregate.count
@@ -340,7 +340,7 @@ export async function getAccountTokensCount(args: {
 
 /**
  * Retrieves the tokens owned by a specified account address.
- * 
+ *
  * @param args - The arguments for retrieving the account's tokens.
  * @param args.aptosConfig - The configuration for the Aptos client.
  * @param args.accountAddress - The address of the account whose tokens are being queried.
@@ -390,12 +390,13 @@ export async function getAccountOwnedTokens(args: {
 
 /**
  * Retrieves the tokens owned by a specific account from a particular collection address.
- * 
+ *
  * @param args - The parameters required to fetch the owned tokens.
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.accountAddress - The address of the account whose tokens are being queried.
  * @param args.collectionAddress - The address of the collection from which tokens are being retrieved.
- * @param args.options - Optional parameters for filtering and pagination, including token standard, pagination arguments, and order by options.
+ * @param args.options - Optional parameters for filtering and pagination, including token standard, pagination arguments, and
+ * order by options.
  */
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
@@ -443,7 +444,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
 
 /**
  * Retrieves the collections owned by a specified account along with the tokens in those collections.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration for the Aptos client.
  * @param args.accountAddress - The address of the account whose collections are being queried.
@@ -495,7 +496,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
 
 /**
  * Retrieves the count of transactions associated with a specified account.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account for which to retrieve the transaction count.
@@ -520,14 +521,14 @@ export async function getAccountTransactionsCount(args: {
     originMethod: "getAccountTransactionsCount",
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data.account_transactions_aggregate.aggregate ? data.account_transactions_aggregate.aggregate.count : 0;
 }
 
 /**
  * Retrieves the amount of a specific coin held by an account.
- * 
+ *
  * @param args - The parameters for the request.
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.accountAddress - The address of the account to query.
@@ -583,14 +584,14 @@ export async function getAccountCoinAmount(args: {
     },
   });
 
-  // commonjs (aka cjs) doesnt handle Nullish Coalescing for some reason
+  // commonjs (aka cjs) doesn't handle Nullish Coalescing for some reason
   // might be because of how ts infer the graphql generated scheme type
   return data[0] ? data[0].amount : 0;
 }
 
 /**
  * Retrieves the current fungible asset balances for a specified account.
- * 
+ *
  * @param args - The arguments for retrieving account coins data.
  * @param args.aptosConfig - The configuration for connecting to the Aptos network.
  * @param args.accountAddress - The address of the account for which to retrieve coin data.
@@ -634,7 +635,7 @@ export async function getAccountCoinsData(args: {
 
 /**
  * Retrieves the count of fungible asset coins held by a specified account.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.accountAddress - The address of the account for which to retrieve the coin count.
@@ -667,7 +668,7 @@ export async function getAccountCoinsCount(args: {
 
 /**
  * Retrieves the objects owned by a specified account.
- * 
+ *
  * @param args - The parameters for the request.
  * @param args.aptosConfig - The configuration for the Aptos client.
  * @param args.accountAddress - The address of the account whose owned objects are to be retrieved.
@@ -708,14 +709,14 @@ export async function getAccountOwnedObjects(args: {
 
 /**
  * Derives an account from the provided private key and Aptos configuration.
- * This function helps in obtaining the account details associated with a given private key, 
+ * This function helps in obtaining the account details associated with a given private key,
  * considering both unified and legacy authentication schemes.
- * 
+ *
  * NOTE: There is a potential issue once the unified single signer scheme is adopted by the community.
  * Because one could create two accounts with the same private key with this new authenticator type,
- * we’ll need to determine the order in which we look up the accounts: first unified scheme and then legacy scheme, 
+ * we’ll need to determine the order in which we look up the accounts: first unified scheme and then legacy scheme,
  * or first legacy scheme and then unified scheme.
- * 
+ *
  * @param args - The arguments for deriving the account.
  * @param args.aptosConfig - The Aptos configuration used for account lookup.
  * @param args.privateKey - The private key used to derive the account.
@@ -765,12 +766,12 @@ export async function deriveAccountFromPrivateKey(args: {
 
 /**
  * Checks if an account exists by verifying its information against the Aptos blockchain.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.authKey - The authentication key used to derive the account address.
  * @returns A promise that resolves to a boolean indicating whether the account exists.
- * 
+ *
  * @throws Throws an Error if there is an issue while looking for account information.
  */
 export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: AuthenticationKey }): Promise<boolean> {

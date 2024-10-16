@@ -28,11 +28,11 @@ import { Account } from "../../account";
 import { getInfo } from "../../internal/account";
 import { nowInSeconds, sleep } from "../../utils/helpers";
 
-/** 
+/**
  * Represents an account's sequence number management for transaction handling on the Aptos blockchain.
  * This class provides methods to retrieve the next available sequence number, synchronize with the on-chain sequence number,
  * and manage local sequence numbers while ensuring thread safety.
- * 
+ *
  * @param aptosConfig - The configuration settings for Aptos.
  * @param account - The account associated with the sequence number.
  * @param maxWaitTime - The maximum time to wait for a transaction to commit.
@@ -45,6 +45,7 @@ export class AccountSequenceNumber {
   readonly account: Account;
 
   // sequence number on chain
+  // TODO: Change to Uncommitted
   lastUncommintedNumber: bigint | null = null;
 
   // local sequence number
@@ -57,7 +58,7 @@ export class AccountSequenceNumber {
    * which can result in race conditions and data inconsistency.
    * This code actually doesn't do it though, since we aren't giving out a slot, it is still somewhat a race condition.
    *
-   * The ideal solution is likely that each thread grabs the next number from a incremental integer.
+   * The ideal solution is likely that each thread grabs the next number from an incremental integer.
    * When they complete, they increment that number and that entity is able to enter the `lock`.
    * That would guarantee ordering.
    */
@@ -72,7 +73,7 @@ export class AccountSequenceNumber {
   /**
    * Creates an instance of the class with the specified configuration and account details.
    * This constructor initializes the necessary parameters for managing Aptos transactions.
-   * 
+   *
    * @param aptosConfig - The configuration settings for Aptos.
    * @param account - The account associated with the Aptos transactions.
    * @param maxWaitTime - The maximum time to wait for a transaction to be processed, in milliseconds.
@@ -121,7 +122,7 @@ export class AccountSequenceNumber {
           if (nowInSeconds() - startTime > this.maxWaitTime) {
             /* eslint-disable no-console */
             console.warn(
-              `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,
+              `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
             );
             await this.initialize();
           } else {
@@ -141,9 +142,9 @@ export class AccountSequenceNumber {
 
   /**
    * Initializes this account with the sequence number on chain.
-   * 
+   *
    * @returns {Promise<void>} A promise that resolves when the account has been initialized.
-   * 
+   *
    * @throws {Error} Throws an error if the account information cannot be retrieved.
    */
   async initialize(): Promise<void> {
@@ -157,7 +158,7 @@ export class AccountSequenceNumber {
 
   /**
    * Updates this account's sequence number with the one on-chain.
-   * 
+   *
    * @returns The on-chain sequence number for this account.
    */
   async update(): Promise<bigint> {
@@ -192,7 +193,7 @@ export class AccountSequenceNumber {
         if (nowInSeconds() - startTime > this.maxWaitTime) {
           /* eslint-disable no-console */
           console.warn(
-            `Waited over 30 seconds for a transaction to commit, resyncing ${this.account.accountAddress.toString()}`,
+            `Waited over 30 seconds for a transaction to commit, re-syncing ${this.account.accountAddress.toString()}`,
           );
           await this.initialize();
         } else {

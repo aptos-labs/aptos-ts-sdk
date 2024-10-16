@@ -48,7 +48,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 /**
  * Retrieves metadata for fungible assets based on specified criteria.
  * This function allows you to filter and paginate through fungible asset metadata.
- * 
+ *
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration for Aptos.
  * @param [args.options] - Optional parameters for pagination and filtering.
@@ -83,7 +83,7 @@ export async function getFungibleAssetMetadata(args: {
 /**
  * Retrieves the activities associated with fungible assets.
  * This function allows you to filter and paginate through the activities based on specified conditions.
- * 
+ *
  * @param args - The arguments for retrieving fungible asset activities.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param [args.options] - Optional parameters for pagination and filtering.
@@ -118,7 +118,7 @@ export async function getFungibleAssetActivities(args: {
 
 /**
  * Retrieves the current balances of fungible assets for a specified configuration.
- * 
+ *
  * @param args - The arguments for retrieving fungible asset balances.
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.options - Optional parameters for pagination and filtering.
@@ -157,9 +157,9 @@ const faTransferAbi: EntryFunctionABI = {
 };
 
 /**
- * Transfers a specified amount of a fungible asset from the sender to the recipient. 
+ * Transfers a specified amount of a fungible asset from the sender to the recipient.
  * This function helps facilitate the transfer of digital assets between accounts on the Aptos blockchain.
- * 
+ *
  * @param args - The parameters for the transfer operation.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.sender - The account initiating the transfer.
