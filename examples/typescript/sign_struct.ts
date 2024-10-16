@@ -31,7 +31,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ??
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
   type Coin = { coin: { value: string } };
   const resource = await aptos.getAccountResource<Coin>({
     accountAddress: address,
@@ -44,7 +44,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 };
 
 /**
- * Matches the onchain <address>::claims::Claim struct
+ * Matches the on-chain <address>::claims::Claim struct
  */
 export class Claim extends Serializable {
   // Contract's address
@@ -91,7 +91,7 @@ export class Claim extends Serializable {
 const example = async () => {
   console.log("This example will publish a contract, and show how to sign a struct and prove it on-chain");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 

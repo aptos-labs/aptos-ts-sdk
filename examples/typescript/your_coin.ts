@@ -6,7 +6,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
 
 /**
  * This example demonstrate how one can publish a new custom coin to chain.
- * It uses the MoonCoin.move module that can be found in this folder
+ * It uses the `MoonCoin.move()` module that can be found in this folder
  *
  * Before running this example, we should compile the package locally:
  * 1. Acquire the Aptos CLI, see https://aptos.dev/tools/aptos-cli/
@@ -17,7 +17,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
 const MOON_COINS_TO_MINT = 100;
 const MOON_COINS_TO_TRANSFER = 100;
 
-// Setup the client
+// Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
@@ -78,14 +78,11 @@ async function mintCoin(minter: Account, receiverAddress: AccountAddress, amount
 }
 
 /** Returns the balance of the newly created coin for an account */
-const getBalance = async (accountAddress: AccountAddress, coinTypeAddress: AccountAddress) => {
-  const amount = await aptos.getAccountCoinAmount({
+const getBalance = async (accountAddress: AccountAddress, coinTypeAddress: AccountAddress) =>
+  aptos.getAccountCoinAmount({
     accountAddress,
     coinType: `${coinTypeAddress.toString()}::moon_coin::MoonCoin`,
   });
-
-  return amount;
-};
 
 async function main() {
   // Create two accounts, Alice and Bob

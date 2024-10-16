@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 
 /**
- * This examples demonstrate the new multisig account module (MultiSig V2) and transaction execution flow
- * where in that module, there is no offchain signature aggregation step.
- * Each owner sends its transactions to the chain on its own, and so the "voting" process occurs onchain.
+ * This example demonstrates the new multisig account module (MultiSig V2) and transaction execution flow
+ * where in that module, there is no off-chain signature aggregation step.
+ * Each owner sends its transactions to the chain on its own, and so the "voting" process occurs on-chain.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-framework/sources/multisig_account.move}
  *
  * This example demonstrates different interaction with the module
@@ -36,7 +36,7 @@ import {
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
 
-// Setup the client
+// Set up the client
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
@@ -48,7 +48,7 @@ const owner3 = Account.generate();
 // Global var to hold the created multi sig account address
 let multisigAddress: string;
 
-// Generate an account that will recieve coin from a transfer transaction
+// Generate an account that will receive coin from a transfer transaction
 const recipient = Account.generate();
 
 // Global var to hold the generated coin transfer transaction payload
@@ -87,7 +87,7 @@ const fundOwnerAccounts = async () => {
 const settingUpMultiSigAccount = async () => {
   console.log("Setting up a 2-of-3 multisig account...");
 
-  // Step 1: Setup a 2-of-3 multisig account
+  // Step 1: Set up a 2-of-3 multisig account
   // ===========================================================================================
   // Get the next multisig account address. This will be the same as the account address of the multisig account we'll
   // be creating.
@@ -188,11 +188,11 @@ const executeMultiSigTransferTransaction = async () => {
   const transaction = new SimpleTransaction(rawTransaction);
 
   const owner2Authenticator = aptos.transaction.sign({ signer: owner2, transaction });
-  const transferTransactionReponse = await aptos.transaction.submit.simple({
+  const transferTransactionResponse = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: transferTransactionReponse.hash });
+  await aptos.waitForTransaction({ transactionHash: transferTransactionResponse.hash });
 };
 
 const checkBalance = async () => {
@@ -250,11 +250,11 @@ const executeMultiSigTransferTransactionWithPayloadHash = async () => {
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution2Reponse = await aptos.transaction.submit.simple({
+  const multisigTxExecution2Response = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator2,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution2Reponse.hash });
+  await aptos.waitForTransaction({ transactionHash: multisigTxExecution2Response.hash });
 };
 
 const createAddingAnOwnerToMultiSigAccountTransaction = async () => {
@@ -307,11 +307,11 @@ const executeAddingAnOwnerToMultiSigAccountTransaction = async () => {
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution3Reponse = await aptos.transaction.submit.simple({
+  const multisigTxExecution3Response = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator3,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution3Reponse.hash });
+  await aptos.waitForTransaction({ transactionHash: multisigTxExecution3Response.hash });
 };
 
 const createRemovingAnOwnerToMultiSigAccount = async () => {
@@ -364,11 +364,11 @@ const executeRemovingAnOwnerToMultiSigAccount = async () => {
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution4Reponse = await aptos.transaction.submit.simple({
+  const multisigTxExecution4Response = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator4,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution4Reponse.hash });
+  await aptos.waitForTransaction({ transactionHash: multisigTxExecution4Response.hash });
 };
 
 const createChangeSignatureThresholdTransaction = async () => {
@@ -421,24 +421,24 @@ const executeChangeSignatureThresholdTransaction = async () => {
     signer: owner2,
     transaction,
   });
-  const multisigTxExecution5Reponse = await aptos.transaction.submit.simple({
+  const multisigTxExecution5Response = await aptos.transaction.submit.simple({
     senderAuthenticator: owner2Authenticator5,
     transaction,
   });
-  await aptos.waitForTransaction({ transactionHash: multisigTxExecution5Reponse.hash });
+  await aptos.waitForTransaction({ transactionHash: multisigTxExecution5Response.hash });
 };
 
-const rejectAndApprove = async (aprroveOwner: Account, rejectOwner: Account, transactionId: number): Promise<void> => {
+const rejectAndApprove = async (approveOwner: Account, rejectOwner: Account, transactionId: number): Promise<void> => {
   console.log("Owner 1 rejects but owner 3 approves.");
   const rejectTx = await aptos.transaction.build.simple({
-    sender: aprroveOwner.accountAddress,
+    sender: approveOwner.accountAddress,
     data: {
       function: "0x1::multisig_account::reject_transaction",
       functionArguments: [multisigAddress, transactionId],
     },
   });
 
-  const rejectSenderAuthenticator = aptos.transaction.sign({ signer: aprroveOwner, transaction: rejectTx });
+  const rejectSenderAuthenticator = aptos.transaction.sign({ signer: approveOwner, transaction: rejectTx });
   const rejectTxResponse = await aptos.transaction.submit.simple({
     senderAuthenticator: rejectSenderAuthenticator,
     transaction: rejectTx,

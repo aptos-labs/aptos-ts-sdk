@@ -32,7 +32,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
   type Coin = { coin: { value: string } };
   const resource = await aptos.getAccountResource<Coin>({
     accountAddress: address,
@@ -47,7 +47,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 const example = async () => {
   console.log("This example will create two accounts (Alice and Bob), fund them, and transfer between them.");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 

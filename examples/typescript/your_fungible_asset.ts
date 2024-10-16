@@ -22,7 +22,7 @@ import { compilePackage, getPackageBytesToPublish } from "./utils";
  * 3. Run `pnpm run your_fungible_asset`
  */
 
-// Setup the client
+// Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
@@ -42,7 +42,7 @@ async function transferCoin(
     },
   });
 
-  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
   const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -58,7 +58,7 @@ async function mintCoin(admin: Account, receiver: Account, amount: AnyNumber): P
     },
   });
 
-  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
   const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -74,7 +74,7 @@ async function burnCoin(admin: Account, fromAddress: AccountAddress, amount: Any
     },
   });
 
-  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
   const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -90,7 +90,7 @@ async function freeze(admin: Account, targetAddress: AccountAddress): Promise<st
     },
   });
 
-  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
   const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -106,7 +106,7 @@ async function unfreeze(admin: Account, targetAddress: AccountAddress): Promise<
     },
   });
 
-  const senderAuthenticator = await aptos.transaction.sign({ signer: admin, transaction });
+  const senderAuthenticator = aptos.transaction.sign({ signer: admin, transaction });
   const pendingTxn = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
 
   return pendingTxn.hash;
@@ -174,7 +174,7 @@ async function main() {
   const metadataAddress = await getMetadata(alice);
   console.log("metadata address:", metadataAddress);
 
-  console.log("All the balances in this exmaple refer to balance in primary fungible stores of each account.");
+  console.log("All the balances in this example refer to balance in primary fungible stores of each account.");
   console.log(`Alice's initial FACoin balance: ${await getFaBalance(alice, metadataAddress)}.`);
   console.log(`Bob's initial FACoin balance: ${await getFaBalance(bob, metadataAddress)}.`);
   console.log(`Charlie's initial balance: ${await getFaBalance(charlie, metadataAddress)}.`);

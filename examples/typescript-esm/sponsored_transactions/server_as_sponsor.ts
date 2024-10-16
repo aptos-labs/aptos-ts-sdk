@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 /**
- * This example demostrates how one can use an external server
+ * This example demonstrates how one can use an external server
  * as a sponsor to sign a transaction to eventually pay the gas fees.
  *
  * A server (for example, frontend) generates a transaction, have it serialized and send
@@ -25,7 +25,7 @@ const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
-// Setup the client
+// Set up the client
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
