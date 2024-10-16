@@ -4,7 +4,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add the `isPrimitive` function to `TypeTag`.
+- Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
+
 # 1.29.1 (2024-10-09)
+
 - Fix the `FederatedKeylessAccount` constructor to derive the correct address.
 
 # 1.29.0 (2024-10-04)

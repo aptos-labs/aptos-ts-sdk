@@ -24,15 +24,16 @@ export class Move {
     network?: Network;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { network, profile, extraArguments } = args;
+    const { network, profile, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
 
     if (extraArguments) {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -49,8 +50,9 @@ export class Move {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
@@ -61,7 +63,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -77,8 +79,9 @@ export class Move {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
@@ -89,7 +92,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -107,8 +110,9 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -126,7 +130,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -154,8 +158,9 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ objectAddress: string }> {
-    const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -175,7 +180,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    const result = await this.runCommand(cliArgs);
+    const result = await this.runCommand(cliArgs, showStdout);
     return { objectAddress: this.extractAddressFromOutput(result.output) };
   }
 
@@ -197,8 +202,9 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -218,7 +224,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -236,8 +242,9 @@ export class Move {
     outputFile: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
-  }) {
-    const { outputFile, packageDirectoryPath, namedAddresses, extraArguments } = args;
+    showStdout?: boolean;
+  }): Promise<{ output: string }> {
+    const { outputFile, packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -256,7 +263,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -273,8 +280,9 @@ export class Move {
     compiledScriptPath: string;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { compiledScriptPath, profile, extraArguments } = args;
+    const { compiledScriptPath, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -288,7 +296,7 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
@@ -297,7 +305,8 @@ export class Move {
    * @param args - An array of strings representing the command-line arguments to be passed to the command.
    * @returns The standard output generated by the command.
    */
-  private async runCommand(args: Array<string>): Promise<{ output: string }> {
+  // eslint-disable-next-line class-methods-use-this
+  private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ output: string }> {
     return new Promise((resolve, reject) => {
       const currentPlatform = platform();
       let childProcess;
@@ -314,9 +323,11 @@ export class Move {
         stdout += data.toString();
       });
 
-      childProcess.stdout.pipe(process.stdout);
-      childProcess.stderr.pipe(process.stderr);
-      process.stdin.pipe(childProcess.stdin);
+      if (showStdout) {
+        childProcess.stdout.pipe(process.stdout);
+        childProcess.stderr.pipe(process.stderr);
+        process.stdin.pipe(childProcess.stdin);
+      }
 
       childProcess.on("close", (code) => {
         if (code === 0) {

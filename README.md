@@ -41,10 +41,10 @@ Then, the SDK can be accessed through `window.aptosSDK`.
 Create an `Aptos` client in order to access the SDK's functionality.
 
 ```ts
-import {{ Aptos, AptosConfig, Network }} from "@aptos-labs/ts-sdk"
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk"
 
 // You can use AptosConfig to choose which network to connect to
-const config = new AptosConfig({{ network: Network.TESTNET }});
+const config = new AptosConfig({ network: Network.TESTNET });
 // Aptos is the main entrypoint for all functions
 const aptos = new Aptos(config);
 ```
