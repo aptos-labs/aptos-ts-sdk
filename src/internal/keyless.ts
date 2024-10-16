@@ -165,18 +165,6 @@ export async function deriveKeylessAccount(args: {
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
 }
 
-interface JWK {
-  kty: string; // Key type
-  kid: string; // Key ID
-  alg: string; // Algorithm used with the key
-  n: string; // Modulus (for RSA keys)
-  e: string; // Exponent (for RSA keys)
-}
-
-interface JWKS {
-  keys: JWK[];
-}
-
 export async function updateFederatedKeylessJwkSetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
