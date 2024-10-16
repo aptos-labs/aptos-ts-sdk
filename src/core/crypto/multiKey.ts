@@ -6,22 +6,28 @@ import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
 
+/**
+ * Counts the number of set bits (1s) in a byte.
+ * This function can help you determine the population count of a given byte value.
+ *
+ * @param byte - The byte value for which to count the number of set bits.
+ */
 /* eslint-disable no-bitwise */
-
 function bitCount(byte: number) {
   let n = byte;
   n -= (n >> 1) & 0x55555555;
   n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
   return (((n + (n >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24;
 }
-
 /* eslint-enable no-bitwise */
 
 /**
- * Represents the public key of a multi-agent account.
+ * Represents a multi-key authentication scheme for accounts, allowing multiple public keys
+ * to be associated with a single account. This class enforces a minimum number of valid signatures
+ * required to authorize actions, ensuring enhanced security for multi-agent accounts.
  *
  * The public keys of each individual agent can be any type of public key supported by Aptos.
- * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263) Aptos supports
+ * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263), Aptos supports
  * `Legacy` and `Unified` authentication keys.
  */
 export class MultiKey extends AccountPublicKey {
@@ -35,8 +41,19 @@ export class MultiKey extends AccountPublicKey {
    */
   public readonly signaturesRequired: number;
 
+  /**
+   * Signature for a K-of-N multi-sig transaction.
+   * This constructor initializes a multi-signature transaction with the provided signatures and bitmap.
+   *
+   * @param args An object containing the parameters for the multi-signature transaction.
+   * @param args.signatures A list of signatures.
+   * @param args.bitmap A bitmap represented as a Uint8Array or an array of numbers, where each bit indicates whether a
+   * corresponding signature is present. A maximum of 32 signatures is supported, and the length of the bitmap must be 4 bytes.
+   *
+   * @throws Error if the number of signatures exceeds the maximum supported, if the bitmap length is incorrect, or if the number
+   * of signatures does not match the bitmap.
+   */
   // region Constructors
-
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
     super();
     const { publicKeys, signaturesRequired } = args;
@@ -65,11 +82,25 @@ export class MultiKey extends AccountPublicKey {
 
   // region AccountPublicKey
 
+  /**
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by checking if the signature is valid.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify.
+   */
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   verifySignature(args: VerifySignatureArgs): boolean {
     throw new Error("not implemented");
   }
 
+  /**
+   * Generates an authentication key based on the current instance's byte representation.
+   * This key can be used for secure authentication processes within the system.
+   *
+   * @returns {AuthenticationKey} The generated authentication key.
+   */
   authKey(): AuthenticationKey {
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: AuthenticationKeyScheme.MultiKey,
@@ -77,6 +108,12 @@ export class MultiKey extends AccountPublicKey {
     });
   }
 
+  /**
+   * Convert the current instance to a Uint8Array representation.
+   * This is useful for serializing data for transmission or storage.
+   *
+   * @returns Uint8Array representation of the instance.
+   */
   toUint8Array(): Uint8Array {
     return this.bcsToBytes();
   }
@@ -85,11 +122,23 @@ export class MultiKey extends AccountPublicKey {
 
   // region Serializable
 
+  /**
+   * Serializes the object by writing its signatures and bitmap to the provided serializer.
+   * This allows the object to be converted into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to perform the serialization.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeVector(this.publicKeys);
     serializer.serializeU8(this.signaturesRequired);
   }
 
+  /**
+   * Deserializes a MultiKeySignature from the provided deserializer.
+   * This function retrieves the signatures and bitmap necessary for creating a MultiKeySignature object.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   */
   static deserialize(deserializer: Deserializer): MultiKey {
     const keys = deserializer.deserializeVector(AnyPublicKey);
     const signaturesRequired = deserializer.deserializeU8();
@@ -143,8 +192,12 @@ export class MultiKey extends AccountPublicKey {
   /**
    * Get the index of the provided public key.
    *
-   * @param publicKey array of the index mapping to the matching public keys
-   * @returns the corresponding index of the publicKey, if it exists
+   * This function retrieves the index of a specified public key within the MultiKey.
+   * If the public key does not exist, it throws an error.
+   *
+   * @param publicKey - The public key to find the index for.
+   * @returns The corresponding index of the public key, if it exists.
+   * @throws Error - If the public key is not found in the MultiKey.
    */
   getIndex(publicKey: PublicKey): number {
     const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
@@ -161,6 +214,14 @@ export class MultiKey extends AccountPublicKey {
   }
 }
 
+/**
+ * Represents a multi-signature transaction using Ed25519 signatures.
+ * This class allows for the creation and management of a K-of-N multi-signature scheme,
+ * where a specified number of signatures are required to authorize a transaction.
+ *
+ * It includes functionality to validate the number of signatures against a bitmap,
+ * which indicates which public keys have signed the transaction.
+ */
 export class MultiKeySignature extends Signature {
   /**
    * Number of bytes in the bitmap representing who signed the transaction (32-bits)

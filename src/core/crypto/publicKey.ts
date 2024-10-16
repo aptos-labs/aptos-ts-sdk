@@ -5,7 +5,10 @@ import { Hex } from "../hex";
 import { Signature } from "./signature";
 
 /**
- * Arguments for verifying a signature
+ * Represents the arguments required to verify a digital signature.
+ *
+ * @param message - The original message that was signed.
+ * @param signature - The signature to be verified against the message.
  */
 export interface VerifySignatureArgs {
   message: HexInput;
@@ -13,9 +16,10 @@ export interface VerifySignatureArgs {
 }
 
 /**
- * An abstract representation of a public key.
+ * Represents an abstract public key.
  *
- * Provides a common interface for verifying any signature.
+ * This class provides a common interface for verifying signatures associated with the public key.
+ * It allows for the retrieval of the raw public key bytes and the public key in a hexadecimal string format.
  */
 export abstract class PublicKey extends Serializable {
   /**
@@ -31,7 +35,9 @@ export abstract class PublicKey extends Serializable {
   abstract toUint8Array(): Uint8Array;
 
   /**
-   * Get the public key as a hex string with a 0x prefix e.g. 0x123456...
+   * Get the public key as a hex string with a 0x prefix.
+   *
+   * @returns The public key in hex format.
    */
   toString(): string {
     const bytes = this.toUint8Array();
@@ -43,6 +49,8 @@ export abstract class PublicKey extends Serializable {
  * An abstract representation of an account public key.
  *
  * Provides a common interface for deriving an authentication key.
+ *
+ * @abstract
  */
 export abstract class AccountPublicKey extends PublicKey {
   /**

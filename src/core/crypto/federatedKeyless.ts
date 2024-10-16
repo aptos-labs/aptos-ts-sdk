@@ -12,7 +12,7 @@ import { KeylessPublicKey, KeylessSignature } from "./keyless";
 /**
  * Represents the FederatedKeylessPublicKey public key
  *
- * These keys use an onchain address as a source of truth for the JWK used to verify signatures.
+ * These keys use an on-chain address as a source of truth for the JWK used to verify signatures.
  *
  * FederatedKeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
  */

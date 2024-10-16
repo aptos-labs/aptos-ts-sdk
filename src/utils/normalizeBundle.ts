@@ -4,15 +4,21 @@
 import { Deserializer, Serializable } from "../bcs";
 
 export type DeserializableClass<T extends Serializable> = {
+  /**
+   * Deserializes a serialized object using the provided deserializer.
+   * This function allows you to reconstruct an object from its serialized form.
+   *
+   * @param deserializer - An instance of the Deserializer used to read the serialized data.
+   */
   deserialize(deserializer: Deserializer): T;
 };
 
 /**
- * Utility function that serializes and deserialize an object back into the same bundle as the sdk.
- * This is a workaround to have the `instanceof` operator work when input objects come from a different
- * bundle.
- * @param cls The class of the object to normalize
- * @param value the instance to normalize
+ * Normalizes an instance of a class by deserializing it from its byte representation.
+ * This function allows the `instanceof` operator to work correctly when the input objects originate from a different bundle.
+ *
+ * @param cls - The class of the object to normalize.
+ * @param value - The instance to normalize.
  */
 export function normalizeBundle<T extends Serializable>(cls: DeserializableClass<T>, value: T) {
   const serializedBytes = value.bcsToBytes();

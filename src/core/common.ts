@@ -12,6 +12,12 @@ export class ParsingError<T> extends Error {
    */
   public invalidReason: T;
 
+  /**
+   * Creates an instance of the error with a specified message and invalid reason.
+   *
+   * @param message The error message that describes the issue.
+   * @param invalidReason The reason why the input is considered invalid.
+   */
   constructor(message: string, invalidReason: T) {
     super(message);
     this.invalidReason = invalidReason;

@@ -9,8 +9,11 @@ import { AnyRawTransaction } from "../transactions/types";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.
- * This is the default input type when passing an `Ed25519PrivateKey`.
- * In order to use the SingleKey authentication scheme, `legacy` needs to be explicitly set to false.
+ * To use the SingleKey authentication scheme, set `legacy` to false.
+ *
+ * @param privateKey - The private key used to create the account.
+ * @param address - Optional address for the account.
+ * @param legacy - Indicates whether to use legacy authentication (default is true).
  */
 export interface CreateEd25519AccountFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
@@ -19,9 +22,12 @@ export interface CreateEd25519AccountFromPrivateKeyArgs {
 }
 
 /**
- * Arguments for creating an `SingleKeyAccount` from an `Ed25519PrivateKey`.
- * The `legacy` argument needs to be explicitly set to false in order to
- * use the `SingleKey` authentication scheme.
+ * Arguments for creating a `SingleKeyAccount` using an `Ed25519PrivateKey`.
+ * The `legacy` property must be set to false to utilize the `SingleKey` authentication scheme.
+ *
+ * @param privateKey - The Ed25519 private key used for account creation.
+ * @param address - Optional account address input.
+ * @param legacy - Must be false to enable the `SingleKey` authentication scheme.
  */
 export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
@@ -30,9 +36,12 @@ export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
 }
 
 /**
- * Arguments for creating an `SingleKeyAccount` from any supported private key
- * that is not an `Ed25519PrivateKey`.
- * The `legacy` argument defaults to false and cannot be explicitly set to true.
+ * Arguments for creating a `SingleKeyAccount` from a supported private key, excluding `Ed25519PrivateKey`.
+ * The `legacy` argument is always false and cannot be set to true.
+ *
+ * @param privateKey - The private key used to create the account.
+ * @param address - Optional address input for the account.
+ * @param legacy - Always false; cannot be explicitly set to true.
  */
 export interface CreateSingleKeyAccountFromPrivateKeyArgs {
   privateKey: Exclude<PrivateKey, Ed25519PrivateKey>;
@@ -41,8 +50,11 @@ export interface CreateSingleKeyAccountFromPrivateKeyArgs {
 }
 
 /**
- * Arguments for creating an opaque `Account` from any supported private key.
- * This is used when the private key type is not known at compilation time.
+ * Arguments for creating an `Account` from a private key when the key type is unknown at compile time.
+ *
+ * @param privateKey - The private key used to create the account.
+ * @param address - Optional address for the account.
+ * @param legacy - Optional flag indicating if the account is a legacy account.
  */
 export interface CreateAccountFromPrivateKeyArgs {
   privateKey: PrivateKey;
@@ -51,8 +63,10 @@ export interface CreateAccountFromPrivateKeyArgs {
 }
 
 /**
- * Arguments for generating an `Ed25519Account`.
- * This is the input type used by default.
+ * Arguments for generating an Ed25519 account, specifying the signing scheme and legacy option.
+ *
+ * @param scheme - The signing scheme to use for the account.
+ * @param legacy - Indicates if the account should be created in legacy mode.
  */
 export interface GenerateEd25519AccountArgs {
   scheme?: SigningSchemeInput.Ed25519;
@@ -60,9 +74,11 @@ export interface GenerateEd25519AccountArgs {
 }
 
 /**
- * Arguments for generating an `SingleKeyAccount` with ah underlying `Ed25519PrivateKey`.
- * The `legacy` argument needs to be explicitly set to false,
- * otherwise an `Ed25519Account` will be returned instead.
+ * Arguments for generating a `SingleKeyAccount` with an underlying `Ed25519PrivateKey`.
+ * The `legacy` argument must be set to false to ensure an `Ed25519SingleKeyAccount` is returned.
+ *
+ * @param scheme - Optional signing scheme input for the account.
+ * @param legacy - Indicates whether to use legacy account generation.
  */
 export interface GenerateEd25519SingleKeyAccountArgs {
   scheme?: SigningSchemeInput.Ed25519;
@@ -70,9 +86,11 @@ export interface GenerateEd25519SingleKeyAccountArgs {
 }
 
 /**
- * Arguments for generating an `SingleKeyAccount` with any supported private key
- * that is not an `Ed25519PrivateKey`.
- * The `legacy` argument defaults to false and cannot be explicitly set to true.
+ * Arguments for generating a `SingleKeyAccount` using a supported private key other than `Ed25519PrivateKey`.
+ * The `legacy` argument is optional and defaults to false, and cannot be set to true.
+ *
+ * @param scheme - The signing scheme to use for the account.
+ * @param legacy - Indicates whether to use legacy account generation (defaults to false).
  */
 export interface GenerateSingleKeyAccountArgs {
   scheme: Exclude<SigningSchemeInput, SigningSchemeInput.Ed25519>;
@@ -80,8 +98,10 @@ export interface GenerateSingleKeyAccountArgs {
 }
 
 /**
- * Arguments for generating an opaque `Account`.
- * This is used when the input signature scheme is not known at compilation time.
+ * Arguments for generating an opaque `Account` when the input signature scheme is unknown at compile time.
+ *
+ * @param scheme - The signing scheme to use for account generation.
+ * @param legacy - Indicates whether to use legacy account generation methods.
  */
 export interface GenerateAccountArgs {
   scheme?: SigningSchemeInput;
@@ -89,7 +109,10 @@ export interface GenerateAccountArgs {
 }
 
 /**
- * Arguments for deriving a private key from a mnemonic phrase and a BIP44 path.
+ * Arguments for deriving a private key using a mnemonic phrase and a specified BIP44 path.
+ *
+ * @param path - The BIP44 derivation path for the key.
+ * @param mnemonic - The mnemonic phrase used for key generation.
  */
 export interface PrivateKeyFromDerivationPathArgs {
   path: string;
@@ -97,12 +120,11 @@ export interface PrivateKeyFromDerivationPathArgs {
 }
 
 /**
- * Interface for a generic Aptos account.
+ * Abstract class representing a generic Aptos account.
  *
- * The interface is defined as abstract class to provide a single entrypoint for account generation,
- * either through `Account.generate()` or `Account.fromDerivationPath`.
- * Despite this being an abstract class, it should be treated as an interface and enforced using
- * the `implements` keyword.
+ * This class serves as a single entry point for account generation, allowing accounts to be created
+ * either through `Account.generate()` or `Account.fromDerivationPath`. Although it is defined as an
+ * abstract class, it should be treated as an interface and enforced using the `implements` keyword.
  *
  * Note: Generating an account instance does not create the account on-chain.
  */
@@ -123,10 +145,12 @@ export abstract class Account {
   abstract signingScheme: SigningScheme;
 
   /**
-   * Derives an account from a randomly generated private key.
-   * @param args.scheme The signature scheme to use, to generate the private key
-   * @param args.legacy Whether to use a legacy authentication scheme, when applicable
-   * @returns An account compatible with the provided signature scheme
+   * Generates a new account based on the specified signing scheme and legacy option.
+   * This function allows you to create an account with either the Ed25519 signing scheme or a different scheme as specified.
+   *
+   * @param args - The arguments for generating the account.
+   * @param args.scheme - The signing scheme to use for account generation. Defaults to Ed25519.
+   * @param args.legacy - Indicates whether to use the legacy account generation method. Defaults to true.
    */
   static generate(args?: GenerateEd25519AccountArgs): Ed25519Account;
   static generate(args: GenerateEd25519SingleKeyAccountArgs): SingleKeyAccount;
@@ -141,11 +165,15 @@ export abstract class Account {
   }
 
   /**
-   * Creates an account from the provided private key.
+   * Creates an account from a given private key and address.
+   * This function allows you to instantiate an account based on the provided private key,
+   * and it can differentiate between legacy and non-legacy accounts.
    *
-   * @param args.privateKey a valid private key
-   * @param args.address the account's address. If not provided, it will be derived from the public key.
-   * @param args.legacy Whether to use a legacy authentication scheme, when applicable
+   * @param args - The arguments for creating the account.
+   * @param args.privateKey - The private key used to create the account.
+   * @param args.address - The address associated with the account.
+   * @param args.legacy - A boolean indicating whether to create a legacy account (default is true).
+   * @returns An instance of either Ed25519Account or SingleKeyAccount based on the provided private key.
    */
   static fromPrivateKey(args: CreateEd25519AccountFromPrivateKeyArgs): Ed25519Account;
   static fromPrivateKey(args: CreateEd25519SingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
@@ -164,13 +192,14 @@ export abstract class Account {
 
   /**
    * @deprecated use `fromPrivateKey` instead.
-   * Instantiates an account given a private key and a specified account address.
-   * This is primarily used to instantiate an `Account` that has had its authentication key rotated.
+   * Instantiates an account using a private key and a specified account address. This is primarily used to instantiate an
+   * `Account` that has had its authentication key rotated.
    *
-   * @param args.privateKey PrivateKey - the underlying private key for the account
-   * @param args.address AccountAddress - The account address the `Account` will sign for
-   * @param args.legacy optional. If set to false, the keypair generated is a Unified keypair. Defaults
-   * to generating a Legacy Ed25519 keypair
+   * @param args - The arguments required to create an account from a private key.
+   * @param args.privateKey - The underlying private key for the account.
+   * @param args.address - The account address the `Account` will sign for.
+   * @param args.legacy - Optional. If set to false, the keypair generated is a Unified keypair. Defaults to generating a Legacy
+   * Ed25519 keypair.
    *
    * @returns Account
    */
@@ -179,13 +208,14 @@ export abstract class Account {
   }
 
   /**
-   * Derives an account with bip44 path and mnemonics
+   * Generates an account from a specified derivation path and mnemonic.
+   * This function allows you to create an account using different signing schemes based on the provided arguments.
    *
-   * @param args.scheme The signature scheme to derive the private key with
-   * @param args.path the BIP44 derive hardened path (e.g. m/44'/637'/0'/0'/0') for Ed25519,
-   * or non-hardened path (e.g. m/44'/637'/0'/0/0) for secp256k1
-   * Detailed description: {@link https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki}
-   * @param args.mnemonic the mnemonic seed phrase of the account
+   * @param args - The arguments for generating the account.
+   * @param args.scheme - The signing scheme to use for account generation. Defaults to Ed25519.
+   * @param args.mnemonic - The mnemonic phrase used to derive the account.
+   * @param args.path - The derivation path used to generate the account.
+   * @param args.legacy - A boolean indicating whether to use the legacy account generation method. Defaults to true.
    */
   static fromDerivationPath(args: GenerateEd25519AccountArgs & PrivateKeyFromDerivationPathArgs): Ed25519Account;
   static fromDerivationPath(
@@ -202,13 +232,14 @@ export abstract class Account {
   }
 
   /**
-   * @deprecated use `publicKey.authKey()` instead.
-   * This key enables account owners to rotate their private key(s)
-   * associated with the account without changing the address that hosts their account.
+   * Retrieve the authentication key for the associated account using the provided public key.
+   * This key enables account owners to rotate their private key(s) associated with the account without changing the address that
+   * hosts their account.
    * See here for more info: {@link https://aptos.dev/concepts/accounts#single-signer-authentication}
    *
-   * @param args.publicKey PublicKey - public key of the account
-   * @returns The authentication key for the associated account
+   * @param args - The arguments for retrieving the authentication key.
+   * @param args.publicKey - The public key of the account.
+   * @returns The authentication key for the associated account.
    */
   static authKey(args: { publicKey: AccountPublicKey }): AuthenticationKey {
     const { publicKey } = args;
@@ -245,9 +276,12 @@ export abstract class Account {
 
   /**
    * Verify the given message and signature with the public key.
-   * @param args.message raw message data in HexInput format
-   * @param args.signature signed message Signature
-   * @returns
+   * This function helps ensure the integrity and authenticity of a message by validating its signature.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The raw message data in HexInput format.
+   * @param args.signature - The signed message signature.
+   * @returns A boolean indicating whether the signature is valid.
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);

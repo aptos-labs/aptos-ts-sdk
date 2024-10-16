@@ -81,10 +81,19 @@ import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 
 /**
- * We are defining function signatures, each with its specific input and output.
- * These are the possible function signature for our `generateTransactionPayload` function.
+ * Builds a transaction payload based on the provided arguments and returns a transaction payload.
+ * This function uses the RemoteABI by default, but can also utilize a specified ABI.
  * When we call our `generateTransactionPayload` function with the relevant type properties,
  * Typescript can infer the return type based on the appropriate function overload.
+ * @param args - The input data for generating the transaction payload.
+ * @param args.function - The function to be called, specified in the format "moduleAddress::moduleName::functionName".
+ * @param args.functionArguments - The arguments to pass to the function.
+ * @param args.typeArguments - The type arguments for the function.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.abi - The ABI to use for the transaction, if not using the RemoteABI.
+ *
+ * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript,
+ * TransactionPayloadMultiSig, or TransactionPayloadEntryFunction.
  */
 export async function generateTransactionPayload(args: InputScriptData): Promise<TransactionPayloadScript>;
 export async function generateTransactionPayload(
@@ -126,6 +135,19 @@ export async function generateTransactionPayload(
   return generateTransactionPayloadWithABI({ ...args, abi: functionAbi });
 }
 
+/**
+ * Generates a transaction payload using the provided ABI and function details.
+ * This function helps create a properly structured transaction payload for executing a specific function on a module.
+ *
+ * @param args - The input data required to generate the transaction payload.
+ * @param args.abi - The ABI of the function to be executed.
+ * @param args.function - The fully qualified name of the function in the format `moduleAddress::moduleName::functionName`.
+ * @param args.typeArguments - An array of type arguments that correspond to the function's type parameters.
+ * @param args.functionArguments - An array of arguments to be passed to the function.
+ * @param args.multisigAddress - (Optional) The address for a multisig transaction if applicable.
+ *
+ * @throws Error if the type argument count does not match the ABI or if the number of function arguments is incorrect.
+ */
 export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
 export function generateTransactionPayloadWithABI(args: InputMultiSigDataWithABI): TransactionPayloadMultiSig;
 export function generateTransactionPayloadWithABI(
@@ -146,6 +168,18 @@ export function generateTransactionPayloadWithABI(
 
   // Check all BCS types, and convert any non-BCS types
   const functionArguments: Array<EntryFunctionArgumentTypes> = args.functionArguments.map((arg, i) =>
+    /**
+     * Converts the argument for a specified function using its ABI and type arguments.
+     * This function helps ensure that the correct number of arguments is provided for the function call.
+     *
+     * @param args - The arguments for the function call.
+     * @param args.function - The specific function to be invoked.
+     * @param functionAbi - The ABI (Application Binary Interface) of the function, which includes parameter details.
+     * @param arg - The argument to be converted.
+     * @param i - The index of the argument in the function call.
+     * @param typeArguments - Additional type arguments that may be required for the conversion.
+     */
+    // TODO: Fix JSDoc
     convertArgument(args.function, functionAbi, arg, i, typeArguments),
   );
 
@@ -177,6 +211,17 @@ export function generateTransactionPayloadWithABI(
   return new TransactionPayloadEntryFunction(entryFunctionPayload);
 }
 
+/**
+ * Generates the payload for a view function call using the provided arguments.
+ * This function helps in preparing the necessary data to interact with a specific view function on the blockchain.
+ *
+ * @param args - The input data required to generate the view function payload.
+ * @param args.function - The function identifier in the format "moduleAddress::moduleName::functionName".
+ * @param args.aptosConfig - Configuration settings for the Aptos client.
+ * @param args.abi - The ABI (Application Binary Interface) of the module.
+ *
+ * @returns The generated payload for the view function call.
+ */
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
 
@@ -194,6 +239,20 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
   return generateViewFunctionPayloadWithABI({ abi: functionAbi, ...args });
 }
 
+/**
+ * Generates a payload for a view function call using the provided ABI and arguments.
+ * This function ensures that the type arguments and function arguments are correctly formatted
+ * and match the expected counts as defined in the ABI.
+ *
+ * @param args - The input data for generating the view function payload.
+ * @param args.abi - The ABI of the function to be called.
+ * @param args.function - The full name of the function in the format "moduleAddress::moduleName::functionName".
+ * @param args.typeArguments - An array of type arguments to be used in the function call.
+ * @param args.functionArguments - An array of arguments to be passed to the function.
+ *
+ * @throws Error if the type argument count does not match the ABI or if the function arguments
+ * do not match the expected parameters defined in the ABI.
+ */
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
   const functionAbi = args.abi;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
@@ -224,6 +283,16 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
   return EntryFunction.build(`${moduleAddress}::${moduleName}`, functionName, typeArguments, functionArguments);
 }
 
+/**
+ * Generates a transaction payload script based on the provided input data.
+ * This function helps in creating a structured script for transaction processing.
+ *
+ * @param args - The input data required to generate the transaction payload script.
+ * @param args.bytecode - The bytecode to be converted into a Uint8Array.
+ * @param args.typeArguments - The type arguments that will be standardized.
+ * @param args.functionArguments - The arguments for the function being called.
+ * @returns A new instance of TransactionPayloadScript.
+ */
 function generateTransactionPayloadScript(args: InputScriptData) {
   return new TransactionPayloadScript(
     new Script(
@@ -235,13 +304,16 @@ function generateTransactionPayloadScript(args: InputScriptData) {
 }
 
 /**
- * Generates a raw transaction
+ * Generates a raw transaction that can be sent to the Aptos network.
  *
- * @param args.aptosConfig AptosConfig
- * @param args.sender The transaction's sender account address as a hex input
- * @param args.payload The transaction payload - can create by using generateTransactionPayload()
+ * @param args - The arguments for generating the raw transaction.
+ * @param args.aptosConfig - The configuration for the Aptos network.
+ * @param args.sender - The transaction's sender account address as a hex input.
+ * @param args.payload - The transaction payload, which can be created using generateTransactionPayload().
+ * @param args.options - Optional parameters for transaction generation.
+ * @param args.feePayerAddress - The address of the fee payer for sponsored transactions.
  *
- * @returns RawTransaction
+ * @returns RawTransaction - The generated raw transaction.
  */
 export async function generateRawTransaction(args: {
   aptosConfig: AptosConfig;
@@ -318,10 +390,17 @@ export async function generateRawTransaction(args: {
 }
 
 /**
- * We are defining function signatures, each with its specific input and output.
- * These are the possible function signature for our `generateTransaction` function.
- * When we call our `generateTransaction` function with the relevant type properties,
- * Typescript can infer the return type based on the appropriate function overload.
+ * Generates a transaction based on the provided arguments.
+ * This function can create both simple and multi-agent transactions, allowing for flexible transaction handling.
+ *
+ * @param args - The input arguments for generating the transaction.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.sender - The transaction's sender account address as a hex input.
+ * @param args.payload - The transaction payload, which can be created using `generateTransactionPayload()`.
+ * @param args.options - Optional. Transaction options object.
+ * @param args.secondarySignerAddresses - Optional. An array of addresses for additional signers in a multi-signature transaction.
+ * @param args.feePayerAddress - Optional. The address of the fee payer for sponsored transactions.
+ * @returns An instance of a transaction, which may include secondary signer addresses and a fee payer address.
  */
 export async function buildTransaction(args: InputGenerateSingleSignerRawTransactionArgs): Promise<SimpleTransaction>;
 export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
@@ -343,7 +422,7 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  * ```
  * {
  *  rawTransaction: RawTransaction,
- *  secondarySignerAddresses? : Array<AccountAddress>,
+ *  secondarySignerAddresses?: Array<AccountAddress>,
  *  feePayerAddress?: AccountAddress
  * }
  * ```
@@ -375,15 +454,17 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
 }
 
 /**
- * Simulate a transaction before signing and submit to chain
+ * Generate a signed transaction for simulation before submitting it to the chain.
+ * This function helps in preparing a transaction that can be simulated, allowing users to verify its validity and expected behavior.
  *
- * @param args.transaction A aptos transaction type to sign
- * @param args.signerPublicKey The signer public key
- * @param args.secondarySignersPublicKeys optional. The secondary signers public keys if multi signers transaction
- * @param args.feePayerPublicKey optional. The fee payer public key is a fee payer (aka sponsored) transaction
- * @param args.options optional. SimulateTransactionOptions
+ * @param args - The input data required to generate the signed transaction for simulation.
+ * @param args.transaction - An Aptos transaction type to sign.
+ * @param args.signerPublicKey - The public key of the signer.
+ * @param args.secondarySignersPublicKeys - Optional. The public keys of secondary signers if it is a multi-signer transaction.
+ * @param args.feePayerPublicKey - Optional. The public key of the fee payer in a sponsored transaction.
+ * @param args.options - Optional. Additional options for simulating the transaction.
  *
- * @returns A signed serialized transaction that can be simulated
+ * @returns A signed serialized transaction that can be simulated.
  */
 export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
@@ -512,13 +593,19 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
 }
 
 /**
- * Prepare a transaction to be submitted to chain
+ * Generate a signed transaction ready for submission to the blockchain.
+ * This function prepares the transaction by authenticating the sender and any additional signers based on the provided arguments.
  *
- * @param args.transaction A aptos transaction type
- * @param args.senderAuthenticator The account authenticator of the transaction sender
- * @param args.secondarySignerAuthenticators optional. For when the transaction is a multi signers transaction
+ * @param args - The input data required to generate the signed transaction.
+ * @param args.transaction - An Aptos transaction type containing the details of the transaction.
+ * @param args.senderAuthenticator - The account authenticator of the transaction sender.
+ * @param args.feePayerAuthenticator - The authenticator for the fee payer, required if the transaction has a fee payer address.
+ * @param args.additionalSignersAuthenticators - Optional authenticators for additional signers in a multi-signer transaction.
  *
- * @returns A SignedTransaction
+ * @returns A Uint8Array representing the signed transaction in bytes.
+ *
+ * @throws Error if the feePayerAuthenticator is not provided for a fee payer transaction.
+ * @throws Error if additionalSignersAuthenticators are not provided for a multi-signer transaction.
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
@@ -562,8 +649,8 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 }
 
 /**
- * Hashes the set of values with a SHA-3 256 hash
- * @param input array of UTF-8 strings or Uint8array byte arrays
+ * Hashes the set of values using a SHA-3 256 hash algorithm.
+ * @param input - An array of UTF-8 strings or Uint8Array byte arrays to be hashed.
  */
 export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
   const hash = sha3Hash.create();
@@ -574,13 +661,19 @@ export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
 }
 
 /**
- * The domain separated prefix for hashing transacitons
+ * The domain separated prefix for hashing transactions
  */
 const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
 
 /**
- * Generates a user transaction hash for the given transaction payload.  It must already have an authenticator
- * @param args InputSubmitTransactionData
+ * Generates a user transaction hash for the provided transaction payload, which must already have an authenticator.
+ * This function helps ensure the integrity and uniqueness of the transaction by producing a hash based on the signed transaction data.
+ *
+ * @param args - The input data required to submit the transaction.
+ * @param args.authenticator - The authenticator for the transaction.
+ * @param args.payload - The payload containing the transaction details.
+ * @param args.sender - The address of the sender initiating the transaction.
+ * @param args.sequenceNumber - The sequence number of the transaction for the sender.
  */
 export function generateUserTransactionHash(args: InputSubmitTransactionData): string {
   const signedTransaction = generateSignedTransaction(args);
@@ -592,14 +685,15 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
 }
 
 /**
- * Fetches and caches ABIs with allowing for pass-through on provided ABIs
- * @param key
- * @param moduleAddress
- * @param moduleName
- * @param functionName
- * @param aptosConfig
- * @param abi
- * @param fetch
+ * Fetches and caches ABIs while allowing for pass-through on provided ABIs.
+ *
+ * @param key - A unique identifier for the cached ABI.
+ * @param moduleAddress - The address of the module from which to fetch the ABI.
+ * @param moduleName - The name of the module containing the function.
+ * @param functionName - The name of the function whose ABI is being fetched.
+ * @param aptosConfig - Configuration settings for Aptos.
+ * @param abi - An optional ABI to use if already available.
+ * @param fetch - A function to fetch the ABI if it is not provided.
  */
 async function fetchAbi<T extends FunctionABI>({
   key,

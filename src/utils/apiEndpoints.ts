@@ -38,6 +38,9 @@ export const NetworkToProverAPI: Record<string, string> = {
   local: "https://api.devnet.aptoslabs.com/keyless/prover/v0",
 };
 
+/**
+ * Different network environments for connecting to services, ranging from production to development setups.
+ */
 export enum Network {
   MAINNET = "mainnet",
   TESTNET = "testnet",

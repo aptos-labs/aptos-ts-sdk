@@ -30,6 +30,17 @@ import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { SimpleTransaction } from "../transactions";
 
+/**
+ * Retrieves a pepper value based on the provided configuration and authentication details.
+ *
+ * @param args - The arguments required to fetch the pepper.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.jwt - The JSON Web Token used for authentication.
+ * @param args.ephemeralKeyPair - The ephemeral key pair used for the operation.
+ * @param args.uidKey - An optional unique identifier key (defaults to "sub").
+ * @param args.derivationPath - An optional derivation path for the key.
+ * @returns A Uint8Array containing the fetched pepper value.
+ */
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
   jwt: string;
@@ -57,6 +68,18 @@ export async function getPepper(args: {
   return Hex.fromHexInput(data.pepper).toUint8Array();
 }
 
+/**
+ * Generates a zero-knowledge proof based on the provided parameters.
+ * This function is essential for creating a signed proof that can be used in various cryptographic operations.
+ *
+ * @param args - The parameters required to generate the proof.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.jwt - The JSON Web Token used for authentication.
+ * @param args.ephemeralKeyPair - The ephemeral key pair used for generating the proof.
+ * @param args.pepper - An optional hex input used to enhance security (default is generated if not provided).
+ * @param args.uidKey - An optional string that specifies the unique identifier key (defaults to "sub").
+ * @throws Error if the pepper length is not valid or if the ephemeral key pair's lifespan exceeds the maximum allowed.
+ */
 export async function getProof(args: {
   aptosConfig: AptosConfig;
   jwt: string;
@@ -109,6 +132,19 @@ export async function getProof(args: {
   return signedProof;
 }
 
+/**
+ * Derives a keyless account by fetching the necessary proof and looking up the original account address.
+ * This function helps in creating a keyless account that can be used without managing private keys directly.
+ *
+ * @param args - The arguments required to derive the keyless account.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.jwt - The JSON Web Token used for authentication.
+ * @param args.ephemeralKeyPair - The ephemeral key pair used for cryptographic operations.
+ * @param args.uidKey - An optional unique identifier key for the user.
+ * @param args.pepper - An optional hexadecimal input used for additional security.
+ * @param args.proofFetchCallback - An optional callback function to handle the proof fetch outcome.
+ * @returns A keyless account object.
+ */
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
   jwt: string;
@@ -143,7 +179,7 @@ export async function deriveKeylessAccount(args: {
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
   // allowing for faster rendering of UX.
   //
-  // If no callback is provided, the just await the proof fetch and continue syncronously.
+  // If no callback is provided, the just await the proof fetch and continue synchronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
   // Look up the original address to handle key rotations and then instantiate the account.
