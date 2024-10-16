@@ -19,6 +19,7 @@ export enum AddressInvalidReason {
   LEADING_ZERO_X_REQUIRED = "leading_zero_x_required",
   LONG_FORM_REQUIRED_UNLESS_SPECIAL = "long_form_required_unless_special",
   INVALID_PADDING_ZEROES = "INVALID_PADDING_ZEROES",
+  INVALID_PADDING_STRICTNESS = "INVALID_PADDING_STRICTNESS",
 }
 
 /**
@@ -288,7 +289,7 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   /**
    * NOTE: This function has relaxed parsing behavior. For strict behavior, please use
    * the `fromStringStrict` function. Where possible use `fromStringStrict` rather than this
-   * function, `fromString` is only provided for backwards compatibility.
+   * function, `fromString`.
    *
    * Creates an instance of AccountAddress from a hex string.
    *
@@ -296,23 +297,24 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    * following formats are accepted:
    *
    * - LONG, with or without leading 0x
-   * - SHORT, with or without leading 0x
+   * - SHORT*, with or without leading 0x
    *
    * Where:
    * - LONG is 64 hex characters.
-   * - SHORT is 1 to 63 hex characters inclusive.
+   * - SHORT* is 1 to 63 hex characters inclusive. The address can have missing values up to `maxMissingChars` before it is padded.
    * - Padding zeroes are allowed, e.g. 0x0123 is valid.
    *
    * Learn more about the different address formats by reading AIP-40:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
    *
-   * @param input - A hex string representing an account address.
+   * @param input A hex string representing an account address.
+   * @param args.maxMissingChars The number of characters that can be missing in a padded address before it is invalid.
    *
    * @returns An instance of AccountAddress.
    *
    * @throws ParsingError if the hex string is too short, too long, or contains invalid characters.
    */
-  static fromString(input: string): AccountAddress {
+  static fromString(input: string, { maxMissingChars = 4 }: { maxMissingChars?: number } = {}): AccountAddress {
     let parsedInput = input;
     // Remove leading 0x for parsing.
     if (input.startsWith("0x")) {
@@ -335,6 +337,14 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       );
     }
 
+    // Ensure that the maxMissingChars is between or equal to 0 and 63.
+    if (maxMissingChars > 63 || maxMissingChars < 0) {
+      throw new ParsingError(
+        `maxMissingChars must be between or equal to 0 and 63. Received ${maxMissingChars}`,
+        AddressInvalidReason.INVALID_PADDING_STRICTNESS,
+      );
+    }
+
     let addressBytes: Uint8Array;
     try {
       // Pad the address with leading zeroes, so it is 64 chars long and then convert
@@ -347,7 +357,19 @@ export class AccountAddress extends Serializable implements TransactionArgument 
       throw new ParsingError(`Hex characters are invalid: ${error?.message}`, AddressInvalidReason.INVALID_HEX_CHARS);
     }
 
-    return new AccountAddress(addressBytes);
+    const address = new AccountAddress(addressBytes);
+
+    // Cannot pad the address if it has more than maxMissingChars missing.
+    if (parsedInput.length < 64 - maxMissingChars) {
+      if (!address.isSpecial()) {
+        throw new ParsingError(
+          `Hex string is too short, must be ${64 - maxMissingChars} to 64 chars long, excluding the leading 0x. Received ${input}`,
+          AddressInvalidReason.TOO_SHORT,
+        );
+      }
+    }
+
+    return address;
   }
 
   /**
@@ -357,10 +379,11 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @param input - The input to convert into an AccountAddress. This can be a string representation of an address, a Uint8Array,
    * or an existing AccountAddress.
+   * @param args.maxMissingChars The number of characters that can be missing in a padded address before it is invalid.
    */
-  static from(input: AccountAddressInput): AccountAddress {
+  static from(input: AccountAddressInput, { maxMissingChars = 4 }: { maxMissingChars?: number } = {}): AccountAddress {
     if (typeof input === "string") {
-      return AccountAddress.fromString(input);
+      return AccountAddress.fromString(input, { maxMissingChars });
     }
     if (input instanceof Uint8Array) {
       return new AccountAddress(input);
