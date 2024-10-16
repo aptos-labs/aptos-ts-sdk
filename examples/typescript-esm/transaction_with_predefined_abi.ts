@@ -37,7 +37,7 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] |
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
   type Coin = { coin: { value: string } };
   const resource = await aptos.getAccountResource<Coin>({
     accountAddress: address,
@@ -57,7 +57,7 @@ async function timeSubmission(
   const start = performance.now();
   const rawTxn = await buildTxn();
   const buildTime = performance.now();
-  const senderAuthenticator = await aptos.sign({ signer, transaction: rawTxn });
+  const senderAuthenticator = aptos.sign({ signer, transaction: rawTxn });
   const signTime = performance.now();
   const submittedTxn = await aptos.transaction.submit.simple({ transaction: rawTxn, senderAuthenticator });
   const submitTime = performance.now();
@@ -76,7 +76,7 @@ async function timeSubmission(
 const example = async () => {
   console.log("This example will show you how to increase performance of known entry functions");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 

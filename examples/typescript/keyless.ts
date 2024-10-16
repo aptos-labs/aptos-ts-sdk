@@ -20,7 +20,7 @@ const TRANSFER_AMOUNT = 10_000;
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
   const amount = await aptos.getAccountAPTAmount({
     accountAddress: address,
   });
@@ -29,7 +29,7 @@ const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
 };
 
 const example = async () => {
-  // Setup the client
+  // Set up the client
   const network = Network.DEVNET;
   const config = new AptosConfig({ network });
   const aptos = new Aptos(config);
@@ -48,10 +48,9 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
+    return readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
       hideEchoBack: false,
     });
-    return jwt;
   }
 
   const jwt = inputJwt();
@@ -64,7 +63,7 @@ const example = async () => {
   console.log("=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
+  console.log(`Alice's ephemeral public key is: ${aliceEphem.getPublicKey().toString()}`);
 
   const bob = Account.generate();
   console.log(`Bob's address is: ${bob.accountAddress}`);

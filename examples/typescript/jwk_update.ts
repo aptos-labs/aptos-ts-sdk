@@ -26,20 +26,18 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter:\n\n", {
+    return readlineSync.question("Paste the JWT (id_token) token here and press enter:\n\n", {
       hideEchoBack: false,
     });
-    return jwt;
   }
 
   function inputIss(): string {
-    const jwt: string = readlineSync.question(
+    return readlineSync.question(
       "\nInput the iss claim of your federated OIDC provider and press enter (e.g. https://dev-qtdgjv22jh0v1k7g.us.auth0.com/):\n\n",
       {
         hideEchoBack: false,
       },
     );
-    return jwt;
   }
 
   const jwt = inputJwt();
