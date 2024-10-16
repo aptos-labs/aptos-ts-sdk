@@ -76,7 +76,7 @@ describe("transaction submission", () => {
       permissions: [{ type: "APT", limit: 10 }],
     });
 
-    await revokePermission({ primaryAccount, subAccount });
+    await revokePermission({ primaryAccount, subAccount, permissions: [{ type: "APT" }] });
 
     const txn1 = await transact({
       sender: primaryAccount,
@@ -167,17 +167,17 @@ export async function transact({
   };
 }
 
-interface APTPermissions {
+interface GrantAPTPermissions {
   type: "APT";
   limit: number;
-  durration?: number;
+  duration?: number;
 }
 
-interface NFPermissions {
+interface GrantNFPermissions {
   type: "NFT";
 }
 
-type Permissions = APTPermissions | NFPermissions;
+type GrantPermission = GrantAPTPermissions | GrantNFPermissions;
 
 export async function grantPermission({
   primaryAccount,
@@ -186,7 +186,7 @@ export async function grantPermission({
 }: {
   primaryAccount: SingleKeyAccount;
   subAccount: AbstractedEd25519Account;
-  permissions: Permissions[];
+  permissions: GrantPermission[];
 }) {
   const transaction = await aptos.transaction.build.batched_intents({
     sender: primaryAccount.accountAddress,
@@ -261,13 +261,24 @@ export async function grantPermission({
   return response;
 }
 
+interface RevokeAPTPermissions {
+  type: "APT";
+}
+
+interface RevokeNFPermissions {
+  type: "NFT";
+}
+
+type RevokePermission = RevokeAPTPermissions | RevokeNFPermissions;
+
 export async function revokePermission({
   primaryAccount,
   subAccount,
+  permissions,
 }: {
   primaryAccount: SingleKeyAccount;
   subAccount: AbstractedEd25519Account;
-  // Accept other permissions
+  permissions: RevokePermission[];
 }) {
   const transaction = await aptos.transaction.build.batched_intents({
     sender: primaryAccount.accountAddress,
@@ -277,12 +288,25 @@ export async function revokePermission({
         functionArguments: [BatchArgument.new_signer(0), subAccount.publicKey.toUint8Array()],
         typeArguments: [],
       });
-      // INSERT other revokes here
-      await builder.add_batched_calls({
-        function: "0x1::fungible_asset::revoke_permission",
-        functionArguments: [signer[0].borrow(), AccountAddress.A],
-        typeArguments: [],
-      });
+
+      for (const permission of permissions) {
+        switch (permission.type) {
+          case "APT": {
+            await builder.add_batched_calls({
+              function: "0x1::fungible_asset::revoke_permission",
+              functionArguments: [signer[0].borrow(), AccountAddress.A],
+              typeArguments: [],
+            });
+            break;
+          }
+
+          default: {
+            console.log("Not implemented");
+            break;
+          }
+        }
+      }
+
       return builder;
     },
   });
