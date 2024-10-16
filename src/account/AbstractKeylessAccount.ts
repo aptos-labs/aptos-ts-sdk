@@ -214,6 +214,9 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    * @return
    */
   async checkAccountValidity() {
+    if (this.isExpired()){
+      throw Error("EphemeralKeyPair is expired");
+    }
     await this.waitForProofFetch();
     const header = jwtDecode(this.jwt, { header: true });
     if (header.kid === undefined) {
