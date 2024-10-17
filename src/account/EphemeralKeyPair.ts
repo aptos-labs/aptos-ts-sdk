@@ -24,6 +24,8 @@ const TWO_WEEKS_IN_SECONDS = 1_209_600;
  * This key pair is temporary and includes an expiration time.
  * For more details on how this class is used, refer to the documentation:
  * https://aptos.dev/guides/keyless-accounts/#1-present-the-user-with-a-sign-in-with-idp-button-on-the-ui
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class EphemeralKeyPair extends Serializable {
   static readonly BLINDER_LENGTH: number = 31;
@@ -31,30 +33,40 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * A byte array of length BLINDER_LENGTH used to obfuscate the public key from the IdP.
    * Used in calculating the nonce passed to the IdP and as a secret witness in proof generation.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly blinder: Uint8Array;
 
   /**
    * A timestamp in seconds indicating when the ephemeral key pair is expired.  After expiry, a new
    * EphemeralKeyPair must be generated and a new JWT needs to be created.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly expiryDateSecs: number;
 
   /**
    * The value passed to the IdP when the user authenticates.  It consists of a hash of the
    * ephemeral public key, expiry date, and blinder.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly nonce: string;
 
   /**
    * A private key used to sign transactions.  This private key is not tied to any account on the chain as it
    * is ephemeral (not permanent) in nature.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   private privateKey: PrivateKey;
 
   /**
    * A public key used to verify transactions.  This public key is not tied to any account on the chain as it
    * is ephemeral (not permanent) in nature.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   private publicKey: EphemeralPublicKey;
 
@@ -67,6 +79,8 @@ export class EphemeralKeyPair extends Serializable {
    * @param args.privateKey - The private key used for creating the instance.
    * @param args.expiryDateSecs - Optional expiry date in seconds from the current time. Defaults to two weeks from now.
    * @param args.blinder - Optional blinder value. If not provided, a new blinder will be generated.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   constructor(args: { privateKey: PrivateKey; expiryDateSecs?: number; blinder?: HexInput }) {
     super();
@@ -88,6 +102,8 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * Returns the public key of the key pair.
    * @return EphemeralPublicKey
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   getPublicKey(): EphemeralPublicKey {
     return this.publicKey;
@@ -96,6 +112,8 @@ export class EphemeralKeyPair extends Serializable {
   /**
    * Checks if the current time has surpassed the expiry date of the key pair.
    * @return boolean - Returns true if the key pair is expired, otherwise false.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   isExpired(): boolean {
     const currentTimeSecs: number = Math.floor(Date.now() / 1000);
@@ -107,6 +125,8 @@ export class EphemeralKeyPair extends Serializable {
    * This function is essential for preparing the object data for serialization processes.
    *
    * @param serializer - The serializer instance used to serialize the object's properties.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.publicKey.variant);
@@ -120,6 +140,8 @@ export class EphemeralKeyPair extends Serializable {
    * This function helps in reconstructing an ephemeral key pair, which is essential for cryptographic operations.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static deserialize(deserializer: Deserializer): EphemeralKeyPair {
     const variantIndex = deserializer.deserializeUleb128AsU32();
@@ -141,6 +163,8 @@ export class EphemeralKeyPair extends Serializable {
    * This function allows you to reconstruct an EphemeralKeyPair from its serialized byte representation.
    *
    * @param bytes - The byte array representing the serialized EphemeralKeyPair.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static fromBytes(bytes: Uint8Array): EphemeralKeyPair {
     return EphemeralKeyPair.deserialize(new Deserializer(bytes));
@@ -154,6 +178,8 @@ export class EphemeralKeyPair extends Serializable {
    * @param args.scheme - The type of key pair to use for the EphemeralKeyPair. Only Ed25519 is supported for now.
    * @param args.expiryDateSecs - The date of expiry for the key pair in seconds.
    * @returns An instance of EphemeralKeyPair containing the generated private key and expiry date.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static generate(args?: { scheme?: EphemeralPublicKeyVariant; expiryDateSecs?: number }): EphemeralKeyPair {
     let privateKey: PrivateKey;
@@ -174,6 +200,8 @@ export class EphemeralKeyPair extends Serializable {
    * @param data - The data to be signed, provided in HexInput format.
    * @returns EphemeralSignature - The resulting ephemeral signature.
    * @throws Error - Throws an error if the EphemeralKeyPair has expired.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   sign(data: HexInput): EphemeralSignature {
     if (this.isExpired()) {
@@ -186,6 +214,8 @@ export class EphemeralKeyPair extends Serializable {
 /**
  * Generates a random byte array of length EphemeralKeyPair.BLINDER_LENGTH.
  * @returns Uint8Array A random byte array used for blinding.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 function generateBlinder(): Uint8Array {
   return randomBytes(EphemeralKeyPair.BLINDER_LENGTH);

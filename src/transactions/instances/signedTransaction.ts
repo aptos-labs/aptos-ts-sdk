@@ -17,6 +17,8 @@ import { RawTransaction } from "./rawTransaction";
  * @param authenticator - Contains a client's public key and the signature of the raw transaction.
  * Authenticator can have three variations: single signature, multi-signature, and multi-agent.
  * @see {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs} for details.
+ * @group Implementation
+ * @category Transactions
  */
 export class SignedTransaction extends Serializable {
   public readonly raw_txn: RawTransaction;
@@ -33,6 +35,8 @@ export class SignedTransaction extends Serializable {
    * flavors: single signature, multi-signature and multi-agent.
    * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
    * @see {@link https://github.com/aptos-labs/aptos-core/blob/main/types/src/transaction/authenticator.rs} for details.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(raw_txn: RawTransaction, authenticator: TransactionAuthenticator) {
     super();
@@ -45,6 +49,8 @@ export class SignedTransaction extends Serializable {
    * This function is essential for preparing the transaction data for transmission or storage.
    *
    * @param serializer - The serializer instance used to serialize the transaction and authenticator.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     this.raw_txn.serialize(serializer);
@@ -56,6 +62,8 @@ export class SignedTransaction extends Serializable {
    * This function allows you to reconstruct a SignedTransaction object from its serialized form, enabling further processing or validation.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): SignedTransaction {
     const raw_txn = RawTransaction.deserialize(deserializer);

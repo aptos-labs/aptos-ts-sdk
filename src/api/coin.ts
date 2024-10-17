@@ -10,6 +10,7 @@ import { AptosConfig } from "./aptosConfig";
 
 /**
  * A class to handle all `Coin` operations.
+ * @group Coin
  */
 export class Coin {
   /**
@@ -31,6 +32,7 @@ export class Coin {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Coin
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -67,6 +69,7 @@ export class Coin {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Coin
    */
   async transferCoinTransaction(args: {
     sender: AccountAddressInput;

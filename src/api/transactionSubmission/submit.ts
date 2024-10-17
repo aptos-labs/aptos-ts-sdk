@@ -9,6 +9,7 @@ import { ValidateFeePayerDataOnSubmission } from "./helpers";
 
 /**
  * A class to handle all `Submit` transaction operations.
+ * @group Implementation
  */
 export class Submit {
   readonly config: AptosConfig;
@@ -41,6 +42,7 @@ export class Submit {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -82,6 +84,7 @@ export class Submit {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSubmission
   async simple(args: {
@@ -135,6 +138,7 @@ export class Submit {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSubmission
   async multiAgent(args: {

@@ -30,6 +30,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to handle all `ANS` operations.
+ * @group ANS
  */
 export class ANS {
   /**
@@ -56,6 +57,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -81,6 +83,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getOwnerAddress(args: { name: string }): Promise<AccountAddress | undefined> {
     return getOwnerAddress({ aptosConfig: this.config, ...args });
@@ -110,6 +113,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getExpiration(args: { name: string }): Promise<number | undefined> {
     return getExpiration({ aptosConfig: this.config, ...args });
@@ -140,6 +144,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getTargetAddress(args: { name: string }): Promise<AccountAddress | undefined> {
     return getTargetAddress({ aptosConfig: this.config, ...args });
@@ -180,6 +185,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async setTargetAddress(args: {
     sender: Account;
@@ -212,6 +218,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getPrimaryName(args: { address: AccountAddressInput }): Promise<string | undefined> {
     return getPrimaryName({ aptosConfig: this.config, ...args });
@@ -245,6 +252,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async setPrimaryName(args: {
     sender: Account;
@@ -299,6 +307,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async registerName(args: Omit<RegisterNameParameters, "aptosConfig">): Promise<SimpleTransaction> {
     return registerName({ aptosConfig: this.config, ...args });
@@ -334,6 +343,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async renewDomain(args: {
     sender: Account;
@@ -367,6 +377,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getName(args: { name: string }): Promise<GetANSNameResponse[0] | undefined> {
     return getName({ aptosConfig: this.config, ...args });
@@ -406,6 +417,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getAccountNames(args: GetAccountNamesArgs): Promise<GetANSNameResponse> {
     return getAccountNames({ aptosConfig: this.config, ...args });
@@ -448,6 +460,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getAccountDomains(args: GetAccountDomainsArgs): Promise<GetANSNameResponse> {
     return getAccountDomains({ aptosConfig: this.config, ...args });
@@ -488,6 +501,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getAccountSubdomains(args: GetAccountSubdomainsArgs): Promise<GetANSNameResponse> {
     return getAccountSubdomains({ aptosConfig: this.config, ...args });
@@ -528,6 +542,7 @@ export class ANS {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group ANS
    */
   async getDomainSubdomains(args: GetDomainSubdomainsArgs): Promise<GetANSNameResponse> {
     return getDomainSubdomains({ aptosConfig: this.config, ...args });

@@ -18,6 +18,8 @@ import { MoveFunction, MoveFunctionId } from "../../types";
  *
  * @param arg - The argument to check, which can be of various types.
  * @returns A boolean indicating whether the argument is a boolean.
+ * @group Implementation
+ * @category Transactions
  */
 export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
   return typeof arg === "boolean";
@@ -28,6 +30,8 @@ export function isBool(arg: SimpleEntryFunctionArgumentTypes): arg is boolean {
  *
  * @param arg - The value to be checked for string type.
  * @returns A boolean indicating whether the argument is a string.
+ * @group Implementation
+ * @category Transactions
  */
 export function isString(arg: any): arg is string {
   return typeof arg === "string";
@@ -38,6 +42,8 @@ export function isString(arg: any): arg is string {
  *
  * @param arg - The argument to check, which can be of various types.
  * @returns A boolean indicating whether the argument is a number.
+ * @group Implementation
+ * @category Transactions
  */
 export function isNumber(arg: SimpleEntryFunctionArgumentTypes): arg is number {
   return typeof arg === "number";
@@ -50,6 +56,8 @@ export function isNumber(arg: SimpleEntryFunctionArgumentTypes): arg is number {
  *
  * @param arg - The input value to be converted. This can be a number, a string representing a number, or any other type.
  * @returns Returns the converted number if the input is valid; otherwise, it returns undefined.
+ * @group Implementation
+ * @category Transactions
  */
 export function convertNumber(arg: SimpleEntryFunctionArgumentTypes): number | undefined {
   if (isNumber(arg)) {
@@ -66,6 +74,8 @@ export function convertNumber(arg: SimpleEntryFunctionArgumentTypes): number | u
  * Determines if the provided argument is a large number, which can be a number, bigint, or string representation of a number.
  *
  * @param arg - The argument to check, which can be of type number, bigint, or string.
+ * @group Implementation
+ * @category Transactions
  */
 export function isLargeNumber(arg: SimpleEntryFunctionArgumentTypes): arg is number | bigint | string {
   return typeof arg === "number" || typeof arg === "bigint" || typeof arg === "string";
@@ -76,6 +86,8 @@ export function isLargeNumber(arg: SimpleEntryFunctionArgumentTypes): arg is num
  *
  * @param arg - The argument to check for emptiness.
  * @returns A boolean indicating whether the argument is empty.
+ * @group Implementation
+ * @category Transactions
  */
 export function isEmptyOption(arg: SimpleEntryFunctionArgumentTypes): arg is null | undefined {
   return arg === null || arg === undefined;
@@ -86,6 +98,8 @@ export function isEmptyOption(arg: SimpleEntryFunctionArgumentTypes): arg is nul
  * This function helps validate that the argument conforms to the expected types for entry function parameters.
  *
  * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+ * @group Implementation
+ * @category Transactions
  */
 export function isEncodedEntryFunctionArgument(
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
@@ -95,6 +109,8 @@ export function isEncodedEntryFunctionArgument(
      * Determines if the provided argument is an instance of the Bool class.
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsBool(arg) ||
     /**
@@ -102,12 +118,16 @@ export function isEncodedEntryFunctionArgument(
      * This function helps validate the type of the argument passed to ensure it is a U8 type.
      *
      * @param arg - The argument to be checked, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU8(arg) ||
     /**
      * Determines if the provided argument is an instance of U16.
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU16(arg) ||
     /**
@@ -115,6 +135,8 @@ export function isEncodedEntryFunctionArgument(
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
      * @returns A boolean indicating whether the argument is a U32 instance.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU32(arg) ||
     /**
@@ -122,6 +144,8 @@ export function isEncodedEntryFunctionArgument(
      * This function helps validate that the argument conforms to the expected U64 type.
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU64(arg) ||
     /**
@@ -129,6 +153,8 @@ export function isEncodedEntryFunctionArgument(
      * This function helps validate the type of the argument passed to ensure it is a U128 type.
      *
      * @param arg - The argument to be checked, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU128(arg) ||
     /**
@@ -136,6 +162,8 @@ export function isEncodedEntryFunctionArgument(
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
      * @returns A boolean indicating whether the argument is a U256 instance.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsU256(arg) ||
     /**
@@ -143,12 +171,16 @@ export function isEncodedEntryFunctionArgument(
      * This function helps validate whether a given input corresponds to a valid BCS address type.
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsAddress(arg) ||
     /**
      * Determine if the provided argument is an instance of MoveString.
      *
      * @param arg - The argument to check, which can be of types EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsString(arg) ||
     /**
@@ -156,51 +188,83 @@ export function isEncodedEntryFunctionArgument(
      * This function helps to validate the type of the argument being passed.
      *
      * @param arg - The argument to check, which can be of type EntryFunctionArgumentTypes or SimpleEntryFunctionArgumentTypes.
+     * @group Implementation
+     * @category Transactions
      */
     isBcsFixedBytes(arg) ||
     arg instanceof MoveVector ||
     arg instanceof MoveOption
   );
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsBool(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is Bool {
   return arg instanceof Bool;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsAddress(
   arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
 ): arg is AccountAddress {
   return arg instanceof AccountAddress;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsString(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is MoveString {
   return arg instanceof MoveString;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsFixedBytes(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is FixedBytes {
   return arg instanceof FixedBytes;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU8(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U8 {
   return arg instanceof U8;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU16(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U16 {
   return arg instanceof U16;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU32(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U32 {
   return arg instanceof U32;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU64(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U64 {
   return arg instanceof U64;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU128(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U128 {
   return arg instanceof U128;
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function isBcsU256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes): arg is U256 {
   return arg instanceof U256;
 }
@@ -212,6 +276,8 @@ export function isBcsU256(arg: EntryFunctionArgumentTypes | SimpleEntryFunctionA
  * @param arg.bytecode - The bytecode of the script, present if the input is script data.
  * @param arg.function - The function associated with the transaction, which is relevant for standard payloads.
  * @param arg.args - The arguments for the function, applicable in the context of standard payloads.
+ * @group Implementation
+ * @category Transactions
  */
 export function isScriptDataInput(
   arg: InputGenerateTransactionPayloadDataWithRemoteABI | InputGenerateTransactionPayloadData,
@@ -225,6 +291,8 @@ export function isScriptDataInput(
  *
  * @param expectedType - The type that was expected for the argument.
  * @param position - The position of the argument that caused the type mismatch.
+ * @group Implementation
+ * @category Transactions
  */
 export function throwTypeMismatch(expectedType: string, position: number) {
   throw new Error(`Type mismatch for argument ${position}, expected '${expectedType}'`);
@@ -239,6 +307,8 @@ export function throwTypeMismatch(expectedType: string, position: number) {
  *
  * @param functionAbi - The ABI of the function to analyze.
  * @returns The index of the first non-signer argument, or the length of the parameters array if none are found.
+ * @group Implementation
+ * @category Transactions
  */
 export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
   const index = functionAbi.params.findIndex((param) => param !== "signer" && param !== "&signer");
@@ -255,6 +325,8 @@ export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
  * @param functionArg - The function identifier string in the format "moduleAddress::moduleName::functionName".
  * @returns An object containing the module address, module name, and function name.
  * @throws Error if the function identifier does not contain exactly three parts.
+ * @group Implementation
+ * @category Transactions
  */
 export function getFunctionParts(functionArg: MoveFunctionId) {
   const funcNameParts = functionArg.split("::");

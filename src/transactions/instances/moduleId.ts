@@ -10,6 +10,8 @@ import { MoveModuleId } from "../../types";
 /**
  * Represents a ModuleId that can be serialized and deserialized.
  * A ModuleId consists of a module address (e.g., "0x1") and a module name (e.g., "coin").
+ * @group Implementation
+ * @category Transactions
  */
 export class ModuleId extends Serializable {
   public readonly address: AccountAddress;
@@ -21,6 +23,8 @@ export class ModuleId extends Serializable {
    *
    * @param address - The account address, e.g., "0x1".
    * @param name - The module name under the specified address, e.g., "coin".
+   * @group Implementation
+   * @category Transactions
    */
   constructor(address: AccountAddress, name: Identifier) {
     super();
@@ -33,6 +37,8 @@ export class ModuleId extends Serializable {
    * @param moduleId - A string literal representing the module identifier.
    * @throws Error if the provided moduleId is not in the correct format.
    * @returns ModuleId - The corresponding ModuleId object.
+   * @group Implementation
+   * @category Transactions
    */
   static fromStr(moduleId: MoveModuleId): ModuleId {
     const parts = moduleId.split("::");
@@ -47,6 +53,8 @@ export class ModuleId extends Serializable {
    * This function is essential for converting the object's data into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     this.address.serialize(serializer);
@@ -58,6 +66,8 @@ export class ModuleId extends Serializable {
    * This function retrieves the account address and identifier to construct a ModuleId instance.
    *
    * @param deserializer - The deserializer instance used to read the data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): ModuleId {
     const address = AccountAddress.deserialize(deserializer);

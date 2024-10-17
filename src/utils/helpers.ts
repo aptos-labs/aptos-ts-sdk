@@ -9,13 +9,18 @@ import { MoveStructId } from "../types";
  * This function can be used to introduce delays in asynchronous operations.
  *
  * @param timeMs - The time in milliseconds to sleep.
+ * @group Implementation
+ * @category Utils
  */
 export async function sleep(timeMs: number): Promise<null> {
   return new Promise((resolve) => {
     setTimeout(resolve, timeMs);
   });
 }
-
+/**
+ * @group Implementation
+ * @category Utils
+ */
 export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 /**
@@ -23,6 +28,8 @@ export const nowInSeconds = () => Math.floor(Date.now() / 1000);
  * This function is useful for normalizing timestamps to hourly intervals.
  *
  * @param timestampInSeconds - The timestamp in seconds to be floored.
+ * @group Implementation
+ * @category Utils
  */
 export function floorToWholeHour(timestampInSeconds: number): number {
   const date = new Date(timestampInSeconds * 1000);
@@ -39,6 +46,8 @@ export function floorToWholeHour(timestampInSeconds: number): number {
  *
  * @param base64Url - The base64 URL-encoded string to decode.
  * @returns The decoded string.
+ * @group Implementation
+ * @category Utils
  */
 export function base64UrlDecode(base64Url: string): string {
   // Replace base64url-specific characters
@@ -59,6 +68,8 @@ export function base64UrlDecode(base64Url: string): string {
  * @param value The value in human-readable format
  * @param decimal The token decimal
  * @returns The value in the smallest units
+ * @group Implementation
+ * @category Utils
  */
 export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: number) => value * 10 ** decimal;
 
@@ -72,6 +83,8 @@ export const convertAmountFromHumanReadableToOnChain = (value: number, decimal: 
  * @param value The value in human-readable format
  * @param decimal The token decimal
  * @returns The value in the smallest units
+ * @group Implementation
+ * @category Utils
  */
 export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: number) => value / 10 ** decimal;
 
@@ -82,6 +95,8 @@ export const convertAmountFromOnChainToHumanReadable = (value: number, decimal: 
  *
  * @param hex The hex string to convert (e.g. `0x6170746f735f636f696e`)
  * @returns The ascii string
+ * @group Implementation
+ * @category Utils
  */
 const hexToAscii = (hex: string) => {
   let str = "";
@@ -105,6 +120,8 @@ const hexToAscii = (hex: string) => {
  *
  * @param structObj The struct with account_address, module_name, and struct_name properties
  * @returns The MoveStructId
+ * @group Implementation
+ * @category Utils
  */
 export const parseEncodedStruct = (structObj: {
   account_address: string;
@@ -126,6 +143,8 @@ export const parseEncodedStruct = (structObj: {
  *
  * @param structObj The object to check
  * @returns Whether the object is an encoded struct type
+ * @group Implementation
+ * @category Utils
  */
 export const isEncodedStruct = (
   structObj: any,

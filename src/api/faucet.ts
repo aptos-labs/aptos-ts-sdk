@@ -10,6 +10,7 @@ import { ProcessorType } from "../utils";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
+ * @group Faucet
  */
 export class Faucet {
   /**
@@ -32,6 +33,7 @@ export class Faucet {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Faucet
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -62,6 +64,7 @@ export class Faucet {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Faucet
    */
   async fundAccount(args: {
     accountAddress: AccountAddressInput;
