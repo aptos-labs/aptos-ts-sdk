@@ -3,6 +3,8 @@
 
 /**
  * This file handles the generation of the signing message.
+ * @group Implementation
+ * @category Transactions
  */
 import { sha3_256 as sha3Hash } from "@noble/hashes/sha3";
 import { RAW_TRANSACTION_SALT, RAW_TRANSACTION_WITH_DATA_SALT } from "../../utils/const";
@@ -21,6 +23,8 @@ import { Serializable } from "../../bcs";
  *   - rawTransaction - The raw transaction data.
  *
  * @returns FeePayerRawTransaction | MultiAgentRawTransaction | RawTransaction
+ * @group Implementation
+ * @category Transactions
  */
 export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTransactionInstance {
   if (transaction.feePayerAddress) {
@@ -45,6 +49,8 @@ export function deriveTransactionType(transaction: AnyRawTransaction): AnyRawTra
  * @param domainSeparator - A domain separator that starts with 'APTOS::'.
  *
  * @returns The Uint8Array of the signing message.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateSigningMessage(bytes: Uint8Array, domainSeparator: string): Uint8Array {
   const hash = sha3Hash.create();
@@ -76,6 +82,8 @@ export function generateSigningMessage(bytes: Uint8Array, domainSeparator: strin
  * @param serializable - An object that has a BCS serialized form.
  *
  * @returns The Uint8Array of the signing message.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateSigningMessageForSerializable(serializable: Serializable): Uint8Array {
   return generateSigningMessage(serializable.bcsToBytes(), `APTOS::${serializable.constructor.name}`);
@@ -88,6 +96,8 @@ export function generateSigningMessageForSerializable(serializable: Serializable
  * @param transaction - A transaction that is to be signed, which can include a fee payer address or secondary signer addresses.
  *
  * @returns The Uint8Array of the signing message.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateSigningMessageForTransaction(transaction: AnyRawTransaction): Uint8Array {
   const rawTxn = deriveTransactionType(transaction);

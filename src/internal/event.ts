@@ -6,6 +6,7 @@
  * the {@link api/event}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * event namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -31,6 +32,7 @@ const checkEventTypeLength = (eventType?: InputMaybe<string>) => {
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.eventType - The MoveStructId representing the type of event to retrieve.
  * @param [args.options] - Optional pagination and ordering parameters for the event retrieval.
+ * @group Implementation
  */
 export async function getModuleEventsByEventType(args: {
   aptosConfig: AptosConfig;
@@ -64,6 +66,7 @@ export async function getModuleEventsByEventType(args: {
  * @param args.accountAddress - The address of the account for which events are being retrieved.
  * @param args.creationNumber - The creation number to filter events.
  * @param args.options - Optional pagination and ordering parameters for the event retrieval.
+ * @group Implementation
  */
 export async function getAccountEventsByCreationNumber(args: {
   aptosConfig: AptosConfig;
@@ -90,6 +93,7 @@ export async function getAccountEventsByCreationNumber(args: {
  * @param args.accountAddress - The address of the account for which to retrieve events.
  * @param args.eventType - The type of event to filter by.
  * @param args.options - Optional pagination and ordering parameters for the event retrieval.
+ * @group Implementation
  */
 export async function getAccountEventsByEventType(args: {
   aptosConfig: AptosConfig;
@@ -119,6 +123,7 @@ export async function getAccountEventsByEventType(args: {
  * @param [args.options.orderBy] - Defines the order in which to return the events.
  * @param [args.options.where] - Conditions to filter the events.
  * @param [args.options.where.indexed_type] - Filters events by the indexed type.
+ * @group Implementation
  */
 export async function getEvents(args: {
   aptosConfig: AptosConfig;
@@ -136,6 +141,7 @@ export async function getEvents(args: {
    * @param options.offset - The number of items to skip before starting to collect the result set.
    * @param options.limit - The maximum number of items to return.
    * @param options.orderBy - The criteria to sort the results.
+   * @group Implementation
    */
   // eslint-disable-next-line no-underscore-dangle
   checkEventTypeLength(options?.where?.indexed_type?._eq);

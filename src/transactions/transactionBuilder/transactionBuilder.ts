@@ -94,11 +94,21 @@ import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
  *
  * @returns TransactionPayload - The generated transaction payload, which can be of type TransactionPayloadScript,
  * TransactionPayloadMultiSig, or TransactionPayloadEntryFunction.
+ * @group Implementation
+ * @category Transactions
  */
 export async function generateTransactionPayload(args: InputScriptData): Promise<TransactionPayloadScript>;
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export async function generateTransactionPayload(
   args: InputEntryFunctionDataWithRemoteABI,
 ): Promise<TransactionPayloadEntryFunction>;
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export async function generateTransactionPayload(
   args: InputMultiSigDataWithRemoteABI,
 ): Promise<TransactionPayloadMultiSig>;
@@ -112,6 +122,8 @@ export async function generateTransactionPayload(
  * @param args.data GenerateTransactionPayloadData
  *
  * @return TransactionPayload
+ * @group Implementation
+ * @category Transactions
  */
 export async function generateTransactionPayload(
   args: InputGenerateTransactionPayloadDataWithRemoteABI,
@@ -147,9 +159,19 @@ export async function generateTransactionPayload(
  * @param args.multisigAddress - (Optional) The address for a multisig transaction if applicable.
  *
  * @throws Error if the type argument count does not match the ABI or if the number of function arguments is incorrect.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI): TransactionPayloadEntryFunction;
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function generateTransactionPayloadWithABI(args: InputMultiSigDataWithABI): TransactionPayloadMultiSig;
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadDataWithABI,
 ): AnyTransactionPayloadInstance {
@@ -178,6 +200,8 @@ export function generateTransactionPayloadWithABI(
      * @param arg - The argument to be converted.
      * @param i - The index of the argument in the function call.
      * @param typeArguments - Additional type arguments that may be required for the conversion.
+     * @group Implementation
+     * @category Transactions
      */
     // TODO: Fix JSDoc
     convertArgument(args.function, functionAbi, arg, i, typeArguments),
@@ -221,6 +245,8 @@ export function generateTransactionPayloadWithABI(
  * @param args.abi - The ABI (Application Binary Interface) of the module.
  *
  * @returns The generated payload for the view function call.
+ * @group Implementation
+ * @category Transactions
  */
 export async function generateViewFunctionPayload(args: InputViewFunctionDataWithRemoteABI): Promise<EntryFunction> {
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
@@ -252,6 +278,8 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
  *
  * @throws Error if the type argument count does not match the ABI or if the function arguments
  * do not match the expected parameters defined in the ABI.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
   const functionAbi = args.abi;
@@ -292,6 +320,8 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
  * @param args.typeArguments - The type arguments that will be standardized.
  * @param args.functionArguments - The arguments for the function being called.
  * @returns A new instance of TransactionPayloadScript.
+ * @group Implementation
+ * @category Transactions
  */
 function generateTransactionPayloadScript(args: InputScriptData) {
   return new TransactionPayloadScript(
@@ -314,6 +344,8 @@ function generateTransactionPayloadScript(args: InputScriptData) {
  * @param args.feePayerAddress - The address of the fee payer for sponsored transactions.
  *
  * @returns RawTransaction - The generated raw transaction.
+ * @group Implementation
+ * @category Transactions
  */
 export async function generateRawTransaction(args: {
   aptosConfig: AptosConfig;
@@ -352,6 +384,8 @@ export async function generateRawTransaction(args: {
     /**
      * Check if is sponsored transaction to honor AIP-52
      * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-52.md}
+     * @group Implementation
+     * @category Transactions
      */
     if (feePayerAddress && AccountAddress.from(feePayerAddress).equals(AccountAddress.ZERO)) {
       // Handle sponsored transaction generation with the option that
@@ -401,8 +435,14 @@ export async function generateRawTransaction(args: {
  * @param args.secondarySignerAddresses - Optional. An array of addresses for additional signers in a multi-signature transaction.
  * @param args.feePayerAddress - Optional. The address of the fee payer for sponsored transactions.
  * @returns An instance of a transaction, which may include secondary signer addresses and a fee payer address.
+ * @group Implementation
+ * @category Transactions
  */
 export async function buildTransaction(args: InputGenerateSingleSignerRawTransactionArgs): Promise<SimpleTransaction>;
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export async function buildTransaction(args: InputGenerateMultiAgentRawTransactionArgs): Promise<MultiAgentTransaction>;
 
 /**
@@ -426,6 +466,8 @@ export async function buildTransaction(args: InputGenerateMultiAgentRawTransacti
  *  feePayerAddress?: AccountAddress
  * }
  * ```
+ * @group Implementation
+ * @category Transactions
  */
 export async function buildTransaction(args: InputGenerateRawTransactionArgs): Promise<AnyRawTransaction> {
   const { aptosConfig, sender, payload, options, feePayerAddress } = args;
@@ -465,6 +507,8 @@ export async function buildTransaction(args: InputGenerateRawTransactionArgs): P
  * @param args.options - Optional. Additional options for simulating the transaction.
  *
  * @returns A signed serialized transaction that can be simulated.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateSignedTransactionForSimulation(args: InputSimulateTransactionData): Uint8Array {
   const { signerPublicKey, transaction, secondarySignersPublicKeys, feePayerPublicKey } = args;
@@ -548,7 +592,10 @@ export function generateSignedTransactionForSimulation(args: InputSimulateTransa
   }
   return new SignedTransaction(transaction.rawTransaction, transactionAuthenticator).bcsToBytes();
 }
-
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export function getAuthenticatorForSimulation(publicKey: PublicKey) {
   // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
   // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
@@ -606,6 +653,8 @@ export function getAuthenticatorForSimulation(publicKey: PublicKey) {
  *
  * @throws Error if the feePayerAuthenticator is not provided for a fee payer transaction.
  * @throws Error if additionalSignersAuthenticators are not provided for a multi-signer transaction.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateSignedTransaction(args: InputSubmitTransactionData): Uint8Array {
   const { transaction, feePayerAuthenticator, additionalSignersAuthenticators } = args;
@@ -651,6 +700,8 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
 /**
  * Hashes the set of values using a SHA-3 256 hash algorithm.
  * @param input - An array of UTF-8 strings or Uint8Array byte arrays to be hashed.
+ * @group Implementation
+ * @category Transactions
  */
 export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
   const hash = sha3Hash.create();
@@ -662,6 +713,8 @@ export function hashValues(input: (Uint8Array | string)[]): Uint8Array {
 
 /**
  * The domain separated prefix for hashing transactions
+ * @group Implementation
+ * @category Transactions
  */
 const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
 
@@ -674,6 +727,8 @@ const TRANSACTION_PREFIX = hashValues(["APTOS::Transaction"]);
  * @param args.payload - The payload containing the transaction details.
  * @param args.sender - The address of the sender initiating the transaction.
  * @param args.sequenceNumber - The sequence number of the transaction for the sender.
+ * @group Implementation
+ * @category Transactions
  */
 export function generateUserTransactionHash(args: InputSubmitTransactionData): string {
   const signedTransaction = generateSignedTransaction(args);
@@ -694,6 +749,8 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
  * @param aptosConfig - Configuration settings for Aptos.
  * @param abi - An optional ABI to use if already available.
  * @param fetch - A function to fetch the ABI if it is not provided.
+ * @group Implementation
+ * @category Transactions
  */
 async function fetchAbi<T extends FunctionABI>({
   key,

@@ -36,6 +36,8 @@ import { TransactionArgument } from "../../transactions/instances/transactionArg
  * @param value - HexInput representing a sequence of Uint8 bytes.
  * @returns A Serializable FixedBytes instance, which when serialized, does not prepend the length of the bytes.
  * @see EntryFunctionBytes
+ * @group Implementation
+ * @category BCS
  */
 export class FixedBytes extends Serializable implements TransactionArgument {
   public value: Uint8Array;
@@ -45,6 +47,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
    * The value is converted from hexadecimal format to a Uint8Array.
    *
    * @param value - The hexadecimal input to be converted.
+   * @group Implementation
+   * @category BCS
    */
   constructor(value: HexInput) {
     super();
@@ -56,6 +60,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
    * This function is essential for converting the fixed bytes into a format suitable for storage or transmission.
    *
    * @param serializer - The serializer instance used for serialization.
+   * @group Implementation
+   * @category BCS
    */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.value);
@@ -66,6 +72,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
    * This allows the instance to be converted into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
     serializer.serialize(this);
@@ -76,6 +84,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
    * This function is essential for preparing data to be passed as arguments in script functions.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serialize(this);
@@ -87,6 +97,8 @@ export class FixedBytes extends Serializable implements TransactionArgument {
    *
    * @param deserializer - The deserializer instance used to read the byte data.
    * @param length - The length of the byte array to be deserialized.
+   * @group Implementation
+   * @category BCS
    */
   static deserialize(deserializer: Deserializer, length: number): FixedBytes {
     const bytes = deserializer.deserializeFixedBytes(length);

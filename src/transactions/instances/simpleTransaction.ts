@@ -16,6 +16,8 @@ import { RawTransaction } from "./rawTransaction";
  *
  * @param rawTransaction - The Raw Transaction.
  * @param feePayerAddress - The optional sponsor Account Address.
+ * @group Implementation
+ * @category Transactions
  */
 export class SimpleTransaction extends Serializable {
   public rawTransaction: RawTransaction;
@@ -32,6 +34,8 @@ export class SimpleTransaction extends Serializable {
    *
    * @param rawTransaction The Raw Transaction.
    * @param feePayerAddress The optional sponsor Account Address to pay the gas fees.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(rawTransaction: RawTransaction, feePayerAddress?: AccountAddress) {
     super();
@@ -44,6 +48,8 @@ export class SimpleTransaction extends Serializable {
    * This function ensures that the raw transaction and fee payer address are properly serialized for further processing.
    *
    * @param serializer - The serializer instance used to serialize the transaction data.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     this.rawTransaction.serialize(serializer);
@@ -61,6 +67,8 @@ export class SimpleTransaction extends Serializable {
    * This function helps in reconstructing a SimpleTransaction object from its serialized form.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): SimpleTransaction {
     const rawTransaction = RawTransaction.deserialize(deserializer);

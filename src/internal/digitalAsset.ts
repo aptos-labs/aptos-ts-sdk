@@ -6,6 +6,7 @@
  * the {@link api/digitalAsset}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * digitalAsset namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -77,6 +78,7 @@ const PropertyTypeMap = {
 
 /**
  * The keys of the PropertyTypeMap, representing different property types.
+ * @group Implementation
  */
 export type PropertyType = keyof typeof PropertyTypeMap;
 
@@ -84,6 +86,7 @@ export type PropertyType = keyof typeof PropertyTypeMap;
  * Accepted property value types for user input, including boolean, number, bigint, string, AccountAddress, and Uint8Array.
  * To pass in an Array, use Uint8Array type
  * for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
+ * @group Implementation
  */
 export type PropertyValue = boolean | number | bigint | string | AccountAddress | Uint8Array;
 
@@ -99,6 +102,7 @@ const defaultDigitalAssetType = "0x4::token::Token";
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.digitalAssetAddress - The address of the digital asset to retrieve data for.
  * @returns The data of the specified digital asset.
+ * @group Implementation
  */
 export async function getDigitalAssetData(args: {
   aptosConfig: AptosConfig;
@@ -133,6 +137,7 @@ export async function getDigitalAssetData(args: {
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.digitalAssetAddress - The address of the digital asset to query ownership for.
  * @returns The current ownership details of the specified digital asset.
+ * @group Implementation
  */
 export async function getCurrentDigitalAssetOwnership(args: {
   aptosConfig: AptosConfig;
@@ -173,6 +178,7 @@ export async function getCurrentDigitalAssetOwnership(args: {
  * @param args.options.orderBy - The criteria for ordering the results.
  *
  * @returns An array of digital assets currently owned by the specified account.
+ * @group Implementation
  */
 export async function getOwnedDigitalAssets(args: {
   aptosConfig: AptosConfig;
@@ -217,6 +223,7 @@ export async function getOwnedDigitalAssets(args: {
  * @param args.options.limit - The maximum number of records to return.
  * @param args.options.orderBy - The criteria to order the results by.
  * @returns A promise that resolves to an array of token activities for the specified digital asset.
+ * @group Implementation
  */
 export async function getDigitalAssetActivity(args: {
   aptosConfig: AptosConfig;
@@ -264,6 +271,7 @@ export async function getDigitalAssetActivity(args: {
  * @param tokensFreezableByCreator - Indicates if the creator can freeze tokens in the collection.
  * @param royaltyNumerator - The numerator for calculating royalties.
  * @param royaltyDenominator - The denominator for calculating royalties.
+ * @group Implementation
  */
 export interface CreateCollectionOptions {
   maxSupply?: AnyNumber;
@@ -324,6 +332,7 @@ const createCollectionAbi: EntryFunctionABI = {
  * @param args.tokensFreezableByCreator - Indicates if tokens can be frozen by the creator (optional, defaults to true).
  * @param args.royaltyNumerator - The numerator for calculating royalties (optional, defaults to 0).
  * @param args.royaltyDenominator - The denominator for calculating royalties (optional, defaults to 1).
+ * @group Implementation
  */
 export async function createCollectionTransaction(
   args: {
@@ -376,6 +385,7 @@ export async function createCollectionTransaction(
  * @param args.options.limit - The limit for pagination.
  * @param args.options.where - The conditions to filter the collections.
  * @returns The data of the current collections.
+ * @group Implementation
  */
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
@@ -416,6 +426,7 @@ export async function getCollectionData(args: {
  * @param args.options - Optional parameters for filtering the results, including token standard and pagination options.
  * @param args.options.tokenStandard - The token standard to filter the results by (optional).
  * @param args.options.pagination - Pagination options for the results (optional).
+ * @group Implementation
  */
 export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
   aptosConfig: AptosConfig;
@@ -447,6 +458,7 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
  * @param args.options - Optional parameters for filtering the results.
  * @param args.options.tokenStandard - The token standard to filter the collections by.
  * @param args.options.pagination - Pagination options for the results.
+ * @group Implementation
  */
 export async function getCollectionDataByCreatorAddress(args: {
   aptosConfig: AptosConfig;
@@ -477,6 +489,7 @@ export async function getCollectionDataByCreatorAddress(args: {
  * @param args.options.tokenStandard - The standard of the token to filter the collection data.
  * @param args.options.page - The page number for pagination.
  * @param args.options.limit - The number of items per page for pagination.
+ * @group Implementation
  */
 export async function getCollectionDataByCollectionId(args: {
   aptosConfig: AptosConfig;
@@ -508,6 +521,7 @@ export async function getCollectionDataByCollectionId(args: {
  * @param args.options - Optional parameters for additional filtering.
  * @param args.options.tokenStandard - The token standard to filter the collection (default is "v2").
  * @returns The ID of the specified collection.
+ * @group Implementation
  */
 export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
@@ -559,6 +573,7 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
  * @param [args.propertyTypes] - Optional array of property types corresponding to the asset's properties.
  * @param [args.propertyValues] - Optional array of property values for the asset's properties.
  * @param [args.options] - Optional transaction generation options.
+ * @group Implementation
  */
 export async function mintDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
@@ -604,6 +619,7 @@ export async function mintDigitalAssetTransaction(args: {
          * @param propertyValues - An array of property values from which to extract the raw data.
          * @param propertyTypes - An array of strings representing the types of properties to retrieve.
          * @returns An array of Uint8Array containing the raw values for the specified property types.
+         * @group Implementation
          */
         getPropertyValueRaw(propertyValues ?? [], convertedPropertyType ?? []),
       ],
@@ -629,6 +645,7 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
  * @param args.recipient - The address of the account receiving the digital asset.
  * @param args.digitalAssetType - (Optional) The type of the digital asset being transferred.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function transferDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
@@ -683,6 +700,7 @@ const mintSoulBoundAbi: EntryFunctionABI = {
  * @param [args.propertyValues] - Optional array of property values that match the property keys and types.
  * @param [args.options] - Optional transaction generation options.
  * @throws Error if the counts of property keys, property types, and property values do not match.
+ * @group Implementation
  */
 export async function mintSoulBoundTransaction(args: {
   aptosConfig: AptosConfig;
@@ -753,6 +771,7 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to be burned.
  * @param args.digitalAssetType - Optional; the type of the digital asset being burned.
  * @param args.options - Optional; additional options for generating the transaction.
+ * @group Implementation
  */
 export async function burnDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
@@ -790,6 +809,7 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to be frozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset as a Move struct ID.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function freezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
@@ -826,6 +846,7 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to be unfrozen.
  * @param args.digitalAssetType - (Optional) The type of the digital asset being unfrozen.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function unfreezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
@@ -863,6 +884,7 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset whose description is being set.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function setDigitalAssetDescriptionTransaction(args: {
   aptosConfig: AptosConfig;
@@ -902,6 +924,7 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to update.
  * @param args.digitalAssetType - (Optional) The type of the digital asset, represented as a Move struct ID.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function setDigitalAssetNameTransaction(args: {
   aptosConfig: AptosConfig;
@@ -940,6 +963,7 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset whose URI is being set.
  * @param args.digitalAssetType - The optional type of the digital asset; defaults to a predefined type if not provided.
  * @param args.options - Optional settings for generating the transaction.
+ * @group Implementation
  */
 export async function setDigitalAssetURITransaction(args: {
   aptosConfig: AptosConfig;
@@ -986,6 +1010,7 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
  * @param args.digitalAssetType - The optional type of the digital asset.
  * @param args.options - Optional transaction generation options.
+ * @group Implementation
  */
 export async function addDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
@@ -1041,6 +1066,7 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset from which the property will be removed.
  * @param args.digitalAssetType - The type of the digital asset (optional).
  * @param args.options - Additional options for generating the transaction (optional).
+ * @group Implementation
  */
 export async function removeDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
@@ -1087,6 +1113,7 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to update.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function updateDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
@@ -1125,6 +1152,7 @@ export async function updateDigitalAssetPropertyTransaction(args: {
          * @param propertyValue - The value of the property to convert.
          * @param propertyType - The type of the property, which determines how the value is processed.
          * @returns The raw byte representation of the property value.
+         * @group Implementation
          */
         getSinglePropertyValueRaw(propertyValue, PropertyTypeMap[propertyType]),
       ],
@@ -1156,6 +1184,7 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
  * @param args.digitalAssetType - (Optional) The type of the digital asset.
  * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function addDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;
@@ -1211,6 +1240,7 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
  * @param args.digitalAssetAddress - The address of the digital asset to be updated.
  * @param args.digitalAssetType - Optional. The type of the digital asset, if not provided, defaults to the standard type.
  * @param args.options - Optional. Additional options for generating the transaction.
+ * @group Implementation
  */
 export async function updateDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;

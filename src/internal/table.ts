@@ -22,6 +22,7 @@ import { queryIndexer } from "./general";
  * @param args.handle - The identifier for the table from which to retrieve the item.
  * @param args.data - The request data for the table item.
  * @param args.options - Optional parameters for the request, including ledger version.
+ * @group Implementation
  */
 export async function getTableItem<T>(args: {
   aptosConfig: AptosConfig;
@@ -50,6 +51,7 @@ export async function getTableItem<T>(args: {
  * @param args.options.limit - The maximum number of items to return.
  * @param args.options.where - Conditions to filter the table items.
  * @param args.options.orderBy - The criteria to sort the results.
+ * @group Implementation
  */
 export async function getTableItemsData(args: {
   aptosConfig: AptosConfig;
@@ -87,6 +89,7 @@ export async function getTableItemsData(args: {
  * @param args.options.where - Conditions to filter the results.
  * @param args.options.orderBy - The order in which to return the results.
  * @returns A promise that resolves to an array of table metadata.
+ * @group Implementation
  */
 export async function getTableItemsMetadata(args: {
   aptosConfig: AptosConfig;

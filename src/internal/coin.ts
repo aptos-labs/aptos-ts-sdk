@@ -23,6 +23,7 @@ const coinTransferAbi: EntryFunctionABI = {
  * @param args.amount - The amount of coins to transfer.
  * @param args.coinType - (Optional) The type of coin to transfer, defaults to Aptos Coin if not specified.
  * @param args.options - (Optional) Options for generating the transaction.
+ * @group Implementation
  */
 export async function transferCoinTransaction(args: {
   aptosConfig: AptosConfig;

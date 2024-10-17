@@ -4,6 +4,8 @@
  * It allows to enqueue items and dequeue them asynchronously.
  * This is not thread-safe, but it is async concurrency safe, and
  * it does not guarantee ordering for those that call into and await on enqueue.
+ * @group Implementation
+ * @category Transactions
  */
 
 interface PendingDequeue<T> {
@@ -24,6 +26,8 @@ export class AsyncQueue<T> {
    * immediately; otherwise, it adds the item to the queue.
    *
    * @param item - The item to be added to the queue.
+   * @group Implementation
+   * @category Transactions
    */
   enqueue(item: T): void {
     this.cancelled = false;
@@ -44,6 +48,8 @@ export class AsyncQueue<T> {
    * If the queue is empty, it creates a new promise that will be resolved when an item is enqueued.
    *
    * @returns Promise<T>
+   * @group Implementation
+   * @category Transactions
    */
   async dequeue(): Promise<T> {
     if (this.queue.length > 0) {
@@ -59,6 +65,8 @@ export class AsyncQueue<T> {
    * Determine whether the queue is empty.
    *
    * @returns boolean - Returns true if the queue has no elements, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isEmpty(): boolean {
     return this.queue.length === 0;
@@ -69,6 +77,8 @@ export class AsyncQueue<T> {
    * This ensures that any awaiting code can handle the cancellation appropriately.
    *
    * @returns {void}
+   * @group Implementation
+   * @category Transactions
    */
   cancel(): void {
     this.cancelled = true;
@@ -86,6 +96,8 @@ export class AsyncQueue<T> {
    * Determine whether the queue has been cancelled.
    *
    * @returns boolean - Returns true if the queue is cancelled, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isCancelled(): boolean {
     return this.cancelled;
@@ -95,6 +107,8 @@ export class AsyncQueue<T> {
    * Retrieve the length of the pending dequeue.
    *
    * @returns number - The number of items currently in the pending dequeue.
+   * @group Implementation
+   * @category Transactions
    */
   pendingDequeueLength(): number {
     return this.pendingDequeue.length;
@@ -106,5 +120,7 @@ export class AsyncQueue<T> {
  * This error extends the built-in Error class to provide additional context for cancellation events.
  *
  * @extends Error
+ * @group Implementation
+ * @category Transactions
  */
 export class AsyncQueueCancelledError extends Error {}

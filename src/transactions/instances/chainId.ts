@@ -8,6 +8,8 @@ import { Deserializer } from "../../bcs/deserializer";
  * Represents a ChainId that can be serialized and deserialized.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Transactions
  */
 export class ChainId extends Serializable {
   public readonly chainId: number;
@@ -16,6 +18,8 @@ export class ChainId extends Serializable {
    * Initializes a new instance of the class with the specified chain ID.
    *
    * @param chainId - The ID of the blockchain network to be used.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(chainId: number) {
     super();
@@ -27,6 +31,8 @@ export class ChainId extends Serializable {
    * This function helps in converting the object into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     serializer.serializeU8(this.chainId);
@@ -37,6 +43,8 @@ export class ChainId extends Serializable {
    * This function allows you to reconstruct a ChainId object from serialized data.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): ChainId {
     const chainId = deserializer.deserializeU8();

@@ -10,6 +10,8 @@ import { Serializable, Serializer } from "../../bcs/serializer";
  * the "function name" in "EntryFunction".
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Transactions
  */
 export class Identifier extends Serializable {
   public identifier: string;
@@ -18,6 +20,8 @@ export class Identifier extends Serializable {
    * Creates an instance of the class with a specified identifier.
    *
    * @param identifier - The unique identifier for the instance.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(identifier: string) {
     super();
@@ -28,6 +32,8 @@ export class Identifier extends Serializable {
    * Serializes the identifier of the current instance using the provided serializer.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Transactions
    */
   public serialize(serializer: Serializer): void {
     serializer.serializeStr(this.identifier);
@@ -38,6 +44,8 @@ export class Identifier extends Serializable {
    * This function is useful for reconstructing an Identifier object from a serialized format.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): Identifier {
     const identifier = deserializer.deserializeStr();

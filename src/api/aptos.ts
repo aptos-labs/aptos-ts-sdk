@@ -39,6 +39,7 @@ import { AptosObject } from "./object";
  * }
  * runExample().catch(console.error);
  * ```
+ * @group Client
  */
 export class Aptos {
   readonly config: AptosConfig;
@@ -88,6 +89,7 @@ export class Aptos {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Client
    */
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
@@ -131,6 +133,7 @@ that we can combine to form a single class that contains all the methods and pro
 {@link https://www.typescriptlang.org/docs/handbook/mixins.html#alternative-pattern}
 
 Here, we combine any subclass and the Aptos class.
+ * @group Client
 */
 function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
   // Mixin instance methods

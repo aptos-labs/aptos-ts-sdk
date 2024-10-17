@@ -10,6 +10,7 @@ import { getObjectDataByObjectAddress } from "../internal/object";
 
 /**
  * A class to query all `Object` related queries on Aptos.
+ * @group Object
  */
 export class AptosObject {
   /**
@@ -39,6 +40,7 @@ export class AptosObject {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Object
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -68,6 +70,7 @@ export class AptosObject {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Object
    */
   async getObjectDataByObjectAddress(args: {
     objectAddress: AccountAddressInput;

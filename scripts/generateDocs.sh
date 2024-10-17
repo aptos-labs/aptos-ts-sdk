@@ -17,7 +17,7 @@ fi
 
 # TODO: This uses the --skipErrorChecking flag as otherwise it incorrectly tries to compile the tests folder. 
 # Remove this once test compiler errors are not intefering with docs generation.
-npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
+npx typedoc src/index.ts --options typedoc.json --out "docs/@aptos-labs/ts-sdk-$npm_package_version" --plugin typedoc-plugin-missing-exports --internalModule PrivateCode --cleanOutputDir --excludeInternal --includeVersion --skipErrorChecking
 
 # Update the main page
 INDEX_FILE='docs/index.md';

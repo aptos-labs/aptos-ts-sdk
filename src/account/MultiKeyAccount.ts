@@ -14,6 +14,8 @@ import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
  *
  * @param message - The original message that was signed.
  * @param signature - The multi-key signature to be verified.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface VerifyMultiKeySignatureArgs {
   message: HexInput;
@@ -27,20 +29,28 @@ export interface VerifyMultiKeySignatureArgs {
  * It signs messages using an array of M accounts, each corresponding to a public key in the {@link MultiKey}.
  *
  * Note: Generating a signer instance does not create the account on-chain.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class MultiKeyAccount implements Account {
   /**
    * Public key associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly publicKey: MultiKey;
 
   /**
    * Account address associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly accountAddress: AccountAddress;
 
   /**
    * Signing scheme used to sign transactions
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly signingScheme: SigningScheme;
 
@@ -48,12 +58,16 @@ export class MultiKeyAccount implements Account {
    * The signers used to sign messages.  These signers should correspond to public keys in the
    * MultiKeyAccount's public key.  The number of signers should be equal or greater
    * than this.publicKey.signaturesRequired
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly signers: Account[];
 
   /**
    * An array of indices where for signer[i], signerIndicies[i] is the index of the corresponding public key in
    * publicKey.publicKeys.  Used to derive the right public key to use for verification.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   // TODO: Rename Indicies to Indices
   readonly signerIndicies: number[];
@@ -67,6 +81,8 @@ export class MultiKeyAccount implements Account {
    * @param args.multiKey - The multikey of the account consisting of N public keys and a number M representing the required signatures.
    * @param args.signers - An array of M signers that will be used to sign the transaction.
    * @param args.address - An optional account address input. If not provided, the derived address from the public key will be used.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   constructor(args: { multiKey: MultiKey; signers: Account[]; address?: AccountAddressInput }) {
     const { multiKey, signers, address } = args;
@@ -99,6 +115,8 @@ export class MultiKeyAccount implements Account {
    * @param args.signaturesRequired - The number of signatures required to authorize a transaction.
    * @param args.signers - An array of M signers that will be used to sign the transaction.
    * @returns MultiKeyAccount - The newly created MultiKeyAccount.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static fromPublicKeysAndSigners(args: {
     publicKeys: PublicKey[];
@@ -115,6 +133,8 @@ export class MultiKeyAccount implements Account {
    *
    * @param account - The account to check.
    * @returns A boolean indicating whether the account is a multi-key account.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static isMultiKeySigner(account: Account): account is MultiKeyAccount {
     return account instanceof MultiKeyAccount;
@@ -125,6 +145,8 @@ export class MultiKeyAccount implements Account {
    * account's public key.
    * @param message - The signing message, represented as binary input in hexadecimal format.
    * @returns An instance of AccountAuthenticatorMultiKey that includes the signature and the public key.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorMultiKey {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.sign(message));
@@ -135,6 +157,8 @@ export class MultiKeyAccount implements Account {
    * account's public key.
    * @param transaction - The raw transaction to be signed.
    * @returns An AccountAuthenticatorMultiKey containing the signature of the transaction along with the account's public key.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorMultiKey {
     return new AccountAuthenticatorMultiKey(this.publicKey, this.signTransaction(transaction));
@@ -144,6 +168,8 @@ export class MultiKeyAccount implements Account {
    * Waits for any proofs on KeylessAccount signers to be fetched. This ensures that signing with the KeylessAccount does not
    * fail due to missing proofs.
    * @return {Promise<void>} A promise that resolves when all proofs have been fetched.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   async waitForProofFetch(): Promise<void> {
     const keylessSigners = this.signers.filter(
@@ -157,6 +183,8 @@ export class MultiKeyAccount implements Account {
    * Sign the given data using the MultiKeyAccount's signers.
    * @param data - The data to be signed in HexInput format.
    * @returns MultiKeySignature - The resulting multi-key signature.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   sign(data: HexInput): MultiKeySignature {
     const signatures = [];
@@ -172,6 +200,8 @@ export class MultiKeyAccount implements Account {
    *
    * @param transaction - The transaction to be signed.
    * @returns MultiKeySignature - An object containing the aggregated signatures and a bitmap of the signatures.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signTransaction(transaction: AnyRawTransaction): MultiKeySignature {
     const signatures = [];
@@ -190,6 +220,8 @@ export class MultiKeyAccount implements Account {
    * @param args.message - The raw message data in HexInput format.
    * @param args.signature - The signed message MultiKeySignature containing multiple signatures.
    * @returns A boolean indicating whether the signatures are valid for the message.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   verifySignature(args: VerifyMultiKeySignatureArgs): boolean {
     const { message, signature } = args;

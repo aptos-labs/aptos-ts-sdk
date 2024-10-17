@@ -32,60 +32,72 @@ import { AptosApiType } from "../utils/const";
  * }
  * runExample().catch(console.error);
  * ```
+ * @group Client
  */
 export class AptosConfig {
   /**
    * The Network that this SDK is associated with. Defaults to DEVNET
+   * @group Client
    */
   readonly network: Network;
 
   /**
    * The client instance the SDK uses. Defaults to `@aptos-labs/aptos-client
+   * @group Client
    */
   readonly client: Client;
 
   /**
    * The optional hardcoded fullnode URL to send requests to instead of using the network
+   * @group Client
    */
   readonly fullnode?: string;
 
   /**
    * The optional hardcoded faucet URL to send requests to instead of using the network
+   * @group Client
    */
   readonly faucet?: string;
 
   /**
    * The optional hardcoded pepper service URL to send requests to instead of using the network
+   * @group Client
    */
   readonly pepper?: string;
 
   /**
    * The optional hardcoded prover service URL to send requests to instead of using the network
+   * @group Client
    */
   readonly prover?: string;
 
   /**
    * The optional hardcoded indexer URL to send requests to instead of using the network
+   * @group Client
    */
   readonly indexer?: string;
 
   /**
    * Optional client configurations
+   * @group Client
    */
   readonly clientConfig?: ClientConfig;
 
   /**
    * Optional specific Fullnode configurations
+   * @group Client
    */
   readonly fullnodeConfig?: FullNodeConfig;
 
   /**
    * Optional specific Indexer configurations
+   * @group Client
    */
   readonly indexerConfig?: IndexerConfig;
 
   /**
    * Optional specific Faucet configurations
+   * @group Client
    */
   readonly faucetConfig?: FaucetConfig;
 
@@ -119,6 +131,7 @@ export class AptosConfig {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Client
    */
   constructor(settings?: AptosSettings) {
     this.network = settings?.network ?? Network.DEVNET;
@@ -154,6 +167,7 @@ export class AptosConfig {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Client
    */
   getRequestUrl(apiType: AptosApiType): string {
     switch (apiType) {
@@ -204,6 +218,7 @@ export class AptosConfig {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Client
    */
   isPepperServiceRequest(url: string): boolean {
     return NetworkToPepperAPI[this.network] === url;
@@ -228,6 +243,7 @@ export class AptosConfig {
    *
    * console.log(`Is the URL a known prover service? ${isProver}`);
    * ```
+   * @group Client
    */
   isProverServiceRequest(url: string): boolean {
     return NetworkToProverAPI[this.network] === url;

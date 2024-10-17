@@ -12,6 +12,8 @@ import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../types";
  * for static methods in interfaces.
  *
  * @template T - The type that this will deserialize into.
+ * @group Implementation
+ * @category BCS
  */
 export interface Deserializable<T> {
   /**
@@ -28,6 +30,8 @@ export interface Deserializable<T> {
    * // value is now an instance of MyClass
    * // equivalent to `const value = MyClass.deserialize(deserializer)`
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserialize(deserializer: Deserializer): T;
 }
@@ -35,6 +39,8 @@ export interface Deserializable<T> {
 /**
  * A class that provides methods for deserializing various data types from a byte buffer.
  * It supports deserialization of primitive types, strings, and complex objects using a BCS (Binary Common Serialization) layout.
+ * @group Implementation
+ * @category BCS
  */
 export class Deserializer {
   private buffer: ArrayBuffer;
@@ -46,6 +52,8 @@ export class Deserializer {
    * This prevents outside mutation of the buffer.
    *
    * @param data - The data to be copied into the internal buffer as a Uint8Array.
+   * @group Implementation
+   * @category BCS
    */
   constructor(data: Uint8Array) {
     // copies data to prevent outside mutation of buffer.
@@ -59,6 +67,8 @@ export class Deserializer {
    *
    * @param length - The number of bytes to read from the buffer.
    * @throws Throws an error if the read operation exceeds the buffer's length.
+   * @group Implementation
+   * @category BCS
    */
   private read(length: number): ArrayBuffer {
     if (this.offset + length > this.buffer.byteLength) {
@@ -76,6 +86,8 @@ export class Deserializer {
    * This information is useful to determine if there's more data to be read.
    *
    * @returns The number of bytes remaining in the buffer.
+   * @group Implementation
+   * @category BCS
    */
   remaining(): number {
     return this.buffer.byteLength - this.offset;
@@ -93,6 +105,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(new Uint8Array([8, 49, 50, 51, 52, 97, 98, 99, 100]));
    * assert(deserializer.deserializeStr() === "1234abcd");
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserializeStr(): string {
     const value = this.deserializeBytes();
@@ -112,6 +126,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
    * assert(deserializer.deserializeOptionStr() === "1234abcd");
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserializeOptionStr(): string | undefined {
     const exists = this.deserializeBool();
@@ -135,6 +151,8 @@ export class Deserializer {
    * @param cls The BCS-deserializable class to deserialize the buffered bytes into.
    *
    * @returns The deserialized value of class type T or undefined if no value exists.
+   * @group Implementation
+   * @category BCS
    */
   deserializeOption<T>(cls: Deserializable<T>): T | undefined {
     const exists = this.deserializeBool();
@@ -148,6 +166,8 @@ export class Deserializer {
    * encoded as a uleb128 integer, indicating the length of the bytes array.
    *
    * @returns {Uint8Array} The deserialized array of bytes.
+   * @group Implementation
+   * @category BCS
    */
   deserializeBytes(): Uint8Array {
     const len = this.deserializeUleb128AsU32();
@@ -158,6 +178,8 @@ export class Deserializer {
    * Deserializes an array of bytes of a specified length.
    *
    * @param len - The number of bytes to read from the source.
+   * @group Implementation
+   * @category BCS
    */
   deserializeFixedBytes(len: number): Uint8Array {
     return new Uint8Array(this.read(len));
@@ -171,6 +193,8 @@ export class Deserializer {
    *
    * @returns The deserialized boolean value.
    * @throws Throws an error if the boolean value is invalid.
+   * @group Implementation
+   * @category BCS
    */
   deserializeBool(): boolean {
     const bool = new Uint8Array(this.read(1))[0];
@@ -186,6 +210,8 @@ export class Deserializer {
    * BCS layout for "uint8": One byte. Binary format in little-endian representation.
    *
    * @returns {number} The deserialized uint8 number.
+   * @group Implementation
+   * @category BCS
    */
   deserializeU8(): Uint8 {
     return new DataView(this.read(1)).getUint8(0);
@@ -200,6 +226,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(new Uint8Array([0x34, 0x12]));
    * assert(deserializer.deserializeU16() === 4660);
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserializeU16(): Uint16 {
     return new DataView(this.read(2)).getUint16(0, true);
@@ -214,6 +242,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(new Uint8Array([0x78, 0x56, 0x34, 0x12]));
    * assert(deserializer.deserializeU32() === 305419896);
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserializeU32(): Uint32 {
     return new DataView(this.read(4)).getUint32(0, true);
@@ -228,6 +258,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(new Uint8Array([0x00, 0xEF, 0xCD, 0xAB, 0x78, 0x56, 0x34, 0x12]));
    * assert(deserializer.deserializeU64() === 1311768467750121216);
    * ```
+   * @group Implementation
+   * @category BCS
    */
   deserializeU64(): Uint64 {
     const low = this.deserializeU32();
@@ -242,6 +274,8 @@ export class Deserializer {
    * This function combines two 64-bit values to return a single uint128 value in little-endian format.
    *
    * @returns {BigInt} The deserialized uint128 number.
+   * @group Implementation
+   * @category BCS
    */
   deserializeU128(): Uint128 {
     const low = this.deserializeU64();
@@ -257,6 +291,8 @@ export class Deserializer {
    * The BCS layout for "uint256" consists of thirty-two bytes in little-endian format.
    *
    * @returns {BigInt} The deserialized uint256 number.
+   * @group Implementation
+   * @category BCS
    */
   deserializeU256(): Uint256 {
     const low = this.deserializeU128();
@@ -273,6 +309,8 @@ export class Deserializer {
    *
    * @throws {Error} Throws an error if the parsed value exceeds the maximum uint32 number.
    * @returns {number} The deserialized uint32 value.
+   * @group Implementation
+   * @category BCS
    */
   deserializeUleb128AsU32(): Uint32 {
     let value: bigint = BigInt(0);
@@ -307,6 +345,8 @@ export class Deserializer {
    * @param cls The BCS-deserializable class to deserialize the buffered bytes into.
    *
    * @returns the deserialized value of class type T
+   * @group Implementation
+   * @category BCS
    */
   deserialize<T>(cls: Deserializable<T>): T {
     // NOTE: `deserialize` in `cls.deserialize(this)` here is a static method defined in `cls`,
@@ -335,6 +375,8 @@ export class Deserializer {
    * const deserializer = new Deserializer(serializedBytes);
    * const deserializedAddresses = deserializer.deserializeVector(AccountAddress);
    * // deserializedAddresses is now an array of AccountAddress instances
+   * @group Implementation
+   * @category BCS
    */
   deserializeVector<T>(cls: Deserializable<T>): Array<T> {
     const length = this.deserializeUleb128AsU32();

@@ -16,6 +16,7 @@ import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Event` Aptos related queries.
+ * @group Event
  */
 export class Event {
   /**
@@ -39,6 +40,7 @@ export class Event {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Event
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -71,6 +73,7 @@ export class Event {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Event
    */
   async getModuleEventsByEventType(args: {
     eventType: MoveStructId;
@@ -113,6 +116,7 @@ export class Event {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Event
    */
   async getAccountEventsByCreationNumber(args: {
     accountAddress: AccountAddressInput;
@@ -156,6 +160,7 @@ export class Event {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Event
    */
   async getAccountEventsByEventType(args: {
     accountAddress: AccountAddressInput;
@@ -209,6 +214,7 @@ export class Event {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Event
    */
   async getEvents(args?: {
     minimumLedgerVersion?: AnyNumber;

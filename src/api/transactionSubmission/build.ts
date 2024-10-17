@@ -10,6 +10,7 @@ import { AptosConfig } from "../aptosConfig";
 
 /**
  * A class to handle all `Build` transaction operations.
+ * @group Implementation
  */
 export class Build {
   readonly config: AptosConfig;
@@ -41,6 +42,7 @@ export class Build {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -83,6 +85,7 @@ export class Build {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   async simple(args: {
     sender: AccountAddressInput;
@@ -133,6 +136,7 @@ export class Build {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   async multiAgent(args: {
     sender: AccountAddressInput;

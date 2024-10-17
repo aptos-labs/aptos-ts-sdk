@@ -14,6 +14,8 @@ import { AptosApiType } from "../utils/const.js";
  * @param headers the response headers
  * @param config (optional) - the request object
  * @param request (optional) - the request object
+ * @group Implementation
+ * @category Client
  */
 export interface AptosResponse<Req, Res> {
   status: number;
@@ -27,6 +29,8 @@ export interface AptosResponse<Req, Res> {
 
 /**
  * Options for handling errors in the Aptos API.
+ * @group Implementation
+ * @category Client
  */
 type AptosApiErrorOpts = {
   apiType: AptosApiType;
@@ -44,6 +48,8 @@ type AptosApiErrorOpts = {
  * @param statusText - The message associated with the response status.
  * @param data - The response data returned from the API.
  * @param request - The original AptosRequest that triggered the error.
+ * @group Implementation
+ * @category Client
  */
 export class AptosApiError extends Error {
   readonly url: string;
@@ -65,6 +71,8 @@ export class AptosApiError extends Error {
    * @param opts.aptosResponse - The response object containing error details.
    *
    * @internal This constructor is for SDK internal use - do not instantiate outside the SDK codebase.
+   * @group Implementation
+   * @category Client
    */
   constructor({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts) {
     super(deriveErrorMessage({ apiType, aptosRequest, aptosResponse }));
@@ -86,6 +94,8 @@ export class AptosApiError extends Error {
  * @param {AptosApiType} opts.apiType - The type of API being called.
  * @param {AptosRequest} opts.aptosRequest - The original request made to the Aptos API.
  * @param {AptosResponse} opts.aptosResponse - The response received from the Aptos API.
+ * @group Implementation
+ * @category Client
  */
 function deriveErrorMessage({ apiType, aptosRequest, aptosResponse }: AptosApiErrorOpts): string {
   // extract the W3C trace_id from the response headers if it exists. Some services set this in the response, and it's useful for debugging.
@@ -125,6 +135,8 @@ const SERIALIZED_PAYLOAD_TRIM_TO_MAX_LENGTH = 400;
  * @param payload - The payload to serialize, which can be of any type.
  *
  * @returns A string representation of the serialized payload, potentially truncated.
+ * @group Implementation
+ * @category Client
  */
 function serializeAnyPayloadForErrorMessage(payload: any): string {
   const serializedPayload = JSON.stringify(payload);

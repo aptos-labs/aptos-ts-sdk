@@ -31,6 +31,7 @@ import { AnyNumber } from "../types";
  * }
  * runExample().catch(console.error);
  * ```
+ * @group Implementation
  */
 export async function waitForIndexerOnVersion(args: {
   config: AptosConfig;

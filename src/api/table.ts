@@ -16,6 +16,7 @@ import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Table` Aptos related queries.
+ * @group Table
  */
 export class Table {
   readonly config: AptosConfig;
@@ -39,6 +40,7 @@ export class Table {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Table
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -79,6 +81,7 @@ export class Table {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Table
    */
   async getTableItem<T>(args: { handle: string; data: TableItemRequest; options?: LedgerVersionArg }): Promise<T> {
     return getTableItem<T>({ aptosConfig: this.config, ...args });
@@ -124,6 +127,7 @@ export class Table {
    * ```
    *
    * @returns GetTableItemsDataResponse
+   * @group Table
    */
   async getTableItemsData(args: {
     minimumLedgerVersion?: AnyNumber;
@@ -173,6 +177,7 @@ export class Table {
    * ```
    *
    * @returns GetTableItemsMetadataResponse
+   * @group Table
    */
   async getTableItemsMetadata(args: {
     minimumLedgerVersion?: AnyNumber;

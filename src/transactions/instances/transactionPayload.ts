@@ -22,6 +22,8 @@ import { TypeTag } from "../typeTag";
  * @param deserializer - The deserializer used to read the script transaction argument.
  * @returns The deserialized script transaction argument.
  * @throws Error if the variant index is unknown.
+ * @group Implementation
+ * @category Transactions
  */
 export function deserializeFromScriptArgument(deserializer: Deserializer): TransactionArgument {
   // index enum variant
@@ -58,15 +60,21 @@ export function deserializeFromScriptArgument(deserializer: Deserializer): Trans
  * This class serves as a base for different types of transaction payloads, allowing for
  * their serialization into a format suitable for transmission and deserialization back
  * into their original form.
+ * @group Implementation
+ * @category Transactions
  */
 export abstract class TransactionPayload extends Serializable {
   /**
    * Serialize a Transaction Payload
+   * @group Implementation
+   * @category Transactions
    */
   abstract serialize(serializer: Serializer): void;
 
   /**
    * Deserialize a Transaction Payload
+   * @group Implementation
+   * @category Transactions
    */
 
   /**
@@ -74,6 +82,8 @@ export abstract class TransactionPayload extends Serializable {
    * This function enables the reconstruction of a MultiSigTransactionPayload object from its serialized form.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): TransactionPayload {
     // index enum variant
@@ -97,6 +107,8 @@ export abstract class TransactionPayload extends Serializable {
  * This class encapsulates a script that defines the logic for a transaction payload.
  *
  * @extends TransactionPayload
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionPayloadScript extends TransactionPayload {
   public readonly script: Script;
@@ -106,6 +118,8 @@ export class TransactionPayloadScript extends TransactionPayload {
    *
    * @param script - The payload of the multi-sig transaction. This can only be an EntryFunction for now, but Script might be
    * supported in the future.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(script: Script) {
     super();
@@ -116,6 +130,8 @@ export class TransactionPayloadScript extends TransactionPayload {
    * Serializes the transaction payload, enabling future support for multiple types of inner transaction payloads.
    *
    * @param serializer - The serializer instance used to serialize the transaction data.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TransactionPayloadVariants.Script);
@@ -127,6 +143,8 @@ export class TransactionPayloadScript extends TransactionPayload {
    * This function helps in reconstructing a MultiSig transaction payload from its serialized form.
    *
    * @param deserializer - The deserializer used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static load(deserializer: Deserializer): TransactionPayloadScript {
     const script = Script.deserialize(deserializer);
@@ -138,6 +156,8 @@ export class TransactionPayloadScript extends TransactionPayload {
  * Represents a transaction payload entry function that can be serialized and deserialized.
  *
  * @extends TransactionPayload
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionPayloadEntryFunction extends TransactionPayload {
   public readonly entryFunction: EntryFunction;
@@ -160,6 +180,8 @@ export class TransactionPayloadEntryFunction extends TransactionPayload {
 
 /**
  * Represents a multi-signature transaction payload that can be serialized and deserialized.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionPayloadMultiSig extends TransactionPayload {
   public readonly multiSig: MultiSig;
@@ -189,6 +211,8 @@ export class TransactionPayloadMultiSig extends TransactionPayload {
  * @param function_name - The name of the function (e.g., "transfer").
  * @param type_args - Type arguments required by the Move function.
  * @param args - Arguments to the Move function.
+ * @group Implementation
+ * @category Transactions
  */
 export class EntryFunction {
   public readonly module_name: ModuleId;
@@ -217,6 +241,8 @@ export class EntryFunction {
    * ```
    * public entry fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
+   * @group Implementation
+   * @category Transactions
    */
   constructor(
     module_name: ModuleId,
@@ -250,6 +276,8 @@ export class EntryFunction {
    * ```
    *
    * @returns EntryFunction
+   * @group Implementation
+   * @category Transactions
    */
   static build(
     module_id: MoveModuleId,
@@ -287,6 +315,8 @@ export class EntryFunction {
    * @param deserializer
    * @returns A deserialized EntryFunction payload for a transaction.
    *
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): EntryFunction {
     const module_name = ModuleId.deserialize(deserializer);
@@ -309,20 +339,28 @@ export class EntryFunction {
 /**
  * Represents a Script that can be serialized and deserialized.
  * Scripts contain the Move bytecode payload that can be submitted to the Aptos chain for execution.
+ * @group Implementation
+ * @category Transactions
  */
 export class Script {
   /**
    * The move module bytecode
+   * @group Implementation
+   * @category Transactions
    */
   public readonly bytecode: Uint8Array;
 
   /**
    * The type arguments that the bytecode function requires.
+   * @group Implementation
+   * @category Transactions
    */
   public readonly type_args: Array<TypeTag>;
 
   /**
    * The arguments that the bytecode function requires.
+   * @group Implementation
+   * @category Transactions
    */
   public readonly args: Array<ScriptFunctionArgument>;
 
@@ -344,6 +382,8 @@ export class Script {
    * ```
    * public(script) fun transfer<CoinType>(from: &signer, to: address, amount: u64)
    * ```
+   * @group Implementation
+   * @category Transactions
    */
   constructor(bytecode: Uint8Array, type_args: Array<TypeTag>, args: Array<ScriptFunctionArgument>) {
     this.bytecode = bytecode;
@@ -381,6 +421,8 @@ export class Script {
  *
  * This class encapsulates the functionality to manage multi-signature transactions, including the address of the
  * multi-sig account and the associated transaction payload.
+ * @group Implementation
+ * @category Transactions
  */
 export class MultiSig {
   public readonly multisig_address: AccountAddress;
@@ -394,6 +436,8 @@ export class MultiSig {
    *
    * @param transaction_payload The payload of the multi-sig transaction. This is optional when executing a multi-sig
    *  transaction whose payload is already stored on chain.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(multisig_address: AccountAddress, transaction_payload?: MultiSigTransactionPayload) {
     this.multisig_address = multisig_address;
@@ -428,6 +472,8 @@ export class MultiSig {
  * This class is designed to encapsulate the transaction payload for multi-sig account transactions
  * as defined in the `multisig_account.move` module. Future enhancements may allow support for script
  * payloads as the `multisig_account.move` module evolves.
+ * @group Implementation
+ * @category Transactions
  */
 export class MultiSigTransactionPayload extends Serializable {
   public readonly transaction_payload: EntryFunction;
@@ -438,6 +484,8 @@ export class MultiSigTransactionPayload extends Serializable {
    * @param transaction_payload The payload of the multi-sig transaction.
    * This can only be EntryFunction for now but,
    * Script might be supported in the future.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(transaction_payload: EntryFunction) {
     super();
@@ -449,6 +497,8 @@ export class MultiSigTransactionPayload extends Serializable {
      * We can support multiple types of inner transaction payload in the future.
      * For now, it's only EntryFunction but if we support more types,
      * we need to serialize with the right enum values here
+     * @group Implementation
+     * @category Transactions
      */
     serializer.serializeU32AsUleb128(0);
     this.transaction_payload.serialize(serializer);

@@ -9,6 +9,8 @@ import { MoveString, MoveVector, U64, U8 } from "../../bcs";
 
 /**
  * Represents a challenge required for the account owner to sign in order to rotate the authentication key.
+ * @group Implementation
+ * @category Transactions
  */
 export class RotationProofChallenge extends Serializable {
   // Resource account address
@@ -41,6 +43,8 @@ export class RotationProofChallenge extends Serializable {
    * @param args.originator - The account address of the originator.
    * @param args.currentAuthKey - The current authentication key of the account.
    * @param args.newPublicKey - The new public key to be set for the account.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(args: {
     sequenceNumber: AnyNumber;
@@ -67,6 +71,8 @@ export class RotationProofChallenge extends Serializable {
    * @param serializer.originator - The originator to serialize.
    * @param serializer.currentAuthKey - The current authentication key to serialize.
    * @param serializer.newPublicKey - The new public key to serialize.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     serializer.serialize(this.accountAddress);

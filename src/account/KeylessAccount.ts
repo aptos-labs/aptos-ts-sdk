@@ -22,10 +22,14 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  *
  * @static
  * @readonly PEPPER_LENGTH - The length of the pepper used for privacy preservation.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class KeylessAccount extends AbstractKeylessAccount {
   /**
    * The KeylessPublicKey associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly publicKey: KeylessPublicKey;
 
@@ -35,6 +39,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * Creates an instance of the transaction with an optional proof.
    *
    * @param args.proof - An optional ZkProof associated with the transaction.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   // TODO: Document rest of parameters
   private constructor(args: {
@@ -59,6 +65,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * This function ensures that both the transaction bytes and the proof are properly serialized.
    *
    * @param serializer - The serializer instance used to convert the transaction data into bytes.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.jwt);
@@ -77,6 +85,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    *
    * @param deserializer - The deserializer instance used to retrieve the serialized data.
    * @returns A KeylessAccount instance created from the deserialized data.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static deserialize(deserializer: Deserializer): KeylessAccount {
     const jwt = deserializer.deserializeStr();
@@ -109,6 +119,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param args.pepper - A hexadecimal input used for additional security.
    * @param args.uidKey - Optional key for user identification, defaults to "sub".
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static create(args: {
     address?: AccountAddress;

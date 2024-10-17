@@ -7,6 +7,8 @@ import { Hex } from "../hex";
  * @param message a message as a string or Uint8Array
  *
  * @returns a valid HexInput - string or Uint8Array
+ * @group Implementation
+ * @category Serialization
  */
 export const convertSigningMessage = (message: HexInput): HexInput => {
   // if message is of type string, verify it is a valid Hex string

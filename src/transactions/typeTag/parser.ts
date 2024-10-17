@@ -24,6 +24,8 @@ import { Identifier } from "../instances/identifier";
 /**
  * Determines if the provided string is a valid Move identifier, which can only contain alphanumeric characters and underscores.
  * @param str - The string to validate as a Move identifier.
+ * @group Implementation
+ * @category Transactions
  */
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);
@@ -32,6 +34,8 @@ function isValidIdentifier(str: string) {
 /**
  * Determines if the provided character is a whitespace character. This function only works for single characters.
  * @param char - The character to check for whitespace.
+ * @group Implementation
+ * @category Transactions
  */
 function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
@@ -40,6 +44,8 @@ function isValidWhitespaceCharacter(char: string) {
 /**
  * Determines if a given string represents a generic type from the ABI, specifically in the format T0, T1, etc.
  * @param str - The string to evaluate for generic type format.
+ * @group Implementation
+ * @category Transactions
  */
 function isGeneric(str: string) {
   return !!str.match(/^T[0-9]+$/);
@@ -48,6 +54,8 @@ function isGeneric(str: string) {
 /**
  * Determines if the provided string is a reference type, which is indicated by starting with an ampersand (&).
  * @param str - The string to evaluate for reference type.
+ * @group Implementation
+ * @category Transactions
  */
 function isRef(str: string) {
   return !!str.match(/^&.+$/);
@@ -57,6 +65,8 @@ function isRef(str: string) {
  * Determines if the provided string represents a primitive type.
  * @param str - The string to evaluate as a potential primitive type.
  * @returns A boolean indicating whether the string is a primitive type.
+ * @group Implementation
+ * @category Transactions
  */
 function isPrimitive(str: string) {
   switch (str) {
@@ -81,6 +91,8 @@ function isPrimitive(str: string) {
  * @param tagStr - The string from which to consume whitespace.
  * @param pos - The position in the string to start consuming whitespace from.
  * @returns The new position in the string after consuming whitespace.
+ * @group Implementation
+ * @category Transactions
  */
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
@@ -97,6 +109,8 @@ function consumeWhitespace(tagStr: string, pos: number) {
 
 /**
  * State for TypeTag parsing, maintained on a stack to track the current parsing state.
+ * @group Implementation
+ * @category Transactions
  */
 type TypeTagState = {
   savedExpectedTypes: number;
@@ -106,6 +120,8 @@ type TypeTagState = {
 
 /**
  * Error types related to parsing type tags, indicating various issues encountered during the parsing process.
+ * @group Implementation
+ * @category Transactions
  */
 export enum TypeTagParserErrorType {
   InvalidTypeTag = "unknown type",
@@ -131,6 +147,8 @@ export enum TypeTagParserErrorType {
  *
  * @param typeTagStr - The type tag string that failed to be parsed.
  * @param invalidReason - The reason why the type tag string is considered invalid.
+ * @group Implementation
+ * @category Transactions
  */
 export class TypeTagParserError extends Error {
   /**
@@ -139,6 +157,8 @@ export class TypeTagParserError extends Error {
    *
    * @param typeTagStr - The string representation of the type tag that failed to parse.
    * @param invalidReason - The reason why the type tag is considered invalid.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(typeTagStr: string, invalidReason: TypeTagParserErrorType) {
     super(`Failed to parse typeTag '${typeTagStr}', ${invalidReason}`);
@@ -167,6 +187,8 @@ export class TypeTagParserError extends Error {
  * @param options.allowGenerics - A flag indicating whether to allow generics in the parsing process.
  * @returns The parsed type tag representation.
  * @throws TypeTagParserError if the type string is malformed or does not conform to expected formats.
+ * @group Implementation
+ * @category Transactions
  */
 export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
   const allowGenerics = options?.allowGenerics ?? false;
@@ -301,6 +323,8 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
  * @param str - The string representation of the type tag to parse.
  * @param types - An array of TypeTag instances that represent internal types associated with the type tag.
  * @param allowGenerics - A boolean indicating whether generics are allowed in the parsing of the type tag.
+ * @group Implementation
+ * @category Transactions
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
   const trimmedStr = str.trim();

@@ -14,6 +14,8 @@ import { AnyRawTransaction } from "../transactions/types";
  * @param privateKey - The private key used to create the account.
  * @param address - Optional address for the account.
  * @param legacy - Indicates whether to use legacy authentication (default is true).
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface CreateEd25519AccountFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
@@ -28,6 +30,8 @@ export interface CreateEd25519AccountFromPrivateKeyArgs {
  * @param privateKey - The Ed25519 private key used for account creation.
  * @param address - Optional account address input.
  * @param legacy - Must be false to enable the `SingleKey` authentication scheme.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
   privateKey: Ed25519PrivateKey;
@@ -42,6 +46,8 @@ export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
  * @param privateKey - The private key used to create the account.
  * @param address - Optional address input for the account.
  * @param legacy - Always false; cannot be explicitly set to true.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface CreateSingleKeyAccountFromPrivateKeyArgs {
   privateKey: Exclude<PrivateKey, Ed25519PrivateKey>;
@@ -55,6 +61,8 @@ export interface CreateSingleKeyAccountFromPrivateKeyArgs {
  * @param privateKey - The private key used to create the account.
  * @param address - Optional address for the account.
  * @param legacy - Optional flag indicating if the account is a legacy account.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface CreateAccountFromPrivateKeyArgs {
   privateKey: PrivateKey;
@@ -67,6 +75,8 @@ export interface CreateAccountFromPrivateKeyArgs {
  *
  * @param scheme - The signing scheme to use for the account.
  * @param legacy - Indicates if the account should be created in legacy mode.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface GenerateEd25519AccountArgs {
   scheme?: SigningSchemeInput.Ed25519;
@@ -79,6 +89,8 @@ export interface GenerateEd25519AccountArgs {
  *
  * @param scheme - Optional signing scheme input for the account.
  * @param legacy - Indicates whether to use legacy account generation.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface GenerateEd25519SingleKeyAccountArgs {
   scheme?: SigningSchemeInput.Ed25519;
@@ -91,6 +103,8 @@ export interface GenerateEd25519SingleKeyAccountArgs {
  *
  * @param scheme - The signing scheme to use for the account.
  * @param legacy - Indicates whether to use legacy account generation (defaults to false).
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface GenerateSingleKeyAccountArgs {
   scheme: Exclude<SigningSchemeInput, SigningSchemeInput.Ed25519>;
@@ -102,6 +116,8 @@ export interface GenerateSingleKeyAccountArgs {
  *
  * @param scheme - The signing scheme to use for account generation.
  * @param legacy - Indicates whether to use legacy account generation methods.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface GenerateAccountArgs {
   scheme?: SigningSchemeInput;
@@ -113,6 +129,8 @@ export interface GenerateAccountArgs {
  *
  * @param path - The BIP44 derivation path for the key.
  * @param mnemonic - The mnemonic phrase used for key generation.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export interface PrivateKeyFromDerivationPathArgs {
   path: string;
@@ -127,20 +145,28 @@ export interface PrivateKeyFromDerivationPathArgs {
  * abstract class, it should be treated as an interface and enforced using the `implements` keyword.
  *
  * Note: Generating an account instance does not create the account on-chain.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export abstract class Account {
   /**
    * Public key associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract readonly publicKey: AccountPublicKey;
 
   /**
    * Account address associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract readonly accountAddress: AccountAddress;
 
   /**
    * Signing scheme used to sign transactions
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract signingScheme: SigningScheme;
 
@@ -151,6 +177,8 @@ export abstract class Account {
    * @param args - The arguments for generating the account.
    * @param args.scheme - The signing scheme to use for account generation. Defaults to Ed25519.
    * @param args.legacy - Indicates whether to use the legacy account generation method. Defaults to true.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static generate(args?: GenerateEd25519AccountArgs): Ed25519Account;
   static generate(args: GenerateEd25519SingleKeyAccountArgs): SingleKeyAccount;
@@ -174,6 +202,8 @@ export abstract class Account {
    * @param args.address - The address associated with the account.
    * @param args.legacy - A boolean indicating whether to create a legacy account (default is true).
    * @returns An instance of either Ed25519Account or SingleKeyAccount based on the provided private key.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static fromPrivateKey(args: CreateEd25519AccountFromPrivateKeyArgs): Ed25519Account;
   static fromPrivateKey(args: CreateEd25519SingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
@@ -202,6 +232,8 @@ export abstract class Account {
    * Ed25519 keypair.
    *
    * @returns Account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static fromPrivateKeyAndAddress(args: CreateAccountFromPrivateKeyArgs) {
     return this.fromPrivateKey(args);
@@ -216,6 +248,8 @@ export abstract class Account {
    * @param args.mnemonic - The mnemonic phrase used to derive the account.
    * @param args.path - The derivation path used to generate the account.
    * @param args.legacy - A boolean indicating whether to use the legacy account generation method. Defaults to true.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static fromDerivationPath(args: GenerateEd25519AccountArgs & PrivateKeyFromDerivationPathArgs): Ed25519Account;
   static fromDerivationPath(
@@ -240,6 +274,8 @@ export abstract class Account {
    * @param args - The arguments for retrieving the authentication key.
    * @param args.publicKey - The public key of the account.
    * @returns The authentication key for the associated account.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static authKey(args: { publicKey: AccountPublicKey }): AuthenticationKey {
     const { publicKey } = args;
@@ -250,6 +286,8 @@ export abstract class Account {
    * Sign a message using the available signing capabilities.
    * @param message the signing message, as binary input
    * @return the AccountAuthenticator containing the signature, together with the account's public key
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract signWithAuthenticator(message: HexInput): AccountAuthenticator;
 
@@ -257,6 +295,8 @@ export abstract class Account {
    * Sign a transaction using the available signing capabilities.
    * @param transaction the raw transaction
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticator;
 
@@ -264,6 +304,8 @@ export abstract class Account {
    * Sign the given message using the available signing capabilities.
    * @param message in HexInput format
    * @returns Signature
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract sign(message: HexInput): Signature;
 
@@ -271,6 +313,8 @@ export abstract class Account {
    * Sign the given transaction using the available signing capabilities.
    * @param transaction the transaction to be signed
    * @returns Signature
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   abstract signTransaction(transaction: AnyRawTransaction): Signature;
 
@@ -282,6 +326,8 @@ export abstract class Account {
    * @param args.message - The raw message data in HexInput format.
    * @param args.signature - The signed message signature.
    * @returns A boolean indicating whether the signature is valid.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);

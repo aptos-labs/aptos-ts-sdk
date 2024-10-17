@@ -21,6 +21,8 @@
  * This only manages the distribution of sequence numbers it does not help handle transaction
  * failures.
  * If a transaction fails, you should call synchronize and wait for timeouts.
+ * @group Implementation
+ * @category Transactions
  */
 
 import { AptosConfig } from "../../api/aptosConfig";
@@ -38,6 +40,8 @@ import { nowInSeconds, sleep } from "../../utils/helpers";
  * @param maxWaitTime - The maximum time to wait for a transaction to commit.
  * @param maximumInFlight - The maximum number of transactions that can be in flight at once.
  * @param sleepTime - The time to wait before retrying to get the sequence number.
+ * @group Implementation
+ * @category Transactions
  */
 export class AccountSequenceNumber {
   readonly aptosConfig: AptosConfig;
@@ -61,6 +65,8 @@ export class AccountSequenceNumber {
    * The ideal solution is likely that each thread grabs the next number from an incremental integer.
    * When they complete, they increment that number and that entity is able to enter the `lock`.
    * That would guarantee ordering.
+   * @group Implementation
+   * @category Transactions
    */
   lock = false;
 
@@ -79,6 +85,8 @@ export class AccountSequenceNumber {
    * @param maxWaitTime - The maximum time to wait for a transaction to be processed, in milliseconds.
    * @param maximumInFlight - The maximum number of transactions that can be in flight at the same time.
    * @param sleepTime - The time to sleep between transaction checks, in milliseconds.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(
     aptosConfig: AptosConfig,
@@ -99,6 +107,8 @@ export class AccountSequenceNumber {
    * This function ensures that the sequence number is updated and synchronized, handling potential delays in transaction commits.
    *
    * @returns {BigInt} The next available sequence number.
+   * @group Implementation
+   * @category Transactions
    */
   async nextSequenceNumber(): Promise<bigint | null> {
     /* eslint-disable no-await-in-loop */
@@ -146,6 +156,8 @@ export class AccountSequenceNumber {
    * @returns {Promise<void>} A promise that resolves when the account has been initialized.
    *
    * @throws {Error} Throws an error if the account information cannot be retrieved.
+   * @group Implementation
+   * @category Transactions
    */
   async initialize(): Promise<void> {
     const { sequence_number: sequenceNumber } = await getInfo({
@@ -160,6 +172,8 @@ export class AccountSequenceNumber {
    * Updates this account's sequence number with the one on-chain.
    *
    * @returns The on-chain sequence number for this account.
+   * @group Implementation
+   * @category Transactions
    */
   async update(): Promise<bigint> {
     const { sequence_number: sequenceNumber } = await getInfo({
@@ -175,6 +189,8 @@ export class AccountSequenceNumber {
    * This function polls the network until all submitted transactions have either been committed or until the maximum wait time has elapsed.
    *
    * @throws {Error} Throws an error if there is an issue synchronizing the account sequence number with the one on-chain.
+   * @group Implementation
+   * @category Transactions
    */
   async synchronize(): Promise<void> {
     if (this.lastUncommintedNumber === this.currentNumber) return;

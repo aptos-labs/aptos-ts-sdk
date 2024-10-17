@@ -38,6 +38,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     super();
@@ -68,6 +69,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   private start(args: { sender: Account }): void {
     const { sender } = args;
@@ -108,6 +110,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   private push(args: {
     data: InputGenerateTransactionPayloadData[];
@@ -153,6 +156,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   private registerToEvents() {
     // TODO - Should we ask events to listen to this as an input?
@@ -188,6 +192,7 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
    * @param args.options optional. Transaction generation configurations (excluding accountSequenceNumber)
    *
    * @return void. Throws if any error
+   * @group Implementation
    */
   forSingleAccount(args: {
     sender: Account;

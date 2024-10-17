@@ -19,6 +19,7 @@ import { AptosConfig } from "./aptosConfig";
  *
  * More documentation on how to integrate Keyless Accounts see the below
  * [Aptos Keyless Integration Guide](https://aptos.dev/guides/keyless-accounts/#aptos-keyless-integration-guide).
+ * @group Keyless
  */
 export class Keyless {
   /**
@@ -42,6 +43,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -77,6 +79,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async getPepper(args: {
     jwt: string;
@@ -120,6 +123,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async getProof(args: {
     jwt: string;
@@ -186,6 +190,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async deriveKeylessAccount(args: {
     jwt: string;
@@ -209,6 +214,7 @@ export class Keyless {
    * @param args.jwksUrl the URL to find the corresponding JWKs. For supported IDP providers this parameter in not necessary.
    *
    * @returns The pending transaction that results from submission.
+   * @group Keyless
    */
   async updateFederatedKeylessJwkSetTransaction(args: {
     sender: Account;

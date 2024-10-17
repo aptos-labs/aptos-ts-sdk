@@ -10,6 +10,7 @@ import { AptosConfig } from "../aptosConfig";
  * A class to handle all `Sign` transaction operations.
  *
  * @param config - The configuration object for Aptos.
+ * @group Implementation
  */
 export class Sign {
   readonly config: AptosConfig;
@@ -32,6 +33,7 @@ export class Sign {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -72,6 +74,7 @@ export class Sign {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   // eslint-disable-next-line class-methods-use-this
   transaction(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
@@ -116,6 +119,7 @@ export class Sign {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   // eslint-disable-next-line class-methods-use-this
   transactionAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {

@@ -26,6 +26,7 @@ import { InputViewFunctionData, InputViewFunctionJsonData } from "../transaction
 
 /**
  * A class to query various Aptos-related information and perform operations on the Aptos blockchain.
+ * @group General
  */
 export class General {
   readonly config: AptosConfig;
@@ -56,6 +57,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -81,6 +83,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getLedgerInfo(): Promise<LedgerInfo> {
     return getLedgerInfo({ aptosConfig: this.config });
@@ -105,6 +108,7 @@ export class General {
    *
    * @returns The chain ID of the Aptos blockchain.
    * ```
+   * @group General
    */
   async getChainId(): Promise<number> {
     const result = await this.getLedgerInfo();
@@ -135,6 +139,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getBlockByVersion(args: {
     ledgerVersion: AnyNumber;
@@ -170,6 +175,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getBlockByHeight(args: { blockHeight: AnyNumber; options?: { withTransactions?: boolean } }): Promise<Block> {
     return getBlockByHeight({ aptosConfig: this.config, ...args });
@@ -190,6 +196,7 @@ export class General {
    * })
    *
    * @returns an array of Move values
+   * @group General
    */
   async view<T extends Array<MoveValue>>(args: {
     payload: InputViewFunctionData;
@@ -213,6 +220,7 @@ export class General {
    * })
    *
    * @returns an array of Move values
+   * @group General
    */
   async viewJson<T extends Array<MoveValue>>(args: {
     payload: InputViewFunctionJsonData;
@@ -243,6 +251,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getChainTopUserTransactions(args: { limit: number }): Promise<GetChainTopUserTransactionsResponse> {
     return getChainTopUserTransactions({
@@ -281,6 +290,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async queryIndexer<T extends {}>(args: { query: GraphqlQuery }): Promise<T> {
     return queryIndexer<T>({
@@ -307,6 +317,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getIndexerLastSuccessVersion(): Promise<bigint> {
     return getIndexerLastSuccessVersion({ aptosConfig: this.config });
@@ -332,6 +343,7 @@ export class General {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group General
    */
   async getProcessorStatus(processorType: ProcessorType): Promise<GetProcessorStatusResponse[0]> {
     return getProcessorStatus({ aptosConfig: this.config, processorType });

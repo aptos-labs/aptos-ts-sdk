@@ -48,6 +48,8 @@ const MAX_NUM_INPUT_BYTES = (MAX_NUM_INPUT_SCALARS - 1) * BYTES_PACKED_PER_SCALA
  * @param str - The string to be hashed.
  * @param maxSizeBytes - The maximum size in bytes for the resulting hash.
  * @returns bigint - The result of the hash.
+ * @group Implementation
+ * @category Serialization
  */
 export function hashStrToField(str: string, maxSizeBytes: number): bigint {
   const textEncoder = new TextEncoder();
@@ -62,6 +64,8 @@ export function hashStrToField(str: string, maxSizeBytes: number): bigint {
  * @param bytes - The byte array to be hashed.
  * @param maxSizeBytes - The maximum allowed size for the byte array.
  * @throws Error if the length of the inputted bytes exceeds the specified maximum size.
+ * @group Implementation
+ * @category Serialization
  */
 function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
   if (bytes.length > maxSizeBytes) {
@@ -78,6 +82,8 @@ function hashBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint {
  * @param bytes - The byte array to be padded and packed.
  * @param maxSizeBytes - The maximum size in bytes that the input array can have.
  * @throws Error if the input byte array exceeds the specified maximum size.
+ * @group Implementation
+ * @category Serialization
  */
 function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
@@ -96,6 +102,8 @@ function padAndPackBytesNoLen(bytes: Uint8Array, maxSizeBytes: number): bigint[]
  * @param maxSizeBytes - The maximum allowed size for the byte array.
  * @throws Error if the length of the input bytes exceeds the maximum size.
  * @returns A new Uint8Array that contains the padded and packed bytes along with the length of the original byte array.
+ * @group Implementation
+ * @category Serialization
  */
 export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number): bigint[] {
   if (bytes.length > maxSizeBytes) {
@@ -108,6 +116,8 @@ export function padAndPackBytesWithLen(bytes: Uint8Array, maxSizeBytes: number):
  * Packs a Uint8Array into an array of BigInts, ensuring the input does not exceed the maximum allowed bytes.
  * @param bytes - The Uint8Array to be packed.
  * @throws {Error} Throws an error if the input exceeds the maximum number of bytes allowed.
+ * @group Implementation
+ * @category Serialization
  */
 function packBytes(bytes: Uint8Array): bigint[] {
   if (bytes.length > MAX_NUM_INPUT_BYTES) {
@@ -123,6 +133,8 @@ function packBytes(bytes: Uint8Array): bigint[] {
  * @param array - The Uint8Array to be split into chunks.
  * @param chunkSize - The size of each chunk.
  * @returns An array of Uint8Array chunks.
+ * @group Implementation
+ * @category Serialization
  */
 function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
   const result: Uint8Array[] = [];
@@ -138,6 +150,8 @@ function chunkUint8Array(array: Uint8Array, chunkSize: number): Uint8Array[] {
  *
  * @param bytes - The byte array to convert.
  * @returns The resulting BigInt representation of the byte array.
+ * @group Implementation
+ * @category Serialization
  */
 export function bytesToBigIntLE(bytes: Uint8Array): bigint {
   let result = BigInt(0);
@@ -155,6 +169,8 @@ export function bytesToBigIntLE(bytes: Uint8Array): bigint {
  * @param value - The number to convert into bytes.
  * @param length - The desired length of the resulting byte array.
  * @returns A Uint8Array containing the little-endian representation of the bigint value.
+ * @group Implementation
+ * @category Serialization
  */
 export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Array {
   let val = BigInt(value);
@@ -173,6 +189,8 @@ export function bigIntToBytesLE(value: bigint | number, length: number): Uint8Ar
  * @param inputArray - The Uint8Array to be padded.
  * @param paddedSize - The desired size of the padded array, which must be greater than or equal to the input array size.
  * @throws Error if paddedSize is less than the length of inputArray.
+ * @group Implementation
+ * @category Serialization
  */
 function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uint8Array {
   if (paddedSize < inputArray.length) {
@@ -200,6 +218,8 @@ function padUint8ArrayWithZeros(inputArray: Uint8Array, paddedSize: number): Uin
  * @param inputs - An array of elements to be hashed, which can be of type number, bigint, or string.
  * @returns bigint - The result of the hash.
  * @throws Error - Throws an error if the input length exceeds the maximum allowed.
+ * @group Implementation
+ * @category Serialization
  */
 export function poseidonHash(inputs: (number | bigint | string)[]): bigint {
   if (inputs.length > numInputsToPoseidonFunc.length) {
