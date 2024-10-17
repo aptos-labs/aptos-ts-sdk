@@ -12,7 +12,9 @@ export abstract class Signature extends Serializable {
   /**
    * Get the raw signature bytes
    */
-  abstract toUint8Array(): Uint8Array;
+  toUint8Array(): Uint8Array {
+    return this.bcsToBytes();
+  }
 
   /**
    * Get the signature as a hex string with a 0x prefix e.g. 0x123456...

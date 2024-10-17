@@ -69,14 +69,14 @@ export class AuthenticationKey extends Serializable {
     return new AuthenticationKey({ data: bytes });
   }
 
-  /**
-   * Converts the internal data representation to a string format.
-   *
-   * @returns {string} The string representation of the internal data.
-   */
-  toString(): string {
-    return this.data.toString();
-  }
+  // /**
+  //  * Converts the internal data representation to a string format.
+  //  *
+  //  * @returns {string} The string representation of the internal data.
+  //  */
+  // toString(): string {
+  //   return this.data.toString();
+  // }
 
   /**
    * Convert the internal data representation to a Uint8Array.
