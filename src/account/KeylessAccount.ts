@@ -32,11 +32,18 @@ export class KeylessAccount extends AbstractKeylessAccount {
   // Use the static constructor 'create' instead.
 
   /**
+   * Use the static `KeylessAccount.create(...)` instead.
    * Creates an instance of the transaction with an optional proof.
    *
-   * @param args.proof - An optional ZkProof associated with the transaction.
+   * @param args - The parameters for creating a KeylessAccount.
+   * @param args.address - Optional account address associated with the KeylessAccount.
+   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
+   * @param args.jwt - A JSON Web Token used for authentication.
+   * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.
+   * @param args.pepper - A hexadecimal input used for additional security.
+   * @param args.uidKey - Optional key for user identification, defaults to "sub".
+   * @param args.proofFetchCallback - Optional callback function for fetching proof.
    */
-  // TODO: Document rest of parameters
   private constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
@@ -93,6 +100,12 @@ export class KeylessAccount extends AbstractKeylessAccount {
     });
   }
 
+  /**
+   * Deserialize bytes using this account's information.
+   * 
+   * @param bytes The bytes being interpreted.
+   * @returns 
+   */
   static fromBytes(bytes: Uint8Array): KeylessAccount {
     return KeylessAccount.deserialize(new Deserializer(bytes));
   }
@@ -100,7 +113,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
   /**
    * Creates a KeylessAccount instance using the provided parameters.
    * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
-   *
+   * This is used instead of the KeylessAccount constructor.
+   * 
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
