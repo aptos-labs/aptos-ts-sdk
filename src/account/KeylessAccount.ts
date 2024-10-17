@@ -32,17 +32,21 @@ export class KeylessAccount extends AbstractKeylessAccount {
   // Use the static constructor 'create' instead.
 
   /**
-   * Use the static `KeylessAccount.create(...)` instead.
-   * Creates an instance of the transaction with an optional proof.
+   * Use the static generator `create(...)` instead.
+   * Creates an instance of the KeylessAccount with an optional proof.
    *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
-   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
-   * @param args.jwt - A JSON Web Token used for authentication.
    * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.
+   * @param args.iss - A JWT issuer.
+   * @param args.uidKey - The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
+   * @param args.uidVal - The unique id for this user, intended to be a stable user identifier.
+   * @param args.aud - The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
+   * OIDC registration with the identity provider.
    * @param args.pepper - A hexadecimal input used for additional security.
-   * @param args.uidKey - Optional key for user identification, defaults to "sub".
+   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   * @param args.jwt - A JSON Web Token used for authentication.
    */
   private constructor(args: {
     address?: AccountAddress;
