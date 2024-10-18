@@ -8,6 +8,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
 - Add support for MultiKey's in transaction simulations
 - Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
+- Bump `@aptos-labs/aptos-cli` to `1.0.1`
 
 # 1.29.1 (2024-10-09)
 
