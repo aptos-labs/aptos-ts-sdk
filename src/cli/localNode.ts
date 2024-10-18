@@ -91,10 +91,8 @@ export class LocalNode {
 
     childProcess.stderr?.on("data", (data: any) => {
       const str = data.toString();
-      // Print local node output log
-      if (this.showStdout) {
-        console.log(str);
-      }
+      // Print local node output error log
+      console.log(str);
     });
 
     childProcess.stdout?.on("data", (data: any) => {
