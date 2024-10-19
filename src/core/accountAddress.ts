@@ -363,7 +363,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
     if (parsedInput.length < 64 - maxMissingChars) {
       if (!address.isSpecial()) {
         throw new ParsingError(
-          `Hex string is too short, must be ${64 - maxMissingChars} to 64 chars long, excluding the leading 0x. Received ${input}`,
+          `Hex string is too short, must be ${64 - maxMissingChars} to 64 chars long, excluding the leading 0x. You may need to fix 
+the addresss by padding it with 0s before passing it to \`fromString\` (e.g. <addressString>.padStart(64, '0')). 
+Received ${input}`,
           AddressInvalidReason.TOO_SHORT,
         );
       }

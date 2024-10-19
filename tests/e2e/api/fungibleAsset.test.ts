@@ -36,7 +36,7 @@ describe("FungibleAsset", () => {
     expect(data[1].asset_type).toEqual(APTOS_COIN);
 
     // fetch by something that doesn't exist
-    data = await aptos.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0x123" });
+    data = await aptos.getFungibleAssetMetadataByCreatorAddress({ creatorAddress: "0xc" });
     expect(data).toEqual([]);
   });
 
