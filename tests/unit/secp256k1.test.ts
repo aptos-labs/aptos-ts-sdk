@@ -3,7 +3,15 @@
 
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
-import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
+import {
+  Deserializer,
+  Hex,
+  PrivateKey,
+  Secp256k1PrivateKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+  Serializer,
+} from "../../src";
 
 /* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
@@ -73,21 +81,26 @@ describe("Secp256k1PublicKey", () => {
 
 describe("Secp256k1PrivateKey", () => {
   it("should create the instance correctly without error", () => {
-    // Create from string
-    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKey);
+    // Create from non-AIP-80 compliant string
+    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyHex);
     expect(privateKey).toBeInstanceOf(Secp256k1PrivateKey);
     expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
 
-    // Create from Uint8Array
-    const hexUint8Array = Hex.fromHexString(secp256k1TestObject.privateKey).toUint8Array();
-    const privateKey2 = new Secp256k1PrivateKey(hexUint8Array);
+    // Create from AIP-80 compliant string
+    const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKey);
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
+    expect(privateKey2.toString()).toEqual(secp256k1TestObject.privateKey);
+
+    // Create from Uint8Array
+    const hexUint8Array = PrivateKey.parseHexInput(secp256k1TestObject.privateKey, "secp256k1", false).toUint8Array();
+    const privateKey3 = new Secp256k1PrivateKey(hexUint8Array);
+    expect(privateKey3).toBeInstanceOf(Secp256k1PrivateKey);
+    expect(privateKey3.toHexString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
-    expect(() => new Secp256k1PrivateKey(invalidHexInput)).toThrowError(
+    expect(() => new Secp256k1PrivateKey(invalidHexInput, false)).toThrowError(
       `PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`,
     );
   });
