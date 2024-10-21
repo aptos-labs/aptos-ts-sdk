@@ -211,11 +211,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * @param hexInput HexInput (string or Uint8Array)
+   * @param strict If true, private key must AIP-80 compliant.
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict: boolean = false) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, "ed25519", strict);
     if (privateKeyHex.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`);
     }
@@ -231,7 +232,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    */
   static generate(): Ed25519PrivateKey {
     const keyPair = ed25519.utils.randomPrivateKey();
-    return new Ed25519PrivateKey(keyPair);
+    return new Ed25519PrivateKey(keyPair, false);
   }
 
   /**
@@ -271,7 +272,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
       key,
       chainCode,
     });
-    return new Ed25519PrivateKey(privateKey);
+    return new Ed25519PrivateKey(privateKey, false);
   }
 
   // endregion
@@ -316,8 +317,19 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns string representation of the private key.
    */
-  toString(): string {
+  toHexString(): string {
     return this.signingKey.toString();
+  }
+
+  /**
+   * Get the private key as a AIP-80 compliant hex string.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * @returns AIP-80 compliant string representation of the private key.
+   */
+  toString(): string {
+    return PrivateKey.formatPrivateKey(this.signingKey.toString(), "ed25519");
   }
 
   // endregion
@@ -330,7 +342,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 
   static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Ed25519PrivateKey(bytes);
+    return new Ed25519PrivateKey(bytes, false);
   }
 
   // endregion

@@ -149,11 +149,12 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @param strict If true, private key must AIP-80 compliant.
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict: boolean = false) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, "secp256k1", strict);
     if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
@@ -168,7 +169,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    */
   static generate(): Secp256k1PrivateKey {
     const hexInput = secp256k1.utils.randomPrivateKey();
-    return new Secp256k1PrivateKey(hexInput);
+    return new Secp256k1PrivateKey(hexInput, false);
   }
 
   /**
@@ -204,7 +205,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
       throw new Error("Invalid key");
     }
 
-    return new Secp256k1PrivateKey(privateKey);
+    return new Secp256k1PrivateKey(privateKey, false);
   }
 
   // endregion
@@ -250,8 +251,19 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns string representation of the private key
    */
-  toString(): string {
+  toHexString(): string {
     return this.key.toString();
+  }
+
+  /**
+   * Get the private key as a AIP-80 compliant hex string.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * @returns AIP-80 compliant string representation of the private key.
+   */
+  toString(): string {
+    return PrivateKey.formatPrivateKey(this.key.toString(), "secp256k1");
   }
 
   // endregion
@@ -264,7 +276,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
   static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PrivateKey(bytes);
+    return new Secp256k1PrivateKey(bytes, false);
   }
 
   // endregion
