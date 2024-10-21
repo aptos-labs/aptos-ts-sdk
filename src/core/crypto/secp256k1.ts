@@ -151,7 +151,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @param hexInput A HexInput (string or Uint8Array)
    * @param strict If true, private key must AIP-80 compliant.
    */
-  constructor(hexInput: HexInput, strict: boolean = false) {
+  constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
     const privateKeyHex = PrivateKey.parseHexInput(hexInput, "secp256k1", strict);
