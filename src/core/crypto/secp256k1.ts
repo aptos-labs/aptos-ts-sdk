@@ -6,7 +6,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey, VerifySignatureArgs } from "./publicKey";
@@ -148,13 +148,15 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
    * @param hexInput A HexInput (string or Uint8Array)
    * @param strict If true, private key must AIP-80 compliant.
    */
   constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
-    const privateKeyHex = PrivateKey.parseHexInput(hexInput, "secp256k1", strict);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Secp256k1, strict);
     if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
@@ -263,7 +265,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @returns AIP-80 compliant string representation of the private key.
    */
   toString(): string {
-    return PrivateKey.formatPrivateKey(this.key.toString(), "secp256k1");
+    return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256k1);
   }
 
   // endregion

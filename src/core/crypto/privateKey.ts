@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 
-import { HexInput } from "../../types";
+import { HexInput, PrivateKeyVariants } from "../../types";
 import { Hex } from "../hex";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
@@ -33,26 +33,15 @@ export interface PrivateKey {
 
 export class PrivateKey {
   /**
-   * Returns the AIP-80 compliant prefix for a given private key type. Append this to a PrivateKey HexString
+   * The AIP-80 compliant prefixes for each private key type. Append this to a private key's hex representation
    * to get an AIP-80 compliant string.
    *
    * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
-   *
-   * @param type
-   * @returns
    */
-  public static getAIP80Prefix(type: "ed25519" | "secp256k1"): string {
-    switch (type) {
-      case "ed25519":
-        return "ed25519-priv-";
-      case "secp256k1":
-        return "secp256k1-priv-";
-      default:
-        throw new Error(
-          `Invalid standard provided when retrieving AIP-80 compliant prefix. Received ${type} but expected "ed25519" or "secp256k1"`,
-        );
-    }
-  }
+  public static readonly AIP80_PREFIXES = {
+    [PrivateKeyVariants.Ed25519]: "ed25519-priv-",
+    [PrivateKeyVariants.Secp256k1]: "secp256k1-priv-",
+  };
 
   /**
    * Format a HexInput to an AIP-80 compliant string.
@@ -62,8 +51,8 @@ export class PrivateKey {
    * @param privateKey - The HexString or Uint8Array format of the private key.
    * @param privateKeyType - The private key type
    */
-  public static formatPrivateKey(privateKey: HexInput, type: "ed25519" | "secp256k1"): string {
-    const aip80Prefix = PrivateKey.getAIP80Prefix(type);
+  public static formatPrivateKey(privateKey: HexInput, type: PrivateKeyVariants): string {
+    const aip80Prefix = PrivateKey.AIP80_PREFIXES[type];
     return `${aip80Prefix}${Hex.fromHexInput(privateKey).toString()}`;
   }
 
@@ -76,12 +65,12 @@ export class PrivateKey {
    * @param privateKeyType - The private key type
    * @param strict - If true, the value MUST be compliant with AIP-80.
    */
-  public static parseHexInput(value: HexInput, type: "ed25519" | "secp256k1", strict?: boolean): Hex {
+  public static parseHexInput(value: HexInput, type: PrivateKeyVariants, strict?: boolean): Hex {
     let data: Hex;
 
-    const aip80Prefix = PrivateKey.getAIP80Prefix(type);
+    const aip80Prefix = PrivateKey.AIP80_PREFIXES[type];
     if (typeof value === "string") {
-      if (strict !== true && !value.startsWith(aip80Prefix)) {
+      if (!strict && !value.startsWith(aip80Prefix)) {
         // HexString input
         data = Hex.fromHexInput(value);
         // If the strictness is false, the user has opted into non-AIP-80 compliant private keys.
