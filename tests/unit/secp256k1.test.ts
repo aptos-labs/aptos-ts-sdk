@@ -82,18 +82,18 @@ describe("Secp256k1PublicKey", () => {
 describe("Secp256k1PrivateKey", () => {
   it("should create the instance correctly without error", () => {
     // Create from non-AIP-80 compliant string
-    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyHex);
+    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyHex, false);
     expect(privateKey).toBeInstanceOf(Secp256k1PrivateKey);
     expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
 
     // Create from AIP-80 compliant string
-    const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKey);
+    const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKey, false);
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
     expect(privateKey2.toString()).toEqual(secp256k1TestObject.privateKey);
 
     // Create from Uint8Array
     const hexUint8Array = PrivateKey.parseHexInput(secp256k1TestObject.privateKey, "secp256k1", false).toUint8Array();
-    const privateKey3 = new Secp256k1PrivateKey(hexUint8Array);
+    const privateKey3 = new Secp256k1PrivateKey(hexUint8Array, false);
     expect(privateKey3).toBeInstanceOf(Secp256k1PrivateKey);
     expect(privateKey3.toHexString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });

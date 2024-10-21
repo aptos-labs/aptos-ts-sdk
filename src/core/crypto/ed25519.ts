@@ -213,7 +213,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @param hexInput HexInput (string or Uint8Array)
    * @param strict If true, private key must AIP-80 compliant.
    */
-  constructor(hexInput: HexInput, strict: boolean = false) {
+  constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
     const privateKeyHex = PrivateKey.parseHexInput(hexInput, "ed25519", strict);
