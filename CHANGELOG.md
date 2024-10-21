@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+- Add support for AIP-80 compliant private keys.
 
 # 1.31.0 (2024-10-24)
 
