@@ -84,13 +84,13 @@ describe("Secp256k1PrivateKey", () => {
   it("should create the instance correctly without error with AIP-80 compliant private key", () => {
     const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKey, false);
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey2.toString()).toEqual(secp256k1TestObject.privateKey);
+    expect(privateKey2.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
   });
 
   it("should create the instance correctly without error with non-AIP-80 compliant private key", () => {
     const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyHex, false);
     expect(privateKey).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
+    expect(privateKey.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
   });
 
   it("should create the instance correctly without error with Uint8Array private key", () => {
@@ -134,7 +134,7 @@ describe("Secp256k1PrivateKey", () => {
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Secp256k1PrivateKey.deserialize(deserializer);
 
-    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
+    expect(privateKey.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
   });
 
   it("should serialize and deserialize correctly", () => {
@@ -158,7 +158,7 @@ describe("Secp256k1PrivateKey", () => {
     const { mnemonic, path, privateKey } = secp256k1WalletTestObject;
     const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(key.toString()).toEqual(privateKey);
+    expect(key.toAIP80String()).toEqual(privateKey);
   });
 });
 

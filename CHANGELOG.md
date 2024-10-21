@@ -5,7 +5,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
-- [`Breaking`] Add support for AIP-80 compliant private keys. The `toString` of `Ed25519PrivateKey` and `Secp256k1PrivateKey` will now contain a prefix (e.g. `ed25510-priv-0x123...`, `secp256k1-priv-0x123...`).You can use `toHexString()` to get the Hex string representation instead. 
+- Add support for AIP-80 compliant private key imports and exports through `toAIP80String`
+- Add `PrivateKey` helpers for AIP-80: `PrivateKey.parseHexInput`, `PrivateKey.formatPrivateKey`, and `PrivateKey.AIP80_PREFIXES`.
 
 # 1.31.0 (2024-10-24)
 

@@ -113,13 +113,13 @@ describe("PrivateKey", () => {
   it("should create the instance correctly without error with AIP-80 compliant private key", () => {
     const privateKey2 = new Ed25519PrivateKey(ed25519.privateKey, false);
     expect(privateKey2).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey2.toString()).toEqual(ed25519.privateKey);
+    expect(privateKey2.toAIP80String()).toEqual(ed25519.privateKey);
   });
 
   it("should create the instance correctly without error with non-AIP-80 compliant private key", () => {
     const privateKey = new Ed25519PrivateKey(ed25519.privateKey, false);
     expect(privateKey).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey.toString()).toEqual(ed25519.privateKey);
+    expect(privateKey.toAIP80String()).toEqual(ed25519.privateKey);
   });
 
   it("should create the instance correctly without error with Uint8Array private key", () => {
@@ -165,7 +165,7 @@ describe("PrivateKey", () => {
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Ed25519PrivateKey.deserialize(deserializer);
 
-    expect(privateKey.toString()).toEqual(ed25519.privateKey);
+    expect(privateKey.toAIP80String()).toEqual(ed25519.privateKey);
   });
 
   it("should serialize and deserialize correctly", () => {
@@ -207,7 +207,7 @@ describe("PrivateKey", () => {
     const { mnemonic, path, privateKey } = wallet;
     const key = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey).toEqual(key.toString());
+    expect(privateKey).toEqual(key.toAIP80String());
   });
 });
 
