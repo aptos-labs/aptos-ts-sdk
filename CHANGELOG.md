@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.30.0 (2024-10-21)
+
 - Add the `isPrimitive` function to `TypeTag`.
 - Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
 - Add support for MultiKey's in transaction simulations
