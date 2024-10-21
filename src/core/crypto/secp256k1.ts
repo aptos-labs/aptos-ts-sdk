@@ -253,6 +253,15 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns string representation of the private key
    */
+  toString(): string {
+    return this.toHexString();
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key.
+   */
   toHexString(): string {
     return this.key.toString();
   }
@@ -264,7 +273,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    *
    * @returns AIP-80 compliant string representation of the private key.
    */
-  toString(): string {
+  toAIP80String(): string {
     return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256k1);
   }
 
