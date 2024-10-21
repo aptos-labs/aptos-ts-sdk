@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add support for AIP-80 compliant private keys.
+
 # 1.30.0 (2024-10-21)
 
 - Add the `isPrimitive` function to `TypeTag`.
