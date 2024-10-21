@@ -111,24 +111,29 @@ describe("Ed25519PublicKey", () => {
 
 describe("PrivateKey", () => {
   it("should create the instance correctly without error", () => {
-    // Create from string
+    // Create from non-AIP-80 compliant string
     const privateKey = new Ed25519PrivateKey(ed25519.privateKey);
     expect(privateKey).toBeInstanceOf(Ed25519PrivateKey);
     expect(privateKey.toString()).toEqual(ed25519.privateKey);
+
+    // Create from AIP-80 compliant string
+    const privateKey2 = new Ed25519PrivateKey(ed25519.privateKey);
+    expect(privateKey2).toBeInstanceOf(Ed25519PrivateKey);
+    expect(privateKey2.toString()).toEqual(ed25519.privateKey);
 
     // Create from Uint8Array
     const hexUint8Array = new Uint8Array([
       197, 51, 140, 210, 81, 194, 45, 170, 140, 156, 156, 201, 79, 73, 140, 200, 165, 199, 225, 210, 231, 82, 135, 165,
       221, 169, 16, 150, 254, 100, 239, 165,
     ]);
-    const privateKey2 = new Ed25519PrivateKey(hexUint8Array);
-    expect(privateKey2).toBeInstanceOf(Ed25519PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
+    const privateKey3 = new Ed25519PrivateKey(hexUint8Array);
+    expect(privateKey3).toBeInstanceOf(Ed25519PrivateKey);
+    expect(privateKey3.toHexString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
-    expect(() => new Ed25519PrivateKey(invalidHexInput)).toThrowError(
+    expect(() => new Ed25519PrivateKey(invalidHexInput, false)).toThrowError(
       `PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`,
     );
   });
