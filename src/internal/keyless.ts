@@ -220,7 +220,7 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   jwksUrl?: string;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, iss, options} = args;
+  const { aptosConfig, sender, iss, options } = args;
   const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
   const response = await fetch(jwksUrl);
   if (!response.ok) {
