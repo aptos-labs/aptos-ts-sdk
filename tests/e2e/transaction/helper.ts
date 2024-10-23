@@ -23,7 +23,7 @@ import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
-  privateKey: new Ed25519PrivateKey("0x1111111111111111111111111111111111111111111111111111111111111111"),
+  privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
   expiryDateSecs: 1735475012, // Expires Sunday, December 29, 2024 12:23:32 PM GMT
   blinder: new Uint8Array(31),
 });
@@ -318,7 +318,7 @@ export const rawTransactionMultiAgentHelper = async (
   return response;
 };
 
-export const PUBLISHER_ACCOUNT_PK = "0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";
+export const PUBLISHER_ACCOUNT_PK = "ed25519-priv-0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";
 export const PUBLISHER_ACCOUNT_ADDRESS = "2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c";
 
 // script function byte code form `transfer/sources/script_coin_transfer.move`

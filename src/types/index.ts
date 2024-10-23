@@ -110,6 +110,15 @@ export enum AccountAuthenticatorVariant {
 }
 
 /**
+ * Variants of private keys that can comply with the AIP-80 standard.
+ * {@link https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md}
+ */
+export enum PrivateKeyVariants {
+  Ed25519 = "ed25519",
+  Secp256k1 = "secp256k1",
+}
+
+/**
  * Variants of public keys used in cryptographic operations.
  */
 export enum AnyPublicKeyVariant {
