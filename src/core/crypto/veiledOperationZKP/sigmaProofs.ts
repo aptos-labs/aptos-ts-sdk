@@ -18,6 +18,7 @@ import {
 import { HexInput } from "../../../types";
 import { publicKeyToU8, toTwistedEd25519PrivateKey } from "./helpers";
 import { ed25519GenRandom, ed25519modN, ed25519InvertN } from "../utils";
+import { Hex } from "../../hex";
 
 export interface SigmaProofVeiledWithdrawInputs {
   privateKey: TwistedEd25519PrivateKey | HexInput;
@@ -199,6 +200,8 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
     amountCiphertext.C.toRawBytes(),
     amountCiphertext.D.toRawBytes(),
     recipientDRistretto.toRawBytes(),
+    ...auditorsU8PublicKeys,
+    ...auditorsU8PublicKeys.map(pk => RistrettoPoint.fromHex(pk).multiply(random).toRawBytes()),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
     X1.toRawBytes(),
@@ -377,8 +380,8 @@ export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithd
 export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTransferInputs): boolean {
   const proof = deserializeSigmaProofVeiledTransfer(opts.proof);
   const auditorsX = proof.auditorsX ?? [];
-  const auditorPKs = opts.auditors?.publicKeys ?? [];
-  const auditorDecryptionKeys = opts.auditors?.decryptionKeys ?? [];
+  const auditorPKs = opts.auditors?.publicKeys.map(pk => publicKeyToU8(pk)) ?? [];
+  const auditorDecryptionKeys = opts.auditors?.decryptionKeys.map(key => Hex.fromHexInput(key).toUint8Array()) ?? [];
 
   if (auditorsX.length !== auditorDecryptionKeys.length || auditorsX.length !== auditorPKs.length) {
     throw new Error("The number of auditors does not match the proof handed over.");
@@ -406,6 +409,8 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
     opts.encryptedAmountBySender.C.toRawBytes(),
     opts.encryptedAmountBySender.D.toRawBytes(),
     recipientDRistretto.toRawBytes(),
+    ...auditorPKs,
+    ...auditorDecryptionKeys,
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
     proof.X1,
@@ -429,9 +434,8 @@ export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTrans
   const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p));
 
   const isAuditorsXValid = auditorsX.every((auditorX, index) => {
-    const publicKeyU8 = publicKeyToU8(auditorPKs[index]);
     const pDr = RistrettoPoint.fromHex(auditorDecryptionKeys[index]).multiply(p);
-    const alpha3R = RistrettoPoint.fromHex(publicKeyU8).multiply(alpha3LE);
+    const alpha3R = RistrettoPoint.fromHex(auditorPKs[index]).multiply(alpha3LE);
     const X = alpha3R.add(pDr);
 
     return X.equals(RistrettoPoint.fromHex(auditorX));
