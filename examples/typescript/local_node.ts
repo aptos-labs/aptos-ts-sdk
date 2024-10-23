@@ -146,10 +146,10 @@ async function buildPublishPayload() {
       outputFile: "move/moonCoin/test-package.json",
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
-        MoonCoin: "0x123",
+        MoonsCoisn: "0x123",
       },
       extraArguments: ["--assume-yes"],
-      showStdout: false,
+      //showStdout: false,
     });
   } catch (error) {
     console.error("error building a publication transaction payload and storing it in a JSON output file", error);
@@ -169,19 +169,19 @@ async function stopLocalNode() {
 
 async function run() {
   // start the localnet
-  await runLocalNode();
+  // await runLocalNode();
 
-  await init();
+  // await init();
   await compile();
-  await tests();
-  await publish();
-  await createObjectAndPublishPackage();
-  await upgradeObjectPackage();
-  await runScript();
-  await buildPublishPayload();
+  // await tests();
+  // await publish();
+  // await createObjectAndPublishPackage();
+  // await upgradeObjectPackage();
+  // await runScript();
+  // await buildPublishPayload();
 
   // stop the localnet
-  await stopLocalNode();
+  // await stopLocalNode();
 }
 
 run();

@@ -323,6 +323,7 @@ export class Move {
       const currentPlatform = platform();
       let childProcess;
       let stdout = "";
+      let stderr = "";
 
       // Check if current OS is windows
       if (currentPlatform === "win32") {
@@ -335,6 +336,10 @@ export class Move {
         stdout += data.toString();
       });
 
+      childProcess.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
       if (showStdout) {
         childProcess.stdout.pipe(process.stdout);
         childProcess.stderr.pipe(process.stderr);
@@ -342,8 +347,16 @@ export class Move {
       }
 
       childProcess.on("close", (code) => {
+        const parsed = JSON.parse(stdout);
         if (code === 0) {
-          resolve({ output: stdout }); // Resolve with stdout if the child process exits successfully
+          if (parsed.Error) {
+            reject(new Error(`Error: ${parsed.Error}`)); // Reject if the "Error" key exists
+          } else if (parsed.Result) {
+            resolve(parsed.Result); // Resolve if the "Result" key exists
+          } else {
+            // Handle unexpected JSON format, CLI output might be unexpected so just resolve it
+            resolve({ output: stdout });
+          }
         } else {
           reject(new Error(`Child process exited with code ${code}`)); // Reject with an error if the child process exits with an error code
         }
