@@ -201,7 +201,7 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
     amountCiphertext.D.toRawBytes(),
     recipientDRistretto.toRawBytes(),
     ...auditorsU8PublicKeys,
-    ...auditorsU8PublicKeys.map(pk => RistrettoPoint.fromHex(pk).multiply(random).toRawBytes()),
+    ...auditorsU8PublicKeys.map((pk) => RistrettoPoint.fromHex(pk).multiply(random).toRawBytes()),
     RistrettoPoint.BASE.toRawBytes(),
     H_RISTRETTO.toRawBytes(),
     X1.toRawBytes(),
@@ -380,8 +380,8 @@ export function verifySigmaProofVeiledWithdraw(opts: VerifySigmaProofVeiledWithd
 export function verifySigmaProofVeiledTransfer(opts: VerifySigmaProofVeiledTransferInputs): boolean {
   const proof = deserializeSigmaProofVeiledTransfer(opts.proof);
   const auditorsX = proof.auditorsX ?? [];
-  const auditorPKs = opts.auditors?.publicKeys.map(pk => publicKeyToU8(pk)) ?? [];
-  const auditorDecryptionKeys = opts.auditors?.decryptionKeys.map(key => Hex.fromHexInput(key).toUint8Array()) ?? [];
+  const auditorPKs = opts.auditors?.publicKeys.map((pk) => publicKeyToU8(pk)) ?? [];
+  const auditorDecryptionKeys = opts.auditors?.decryptionKeys.map((key) => Hex.fromHexInput(key).toUint8Array()) ?? [];
 
   if (auditorsX.length !== auditorDecryptionKeys.length || auditorsX.length !== auditorPKs.length) {
     throw new Error("The number of auditors does not match the proof handed over.");

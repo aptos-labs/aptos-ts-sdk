@@ -1,6 +1,6 @@
 import { concatBytes } from "@noble/hashes/utils";
 import { AptosConfig } from "../api/aptosConfig";
-import { 
+import {
   AccountAddress,
   AccountAddressInput,
   genProofVeiledTransfer,
@@ -21,7 +21,7 @@ import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../core/crypto/veiled
 
 // TODO: update the module address as soon as it becomes a system address
 // At the moment, the module work only on TESTNET.
-const VEILED_COIN_MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7"
+const VEILED_COIN_MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7";
 
 interface VeiledBalanceOutputItem {
   left: { data: string };
@@ -53,7 +53,7 @@ export async function getVeiledBalances(args: {
   return {
     pending: new TwistedElGamalCiphertext(balances[0].left.data.slice(2), balances[0].right.data.slice(2)),
     actual: new TwistedElGamalCiphertext(balances[1].left.data.slice(2), balances[1].right.data.slice(2)),
-  }
+  };
 }
 
 export async function registerVeiledBalanceTransaction(args: {
@@ -64,7 +64,7 @@ export async function registerVeiledBalanceTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, publicKey, tokenAddress, options } = args;
-  const pkU8 = publicKeyToU8(publicKey)
+  const pkU8 = publicKeyToU8(publicKey);
   return generateTransaction({
     aptosConfig,
     sender,
@@ -95,29 +95,22 @@ export async function depositToVeiledBalanceTransaction(args: {
   });
 }
 
-export async function veiledWithdrawTransaction(args: ProofVeiledWithdrawInputs & {
-  aptosConfig: AptosConfig;
-  sender: AccountAddressInput;
-  tokenAddress: string;
-  options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
-  const {
-    aptosConfig,
-    privateKey,
-    encryptedBalance,
-    sender,
-    amount,
-    changedBalance,
-    tokenAddress,
-    options
-  } = args;
+export async function veiledWithdrawTransaction(
+  args: ProofVeiledWithdrawInputs & {
+    aptosConfig: AptosConfig;
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    options?: InputGenerateTransactionOptions;
+  },
+): Promise<SimpleTransaction> {
+  const { aptosConfig, privateKey, encryptedBalance, sender, amount, changedBalance, tokenAddress, options } = args;
 
   const { sigma, range } = await genProofVeiledWithdraw({
     privateKey,
     encryptedBalance,
     amount,
     changedBalance,
-  })
+  });
 
   return generateTransaction({
     aptosConfig,
@@ -138,7 +131,7 @@ export async function rolloverPendingVeiledBalanceTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, tokenAddress, options, withFreezeBalance } = args;
-  const method = withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance"
+  const method = withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
 
   return generateTransaction({
     aptosConfig,
@@ -151,13 +144,15 @@ export async function rolloverPendingVeiledBalanceTransaction(args: {
   });
 }
 
-export async function veiledTransferCoinTransaction(args: ProofVeiledTransferInputs & {
-  aptosConfig: AptosConfig;
-  sender: AccountAddressInput;
-  tokenAddress: string;
-  recipient: AccountAddressInput;
-  options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
+export async function veiledTransferCoinTransaction(
+  args: ProofVeiledTransferInputs & {
+    aptosConfig: AptosConfig;
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    recipient: AccountAddressInput;
+    options?: InputGenerateTransactionOptions;
+  },
+): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     sender,
@@ -181,10 +176,9 @@ export async function veiledTransferCoinTransaction(args: ProofVeiledTransferInp
     changedSenderBalance,
     random,
     auditorPublicKeys,
-  })
+  });
 
-  const auditorU8PublicKeys = (auditorPublicKeys ?? []).map(pk => publicKeyToU8(pk))
-
+  const auditorU8PublicKeys = (auditorPublicKeys ?? []).map((pk) => publicKeyToU8(pk));
 
   return generateTransaction({
     aptosConfig,
@@ -208,13 +202,15 @@ export async function veiledTransferCoinTransaction(args: ProofVeiledTransferInp
   });
 }
 
-export async function veiledBalanceKeyRotationTransaction(args: SigmaProofVeiledKeyRotationInputs & {
-  aptosConfig: AptosConfig;
-  sender: AccountAddressInput;
-  tokenAddress: string;
-  withUnfreezeBalance?: boolean;
-  options?: InputGenerateTransactionOptions;
-}): Promise<SimpleTransaction> {
+export async function veiledBalanceKeyRotationTransaction(
+  args: SigmaProofVeiledKeyRotationInputs & {
+    aptosConfig: AptosConfig;
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    withUnfreezeBalance?: boolean;
+    options?: InputGenerateTransactionOptions;
+  },
+): Promise<SimpleTransaction> {
   const {
     aptosConfig,
     sender,
@@ -224,23 +220,23 @@ export async function veiledBalanceKeyRotationTransaction(args: SigmaProofVeiled
     balance,
     encryptedBalance,
     withUnfreezeBalance,
-    options
+    options,
   } = args;
 
-  const {proof, encryptedBalanceByNewPublicKey} = genSigmaProofVeiledKeyRotation({
+  const { proof, encryptedBalanceByNewPublicKey } = genSigmaProofVeiledKeyRotation({
     oldPrivateKey,
     newPrivateKey,
     balance,
     encryptedBalance,
-  })
+  });
 
-  const newPublicKeyU8 = toTwistedEd25519PrivateKey(newPrivateKey).publicKey().toUint8Array()
+  const newPublicKeyU8 = toTwistedEd25519PrivateKey(newPrivateKey).publicKey().toUint8Array();
 
   const serializedNewBalance = concatBytes(
     encryptedBalanceByNewPublicKey.C.toRawBytes(),
     encryptedBalanceByNewPublicKey.D.toRawBytes(),
-  )
-  const method = withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key"
+  );
+  const method = withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
 
   return generateTransaction({
     aptosConfig,
