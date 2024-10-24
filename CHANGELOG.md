@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.31.0 (2024-10-24)
+
 - Bump `@aptos-labs/aptos-cli` to `1.0.2`
 - Fix the `Move` CLI command to correctly handle the success/error outputs
 
