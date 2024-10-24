@@ -48,7 +48,7 @@ export function ed25519GenRandom(): bigint {
   let rand: bigint;
   do {
     rand = bytesToNumberBE(randomBytes(32));
-  } while (rand >= ed25519.CURVE.n);
+  } while (rand > ed25519.CURVE.n);
 
   return rand;
 }
