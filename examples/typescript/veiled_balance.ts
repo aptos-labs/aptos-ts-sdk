@@ -21,8 +21,14 @@ const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
+/**
+ * Address of the mocked fungible token on the testnet
+ */ 
 const TOKEN_ADDRESS = "0xff3c50e388b56539542915c6e5b6140d29e35d4fe1c23afda4698dd648bb315b";
-const MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7";
+/**
+ * Address of the module for minting mocked fungible tokens on the testnet
+ */ 
+const MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7::mock_token";
 const TOKENS_TO_MINT = 500_000;
 
 const INITIAL_APTOS_BALANCE = 100_000_000;
@@ -79,7 +85,7 @@ const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
     data: {
-      function: `${MODULE_ADDRESS}::mock_token::mint_to`,
+      function: `${MODULE_ADDRESS}::mint_to`,
       functionArguments: [TOKENS_TO_MINT],
     },
   });
