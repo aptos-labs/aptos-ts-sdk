@@ -268,7 +268,7 @@ describe("BCS Serializer", () => {
     const addresses = new Array<AccountAddress>(
       AccountAddress.from("0x1"),
       AccountAddress.from("0xa"),
-      AccountAddress.from("0x0123456789abcdef"),
+      AccountAddress.from("0x0123456789abcdef", { maxMissingChars: 63 }),
     );
     const serializer = new Serializer();
     serializer.serializeVector(addresses);
