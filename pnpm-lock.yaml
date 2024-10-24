@@ -11,6 +11,9 @@ dependencies:
   '@aptos-labs/aptos-client':
     specifier: ^0.1.1
     version: 0.1.1
+  '@distributedlab/aptos-wasm-bindings':
+    specifier: ^0.2.4
+    version: 0.2.4
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.4.0
@@ -988,6 +991,10 @@ packages:
   /@cucumber/tag-expressions@6.1.0:
     resolution: {integrity: sha512-+3DwRumrCJG27AtzCIL37A/X+A/gSfxOPLg8pZaruh5SLumsTmpvilwroVWBT2fPzmno/tGXypeK5a7NHU4RzA==}
     dev: true
+
+  /@distributedlab/aptos-wasm-bindings@0.2.4:
+    resolution: {integrity: sha512-ddeMjZDOULzwnmv3YgnHS78MXCKQRoEPUWBI5XTaU/GDU082XBs73yELgLM1UvC2zG2d399O9W7Q30APm5fTGg==}
+    dev: false
 
   /@esbuild/aix-ppc64@0.19.12:
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}

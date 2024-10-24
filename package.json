@@ -52,6 +52,7 @@
   "dependencies": {
     "@aptos-labs/aptos-cli": "^0.2.0",
     "@aptos-labs/aptos-client": "^0.1.1",
+    "@distributedlab/aptos-wasm-bindings": "^0.2.4",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
