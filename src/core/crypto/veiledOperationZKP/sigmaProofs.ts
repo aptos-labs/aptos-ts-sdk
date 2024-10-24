@@ -68,7 +68,7 @@ export interface SigmaProofVeiledKeyRotationInputs {
   oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
   newPrivateKey: TwistedEd25519PrivateKey | HexInput;
   balance: bigint;
-  encryptedBalance: TwistedElGamalCiphertext;
+  oldEncryptedBalance: TwistedElGamalCiphertext;
   random?: bigint;
 }
 
@@ -252,7 +252,7 @@ export function genSigmaProofVeiledTransfer(opts: SigmaProofVeiledTransferInputs
  * @param opts.oldPrivateKey Old private key (Twisted ElGamal Ed25519).
  * @param opts.newPrivateKey New private key (Twisted ElGamal Ed25519).
  * @param opts.balance Decrypted balance
- * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.oldEncryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.random Random number less than ed25519.CURVE.n (bigint)
  */
 export function genSigmaProofVeiledKeyRotation(
@@ -276,7 +276,7 @@ export function genSigmaProofVeiledKeyRotation(
 
   const newCiphertext = TwistedElGamal.encryptWithPK(opts.balance, newPublicKey, random);
 
-  const X1 = opts.encryptedBalance.D.multiply(x1).subtract(newCiphertext.D.multiply(x2));
+  const X1 = opts.oldEncryptedBalance.D.multiply(x1).subtract(newCiphertext.D.multiply(x2));
   const X2 = RistrettoPoint.BASE.multiply(x3).add(H_RISTRETTO.multiply(x4));
   const X3 = RistrettoPoint.fromHex(newPublicKey.toUint8Array()).multiply(x4);
   const X4 = H_RISTRETTO.multiply(x5);
@@ -285,8 +285,8 @@ export function genSigmaProofVeiledKeyRotation(
     utf8ToBytes(FIAT_SHAMIR_SIGMA_DST),
     oldPublicKey.toUint8Array(),
     newPublicKey.toUint8Array(),
-    opts.encryptedBalance.C.toRawBytes(),
-    opts.encryptedBalance.D.toRawBytes(),
+    opts.oldEncryptedBalance.C.toRawBytes(),
+    opts.oldEncryptedBalance.D.toRawBytes(),
     newCiphertext.C.toRawBytes(),
     newCiphertext.D.toRawBytes(),
     RistrettoPoint.BASE.toRawBytes(),

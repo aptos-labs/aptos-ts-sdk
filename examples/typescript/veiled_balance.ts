@@ -226,7 +226,7 @@ async function example() {
     oldPrivateKey: aliceVeiledPrivateKey,
     newPrivateKey: aliceNewVeiledPrivateKey,
     balance: aliceVeiledBalance.decdActualBal,
-    encryptedBalance: aliceVeiledBalance.encBalances.actual,
+    oldEncryptedBalance: aliceVeiledBalance.encBalances.actual,
     sender: alice.accountAddress,
     withUnfreezeBalance: true,
     tokenAddress: TOKEN_ADDRESS,

@@ -218,7 +218,7 @@ export async function veiledBalanceKeyRotationTransaction(
     oldPrivateKey,
     newPrivateKey,
     balance,
-    encryptedBalance,
+    oldEncryptedBalance,
     withUnfreezeBalance,
     options,
   } = args;
@@ -227,7 +227,7 @@ export async function veiledBalanceKeyRotationTransaction(
     oldPrivateKey,
     newPrivateKey,
     balance,
-    encryptedBalance,
+    oldEncryptedBalance,
   });
 
   const newPublicKeyU8 = toTwistedEd25519PrivateKey(newPrivateKey).publicKey().toUint8Array();

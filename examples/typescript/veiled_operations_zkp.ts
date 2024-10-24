@@ -150,7 +150,7 @@ const example = async () => {
     oldPrivateKey: privateKeyAlice,
     newPrivateKey: newPrivateKeyAlice,
     balance: BALANCE,
-    encryptedBalance: ciphertextAlice,
+    oldEncryptedBalance: ciphertextAlice,
   });
   console.log("Generated key rotation proof");
   console.log(bytesToHex(keyRotationProofOutputs.proof), "\n");
