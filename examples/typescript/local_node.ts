@@ -18,6 +18,7 @@ async function runLocalNode() {
     console.log("starting local node...");
     localNode = new cli.LocalNode({ showStdout: false });
     await localNode.run();
+    console.log("local node started");
   } catch (error) {
     console.error(error);
   }
@@ -61,7 +62,6 @@ async function tests() {
       namedAddresses: {
         MoonCoin: "0x123",
       },
-      showStdout: false,
     });
   } catch (error) {
     console.error("error running Move unit tests", error);
@@ -143,13 +143,13 @@ async function buildPublishPayload() {
   try {
     console.log("building a publication transaction payload and storing it in a JSON output file");
     await move.buildPublishPayload({
-      outputFile: "move/moonCoin/test-package.json",
+      outputFile: "move/moonCoin/moonCoin.json",
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
-        MoonsCoisn: "0x123",
+        MoonCoin: "0x123",
       },
       extraArguments: ["--assume-yes"],
-      //showStdout: false,
+      showStdout: false,
     });
   } catch (error) {
     console.error("error building a publication transaction payload and storing it in a JSON output file", error);
@@ -169,19 +169,19 @@ async function stopLocalNode() {
 
 async function run() {
   // start the localnet
-  // await runLocalNode();
+  await runLocalNode();
 
-  // await init();
+  await init();
   await compile();
-  // await tests();
-  // await publish();
-  // await createObjectAndPublishPackage();
-  // await upgradeObjectPackage();
-  // await runScript();
-  // await buildPublishPayload();
+  await tests();
+  await publish();
+  await createObjectAndPublishPackage();
+  await upgradeObjectPackage();
+  await runScript();
+  await buildPublishPayload();
 
   // stop the localnet
-  // await stopLocalNode();
+  await stopLocalNode();
 }
 
 run();
