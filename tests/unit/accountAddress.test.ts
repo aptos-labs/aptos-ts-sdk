@@ -107,8 +107,8 @@ const ADDRESS_OTHER: Addresses = {
   ]),
 };
 
-// These tests show that fromStringRelaxed works happily parses all formats.
-describe("AccountAddress fromStringRelaxed", () => {
+// These tests show that fromString parses special addresses, long addresses, and short addresses adhereing to the max missing chars.
+describe("AccountAddress fromString", () => {
   it("parses special address: 0x0", () => {
     expect(AccountAddress.fromString(ADDRESS_ZERO.longWith0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
     expect(AccountAddress.fromString(ADDRESS_ZERO.longWithout0x).toString()).toBe(ADDRESS_ZERO.shortWith0x);
@@ -161,13 +161,18 @@ describe("AccountAddress fromStringRelaxed", () => {
   it("parses non-special address: 0x10", () => {
     expect(AccountAddress.fromString(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
     expect(AccountAddress.fromString(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromString(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.fromString(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(() => AccountAddress.fromString(ADDRESS_TEN.shortWith0x).toString()).toThrow();
+    expect(() => AccountAddress.fromString(ADDRESS_TEN.shortWithout0x).toString()).toThrow();
   });
 
   it("parses non-special address: 0xca843279e3427144cead5e4d5999a3d0ca843279e3427144cead5e4d5999a3d0", () => {
     expect(AccountAddress.fromString(ADDRESS_OTHER.longWith0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
     expect(AccountAddress.fromString(ADDRESS_OTHER.longWithout0x).toString()).toBe(ADDRESS_OTHER.longWith0x);
+  });
+
+  it("parses values in range of maxMissingChars", () => {
+    expect(AccountAddress.fromString("0x0123456789abcdef", { maxMissingChars: 63 }));
+    expect(() => AccountAddress.fromString("0x0123456789abcdef", { maxMissingChars: 0 })).toThrow();
   });
 });
 
@@ -257,8 +262,8 @@ describe("AccountAddress fromRelaxed", () => {
   it("parses non-special address: 0x10", () => {
     expect(AccountAddress.from(ADDRESS_TEN.longWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
     expect(AccountAddress.from(ADDRESS_TEN.longWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.from(ADDRESS_TEN.shortWith0x).toString()).toBe(ADDRESS_TEN.longWith0x);
-    expect(AccountAddress.from(ADDRESS_TEN.shortWithout0x).toString()).toBe(ADDRESS_TEN.longWith0x);
+    expect(() => AccountAddress.from(ADDRESS_TEN.shortWith0x).toString()).toThrow();
+    expect(() => AccountAddress.from(ADDRESS_TEN.shortWithout0x).toString()).toThrow();
     expect(AccountAddress.from(ADDRESS_TEN.bytes).toString()).toBe(ADDRESS_TEN.longWith0x);
   });
 
@@ -360,8 +365,8 @@ describe("AccountAddress other parsing", () => {
   });
 
   it("compares equality with equals as expected", () => {
-    const addressOne = AccountAddress.fromString("0x123");
-    const addressTwo = AccountAddress.fromString("0x123");
+    const addressOne = AccountAddress.fromString("0x1");
+    const addressTwo = AccountAddress.fromString("0x1");
     expect(addressOne.equals(addressTwo)).toBeTruthy();
   });
 });
@@ -375,7 +380,7 @@ describe("AccountAddress serialization and deserialization", () => {
   };
 
   it("serializes an unpadded, full, and reserved address correctly", () => {
-    const address1 = AccountAddress.fromString("0x0102030a0b0c");
+    const address1 = AccountAddress.fromString("0x0102030a0b0c", { maxMissingChars: 63 });
     const address2 = AccountAddress.fromString(ADDRESS_OTHER.longWith0x);
     const address3 = AccountAddress.fromString(ADDRESS_ZERO.shortWithout0x);
     serializeAndCheckEquality(address1);
@@ -392,7 +397,7 @@ describe("AccountAddress serialization and deserialization", () => {
 
   it("deserializes an unpadded, full, and reserved address correctly", () => {
     const serializer = new Serializer();
-    const address1 = AccountAddress.fromString("0x123abc");
+    const address1 = AccountAddress.fromString("0x123abc", { maxMissingChars: 63 });
     const address2 = AccountAddress.fromString(ADDRESS_OTHER.longWith0x);
     const address3 = AccountAddress.fromString(ADDRESS_ZERO.shortWithout0x);
     serializer.serialize(address1);
@@ -408,7 +413,7 @@ describe("AccountAddress serialization and deserialization", () => {
   });
 
   it("serializes and deserializes an address correctly", () => {
-    const address = AccountAddress.fromString("0x0102030a0b0c");
+    const address = AccountAddress.fromString("0x0102030a0b0c", { maxMissingChars: 63 });
     const serializer = new Serializer();
     serializer.serialize(address);
     const deserializer = new Deserializer(serializer.toUint8Array());
