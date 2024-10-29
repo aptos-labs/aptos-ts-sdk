@@ -4,7 +4,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.31.0 (2024-10-24)
+
+- Bump `@aptos-labs/aptos-cli` to `1.0.2`
+- Fix the `Move` CLI command to correctly handle the success/error outputs
+
+# 1.30.0 (2024-10-21)
+
+- Add the `isPrimitive` function to `TypeTag`.
+- Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
+- Add support for MultiKey's in transaction simulations
+- Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
+- Bump `@aptos-labs/aptos-cli` to `1.0.1`
+- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+
 # 1.29.1 (2024-10-09)
+
 - Fix the `FederatedKeylessAccount` constructor to derive the correct address.
 
 # 1.29.0 (2024-10-04)

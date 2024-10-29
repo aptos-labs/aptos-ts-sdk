@@ -22,40 +22,41 @@ import { AccountAddress } from "../../core";
 import { Identifier } from "../instances/identifier";
 
 /**
- * Tells if the string is a valid Move identifier.  It can only be alphanumeric and `_`
- * @param str
+ * Determines if the provided string is a valid Move identifier, which can only contain alphanumeric characters and underscores.
+ * @param str - The string to validate as a Move identifier.
  */
 function isValidIdentifier(str: string) {
   return !!str.match(/^[_a-zA-Z0-9]+$/);
 }
 
 /**
- * Tells if the character is a whitespace character.  Does not work for multiple characters
- * @param char
+ * Determines if the provided character is a whitespace character. This function only works for single characters.
+ * @param char - The character to check for whitespace.
  */
 function isValidWhitespaceCharacter(char: string) {
   return !!char.match(/\s/);
 }
 
 /**
- * Tells if a type is a generic type from the ABI, this will be of the form T0, T1, ...
- * @param str
+ * Determines if a given string represents a generic type from the ABI, specifically in the format T0, T1, etc.
+ * @param str - The string to evaluate for generic type format.
  */
 function isGeneric(str: string) {
   return !!str.match(/^T[0-9]+$/);
 }
 
 /**
- * Tells if a type is a reference type (starts with &)
- * @param str
+ * Determines if the provided string is a reference type, which is indicated by starting with an ampersand (&).
+ * @param str - The string to evaluate for reference type.
  */
 function isRef(str: string) {
   return !!str.match(/^&.+$/);
 }
 
 /**
- * Tells if a type is a primitive type
- * @param str
+ * Determines if the provided string represents a primitive type.
+ * @param str - The string to evaluate as a potential primitive type.
+ * @returns A boolean indicating whether the string is a primitive type.
  */
 function isPrimitive(str: string) {
   switch (str) {
@@ -75,9 +76,11 @@ function isPrimitive(str: string) {
 }
 
 /**
- * Consumes all whitespace in a string, similar to trim
- * @param tagStr
- * @param pos
+ * Consumes all whitespace characters in a string starting from a specified position.
+ *
+ * @param tagStr - The string from which to consume whitespace.
+ * @param pos - The position in the string to start consuming whitespace from.
+ * @returns The new position in the string after consuming whitespace.
  */
 function consumeWhitespace(tagStr: string, pos: number) {
   let i = pos;
@@ -93,7 +96,7 @@ function consumeWhitespace(tagStr: string, pos: number) {
 }
 
 /**
- * State for TypeTag parsing.  This is pushed onto a stack to keep track of what is the current state
+ * State for TypeTag parsing, maintained on a stack to track the current parsing state.
  */
 type TypeTagState = {
   savedExpectedTypes: number;
@@ -101,6 +104,9 @@ type TypeTagState = {
   savedTypes: Array<TypeTag>;
 };
 
+/**
+ * Error types related to parsing type tags, indicating various issues encountered during the parsing process.
+ */
 export enum TypeTagParserErrorType {
   InvalidTypeTag = "unknown type",
   UnexpectedGenericType = "unexpected generic type",
@@ -118,23 +124,49 @@ export enum TypeTagParserErrorType {
   InvalidAddress = "struct address must be valid",
 }
 
+/**
+ * Represents an error that occurs during the parsing of a type tag.
+ * This error extends the built-in Error class and provides additional context
+ * regarding the specific type tag that failed to parse and the reason for the failure.
+ *
+ * @param typeTagStr - The type tag string that failed to be parsed.
+ * @param invalidReason - The reason why the type tag string is considered invalid.
+ */
 export class TypeTagParserError extends Error {
+  /**
+   * Constructs an error indicating a failure to parse a type tag.
+   * This error provides details about the specific type tag that could not be parsed and the reason for the failure.
+   *
+   * @param typeTagStr - The string representation of the type tag that failed to parse.
+   * @param invalidReason - The reason why the type tag is considered invalid.
+   */
   constructor(typeTagStr: string, invalidReason: TypeTagParserErrorType) {
     super(`Failed to parse typeTag '${typeTagStr}', ${invalidReason}`);
   }
 }
 
 /**
+ * Parses a type string into a structured representation of type tags, accommodating various formats including generics and
+ * nested types.
+ *
+ * This function can help you accurately interpret type strings, which can include simple types, standalone structs, and complex
+ * nested generics.
+ * It supports multiple generics, spacing within generics, and nested generics of varying depths.
  * All types are made of a few parts they're either:
  * 1. A simple type e.g. u8
  * 2. A standalone struct e.g. 0x1::account::Account
  * 3. A nested struct e.g. 0x1::coin::Coin<0x1234::coin::MyCoin>
  *
  * There are a few more special cases that need to be handled, however.
- * 1. Multiple generics e.g 0x1::pair::Pair<u8, u16>
+ * 1. Multiple generics e.g. 0x1::pair::Pair<u8, u16>
  * 2. Spacing in the generics e.g. 0x1::pair::Pair< u8 , u16>
  * 3. Nested generics of different depths e.g. 0x1::pair::Pair<0x1::coin::Coin<0x1234::coin::MyCoin>, u8>
- * 4. Generics for types in ABIs are filled in with placeholders e.g T1, T2, T3
+ * 4. Generics for types in ABIs are filled in with placeholders e.g. T1, T2, T3
+ * @param typeStr - The string representation of the type to be parsed.
+ * @param options - Optional settings for parsing behavior.
+ * @param options.allowGenerics - A flag indicating whether to allow generics in the parsing process.
+ * @returns The parsed type tag representation.
+ * @throws TypeTagParserError if the type string is malformed or does not conform to expected formats.
  */
 export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolean }) {
   const allowGenerics = options?.allowGenerics ?? false;
@@ -263,10 +295,12 @@ export function parseTypeTag(typeStr: string, options?: { allowGenerics?: boolea
 }
 
 /**
- * Parses a type tag with internal types associated
- * @param str
- * @param types
- * @param allowGenerics allow generic in parsing of the type tag
+ * Parses a type tag with internal types associated, allowing for the inclusion of generics if specified. This function helps in
+ * constructing the appropriate type tags based on the provided string representation and associated types.
+ *
+ * @param str - The string representation of the type tag to parse.
+ * @param types - An array of TypeTag instances that represent internal types associated with the type tag.
+ * @param allowGenerics - A boolean indicating whether generics are allowed in the parsing of the type tag.
  */
 function parseTypeTagInner(str: string, types: Array<TypeTag>, allowGenerics: boolean): TypeTag {
   const trimmedStr = str.trim();

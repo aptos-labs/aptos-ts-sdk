@@ -36,9 +36,12 @@ export const MAX_JWT_HEADER_B64_BYTES = 300;
 export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
- * Represents the KeylessPublicKey public key
+ * Represents a Keyless Public Key used for authentication.
  *
- * KeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
+ * This class encapsulates the public key functionality for keyless authentication,
+ * including methods for generating and verifying signatures, as well as serialization
+ * and deserialization of the key. The KeylessPublicKey is represented in the SDK
+ * as `AnyPublicKey`.
  */
 export class KeylessPublicKey extends AccountPublicKey {
   /**
@@ -58,6 +61,17 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   readonly idCommitment: Uint8Array;
 
+  /**
+   * Constructs an instance with the specified parameters for cryptographic operations.
+   *
+   * @param args - The parameters required to initialize the instance.
+   * @param args.alphaG1 - The hex representation of the alpha G1 value.
+   * @param args.betaG2 - The hex representation of the beta G2 value.
+   * @param args.deltaG2 - The hex representation of the delta G2 value.
+   * @param args.gammaAbcG1 - An array containing two hex representations for gamma ABC G1 values.
+   * @param args.gammaG2 - The hex representation of the gamma G2 value.
+   */
+  // TODO: Fix the JSDoc for the below values
   constructor(iss: string, idCommitment: HexInput) {
     super();
     const idcBytes = Hex.fromHexInput(idCommitment).toUint8Array();
@@ -69,9 +83,9 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 
   /**
-   * Get the authentication key for the keyless public key
+   * Get the authentication key for the keyless public key.
    *
-   * @returns AuthenticationKey
+   * @returns AuthenticationKey - The authentication key derived from the keyless public key.
    */
   authKey(): AuthenticationKey {
     const serializer = new Serializer();
@@ -84,52 +98,68 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 
   /**
-   * Get the public key in bytes (Uint8Array).
+   * Verifies the validity of a signature for a given message.
    *
-   * @returns Uint8Array representation of the public key
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
-  }
-
-  /**
-   * Verifies a signed data with a public key
-   *
-   * @param args.message message
-   * @param args.signature The signature
-   * @returns true if the signature is valid
+   * @param args - The arguments for signature verification.
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify against the message.
+   * @returns true if the signature is valid; otherwise, false.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
     throw new Error("Not yet implemented");
   }
 
+  /**
+   * Serializes the current instance into a format suitable for transmission or storage.
+   * This function ensures that all relevant fields are properly serialized, including the proof and optional fields.
+   *
+   * @param serializer - The serializer instance used to perform the serialization.
+   * @param serializer.proof - The proof to be serialized.
+   * @param serializer.expHorizonSecs - The expiration horizon in seconds.
+   * @param serializer.extraField - An optional additional field for serialization.
+   * @param serializer.overrideAudVal - An optional override value for auditing.
+   * @param serializer.trainingWheelsSignature - An optional signature for training wheels.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
     serializer.serializeBytes(this.idCommitment);
   }
 
+  /**
+   * Deserializes a ZeroKnowledgeSig object from the provided deserializer.
+   * This function allows you to reconstruct a ZeroKnowledgeSig instance from its serialized form.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @returns A new instance of ZeroKnowledgeSig.
+   */
   static deserialize(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
     return new KeylessPublicKey(iss, addressSeed);
   }
 
+  /**
+   * Loads a KeylessPublicKey instance from the provided deserializer.
+   * This function is used to deserialize the necessary components to create a KeylessPublicKey.
+   *
+   * @param deserializer - The deserializer used to extract the string and byte data.
+   * @param deserializer.deserializeStr - A method to deserialize a string value.
+   * @param deserializer.deserializeBytes - A method to deserialize byte data.
+   * @returns A new instance of KeylessPublicKey.
+   */
   static load(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
     const addressSeed = deserializer.deserializeBytes();
     return new KeylessPublicKey(iss, addressSeed);
   }
 
+  /**
+   * Determines if the provided public key is an instance of KeylessPublicKey.
+   *
+   * @param publicKey - The public key to check.
+   * @returns A boolean indicating whether the public key is a KeylessPublicKey instance.
+   */
   static isPublicKey(publicKey: PublicKey): publicKey is KeylessPublicKey {
     return publicKey instanceof KeylessPublicKey;
   }
@@ -155,6 +185,16 @@ export class KeylessPublicKey extends AccountPublicKey {
     return new KeylessPublicKey(args.iss, computeIdCommitment(args));
   }
 
+  /**
+   * Creates a KeylessPublicKey instance from a JWT and a pepper value.
+   * This function is useful for generating a public key that can be used for authentication based on the provided JWT claims and pepper.
+   *
+   * @param args - The arguments for creating the KeylessPublicKey.
+   * @param args.jwt - The JSON Web Token to decode.
+   * @param args.pepper - The pepper value used in the key creation process.
+   * @param args.uidKey - An optional key to retrieve the unique identifier from the JWT payload, defaults to "sub".
+   * @returns A KeylessPublicKey instance created from the provided JWT and pepper.
+   */
   static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
     const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
@@ -168,6 +208,12 @@ export class KeylessPublicKey extends AccountPublicKey {
     return KeylessPublicKey.create({ iss: jwtPayload.iss, uidKey, uidVal, aud: jwtPayload.aud, pepper });
   }
 
+  /**
+   * Checks if the provided public key is a valid instance by verifying its structure and types.
+   *
+   * @param publicKey - The public key to validate.
+   * @returns A boolean indicating whether the public key is a valid instance.
+   */
   static isInstance(publicKey: PublicKey) {
     return (
       "iss" in publicKey &&
@@ -192,11 +238,11 @@ function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string
 }
 
 /**
- * A signature of a message signed via Keyless Accounnt that uses proofs or the jwt token to authenticate.
+ * Represents a signature of a message signed via a Keyless Account, utilizing proofs or a JWT token for authentication.
  */
 export class KeylessSignature extends Signature {
   /**
-   * The inner signature ZeroKnowledgeSigniature or OpenIdSignature
+   * The inner signature ZeroKnowledgeSignature or OpenIdSignature
    */
   readonly ephemeralCertificate: EphemeralCertificate;
 
@@ -234,24 +280,6 @@ export class KeylessSignature extends Signature {
     this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
-  }
-
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
-   * Get the kid of the JWT used to derive the Keyless Account used to sign.
-   *
-   * @returns the kid as a string
-   */
-  getJwkKid(): string {
-    return parseJwtHeader(this.jwtHeader).kid;
   }
 
   serialize(serializer: Serializer): void {
@@ -302,7 +330,10 @@ export class KeylessSignature extends Signature {
 }
 
 /**
- * A container for a signature that is a ZeroKnowledgeSig.  Can be expanded to support OpenIdSignature.
+ * Represents an ephemeral certificate containing a signature, specifically a ZeroKnowledgeSig.
+ * This class can be extended to support additional signature types, such as OpenIdSignature.
+ *
+ * @extends Signature
  */
 export class EphemeralCertificate extends Signature {
   public readonly signature: Signature;
@@ -343,6 +374,12 @@ export class EphemeralCertificate extends Signature {
   }
 }
 
+/**
+ * Represents a fixed-size byte array of 32 bytes, extending the Serializable class.
+ * This class is used for handling and serializing G1 bytes in cryptographic operations.
+ *
+ * @extends Serializable
+ */
 class G1Bytes extends Serializable {
   data: Uint8Array;
 
@@ -364,6 +401,12 @@ class G1Bytes extends Serializable {
   }
 }
 
+/**
+ * Represents a 64-byte G2 element in a cryptographic context.
+ * This class provides methods for serialization and deserialization of G2 bytes.
+ *
+ * @extends Serializable
+ */
 class G2Bytes extends Serializable {
   data: Uint8Array;
 
@@ -386,7 +429,10 @@ class G2Bytes extends Serializable {
 }
 
 /**
- * A representation of a Groth16 proof.  The points are the compressed serialization of affine reprentation of the proof.
+ * Represents a Groth16 zero-knowledge proof, consisting of three proof points in compressed serialization format.
+ * The points are the compressed serialization of affine representation of the proof.
+ *
+ * @extends Proof
  */
 export class Groth16Zkp extends Proof {
   /**
@@ -427,7 +473,9 @@ export class Groth16Zkp extends Proof {
 }
 
 /**
- * A container for a different zero knowledge proof types
+ * Represents a container for different types of zero-knowledge proofs.
+ *
+ * @extends Serializable
  */
 export class ZkProof extends Serializable {
   public readonly proof: Proof;
@@ -460,7 +508,9 @@ export class ZkProof extends Serializable {
 }
 
 /**
- * The signature representation of a proof
+ * Represents a zero-knowledge signature, encapsulating the proof and its associated metadata.
+ *
+ * @extends Signature
  */
 export class ZeroKnowledgeSig extends Signature {
   /**
@@ -506,18 +556,10 @@ export class ZeroKnowledgeSig extends Signature {
   }
 
   /**
-   * Get the signature in bytes (Uint8Array).
+   * Deserialize a ZeroKnowledgeSig object from its BCS serialization in bytes.
    *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
-   * Return a ZeroKnowledgeSig object from its bcs serialization in bytes.
-   *
-   * @returns ZeroKnowledgeSig
+   * @param bytes - The bytes representing the serialized ZeroKnowledgeSig.
+   * @returns ZeroKnowledgeSig - The deserialized ZeroKnowledgeSig object.
    */
   static fromBytes(bytes: Uint8Array): ZeroKnowledgeSig {
     return ZeroKnowledgeSig.deserialize(new Deserializer(bytes));
@@ -542,12 +584,17 @@ export class ZeroKnowledgeSig extends Signature {
 }
 
 /**
- * A class which represents the on-chain configuration for how Keyless accounts work
+ * Represents the on-chain configuration for how Keyless accounts operate.
+ *
+ * @remarks
+ * This class encapsulates the verification key and the maximum lifespan of ephemeral key pairs,
+ * which are essential for the functionality of Keyless accounts.
  */
 export class KeylessConfiguration {
   /**
    * The verification key used to verify Groth16 proofs on chain
    */
+  // TODO: Rename to verificationKey
   readonly verficationKey: Groth16VerificationKey;
 
   /**
@@ -575,7 +622,7 @@ export class KeylessConfiguration {
 }
 
 /**
- * A representation of the verification key stored on chain used to verify Groth16 proofs
+ * Represents the verification key stored on-chain used to verify Groth16 proofs.
  */
 class Groth16VerificationKey {
   // The docstrings below are borrowed from ark-groth16
@@ -620,6 +667,17 @@ class Groth16VerificationKey {
     this.gammaG2 = new G2Bytes(gammaG2);
   }
 
+  /**
+   * Converts a Groth16VerificationKeyResponse object into a Groth16VerificationKey instance.
+   *
+   * @param res - The Groth16VerificationKeyResponse object containing the verification key data.
+   * @param res.alpha_g1 - The alpha G1 value from the response.
+   * @param res.beta_g2 - The beta G2 value from the response.
+   * @param res.delta_g2 - The delta G2 value from the response.
+   * @param res.gamma_abc_g1 - The gamma ABC G1 value from the response.
+   * @param res.gamma_g2 - The gamma G2 value from the response.
+   * @returns A Groth16VerificationKey instance constructed from the provided response data.
+   */
   static fromGroth16VerificationKeyResponse(res: Groth16VerificationKeyResponse): Groth16VerificationKey {
     return new Groth16VerificationKey({
       alphaG1: res.alpha_g1,
@@ -632,10 +690,14 @@ class Groth16VerificationKey {
 }
 
 /**
- * Gets the parameters of how Keyless Accounts are configured on chain including the verifying key and the max expiry horizon
+ * Retrieves the configuration parameters for Keyless Accounts on the blockchain, including the verifying key and the maximum
+ * expiry horizon.
  *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns KeylessConfiguration
+ * @param args - The arguments for retrieving the keyless configuration.
+ * @param args.aptosConfig - The Aptos configuration object containing network details.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.ledgerVersion - The ledger version to query; if not provided, the latest version will be used.
+ * @returns KeylessConfiguration - The configuration object containing the verifying key and maximum expiry horizon.
  */
 export async function getKeylessConfig(args: {
   aptosConfig: AptosConfig;
@@ -654,10 +716,13 @@ export async function getKeylessConfig(args: {
 }
 
 /**
- * Gets the KeylessConfiguration set on chain
+ * Retrieves the KeylessConfiguration set on chain.
  *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns KeylessConfigurationResponse
+ * @param args - The arguments for retrieving the configuration.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+ * @returns KeylessConfigurationResponse - The response containing the keyless configuration data.
  */
 async function getKeylessConfigurationResource(args: {
   aptosConfig: AptosConfig;
@@ -676,10 +741,13 @@ async function getKeylessConfigurationResource(args: {
 }
 
 /**
- * Gets the Groth16VerificationKey set on chain
+ * Retrieves the Groth16VerificationKey set on the blockchain.
  *
- * @param args.options.ledgerVersion The ledger version to query, if not provided it will get the latest version
- * @returns Groth16VerificationKeyResponse
+ * @param args - The arguments for retrieving the verification key.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.options - Optional parameters for the request.
+ * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+ * @returns Groth16VerificationKeyResponse - The response containing the Groth16 verification key data.
  */
 async function getGroth16VerificationKeyResource(args: {
   aptosConfig: AptosConfig;

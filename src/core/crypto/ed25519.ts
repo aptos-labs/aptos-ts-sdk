@@ -23,6 +23,10 @@ const L: number[] = [
 
 /**
  * Checks if an ED25519 signature is non-canonical.
+ * This function helps determine the validity of a signature by verifying its canonical form.
+ *
+ * @param signature - The signature to be checked for canonicality.
+ * @returns A boolean indicating whether the signature is non-canonical.
  *
  * Comes from Aptos Core
  * https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos-crypto/src/ed25519/ed25519_sigs.rs#L47-L85
@@ -48,7 +52,7 @@ export function isCanonicalEd25519Signature(signature: Signature): boolean {
  * `Legacy` and `Unified` authentication keys.
  *
  * Ed25519 scheme is represented in the SDK as `Legacy authentication key` and also
- * as `AnyPublicKey` that represents any `Unified authentication key`
+ * as `AnyPublicKey` that represents any `Unified authentication key`.
  */
 export class Ed25519PublicKey extends AccountPublicKey {
   /**
@@ -63,9 +67,11 @@ export class Ed25519PublicKey extends AccountPublicKey {
   private readonly key: Hex;
 
   /**
-   * Create a new PublicKey instance from a Uint8Array or String.
+   * Creates an instance of the Ed25519Signature class from a hex input.
+   * This constructor validates the length of the signature to ensure it meets the required specifications.
    *
-   * @param hexInput A HexInput (string or Uint8Array)
+   * @param hexInput - The hex input representing the Ed25519 signature.
+   * @throws Error if the signature length is not equal to Ed25519Signature.LENGTH.
    */
   constructor(hexInput: HexInput) {
     super();
@@ -80,9 +86,11 @@ export class Ed25519PublicKey extends AccountPublicKey {
   // region AccountPublicKey
 
   /**
-   * Verifies a signed data with a public key
-   * @param args.message a signed message as a Hex string or Uint8Array
-   * @param args.signature the signature of the message
+   * Verifies a signed message using a public key.
+   *
+   * @param args - The arguments for verification.
+   * @param args.message - A signed message as a Hex string or Uint8Array.
+   * @param args.signature - The signature of the message.
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
@@ -98,6 +106,12 @@ export class Ed25519PublicKey extends AccountPublicKey {
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
   }
 
+  /**
+   * Generates an authentication key from the public key using the Ed25519 scheme.
+   * This function is essential for creating a secure authentication key that can be used for further cryptographic operations.
+   *
+   * @returns {AuthenticationKey} The generated authentication key.
+   */
   authKey(): AuthenticationKey {
     return AuthenticationKey.fromSchemeAndBytes({
       scheme: AuthenticationKeyScheme.Ed25519,
@@ -106,9 +120,9 @@ export class Ed25519PublicKey extends AccountPublicKey {
   }
 
   /**
-   * Get the public key in bytes (Uint8Array).
+   * Convert the internal data representation to a Uint8Array.
    *
-   * @returns Uint8Array representation of the public key
+   * @returns Uint8Array representation of the data.
    */
   toUint8Array(): Uint8Array {
     return this.key.toUint8Array();
@@ -118,10 +132,22 @@ export class Ed25519PublicKey extends AccountPublicKey {
 
   // region Serializable
 
+  /**
+   * Serializes the data into a byte array using the provided serializer.
+   * This allows for the conversion of data into a format suitable for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to perform the serialization.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.key.toUint8Array());
   }
 
+  /**
+   * Deserialize bytes into an Ed25519Signature object.
+   * This function is used to convert serialized byte data into a usable Ed25519Signature instance.
+   *
+   * @param deserializer - The deserializer instance used to read the byte data.
+   */
   static deserialize(deserializer: Deserializer): Ed25519PublicKey {
     const bytes = deserializer.deserializeBytes();
     return new Ed25519PublicKey(bytes);
@@ -130,12 +156,24 @@ export class Ed25519PublicKey extends AccountPublicKey {
   // endregion
 
   /**
+   * Determine if the provided public key is an instance of Ed25519PublicKey.
+   *
+   * @param publicKey - The public key to check.
+   * @returns True if the public key is an instance of Ed25519PublicKey, otherwise false.
    * @deprecated use `instanceof Ed25519PublicKey` instead.
    */
   static isPublicKey(publicKey: AccountPublicKey): publicKey is Ed25519PublicKey {
     return publicKey instanceof Ed25519PublicKey;
   }
 
+  /**
+   * Determines if the provided public key is a valid Ed25519 public key.
+   * This function checks for the presence of the "key" property and verifies that its data length matches the expected length
+   * for Ed25519 public keys.
+   *
+   * @param publicKey - The public key to validate.
+   * @returns A boolean indicating whether the public key is a valid Ed25519 public key.
+   */
   static isInstance(publicKey: PublicKey): publicKey is Ed25519PublicKey {
     return "key" in publicKey && (publicKey.key as any)?.data?.length === Ed25519PublicKey.LENGTH;
   }
@@ -143,6 +181,11 @@ export class Ed25519PublicKey extends AccountPublicKey {
 
 /**
  * Represents the private key of an Ed25519 key pair.
+ *
+ * @static
+ * @readonly LENGTH - Length of an Ed25519 private key.
+ * @static
+ * @readonly SLIP_0010_SEED - The Ed25519 key seed to use for BIP-32 compatibility.
  */
 export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
@@ -184,7 +227,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Generate a new random private key.
    *
-   * @returns Ed25519PrivateKey
+   * @returns Ed25519PrivateKey A newly generated Ed25519 private key.
    */
   static generate(): Ed25519PrivateKey {
     const keyPair = ed25519.utils.randomPrivateKey();
@@ -192,15 +235,14 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
-   * Derives a private key from a mnemonic seed phrase.
-   *
+   * Derives a private key from a mnemonic seed phrase using a specified BIP44 path.
    * To derive multiple keys from the same phrase, change the path
    *
-   * IMPORTANT: Ed25519 supports hardened derivation only (since it lacks a key homomorphism,
-   * so non-hardened derivation cannot work)
+   * IMPORTANT: Ed25519 supports hardened derivation only, as it lacks a key homomorphism, making non-hardened derivation impossible.
    *
-   * @param path the BIP44 path
-   * @param mnemonics the mnemonic seed phrase
+   * @param path - The BIP44 path used for key derivation.
+   * @param mnemonics - The mnemonic seed phrase from which the key will be derived.
+   * @throws Error if the provided path is not a valid hardened path.
    */
   static fromDerivationPath(path: string, mnemonics: string): Ed25519PrivateKey {
     if (!isValidHardenedPath(path)) {
@@ -210,13 +252,14 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   }
 
   /**
+   * Derives a child private key from a given BIP44 path and seed.
    * A private inner function so we can separate from the main fromDerivationPath() method
    * to add tests to verify we create the keys correctly.
    *
-   * @param path the BIP44 path
-   * @param seed the seed phrase created by the mnemonics
-   * @param offset the offset used for key derivation, defaults to 0x80000000
-   * @returns
+   * @param path - The BIP44 path used for key derivation.
+   * @param seed - The seed phrase created by the mnemonics, represented as a Uint8Array.
+   * @param offset - The offset used for key derivation, defaults to HARDENED_OFFSET.
+   * @returns An instance of Ed25519PrivateKey derived from the specified path and seed.
    */
   private static fromDerivationPathInner(path: string, seed: Uint8Array, offset = HARDENED_OFFSET): Ed25519PrivateKey {
     const { key, chainCode } = deriveKey(Ed25519PrivateKey.SLIP_0010_SEED, seed);
@@ -238,7 +281,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Derive the Ed25519PublicKey for this private key.
    *
-   * @returns Ed25519PublicKey
+   * @returns Ed25519PublicKey - The derived public key corresponding to the private key.
    */
   publicKey(): Ed25519PublicKey {
     const bytes = ed25519.getPublicKey(this.signingKey.toUint8Array());
@@ -247,9 +290,10 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 
   /**
    * Sign the given message with the private key.
+   * This function generates a digital signature for the specified message, ensuring its authenticity and integrity.
    *
-   * @param message a message as a string or Uint8Array
-   * @returns Signature
+   * @param message - A message as a string or Uint8Array in HexInput format.
+   * @returns A digital signature for the provided message.
    */
   sign(message: HexInput): Ed25519Signature {
     const messageToSign = convertSigningMessage(message);
@@ -270,7 +314,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Get the private key as a hex string with the 0x prefix.
    *
-   * @returns string representation of the private key
+   * @returns string representation of the private key.
    */
   toString(): string {
     return this.signingKey.toString();
@@ -292,7 +336,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   // endregion
 
   /**
-   * @deprecated use `instanceof Ed25519PrivateKey` instead.
+   * Determines if the provided private key is an instance of Ed25519PrivateKey.
+   *
+   * @param privateKey - The private key to check.
+   * @returns A boolean indicating whether the private key is an Ed25519PrivateKey.
+   *
+   * @deprecated Use `instanceof Ed25519PrivateKey` instead.
    */
   static isPrivateKey(privateKey: PrivateKey): privateKey is Ed25519PrivateKey {
     return privateKey instanceof Ed25519PrivateKey;
@@ -300,7 +349,9 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 }
 
 /**
- * A signature of a message signed using an Ed25519 private key
+ * Represents a signature of a message signed using an Ed25519 private key.
+ *
+ * @static LENGTH - Length of an Ed25519 signature, which is 64 bytes.
  */
 export class Ed25519Signature extends Signature {
   /**

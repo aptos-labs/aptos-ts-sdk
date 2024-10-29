@@ -15,10 +15,13 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  *
  * Used to represent a Keyless based account and sign transactions with it.
  *
- * Use KeylessAccount.create to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
+ * Use `KeylessAccount.create()` to instantiate a KeylessAccount with a JWT, proof and EphemeralKeyPair.
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
+ *
+ * @static
+ * @readonly PEPPER_LENGTH - The length of the pepper used for privacy preservation.
  */
 export class KeylessAccount extends AbstractKeylessAccount {
   /**
@@ -27,6 +30,13 @@ export class KeylessAccount extends AbstractKeylessAccount {
   readonly publicKey: KeylessPublicKey;
 
   // Use the static constructor 'create' instead.
+
+  /**
+   * Creates an instance of the transaction with an optional proof.
+   *
+   * @param args.proof - An optional ZkProof associated with the transaction.
+   */
+  // TODO: Document rest of parameters
   private constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
@@ -44,6 +54,12 @@ export class KeylessAccount extends AbstractKeylessAccount {
     this.publicKey = publicKey;
   }
 
+  /**
+   * Serializes the transaction data into a format suitable for transmission or storage.
+   * This function ensures that both the transaction bytes and the proof are properly serialized.
+   *
+   * @param serializer - The serializer instance used to convert the transaction data into bytes.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
@@ -55,6 +71,13 @@ export class KeylessAccount extends AbstractKeylessAccount {
     this.proof.serialize(serializer);
   }
 
+  /**
+   * Deserializes the provided deserializer to create a KeylessAccount instance.
+   * This function extracts necessary components such as the JWT, UID key, pepper, ephemeral key pair, and proof from the deserializer.
+   *
+   * @param deserializer - The deserializer instance used to retrieve the serialized data.
+   * @returns A KeylessAccount instance created from the deserialized data.
+   */
   static deserialize(deserializer: Deserializer): KeylessAccount {
     const jwt = deserializer.deserializeStr();
     const uidKey = deserializer.deserializeStr();
@@ -74,6 +97,19 @@ export class KeylessAccount extends AbstractKeylessAccount {
     return KeylessAccount.deserialize(new Deserializer(bytes));
   }
 
+  /**
+   * Creates a KeylessAccount instance using the provided parameters.
+   * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
+   *
+   * @param args - The parameters for creating a KeylessAccount.
+   * @param args.address - Optional account address associated with the KeylessAccount.
+   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
+   * @param args.jwt - A JSON Web Token used for authentication.
+   * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.
+   * @param args.pepper - A hexadecimal input used for additional security.
+   * @param args.uidKey - Optional key for user identification, defaults to "sub".
+   * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   */
   static create(args: {
     address?: AccountAddress;
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;

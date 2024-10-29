@@ -3,19 +3,22 @@ import { Hex } from "../hex";
 
 /**
  * An abstract representation of a crypto signature,
- * associated to a specific signature scheme e.g. Ed25519 or Secp256k1
+ * associated with a specific signature scheme, e.g., Ed25519 or Secp256k1.
  *
- * This is the product of signing a message directly from a PrivateKey
- * and can be verified against a CryptoPublicKey.
+ * This class represents the product of signing a message directly from a
+ * PrivateKey and can be verified against a CryptoPublicKey.
  */
 export abstract class Signature extends Serializable {
   /**
    * Get the raw signature bytes
    */
-  abstract toUint8Array(): Uint8Array;
+  toUint8Array(): Uint8Array {
+    return this.bcsToBytes();
+  }
 
   /**
    * Get the signature as a hex string with a 0x prefix e.g. 0x123456...
+   * @returns The hex string representation of the signature.
    */
   toString(): string {
     const bytes = this.toUint8Array();

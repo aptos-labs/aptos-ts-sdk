@@ -16,8 +16,22 @@ import {
 import { AptosApiType } from "../utils";
 
 /**
- * Given a url and method, sends the request with axios and
- * returns the response.
+ * Sends a request using the specified options and returns the response.
+ *
+ * @param options - The options for the request.
+ * @param options.url - The URL to send the request to.
+ * @param options.method - The HTTP method to use for the request.
+ * @param options.body - The body of the request.
+ * @param options.contentType - The content type of the request.
+ * @param options.params - The query parameters to include in the request.
+ * @param options.overrides - Additional overrides for the request.
+ * @param options.overrides.HEADERS - Custom headers to include in the request.
+ * @param options.overrides.AUTH_TOKEN - The authorization token for the request.
+ * @param options.overrides.API_KEY - The API key for the request.
+ * @param options.originMethod - The origin method for the request.
+ * @param client - The client used to make the request.
+ *
+ * @returns The response from the request.
  */
 export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
   const { url, method, body, contentType, params, overrides, originMethod } = options;
@@ -50,11 +64,12 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
 }
 
 /**
- * The main function to use when doing an API request.
+ * The main function to use when making an API request, returning the response or throwing an AptosApiError on failure.
  *
- * @param aptosRequestOpts AptosRequest
- * @param aptosConfig The config information for the SDK client instance
- * @returns the response or AptosApiError
+ * @param aptosRequestOpts - Options for the Aptos request, including the URL and path.
+ * @param aptosConfig - The configuration information for the SDK client instance.
+ * @param apiType - The type of API being accessed, which determines how the response is handled.
+ * @returns The response from the API request or throws an AptosApiError if the request fails.
  */
 export async function aptosRequest<Req extends {}, Res extends {}>(
   aptosRequestOpts: AptosRequest,
@@ -75,7 +90,7 @@ export async function aptosRequest<Req extends {}, Res extends {}>(
     url: fullUrl,
   };
 
-  // Handle case for `Unauthorized` error (i.e API_KEY error)
+  // Handle case for `Unauthorized` error (i.e. API_KEY error)
   if (aptosResponse.status === 401) {
     throw new AptosApiError({ apiType, aptosRequest: aptosRequestOpts, aptosResponse });
   }

@@ -141,6 +141,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         await proofFetchCallback(status);
         this.emitter.removeAllListeners();
       });
+      // Note, this is purposely not awaited to be non-blocking.  The caller should await on the proofFetchCallback.
       this.init(proof);
     }
     this.signingScheme = SigningScheme.SingleKey;
@@ -152,7 +153,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   }
 
   /**
-   * This initializes the asyncronous proof fetch
+   * This initializes the asynchronous proof fetch
    * @return
    */
   async init(promise: Promise<ZeroKnowledgeSig>) {
@@ -180,7 +181,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   }
 
   /**
-   * Checks if the proof is expired.  If so the account must be rederived with a new EphemeralKeyPair
+   * Checks if the proof is expired.  If so the account must be re-derived with a new EphemeralKeyPair
    * and JWT token.
    * @return boolean
    */
@@ -211,7 +212,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   }
 
   /**
-   * Waits for asyncronous proof fetching to finish.
+   * Waits for asynchronous proof fetching to finish.
    * @return
    */
   async waitForProofFetch() {

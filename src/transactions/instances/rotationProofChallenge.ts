@@ -8,8 +8,7 @@ import { PublicKey } from "../../core/crypto";
 import { MoveString, MoveVector, U64, U8 } from "../../bcs";
 
 /**
- * Representation of the challenge which is needed to sign by owner of the account
- * to rotate the authentication key.
+ * Represents a challenge required for the account owner to sign in order to rotate the authentication key.
  */
 export class RotationProofChallenge extends Serializable {
   // Resource account address
@@ -33,6 +32,16 @@ export class RotationProofChallenge extends Serializable {
   // Sequence number of the account
   public readonly sequenceNumber: U64;
 
+  /**
+   * Initializes a new instance of the class with the specified parameters.
+   * This constructor sets up the necessary attributes for managing account keys.
+   *
+   * @param args - The parameters required to create the instance.
+   * @param args.sequenceNumber - The sequence number associated with the transaction.
+   * @param args.originator - The account address of the originator.
+   * @param args.currentAuthKey - The current authentication key of the account.
+   * @param args.newPublicKey - The new public key to be set for the account.
+   */
   constructor(args: {
     sequenceNumber: AnyNumber;
     originator: AccountAddress;
@@ -46,6 +55,19 @@ export class RotationProofChallenge extends Serializable {
     this.newPublicKey = MoveVector.U8(args.newPublicKey.toUint8Array());
   }
 
+  /**
+   * Serializes the properties of the current instance for transmission or storage.
+   * This function helps in converting the instance data into a format suitable for serialization.
+   *
+   * @param serializer - The serializer used to serialize the instance properties.
+   * @param serializer.accountAddress - The account address to serialize.
+   * @param serializer.moduleName - The module name to serialize.
+   * @param serializer.structName - The struct name to serialize.
+   * @param serializer.sequenceNumber - The sequence number to serialize.
+   * @param serializer.originator - The originator to serialize.
+   * @param serializer.currentAuthKey - The current authentication key to serialize.
+   * @param serializer.newPublicKey - The new public key to serialize.
+   */
   serialize(serializer: Serializer): void {
     serializer.serialize(this.accountAddress);
     serializer.serialize(this.moduleName);
