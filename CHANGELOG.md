@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+
 # 1.31.0 (2024-10-24)
 
 - Bump `@aptos-labs/aptos-cli` to `1.0.2`
@@ -16,7 +18,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support for MultiKey's in transaction simulations
 - Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
 - Bump `@aptos-labs/aptos-cli` to `1.0.1`
-- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
 
 # 1.29.1 (2024-10-09)
 
