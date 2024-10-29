@@ -3,7 +3,7 @@
 
 import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
-import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
+import { EphemeralCertificateVariant, HexInput, KeylessError, KeylessErrorType, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
@@ -16,7 +16,6 @@ import {
   fetchJWK,
 } from "../core/crypto";
 
-import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
@@ -25,12 +24,24 @@ import { deriveTransactionType, generateSigningMessage } from "../transactions/t
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { base64UrlDecode } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
+import { Account } from "./Account";
+
+/**
+ * An interface which defines if an Account utilizes Keyless signing.
+ */
+export interface KeylessSigner extends Account {
+  checkKeylessAccountValidity(): Promise<void>;
+}
+
+export function isKeylessSigner(obj: any): obj is KeylessSigner {
+  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
+}
 
 /**
  * Account implementation for the Keyless authentication scheme.  This abstract class is used for standard Keyless Accounts
  * and Federated Keyless Accounts.
  */
-export abstract class AbstractKeylessAccount extends Serializable implements Account {
+export abstract class AbstractKeylessAccount extends Serializable implements KeylessSigner {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
@@ -213,14 +224,24 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    * Validates that the Keyless Account can be used to sign transactions.
    * @return
    */
-  async checkAccountValidity() {
-    if (this.isExpired()){
-      throw Error("EphemeralKeyPair is expired");
+  async checkKeylessAccountValidity(): Promise<void> {
+    if (this.isExpired()) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED,
+      });
     }
     await this.waitForProofFetch();
+    if (this.proof === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.ASYNC_PROOF_FETCH_FAILED,
+      });
+    }
     const header = jwtDecode(this.jwt, { header: true });
     if (header.kid === undefined) {
-      throw Error("JWT is missing 'kid' in header");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.JWT_PARSING_ERROR,
+        details: "checkKeylessAccountValidity failed. JWT is missing 'kid' in header. This should never happen.",
+      });
     }
     await AbstractKeylessAccount.checkJWKRotation({ publicKey: this.publicKey, kid: header.kid });
   }
@@ -233,10 +254,15 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   sign(message: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
-      throw new Error("EphemeralKeyPair is expired");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED,
+      });
     }
     if (this.proof === undefined) {
-      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_NOT_FOUND,
+        details: "Proof not found - make sure to call `await account.checkKeylessAccountValidity()` before signing.",
+      });
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(message);
@@ -258,7 +284,10 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    */
   signTransaction(transaction: AnyRawTransaction): KeylessSignature {
     if (this.proof === undefined) {
-      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_NOT_FOUND,
+        details: "Proof not found - make sure to call `await account.checkKeylessAccountValidity()` before signing.",
+      });
     }
     const raw = deriveTransactionType(transaction);
     const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
@@ -297,7 +326,10 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
       });
     } catch (error) {
       const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
-      throw new Error(`JWK with kid ${kid} for issuer ${keylessPubKey.iss} not found. Re-authentication required`);
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
+        details: `JWK with kid ${kid} for issuer ${keylessPubKey.iss} not found.`,
+      });
     }
   }
 }

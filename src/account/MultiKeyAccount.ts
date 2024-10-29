@@ -7,7 +7,7 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
+import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
 
 export interface VerifyMultiKeySignatureArgs {
   message: HexInput;
@@ -22,7 +22,7 @@ export interface VerifyMultiKeySignatureArgs {
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
-export class MultiKeyAccount implements Account {
+export class MultiKeyAccount implements KeylessSigner {
   /**
    * Public key associated with the account
    */
@@ -141,13 +141,13 @@ export class MultiKeyAccount implements Account {
    * Validates that the Keyless Account can be used to sign transactions.
    * @return
    */
-    async checkAccountValidity() {
-      const keylessSigners = this.signers.filter(
-        (signer) => signer instanceof AbstractKeylessAccount,
-      ) as AbstractKeylessAccount[];
-      const promises = keylessSigners.map(async (signer) => signer.checkAccountValidity());
-      await Promise.all(promises);
-    }
+  async checkKeylessAccountValidity(): Promise<void> {
+    const keylessSigners = this.signers.filter(
+      (signer) => signer instanceof AbstractKeylessAccount,
+    ) as AbstractKeylessAccount[];
+    const promises = keylessSigners.map(async (signer) => signer.checkKeylessAccountValidity());
+    await Promise.all(promises);
+  }
 
   /**
    * Sign the given message using the MultiKeyAccount's signers

@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account, AbstractKeylessAccount, MultiKeyAccount } from "../account";
+import { Account, AbstractKeylessAccount, MultiKeyAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -318,11 +318,11 @@ export async function signAndSubmitTransaction(
   const { aptosConfig, signer, feePayer, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asyncronously.
-  if (signer instanceof AbstractKeylessAccount || signer instanceof MultiKeyAccount) {
-    await signer.checkAccountValidity();
+  if (isKeylessSigner(signer)) {
+    await signer.checkKeylessAccountValidity();
   }
-  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.checkAccountValidity();
+  if (isKeylessSigner(feePayer)) {
+    await feePayer.checkKeylessAccountValidity();
   }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
@@ -345,7 +345,7 @@ export async function signAndSubmitAsFeePayer(args: {
   const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
   if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.checkAccountValidity();
+    await feePayer.checkKeylessAccountValidity();
   }
 
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });

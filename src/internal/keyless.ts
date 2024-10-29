@@ -15,6 +15,7 @@ import {
   EphemeralSignature,
   Groth16Zkp,
   Hex,
+  JWKS,
   KeylessPublicKey,
   ZeroKnowledgeSig,
   ZkProof,

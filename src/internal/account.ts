@@ -7,14 +7,10 @@
  * other namespaces and processes can access these methods without depending on the entire
  * account namespace and without having a dependency cycle error.
  */
-
 import { AptosConfig } from "../api/aptosConfig";
-import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
-import { queryIndexer } from "./general";
+import { getAptosFullNode, paginateWithCursor } from "../client";
 import {
+  AptosApiError,
   AccountData,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
@@ -31,6 +27,10 @@ import {
   TransactionResponse,
   WhereArg,
 } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { Account } from "../account";
+import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
+import { queryIndexer } from "./general";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,

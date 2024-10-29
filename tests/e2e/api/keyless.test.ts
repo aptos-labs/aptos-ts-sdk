@@ -100,7 +100,9 @@ describe("keyless api", () => {
       ).toUint8Array(),
     );
     const recipient = Account.generate();
-    await expect(simpleCoinTransactionHelper(aptos, account, recipient)).rejects.toThrow("Re-authentication required");
+    await expect(simpleCoinTransactionHelper(aptos, account, recipient)).rejects.toThrow(
+      "JWK with kid test-rsa2 for issuer test.oidc.provider not found.",
+    );
   });
 
   describe.each([
