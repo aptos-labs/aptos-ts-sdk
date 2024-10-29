@@ -18,6 +18,7 @@ async function runLocalNode() {
     console.log("starting local node...");
     localNode = new cli.LocalNode({ showStdout: false });
     await localNode.run();
+    console.log("local node started");
   } catch (error) {
     console.error(error);
   }
@@ -61,7 +62,6 @@ async function tests() {
       namedAddresses: {
         MoonCoin: "0x123",
       },
-      showStdout: false,
     });
   } catch (error) {
     console.error("error running Move unit tests", error);
@@ -143,7 +143,7 @@ async function buildPublishPayload() {
   try {
     console.log("building a publication transaction payload and storing it in a JSON output file");
     await move.buildPublishPayload({
-      outputFile: "move/moonCoin/test-package.json",
+      outputFile: "move/moonCoin/moonCoin.json",
       packageDirectoryPath: "move/moonCoin",
       namedAddresses: {
         MoonCoin: "0x123",

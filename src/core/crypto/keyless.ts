@@ -98,25 +98,6 @@ export class KeylessPublicKey extends AccountPublicKey {
   }
 
   /**
-   * Get the public key in bytes as a Uint8Array.
-   *
-   * @returns Uint8Array representation of the public key.
-   */
-  toUint8Array(): Uint8Array;
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   */
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
-  }
-
-  /**
    * Verifies the validity of a signature for a given message.
    *
    * @param args - The arguments for signature verification.
@@ -299,15 +280,6 @@ export class KeylessSignature extends Signature {
     this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
-  }
-
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
   }
 
   serialize(serializer: Serializer): void {
@@ -581,15 +553,6 @@ export class ZeroKnowledgeSig extends Signature {
     this.trainingWheelsSignature = trainingWheelsSignature;
     this.extraField = extraField;
     this.overrideAudVal = overrideAudVal;
-  }
-
-  /**
-   * Get the signature in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the signature
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
   }
 
   /**

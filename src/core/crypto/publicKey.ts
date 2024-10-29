@@ -32,7 +32,9 @@ export abstract class PublicKey extends Serializable {
   /**
    * Get the raw public key bytes
    */
-  abstract toUint8Array(): Uint8Array;
+  toUint8Array(): Uint8Array {
+    return this.bcsToBytes();
+  }
 
   /**
    * Get the public key as a hex string with a 0x prefix.

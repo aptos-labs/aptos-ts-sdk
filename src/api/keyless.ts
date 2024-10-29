@@ -10,7 +10,7 @@ import {
   getProof,
   updateFederatedKeylessJwkSetTransaction,
 } from "../internal/keyless";
-import { SimpleTransaction } from "../transactions";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { HexInput } from "../types";
 import { AptosConfig } from "./aptosConfig";
 
@@ -214,6 +214,7 @@ export class Keyless {
     sender: Account;
     iss: string;
     jwksUrl?: string;
+    options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return updateFederatedKeylessJwkSetTransaction({ aptosConfig: this.config, ...args });
   }
