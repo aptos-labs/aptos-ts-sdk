@@ -28,7 +28,7 @@ export interface VerifyMultiKeySignatureArgs {
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
-export class MultiKeyAccount implements KeylessSigner {
+export class MultiKeyAccount implements Account, KeylessSigner {
   /**
    * Public key associated with the account
    */
