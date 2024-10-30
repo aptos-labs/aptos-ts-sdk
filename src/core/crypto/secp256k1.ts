@@ -17,7 +17,6 @@ import { convertSigningMessage } from "./utils";
  * Represents a Secp256k1 ECDSA public key.
  *
  * @extends PublicKey
- * @static
  * @property LENGTH - The length of the Secp256k1 public key in bytes.
  */
 export class Secp256k1PublicKey extends PublicKey {
@@ -284,13 +283,11 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 /**
  * Represents a signature of a message signed using a Secp256k1 ECDSA private key.
  *
- * @static
- * @readonly
- * @length The length of Secp256k1 ECDSA signatures, which is 64 bytes.
  */
 export class Secp256k1Signature extends Signature {
   /**
-   * Secp256k1 ecdsa signatures are 256-bit.
+   * Secp256k1 ecdsa signatures are 256-bit or 64 bytes
+   * @readonly
    */
   static readonly LENGTH = 64;
 

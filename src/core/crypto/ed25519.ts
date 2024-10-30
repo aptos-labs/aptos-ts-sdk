@@ -181,21 +181,18 @@ export class Ed25519PublicKey extends AccountPublicKey {
 
 /**
  * Represents the private key of an Ed25519 key pair.
- *
- * @static
- * @readonly LENGTH - Length of an Ed25519 private key.
- * @static
- * @readonly SLIP_0010_SEED - The Ed25519 key seed to use for BIP-32 compatibility.
  */
 export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Length of an Ed25519 private key
+   * @readonly
    */
   static readonly LENGTH: number = 32;
 
   /**
    * The Ed25519 key seed to use for BIP-32 compatibility
    * See more {@link https://github.com/satoshilabs/slips/blob/master/slip-0010.md}
+   * @readonly
    */
   static readonly SLIP_0010_SEED = "ed25519 seed";
 
@@ -350,12 +347,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 
 /**
  * Represents a signature of a message signed using an Ed25519 private key.
- *
- * @static LENGTH - Length of an Ed25519 signature, which is 64 bytes.
  */
 export class Ed25519Signature extends Signature {
   /**
-   * Length of an Ed25519 signature
+   * Length of an Ed25519 signature, which is 64 bytes.
+   *
+   * @readonly
    */
   static readonly LENGTH = 64;
 
