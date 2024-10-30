@@ -32,7 +32,7 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
    * Use the static generator `FederatedKeylessAccount.create(...)` instead.
    * Creates a KeylessAccount instance using the provided parameters.
    * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
-   * 
+   *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
@@ -104,9 +104,9 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
 
   /**
    * Deserialize bytes using this account's information.
-   * 
+   *
    * @param bytes The bytes being interpreted.
-   * @returns 
+   * @returns
    */
   static fromBytes(bytes: Uint8Array): FederatedKeylessAccount {
     return FederatedKeylessAccount.deserialize(new Deserializer(bytes));
@@ -116,7 +116,7 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
    * Creates a KeylessAccount instance using the provided parameters.
    * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
    * This is used instead of the KeylessAccount constructor.
-   * 
+   *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.

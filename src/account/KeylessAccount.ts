@@ -106,9 +106,9 @@ export class KeylessAccount extends AbstractKeylessAccount {
 
   /**
    * Deserialize bytes using this account's information.
-   * 
+   *
    * @param bytes The bytes being interpreted.
-   * @returns 
+   * @returns
    */
   static fromBytes(bytes: Uint8Array): KeylessAccount {
     return KeylessAccount.deserialize(new Deserializer(bytes));
@@ -118,7 +118,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * Creates a KeylessAccount instance using the provided parameters.
    * This function allows you to set up a KeylessAccount with specific attributes such as address, proof, and JWT.
    * This is used instead of the KeylessAccount constructor.
-   * 
+   *
    * @param args - The parameters for creating a KeylessAccount.
    * @param args.address - Optional account address associated with the KeylessAccount.
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.

@@ -203,7 +203,7 @@ export async function deriveKeylessAccount(args: {
 
 /**
  * A JSON Web Keyset (JWK)
- * 
+ *
  * Used to verify JSON Web Tokens (JWTs).
  */
 interface JWK {
