@@ -329,7 +329,7 @@ export async function submitTransaction(
       (signedTxn.authenticator.sender.public_key.publicKey instanceof KeylessPublicKey ||
         signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
     ) {
-      await AbstractKeylessAccount.checkJWKRotation({
+      await AbstractKeylessAccount.fetchJWK({
         aptosConfig,
         publicKey: signedTxn.authenticator.sender.public_key.publicKey,
         kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),

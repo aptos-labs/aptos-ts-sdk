@@ -246,7 +246,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         details: "checkKeylessAccountValidity failed. JWT is missing 'kid' in header. This should never happen.",
       });
     }
-    await AbstractKeylessAccount.checkJWKRotation({ aptosConfig, publicKey: this.publicKey, kid: header.kid });
+    await AbstractKeylessAccount.fetchJWK({ aptosConfig, publicKey: this.publicKey, kid: header.kid });
   }
 
   /**
@@ -326,6 +326,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @param args.publicKey The keyless public key to query
    * @param args.kid The kid of the JWK to fetch
    * @returns A JWK matching the `kid` in the JWT header.
+   * @throws {KeylessError} If the JWK cannot be fetched
    */
   static async fetchJWK(args: {
     aptosConfig: AptosConfig;
@@ -367,19 +368,6 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     }
 
     return jwk;
-  }
-
-  static async checkJWKRotation(args: {
-    aptosConfig: AptosConfig;
-    publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
-    kid: string;
-  }) {
-    const { aptosConfig, publicKey, kid } = args;
-    await AbstractKeylessAccount.fetchJWK({
-      aptosConfig,
-      publicKey,
-      kid,
-    });
   }
 }
 
