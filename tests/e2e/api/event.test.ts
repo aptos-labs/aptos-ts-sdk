@@ -6,6 +6,7 @@ import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
 describe("Event", () => {
+  /* Test disabled, due to indexer issues
   test("it should get transaction fee statement module event by event type", async () => {
     const { aptos } = getAptosClient();
 
@@ -23,7 +24,7 @@ describe("Event", () => {
     });
     expect(onlyTwoEvents.length).toBe(2);
     expect(onlyTwoEvents[0].type).toEqual("0x1::block::NewBlock");
-  });
+  }); */
 
   test("it should get fund event by creation number and address", async () => {
     const { aptos } = getAptosClient();
