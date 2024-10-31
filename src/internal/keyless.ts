@@ -21,7 +21,7 @@ import {
   ZkProof,
   getKeylessConfig,
 } from "../core";
-import { HexInput, ZkpVariant } from "../types";
+import { HexInput, KeylessError, KeylessErrorType, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
