@@ -155,7 +155,6 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
   return get<Req, Res>({ ...options, type: AptosApiType.PEPPER });
 }
 
-
 /**
  * This function is a helper for paginating using a function wrapping an API
  * @group Implementation
