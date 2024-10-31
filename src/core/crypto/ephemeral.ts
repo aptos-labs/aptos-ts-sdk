@@ -50,17 +50,6 @@ export class EphemeralPublicKey extends PublicKey {
   }
 
   /**
-   * Get the public key in bytes as a Uint8Array.
-   *
-   * @returns Uint8Array representation of the public key.
-   * @group Implementation
-   * @category Serialization
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
    * Verifies a signed message using the ephemeral public key.
    *
    * @param args - The arguments for the verification.
@@ -149,17 +138,6 @@ export class EphemeralSignature extends Signature {
       default:
         throw new Error(`Unsupported signature for EphemeralSignature - ${signatureType}`);
     }
-  }
-
-  /**
-   * Get the public key in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the public key
-   * @group Implementation
-   * @category Serialization
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
   }
 
   /**

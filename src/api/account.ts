@@ -692,7 +692,9 @@ export class Account {
    * is specified.
    * @param args.faMetadataAddress The fungible asset metadata address to query. Note: If not provided, it may be automatically
    * populated if `coinType` is specified.
-   * @param args.minimumLedgerVersion Optional ledger version to sync up to before querying.
+   * @param args.minimumLedgerVersion Not used anymore, here for backward compatibility
+   * see https://github.com/aptos-labs/aptos-ts-sdk/pull/519, will be removed in the near future.
+   * Optional ledger version to sync up to before querying.
    * @returns The current amount of the specified coin held by the account.
    *
    * @example
@@ -721,8 +723,16 @@ export class Account {
     faMetadataAddress?: AccountAddressInput;
     minimumLedgerVersion?: AnyNumber;
   }): Promise<number> {
-    const { accountAddress, coinType, faMetadataAddress } = args;
+    const { accountAddress, coinType, faMetadataAddress, minimumLedgerVersion } = args;
 
+    if (minimumLedgerVersion) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `minimumLedgerVersion is not used anymore, here for backward 
+        compatibility see https://github.com/aptos-labs/aptos-ts-sdk/pull/519, 
+        will be removed in the near future`,
+      );
+    }
     // Attempt to populate the CoinType field if the FA address is provided.
     // We cannot do this internally due to dependency cycles issue.
     let coinAssetType: MoveStructId | undefined = coinType;

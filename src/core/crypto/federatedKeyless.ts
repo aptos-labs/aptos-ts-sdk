@@ -3,7 +3,6 @@
 
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Deserializer, Serializer } from "../../bcs";
-import { Hex } from "../hex";
 import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
@@ -54,28 +53,6 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
       scheme: SigningScheme.SingleKey,
       input: serializer.toUint8Array(),
     });
-  }
-
-  /**
-   * Get the public key in bytes (Uint8Array).
-   *
-   * @returns Uint8Array representation of the public key
-   * @group Implementation
-   * @category Serialization
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  /**
-   * Get the public key as a hex string with the 0x prefix.
-   *
-   * @returns string representation of the public key
-   * @group Implementation
-   * @category Serialization
-   */
-  toString(): string {
-    return Hex.fromHexInput(this.toUint8Array()).toString();
   }
 
   /**

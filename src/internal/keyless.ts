@@ -29,7 +29,7 @@ import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
-import { SimpleTransaction } from "../transactions";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -222,8 +222,9 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   sender: Account;
   iss: string;
   jwksUrl?: string;
+  options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const { aptosConfig, sender, iss } = args;
+  const { aptosConfig, sender, iss, options } = args;
   const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
   const response = await fetch(jwksUrl);
   if (!response.ok) {
@@ -243,5 +244,6 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
         MoveVector.MoveString(jwks.keys.map((key) => key.n)),
       ],
     },
+    options,
   });
 }

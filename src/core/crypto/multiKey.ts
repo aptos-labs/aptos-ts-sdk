@@ -122,18 +122,6 @@ export class MultiKey extends AccountPublicKey {
     });
   }
 
-  /**
-   * Convert the current instance to a Uint8Array representation.
-   * This is useful for serializing data for transmission or storage.
-   *
-   * @returns Uint8Array representation of the instance.
-   * @group Implementation
-   * @category Serialization
-   */
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
   // endregion
 
   // region Serializable
@@ -367,14 +355,6 @@ export class MultiKeySignature extends Signature {
 
     return bitmap;
   }
-
-  // region Signature
-
-  toUint8Array(): Uint8Array {
-    return this.bcsToBytes();
-  }
-
-  // endregion
 
   // region Serializable
 

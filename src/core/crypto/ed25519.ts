@@ -6,7 +6,7 @@ import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
-import { HexInput, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
@@ -244,14 +244,17 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
    * @param hexInput HexInput (string or Uint8Array)
+   * @param strict If true, private key must AIP-80 compliant.
    * @group Implementation
    * @category Serialization
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Ed25519, strict);
     if (privateKeyHex.toUint8Array().length !== Ed25519PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Ed25519PrivateKey.LENGTH}`);
     }
@@ -269,7 +272,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    */
   static generate(): Ed25519PrivateKey {
     const keyPair = ed25519.utils.randomPrivateKey();
-    return new Ed25519PrivateKey(keyPair);
+    return new Ed25519PrivateKey(keyPair, false);
   }
 
   /**
@@ -313,7 +316,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
       key,
       chainCode,
     });
-    return new Ed25519PrivateKey(privateKey);
+    return new Ed25519PrivateKey(privateKey, false);
   }
 
   // endregion
@@ -367,7 +370,27 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
    * @category Serialization
    */
   toString(): string {
+    return this.toHexString();
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key.
+   */
+  toHexString(): string {
     return this.signingKey.toString();
+  }
+
+  /**
+   * Get the private key as a AIP-80 compliant hex string.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * @returns AIP-80 compliant string representation of the private key.
+   */
+  toAIP80String(): string {
+    return PrivateKey.formatPrivateKey(this.signingKey.toString(), PrivateKeyVariants.Ed25519);
   }
 
   // endregion
@@ -380,7 +403,7 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 
   static deserialize(deserializer: Deserializer): Ed25519PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Ed25519PrivateKey(bytes);
+    return new Ed25519PrivateKey(bytes, false);
   }
 
   // endregion

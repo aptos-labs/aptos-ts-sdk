@@ -9,4 +9,5 @@
 
 ### Checklist
   - [ ] Have you ran `pnpm fmt`?
+  - [ ] Have you updated the `CHANGELOG.md`?
   
