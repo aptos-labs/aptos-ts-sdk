@@ -3,6 +3,7 @@ import { AptosRequest } from "./types";
 
 export enum KeylessErrorCategory {
   API_ERROR,
+  EXTERNAL_API_ERROR,
   SESSION_EXPIRED,
   INVALID_STATE,
   UNKNOWN,
@@ -52,6 +53,8 @@ export enum KeylessErrorType {
   JWT_PARSING_ERROR,
 
   JWK_FETCH_FAILED,
+
+  JWK_FETCH_FAILED_FEDERATED,
 
   RATE_LIMIT_EXCEEDED,
 
@@ -133,7 +136,12 @@ const KeylessErrors: { [key in KeylessErrorType]: [string, KeylessErrorCategory,
   ],
   [KeylessErrorType.JWK_FETCH_FAILED]: [
     "Failed to fetch JWKS.",
-    KeylessErrorCategory.INVALID_STATE,
+    KeylessErrorCategory.EXTERNAL_API_ERROR,
+    KeylessErrorResolutionTip.JOIN_SUPPORT_GROUP,
+  ],
+  [KeylessErrorType.JWK_FETCH_FAILED_FEDERATED]: [
+    "Failed to fetch JWKS for Federated Keyless provider.",
+    KeylessErrorCategory.EXTERNAL_API_ERROR,
     KeylessErrorResolutionTip.JOIN_SUPPORT_GROUP,
   ],
   [KeylessErrorType.RATE_LIMIT_EXCEEDED]: [

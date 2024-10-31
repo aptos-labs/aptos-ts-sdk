@@ -221,15 +221,18 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   try {
     response = await fetch(jwksUrl);
     if (!response.ok) {
-      throw new Error(`Failed to fetch JWKS at ${jwksUrl}: ${response.status} ${response.statusText}`);
+      throw new Error(`${response.status} ${response.statusText}`);
     }
   } catch (error) {
+    let errorMessage: string;
     if (error instanceof Error) {
-      throw KeylessError.fromErrorType({ type: KeylessErrorType.JWK_FETCH_FAILED, details: error.message });
+      errorMessage = `${error.message}`;
+    } else {
+      errorMessage = `error unknown - ${error}`;
     }
     throw KeylessError.fromErrorType({
-      type: KeylessErrorType.JWK_FETCH_FAILED,
-      details: `Failed to fetch JWKS at ${jwksUrl}: error unknown - ${error}`,
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `Failed to fetch JWKS at ${jwksUrl}: ${errorMessage}`,
     });
   }
 
