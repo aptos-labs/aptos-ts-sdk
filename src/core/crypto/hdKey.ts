@@ -75,7 +75,6 @@ export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | stri
  * @param key
  * @param chainCode
  * @param index
- * @constructor
  */
 export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
   const buffer = new ArrayBuffer(4);

@@ -12,7 +12,7 @@ The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows yo
 ## Learn How To Use The TypeScript SDK
 ### [Quickstart](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)
 ### [Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)
-### [Examples](./examples)
+### [Examples](./examples/README.md)
 ### [Reference Docs (For looking up specific functions)](https://aptos-labs.github.io/aptos-ts-sdk/)
 
 
