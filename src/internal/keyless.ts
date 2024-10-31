@@ -215,10 +215,24 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss, options } = args;
   const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
-  const response = await fetch(jwksUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+
+  let response: Response;
+
+  try {
+    response = await fetch(jwksUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch JWKS at ${jwksUrl}: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw KeylessError.fromErrorType({ type: KeylessErrorType.JWK_FETCH_FAILED, details: error.message });
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED,
+      details: `Failed to fetch JWKS at ${jwksUrl}: error unknown - ${error}`,
+    });
   }
+
   const jwks: JWKS = await response.json();
   return generateTransaction({
     aptosConfig,
