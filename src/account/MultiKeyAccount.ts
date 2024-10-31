@@ -8,6 +8,7 @@ import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.
@@ -157,11 +158,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * Validates that the Keyless Account can be used to sign transactions.
    * @return
    */
-  async checkKeylessAccountValidity(): Promise<void> {
+  async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
     const keylessSigners = this.signers.filter(
       (signer) => signer instanceof AbstractKeylessAccount,
     ) as AbstractKeylessAccount[];
-    const promises = keylessSigners.map(async (signer) => signer.checkKeylessAccountValidity());
+    const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(aptosConfig));
     await Promise.all(promises);
   }
 

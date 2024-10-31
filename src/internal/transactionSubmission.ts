@@ -330,6 +330,7 @@ export async function submitTransaction(
         signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
     ) {
       await AbstractKeylessAccount.checkJWKRotation({
+        aptosConfig,
         publicKey: signedTxn.authenticator.sender.public_key.publicKey,
         kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
       });
@@ -357,7 +358,7 @@ export async function signAndSubmitTransaction(
     await signer.waitForProofFetch();
   }
   if (isKeylessSigner(feePayer)) {
-    await feePayer.checkKeylessAccountValidity();
+    await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
@@ -380,7 +381,7 @@ export async function signAndSubmitAsFeePayer(args: {
   const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
   if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.checkKeylessAccountValidity();
+    await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
 
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });

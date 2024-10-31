@@ -172,3 +172,5 @@ export class Hex {
     return this.data.every((value, index) => value === other.data[index]);
   }
 }
+
+export const hexToAsciiString = (hex: string) => new TextDecoder().decode(Hex.fromHexInput(hex).toUint8Array());

@@ -8,7 +8,6 @@ export * from "./multiKey";
 export * from "./ephemeral";
 export * from "./federatedKeyless";
 export * from "./keyless";
-export * from "./keylessUtils";
 export * from "./poseidon";
 export * from "./privateKey";
 export * from "./publicKey";

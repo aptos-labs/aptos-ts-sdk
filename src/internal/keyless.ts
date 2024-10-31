@@ -15,8 +15,8 @@ import {
   EphemeralSignature,
   Groth16Zkp,
   Hex,
-  JWKS,
   KeylessPublicKey,
+  MoveJWK,
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
@@ -200,6 +200,10 @@ export async function deriveKeylessAccount(args: {
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+}
+
+export interface JWKS {
+  keys: MoveJWK[];
 }
 
 export async function updateFederatedKeylessJwkSetTransaction(args: {

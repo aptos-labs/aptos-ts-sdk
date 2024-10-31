@@ -13,7 +13,8 @@ import {
   EphemeralCertificate,
   ZeroKnowledgeSig,
   ZkProof,
-  fetchJWK,
+  getPatchedJWKs,
+  MoveJWK,
 } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
@@ -25,12 +26,13 @@ import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/ty
 import { base64UrlDecode } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { Account } from "./Account";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * An interface which defines if an Account utilizes Keyless signing.
  */
 export interface KeylessSigner extends Account {
-  checkKeylessAccountValidity(): Promise<void>;
+  checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void>;
 }
 
 export function isKeylessSigner(obj: any): obj is KeylessSigner {
@@ -225,7 +227,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Validates that the Keyless Account can be used to sign transactions.
    * @return
    */
-  async checkKeylessAccountValidity(): Promise<void> {
+  async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
     if (this.isExpired()) {
       throw KeylessError.fromErrorType({
         type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED,
@@ -244,7 +246,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         details: "checkKeylessAccountValidity failed. JWT is missing 'kid' in header. This should never happen.",
       });
     }
-    await AbstractKeylessAccount.checkJWKRotation({ publicKey: this.publicKey, kid: header.kid });
+    await AbstractKeylessAccount.checkJWKRotation({ aptosConfig, publicKey: this.publicKey, kid: header.kid });
   }
 
   /**
@@ -318,20 +320,66 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     return true;
   }
 
-  static async checkJWKRotation(args: { publicKey: KeylessPublicKey | FederatedKeylessPublicKey; kid: string }) {
-    const { publicKey, kid } = args;
+  /**
+   * Fetches the JWK from the issuer's well-known JWKS endpoint.
+   *
+   * @param args.publicKey The keyless public key to query
+   * @param args.kid The kid of the JWK to fetch
+   * @returns A JWK matching the `kid` in the JWT header.
+   */
+  static async fetchJWK(args: {
+    aptosConfig: AptosConfig;
+    publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+    kid: string;
+  }): Promise<MoveJWK> {
+    const { aptosConfig, publicKey, kid } = args;
+    const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
+    const { iss } = keylessPubKey;
+
+    let patchedJWKs: Map<string, MoveJWK[]>;
     try {
-      await fetchJWK({
-        publicKey,
-        kid,
-      });
+      patchedJWKs = await getPatchedJWKs({ aptosConfig });
     } catch (error) {
-      const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
       throw KeylessError.fromErrorType({
-        type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
-        details: `JWK with kid ${kid} for issuer ${keylessPubKey.iss} not found.`,
+        type: KeylessErrorType.JWK_FETCH_FAILED,
+        details: `Failed to fetch patched JWKs: ${error}`,
       });
     }
+
+    // Find the corresponding JWK set by `iss`
+    const jwksForIssuer = patchedJWKs.get(iss);
+
+    if (jwksForIssuer === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.INVALID_JWT_ISS_NOT_RECOGNIZED,
+        details: `JWKs for issuer ${iss} not found.`,
+      });
+    }
+
+    // Find the corresponding JWK by `kid`
+    const jwk = jwksForIssuer.find((key) => key.kid === kid);
+
+    if (jwk === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
+        details: `JWK with kid ${kid} for issuer ${iss} not found.`,
+      });
+    }
+
+    return jwk;
+  }
+
+  static async checkJWKRotation(args: {
+    aptosConfig: AptosConfig;
+    publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+    kid: string;
+  }) {
+    const { aptosConfig, publicKey, kid } = args;
+    await AbstractKeylessAccount.fetchJWK({
+      aptosConfig,
+      publicKey,
+      kid,
+    });
   }
 }
 
