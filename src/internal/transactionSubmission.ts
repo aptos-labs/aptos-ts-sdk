@@ -380,7 +380,7 @@ export async function signAndSubmitAsFeePayer(args: {
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
-  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
+  if (isKeylessSigner(feePayer)) {
     await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
 
