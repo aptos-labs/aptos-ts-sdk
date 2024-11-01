@@ -1,11 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+// eslint-disable-next-line max-classes-per-file
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
-import { Hex } from "../hex";
+import { Hex, hexToAsciiString } from "../hex";
 import {
   HexInput,
   EphemeralCertificateVariant,
@@ -20,11 +21,16 @@ import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Groth16VerificationKeyResponse, KeylessConfigurationResponse } from "../../types/keyless";
+import {
+  Groth16VerificationKeyResponse,
+  KeylessConfigurationResponse,
+  MoveAnyStruct,
+  PatchedJWKsResponse,
+} from "../../types/keyless";
 import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
-import { AccountAddress } from "../accountAddress";
+import { AccountAddress, AccountAddressInput } from "../accountAddress";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -280,6 +286,15 @@ export class KeylessSignature extends Signature {
     this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
+  }
+
+  /**
+   * Get the kid of the JWT used to derive the Keyless Account used to sign.
+   *
+   * @returns the kid as a string
+   */
+  getJwkKid(): string {
+    return parseJwtHeader(this.jwtHeader).kid;
   }
 
   serialize(serializer: Serializer): void {
@@ -763,4 +778,99 @@ async function getGroth16VerificationKeyResource(args: {
   });
 
   return data.data;
+}
+
+export async function getPatchedJWKs(args: {
+  aptosConfig: AptosConfig;
+  jwkAddr?: AccountAddressInput;
+  options?: LedgerVersionArg;
+}): Promise<Map<string, MoveJWK[]>> {
+  const { aptosConfig, jwkAddr = "0x1", options } = args;
+  const resourceType = `${jwkAddr.toString()}::jwks::PatchedJWKs`;
+  const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+    aptosConfig,
+    originMethod: "getPatchedJWKs",
+    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+    params: { ledger_version: options?.ledgerVersion },
+  });
+
+  // Create a map of issuer to JWK arrays
+  const jwkMap = new Map<string, MoveJWK[]>();
+  for (const entry of data.data.jwks.entries) {
+    const jwks: MoveJWK[] = [];
+    for (const jwkStruct of entry.jwks) {
+      const { data: jwkData } = jwkStruct.variant;
+      const deserializer = new Deserializer(Hex.fromHexInput(jwkData).toUint8Array());
+      const jwk = MoveJWK.deserialize(deserializer);
+      jwks.push(jwk);
+    }
+    jwkMap.set(hexToAsciiString(entry.issuer), jwks);
+  }
+
+  return jwkMap;
+}
+
+export class MoveJWK extends Serializable {
+  public kid: string;
+
+  public kty: string;
+
+  public alg: string;
+
+  public e: string;
+
+  public n: string;
+
+  constructor(args: { kid: string; kty: string; alg: string; e: string; n: string }) {
+    super();
+    const { kid, kty, alg, e, n } = args;
+    this.kid = kid;
+    this.kty = kty;
+    this.alg = alg;
+    this.e = e;
+    this.n = n;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(this.kid);
+    serializer.serializeStr(this.kty);
+    serializer.serializeStr(this.alg);
+    serializer.serializeStr(this.e);
+    serializer.serializeStr(this.n);
+  }
+
+  static fromMoveStruct(struct: MoveAnyStruct): MoveJWK {
+    const { data } = struct.variant;
+    const deserializer = new Deserializer(Hex.fromHexInput(data).toUint8Array());
+    return MoveJWK.deserialize(deserializer);
+  }
+
+  static deserialize(deserializer: Deserializer): MoveJWK {
+    const kid = deserializer.deserializeStr();
+    const kty = deserializer.deserializeStr();
+    const alg = deserializer.deserializeStr();
+    const n = deserializer.deserializeStr();
+    const e = deserializer.deserializeStr();
+    return new MoveJWK({ kid, kty, alg, n, e });
+  }
+}
+
+interface JwtHeader {
+  kid: string; // Key ID
+}
+/**
+ * Safely parses the JWT header.
+ * @param jwtHeader The JWT header string
+ * @returns Parsed JWT header as an object.
+ */
+export function parseJwtHeader(jwtHeader: string): JwtHeader {
+  try {
+    const header = JSON.parse(jwtHeader);
+    if (header.kid === undefined) {
+      throw new Error("JWT header missing kid");
+    }
+    return header;
+  } catch (error) {
+    throw new Error("Failed to parse JWT header.");
+  }
 }

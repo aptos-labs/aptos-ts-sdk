@@ -6,11 +6,11 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { MoveVector, U8 } from "../bcs";
+import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account, AbstractKeylessAccount, MultiKeyAccount } from "../account";
+import { Account, AbstractKeylessAccount, MultiKeyAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { PrivateKey } from "../core/crypto";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
@@ -33,7 +33,7 @@ import {
 } from "../transactions/types";
 import { getInfo } from "./account";
 import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
-import { TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
+import { SignedTransaction, TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
@@ -312,15 +312,33 @@ export async function submitTransaction(
 ): Promise<PendingTransactionResponse> {
   const { aptosConfig } = args;
   const signedTransaction = generateSignedTransaction({ ...args });
-  const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
-    aptosConfig,
-    body: signedTransaction,
-    path: "transactions",
-    originMethod: "submitTransaction",
-    contentType: MimeType.BCS_SIGNED_TRANSACTION,
-  });
-  return data;
+  try {
+    const { data } = await postAptosFullNode<Uint8Array, PendingTransactionResponse>({
+      aptosConfig,
+      body: signedTransaction,
+      path: "transactions",
+      originMethod: "submitTransaction",
+      contentType: MimeType.BCS_SIGNED_TRANSACTION,
+    });
+    return data;
+  } catch (e) {
+    const signedTxn = SignedTransaction.deserialize(new Deserializer(signedTransaction));
+    if (
+      signedTxn.authenticator.isSingleSender() &&
+      signedTxn.authenticator.sender.isSingleKey() &&
+      (signedTxn.authenticator.sender.public_key.publicKey instanceof KeylessPublicKey ||
+        signedTxn.authenticator.sender.public_key.publicKey instanceof FederatedKeylessPublicKey)
+    ) {
+      await AbstractKeylessAccount.fetchJWK({
+        aptosConfig,
+        publicKey: signedTxn.authenticator.sender.public_key.publicKey,
+        kid: (signedTxn.authenticator.sender.signature.signature as KeylessSignature).getJwkKid(),
+      });
+    }
+    throw e;
+  }
 }
+
 export type FeePayerOrFeePayerAuthenticatorOrNeither =
   | { feePayer: Account; feePayerAuthenticator?: never }
   | { feePayer?: never; feePayerAuthenticator: AccountAuthenticator }
@@ -339,8 +357,8 @@ export async function signAndSubmitTransaction(
   if (signer instanceof AbstractKeylessAccount || signer instanceof MultiKeyAccount) {
     await signer.waitForProofFetch();
   }
-  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.waitForProofFetch();
+  if (isKeylessSigner(feePayer)) {
+    await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
   const feePayerAuthenticator =
     args.feePayerAuthenticator || (feePayer && signAsFeePayer({ signer: feePayer, transaction }));
@@ -362,8 +380,8 @@ export async function signAndSubmitAsFeePayer(args: {
 }): Promise<PendingTransactionResponse> {
   const { aptosConfig, senderAuthenticator, feePayer, transaction } = args;
 
-  if (feePayer instanceof AbstractKeylessAccount || feePayer instanceof MultiKeyAccount) {
-    await feePayer.waitForProofFetch();
+  if (isKeylessSigner(feePayer)) {
+    await feePayer.checkKeylessAccountValidity(aptosConfig);
   }
 
   const feePayerAuthenticator = signAsFeePayer({ signer: feePayer, transaction });

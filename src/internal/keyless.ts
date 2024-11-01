@@ -16,11 +16,12 @@ import {
   Groth16Zkp,
   Hex,
   KeylessPublicKey,
+  MoveJWK,
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
 } from "../core";
-import { HexInput, ZkpVariant } from "../types";
+import { HexInput, KeylessError, KeylessErrorType, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
@@ -201,24 +202,8 @@ export async function deriveKeylessAccount(args: {
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
 }
 
-/**
- * A JSON Web Keyset (JWK)
- *
- * Used to verify JSON Web Tokens (JWTs).
- */
-interface JWK {
-  kty: string; // Key type
-  kid: string; // Key ID
-  alg: string; // Algorithm used with the key
-  n: string; // Modulus (for RSA keys)
-  e: string; // Exponent (for RSA keys)
-}
-
-/**
- * A collection of JSON Web Key Set (JWKS).
- */
-interface JWKS {
-  keys: JWK[];
+export interface JWKS {
+  keys: MoveJWK[];
 }
 
 export async function updateFederatedKeylessJwkSetTransaction(args: {
@@ -230,10 +215,27 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss, options } = args;
   const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
-  const response = await fetch(jwksUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+
+  let response: Response;
+
+  try {
+    response = await fetch(jwksUrl);
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = `${error.message}`;
+    } else {
+      errorMessage = `error unknown - ${error}`;
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `Failed to fetch JWKS at ${jwksUrl}: ${errorMessage}`,
+    });
   }
+
   const jwks: JWKS = await response.json();
   return generateTransaction({
     aptosConfig,
