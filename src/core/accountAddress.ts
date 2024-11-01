@@ -250,7 +250,9 @@ export class AccountAddress extends Serializable implements TransactionArgument 
    *
    * @throws {ParsingError} If the hex string does not start with 0x or is not in a valid format.
    *
-   * @note This function has strict parsing behavior. For relaxed behavior, please use the `fromString` function.
+   * @remarks
+   *
+   * This function has strict parsing behavior. For relaxed behavior, please use the `fromString` function.
    *
    * @see AIP-40 documentation for more details on address formats:
    * https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-40.md.
