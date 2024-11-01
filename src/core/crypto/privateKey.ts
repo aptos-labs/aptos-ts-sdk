@@ -7,10 +7,6 @@ import { Signature } from "./signature";
 
 /**
  * Represents a private key used for signing messages and deriving the associated public key.
- *
- * @method sign - Signs the given message with the private key.
- * @method publicKey - Derives the public key associated with the private key.
- * @method toUint8Array - Retrieves the private key in bytes.
  */
 export interface PrivateKey {
   /**
