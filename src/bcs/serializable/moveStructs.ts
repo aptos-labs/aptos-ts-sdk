@@ -42,8 +42,7 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
- * @params
- * values: an Array<T> of values where T is a class that implements Serializable
+ * @param values an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
  */
 export class MoveVector<T extends Serializable & EntryFunctionArgument>
@@ -132,9 +131,9 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Factory method to generate a MoveOption<U16> from a `number` or `null`.
-   * 
-   * This method allows you to create a MoveVector that can either hold a U16 value or be empty. 
-   * 
+   *
+   * This method allows you to create a MoveVector that can either hold a U16 value or be empty.
+   *
    * @param values - The value used to fill the MoveVector. If `value` is null or undefined, the resulting MoveVector's
    * `.isSome()` method will return false.
    * @returns A MoveVector<U16> with an inner value `value`.
@@ -150,13 +149,13 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 
   /**
    * Factory method to generate a MoveVector<U32> from a `number` or `null`.
-   * 
-   * This method allows you to create a MoveVector that can either hold a U32 value or be empty. 
-   * 
+   *
+   * This method allows you to create a MoveVector that can either hold a U32 value or be empty.
+   *
    * @param values - The value used to fill the MoveVector. If `value` is null or undefined,
    * the resulting MoveVector's .isSome() method will return false.
    * @returns A MoveVector<U32> with an inner value `value`.
-   * 
+   *
    * @example
    * ```
    * const v = MoveVector.U32([1, 2, 3, 4]);
@@ -442,7 +441,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U8(1).isSome() === true;
    * MoveOption.U8().isSome() === false;
    * MoveOption.U8(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U8> with an inner value `value`
    */
@@ -457,7 +456,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U16(1).isSome() === true;
    * MoveOption.U16().isSome() === false;
    * MoveOption.U16(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U16> with an inner value `value`
    */
@@ -472,7 +471,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U32(1).isSome() === true;
    * MoveOption.U32().isSome() === false;
    * MoveOption.U32(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U32> with an inner value `value`
    */
@@ -487,7 +486,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U64(1).isSome() === true;
    * MoveOption.U64().isSome() === false;
    * MoveOption.U64(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U64> with an inner value `value`
    */
@@ -502,7 +501,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U128(1).isSome() === true;
    * MoveOption.U128().isSome() === false;
    * MoveOption.U128(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U128> with an inner value `value`
    */
@@ -517,7 +516,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U256(1).isSome() === true;
    * MoveOption.U256().isSome() === false;
    * MoveOption.U256(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U256> with an inner value `value`
    */
@@ -532,7 +531,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.Bool(true).isSome() === true;
    * MoveOption.Bool().isSome() === false;
    * MoveOption.Bool(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<Bool> with an inner value `value`
    */
@@ -548,7 +547,7 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.MoveString("").isSome() === true;
    * MoveOption.MoveString().isSome() === false;
    * MoveOption.MoveString(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<MoveString> with an inner value `value`
    */

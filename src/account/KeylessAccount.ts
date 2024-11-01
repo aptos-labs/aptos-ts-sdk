@@ -19,9 +19,6 @@ import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAcc
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
- *
- * @static
- * @readonly PEPPER_LENGTH - The length of the pepper used for privacy preservation.
  */
 export class KeylessAccount extends AbstractKeylessAccount {
   /**
