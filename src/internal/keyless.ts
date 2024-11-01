@@ -201,6 +201,11 @@ export async function deriveKeylessAccount(args: {
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
 }
 
+/**
+ * A JSON Web Keyset (JWK)
+ *
+ * Used to verify JSON Web Tokens (JWTs).
+ */
 interface JWK {
   kty: string; // Key type
   kid: string; // Key ID
@@ -209,6 +214,9 @@ interface JWK {
   e: string; // Exponent (for RSA keys)
 }
 
+/**
+ * A collection of JSON Web Key Set (JWKS).
+ */
 interface JWKS {
   keys: JWK[];
 }

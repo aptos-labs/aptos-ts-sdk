@@ -93,7 +93,24 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
 
-  // Use the static constructor 'create' instead.
+  /**
+   * Use the static generator `create(...)` instead.
+   * Creates an instance of the KeylessAccount with an optional proof.
+   *
+   * @param args - The parameters for creating a KeylessAccount.
+   * @param args.address - Optional account address associated with the KeylessAccount.
+   * @param args.publicKey - A KeylessPublicKey or FederatedKeylessPublicKey.
+   * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.
+   * @param args.iss - A JWT issuer.
+   * @param args.uidKey - The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
+   * @param args.uidVal - The unique id for this user, intended to be a stable user identifier.
+   * @param args.aud - The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
+   * OIDC registration with the identity provider.
+   * @param args.pepper - A hexadecimal input used for additional security.
+   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
+   * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   * @param args.jwt - A JSON Web Token used for authentication.
+   */
   protected constructor(args: {
     address?: AccountAddress;
     publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
@@ -140,8 +157,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   }
 
   /**
-   * This initializes the asynchronous proof fetch
-   * @return
+   * This initializes the asynchronous proof fetch.
+   * @return Emits whether the proof succeeds or fails, but has no return.
    */
   async init(promise: Promise<ZeroKnowledgeSig>) {
     try {
@@ -156,6 +173,12 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     }
   }
 
+  /**
+   * Serializes the jwt data into a format suitable for transmission or storage.
+   * This function ensures that both the jwt data and the proof are properly serialized.
+   *
+   * @param serializer - The serializer instance used to convert the jwt data into bytes.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
@@ -298,6 +321,12 @@ export class TransactionAndProof extends Serializable {
     this.proof = proof;
   }
 
+  /**
+   * Serializes the transaction data into a format suitable for transmission or storage.
+   * This function ensures that both the transaction bytes and the proof are properly serialized.
+   *
+   * @param serializer - The serializer instance used to convert the transaction data into bytes.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);
