@@ -3,7 +3,7 @@
 
 import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
-import { EphemeralCertificateVariant, HexInput, KeylessError, KeylessErrorType, SigningScheme } from "../types";
+import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
@@ -28,6 +28,7 @@ import { base64UrlDecode } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
+import { KeylessError, KeylessErrorType } from "../errors";
 
 /**
  * An interface which defines if an Account utilizes Keyless signing.

@@ -1,4 +1,4 @@
-import { AptosApiError } from "../../src";
+import { AptosApiError } from "../../src/errors";
 import { AptosApiType } from "../../src/utils/const.js";
 
 describe(AptosApiError.name, () => {

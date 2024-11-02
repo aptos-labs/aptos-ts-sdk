@@ -21,7 +21,7 @@ import {
   ZkProof,
   getKeylessConfig,
 } from "../core";
-import { HexInput, KeylessError, KeylessErrorType, ZkpVariant } from "../types";
+import { HexInput, ZkpVariant } from "../types";
 import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
@@ -30,6 +30,7 @@ import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
+import { KeylessError, KeylessErrorType } from "../errors";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.

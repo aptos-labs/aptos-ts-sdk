@@ -1,6 +1,6 @@
 import { AptosApiType } from "../utils/const";
 import { getErrorMessage } from "../utils/helpers";
-import { AptosRequest } from "./types";
+import { AptosRequest, AptosResponse } from "../types";
 
 export enum KeylessErrorCategory {
   API_ERROR,
@@ -287,27 +287,6 @@ export class KeylessError extends Error {
       type,
     });
   }
-}
-
-/**
- * The API response type
- *
- * @param status - the response status. i.e. 200
- * @param statusText - the response message
- * @param data the response data
- * @param url the url the request was made to
- * @param headers the response headers
- * @param config (optional) - the request object
- * @param request (optional) - the request object
- */
-export interface AptosResponse<Req, Res> {
-  status: number;
-  statusText: string;
-  data: Res;
-  url: string;
-  headers: any;
-  config?: any;
-  request?: Req;
 }
 
 /**

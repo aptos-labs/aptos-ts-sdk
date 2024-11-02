@@ -16,8 +16,6 @@ import {
   ZkpVariant,
   LedgerVersionArg,
   MoveResource,
-  KeylessErrorType,
-  KeylessError,
 } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
 import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon";
@@ -35,6 +33,7 @@ import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { getErrorMessage } from "../../utils";
+import { KeylessError, KeylessErrorType } from "../../errors";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
