@@ -87,12 +87,19 @@ export async function getProof(args: {
   ephemeralKeyPair: EphemeralKeyPair;
   pepper?: HexInput;
   uidKey?: string;
+  maxExpHorizonSecs?: number;
 }): Promise<ZeroKnowledgeSig> {
-  const { aptosConfig, jwt, ephemeralKeyPair, pepper = await getPepper(args), uidKey = "sub" } = args;
+  const {
+    aptosConfig,
+    jwt,
+    ephemeralKeyPair,
+    pepper = await getPepper(args),
+    uidKey = "sub",
+    maxExpHorizonSecs = (await getKeylessConfig({ aptosConfig })).maxExpHorizonSecs,
+  } = args;
   if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
-  const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
   const decodedJwt = jwtDecode<JwtPayload>(jwt);
   if (typeof decodedJwt.iat !== "number") {
     throw new Error("iat was not found");
@@ -175,7 +182,9 @@ export async function deriveKeylessAccount(args: {
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
-  const proofPromise = getProof({ ...args, pepper });
+  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+
+  const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
   // allowing for faster rendering of UX.
@@ -191,7 +200,15 @@ export async function deriveKeylessAccount(args: {
       authenticationKey: publicKey.authKey().derivedAddress(),
     });
 
-    return FederatedKeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, jwkAddress });
+    return FederatedKeylessAccount.create({
+      ...args,
+      address,
+      proof,
+      pepper,
+      proofFetchCallback,
+      jwkAddress,
+      verificationKey,
+    });
   }
 
   const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
@@ -199,7 +216,7 @@ export async function deriveKeylessAccount(args: {
     aptosConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
-  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
 }
 
 export interface JWKS {

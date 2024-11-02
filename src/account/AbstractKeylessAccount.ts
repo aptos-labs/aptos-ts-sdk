@@ -13,14 +13,15 @@ import {
   EphemeralCertificate,
   ZeroKnowledgeSig,
   ZkProof,
-  getPatchedJWKs,
+  getKeylessJWKs,
   MoveJWK,
+  getKeylessConfig,
 } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Serializable, Serializer } from "../bcs";
+import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { base64UrlDecode } from "../utils/helpers";
@@ -104,6 +105,12 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   readonly jwt: string;
 
   /**
+   * The hash of the verification key used to verify the proof. This is optional and can be used to check verifying key
+   * rotations which may invalidate the proof.
+   */
+  readonly verificationKeyHash?: Uint8Array;
+
+  /**
    * An event emitter used to assist in handling asynchronous proof fetching.
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
@@ -125,6 +132,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
    * @param args.jwt - A JSON Web Token used for authentication.
+   * @param args.verificationKeyHash Optional 32-byte verification key hash as hex input used to check proof validity.
    */
   protected constructor(args: {
     address?: AccountAddress;
@@ -138,9 +146,22 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
+    verificationKeyHash?: HexInput;
   }) {
     super();
-    const { address, ephemeralKeyPair, publicKey, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
+    const {
+      address,
+      ephemeralKeyPair,
+      publicKey,
+      uidKey,
+      uidVal,
+      aud,
+      pepper,
+      proof,
+      proofFetchCallback,
+      jwt,
+      verificationKeyHash,
+    } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     this.publicKey = publicKey;
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
@@ -169,6 +190,12 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
       throw new Error(`Pepper length in bytes should be ${AbstractKeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
+    if (verificationKeyHash !== undefined) {
+      if (Hex.hexInputToUint8Array(verificationKeyHash).length !== 32) {
+        throw new Error("verificationKeyHash must be 32 bytes");
+      }
+      this.verificationKeyHash = Hex.hexInputToUint8Array(verificationKeyHash);
+    }
   }
 
   /**
@@ -195,6 +222,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @param serializer - The serializer instance used to convert the jwt data into bytes.
    */
   serialize(serializer: Serializer): void {
+    this.accountAddress.serialize(serializer);
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
@@ -203,6 +231,27 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
       throw new Error("Cannot serialize - proof undefined");
     }
     this.proof.serialize(serializer);
+    serializer.serializeOption(this.verificationKeyHash, 32);
+  }
+
+  static partialDeserialize(deserializer: Deserializer): {
+    address: AccountAddress;
+    jwt: string;
+    uidKey: string;
+    pepper: Uint8Array;
+    ephemeralKeyPair: EphemeralKeyPair;
+    proof: ZeroKnowledgeSig;
+    verificationKeyHash?: Uint8Array;
+  } {
+    const address = AccountAddress.deserialize(deserializer);
+    const jwt = deserializer.deserializeStr();
+    const uidKey = deserializer.deserializeStr();
+    const pepper = deserializer.deserializeFixedBytes(31);
+    const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
+    const proof = ZeroKnowledgeSig.deserialize(deserializer);
+    const verificationKeyHash = deserializer.deserializeOption("fixedBytes", 32);
+
+    return { address, jwt, uidKey, pepper, ephemeralKeyPair, proof, verificationKeyHash };
   }
 
   /**
@@ -268,6 +317,19 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
         type: KeylessErrorType.JWT_PARSING_ERROR,
         details: "checkKeylessAccountValidity failed. JWT is missing 'kid' in header. This should never happen.",
       });
+    }
+    if (this.verificationKeyHash !== undefined) {
+      const { verificationKey } = await getKeylessConfig({ aptosConfig });
+      if (Hex.hexInputToString(verificationKey.hash()) !== Hex.hexInputToString(this.verificationKeyHash)) {
+        throw KeylessError.fromErrorType({
+          type: KeylessErrorType.INVALID_PROOF_VERIFICATION_KEY_NOT_FOUND,
+        });
+      }
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[Aptos SDK] The verification key hash was not set. Proof may be invalid if the verification key has rotated.",
+      );
     }
     await AbstractKeylessAccount.fetchJWK({ aptosConfig, publicKey: this.publicKey, kid: header.kid });
   }
@@ -360,18 +422,20 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
     const { iss } = keylessPubKey;
 
-    let patchedJWKs: Map<string, MoveJWK[]>;
+    let allJWKs: Map<string, MoveJWK[]>;
+    const jwkAddr = publicKey instanceof FederatedKeylessPublicKey ? publicKey.jwkAddress : undefined;
     try {
-      patchedJWKs = await getPatchedJWKs({ aptosConfig });
+      allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr });
     } catch (error) {
       throw KeylessError.fromErrorType({
-        type: KeylessErrorType.JWK_FETCH_FAILED,
-        details: `Failed to fetch patched JWKs: ${error}`,
+        type: KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR,
+        error,
+        details: `Failed to fetch ${jwkAddr ? "Federated" : "Patched"}JWKs ${jwkAddr ? `for address ${jwkAddr}` : "0x1"}`,
       });
     }
 
     // Find the corresponding JWK set by `iss`
-    const jwksForIssuer = patchedJWKs.get(iss);
+    const jwksForIssuer = allJWKs.get(iss);
 
     if (jwksForIssuer === undefined) {
       throw KeylessError.fromErrorType({
@@ -386,7 +450,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     if (jwk === undefined) {
       throw KeylessError.fromErrorType({
         type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
-        details: `JWK with kid ${kid} for issuer ${iss} not found.`,
+        details: `JWK with kid '${kid}' for issuer '${iss}' not found.`,
       });
     }
 
