@@ -229,6 +229,8 @@ export class KeylessError extends Error {
 
   readonly type: KeylessErrorType;
 
+  readonly details?: string;
+
   /** @internal this constructor is for sdk internal use - do not instantiate outside of the SDK codebase */
   constructor(args: {
     innerError?: unknown;
@@ -245,6 +247,7 @@ export class KeylessError extends Error {
     this.category = category;
     this.resolutionTip = resolutionTip;
     this.type = type;
+    this.details = details;
     this.message = KeylessError.constructMessage(message, resolutionTip, innerError, details);
   }
 
@@ -254,7 +257,7 @@ export class KeylessError extends Error {
     innerError?: unknown,
     details?: string,
   ): string {
-    let result = `KeylessError: ${message}`;
+    let result = `\nMessage: ${message}`;
     if (details) {
       result += `\nDetails: ${details}`;
     }
