@@ -90,7 +90,7 @@ describe("transaction submission", () => {
 
         expect(response.signature?.type).toBe("single_sender");
       });
-      test.only("with batch withdraw payload", async () => {
+      test("with batch withdraw payload", async () => {
         const transaction = await aptos.transaction.build.scriptComposer({
           sender: singleSignerED25519SenderAccount.accountAddress,
           builder: async (builder) => {
