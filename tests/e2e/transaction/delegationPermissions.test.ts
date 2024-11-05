@@ -53,9 +53,9 @@ describe("transaction submission", () => {
   }, longTestTimeout);
 
   test.only("Able to re-grant permissions for the same subaccount", async () => {
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [{ type: "APT", limit: 10 }],
     });
 
@@ -63,9 +63,9 @@ describe("transaction submission", () => {
     expect(perm1.length).toBe(1);
     expect(perm1[0].remaining).toBe("10");
 
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [{ type: "APT", limit: 20 }],
     });
 
@@ -78,9 +78,9 @@ describe("transaction submission", () => {
     const nftAddress = await generateNFT({ account: primaryAccount });
     const nftAddress2 = await generateNFT({ account: primaryAccount });
 
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [
         { type: "NFT", address: nftAddress },
         { type: "NFT", address: nftAddress2 },
@@ -113,9 +113,9 @@ describe("transaction submission", () => {
       },
     });
 
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [{ type: "APT", limit: 10 }],
     });
 
@@ -160,9 +160,9 @@ describe("transaction submission", () => {
       },
     });
 
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [{ type: "APT", limit: 10 }],
     });
 
@@ -191,9 +191,9 @@ describe("transaction submission", () => {
       },
     });
 
-    await grantPermission({
+    await requestPermission({
       primaryAccount,
-      subAccount,
+      permissionedAccount: subAccount,
       permissions: [{ type: "APT", limit: 10 }],
     });
 
@@ -227,22 +227,26 @@ describe("transaction submission", () => {
 // ====================================================================
 // External API
 // ===================================================================
+
 type GrantPermission =
   | { type: "APT"; limit: number; duration?: number }
+  | { type: "GAS"; limit: number }
   | { type: "NFT"; address: string }
-  | { type: "NFTC"; address: string }
-  | { type: "GAS"; limit: number };
+  | { type: "NFTC"; address: string };
 
-export async function grantPermission({
+// TODO: Refactor this for clarity. It is unclear what paths are executed for repeat requests vs new requests
+export async function requestPermission({
   primaryAccount,
-  subAccount,
+  permissionedAccount,
   permissions,
 }: {
   primaryAccount: SingleKeyAccount;
-  subAccount: AbstractedEd25519Account;
+  permissionedAccount: AbstractedEd25519Account;
   permissions: GrantPermission[];
+  expiration?: number;
+  requestsPerSecond?: number;
 }) {
-  const existingHandleAddress = await getHandleAddress({ primaryAccount, subAccount });
+  const existingHandleAddress = await getHandleAddress({ primaryAccount, subAccount: permissionedAccount });
   let handleAddress: BatchArgument | string | null = existingHandleAddress;
   let permissionedSingerHandle: BatchArgument[] | null;
   let permissionedSigner: BatchArgument[] | null;
@@ -267,7 +271,7 @@ export async function grantPermission({
       } else {
         permissionedSigner = await builder.add_batched_calls({
           function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-          functionArguments: [BatchArgument.new_signer(0), subAccount.publicKey.toUint8Array()],
+          functionArguments: [BatchArgument.new_signer(0), permissionedAccount.publicKey.toUint8Array()],
           typeArguments: [],
         });
       }
@@ -311,7 +315,7 @@ export async function grantPermission({
           function: "0x1::permissioned_delegation::add_permissioned_handle",
           functionArguments: [
             BatchArgument.new_signer(0),
-            subAccount.publicKey.toUint8Array(),
+            permissionedAccount.publicKey.toUint8Array(),
             permissionedSingerHandle[0],
           ],
           typeArguments: [],
