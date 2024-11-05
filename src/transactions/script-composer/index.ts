@@ -1,8 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { CallArgument, TransactionComposer, initSync, create_wasm} from "@wgb5445/aptos-intent-npm";
-import { AptosApiType, Network } from "../../utils";
+import { CallArgument, TransactionComposer, initSync, create_wasm } from "@wgb5445/aptos-intent-npm";
+import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api";
 import {
   EntryFunctionArgumentTypes,
@@ -12,13 +12,14 @@ import {
 } from "../types";
 import { convertArgument, fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { TypeTag } from "../typeTag";
+
 let wasm = null;
 
-(async ()=>{
+(async () => {
   wasm = initSync(await create_wasm());
 })();
 
-function convert_batch_argument(
+function convertCallArgument(
   argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
   functionName: string,
   functionAbi: FunctionABI,
@@ -27,15 +28,16 @@ function convert_batch_argument(
 ): CallArgument {
   if (argument instanceof CallArgument) {
     return argument;
-  } else {
+  } 
     return CallArgument.new_bytes(
       convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
     );
-  }
+  
 }
 
 export class AptosScriptComposer {
   private builder: TransactionComposer;
+
   private config: AptosConfig;
 
   constructor(aptos_config: AptosConfig) {
@@ -45,11 +47,11 @@ export class AptosScriptComposer {
 
   async add_batched_calls(input: InputBatchedFunctionData): Promise<CallArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
-    const node_url = this.config.getRequestUrl(AptosApiType.FULLNODE);
-    await this.builder.load_module(node_url, moduleAddress + "::" + moduleName);
-    if(input.typeArguments != undefined) {
-      for (const type_tag of input.typeArguments) {
-        await this.builder.load_type_tag(node_url, type_tag.toString());
+    const nodeUrl = this.config.getRequestUrl(AptosApiType.FULLNODE);
+    await this.builder.load_module(nodeUrl, `${moduleAddress  }::${  moduleName}`);
+    if (input.typeArguments !== undefined) {
+      for (const typeTag of input.typeArguments) {
+        await this.builder.load_type_tag(nodeUrl, typeTag.toString());
       }
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
@@ -62,7 +64,7 @@ export class AptosScriptComposer {
     }
 
     const functionArguments: CallArgument[] = input.functionArguments.map((arg, i) =>
-      convert_batch_argument(arg, functionName, functionAbi, i, typeArguments),
+      convertCallArgument(arg, functionName, functionAbi, i, typeArguments),
     );
 
     return this.builder.add_batched_call(

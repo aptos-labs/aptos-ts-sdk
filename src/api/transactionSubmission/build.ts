@@ -110,7 +110,7 @@ export class Build {
     let builder = new AptosScriptComposer(this.config);
     builder = await args.builder(builder);
     const bytes = builder.build();
-    let raw_txn = await generateRawTransaction({
+    const raw_txn = await generateRawTransaction({
       aptosConfig: this.config,
       payload: TransactionPayloadScript.load(new Deserializer(bytes)),
       ...args,

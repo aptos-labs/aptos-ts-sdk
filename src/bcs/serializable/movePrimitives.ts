@@ -12,7 +12,7 @@ import {
 import { Deserializer } from "../deserializer";
 import { Serializable, Serializer, ensureBoolean, validateNumberInRange } from "../serializer";
 import { TransactionArgument } from "../../transactions/instances/transactionArgument";
-import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants ,HexInput } from "../../types";
+import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } from "../../types";
 
 /**
  * Represents a boolean value that can be serialized and deserialized.
