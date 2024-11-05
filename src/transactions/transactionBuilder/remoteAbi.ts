@@ -107,7 +107,7 @@ export async function fetchMoveFunctionAbi(
 ): Promise<FunctionABI> {
   const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
   if (!functionAbi) {
-    throw new Error(`Could not find entry function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+    throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
   }
   const params: TypeTag[] = [];
   for (let i = 0; i < functionAbi.params.length; i += 1) {

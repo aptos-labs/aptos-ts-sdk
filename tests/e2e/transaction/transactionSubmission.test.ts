@@ -68,7 +68,7 @@ describe("transaction submission", () => {
       });
       test("with batch payload", async () => {
         const builder = new AptosScriptComposer(aptos.config);
-        await builder.add_batched_calls({
+        await builder.addBatchedCalls({
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
           functionArguments: [CallArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
         });
@@ -93,19 +93,19 @@ describe("transaction submission", () => {
         const transaction = await aptos.transaction.build.script_composer({
           sender: singleSignerED25519SenderAccount.accountAddress,
           builder: async (builder) => {
-            const coin = await builder.add_batched_calls({
+            const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
               functionArguments: [CallArgument.new_signer(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 
-            const fungibleAsset = await builder.add_batched_calls({
+            const fungibleAsset = await builder.addBatchedCalls({
               function: "0x1::coin::coin_to_fungible_asset",
               functionArguments: [coin[0]],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 
-            await builder.add_batched_calls({
+            await builder.addBatchedCalls({
               function: "0x1::primary_fungible_store::deposit",
               functionArguments: [singleSignerED25519SenderAccount.accountAddress, fungibleAsset[0]],
               typeArguments: [],
