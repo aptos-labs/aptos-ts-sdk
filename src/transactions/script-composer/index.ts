@@ -1,9 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { CallArgument, TransactionComposer, initSync, create_wasm } from "@wgb5445/aptos-intent-npm";
+import { TransactionComposer, initSync, create_wasm } from "@wgb5445/aptos-intent-npm";
 import { AptosApiType } from "../../utils";
-import { AptosConfig } from "../../api";
+import { AptosConfig } from "../../api/aptosConfig";
 import {
   EntryFunctionArgumentTypes,
   FunctionABI,
@@ -12,11 +12,10 @@ import {
 } from "../types";
 import { convertArgument, fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { TypeTag } from "../typeTag";
-
-let wasm = null;
+import { CallArgument } from "../../types";
 
 (async () => {
-  wasm = initSync(await create_wasm());
+ initSync(await create_wasm());
 })();
 
 function convertCallArgument(
@@ -67,6 +66,7 @@ export class AptosScriptComposer {
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
       for (const typeTag of input.typeArguments) {
+        // eslint-disable-next-line no-await-in-loop
         await this.builder.load_type_tag(nodeUrl, typeTag.toString());
       }
     }

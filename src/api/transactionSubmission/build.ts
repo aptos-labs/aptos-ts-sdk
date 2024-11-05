@@ -13,7 +13,6 @@ import {
 import { MultiAgentTransaction } from "../../transactions/instances/multiAgentTransaction";
 import { SimpleTransaction } from "../../transactions/instances/simpleTransaction";
 import { AptosConfig } from "../aptosConfig";
-import { singleSignerED25519 } from "../../../tests/unit/helper";
 import { Deserializer } from "../../bcs";
 
 /**
@@ -105,6 +104,9 @@ export class Build {
    * Build a transaction from a series of Move calls.
    *
    * This function allows you to create a transaction with a list of Move calls.
+   * 
+   * Right now we only tested this logic with single signer and we will add support
+   * for mutli agent transactions if needed.
    *
    * @param args.sender - The sender account address.
    * @param args.builder - The closure to construct the list of calls.
@@ -156,7 +158,7 @@ export class Build {
    * runExample().catch(console.error);
    * ```
    */
-  async script_composer(args: {
+  async scriptComposer(args: {
     sender: AccountAddressInput;
     builder: (builder: AptosScriptComposer) => Promise<AptosScriptComposer>;
     options?: InputGenerateTransactionOptions;
@@ -164,12 +166,12 @@ export class Build {
   }): Promise<SimpleTransaction> {
     const builder = await args.builder(new AptosScriptComposer(this.config));
     const bytes = builder.build();
-    const raw_txn = await generateRawTransaction({
+    const rawTxn = await generateRawTransaction({
       aptosConfig: this.config,
       payload: TransactionPayloadScript.load(new Deserializer(bytes)),
       ...args,
     });
-    return new SimpleTransaction(raw_txn);
+    return new SimpleTransaction(rawTxn);
   }
 
   /**

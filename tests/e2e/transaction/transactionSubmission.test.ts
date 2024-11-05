@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { CallArgument } from "@wgb5445/aptos-intent-npm";
+//import { CallArgument } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
   U64,
@@ -17,6 +17,7 @@ import {
   TransactionPayloadScript,
   generateRawTransaction,
   SimpleTransaction,
+  CallArgument,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -90,7 +91,7 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("single_sender");
       });
       test.only("with batch withdraw payload", async () => {
-        const transaction = await aptos.transaction.build.script_composer({
+        const transaction = await aptos.transaction.build.scriptComposer({
           sender: singleSignerED25519SenderAccount.accountAddress,
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
