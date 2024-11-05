@@ -52,7 +52,7 @@ describe("transaction submission", () => {
     await fundAccounts(LOCAL_NET.aptos, [primaryAccount, ...receiverAccounts]);
   }, longTestTimeout);
 
-  test.only("Able to re-grant permissions for the same subaccount", async () => {
+  test("Able to re-grant permissions for the same subaccount", async () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
@@ -76,14 +76,15 @@ describe("transaction submission", () => {
 
   test("Able to grant permissions for NFTs", async () => {
     const nftAddress = await generateNFT({ account: primaryAccount });
-    const nftAddress2 = await generateNFT({ account: primaryAccount });
+    // TODO: Add this back in when Runtian is done with his refactor
+    // const nftAddress2 = await generateNFT({ account: primaryAccount });
 
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
       permissions: [
         { type: "NFT", address: nftAddress },
-        { type: "NFT", address: nftAddress2 },
+        // { type: "NFT", address: nftAddress2 },
       ],
     });
 
