@@ -400,6 +400,26 @@ export class Serializer {
       }
     }
   }
+
+  /**
+   * @deprecated use `serializeOption` instead.
+   * Serializes an optional string, supporting UTF8 encoding.
+   * The function encodes the existence of the string first, followed by the length and content if it exists.
+   *
+   * BCS layout for optional "string": 1 | string_length | string_content
+   * where string_length is a u32 integer encoded as a uleb128 integer, equal to the number of bytes in string_content.
+   * BCS layout for undefined: 0
+   *
+   * @param value - The optional string to serialize. If undefined, it will serialize as 0.
+   */
+  serializeOptionStr(value?: string): void {
+    if (value === undefined) {
+      this.serializeU32AsUleb128(0);
+    } else {
+      this.serializeU32AsUleb128(1);
+      this.serializeStr(value);
+    }
+  }
 }
 
 export function ensureBoolean(value: unknown): asserts value is boolean {

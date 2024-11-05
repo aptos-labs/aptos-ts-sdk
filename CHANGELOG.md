@@ -9,6 +9,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `PrivateKey` helpers for AIP-80: `PrivateKey.parseHexInput`, `PrivateKey.formatPrivateKey`, and `PrivateKey.AIP80_PREFIXES`.
 - Adds explicit error handling Keyless accounts using `KeylessError`. Handles JWK rotations and Verifying Key rotations.
 - Includes the address in the `AbstractKeylessAccount` serialization to prevent information loss for key rotated accounts.
+- [`Breaking`] Deprecate `serializeOptionStr` and `deserializeOptionStr` in favor of `serializeOption` and `deserializeOption`.
+- [`Breaking`] Renames `KeylessConfiguration.verficationKey` to `verificationKey`
 
 # 1.31.0 (2024-10-24)
 

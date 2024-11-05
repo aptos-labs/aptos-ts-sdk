@@ -82,6 +82,7 @@ export class Deserializer {
   }
 
   /**
+   * @deprecated use `deserializeOption` instead.
    * Deserializes a UTF-8 encoded string from a byte array. It first reads the length of the string in bytes,
    * followed by the actual byte content, and decodes it into a string.
    *
