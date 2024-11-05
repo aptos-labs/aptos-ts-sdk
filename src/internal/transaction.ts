@@ -10,8 +10,8 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, paginateWithCursor } from "../client";
+import { AptosApiError } from "../errors";
 import {
-  AptosApiError,
   TransactionResponseType,
   type AnyNumber,
   type GasEstimation,

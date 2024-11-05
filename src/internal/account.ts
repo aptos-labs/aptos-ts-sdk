@@ -11,7 +11,6 @@ import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, paginateWithCursor } from "../client";
 import {
   AccountData,
-  AptosApiError,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
@@ -56,6 +55,7 @@ import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObject
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
+import { AptosApiError } from "../errors";
 
 /**
  * Retrieves account information for a specified account address.

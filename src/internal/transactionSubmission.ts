@@ -8,7 +8,7 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
-import { Account, AbstractKeylessAccount, MultiKeyAccount, isKeylessSigner } from "../account";
+import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
@@ -354,8 +354,8 @@ export async function signAndSubmitTransaction(
   const { aptosConfig, signer, feePayer, transaction } = args;
   // If the signer contains a KeylessAccount, await proof fetching in case the proof
   // was fetched asynchronously.
-  if (signer instanceof AbstractKeylessAccount || signer instanceof MultiKeyAccount) {
-    await signer.waitForProofFetch();
+  if (isKeylessSigner(signer)) {
+    await signer.checkKeylessAccountValidity(aptosConfig);
   }
   if (isKeylessSigner(feePayer)) {
     await feePayer.checkKeylessAccountValidity(aptosConfig);

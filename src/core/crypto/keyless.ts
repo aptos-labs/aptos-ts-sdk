@@ -3,6 +3,7 @@
 
 // eslint-disable-next-line max-classes-per-file
 import { JwtPayload, jwtDecode } from "jwt-decode";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
@@ -31,6 +32,8 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
+import { getErrorMessage } from "../../utils";
+import { KeylessError, KeylessErrorType } from "../../errors";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -583,16 +586,16 @@ export class ZeroKnowledgeSig extends Signature {
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
     serializer.serializeU64(this.expHorizonSecs);
-    serializer.serializeOptionStr(this.extraField);
-    serializer.serializeOptionStr(this.overrideAudVal);
+    serializer.serializeOption(this.extraField);
+    serializer.serializeOption(this.overrideAudVal);
     serializer.serializeOption(this.trainingWheelsSignature);
   }
 
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
     const expHorizonSecs = Number(deserializer.deserializeU64());
-    const extraField = deserializer.deserializeOptionStr();
-    const overrideAudVal = deserializer.deserializeOptionStr();
+    const extraField = deserializer.deserializeOption("string");
+    const overrideAudVal = deserializer.deserializeOption("string");
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
     return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
@@ -609,16 +612,15 @@ export class KeylessConfiguration {
   /**
    * The verification key used to verify Groth16 proofs on chain
    */
-  // TODO: Rename to verificationKey
-  readonly verficationKey: Groth16VerificationKey;
+  readonly verificationKey: Groth16VerificationKey;
 
   /**
    * The maximum lifespan of an ephemeral key pair.  This is configured on chain.
    */
   readonly maxExpHorizonSecs: number;
 
-  constructor(verficationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
-    this.verficationKey = verficationKey;
+  constructor(verificationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
+    this.verificationKey = verificationKey;
     this.maxExpHorizonSecs = maxExpHorizonSecs;
   }
 
@@ -639,7 +641,7 @@ export class KeylessConfiguration {
 /**
  * Represents the verification key stored on-chain used to verify Groth16 proofs.
  */
-class Groth16VerificationKey {
+export class Groth16VerificationKey {
   // The docstrings below are borrowed from ark-groth16
 
   /**
@@ -660,7 +662,7 @@ class Groth16VerificationKey {
   /**
    * The `gamma^{-1} * (beta * a_i + alpha * b_i + c_i) * H`, where H is the generator of G1
    */
-  readonly gammaAbcG1: G1Bytes[];
+  readonly gammaAbcG1: [G1Bytes, G1Bytes];
 
   /**
    * The `gamma * H`, where `H` is the generator of G2
@@ -680,6 +682,27 @@ class Groth16VerificationKey {
     this.deltaG2 = new G2Bytes(deltaG2);
     this.gammaAbcG1 = [new G1Bytes(gammaAbcG1[0]), new G1Bytes(gammaAbcG1[1])];
     this.gammaG2 = new G2Bytes(gammaG2);
+  }
+
+  /**
+   * Calculates the hash of the serialized form of the verification key.
+   * This is useful for comparing verification keys or using them as unique identifiers.
+   *
+   * @returns The SHA3-256 hash of the serialized verification key as a Uint8Array
+   */
+  public hash(): Uint8Array {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return sha3_256.create().update(serializer.toUint8Array()).digest();
+  }
+
+  serialize(serializer: Serializer): void {
+    this.alphaG1.serialize(serializer);
+    this.betaG2.serialize(serializer);
+    this.deltaG2.serialize(serializer);
+    this.gammaAbcG1[0].serialize(serializer);
+    this.gammaAbcG1[1].serialize(serializer);
+    this.gammaG2.serialize(serializer);
   }
 
   /**
@@ -719,15 +742,64 @@ export async function getKeylessConfig(args: {
   options?: LedgerVersionArg;
 }): Promise<KeylessConfiguration> {
   const { aptosConfig } = args;
-  return memoizeAsync(
-    async () => {
-      const config = await getKeylessConfigurationResource(args);
-      const vk = await getGroth16VerificationKeyResource(args);
-      return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
-    },
-    `keyless-configuration-${aptosConfig.network}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
+  try {
+    return await memoizeAsync(
+      async () => {
+        const config = await getKeylessConfigurationResource(args);
+        const vk = await getGroth16VerificationKeyResource(args);
+        return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
+      },
+      `keyless-configuration-${aptosConfig.network}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
+  } catch (error) {
+    if (error instanceof KeylessError) {
+      throw error;
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_OTHER,
+      error,
+    });
+  }
+}
+
+/**
+ * Parses a JWT and returns the 'iss', 'aud', and 'uid' values.
+ *
+ * @param args - The arguments for parsing the JWT.
+ * @param args.jwt - The JWT to parse.
+ * @param args.uidKey - The key to use for the 'uid' value; defaults to 'sub'.
+ * @returns The 'iss', 'aud', and 'uid' values from the JWT.
+ */
+export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
+  iss: string;
+  aud: string;
+  uidVal: string;
+} {
+  const { jwt, uidKey = "sub" } = args;
+  let jwtPayload: JwtPayload & { [key: string]: string };
+  try {
+    jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Failed to parse JWT - ${getErrorMessage(error)}`,
+    });
+  }
+  if (typeof jwtPayload.iss !== "string") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: "JWT is missing 'iss' in the payload. This should never happen.",
+    });
+  }
+  if (typeof jwtPayload.aud !== "string") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: "JWT is missing 'aud' in the payload or 'aud' is an array of values.",
+    });
+  }
+  const uidVal = jwtPayload[uidKey];
+  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };
 }
 
 /**
@@ -745,14 +817,20 @@ async function getKeylessConfigurationResource(args: {
 }): Promise<KeylessConfigurationResponse> {
   const { aptosConfig, options } = args;
   const resourceType = "0x1::keyless_account::Configuration";
-  const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
-    aptosConfig,
-    originMethod: "getKeylessConfigurationResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-
-  return data.data;
+  try {
+    const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessConfigurationResource",
+      path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    return data.data;
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_CONFIG_LOOKUP_ERROR,
+      error,
+    });
+  }
 }
 
 /**
@@ -770,33 +848,52 @@ async function getGroth16VerificationKeyResource(args: {
 }): Promise<Groth16VerificationKeyResponse> {
   const { aptosConfig, options } = args;
   const resourceType = "0x1::keyless_account::Groth16VerificationKey";
-  const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
-    aptosConfig,
-    originMethod: "getGroth16VerificationKeyResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-
-  return data.data;
+  try {
+    const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
+      aptosConfig,
+      originMethod: "getGroth16VerificationKeyResource",
+      path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    return data.data;
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_VERIFICATION_KEY_LOOKUP_ERROR,
+      error,
+    });
+  }
 }
 
-export async function getPatchedJWKs(args: {
+export async function getKeylessJWKs(args: {
   aptosConfig: AptosConfig;
   jwkAddr?: AccountAddressInput;
   options?: LedgerVersionArg;
 }): Promise<Map<string, MoveJWK[]>> {
-  const { aptosConfig, jwkAddr = "0x1", options } = args;
-  const resourceType = `${jwkAddr.toString()}::jwks::PatchedJWKs`;
-  const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
-    aptosConfig,
-    originMethod: "getPatchedJWKs",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
+  const { aptosConfig, jwkAddr, options } = args;
+  let resource: MoveResource<PatchedJWKsResponse>;
+  if (!jwkAddr) {
+    const resourceType = "0x1::jwks::PatchedJWKs";
+    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessJWKs",
+      path: `accounts/0x1/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    resource = data;
+  } else {
+    const resourceType = "0x1::jwks::FederatedJWKs";
+    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessJWKs",
+      path: `accounts/${AccountAddress.from(jwkAddr).toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    resource = data;
+  }
 
   // Create a map of issuer to JWK arrays
   const jwkMap = new Map<string, MoveJWK[]>();
-  for (const entry of data.data.jwks.entries) {
+  for (const entry of resource.data.jwks.entries) {
     const jwks: MoveJWK[] = [];
     for (const jwkStruct of entry.jwks) {
       const { data: jwkData } = jwkStruct.variant;

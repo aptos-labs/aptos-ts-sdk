@@ -1,5 +1,6 @@
 import { AptosApiType } from "../utils/const";
-import { AptosRequest } from "./types";
+import { getErrorMessage } from "../utils/helpers";
+import { AptosRequest, AptosResponse } from "../types";
 
 export enum KeylessErrorCategory {
   API_ERROR,
@@ -69,6 +70,14 @@ export enum KeylessErrorType {
   PROVER_SERVICE_BAD_REQUEST,
 
   PROVER_SERVICE_OTHER,
+
+  FULL_NODE_CONFIG_LOOKUP_ERROR,
+
+  FULL_NODE_VERIFICATION_KEY_LOOKUP_ERROR,
+
+  FULL_NODE_JWKS_LOOKUP_ERROR,
+
+  FULL_NODE_OTHER,
 
   UNKNOWN,
 }
@@ -184,6 +193,26 @@ const KeylessErrors: { [key in KeylessErrorType]: [string, KeylessErrorCategory,
     KeylessErrorCategory.INVALID_STATE,
     KeylessErrorResolutionTip.REINSTANTIATE,
   ],
+  [KeylessErrorType.FULL_NODE_CONFIG_LOOKUP_ERROR]: [
+    "Error when looking up on-chain keyless configuration.",
+    KeylessErrorCategory.API_ERROR,
+    KeylessErrorResolutionTip.SERVER_ERROR,
+  ],
+  [KeylessErrorType.FULL_NODE_VERIFICATION_KEY_LOOKUP_ERROR]: [
+    "Error when looking up on-chain verification key.",
+    KeylessErrorCategory.API_ERROR,
+    KeylessErrorResolutionTip.SERVER_ERROR,
+  ],
+  [KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR]: [
+    "Error when looking up on-chain JWKS.",
+    KeylessErrorCategory.API_ERROR,
+    KeylessErrorResolutionTip.SERVER_ERROR,
+  ],
+  [KeylessErrorType.FULL_NODE_OTHER]: [
+    "Unknown error from full node.",
+    KeylessErrorCategory.API_ERROR,
+    KeylessErrorResolutionTip.SERVER_ERROR,
+  ],
   [KeylessErrorType.UNKNOWN]: [
     "An unknown error has occurred.",
     KeylessErrorCategory.UNKNOWN,
@@ -192,7 +221,7 @@ const KeylessErrors: { [key in KeylessErrorType]: [string, KeylessErrorCategory,
 };
 
 export class KeylessError extends Error {
-  readonly aptosApiError?: AptosApiError;
+  readonly innerError?: unknown;
 
   readonly category: KeylessErrorCategory;
 
@@ -200,24 +229,45 @@ export class KeylessError extends Error {
 
   readonly type: KeylessErrorType;
 
+  readonly details?: string;
+
   /** @internal this constructor is for sdk internal use - do not instantiate outside of the SDK codebase */
   constructor(args: {
-    aptosApiError?: AptosApiError;
+    innerError?: unknown;
     category: KeylessErrorCategory;
     resolutionTip: KeylessErrorResolutionTip;
     type: KeylessErrorType;
     message?: string;
     details?: string;
   }) {
-    const { aptosApiError, category, resolutionTip, type, details } = args;
-    const error = KeylessErrors[type];
-    super(error[0]);
+    const { innerError, category, resolutionTip, type, message = KeylessErrors[type][0], details } = args;
+    super(message);
     this.name = "KeylessError";
-    this.aptosApiError = aptosApiError;
+    this.innerError = innerError;
     this.category = category;
     this.resolutionTip = resolutionTip;
     this.type = type;
-    this.message = details ?? "";
+    this.details = details;
+    this.message = KeylessError.constructMessage(message, resolutionTip, innerError, details);
+  }
+
+  static constructMessage(
+    message: string,
+    tip: KeylessErrorResolutionTip,
+    innerError?: unknown,
+    details?: string,
+  ): string {
+    let result = `\nMessage: ${message}`;
+    if (details) {
+      result += `\nDetails: ${details}`;
+    }
+    if (innerError instanceof AptosApiError) {
+      result += `\nAptosApiError: ${innerError.message}`;
+    } else if (innerError !== undefined) {
+      result += `\nError: ${getErrorMessage(innerError)}`;
+    }
+    result += `\nKeylessErrorResolutionTip: ${tip}`;
+    return result;
   }
 
   /**
@@ -227,44 +277,19 @@ export class KeylessError extends Error {
    * @param args.details optional details to include in the error message
    * @returns A new KeylessError instance
    */
-  static fromErrorType(args: {
-    type: KeylessErrorType;
-    aptosApiError?: AptosApiError;
-    details?: string;
-  }): KeylessError {
-    const { aptosApiError, type, details } = args;
+  static fromErrorType(args: { type: KeylessErrorType; error?: unknown; details?: string }): KeylessError {
+    const { error, type, details } = args;
 
     const [message, category, resolutionTip] = KeylessErrors[type];
     return new KeylessError({
       message,
       details,
-      aptosApiError,
+      innerError: error,
       category,
       resolutionTip,
       type,
     });
   }
-}
-
-/**
- * The API response type
- *
- * @param status - the response status. i.e. 200
- * @param statusText - the response message
- * @param data the response data
- * @param url the url the request was made to
- * @param headers the response headers
- * @param config (optional) - the request object
- * @param request (optional) - the request object
- */
-export interface AptosResponse<Req, Res> {
-  status: number;
-  statusText: string;
-  data: Res;
-  url: string;
-  headers: any;
-  config?: any;
-  request?: Req;
 }
 
 /**

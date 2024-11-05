@@ -3,17 +3,9 @@
 
 import { AptosConfig } from "../api/aptosConfig";
 import { VERSION } from "../version";
-import {
-  AnyNumber,
-  AptosApiError,
-  AptosRequest,
-  AptosResponse,
-  Client,
-  ClientRequest,
-  ClientResponse,
-  MimeType,
-} from "../types";
+import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
 import { AptosApiType } from "../utils";
+import { AptosApiError } from "../errors";
 
 /**
  * Sends a request using the specified options and returns the response.

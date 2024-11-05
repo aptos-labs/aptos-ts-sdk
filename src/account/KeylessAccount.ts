@@ -1,14 +1,14 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { JwtPayload, jwtDecode } from "jwt-decode";
 import { HexInput } from "../types";
 import { AccountAddress } from "../core/accountAddress";
-import { KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto";
+import { getIssAudAndUidVal, Groth16VerificationKey, KeylessPublicKey, ZeroKnowledgeSig } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
 import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
+import { Hex } from "../core/hex";
 
 /**
  * Account implementation for the Keyless authentication scheme.
@@ -56,6 +56,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
+    verificationKeyHash?: HexInput;
   }) {
     const publicKey = KeylessPublicKey.create(args);
     super({ publicKey, ...args });
@@ -69,14 +70,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param serializer - The serializer instance used to convert the transaction data into bytes.
    */
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.jwt);
-    serializer.serializeStr(this.uidKey);
-    serializer.serializeFixedBytes(this.pepper);
-    this.ephemeralKeyPair.serialize(serializer);
-    if (this.proof === undefined) {
-      throw new Error("Cannot serialize - proof undefined");
-    }
-    this.proof.serialize(serializer);
+    super.serialize(serializer);
   }
 
   /**
@@ -87,17 +81,20 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @returns A KeylessAccount instance created from the deserialized data.
    */
   static deserialize(deserializer: Deserializer): KeylessAccount {
-    const jwt = deserializer.deserializeStr();
-    const uidKey = deserializer.deserializeStr();
-    const pepper = deserializer.deserializeFixedBytes(31);
-    const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
-    const proof = ZeroKnowledgeSig.deserialize(deserializer);
-    return KeylessAccount.create({
+    const { address, proof, ephemeralKeyPair, jwt, uidKey, pepper, verificationKeyHash } =
+      AbstractKeylessAccount.partialDeserialize(deserializer);
+    const { iss, aud, uidVal } = getIssAudAndUidVal({ jwt, uidKey });
+    return new KeylessAccount({
+      address,
       proof,
-      pepper,
-      uidKey,
-      jwt,
       ephemeralKeyPair,
+      iss,
+      uidKey,
+      uidVal,
+      aud,
+      pepper,
+      jwt,
+      verificationKeyHash,
     });
   }
 
@@ -107,8 +104,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param bytes The bytes being interpreted.
    * @returns
    */
-  static fromBytes(bytes: Uint8Array): KeylessAccount {
-    return KeylessAccount.deserialize(new Deserializer(bytes));
+  static fromBytes(bytes: HexInput): KeylessAccount {
+    return KeylessAccount.deserialize(new Deserializer(Hex.hexInputToUint8Array(bytes)));
   }
 
   /**
@@ -133,28 +130,23 @@ export class KeylessAccount extends AbstractKeylessAccount {
     pepper: HexInput;
     uidKey?: string;
     proofFetchCallback?: ProofFetchCallback;
+    verificationKey?: Groth16VerificationKey;
   }): KeylessAccount {
-    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback } = args;
+    const { address, proof, jwt, ephemeralKeyPair, pepper, uidKey = "sub", proofFetchCallback, verificationKey } = args;
 
-    const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-    if (typeof jwtPayload.iss !== "string") {
-      throw new Error("iss was not found");
-    }
-    if (typeof jwtPayload.aud !== "string") {
-      throw new Error("aud was not found or an array of values");
-    }
-    const uidVal = jwtPayload[uidKey];
+    const { iss, aud, uidVal } = getIssAudAndUidVal({ jwt, uidKey });
     return new KeylessAccount({
       address,
       proof,
       ephemeralKeyPair,
-      iss: jwtPayload.iss,
+      iss,
       uidKey,
       uidVal,
-      aud: jwtPayload.aud,
+      aud,
       pepper,
       jwt,
       proofFetchCallback,
+      verificationKeyHash: verificationKey ? verificationKey.hash() : undefined,
     });
   }
 }

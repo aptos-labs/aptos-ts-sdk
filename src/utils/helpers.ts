@@ -16,6 +16,16 @@ export async function sleep(timeMs: number): Promise<null> {
   });
 }
 
+/**
+ * Get the error message from an unknown error.
+ *
+ * @param error The error to get the message from
+ * @returns The error message
+ */
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export const nowInSeconds = () => Math.floor(Date.now() / 1000);
 
 /**
