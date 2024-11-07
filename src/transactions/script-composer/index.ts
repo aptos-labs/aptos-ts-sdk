@@ -4,23 +4,17 @@
 import { TransactionComposer, initSync, create_wasm } from "@wgb5445/aptos-intent-npm";
 import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
-import {
-  EntryFunctionArgumentTypes,
-  FunctionABI,
-  InputBatchedFunctionData,
-  SimpleEntryFunctionArgumentTypes,
-} from "../types";
-import { convertArgument, fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
-import { TypeTag } from "../typeTag";
+import { InputBatchedFunctionData } from "../types";
+import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { CallArgument } from "../../types";
-import { convertCallArgument } from "../transactionBuilder/remoteAbi"
+import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
 (async () => {
- initSync(await create_wasm());
+  initSync(await create_wasm());
 })();
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
-// from aptos-core/aptos-move/script-composer. 
+// from aptos-core/aptos-move/script-composer.
 //
 // This class allows the SDK caller to build a transaction that invokes multiple Move functions
 // and allow for arguments to be passed around.

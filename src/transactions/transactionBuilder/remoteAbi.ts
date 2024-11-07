@@ -231,11 +231,10 @@ export function convertCallArgument(
 ): CallArgument {
   if (argument instanceof CallArgument) {
     return argument;
-  } 
-    return CallArgument.new_bytes(
-      convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
-    );
-  
+  }
+  return CallArgument.new_bytes(
+    convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
+  );
 }
 
 /**

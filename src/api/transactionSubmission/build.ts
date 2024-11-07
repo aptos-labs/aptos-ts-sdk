@@ -104,7 +104,7 @@ export class Build {
    * Build a transaction from a series of Move calls.
    *
    * This function allows you to create a transaction with a list of Move calls.
-   * 
+   *
    * Right now we only tested this logic with single signer and we will add support
    * for mutli agent transactions if needed.
    *
@@ -132,7 +132,7 @@ export class Build {
    *          functionArguments: [CallArgument.new_signer(0), 1],
    *          typeArguments: ["0x1::aptos_coin::AptosCoin"],
    *        });
-   *        
+   *
    *        // Pass the returned value from the first function call to the second call
    *        const fungibleAsset = await builder.addBatchedCalls({
    *          function: "0x1::coin::coin_to_fungible_asset",
