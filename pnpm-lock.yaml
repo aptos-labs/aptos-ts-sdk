@@ -24,8 +24,8 @@ dependencies:
     specifier: ^1.3.0
     version: 1.4.0
   '@wgb5445/aptos-intent-npm':
-    specifier: ^0.1.7
-    version: 0.1.7
+    specifier: ^0.1.8
+    version: 0.1.8
   eventemitter3:
     specifier: ^5.0.1
     version: 5.0.1
@@ -3021,8 +3021,8 @@ packages:
       '@xtuc/long': 4.2.2
     dev: true
 
-  /@wgb5445/aptos-intent-npm@0.1.7:
-    resolution: {integrity: sha512-DyaiJQFWih3o1yxS0WX7LJiYydRba6gXGrlv/hiyn3xApoXCtdln3lpc9VRLLdxdG5IMbO7eh/+AHqM1h1DnGQ==}
+  /@wgb5445/aptos-intent-npm@0.1.8:
+    resolution: {integrity: sha512-At8NZy5U68OQDQV019MC2ZXeIT9u1KDja5BJPiqv/vWAcsZ9LS2rW1i/Etd4ow6q5NFptHpkZkxvL/heXdsy2w==}
     dev: false
 
   /@whatwg-node/fetch@0.9.21:
