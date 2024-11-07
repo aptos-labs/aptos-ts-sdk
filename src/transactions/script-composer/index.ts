@@ -13,26 +13,11 @@ import {
 import { convertArgument, fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { TypeTag } from "../typeTag";
 import { CallArgument } from "../../types";
+import { convertCallArgument } from "../transactionBuilder/remoteAbi"
 
 (async () => {
  initSync(await create_wasm());
 })();
-
-function convertCallArgument(
-  argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
-  functionName: string,
-  functionAbi: FunctionABI,
-  position: number,
-  genericTypeParams: Array<TypeTag>,
-): CallArgument {
-  if (argument instanceof CallArgument) {
-    return argument;
-  } 
-    return CallArgument.new_bytes(
-      convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
-    );
-  
-}
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer. 

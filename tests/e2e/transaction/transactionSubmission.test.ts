@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-//import { CallArgument } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
   U64,
@@ -109,7 +108,6 @@ describe("transaction submission", () => {
             await builder.addBatchedCalls({
               function: "0x1::primary_fungible_store::deposit",
               functionArguments: [singleSignerED25519SenderAccount.accountAddress, fungibleAsset[0]],
-              typeArguments: [],
             });
             return builder;
           },
