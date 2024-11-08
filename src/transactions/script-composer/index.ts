@@ -10,7 +10,7 @@ import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
 (async () => {
-  initSync({module: wasm});
+  initSync({ module: wasm });
 })();
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
