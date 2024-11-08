@@ -46,6 +46,26 @@ export abstract class TransactionAuthenticator extends Serializable {
         throw new Error(`Unknown variant index for TransactionAuthenticator: ${index}`);
     }
   }
+
+  isEd25519(): this is TransactionAuthenticatorEd25519 {
+    return this instanceof TransactionAuthenticatorEd25519;
+  }
+
+  isMultiEd25519(): this is TransactionAuthenticatorMultiEd25519 {
+    return this instanceof TransactionAuthenticatorMultiEd25519;
+  }
+
+  isMultiAgent(): this is TransactionAuthenticatorMultiAgent {
+    return this instanceof TransactionAuthenticatorMultiAgent;
+  }
+
+  isFeePayer(): this is TransactionAuthenticatorFeePayer {
+    return this instanceof TransactionAuthenticatorFeePayer;
+  }
+
+  isSingleSender(): this is TransactionAuthenticatorSingleSender {
+    return this instanceof TransactionAuthenticatorSingleSender;
+  }
 }
 
 /**

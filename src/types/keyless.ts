@@ -73,3 +73,22 @@ export type Groth16VerificationKeyResponse = {
   gamma_abc_g1: [string, string];
   gamma_g2: string;
 };
+
+/**
+ * The response containing the Groth16 verification key, including the alpha_g1 component.
+ */
+export type PatchedJWKsResponse = {
+  jwks: { entries: [IssuerJWKS] };
+};
+
+/**
+ * The response containing the Groth16 verification key, including the alpha_g1 component.
+ */
+export type IssuerJWKS = {
+  issuer: string;
+  jwks: [MoveAnyStruct];
+};
+
+export type MoveAnyStruct = {
+  variant: { data: string; type_name: string };
+};

@@ -8,13 +8,8 @@
  * account namespace and without having a dependency cycle error.
  * @group Implementation
  */
-
 import { AptosConfig } from "../api/aptosConfig";
-import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
-import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
-import { queryIndexer } from "./general";
+import { getAptosFullNode, paginateWithCursor } from "../client";
 import {
   AccountData,
   GetAccountCoinsDataResponse,
@@ -32,6 +27,10 @@ import {
   TransactionResponse,
   WhereArg,
 } from "../types";
+import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
+import { Account } from "../account";
+import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
+import { queryIndexer } from "./general";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -57,6 +56,7 @@ import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObject
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
+import { AptosApiError } from "../errors";
 
 /**
  * Retrieves account information for a specified account address.

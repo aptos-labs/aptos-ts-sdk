@@ -17,6 +17,19 @@ export async function sleep(timeMs: number): Promise<null> {
     setTimeout(resolve, timeMs);
   });
 }
+
+/**
+ * Get the error message from an unknown error.
+ *
+ * @param error The error to get the message from
+ * @returns The error message
+ * @group Implementation
+ * @category Utils
+ */
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 /**
  * @group Implementation
  * @category Utils

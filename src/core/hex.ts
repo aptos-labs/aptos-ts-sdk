@@ -150,6 +150,51 @@ export class Hex {
     return Hex.fromHexString(hexInput);
   }
 
+  /**
+   * Converts an instance of HexInput, which can be a string or a Uint8Array, into a Uint8Array.
+   *
+   * @param hexInput - A HexInput which can be a string or Uint8Array.
+   * @returns A Uint8Array created from the provided hexInput.
+   */
+  static hexInputToUint8Array(hexInput: HexInput): Uint8Array {
+    if (hexInput instanceof Uint8Array) return hexInput;
+    return Hex.fromHexString(hexInput).toUint8Array();
+  }
+
+  /**
+   * Converts a HexInput (string or Uint8Array) to a hex string with '0x' prefix.
+   *
+   * @param hexInput - The input to convert, either a hex string (with/without '0x' prefix) or Uint8Array
+   * @returns A hex string with '0x' prefix (e.g., "0x1234")
+   *
+   * @example
+   * ```typescript
+   * Hex.hexInputToString("1234")        // returns "0x1234"
+   * Hex.hexInputToString("0x1234")      // returns "0x1234"
+   * Hex.hexInputToString(new Uint8Array([0x12, 0x34])) // returns "0x1234"
+   * ```
+   */
+  static hexInputToString(hexInput: HexInput): string {
+    return Hex.fromHexInput(hexInput).toString();
+  }
+
+  /**
+   * Converts a HexInput (string or Uint8Array) to a hex string without '0x' prefix.
+   *
+   * @param hexInput - The input to convert, either a hex string (with/without '0x' prefix) or Uint8Array
+   * @returns A hex string without '0x' prefix (e.g., "1234")
+   *
+   * @example
+   * ```typescript
+   * Hex.hexInputToStringWithoutPrefix("1234")        // returns "1234"
+   * Hex.hexInputToStringWithoutPrefix("0x1234")      // returns "1234"
+   * Hex.hexInputToStringWithoutPrefix(new Uint8Array([0x12, 0x34])) // returns "1234"
+   * ```
+   */
+  static hexInputToStringWithoutPrefix(hexInput: HexInput): string {
+    return Hex.fromHexInput(hexInput).toStringWithoutPrefix();
+  }
+
   // ===
   // Methods for checking validity.
   // ===
@@ -192,3 +237,5 @@ export class Hex {
     return this.data.every((value, index) => value === other.data[index]);
   }
 }
+
+export const hexToAsciiString = (hex: string) => new TextDecoder().decode(Hex.fromHexInput(hex).toUint8Array());

@@ -94,6 +94,7 @@ export class Deserializer {
   }
 
   /**
+   * @deprecated use `deserializeOption` instead.
    * Deserializes a UTF-8 encoded string from a byte array. It first reads the length of the string in bytes,
    * followed by the actual byte content, and decodes it into a string.
    *
@@ -115,48 +116,68 @@ export class Deserializer {
   }
 
   /**
-   * Deserializes an optional string.
+   * Deserializes an optional value from the buffer.
    *
-   * The BCS layout for Optional<String> is 0 if none, else 1 followed by the string length and string content.
-   * @returns The deserialized string if it exists, otherwise undefined.
+   * The BCS layout for Optional<T> starts with a boolean byte (0 if none, 1 if some),
+   * followed by the value if present.
+   *
+   * @template T - The type of the value to deserialize
+   * @param type - Either a Deserializable class or one of the string literals: "string", "bytes", or "fixedBytes"
+   * @param len - Required length when type is "fixedBytes", ignored otherwise
+   * @returns The deserialized value if present, undefined otherwise
+   *
+   * @throws {Error} When "fixedBytes" is specified without a length
+   *
    * @example
    * ```typescript
-   * const deserializer = new Deserializer(new Uint8Array([0x00]));
-   * assert(deserializer.deserializeOptionStr() === undefined);
-   * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
-   * assert(deserializer.deserializeOptionStr() === "1234abcd");
+   * // Deserialize an optional string
+   * const deserializer = new Deserializer(new Uint8Array([1, 3, 97, 98, 99]));
+   * const optStr = deserializer.deserializeOption("string");
+   * // optStr === "abc"
+   *
+   * // Deserialize an optional custom type
+   * const deserializer = new Deserializer(new Uint8Array([0]));
+   * const optValue = deserializer.deserializeOption(MyClass);
+   * // optValue === undefined
+   *
+   * // Deserialize optional bytes
+   * const deserializer = new Deserializer(new Uint8Array([1, 3, 1, 2, 3]));
+   * const optBytes = deserializer.deserializeOption("bytes");
+   * // optBytes === Uint8Array[1, 2, 3]
+   *
+   * // Deserialize optional fixed bytes
+   * const deserializer = new Deserializer(new Uint8Array([1, 1, 2, 3, 4]));
+   * const optBytes = deserializer.deserializeOption("fixedBytes", 4);
+   * // optBytes === Uint8Array[1, 2, 3, 4]
    * ```
    * @group Implementation
    * @category BCS
    */
-  deserializeOptionStr(): string | undefined {
+  deserializeOption(type: "string"): string | undefined;
+  deserializeOption(type: "bytes"): Uint8Array | undefined;
+  deserializeOption(type: "fixedBytes", len: number): Uint8Array | undefined;
+  deserializeOption<T>(type: Deserializable<T>): T | undefined;
+  deserializeOption<T>(
+    type: Deserializable<T> | "string" | "bytes" | "fixedBytes",
+    len?: number,
+  ): T | string | Uint8Array | undefined {
     const exists = this.deserializeBool();
-    return exists ? this.deserializeStr() : undefined;
-  }
+    if (!exists) return undefined;
 
-  /**
-   * Deserializes an optional deserializable class.
-   *
-   * BCS layout for Optional<T>: 0 if none, else 1 | BCS representation of class.
-   *
-   * @example
-   * const deserializer = new Deserializer(new Uint8Array([1, 2, 3]));
-   * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
-   * // value is now an instance of MyClass
-   *
-   * const deserializer = new Deserializer(new Uint8Array([0]));
-   * const value = deserializer.deserializeOption(MyClass); // where MyClass has a `deserialize` function
-   * // value is undefined
-   *
-   * @param cls The BCS-deserializable class to deserialize the buffered bytes into.
-   *
-   * @returns The deserialized value of class type T or undefined if no value exists.
-   * @group Implementation
-   * @category BCS
-   */
-  deserializeOption<T>(cls: Deserializable<T>): T | undefined {
-    const exists = this.deserializeBool();
-    return exists ? this.deserialize(cls) : undefined;
+    if (type === "string") {
+      return this.deserializeStr();
+    }
+    if (type === "bytes") {
+      return this.deserializeBytes();
+    }
+    if (type === "fixedBytes") {
+      if (len === undefined) {
+        throw new Error("Fixed bytes length not provided");
+      }
+      return this.deserializeFixedBytes(len);
+    }
+
+    return this.deserialize(type);
   }
 
   /**

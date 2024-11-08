@@ -10,7 +10,8 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { AptosApiError, getAptosFullNode, paginateWithCursor } from "../client";
+import { getAptosFullNode, paginateWithCursor } from "../client";
+import { AptosApiError } from "../errors";
 import {
   TransactionResponseType,
   type AnyNumber,

@@ -1,7 +1,6 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { aptosRequest } from "./core";
-import { AptosResponse } from "./types";
-import { AnyNumber, ClientConfig, MimeType } from "../types";
+import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosApiType } from "../utils/const";
 
 /**

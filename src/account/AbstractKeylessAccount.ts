@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import EventEmitter from "eventemitter3";
+import { jwtDecode } from "jwt-decode";
 import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
@@ -12,17 +13,33 @@ import {
   EphemeralCertificate,
   ZeroKnowledgeSig,
   ZkProof,
+  getKeylessJWKs,
+  MoveJWK,
+  getKeylessConfig,
 } from "../core/crypto";
 
-import { Account } from "./Account";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Hex } from "../core/hex";
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { Serializable, Serializer } from "../bcs";
+import { Deserializer, Serializable, Serializer } from "../bcs";
 import { deriveTransactionType, generateSigningMessage } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { base64UrlDecode } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
+import { Account } from "./Account";
+import { AptosConfig } from "../api/aptosConfig";
+import { KeylessError, KeylessErrorType } from "../errors";
+
+/**
+ * An interface which defines if an Account utilizes Keyless signing.
+ */
+export interface KeylessSigner extends Account {
+  checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void>;
+}
+
+export function isKeylessSigner(obj: any): obj is KeylessSigner {
+  return obj !== null && obj !== undefined && typeof obj.checkKeylessAccountValidity === "function";
+}
 
 /**
  * Account implementation for the Keyless authentication scheme.  This abstract class is used for standard Keyless Accounts
@@ -30,7 +47,7 @@ import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
  * @group Implementation
  * @category Account (On-Chain Model)
  */
-export abstract class AbstractKeylessAccount extends Serializable implements Account {
+export abstract class AbstractKeylessAccount extends Serializable implements KeylessSigner {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
@@ -113,13 +130,37 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   readonly jwt: string;
 
   /**
+   * The hash of the verification key used to verify the proof. This is optional and can be used to check verifying key
+   * rotations which may invalidate the proof.
+   */
+  readonly verificationKeyHash?: Uint8Array;
+
+  /**
    * An event emitter used to assist in handling asynchronous proof fetching.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
 
-  // Use the static constructor 'create' instead.
+  /**
+   * Use the static generator `create(...)` instead.
+   * Creates an instance of the KeylessAccount with an optional proof.
+   *
+   * @param args - The parameters for creating a KeylessAccount.
+   * @param args.address - Optional account address associated with the KeylessAccount.
+   * @param args.publicKey - A KeylessPublicKey or FederatedKeylessPublicKey.
+   * @param args.ephemeralKeyPair - The ephemeral key pair used in the account creation.
+   * @param args.iss - A JWT issuer.
+   * @param args.uidKey - The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
+   * @param args.uidVal - The unique id for this user, intended to be a stable user identifier.
+   * @param args.aud - The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
+   * OIDC registration with the identity provider.
+   * @param args.pepper - A hexadecimal input used for additional security.
+   * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
+   * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   * @param args.jwt - A JSON Web Token used for authentication.
+   * @param args.verificationKeyHash Optional 32-byte verification key hash as hex input used to check proof validity.
+   */
   protected constructor(args: {
     address?: AccountAddress;
     publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
@@ -132,9 +173,22 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     proof: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
+    verificationKeyHash?: HexInput;
   }) {
     super();
-    const { address, ephemeralKeyPair, publicKey, uidKey, uidVal, aud, pepper, proof, proofFetchCallback, jwt } = args;
+    const {
+      address,
+      ephemeralKeyPair,
+      publicKey,
+      uidKey,
+      uidVal,
+      aud,
+      pepper,
+      proof,
+      proofFetchCallback,
+      jwt,
+      verificationKeyHash,
+    } = args;
     this.ephemeralKeyPair = ephemeralKeyPair;
     this.publicKey = publicKey;
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
@@ -163,11 +217,17 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
       throw new Error(`Pepper length in bytes should be ${AbstractKeylessAccount.PEPPER_LENGTH}`);
     }
     this.pepper = pepperBytes;
+    if (verificationKeyHash !== undefined) {
+      if (Hex.hexInputToUint8Array(verificationKeyHash).length !== 32) {
+        throw new Error("verificationKeyHash must be 32 bytes");
+      }
+      this.verificationKeyHash = Hex.hexInputToUint8Array(verificationKeyHash);
+    }
   }
 
   /**
    * This initializes the asynchronous proof fetch
-   * @return
+   * @return Emits whether the proof succeeds or fails, but has no return.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
@@ -184,7 +244,14 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
     }
   }
 
+  /**
+   * Serializes the jwt data into a format suitable for transmission or storage.
+   * This function ensures that both the jwt data and the proof are properly serialized.
+   *
+   * @param serializer - The serializer instance used to convert the jwt data into bytes.
+   */
   serialize(serializer: Serializer): void {
+    this.accountAddress.serialize(serializer);
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
@@ -193,6 +260,27 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
       throw new Error("Cannot serialize - proof undefined");
     }
     this.proof.serialize(serializer);
+    serializer.serializeOption(this.verificationKeyHash, 32);
+  }
+
+  static partialDeserialize(deserializer: Deserializer): {
+    address: AccountAddress;
+    jwt: string;
+    uidKey: string;
+    pepper: Uint8Array;
+    ephemeralKeyPair: EphemeralKeyPair;
+    proof: ZeroKnowledgeSig;
+    verificationKeyHash?: Uint8Array;
+  } {
+    const address = AccountAddress.deserialize(deserializer);
+    const jwt = deserializer.deserializeStr();
+    const uidKey = deserializer.deserializeStr();
+    const pepper = deserializer.deserializeFixedBytes(31);
+    const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
+    const proof = ZeroKnowledgeSig.deserialize(deserializer);
+    const verificationKeyHash = deserializer.deserializeOption("fixedBytes", 32);
+
+    return { address, jwt, uidKey, pepper, ephemeralKeyPair, proof, verificationKeyHash };
   }
 
   /**
@@ -245,6 +333,45 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   }
 
   /**
+   * Validates that the Keyless Account can be used to sign transactions.
+   * @return
+   */
+  async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
+    if (this.isExpired()) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED,
+      });
+    }
+    await this.waitForProofFetch();
+    if (this.proof === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.ASYNC_PROOF_FETCH_FAILED,
+      });
+    }
+    const header = jwtDecode(this.jwt, { header: true });
+    if (header.kid === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.JWT_PARSING_ERROR,
+        details: "checkKeylessAccountValidity failed. JWT is missing 'kid' in header. This should never happen.",
+      });
+    }
+    if (this.verificationKeyHash !== undefined) {
+      const { verificationKey } = await getKeylessConfig({ aptosConfig });
+      if (Hex.hexInputToString(verificationKey.hash()) !== Hex.hexInputToString(this.verificationKeyHash)) {
+        throw KeylessError.fromErrorType({
+          type: KeylessErrorType.INVALID_PROOF_VERIFICATION_KEY_NOT_FOUND,
+        });
+      }
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[Aptos SDK] The verification key hash was not set. Proof may be invalid if the verification key has rotated.",
+      );
+    }
+    await AbstractKeylessAccount.fetchJWK({ aptosConfig, publicKey: this.publicKey, kid: header.kid });
+  }
+
+  /**
    * Sign the given message using Keyless.
    * @param message in HexInput format
    * @returns Signature
@@ -254,10 +381,15 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
   sign(message: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
     if (this.isExpired()) {
-      throw new Error("EphemeralKeyPair is expired");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.EPHEMERAL_KEY_PAIR_EXPIRED,
+      });
     }
     if (this.proof === undefined) {
-      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_NOT_FOUND,
+        details: "Proof not found - make sure to call `await account.checkKeylessAccountValidity()` before signing.",
+      });
     }
     const ephemeralPublicKey = this.ephemeralKeyPair.getPublicKey();
     const ephemeralSignature = this.ephemeralKeyPair.sign(message);
@@ -281,7 +413,10 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
    */
   signTransaction(transaction: AnyRawTransaction): KeylessSignature {
     if (this.proof === undefined) {
-      throw new Error("Proof not found - make sure to call `await account.waitForProofFetch()` before signing.");
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_NOT_FOUND,
+        details: "Proof not found - make sure to call `await account.checkKeylessAccountValidity()` before signing.",
+      });
     }
     const raw = deriveTransactionType(transaction);
     const txnAndProof = new TransactionAndProof(raw, this.proof.proof);
@@ -311,6 +446,58 @@ export abstract class AbstractKeylessAccount extends Serializable implements Acc
       return false;
     }
     return true;
+  }
+
+  /**
+   * Fetches the JWK from the issuer's well-known JWKS endpoint.
+   *
+   * @param args.publicKey The keyless public key to query
+   * @param args.kid The kid of the JWK to fetch
+   * @returns A JWK matching the `kid` in the JWT header.
+   * @throws {KeylessError} If the JWK cannot be fetched
+   */
+  static async fetchJWK(args: {
+    aptosConfig: AptosConfig;
+    publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+    kid: string;
+  }): Promise<MoveJWK> {
+    const { aptosConfig, publicKey, kid } = args;
+    const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
+    const { iss } = keylessPubKey;
+
+    let allJWKs: Map<string, MoveJWK[]>;
+    const jwkAddr = publicKey instanceof FederatedKeylessPublicKey ? publicKey.jwkAddress : undefined;
+    try {
+      allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr });
+    } catch (error) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR,
+        error,
+        details: `Failed to fetch ${jwkAddr ? "Federated" : "Patched"}JWKs ${jwkAddr ? `for address ${jwkAddr}` : "0x1"}`,
+      });
+    }
+
+    // Find the corresponding JWK set by `iss`
+    const jwksForIssuer = allJWKs.get(iss);
+
+    if (jwksForIssuer === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.INVALID_JWT_ISS_NOT_RECOGNIZED,
+        details: `JWKs for issuer ${iss} not found.`,
+      });
+    }
+
+    // Find the corresponding JWK by `kid`
+    const jwk = jwksForIssuer.find((key) => key.kid === kid);
+
+    if (jwk === undefined) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
+        details: `JWK with kid '${kid}' for issuer '${iss}' not found.`,
+      });
+    }
+
+    return jwk;
   }
 }
 
@@ -348,6 +535,12 @@ export class TransactionAndProof extends Serializable {
     this.proof = proof;
   }
 
+  /**
+   * Serializes the transaction data into a format suitable for transmission or storage.
+   * This function ensures that both the transaction bytes and the proof are properly serialized.
+   *
+   * @param serializer - The serializer instance used to convert the transaction data into bytes.
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.transaction.bcsToBytes());
     serializer.serializeOption(this.proof);

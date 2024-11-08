@@ -207,11 +207,6 @@ export class Ed25519PublicKey extends AccountPublicKey {
 
 /**
  * Represents the private key of an Ed25519 key pair.
- *
- * @static
- * @readonly LENGTH - Length of an Ed25519 private key.
- * @static
- * @readonly SLIP_0010_SEED - The Ed25519 key seed to use for BIP-32 compatibility.
  * @group Implementation
  * @category Serialization
  */
@@ -425,14 +420,12 @@ export class Ed25519PrivateKey extends Serializable implements PrivateKey {
 
 /**
  * Represents a signature of a message signed using an Ed25519 private key.
- *
- * @static LENGTH - Length of an Ed25519 signature, which is 64 bytes.
  * @group Implementation
  * @category Serialization
  */
 export class Ed25519Signature extends Signature {
   /**
-   * Length of an Ed25519 signature
+   * Length of an Ed25519 signature, which is 64 bytes.
    * @group Implementation
    * @category Serialization
    */

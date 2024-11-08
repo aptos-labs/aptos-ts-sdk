@@ -7,7 +7,8 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
-import { AbstractKeylessAccount } from "./AbstractKeylessAccount";
+import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
+import { AptosConfig } from "../api/aptosConfig";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.
@@ -32,7 +33,7 @@ export interface VerifyMultiKeySignatureArgs {
  * @group Implementation
  * @category Account (On-Chain Model)
  */
-export class MultiKeyAccount implements Account {
+export class MultiKeyAccount implements Account, KeylessSigner {
   /**
    * Public key associated with the account
    * @group Implementation
@@ -180,9 +181,23 @@ export class MultiKeyAccount implements Account {
   }
 
   /**
-   * Sign the given data using the MultiKeyAccount's signers.
+   * Validates that the Keyless Account can be used to sign transactions.
+   * @return
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async checkKeylessAccountValidity(aptosConfig: AptosConfig): Promise<void> {
+    const keylessSigners = this.signers.filter(
+      (signer) => signer instanceof AbstractKeylessAccount,
+    ) as AbstractKeylessAccount[];
+    const promises = keylessSigners.map((signer) => signer.checkKeylessAccountValidity(aptosConfig));
+    await Promise.all(promises);
+  }
+
+  /**
+   * Sign the given message using the MultiKeyAccount's signers
    * @param data - The data to be signed in HexInput format.
-   * @returns MultiKeySignature - The resulting multi-key signature.
+   * @returns MultiKeySignature
    * @group Implementation
    * @category Account (On-Chain Model)
    */

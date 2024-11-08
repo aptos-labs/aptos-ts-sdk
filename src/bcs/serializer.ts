@@ -415,34 +415,44 @@ export class Serializer {
   }
 
   /**
-   * Serializes a BCS Serializable value into a serializer instance or handles the case when the value is undefined.
-   * This function allows you to efficiently add serialized data to the serializer's byte buffer.
+   * Serializes an optional value which can be a Serializable, string, or Uint8Array.
+   * For strings and Uint8Arrays, it uses the appropriate serialization method.
    *
-   * @param value The BCS Serializable value to serialize, or undefined if there is no value.
+   * @param value The value to serialize (Serializable, string, Uint8Array, or undefined)
+   * @param len Optional fixed length for Uint8Array serialization. If provided, uses serializeFixedBytes instead of serializeBytes
    *
    * @example
    * ```typescript
    * const serializer = new Serializer();
-   * serializer.serializeOption(new AccountAddress(...));
-   * const serializedBytes = serializer.toUint8Array();
-   * // serializedBytes is now the BCS-serialized byte representation of AccountAddress
-   *
-   * const serializer = new Serializer();
-   * serializer.serializeOption(undefined);
-   * assert(serializer.toUint8Array() === new Uint8Array([0x00]));
+   * serializer.serializeOption("hello");  // Serializes optional string
+   * serializer.serializeOption(new Uint8Array([1, 2, 3]));  // Serializes optional bytes
+   * serializer.serializeOption(new Uint8Array([1, 2, 3]), 3);  // Serializes optional fixed-length bytes
+   * serializer.serializeOption(new AccountAddress(...));  // Serializes optional Serializable
+   * serializer.serializeOption(undefined);  // Serializes none case
    * ```
    * @group Implementation
    * @category BCS
    */
-  serializeOption<T extends Serializable>(value?: T): void {
+  serializeOption<T extends Serializable | string | Uint8Array>(value?: T, len?: number): void {
     const hasValue = value !== undefined;
     this.serializeBool(hasValue);
     if (hasValue) {
-      value.serialize(this);
+      if (typeof value === "string") {
+        this.serializeStr(value);
+      } else if (value instanceof Uint8Array) {
+        if (len !== undefined) {
+          this.serializeFixedBytes(value);
+        } else {
+          this.serializeBytes(value);
+        }
+      } else {
+        value.serialize(this);
+      }
     }
   }
 
   /**
+   * @deprecated use `serializeOption` instead.
    * Serializes an optional string, supporting UTF8 encoding.
    * The function encodes the existence of the string first, followed by the length and content if it exists.
    *
