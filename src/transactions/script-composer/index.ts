@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionComposer, initSync, create_wasm } from "@wgb5445/aptos-intent-npm";
+import { TransactionComposer, initSync, wasm } from "@wgb5445/aptos-intent-npm";
 import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
@@ -10,7 +10,7 @@ import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
 (async () => {
-  initSync(await create_wasm());
+  initSync({module: wasm});
 })();
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
