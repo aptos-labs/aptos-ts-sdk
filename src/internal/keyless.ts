@@ -233,14 +233,14 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss, options } = args;
-  
-  let {jwksUrl} = args;
+
+  let { jwksUrl } = args;
 
   if (jwksUrl === undefined) {
     if (FIREBASE_AUTH_ISS_PATTERN.test(iss)) {
       jwksUrl = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
     } else {
-      jwksUrl = (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
+      jwksUrl = iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`;
     }
   }
 

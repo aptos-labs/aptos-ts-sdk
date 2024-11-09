@@ -71,4 +71,4 @@ export enum ProcessorType {
  * Matches URLs in the format: https://securetoken.google.com/[project-id]
  * where project-id can contain letters, numbers, hyphens, and underscores
  */
-export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/; 
+export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/;
