@@ -65,3 +65,10 @@ export enum ProcessorType {
   USER_TRANSACTION_PROCESSOR = "user_transaction_processor",
   OBJECT_PROCESSOR = "objects_processor",
 }
+
+/**
+ * Regular expression pattern for Firebase Auth issuer URLs
+ * Matches URLs in the format: https://securetoken.google.com/[project-id]
+ * where project-id can contain letters, numbers, hyphens, and underscores
+ */
+export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/; 

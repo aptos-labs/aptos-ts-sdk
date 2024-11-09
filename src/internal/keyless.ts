@@ -31,6 +31,7 @@ import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { KeylessError, KeylessErrorType } from "../errors";
+import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -232,7 +233,16 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss, options } = args;
-  const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
+  
+  let {jwksUrl} = args;
+
+  if (jwksUrl === undefined) {
+    if (FIREBASE_AUTH_ISS_PATTERN.test(iss)) {
+      jwksUrl = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+    } else {
+      jwksUrl = (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
+    }
+  }
 
   let response: Response;
 
