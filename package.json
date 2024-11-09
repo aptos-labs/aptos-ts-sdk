@@ -40,6 +40,7 @@
     "fmt": "pnpm _fmt --write",
     "lint": "eslint '**/*.{cts,mts,ts}'",
     "test": "pnpm jest",
+    "test:browser": "BROWSER_ENV=1 pnpm jest",
     "unit-test": "pnpm jest tests/unit",
     "e2e-test": "pnpm jest tests/e2e",
     "indexer-codegen": "graphql-codegen --config ./src/types/codegen.yaml && pnpm fmt",
@@ -87,6 +88,7 @@
     "globals": "^15.14.0",
     "graphql-request": "^6.1.0",
     "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "prettier": "^3.5.0",
     "tree-kill": "^1.2.2",
@@ -96,7 +98,9 @@
     "tsup": "^8.4.0",
     "typedoc": "^0.27.7",
     "typedoc-plugin-missing-exports": "^3.1.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "whatwg-fetch": "^3.6.20",
+    "xhr2": "^0.2.1"
   },
   "version": "1.36.0"
 }
