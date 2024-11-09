@@ -93,6 +93,24 @@ describe("keyless api", () => {
     KEYLESS_TEST_TIMEOUT,
   );
 
+  test(
+    "installs jwks for a firebase iss",
+    async () => {
+      const sender = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: sender.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+        sender,
+        iss: "https://securetoken.google.com/aptos-build",
+      });
+      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+    },
+    KEYLESS_TEST_TIMEOUT,
+  );
+
   test("submitting a keyless txn using an outdated JWK should error with meaningful message", async () => {
     // This deserializes a keyless account derived from a JWT with a kid that is no longer valid.
     const account = KeylessAccount.fromBytes(
