@@ -3,6 +3,9 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+
+# 1.32.0 (2024-11-08)
 
 - [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
 - Add support for AIP-80 compliant private key imports and exports through `toAIP80String`
