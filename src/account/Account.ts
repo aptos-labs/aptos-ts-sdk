@@ -2,10 +2,14 @@ import type { AccountAuthenticator } from "../transactions/authenticator/account
 import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import type { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { AuthenticationKey } from "../core/authenticationKey";
-import { AccountPublicKey, Ed25519PrivateKey, PrivateKey, Signature, VerifySignatureArgs } from "../core/crypto";
+import { AccountPublicKey, Ed25519PrivateKey, PrivateKeyInput, Signature, VerifySignatureArgs } from "../core/crypto";
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
+import { Serializable } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
+import { deserializeSchemeAndAddress } from "./utils";
+import { deserializeNonMultiKeyAccount, MultiKeyAccount } from "./MultiKeyAccount";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.
@@ -44,7 +48,7 @@ export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
  * @param legacy - Always false; cannot be explicitly set to true.
  */
 export interface CreateSingleKeyAccountFromPrivateKeyArgs {
-  privateKey: Exclude<PrivateKey, Ed25519PrivateKey>;
+  privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
   legacy?: false;
 }
@@ -57,7 +61,7 @@ export interface CreateSingleKeyAccountFromPrivateKeyArgs {
  * @param legacy - Optional flag indicating if the account is a legacy account.
  */
 export interface CreateAccountFromPrivateKeyArgs {
-  privateKey: PrivateKey;
+  privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
   legacy?: boolean;
 }
@@ -128,7 +132,7 @@ export interface PrivateKeyFromDerivationPathArgs {
  *
  * Note: Generating an account instance does not create the account on-chain.
  */
-export abstract class Account {
+export abstract class Account extends Serializable {
   /**
    * Public key associated with the account
    */
@@ -176,10 +180,9 @@ export abstract class Account {
    * @returns An instance of either Ed25519Account or SingleKeyAccount based on the provided private key.
    */
   static fromPrivateKey(args: CreateEd25519AccountFromPrivateKeyArgs): Ed25519Account;
-  static fromPrivateKey(args: CreateEd25519SingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
   static fromPrivateKey(args: CreateSingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
-  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): Account;
-  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs) {
+  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): SingleKeyAccount;
+  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): Ed25519Account | SingleKeyAccount {
     const { privateKey, address, legacy = true } = args;
     if (privateKey instanceof Ed25519PrivateKey && legacy) {
       return new Ed25519Account({
@@ -285,5 +288,26 @@ export abstract class Account {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
+  }
+
+  static fromHex(hex: HexInput): Account {
+    return Account.deserialize(Deserializer.fromHex(hex));
+  }
+
+  static deserialize(deserializer: Deserializer): Account {
+    const offset = deserializer.getOffset();
+    const { signingScheme } = deserializeSchemeAndAddress(deserializer);
+    switch (signingScheme) {
+      case SigningScheme.Ed25519:
+      case SigningScheme.SingleKey: {
+        deserializer.reset(offset);
+        return deserializeNonMultiKeyAccount(deserializer);
+      }
+      case SigningScheme.MultiKey:
+        deserializer.reset(offset);
+        return MultiKeyAccount.deserialize(deserializer);
+      default:
+        throw new Error(`Deserialization of Account failed: invalid signingScheme value ${signingScheme}`);
+    }
   }
 }

@@ -101,6 +101,17 @@ export class KeylessAccount extends AbstractKeylessAccount {
   /**
    * Deserialize bytes using this account's information.
    *
+   * @param hex The hex being deserialized into an MultiKeyAccount.
+   * @returns
+   */
+  static fromHex(hex: HexInput): KeylessAccount {
+    return KeylessAccount.deserialize(Deserializer.fromHex(hex));
+  }
+
+  /**
+   * @deprecated Use `fromHex` instead.
+   * Deserialize bytes using this account's information.
+   *
    * @param bytes The bytes being interpreted.
    * @returns
    */

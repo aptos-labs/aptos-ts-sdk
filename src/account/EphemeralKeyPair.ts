@@ -137,6 +137,16 @@ export class EphemeralKeyPair extends Serializable {
   }
 
   /**
+   * Deserialize hex using this account's information.
+   *
+   * @param hex The hex being deserialized into an EphemeralKeyPair.
+   * @returns
+   */
+  static fromHex(hex: HexInput): EphemeralKeyPair {
+    return EphemeralKeyPair.deserialize(Deserializer.fromHex(hex));
+  }
+
+  /**
    * Deserialize a byte array into an EphemeralKeyPair object.
    * This function allows you to reconstruct an EphemeralKeyPair from its serialized byte representation.
    *

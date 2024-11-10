@@ -1,14 +1,21 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "./Account";
+import type { Account } from "./Account";
 import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { HexInput, SigningScheme } from "../types";
+import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
 import { AptosConfig } from "../api/aptosConfig";
+import { Serializable, Serializer } from "../bcs/serializer";
+import { Deserializer } from "../bcs/deserializer";
+import { deserializeSchemeAndAddress } from "./utils";
+import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
+import { Ed25519Account } from "./Ed25519Account";
+import { KeylessAccount } from "./KeylessAccount";
+import { FederatedKeylessAccount } from "./FederatedKeylessAccount";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.
@@ -29,7 +36,7 @@ export interface VerifyMultiKeySignatureArgs {
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
-export class MultiKeyAccount implements Account, KeylessSigner {
+export class MultiKeyAccount extends Serializable implements Account, KeylessSigner {
   /**
    * Public key associated with the account
    */
@@ -43,7 +50,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
   /**
    * Signing scheme used to sign transactions
    */
-  readonly signingScheme: SigningScheme;
+  readonly signingScheme: SigningScheme = SigningScheme.MultiKey;
 
   /**
    * The signers used to sign messages.  These signers should correspond to public keys in the
@@ -69,26 +76,49 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @param args.signers - An array of M signers that will be used to sign the transaction.
    * @param args.address - An optional account address input. If not provided, the derived address from the public key will be used.
    */
-  constructor(args: { multiKey: MultiKey; signers: Account[]; address?: AccountAddressInput }) {
-    const { multiKey, signers, address } = args;
+  constructor(args: {
+    multiKey: MultiKey;
+    signers: SingleKeySignerOrLegacyEd25519Account[];
+    address?: AccountAddressInput;
+  }) {
+    super();
+    const { multiKey, address } = args;
+
+    const signers: SingleKeySigner[] = args.signers.map((signer) =>
+      signer instanceof Ed25519Account ? SingleKeyAccount.fromEd25519Account(signer) : signer,
+    );
+
+    if (multiKey.signaturesRequired > signers.length) {
+      throw new Error(
+        // eslint-disable-next-line max-len
+        `Not enough signers provided to satisfy the required signatures. Need ${multiKey.signaturesRequired} signers, but only ${signers.length} provided`,
+      );
+    }
 
     this.publicKey = multiKey;
-    this.signingScheme = SigningScheme.MultiKey;
 
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
 
-    // Get the index of each respective signer in the bitmap
+    // For each signer, find its corresponding position in the MultiKey's public keys array
     const bitPositions: number[] = [];
     for (const signer of signers) {
-      bitPositions.push(this.publicKey.getIndex(signer.publicKey));
+      bitPositions.push(this.publicKey.getIndex(signer.getAnyPublicKey()));
     }
-    // Zip signers and bit positions and sort signers by bit positions in order
-    // to ensure the signature is signed in ascending order according to the bitmap.
-    // Authentication on chain will fail otherwise.
+
+    // Create pairs of [signer, position] and sort them by position
+    // This sorting is critical because:
+    // 1. The on-chain verification expects signatures to be in ascending order by bit position
+    // 2. The bitmap must match the order of signatures when verifying
     const signersAndBitPosition: [Account, number][] = signers.map((signer, index) => [signer, bitPositions[index]]);
     signersAndBitPosition.sort((a, b) => a[1] - b[1]);
+
+    // Extract the sorted signers and their positions into separate arrays
     this.signers = signersAndBitPosition.map((value) => value[0]);
     this.signerIndicies = signersAndBitPosition.map((value) => value[1]);
+
+    // Create a bitmap representing which public keys from the MultiKey are being used
+    // This bitmap is used during signature verification to identify which public keys
+    // should be used to verify each signature
     this.signaturesBitmap = this.publicKey.createBitmap({ bits: bitPositions });
   }
 
@@ -102,11 +132,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @returns MultiKeyAccount - The newly created MultiKeyAccount.
    */
   static fromPublicKeysAndSigners(args: {
-    publicKeys: PublicKey[];
+    publicKeys?: PublicKey[];
     signaturesRequired: number;
-    signers: Account[];
+    signers: SingleKeySignerOrLegacyEd25519Account[];
   }): MultiKeyAccount {
-    const { publicKeys, signaturesRequired, signers } = args;
+    const { publicKeys = args.signers.map((signer) => signer.publicKey), signaturesRequired, signers } = args;
     const multiKey = new MultiKey({ publicKeys, signaturesRequired });
     return new MultiKeyAccount({ multiKey, signers });
   }
@@ -220,5 +250,72 @@ export class MultiKeyAccount implements Account, KeylessSigner {
       }
     }
     return true;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(this.signingScheme);
+    this.accountAddress.serialize(serializer);
+    this.publicKey.serialize(serializer);
+    serializer.serializeVector(this.signers);
+  }
+
+  /**
+   * Deserialize bytes using this account's information.
+   *
+   * @param hex The hex being deserialized into an MultiKeyAccount.
+   * @returns
+   */
+  static fromHex(hex: HexInput): MultiKeyAccount {
+    return MultiKeyAccount.deserialize(Deserializer.fromHex(hex));
+  }
+
+  static deserialize(deserializer: Deserializer): MultiKeyAccount {
+    const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
+    if (signingScheme !== SigningScheme.MultiKey) {
+      throw new Error(
+        `Deserialization of MultiKeyAccount failed: Signing scheme was not MultiKey, was ${signingScheme}`,
+      );
+    }
+    const multiKey = MultiKey.deserialize(deserializer);
+    const length = deserializer.deserializeUleb128AsU32();
+    const signers = new Array<SingleKeySignerOrLegacyEd25519Account>();
+    for (let i = 0; i < length; i += 1) {
+      signers.push(deserializeNonMultiKeyAccount(deserializer));
+    }
+    return new MultiKeyAccount({ multiKey, signers, address });
+  }
+}
+
+export function deserializeNonMultiKeyAccount(deserializer: Deserializer): SingleKeySignerOrLegacyEd25519Account {
+  const offset = deserializer.getOffset();
+  const { signingScheme } = deserializeSchemeAndAddress(deserializer);
+  switch (signingScheme) {
+    case SigningScheme.Ed25519:
+      deserializer.reset(offset);
+      return Ed25519Account.deserialize(deserializer);
+    case SigningScheme.SingleKey: {
+      const anyKeyVariant = deserializer.deserializeUleb128AsU32();
+      const anyKeyVariantOffset = deserializer.getOffset();
+      deserializer.reset(offset);
+      switch (anyKeyVariant) {
+        case AnyPublicKeyVariant.Keyless:
+          return KeylessAccount.deserialize(deserializer);
+        case AnyPublicKeyVariant.FederatedKeyless:
+          return FederatedKeylessAccount.deserialize(deserializer);
+        case AnyPublicKeyVariant.Ed25519:
+        case AnyPublicKeyVariant.Secp256k1:
+          return SingleKeyAccount.deserialize(deserializer);
+        default:
+          throw new Error(
+            // eslint-disable-next-line max-len
+            `Deserialization of Account failed: AnyPublicKey variant ${anyKeyVariant} is invalid ending at offset ${anyKeyVariantOffset}.\n
+              ${JSON.stringify(deserializer, null, 2)}`,
+          );
+      }
+    }
+    default:
+      throw new Error(
+        `Deserialization of Account failed: SigningScheme variant ${signingScheme} is invalid ending at offset ${offset}`,
+      );
   }
 }

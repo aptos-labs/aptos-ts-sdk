@@ -9,7 +9,6 @@ import { EphemeralKeyPair } from "./EphemeralKeyPair";
 import { Deserializer, Serializer } from "../bcs";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { AbstractKeylessAccount, ProofFetchCallback } from "./AbstractKeylessAccount";
-import { Hex } from "../core";
 
 /**
  * Account implementation for the FederatedKeyless authentication scheme.
@@ -100,13 +99,24 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
   }
 
   /**
+   * Deserialize hex using this account's information.
+   *
+   * @param hex The hex being deserialized into an FederatedKeylessAccount.
+   * @returns
+   */
+  static fromHex(hex: HexInput): FederatedKeylessAccount {
+    return FederatedKeylessAccount.deserialize(Deserializer.fromHex(hex));
+  }
+
+  /**
+   * @deprecated Use `fromHex` instead.
    * Deserialize bytes using this account's information.
    *
    * @param bytes The bytes being interpreted.
    * @returns
    */
   static fromBytes(bytes: HexInput): FederatedKeylessAccount {
-    return FederatedKeylessAccount.deserialize(new Deserializer(Hex.hexInputToUint8Array(bytes)));
+    return FederatedKeylessAccount.deserialize(Deserializer.fromHex(bytes));
   }
 
   /**

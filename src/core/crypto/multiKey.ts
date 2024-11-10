@@ -196,7 +196,7 @@ export class MultiKey extends AccountPublicKey {
     if (index !== -1) {
       return index;
     }
-    throw new Error("Public key not found in MultiKey");
+    throw new Error(`Public key ${publicKey} not found in MultiKey ${this}`);
   }
 
   public static isInstance(value: PublicKey): value is MultiKey {
