@@ -101,6 +101,24 @@ describe("keyless api", () => {
     KEYLESS_TEST_TIMEOUT,
   );
 
+  test(
+    "installs jwks for a firebase iss",
+    async () => {
+      const sender = Account.generate();
+      await aptos.fundAccount({
+        accountAddress: sender.accountAddress,
+        amount: FUND_AMOUNT,
+      });
+      const jwkTransaction = await aptos.updateFederatedKeylessJwkSetTransaction({
+        sender,
+        iss: "https://securetoken.google.com/aptos-build",
+      });
+      const committedJwkTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction: jwkTransaction });
+      await aptos.waitForTransaction({ transactionHash: committedJwkTxn.hash });
+    },
+    KEYLESS_TEST_TIMEOUT,
+  );
+
   test("submitting a keyless txn using an outdated JWK should error with meaningful message", async () => {
     const jwt =
       "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtcnNhMiJ9.eyJpc3MiOiJ0ZXN0Lm9pZGMucHJvdmlkZXIiLCJhdWQiOiJ0ZXN0LWtleWxlc3MtZGFwcCIsInN1YiI6InRlc3QtdXNlciIsImVtYWlsIjoidGVzdEBhcHRvc2xhYnMuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlhdCI6OTg3NjU0MzIwOSwiZXhwIjo5ODc2NTQzMjEwLCJub25jZSI6IjcwOTUyNDIzMzM5NjQ0NTcyNjc5MzQ3MjM3NjgwODAzMDMzMjQ0NjI4MjExOTE3NTY0MDk0NTAwOTk1MTk3ODEwNTE5MTAxODcxMTgifQ.RmAz3eE_aVxjMGFHttKkUzPvwvDQuVdGFgXV3VihhY7a2B8juk_Pw-NqLEEgLDsB_Vh1jDoPySvogiEDwHZ5fToqk9brImdfmACw27pr--MQ6kn6n0k2XOPmMqjQ7KEMM43Rf7sK_9T-guovf0IVR44sJDqnCJanXBdZK52jNRvj2zmkMypVYXQHAz5jvJlCQcnTh0MpIm9IOgRzjKTk0ax8Wr9IDzzw__ljj036climWBzhGKKw9aKIek70Ug6h2604oI8CBRlxOKimw24NXIO_2jQBRMfeTW_hIm9q3pQ1OML-f7PMGdAAyVGx_sEM0wwYpcDfjBEgK1_RgRANRg";
