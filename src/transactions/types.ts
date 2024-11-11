@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { CallArgument } from "@wgb5445/aptos-intent-npm";
 import { AptosConfig } from "../api/aptosConfig";
 import { MoveOption, MoveString, MoveVector } from "../bcs/serializable/moveStructs";
 import { Bool, U128, U16, U256, U32, U64, U8 } from "../bcs/serializable/movePrimitives";
@@ -165,16 +164,6 @@ export type InputMultiSigDataWithABI = {
  * Combines input function data with Aptos configuration for remote ABI interactions.
  */
 export type InputEntryFunctionDataWithRemoteABI = InputEntryFunctionData & { aptosConfig: AptosConfig };
-
-/**
- * The data needed to generate a batched function payload
- */
-export type InputBatchedFunctionData = {
-  function: MoveFunctionId;
-  typeArguments?: Array<TypeArgument>;
-  functionArguments: Array<EntryFunctionArgumentTypes | CallArgument | SimpleEntryFunctionArgumentTypes>;
-};
-
 /**
  * The data needed to generate a Multi Sig payload
  */
