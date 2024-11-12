@@ -3,7 +3,10 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+
+# 1.32.1 (2024-11-11)
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
