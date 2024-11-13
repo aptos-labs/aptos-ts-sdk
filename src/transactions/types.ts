@@ -307,12 +307,13 @@ export type InputSimulateTransactionData = {
   transaction: AnyRawTransaction;
   /**
    * For a single signer transaction
+   * This is optional and can be undefined to skip the public/auth key check during the transaction simulation.
    */
-  signerPublicKey: PublicKey;
+  signerPublicKey?: PublicKey;
   /**
    * For a fee payer or multi-agent transaction that requires additional signers in
    */
-  secondarySignersPublicKeys?: Array<PublicKey>;
+  secondarySignersPublicKeys?: Array<PublicKey | undefined>;
   /**
    * For a fee payer transaction (aka Sponsored Transaction)
    */

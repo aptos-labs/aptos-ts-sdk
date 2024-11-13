@@ -3,6 +3,8 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
 
 # 1.32.1 (2024-11-11)
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function

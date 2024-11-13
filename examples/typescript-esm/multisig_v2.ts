@@ -141,19 +141,25 @@ const createMultiSigTransferTransaction = async () => {
     aptosConfig: config,
   });
 
-  // Simulate the transfer transaction to make sure it passes
-  const transactionToSimulate = await generateRawTransaction({
-    aptosConfig: config,
-    sender: owner2.accountAddress,
-    payload: transactionPayload,
+  // Generate a raw transaction with the multisig address as the sender,
+  // the provided entry function payload, and 0x0 as the fee payer address.
+  const transactionToSimulate = await aptos.transaction.build.simple({
+    sender: multisigAddress,
+    data: {
+      function: "0x1::aptos_account::transfer",
+      functionArguments: [recipient.accountAddress, 1_000_000],
+    },
+    withFeePayer: true,
   });
 
-  const simulateMultisigTx = await aptos.transaction.simulate.simple({
-    signerPublicKey: owner2.publicKey,
-    transaction: new SimpleTransaction(transactionToSimulate),
+  // Simulate the transaction, skipping the public/auth key check for both the sender and the fee payer.
+  const [simulateMultisigTx] = await aptos.transaction.simulate.simple({
+    transaction: transactionToSimulate,
   });
-
   console.log("simulateMultisigTx", simulateMultisigTx);
+  if (!simulateMultisigTx.success) {
+    throw new Error("Multisig payload simulation failed.");
+  }
 
   // Build create_transaction transaction
   const createMultisigTx = await aptos.transaction.build.simple({

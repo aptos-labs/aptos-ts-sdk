@@ -37,6 +37,8 @@ export abstract class AccountAuthenticator extends Serializable {
         return AccountAuthenticatorSingleKey.load(deserializer);
       case AccountAuthenticatorVariant.MultiKey:
         return AccountAuthenticatorMultiKey.load(deserializer);
+      case AccountAuthenticatorVariant.NoAccountAuthenticator:
+        return AccountAuthenticatorNoAccountAuthenticator.load(deserializer);
       default:
         throw new Error(`Unknown variant index for AccountAuthenticator: ${index}`);
     }
@@ -216,5 +218,22 @@ export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
     const public_keys = MultiKey.deserialize(deserializer);
     const signatures = MultiKeySignature.deserialize(deserializer);
     return new AccountAuthenticatorMultiKey(public_keys, signatures);
+  }
+}
+
+/**
+ * AccountAuthenticatorNoAccountAuthenticator for no account authenticator
+ * It represents the absence of a public key for transaction simulation.
+ * It allows skipping the public/auth key check during the simulation.
+ */
+export class AccountAuthenticatorNoAccountAuthenticator extends AccountAuthenticator {
+  // eslint-disable-next-line class-methods-use-this
+  serialize(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.NoAccountAuthenticator);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static load(deserializer: Deserializer): AccountAuthenticatorNoAccountAuthenticator {
+    return new AccountAuthenticatorNoAccountAuthenticator();
   }
 }
