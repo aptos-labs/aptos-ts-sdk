@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
+
 # 1.33.0 (2024-11-13)
 - Allow optional provision of public keys in transaction simulation
 - Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain

@@ -168,7 +168,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
 
   /**
    * Sign the given message using the MultiKeyAccount's signers
-   * @param message in HexInput format
+   * @param data in HexInput format
    * @returns MultiKeySignature
    */
   sign(data: HexInput): MultiKeySignature {
