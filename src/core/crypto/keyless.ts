@@ -44,6 +44,62 @@ export const MAX_EXTRA_FIELD_BYTES = 350;
 export const MAX_JWT_HEADER_B64_BYTES = 300;
 export const MAX_COMMITED_EPK_BYTES = 93;
 
+function b64DecodeUnicode(str: string) {
+  return decodeURIComponent(
+    atob(str).replace(/(.)/g, (m, p) => {
+      let code = (p as string).charCodeAt(0).toString(16).toUpperCase();
+      if (code.length < 2) {
+        code = `0${  code}`;
+      }
+      return `%${  code}`;
+    }),
+  );
+}
+
+function base64UrlDecode(str: string) {
+  let output = str.replace(/-/g, "+").replace(/_/g, "/");
+  switch (output.length % 4) {
+    case 0:
+      break;
+    case 2:
+      output += "==";
+      break;
+    case 3:
+      output += "=";
+      break;
+    default:
+      throw new Error("base64 string is not of the correct length");
+  }
+
+  try {
+    return b64DecodeUnicode(output);
+  } catch (err) {
+    return atob(output);
+  }
+}
+
+function getClaim(jwt: string, claim: string): string {
+  const parts = jwt.split(".");
+  const payload = parts[1];
+  const payloadStr = base64UrlDecode(payload);
+  const claimIdx = payloadStr.indexOf(`"${claim}"`) + claim.length + 2;
+  let claimVal = "";
+  let foundStart = false;
+  for (let i = claimIdx; i < payloadStr.length; i += 1) {
+    if (payloadStr[i] === "\"") {
+      if (foundStart) {
+        break;
+      }
+      foundStart = true;
+      continue;
+    }
+    if (foundStart) {
+      claimVal += payloadStr[i];
+    }
+  }
+  return claimVal;
+}
+
 /**
  * Represents a Keyless Public Key used for authentication.
  *
@@ -206,15 +262,9 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
-    const jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
-    if (typeof jwtPayload.iss !== "string") {
-      throw new Error("iss was not found");
-    }
-    if (typeof jwtPayload.aud !== "string") {
-      throw new Error("aud was not found or an array of values");
-    }
-    const uidVal = jwtPayload[uidKey];
-    return KeylessPublicKey.create({ iss: jwtPayload.iss, uidKey, uidVal, aud: jwtPayload.aud, pepper });
+
+    const { iss, aud, uidVal } = getIssAudAndUidVal({ jwt, uidKey });
+    return KeylessPublicKey.create({ iss, uidKey, uidVal, aud, pepper });
   }
 
   /**
@@ -798,8 +848,7 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
       details: "JWT is missing 'aud' in the payload or 'aud' is an array of values.",
     });
   }
-  const uidVal = jwtPayload[uidKey];
-  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };
+  return { iss: getClaim(jwt, "iss"), aud: getClaim(jwt, "aud"), uidVal: getClaim(jwt, uidKey) };
 }
 
 /**
