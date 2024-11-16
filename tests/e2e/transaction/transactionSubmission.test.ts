@@ -17,6 +17,7 @@ import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 
 const { aptos } = getAptosClient();
 
@@ -896,6 +897,34 @@ describe("transaction submission", () => {
       });
 
       expect(submittedTransaction.success).toBe(true);
+    });
+  });
+
+  describe("transactions with no account authenticator", () => {
+    test("it fails to submit a transaction when authenticator in not provided", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: singleSignerED25519SenderAccount.accountAddress,
+        data: {
+          bytecode: singleSignerScriptBytecode,
+          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+        },
+      });
+      const authenticator = new AccountAuthenticatorNoAccountAuthenticator();
+      try {
+        const response = await aptos.transaction.submit.simple({
+          transaction,
+          senderAuthenticator: authenticator,
+        });
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+        fail("Expected an error to be thrown");
+      } catch (error: any) {
+        const errorStr = error.toString();
+        expect(errorStr).toContain("Invalid transaction");
+        expect(errorStr).toContain("INVALID_SIGNATURE");
+        expect(errorStr).toContain("vm_error");
+      }
     });
   });
 });
