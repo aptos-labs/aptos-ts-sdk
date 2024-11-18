@@ -4,11 +4,15 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+
 # 1.33.0 (2024-11-13)
+
 - Allow optional provision of public keys in transaction simulation
 - Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
 
 # 1.32.1 (2024-11-11)
+
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
 - [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
