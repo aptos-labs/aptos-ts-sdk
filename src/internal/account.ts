@@ -17,6 +17,7 @@ import {
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
   GetObjectDataQueryResponse,
+  HexInput,
   LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
@@ -29,7 +30,14 @@ import {
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
+import {
+  AnyPublicKey,
+  AnySignature,
+  Ed25519PublicKey,
+  PrivateKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+} from "../core/crypto";
 import { queryIndexer } from "./general";
 import {
   GetAccountCoinsCountQuery,
@@ -814,4 +822,73 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
     }
     throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
   }
+}
+
+export async function verifySecp256k1Account(args: {
+  aptosConfig: AptosConfig;
+  message: HexInput;
+  signature: HexInput | Secp256k1Signature | AnySignature;
+  recoveryBit?: number;
+  accountAddress: AccountAddressInput;
+}): Promise<AnyPublicKey> {
+  const { aptosConfig, message, recoveryBit, accountAddress } = args;
+  let signature: HexInput | Secp256k1Signature;
+  if (args.signature instanceof AnySignature) {
+    if (args.signature.signature instanceof Secp256k1Signature) {
+      signature = args.signature.signature;
+    } else {
+      throw new Error("Invalid signature type");
+    }
+  } else {
+    signature = args.signature;
+  }
+  const { authentication_key: authKeyString } = await getInfo({
+    aptosConfig,
+    accountAddress,
+  });
+  const authKey = new AuthenticationKey({ data: authKeyString });
+
+  if (recoveryBit !== undefined) {
+    const publicKey = new AnyPublicKey(
+      Secp256k1PublicKey.fromSignatureAndMessage({
+        signature,
+        message,
+        recoveryBit,
+      }),
+    );
+    const derivedAuthKey = publicKey.authKey();
+    if (authKey.toStringWithoutPrefix() === derivedAuthKey.toStringWithoutPrefix()) {
+      return publicKey;
+    }
+    throw new Error(
+      // eslint-disable-next-line max-len
+      `Derived authentication key ${derivedAuthKey.toString()} does not match the authentication key ${authKey.toString()} for account ${accountAddress.toString()}`,
+    );
+  }
+
+  for (let i = 0; i < 4; i += 1) {
+    try {
+      const publicKey = new AnyPublicKey(
+        Secp256k1PublicKey.fromSignatureAndMessage({
+          signature,
+          message,
+          recoveryBit: i,
+        }),
+      );
+      const derivedAuthKey = publicKey.authKey();
+      if (authKey.toStringWithoutPrefix() === derivedAuthKey.toStringWithoutPrefix()) {
+        return publicKey;
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("recovery id")) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  throw new Error(
+    `Failed to recover the public key matching authentication key ${authKey.toString()} for account ${accountAddress.toString()}`,
+  );
 }

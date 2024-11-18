@@ -4,14 +4,18 @@
 import { sha3_256 } from "@noble/hashes/sha3";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
+import { bytesToNumberBE, inRange } from "@noble/curves/abstract/utils";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
 import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { PublicKey, VerifySignatureArgs } from "./publicKey";
+import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
+
+const secp256k1P = BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
+const secp256k1N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
 
 /**
  * Represents a Secp256k1 ECDSA public key.
@@ -69,7 +73,7 @@ export class Secp256k1PublicKey extends PublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: Secp256k1Signature }): boolean {
     const { message, signature } = args;
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
@@ -149,6 +153,33 @@ export class Secp256k1PublicKey extends PublicKey {
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
     return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
+  }
+
+  static fromSignatureAndMessage(args: {
+    signature: HexInput | Secp256k1Signature;
+    message: HexInput;
+    recoveryBit: number;
+  }): Secp256k1PublicKey {
+    const { signature, message, recoveryBit } = args;
+    let signatureBytes: Uint8Array;
+    if (signature instanceof Secp256k1Signature) {
+      signatureBytes = signature.toUint8Array();
+    } else {
+      signatureBytes = Hex.fromHexInput(signature).toUint8Array();
+      if (signatureBytes.length !== Secp256k1Signature.LENGTH) {
+        throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}`);
+      }
+    }
+    const r = bytesToNumberBE(signatureBytes.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
+    if (!inRange(r, BigInt(1), secp256k1P)) throw new Error("Invalid secp256k1 signature - r ≥ p");
+    const s = bytesToNumberBE(signatureBytes.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
+    if (!inRange(s, BigInt(1), secp256k1N)) throw new Error("Invalid secp256k1 signature - s ≥ n");
+    const sig = new secp256k1.Signature(r, s);
+    const messageToVerify = convertSigningMessage(message);
+    const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
+    const messageSha3Bytes = sha3_256(messageBytes);
+    const publicKeyBytes = sig.addRecoveryBit(recoveryBit).recoverPublicKey(messageSha3Bytes).toRawBytes(false);
+    return new Secp256k1PublicKey(publicKeyBytes);
   }
 }
 
