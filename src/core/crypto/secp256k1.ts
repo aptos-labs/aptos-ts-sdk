@@ -155,6 +155,14 @@ export class Secp256k1PublicKey extends PublicKey {
     return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
   }
 
+  /**
+   * Recovers a Secp256k1 public key from a signature and message.
+   *
+   * @param args - The arguments for recovering the public key.
+   * @param args.signature - The signature to recover the public key from.
+   * @param args.message - The message that was signed.
+   * @param args.recoveryBit - The recovery bit to use for verification.
+   */
   static fromSignatureAndMessage(args: {
     signature: HexInput | Secp256k1Signature;
     message: HexInput;
@@ -404,7 +412,7 @@ export class Secp256k1Signature extends Signature {
    * @group Implementation
    * @category Serialization
    */
-  private readonly data: Hex;
+  private readonly secp256k1SigData: Hex;
 
   // region Constructors
 
@@ -423,7 +431,7 @@ export class Secp256k1Signature extends Signature {
         `Signature length should be ${Secp256k1Signature.LENGTH}, received ${data.toUint8Array().length}`,
       );
     }
-    this.data = data;
+    this.secp256k1SigData = data;
   }
 
   // endregion
@@ -431,7 +439,7 @@ export class Secp256k1Signature extends Signature {
   // region Signature
 
   toUint8Array(): Uint8Array {
-    return this.data.toUint8Array();
+    return this.secp256k1SigData.toUint8Array();
   }
 
   // endregion
@@ -439,7 +447,7 @@ export class Secp256k1Signature extends Signature {
   // region Serializable
 
   serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.data.toUint8Array());
+    serializer.serializeBytes(this.secp256k1SigData.toUint8Array());
   }
 
   static deserialize(deserializer: Deserializer): Secp256k1Signature {
@@ -448,4 +456,15 @@ export class Secp256k1Signature extends Signature {
   }
 
   // endregion
+
+  /**
+   * Determines if the provided signature is a valid instance of a Secp256k1 signature.
+   * This function checks for the presence of a "data" property and validates the length of the signature data.
+   *
+   * @param signature - The signature to validate.
+   * @returns A boolean indicating whether the signature is a valid Secp256k1 signature.
+   */
+  static isInstance(signature: Signature): signature is Secp256k1Signature {
+    return "secp256k1SigData" in signature && (signature.secp256k1SigData as any)?.length === Secp256k1Signature.LENGTH;
+  }
 }
