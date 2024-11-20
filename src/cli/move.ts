@@ -310,6 +310,22 @@ export class Move {
     return this.runCommand(cliArgs, showStdout);
   }
 
+  async gasProfile(args: {
+    network: string;
+    transactionId: string;
+    extraArguments?: Array<string>;
+    showStdout?: boolean;
+  }): Promise<{ output: string; result?: any }> {
+    const { network, transactionId, extraArguments, showStdout } = args;
+    const cliArgs = ["aptos", "move", "replay", "--profile-gas", "--network", network, "--txn-id", transactionId];
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
+
+    return this.runCommand(cliArgs, showStdout);
+  }
+
   /**
    * Run a command with the specified arguments and return the output.
    *
