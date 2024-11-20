@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionComposer, initSync, wasm } from "@wgb5445/aptos-intent-npm";
+import { TransactionComposer, initSync, wasm } from "@aptos-labs/script-composer-pack";
 import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
