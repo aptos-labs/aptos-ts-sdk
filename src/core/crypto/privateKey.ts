@@ -49,7 +49,15 @@ export class PrivateKey {
    */
   public static formatPrivateKey(privateKey: HexInput, type: PrivateKeyVariants): string {
     const aip80Prefix = PrivateKey.AIP80_PREFIXES[type];
-    return `${aip80Prefix}${Hex.fromHexInput(privateKey).toString()}`;
+
+    // Remove the prefix if it exists
+    let formattedPrivateKey = privateKey;
+    if (typeof formattedPrivateKey === "string" && formattedPrivateKey.startsWith(aip80Prefix)) {
+      // eslint-disable-next-line prefer-destructuring
+      formattedPrivateKey = formattedPrivateKey.split("-")[2];
+    }
+
+    return `${aip80Prefix}${Hex.fromHexInput(formattedPrivateKey).toString()}`;
   }
 
   /**
@@ -91,13 +99,6 @@ export class PrivateKey {
     } else {
       // The value is an Uint8Array
       data = Hex.fromHexInput(value);
-      // If the strictness is false, the user has opted into non-AIP-80 compliant private keys.
-      if (strict !== false) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "[Aptos SDK] It is recommended that private keys are parsed as AIP-80 compliant strings instead of Uint8Array (https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md). You can fix the private key by formatting it with `PrivateKey.formatPrivateKey(privateKey: Uint8Array, type: 'ed25519' | 'secp256k1'): string`.",
-        );
-      }
     }
 
     return data;
