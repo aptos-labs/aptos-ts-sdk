@@ -171,15 +171,17 @@ export class Secp256k1PublicKey extends PublicKey {
     const { message, recoveryBit } = args;
     const signature = isHexInput(args.signature) ? new Secp256k1Signature(args.signature) : args.signature;
     const signatureBytes: Uint8Array = signature.bcsToBytes();
+  
     const r = bytesToNumberBE(signatureBytes.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
     if (!inRange(r, BigInt(1), secp256k1P)) throw new Error("Invalid secp256k1 signature - r ≥ p");
     const s = bytesToNumberBE(signatureBytes.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
     if (!inRange(s, BigInt(1), secp256k1N)) throw new Error("Invalid secp256k1 signature - s ≥ n");
-    const sig = new secp256k1.Signature(r, s);
+    const nobleSig = new secp256k1.Signature(r, s);
+  
     const messageToVerify = convertSigningMessage(message);
     const messageBytes = Hex.fromHexInput(messageToVerify).toUint8Array();
     const messageSha3Bytes = sha3_256(messageBytes);
-    const publicKeyBytes = sig.addRecoveryBit(recoveryBit).recoverPublicKey(messageSha3Bytes).toRawBytes(false);
+    const publicKeyBytes = nobleSig.addRecoveryBit(recoveryBit).recoverPublicKey(messageSha3Bytes).toRawBytes(false);
     return new Secp256k1PublicKey(publicKeyBytes);
   }
 }
