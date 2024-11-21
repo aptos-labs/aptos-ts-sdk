@@ -231,7 +231,7 @@ export class AnySignature extends Signature {
    * @group Implementation
    * @category Serialization
    */
-  private readonly variant: AnySignatureVariant;
+  private readonly anySignatureVariant: AnySignatureVariant;
 
   // region Constructors
 
@@ -240,11 +240,11 @@ export class AnySignature extends Signature {
     this.signature = signature;
 
     if (signature instanceof Ed25519Signature) {
-      this.variant = AnySignatureVariant.Ed25519;
+      this.anySignatureVariant = AnySignatureVariant.Ed25519;
     } else if (signature instanceof Secp256k1Signature) {
-      this.variant = AnySignatureVariant.Secp256k1;
+      this.anySignatureVariant = AnySignatureVariant.Secp256k1;
     } else if (signature instanceof KeylessSignature) {
-      this.variant = AnySignatureVariant.Keyless;
+      this.anySignatureVariant = AnySignatureVariant.Keyless;
     } else {
       throw new Error("Unsupported signature type");
     }
@@ -269,7 +269,7 @@ export class AnySignature extends Signature {
   // region Serializable
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.variant);
+    serializer.serializeU32AsUleb128(this.anySignatureVariant);
     this.signature.serialize(serializer);
   }
 
@@ -296,6 +296,7 @@ export class AnySignature extends Signature {
 
   static isInstance(signature: Signature): signature is AnySignature {
     return (
+      "anySignatureVariant" in signature &&
       "signature" in signature &&
       typeof signature.signature === "object" &&
       signature.signature !== null &&

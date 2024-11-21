@@ -13,6 +13,7 @@ import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
+import { toSecp256k1Signature } from "./signatureUtils";
 
 const secp256k1P = BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 const secp256k1N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
@@ -156,12 +157,12 @@ export class Secp256k1PublicKey extends PublicKey {
   }
 
   /**
-   * Recovers a Secp256k1 public key from a signature and message.
+   * Recover a Secp256k1 public key from a signature and message.
    *
    * @param args - The arguments for recovering the public key.
    * @param args.signature - The signature to recover the public key from.
    * @param args.message - The message that was signed.
-   * @param args.recoveryBit - The recovery bit to use for verification.
+   * @param args.recoveryBit - The recovery bit to use for the public key.
    */
   static fromSignatureAndMessage(args: {
     signature: HexInput | Secp256k1Signature;
@@ -169,15 +170,7 @@ export class Secp256k1PublicKey extends PublicKey {
     recoveryBit: number;
   }): Secp256k1PublicKey {
     const { signature, message, recoveryBit } = args;
-    let signatureBytes: Uint8Array;
-    if (signature instanceof Secp256k1Signature) {
-      signatureBytes = signature.toUint8Array();
-    } else {
-      signatureBytes = Hex.fromHexInput(signature).toUint8Array();
-      if (signatureBytes.length !== Secp256k1Signature.LENGTH) {
-        throw new Error(`Signature length should be ${Secp256k1Signature.LENGTH}`);
-      }
-    }
+    const signatureBytes: Uint8Array = toSecp256k1Signature(signature).bcsToBytes();
     const r = bytesToNumberBE(signatureBytes.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
     if (!inRange(r, BigInt(1), secp256k1P)) throw new Error("Invalid secp256k1 signature - r ≥ p");
     const s = bytesToNumberBE(signatureBytes.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
@@ -464,7 +457,9 @@ export class Secp256k1Signature extends Signature {
    * @param signature - The signature to validate.
    * @returns A boolean indicating whether the signature is a valid Secp256k1 signature.
    */
-  static isInstance(signature: Signature): signature is Secp256k1Signature {
-    return "secp256k1SigData" in signature && (signature.secp256k1SigData as any)?.length === Secp256k1Signature.LENGTH;
+  static isInstance(signature: any): signature is Secp256k1Signature {
+    return (
+      "secp256k1SigData" in signature && (signature.secp256k1SigData.data as any)?.length === Secp256k1Signature.LENGTH
+    );
   }
 }

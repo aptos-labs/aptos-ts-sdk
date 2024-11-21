@@ -29,6 +29,14 @@ export enum MimeType {
 export type HexInput = string | Uint8Array;
 
 /**
+ * Type guard to check if a value is of type HexInput
+ * @param value The value to check
+ */
+export function isHexInput(value: unknown): value is HexInput {
+  return value instanceof Uint8Array || typeof value === "string";
+}
+
+/**
  * Variants of type tags used in the system, encompassing various data types and structures.
  * {@link https://github.com/aptos-labs/aptos-core/blob/main/third_party/move/move-core/types/src/language_storage.rs#L27}
  */
