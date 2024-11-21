@@ -7,13 +7,12 @@ import { HDKey } from "@scure/bip32";
 import { bytesToNumberBE, inRange } from "@noble/curves/abstract/utils";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput, PrivateKeyVariants } from "../../types";
+import { HexInput, isHexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
-import { toSecp256k1Signature } from "./signatureUtils";
 
 const secp256k1P = BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 const secp256k1N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
@@ -169,8 +168,9 @@ export class Secp256k1PublicKey extends PublicKey {
     message: HexInput;
     recoveryBit: number;
   }): Secp256k1PublicKey {
-    const { signature, message, recoveryBit } = args;
-    const signatureBytes: Uint8Array = toSecp256k1Signature(signature).bcsToBytes();
+    const { message, recoveryBit } = args;
+    const signature = isHexInput(args.signature) ? new Secp256k1Signature(args.signature) : args.signature;
+    const signatureBytes: Uint8Array = signature.bcsToBytes();
     const r = bytesToNumberBE(signatureBytes.subarray(0, 32)); // Let r = int(sig[0:32]); fail if r ≥ p.
     if (!inRange(r, BigInt(1), secp256k1P)) throw new Error("Invalid secp256k1 signature - r ≥ p");
     const s = bytesToNumberBE(signatureBytes.subarray(32, 64)); // Let s = int(sig[32:64]); fail if s ≥ n.
