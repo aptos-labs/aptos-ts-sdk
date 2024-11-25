@@ -1,56 +1,96 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "../account";
+import { AbstractedEd25519Account, Account, SingleKeyAccount } from "../account";
 import { AccountAddressInput } from "../core";
-import { getPermissions, requestPermissions } from "../internal/permissions";
+import { getPermissions, GrantPermission, PermissionTemp, requestPermission, RevokePermission, revokePermissions } from "../internal/permissions";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
- * A class to handle all `ANS` operations
+ * A class to handle all permission-related operations
  */
 export class Permissions {
   constructor(readonly config: AptosConfig) {}
 
   /**
-   * Retrieve the primary name for an account. An account can have
-   * multiple names that target it, but only a single name that is primary. An
-   * account also may not have a primary name.
-   *
+   * Gets the current permissions granted to a sub-account by a primary account
+   * 
    * @example
-   * const name = await aptos.getPrimaryName({address: alice.accountAddress})
-   * // name = test.aptos
-   *
-   * @param args.address - A AccountAddressInput (address) of the account
-   *
-   * @returns a string if the account has a primary name, undefined otherwise
+   * ```typescript
+   * const permissions = await aptos.permissions.getPermissions({
+   *   primaryAccount: alice,
+   *   subAccount: bob
+   * });
+   * // permissions = [{asset: "0x1::aptos_coin::AptosCoin", type: "FungibleAsset", remaining: "10"}]
+   * ```
+   * 
+   * @param args.primaryAccount - The primary account that granted permissions
+   * @param args.subAccount - The sub-account that received permissions
+   * 
+   * @returns An array of current permissions and their remaining balances
    */
-  async getPermissions(args: { address: AccountAddressInput }): Promise<string | undefined> {
+  async getPermissions(args: {
+    primaryAccount: SingleKeyAccount;
+    subAccount: AbstractedEd25519Account;
+  }): Promise<PermissionTemp[]> {
     return getPermissions({ aptosConfig: this.config, ...args });
   }
 
   /**
-   * Sets the primary name for the sender. An account can have
-   * multiple names that target it, but only a single name that is primary. An
-   * account also may not have a primary name.
-   *
+   * Requests new permissions for a sub-account from a primary account
+   * 
    * @example
-   * await aptos.setPrimaryName({sender: alice, name: "test.aptos"})
-   * const primaryName = await aptos.getPrimaryName({address: alice.accountAddress})
-   * // primaryName = test.aptos
-   *
-   * @param args.sender - The sender account
-   * @param args.name - A string of the name: test, test.apt, test.aptos, test.aptos.apt, etc.
-   *
-   * @returns SimpleTransaction
+   * ```typescript
+   * const txn = await aptos.permissions.requestPermissions({
+   *   primaryAccount: alice,
+   *   permissionedAccount: bob,
+   *   permissions: [{ type: "APT", limit: 10 }]
+   * });
+   * ```
+   * 
+   * @param args.primaryAccount - The primary account granting permissions
+   * @param args.permissionedAccount - The sub-account receiving permissions
+   * @param args.permissions - Array of permission requests (APT, GAS, NFT, or NFTC)
+   * @param args.expiration - Optional expiration time in seconds
+   * @param args.requestsPerSecond - Optional rate limit for transactions
+   * 
+   * @returns A transaction that can be signed and submitted
    */
   async requestPermissions(args: {
-    sender: Account;
-    name?: string;
-    options?: InputGenerateTransactionOptions;
+    primaryAccount: SingleKeyAccount;
+    permissionedAccount: AbstractedEd25519Account;
+    permissions: GrantPermission[];
+    expiration?: number;
+    requestsPerSecond?: number;
   }): Promise<SimpleTransaction> {
-    return requestPermissions({ aptosConfig: this.config, ...args });
+    return requestPermission({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Revokes existing permissions from a sub-account
+   * 
+   * @example
+   * ```typescript
+   * const txn = await aptos.permissions.revokePermission({
+   *   primaryAccount: alice,
+   *   subAccount: bob,
+   *   permissions: [{ type: "APT" }]
+   * });
+   * ```
+   * 
+   * @param args.primaryAccount - The primary account revoking permissions
+   * @param args.subAccount - The sub-account losing permissions
+   * @param args.permissions - Array of permissions to revoke (APT or NFT)
+   * 
+   * @returns A transaction that can be signed and submitted
+   */
+  async revokePermission(args: {
+    primaryAccount: SingleKeyAccount;
+    subAccount: AbstractedEd25519Account;
+    permissions: RevokePermission[];
+  }): Promise<SimpleTransaction> {
+    return revokePermissions({ aptosConfig: this.config, ...args });
   }
 }

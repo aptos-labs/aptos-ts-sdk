@@ -5,7 +5,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-await-in-loop */
 
-
 import { BatchArgument } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
@@ -22,6 +21,7 @@ import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
+import { getHandleAddress, getPermissions, GrantPermission, RevokePermission } from "../../../src/internal/permissions";
 
 const LOCAL_NET = getAptosClient();
 const CUSTOM_NET = getAptosClient({
@@ -59,7 +59,7 @@ describe("transaction submission", () => {
       permissions: [{ type: "APT", limit: 10 }],
     });
 
-    const perm1 = await getPermissions({ primaryAccount, subAccount });
+    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm1.length).toBe(1);
     expect(perm1[0].remaining).toBe("10");
 
@@ -69,7 +69,7 @@ describe("transaction submission", () => {
       permissions: [{ type: "APT", limit: 20 }],
     });
 
-    const perm2 = await getPermissions({ primaryAccount, subAccount });
+    const perm2 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm2.length).toBe(1);
     expect(perm2[0].remaining).toBe("30");
   });
@@ -88,7 +88,7 @@ describe("transaction submission", () => {
       ],
     });
 
-    const perm1 = await getPermissions({ primaryAccount, subAccount });
+    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm1.length).toBe(1);
 
     const txn1 = await signSubmitAndWait({
@@ -120,7 +120,7 @@ describe("transaction submission", () => {
       permissions: [{ type: "APT", limit: 10 }],
     });
 
-    const perm1 = await getPermissions({ primaryAccount, subAccount });
+    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm1.length).toBe(1);
     expect(perm1[0].remaining).toBe("10");
 
@@ -136,7 +136,7 @@ describe("transaction submission", () => {
     expect(txn1.response.signature?.type).toBe("single_sender");
     expect(txn1.submittedTransaction.success).toBe(true);
 
-    const perm2 = await getPermissions({ primaryAccount, subAccount });
+    const perm2 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm2.length).toBe(1);
     expect(perm2[0].remaining).toBe("9");
 
@@ -146,7 +146,7 @@ describe("transaction submission", () => {
       subAccount,
     });
 
-    const perm3 = await getPermissions({ primaryAccount, subAccount });
+    const perm3 = await aptos.getPermissions({ primaryAccount, subAccount });
     expect(perm3.length).toBe(0);
   });
 
@@ -225,15 +225,6 @@ describe("transaction submission", () => {
   });
 });
 
-// ====================================================================
-// External API
-// ===================================================================
-
-type GrantPermission =
-  | { type: "APT"; limit: number; duration?: number }
-  | { type: "GAS"; limit: number }
-  | { type: "NFT"; address: string }
-  | { type: "NFTC"; address: string };
 
 // TODO: Refactor this for clarity. It is unclear what paths are executed for repeat requests vs new requests
 export async function requestPermission({
@@ -247,93 +238,10 @@ export async function requestPermission({
   expiration?: number;
   requestsPerSecond?: number;
 }) {
-  const existingHandleAddress = await getHandleAddress({ primaryAccount, subAccount: permissionedAccount });
-  let handleAddress: BatchArgument | string | null = existingHandleAddress;
-  let permissionedSingerHandle: BatchArgument[] | null;
-  let permissionedSigner: BatchArgument[] | null;
-
-  const transaction = await aptos.transaction.build.batched_intents({
-    sender: primaryAccount.accountAddress,
-    builder: async (builder) => {
-      // Create a handle if one doesn't already exist
-      if (!existingHandleAddress) {
-        permissionedSingerHandle = await builder.add_batched_calls({
-          function: "0x1::permissioned_signer::create_storable_permissioned_handle",
-          functionArguments: [BatchArgument.new_signer(0), 360],
-          typeArguments: [],
-        });
-        handleAddress = permissionedSingerHandle[0].borrow();
-
-        permissionedSigner = await builder.add_batched_calls({
-          function: "0x1::permissioned_signer::signer_from_storable_permissioned",
-          functionArguments: [handleAddress],
-          typeArguments: [],
-        });
-      } else {
-        permissionedSigner = await builder.add_batched_calls({
-          function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-          functionArguments: [BatchArgument.new_signer(0), permissionedAccount.publicKey.toUint8Array()],
-          typeArguments: [],
-        });
-      }
-
-      for (const permission of permissions) {
-        switch (permission.type) {
-          case "APT": {
-            await builder.add_batched_calls({
-              function: "0x1::fungible_asset::grant_permission",
-              functionArguments: [
-                BatchArgument.new_signer(0),
-                permissionedSigner[0].borrow(),
-                AccountAddress.A,
-                permission.limit,
-              ],
-              typeArguments: [],
-            });
-            break;
-          }
-          case "NFT": {
-            await builder.add_batched_calls({
-              function: "0x1::object::grant_permission",
-              // TODO: Need to figure out if this is token id or something else
-              functionArguments: [BatchArgument.new_signer(0), permissionedSigner[0].borrow(), permission.address],
-              // TODO: Need to figure out the type argument here
-              typeArguments: ["0x4::token::Token"],
-            });
-            break;
-          }
-
-          default: {
-            console.log("Not implemented");
-            break;
-          }
-        }
-      }
-
-      // If we needed to create a brand new handle, then we need to attach it to finalize it
-      if (permissionedSingerHandle) {
-        await builder.add_batched_calls({
-          function: "0x1::permissioned_delegation::add_permissioned_handle",
-          functionArguments: [
-            BatchArgument.new_signer(0),
-            permissionedAccount.publicKey.toUint8Array(),
-            permissionedSingerHandle[0],
-          ],
-          typeArguments: [],
-        });
-        await builder.add_batched_calls({
-          function: "0x1::lite_account::add_dispatchable_authentication_function",
-          functionArguments: [
-            BatchArgument.new_signer(0),
-            AccountAddress.ONE,
-            new MoveString("permissioned_delegation"),
-            new MoveString("authenticate"),
-          ],
-          typeArguments: [],
-        });
-      }
-      return builder;
-    },
+  const transaction = await aptos.permissions.requestPermissions({
+    primaryAccount,
+    permissionedAccount,
+    permissions,
   });
 
   const response = await aptos.signAndSubmitTransaction({
@@ -348,8 +256,6 @@ export async function requestPermission({
   return response;
 }
 
-type RevokePermission = { type: "APT" } | { type: "NFT" };
-
 export async function revokePermission({
   primaryAccount,
   subAccount,
@@ -359,35 +265,10 @@ export async function revokePermission({
   subAccount: AbstractedEd25519Account;
   permissions: RevokePermission[];
 }) {
-  const transaction = await aptos.transaction.build.batched_intents({
-    sender: primaryAccount.accountAddress,
-    builder: async (builder) => {
-      const signer = await builder.add_batched_calls({
-        function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-        functionArguments: [BatchArgument.new_signer(0), subAccount.publicKey.toUint8Array()],
-        typeArguments: [],
-      });
-
-      for (const permission of permissions) {
-        switch (permission.type) {
-          case "APT": {
-            await builder.add_batched_calls({
-              function: "0x1::fungible_asset::revoke_permission",
-              functionArguments: [signer[0].borrow(), AccountAddress.A],
-              typeArguments: [],
-            });
-            break;
-          }
-
-          default: {
-            console.log("Not implemented");
-            break;
-          }
-        }
-      }
-
-      return builder;
-    },
+  const transaction = await aptos.permissions.revokePermission({
+    primaryAccount,
+    subAccount,
+    permissions,
   });
 
   const response = await aptos.signAndSubmitTransaction({
@@ -405,67 +286,6 @@ export async function revokePermission({
   return response;
 }
 
-interface Permission {
-  asset: string;
-  type: string;
-  remaining: string;
-}
-
-export async function getPermissions({
-  primaryAccount,
-  subAccount,
-}: {
-  primaryAccount: SingleKeyAccount;
-  subAccount: AbstractedEd25519Account;
-}): Promise<Permission[]> {
-  const handle = await getHandleAddress({ primaryAccount, subAccount });
-
-  const res = await fetch(`http://127.0.0.1:8080/v1/accounts/${handle}/resources`);
-
-  type NodeDataResponse = Array<{
-    type: string;
-    data: {
-      perms: {
-        data: Array<{
-          key: { data: string; type_name: string };
-          value: string;
-        }>;
-      };
-    };
-  }>;
-
-  const data = (await res.json()) as NodeDataResponse;
-
-  return data[0].data.perms.data.map((d) => ({
-    asset: d.key.data,
-    type: d.key.type_name,
-    remaining: d.value,
-  }));
-}
-
-// ====================================================================
-// Internal API Helper Functions
-// ===================================================================
-async function getHandleAddress({
-  primaryAccount,
-  subAccount,
-}: {
-  primaryAccount: SingleKeyAccount;
-  subAccount: AbstractedEd25519Account;
-}) {
-  try {
-    const [handle] = await aptos.view<string[]>({
-      payload: {
-        function: "0x1::permissioned_delegation::handle_address_by_key",
-        functionArguments: [primaryAccount.accountAddress, subAccount.publicKey.toUint8Array()],
-      },
-    });
-
-    return handle;
-  } catch {
-    return null;
-  }
-}
 
 // ====================================================================
 // Test Helper Functions
