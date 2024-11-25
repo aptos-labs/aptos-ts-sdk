@@ -49,6 +49,11 @@
     "spec": "pnpm build && pnpm _spec",
     "_spec": "cucumber-js -p default"
   },
+  "pnpm": {
+    "overrides": {
+      "cross-spawn": "^6.0.6"
+    }
+  },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
     "@aptos-labs/aptos-client": "^0.1.1",
