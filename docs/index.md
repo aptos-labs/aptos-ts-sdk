@@ -9,6 +9,8 @@ redirect_from:
 This is a repository of all Aptos TypeScript SDK documentation by version.
 
 - [Latest](@aptos-labs/ts-sdk-latest)
+- [Stable - @aptos-labs/ts-sdk-1.33.0](@aptos-labs/ts-sdk-1.33.0)
+- [Stable - @aptos-labs/ts-sdk-1.32.1](@aptos-labs/ts-sdk-1.32.1)
 - [Stable - @aptos-labs/ts-sdk-1.32.0](@aptos-labs/ts-sdk-1.32.0)
 - [Stable - @aptos-labs/ts-sdk-1.31.0](@aptos-labs/ts-sdk-1.31.0)
 - [Stable - @aptos-labs/ts-sdk-1.30.0](@aptos-labs/ts-sdk-1.30.0)

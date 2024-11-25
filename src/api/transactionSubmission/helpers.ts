@@ -99,12 +99,6 @@ export function ValidateFeePayerDataOnSimulation(target: unknown, propertyKey: s
   const originalMethod = descriptor.value;
   /* eslint-disable-next-line func-names, no-param-reassign */
   descriptor.value = async function (...args: any[]) {
-    const [methodArgs] = args;
-
-    if (methodArgs.transaction.feePayerAddress && !methodArgs.feePayerPublicKey) {
-      throw new Error("You are simulating a Fee Payer transaction but missing the feePayerPublicKey");
-    }
-
     return originalMethod.apply(this, args);
   };
 

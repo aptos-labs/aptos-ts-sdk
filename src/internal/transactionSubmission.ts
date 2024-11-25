@@ -267,7 +267,7 @@ export function signAsFeePayer(args: { signer: Account; transaction: AnyRawTrans
  * @param args The arguments for simulating the transaction.
  * @param args.aptosConfig The configuration for the Aptos network.
  * @param args.transaction The raw transaction to simulate.
- * @param args.signerPublicKey The signer public key.
+ * @param args.signerPublicKey Optional. The signer public key.
  * @param args.secondarySignersPublicKeys Optional. For when the transaction involves multiple signers.
  * @param args.feePayerPublicKey Optional. For when the transaction is sponsored by a fee payer.
  * @param args.options Optional. A configuration object to customize the simulation process.
