@@ -3,7 +3,7 @@
 
 import { AbstractedEd25519Account, Account, SingleKeyAccount } from "../account";
 import { AccountAddressInput } from "../core";
-import { getPermissions, GrantPermission, PermissionTemp, requestPermission, RevokePermission, revokePermissions } from "../internal/permissions";
+import { FilteredPermissions, getPermissions, Permission, PermissionTemp, PermissionType, requestPermission, RevokePermission, revokePermissions } from "../internal/permissions";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
@@ -31,10 +31,11 @@ export class Permissions {
    * 
    * @returns An array of current permissions and their remaining balances
    */
-  async getPermissions(args: {
+  async getPermissions<T extends PermissionType>(args: {
     primaryAccount: SingleKeyAccount;
     subAccount: AbstractedEd25519Account;
-  }): Promise<PermissionTemp[]> {
+    filter?: T;
+  }): Promise<FilteredPermissions<T>> {
     return getPermissions({ aptosConfig: this.config, ...args });
   }
 
@@ -43,10 +44,15 @@ export class Permissions {
    * 
    * @example
    * ```typescript
+   * const permission = FungibleAssetPermission = FungibleAssetPermission({
+      asset: "0x1::aptos_coin::AptosCoin",
+      balance: "10",
+    });
+
    * const txn = await aptos.permissions.requestPermissions({
    *   primaryAccount: alice,
    *   permissionedAccount: bob,
-   *   permissions: [{ type: "APT", limit: 10 }]
+   *   permissions: [permission]
    * });
    * ```
    * 
@@ -61,7 +67,7 @@ export class Permissions {
   async requestPermissions(args: {
     primaryAccount: SingleKeyAccount;
     permissionedAccount: AbstractedEd25519Account;
-    permissions: GrantPermission[];
+    permissions: Permission[];
     expiration?: number;
     requestsPerSecond?: number;
   }): Promise<SimpleTransaction> {
@@ -93,4 +99,6 @@ export class Permissions {
   }): Promise<SimpleTransaction> {
     return revokePermissions({ aptosConfig: this.config, ...args });
   }
+
+
 }

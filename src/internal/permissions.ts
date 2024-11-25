@@ -18,7 +18,7 @@ import { MoveString } from "../bcs";
 
 // types
 
-export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission;
+export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission | GenericPermission;
 
 //  holds permissions
 export interface PermissionHandle {
@@ -37,26 +37,38 @@ export enum NFTCapability {
   mutate = "mutate",
 }
 
+export enum PermissionType {
+  FungibleAsset = "FungibleAsset",
+  Gas = "Gas",
+  NFT = "NFT",
+  NFTCollection = "Collection",
+}
+
+export enum MoveVMPermissionType {
+  FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
+  
+}
+
 export interface FungibleAssetPermission {
-  type: "FungibleAsset";
+  type: PermissionType.FungibleAsset;
   asset: string;
   // Question: best type here?: number | string | bigint
   balance: string;
 }
 
 export interface GasPermission {
-  type: "Gas";
+  type: PermissionType.Gas;
   amount: number;
 }
 
 export interface NFTPermission {
-  type: "NFT";
+  type: PermissionType.NFT;
   assetAddress: string;
   capabilities: Record<NFTCapability, boolean>;
 }
 
 export interface NFTCollectionPermission {
-  type: "Collection";
+  type: PermissionType.NFTCollection;
   collectionAddress: string;
   capabilities: Record<NFTCollectionCapability, boolean>;
 }
@@ -66,6 +78,40 @@ export enum NFTCollectionCapability {
   mutate = "mutate",
 }
 
+export interface GenericPermission {
+  type: string;
+  [key: string]: string;
+}
+
+// revoke permission types
+export interface RevokeFungibleAssetPermission {
+  type: PermissionType.FungibleAsset;
+  asset: string;
+}
+
+export interface RevokeNFTPermission {
+  type: PermissionType.NFT;
+  assetAddress: string;
+}
+
+// factories
+export function FungibleAssetPermission(args: Omit<FungibleAssetPermission, "type">): FungibleAssetPermission {
+  return { type: PermissionType.FungibleAsset, ...args };
+}
+export function GasPermission(args: Omit<GasPermission, "type">): GasPermission {
+  return { type: PermissionType.Gas, ...args };
+}
+export function NFTPermission(args: Omit<NFTPermission, "type">): NFTPermission {
+  return { type: PermissionType.NFT, ...args };
+}
+export function NFTCollectionPermission(args: Omit<NFTCollectionPermission, "type">): NFTCollectionPermission {
+  return { type: PermissionType.NFTCollection, ...args };
+}
+
+export function GenericPermission(args: GenericPermission): GenericPermission {
+  return {...args}
+}
+
 // functions
 
 export interface PermissionTemp{
@@ -73,21 +119,21 @@ export interface PermissionTemp{
   type: string;
   remaining: string;
 }
-
-export async function getPermissions({
+export async function getPermissions<T extends PermissionType>({
   aptosConfig,
   primaryAccount,
   subAccount,
+  filter
 }: {
   aptosConfig: AptosConfig;
   primaryAccount: SingleKeyAccount;
   subAccount: AbstractedEd25519Account;
-}): Promise<PermissionTemp[]> {
+  filter?: T;
+}): Promise<FilteredPermissions<T>> {
   const handle = await getHandleAddress({ aptosConfig, primaryAccount, subAccount });
 
   const res = await fetch(`http://127.0.0.1:8080/v1/accounts/${handle}/resources`);
   console.log(res);
-  //  figure out the different types of objects so we can handle them
 
   type NodeDataResponse = Array<{
     type: string;
@@ -103,38 +149,40 @@ export async function getPermissions({
 
   const data = (await res.json()) as NodeDataResponse;
 
-  return data[0].data.perms.data.map((d) => ({
-    asset: d.key.data,
-    type: d.key.type_name,
-    remaining: d.value,
-  }));
-  // 
-  // return data[0].data.perms.data.map((d) => {
-  //   switch (d.key.type_name) {
-  //     case "FungibleAsset":
-  //       return FungibleAssetPermission({
-  //         asset: d.key.data,
-  //         balance: d.value
-  //       });
-  //     // Add other permission type mappings as needed
-  //     default:
-  //       throw new Error(`Unknown permission type: ${d.key.type_name}`);
-  //   }
-  // });
+  console.log(data);
+
+  const permissions = data[0].data.perms.data.map((d) => {
+    switch (d.key.type_name) {
+      case "FungibleAsset":
+        return FungibleAssetPermission({
+          asset: d.key.data,
+          balance: d.value
+        });
+      default:
+        return GenericPermission({
+          type: d.key.type_name,
+          data: d.key.data,
+          value: d.value
+        });
+    }
+  });
+
+  const filtered = filter ? permissions.filter((p) => filter.includes(p.type as PermissionType)) : permissions;
+  return filtered as FilteredPermissions<T>;
 }
 
-export type GrantPermission =
-  | { type: "APT"; limit: number; duration?: number }
-  | { type: "GAS"; limit: number }
-  | { type: "NFT"; address: string }
-  | { type: "NFTC"; address: string };
+// export type GrantPermission =
+//   | { type: "APT"; limit: number; duration?: number }
+//   | { type: "GAS"; limit: number }
+//   | { type: "NFT"; address: string }
+//   | { type: "NFTC"; address: string };
 
   // should it return the requested permissions? on success? and when it fails it
 export async function requestPermission(args: {
   aptosConfig: AptosConfig;
   primaryAccount: SingleKeyAccount;
   permissionedAccount: AbstractedEd25519Account;
-  permissions: GrantPermission[];
+  permissions: Permission[];
   expiration?: number;
   requestsPerSecond?: number;
 }): Promise<SimpleTransaction> {
@@ -143,6 +191,7 @@ export async function requestPermission(args: {
 
   // Get or create a handle for the permissioned account
   const existingHandleAddress = await getHandleAddress({ aptosConfig, primaryAccount, subAccount: permissionedAccount });
+  console.log("debug, all arguments", aptosConfig, primaryAccount, permissionedAccount, permissions, existingHandleAddress);
   
   return aptos.transaction.build.batched_intents({
     sender: primaryAccount.accountAddress,
@@ -176,7 +225,7 @@ export async function requestPermission(args: {
 }
 
 
-export type RevokePermission = { type: "APT" } | { type: "NFT" };
+export type RevokePermission = RevokeFungibleAssetPermission | RevokeNFTPermission | Permission;
 
 export async function revokePermissions(args: {
   aptosConfig: AptosConfig;
@@ -198,13 +247,21 @@ export async function revokePermissions(args: {
 
       const permissionPromises = permissions.map((permission) => {
         switch (permission.type) {
-          case "APT": {
+          case PermissionType.FungibleAsset: {
             return builder.add_batched_calls({
               function: "0x1::fungible_asset::revoke_permission",
-              functionArguments: [signer[0].borrow(), AccountAddress.A],
+              functionArguments: [signer[0].borrow(), permission.asset],
               typeArguments: [],
             });
           }
+          // TODO: object nft revoke
+          // case PermissionType.NFT: {
+          //   return builder.add_batched_calls({
+          //     function: "0x1::object::revoke_permission",
+          //     functionArguments: [signer[0].borrow(), permission.assetAddress],
+          //     typeArguments: ["0x4::token::Token"],
+          //   });
+          // }
           default: {
             console.log("Not implemented");
             return Promise.resolve();
@@ -218,20 +275,6 @@ export async function revokePermissions(args: {
   });
 
   return transaction;
-}
-
-// factories
-export function FungibleAssetPermission(args: Omit<FungibleAssetPermission, "type">): FungibleAssetPermission {
-  return { type: "FungibleAsset", ...args };
-}
-export function GasPermission(args: Omit<GasPermission, "type">): GasPermission {
-  return { type: "Gas", ...args };
-}
-export function NFTPermission(args: Omit<NFTPermission, "type">): NFTPermission {
-  return { type: "NFT", ...args };
-}
-export function NFTCollectionPermission(args: Omit<NFTCollectionPermission, "type">): NFTCollectionPermission {
-  return { type: "Collection", ...args };
 }
 
 //  helper functions
@@ -268,32 +311,33 @@ async function getPermissionedSigner(builder: any, args: {
 
 async function grantPermission(builder: any, args: {
   permissionedSigner: BatchArgument[],
-  permission: GrantPermission
+  permission: Permission
 }) {
   switch (args.permission.type) {
-    case "APT":
+    case PermissionType.FungibleAsset:
       return builder.add_batched_calls({
         function: "0x1::fungible_asset::grant_permission",
         functionArguments: [
           BatchArgument.new_signer(0),
           args.permissionedSigner[0].borrow(),
-          AccountAddress.A,
-          args.permission.limit,
+          args.permission.asset, // do i need to convert this to AccountAddress?
+          args.permission.balance,
         ],
         typeArguments: [],
       });
-    case "NFT":
+    case PermissionType.NFT:
       return builder.add_batched_calls({
         function: "0x1::object::grant_permission",
         functionArguments: [
           BatchArgument.new_signer(0), 
           args.permissionedSigner[0].borrow(), 
-          args.permission.address
+          args.permission.assetAddress
         ],
         typeArguments: ["0x4::token::Token"],
       });
     default:
       console.log("Not implemented");
+      throw new Error(`${args.permission.type} not implemented`)
       return Promise.resolve();
   }
 }
@@ -349,3 +393,8 @@ export async function getHandleAddress({
     return null;
   }
 }
+
+// Define a type alias to make it clearer
+export type FilteredPermissions<T extends PermissionType> = Array<
+  Extract<Permission, { type: T }>
+>;
