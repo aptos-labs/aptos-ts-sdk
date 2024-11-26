@@ -36,7 +36,7 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, PrivateKey } from "../core";
+import { AccountAddressInput, PrivateKeyInput } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
@@ -495,7 +495,7 @@ export class Transaction {
    * runExample().catch(console.error);
    * ```
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
+  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKeyInput }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 

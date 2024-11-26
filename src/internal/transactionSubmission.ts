@@ -10,7 +10,7 @@ import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKeyInput } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
@@ -461,7 +461,7 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
 export async function rotateAuthKey(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
-  toNewPrivateKey: PrivateKey;
+  toNewPrivateKey: PrivateKeyInput;
 }): Promise<TransactionResponse> {
   const { aptosConfig, fromAccount, toNewPrivateKey } = args;
   const accountInfo = await getInfo({
