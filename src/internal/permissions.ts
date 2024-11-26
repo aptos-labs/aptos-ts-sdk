@@ -18,8 +18,11 @@ import { MoveString } from "../bcs";
 import { AptosIntentBuilder } from "../transactions";
 
 // types
-
 export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission | GenericPermission;
+export type RevokePermission = RevokeFungibleAssetPermission | RevokeNFTPermission | Permission;
+export type FilteredPermissions<T extends PermissionType> = Array<
+  Extract<Permission, { type: T }>
+>;
 
 //  holds permissions
 export interface PermissionHandle {
@@ -116,12 +119,6 @@ export function GenericPermission(args: GenericPermission): GenericPermission {
 }
 
 // functions
-
-export interface PermissionTemp{
-  asset: string;
-  type: string;
-  remaining: string;
-}
 export async function getPermissions<T extends PermissionType>({
   aptosConfig,
   primaryAccount,
@@ -221,9 +218,6 @@ export async function requestPermission(args: {
     },
   });
 }
-
-
-export type RevokePermission = RevokeFungibleAssetPermission | RevokeNFTPermission | Permission;
 
 export async function revokePermissions(args: {
   aptosConfig: AptosConfig;
@@ -422,8 +416,3 @@ export async function getHandleAddress({
     return null;
   }
 }
-
-// Define a type alias to make it clearer
-export type FilteredPermissions<T extends PermissionType> = Array<
-  Extract<Permission, { type: T }>
->;

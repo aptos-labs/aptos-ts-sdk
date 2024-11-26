@@ -3,7 +3,7 @@
 
 import { AbstractedEd25519Account, Account, SingleKeyAccount } from "../account";
 import { AccountAddressInput } from "../core";
-import { FilteredPermissions, getPermissions, Permission, PermissionTemp, PermissionType, requestPermission, RevokePermission, revokePermissions } from "../internal/permissions";
+import { FilteredPermissions, getPermissions, Permission, PermissionType, requestPermission, RevokePermission, revokePermissions } from "../internal/permissions";
 import { InputGenerateTransactionOptions } from "../transactions/types";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
