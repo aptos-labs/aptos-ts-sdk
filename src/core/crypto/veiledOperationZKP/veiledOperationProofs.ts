@@ -2,14 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { numberToBytesLE } from "@noble/curves/abstract/utils";
-import { ed25519 } from "@noble/curves/ed25519";
 import { H_RISTRETTO, RistrettoPoint } from "../twistedEd25519";
 import {
+  genSigmaProofVeiledKeyRotation,
+  genSigmaProofVeiledNormalization,
   genSigmaProofVeiledTransfer,
   genSigmaProofVeiledWithdraw,
+  SigmaProofVeiledKeyRotationInputs,
+  SigmaProofVeiledKeyRotationOutputs,
+  SigmaProofVeiledNormalizationInputs,
+  SigmaProofVeiledNormalizationOutputs,
   SigmaProofVeiledTransferInputs,
   SigmaProofVeiledTransferOutputs,
   SigmaProofVeiledWithdrawInputs,
+  SigmaProofVeiledWithdrawOutputs,
+  verifySigmaProofVeiledKeyRotation,
+  VerifySigmaProofVeiledKeyRotationInputs,
+  verifySigmaProofVeiledNormalization,
+  VerifySigmaProofVeiledNormalizationInputs,
   verifySigmaProofVeiledTransfer,
   VerifySigmaProofVeiledTransferInputs,
   verifySigmaProofVeiledWithdraw,
@@ -17,179 +27,350 @@ import {
 } from "./sigmaProofs";
 
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
-import { toTwistedEd25519PrivateKey } from "./helpers";
-import { ed25519GenRandom } from "../utils";
+import { amountToChunks, toTwistedEd25519PrivateKey } from "./helpers";
+import { VEILED_BALANCE_CHUNK_SIZE } from "./consts";
+import { ed25519GenListOfRandom } from "../utils";
 
 export interface VeiledWithdrawProof {
   sigma: Uint8Array;
-  range: Uint8Array;
+  range: Uint8Array[];
 }
 export interface VeiledTransferProof {
   sigma: Uint8Array;
-  rangeAmount: Uint8Array;
-  rangeNewBalance: Uint8Array;
+  rangeAmount: Uint8Array[];
+  rangeNewBalance: Uint8Array[];
+}
+
+export interface VeiledKeyRotationProof {
+  sigma: Uint8Array;
+  range: Uint8Array[];
+}
+
+export interface VeiledNormalizationProof {
+  sigma: Uint8Array;
+  range: Uint8Array[];
 }
 
 export type ProofVeiledWithdrawInputs = SigmaProofVeiledWithdrawInputs;
 export type ProofVeiledTransferInputs = SigmaProofVeiledTransferInputs;
+export type ProofVeiledKeyRotationInputs = SigmaProofVeiledKeyRotationInputs;
+export type ProofVeiledNormalizationInputs = SigmaProofVeiledNormalizationInputs;
 
+export interface VeiledWithdrawProofOutputs extends Omit<SigmaProofVeiledWithdrawOutputs, "proof"> {
+  proof: VeiledWithdrawProof;
+}
 export interface VeiledTransferProofOutputs extends Omit<SigmaProofVeiledTransferOutputs, "proof"> {
   proof: VeiledTransferProof;
+}
+export interface VeiledKeyRotationProofOutputs extends Omit<SigmaProofVeiledKeyRotationOutputs, "proof"> {
+  proof: VeiledKeyRotationProof;
+}
+export interface VeiledNormalizationProofOutputs extends Omit<SigmaProofVeiledNormalizationOutputs, "proof"> {
+  proof: VeiledKeyRotationProof;
 }
 
 export interface VerifyProofVeiledWithdrawInputs extends Omit<VerifySigmaProofVeiledWithdrawInputs, "proof"> {
   proof: VeiledWithdrawProof;
-  rangeProofCommitment: Uint8Array;
 }
-
 export interface VerifyProofVeiledTransferInputs extends Omit<VerifySigmaProofVeiledTransferInputs, "proof"> {
   proof: VeiledTransferProof;
 }
-
+export interface VerifyProofVeiledKeyRotationInputs extends Omit<VerifySigmaProofVeiledKeyRotationInputs, "proof"> {
+  proof: VeiledKeyRotationProof;
+}
+export interface VerifyProofVeiledNormalizationInputs extends Omit<VerifySigmaProofVeiledNormalizationInputs, "proof"> {
+  proof: VeiledNormalizationProof;
+}
 /**
- * Generates sigma and range Zero Knowledge Proof for withdraw from the veiled balance
+ * Generates Zero Knowledge Proof for withdraw from the veiled balance
  *
  * @param opts.privateKey Twisted ElGamal Ed25519 private key.
  * @param opts.encryptedBalance Ciphertext points encrypted by Twisted ElGamal
  * @param opts.amount Amount of withdraw
  * @param opts.changedBalance Balance after withdraw
+ * @param opts.randomness List of random numbers less than ed25519.CURVE.n (bigint) for chunked balance
  */
-export async function genProofVeiledWithdraw(opts: ProofVeiledWithdrawInputs): Promise<VeiledWithdrawProof> {
+export async function genProofVeiledWithdraw(opts: ProofVeiledWithdrawInputs): Promise<VeiledWithdrawProofOutputs> {
+  if (opts.randomness && opts.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    throw new Error("Invalid length list of randomness");
+  }
+  const randomness = opts.randomness ?? ed25519GenListOfRandom()
+
   const privateKey = toTwistedEd25519PrivateKey(opts.privateKey);
-  const sigmaProof = genSigmaProofVeiledWithdraw(opts);
-  const rangeProof = await generateRangeZKP({
-    v: opts.changedBalance,
-    r: privateKey.toUint8Array(),
-    valBase: RistrettoPoint.BASE.toRawBytes(),
-    randBase: opts.encryptedBalance.D.toRawBytes(),
-  });
-
-  return {
-    sigma: sigmaProof,
-    range: rangeProof.proof,
-  };
-}
-
-/**
- * Generate sigma and range Zero Knowledge Proof for transfer
- *
- * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
- * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
- * @param opts.encryptedSenderBalance Ciphertext points encrypted by Twisted ElGamal
- * @param opts.amount Amount of transfer
- * @param opts.changedSenderBalance Balance after transfer
- * @param opts.auditorPublicKeys The list of auditors's public keys (Twisted ElGamal Ed25519).
- * @param opts.random Random 32 bytes (Uint8Array)
- */
-export async function genProofVeiledTransfer(opts: ProofVeiledTransferInputs): Promise<VeiledTransferProofOutputs> {
-  if (opts.random !== undefined && opts.random < 0n && opts.random > ed25519.CURVE.n)
-    throw new Error(`The random must be in the range 0n to ${ed25519.CURVE.n - 1n}`);
-
-  const random = opts.random ?? ed25519GenRandom();
-  const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
-
-  const {
-    proof: sigmaProof,
-    encryptedAmountBySender,
-    maskedRecipientPublicKey,
-    maskedAuditorsPublicKeys,
-  } = genSigmaProofVeiledTransfer({ ...opts, random });
-
-  const [rangeProofAmount, rangeProofNewBalance] = await Promise.all([
-    generateRangeZKP({
-      v: opts.amount,
-      r: numberToBytesLE(random, 32),
+  const { proof: sigmaProof, newEncryptedBalance } = genSigmaProofVeiledWithdraw({...opts, randomness});
+  const rangeProof = await Promise.all(
+    amountToChunks(opts.changedBalance, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) => generateRangeZKP({
+      v: chunk,
+      r: privateKey.toUint8Array(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: H_RISTRETTO.toRawBytes(),
-    }),
-    generateRangeZKP({
-      v: opts.changedSenderBalance,
-      r: senderPrivateKey.toUint8Array(),
-      valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: opts.encryptedSenderBalance.D.subtract(encryptedAmountBySender.D).toRawBytes(),
-    }),
-  ]);
+      randBase: newEncryptedBalance[i].D.toRawBytes(),
+    }))
+  ) ;
 
   return {
     proof: {
       sigma: sigmaProof,
-      rangeAmount: rangeProofAmount.proof,
-      rangeNewBalance: rangeProofNewBalance.proof,
+      range: rangeProof.map(({ proof }) => proof),
     },
-    encryptedAmountBySender,
-    maskedRecipientPublicKey,
+    newEncryptedBalance,
+  };
+}
+
+/**
+ * Generate Zero Knowledge Proof for transfer between veiled balances
+ *
+ * @param opts.senderPrivateKey Sender private key (Twisted ElGamal Ed25519).
+ * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
+ * @param opts.encryptedBalance Sender's encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.amount Amount of transfer
+ * @param opts.changedBalance Sender's balance after transfer
+ * @param opts.auditorPublicKeys The list of auditors's public keys (Twisted ElGamal Ed25519).
+ * @param opts.random Random number less than ed25519.CURVE.n (bigint)
+ */
+export async function genProofVeiledTransfer(opts: ProofVeiledTransferInputs): Promise<VeiledTransferProofOutputs> {
+  if (opts.randomness && opts.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    throw new Error("Invalid length list of randomness");
+  }
+
+  const randomness = opts.randomness ?? ed25519GenListOfRandom()
+  const senderPrivateKey = toTwistedEd25519PrivateKey(opts.senderPrivateKey);
+
+  const {
+    proof: sigmaProof,
+    encryptedAmountByRecipient,
+    newEncryptedBalance,
+    maskedAuditorsPublicKeys,
+  } = genSigmaProofVeiledTransfer({ ...opts, randomness });
+
+  const rangeProofAmountPromise = Promise.all(
+    amountToChunks(opts.amount, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) => generateRangeZKP({
+      v: chunk,
+      r: numberToBytesLE(randomness[i], 32),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: H_RISTRETTO.toRawBytes(),
+    }))
+  )
+
+  const rangeProofNewBalancePromise = Promise.all(
+    amountToChunks(opts.changedBalance, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) => generateRangeZKP({
+      v: chunk,
+      r: senderPrivateKey.toUint8Array(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: newEncryptedBalance[i].D.toRawBytes(),
+    }))
+  )
+
+  const [rangeProofAmount, rangeProofNewBalance] = await Promise.all([
+    rangeProofAmountPromise,
+    rangeProofNewBalancePromise,
+  ])
+
+  return {
+    proof: {
+      sigma: sigmaProof,
+      rangeAmount: rangeProofAmount.map(({ proof }) => proof),
+      rangeNewBalance: rangeProofNewBalance.map(({ proof }) => proof),
+    },
+    encryptedAmountByRecipient,
+    newEncryptedBalance,
     maskedAuditorsPublicKeys,
   };
 }
 
 /**
- * Verify sigma and range Zero Knowledge Proof of withdraw from the veiled balance
+ * Generate Zero Knowledge Proof for key rotation
+ *
+ * @param opts.oldPrivateKey Old private key (Twisted ElGamal Ed25519).
+ * @param opts.newPrivateKey New private key (Twisted ElGamal Ed25519).
+ * @param opts.balance Decrypted balance
+ * @param opts.oldEncryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.randomness List of random numbers less than ed25519.CURVE.n (bigint) for chunked balance
+ */
+export async function genProofVeiledKeyRotation(opts: ProofVeiledKeyRotationInputs): Promise<VeiledKeyRotationProofOutputs> {
+  if (opts.randomness && opts.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    throw new Error("Invalid length list of randomness");
+  }
+  const randomness = opts.randomness ?? ed25519GenListOfRandom()
+
+  const privateKey = toTwistedEd25519PrivateKey(opts.newPrivateKey);
+  const { proof: sigmaProof, newEncryptedBalance } = genSigmaProofVeiledKeyRotation({...opts, randomness});
+  const rangeProof = await Promise.all(
+    amountToChunks(opts.balance, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) => generateRangeZKP({
+      v: chunk,
+      r: privateKey.toUint8Array(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: newEncryptedBalance[i].D.toRawBytes(),
+    }))
+  ) ;
+
+  return {
+    proof: {
+      sigma: sigmaProof,
+      range: rangeProof.map(({ proof }) => proof),
+    },
+    newEncryptedBalance,
+  };
+}
+
+/**
+ * Generate Zero Knowledge Proof for normalization from the veiled balance
+ *
+ * @param opts.privateKey Twisted ElGamal Ed25519 private key.
+ * @param opts.encryptedBalance Ciphertext points encrypted by Twisted ElGamal
+ * @param opts.balance Decrypted balance
+ * @param opts.randomness List of random numbers less than ed25519.CURVE.n (bigint) for chunked balance
+ */
+export async function genProofVeiledNormalization(opts: ProofVeiledNormalizationInputs): Promise<VeiledNormalizationProofOutputs> {
+  if (opts.randomness && opts.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    throw new Error("Invalid length list of randomness");
+  }
+  const randomness = opts.randomness ?? ed25519GenListOfRandom()
+
+  const privateKey = toTwistedEd25519PrivateKey(opts.privateKey);
+  const { proof: sigmaProof, normalizedEncryptedBalance } = genSigmaProofVeiledNormalization({...opts, randomness});
+  const rangeProof = await Promise.all(
+    amountToChunks(opts.balance, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) => generateRangeZKP({
+      v: chunk,
+      r: privateKey.toUint8Array(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: normalizedEncryptedBalance[i].D.toRawBytes(),
+    }))
+  ) ;
+
+  return {
+    proof: {
+      sigma: sigmaProof,
+      range: rangeProof.map(({ proof }) => proof),
+    },
+    normalizedEncryptedBalance,
+  };
+}
+
+/**
+ * Verify Zero Knowledge Proof of withdraw from the veiled balance
  *
  * @param opts.publicKey Twisted ElGamal Ed25519 public key.
- * @param opts.encryptedBalance Encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.oldEncryptedBalance Original encrypted balance (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.newEncryptedBalance Encrypted balance after withdraw (Ciphertext points encrypted by Twisted ElGamal)
  * @param opts.amount Amount of withdraw
- * @param opts.proof.sigma Sigma proof of veiled withdraw
- * @param opts.proof.range Range proof of veiled withdraw
+ * @param opts.proof Zero knowledge subpproofs for veiled transfer
  */
 export async function verifyProofVeiledWithdraw(opts: VerifyProofVeiledWithdrawInputs): Promise<boolean> {
   const isSigmaProofValid = verifySigmaProofVeiledWithdraw({
     publicKey: opts.publicKey,
-    encryptedBalance: opts.encryptedBalance,
+    oldEncryptedBalance: opts.oldEncryptedBalance,
+    newEncryptedBalance: opts.newEncryptedBalance,
     amount: opts.amount,
     proof: opts.proof.sigma,
   });
 
-  const isRangeProofValid = await verifyRangeZKP({
-    proof: opts.proof.range,
-    commitment: opts.rangeProofCommitment,
-    valBase: RistrettoPoint.BASE.toRawBytes(),
-    randBase: opts.encryptedBalance.D.toRawBytes(),
-  });
+  const isRangeProofValid = (await Promise.all(
+    opts.proof.range.map((proof, i) => verifyRangeZKP({
+      proof,
+      commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
+    }))
+  )).every(isValid => isValid)
 
   return isSigmaProofValid && isRangeProofValid;
 }
 
 /**
- * Verify sigma and range Zero Knowledge Proof of veiled transfer
+ * Verify Zero Knowledge Proof of veiled transfer
  *
  * @param opts.senderPublicKey Sender public key (Twisted ElGamal Ed25519).
  * @param opts.recipientPublicKey Recipient public key (Twisted ElGamal Ed25519).
- * @param opts.encryptedSenderBalance Encrypted sender balance (Ciphertext points encrypted by Twisted ElGamal)
- * @param opts.encryptedAmountBySender Amount of transfer encrypted by sender using Twisted ElGamal
- * @param opts.maskedRecipientPublicKey The recipient's public key multiplied by the randomness used to encrypt the amount being sent
- * @param opts.proof.sigma Sigma proof for veiled transfer
- * @param opts.proof.rangeAmount Range proof of amount of transfer
- * @param opts.proof.rangeNewBalance Range proof of sender's new balance after transfer
- * @param opts.auditors.auditorPKs The list of auditors's public keys (Twisted ElGamal Ed25519).
- * @param opts.auditors.auditorDecryptionKeys The list of corresponding auditor's decryption keys
+ * @param opts.oldEncryptedBalance Sender's encrypted balance before transfer (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.newEncryptedBalance Sender's encrypted balance after transfer (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.encryptedAmountByRecipient Amount of transfer encrypted by recipient using Twisted ElGamal
+ * @param opts.proof Zero knowledge Proof for veiled transfer
+ * @param opts.auditors.publicKeys The list of auditors's public keys (Twisted ElGamal Ed25519).
+ * @param opts.auditors.decryptionKeys The list of corresponding auditor's decryption keys
  */
 export async function verifyProofVeiledTransfer(opts: VerifyProofVeiledTransferInputs): Promise<boolean> {
   const isSigmaProofValid = verifySigmaProofVeiledTransfer({
     senderPublicKey: opts.senderPublicKey,
     recipientPublicKey: opts.recipientPublicKey,
-    encryptedSenderBalance: opts.encryptedSenderBalance,
-    encryptedAmountBySender: opts.encryptedAmountBySender,
-    maskedRecipientPublicKey: opts.maskedRecipientPublicKey,
+    oldEncryptedBalance: opts.oldEncryptedBalance,
+    newEncryptedBalance: opts.newEncryptedBalance,
+    encryptedAmountByRecipient: opts.encryptedAmountByRecipient,
     auditors: opts.auditors,
     proof: opts.proof.sigma,
   });
 
-  const rangeProofNewBalanceCommitment = opts.encryptedSenderBalance.C.subtract(opts.encryptedAmountBySender.C);
-
-  const [isRangeProofAmountValid, isRangeProofNewBalanceValid] = await Promise.all([
-    verifyRangeZKP({
-      proof: opts.proof.rangeAmount,
-      commitment: opts.encryptedAmountBySender.C.toRawBytes(),
+  const isRangeProofsValid = (await Promise.all([
+    ...opts.proof.rangeAmount.map((proof, i) => verifyRangeZKP({
+      proof,
+      commitment: opts.encryptedAmountByRecipient[i].C.toRawBytes(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
       randBase: H_RISTRETTO.toRawBytes(),
-    }),
-    verifyRangeZKP({
-      proof: opts.proof.rangeNewBalance,
-      commitment: rangeProofNewBalanceCommitment.toRawBytes(),
+    })),
+    ...opts.proof.rangeNewBalance.map((proof, i) => verifyRangeZKP({
+      proof,
+      commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
       valBase: RistrettoPoint.BASE.toRawBytes(),
-      randBase: opts.encryptedSenderBalance.D.subtract(opts.encryptedAmountBySender.D).toRawBytes(),
-    }),
-  ]);
+      randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
+    })),
+  ])).every(isValid => isValid);
 
-  return isSigmaProofValid && isRangeProofAmountValid && isRangeProofNewBalanceValid;
+  return isSigmaProofValid && isRangeProofsValid;
+}
+
+/**
+ * Verify Zero Knowledge Proof of key rotation
+ *
+ * @param opts.oldPrivateKey Old public key (Twisted ElGamal Ed25519).
+ * @param opts.newPrivateKey New public key (Twisted ElGamal Ed25519).
+ * @param opts.oldEncryptedBalance Balance encrypted with previous public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.newEncryptedBalance Balance encrypted with new public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.proof Zero Knowledge Proof for veiled balance key rotation
+ */
+export async function verifyProofVeiledKeyRotation(opts: VerifyProofVeiledKeyRotationInputs): Promise<boolean> {
+  const isSigmaProofValid = verifySigmaProofVeiledKeyRotation({
+    oldPublicKey: opts.oldPublicKey,
+    newPublicKey: opts.newPublicKey,
+    oldEncryptedBalance: opts.oldEncryptedBalance,
+    newEncryptedBalance: opts.newEncryptedBalance,
+    proof: opts.proof.sigma,
+  });
+
+  const isRangeProofValid = (await Promise.all(
+    opts.proof.range.map((proof, i) => verifyRangeZKP({
+      proof,
+      commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
+    }))
+  )).every(isValid => isValid)
+
+  return isSigmaProofValid && isRangeProofValid;
+}
+
+/**
+ * Verify Zero Knowledge Proof for normalization from the veiled balance
+ *
+ * @param opts.publicKey Twisted ElGamal Ed25519 public key.
+ * @param opts.encryptedBalance Non-normalized balance encrypted by public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.normalizedEncryptedBalance Normalized balance encrypted by public key (Ciphertext points encrypted by Twisted ElGamal)
+ * @param opts.proof Zero Knowledge Proof for veiled normalization
+ */
+export async function verifyProofVeiledNormalization(opts: VerifyProofVeiledNormalizationInputs): Promise<boolean> {
+  const isSigmaProofValid = verifySigmaProofVeiledNormalization({
+    publicKey: opts.publicKey,
+    encryptedBalance: opts.encryptedBalance,
+    normalizedEncryptedBalance: opts.normalizedEncryptedBalance,
+    proof: opts.proof.sigma,
+  });
+
+  const isRangeProofValid = (await Promise.all(
+    opts.proof.range.map((proof, i) => verifyRangeZKP({
+      proof,
+      commitment: opts.normalizedEncryptedBalance[i].C.toRawBytes(),
+      valBase: RistrettoPoint.BASE.toRawBytes(),
+      randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
+    }))
+  )).every(isValid => isValid)
+
+  return isSigmaProofValid && isRangeProofValid;
 }

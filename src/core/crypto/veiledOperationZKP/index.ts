@@ -5,3 +5,4 @@ export * from "./rangeProof";
 export * from "./sigmaProofs";
 export * from "./sigmaProofsSerializers";
 export * from "./veiledOperationProofs";
+export { amountToChunks, chunksToAmount } from "./helpers";
