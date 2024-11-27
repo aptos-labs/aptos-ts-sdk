@@ -101,7 +101,7 @@ export class Deserializer {
   }
 
   /**
-   * @deprecated use `deserializeOption` instead.
+   * @deprecated use `deserializeOption("string")` instead.
    *
    * The BCS layout for Optional<String> is 0 if none, else 1 followed by the string length and string content.
    * @returns The deserialized string if it exists, otherwise undefined.
@@ -114,8 +114,7 @@ export class Deserializer {
    * ```
    */
   deserializeOptionStr(): string | undefined {
-    const exists = this.deserializeBool();
-    return exists ? this.deserializeStr() : undefined;
+    return this.deserializeOption("string");
   }
 
   /**
