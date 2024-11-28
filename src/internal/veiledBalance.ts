@@ -3,9 +3,7 @@ import { AptosConfig } from "../api/aptosConfig";
 import {
   AccountAddress,
   AccountAddressInput,
-  genProofVeiledTransfer,
   genSigmaProofVeiledKeyRotation,
-  ProofVeiledTransferInputs,
   SigmaProofVeiledKeyRotationInputs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
@@ -16,8 +14,13 @@ import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
 import { generateTransaction } from "./transactionSubmission";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { view } from "./view";
-import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../core/crypto/veiledOperationZKP/helpers";
+import {
+  publicKeyToU8,
+  toTwistedEd25519PrivateKey,
+  toTwistedEd25519PublicKey,
+} from "../core/crypto/veiledOperationZKP/helpers";
 import { VeiledWithdraw } from "../core/crypto/veiledOperationZKP/veiledWithdraw";
+import { VeiledTransfer } from "../core/crypto/veiledOperationZKP/veiledTransfer";
 
 // TODO: update the module address as soon as it becomes a system address
 //  At the moment, the module work only on TESTNET.
@@ -168,68 +171,56 @@ export async function rolloverPendingVeiledBalanceTransaction(args: {
   });
 }
 
-export async function veiledTransferCoinTransaction(
-  args: ProofVeiledTransferInputs & {
-    aptosConfig: AptosConfig;
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    recipient: AccountAddressInput;
-    options?: InputGenerateTransactionOptions;
-  },
-): Promise<SimpleTransaction> {
-  const {
-    aptosConfig,
-    sender,
-    recipient,
-    tokenAddress,
-    senderPrivateKey,
-    recipientPublicKey,
-    // encryptedSenderBalance,
-    amount,
-    // changedSenderBalance,
-    // random,
-    auditorPublicKeys,
-    options,
-    encryptedBalance,
-    changedBalance,
-    // randomness,
-  } = args;
+export async function veiledTransferCoinTransaction(args: {
+  senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
+  recipientPublicKey: TwistedEd25519PublicKey | HexInput;
+  encryptedBalance: TwistedElGamalCiphertext[];
+  amount: bigint;
+  changedBalance: bigint;
+  auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
+  randomness?: bigint[];
 
-  const transferProof = await genProofVeiledTransfer({
-    changedBalance,
-    encryptedBalance,
-    senderPrivateKey,
-    recipientPublicKey,
-    // encryptedSenderBalance,
-    amount,
-    // changedSenderBalance,
-    // random,
-    auditorPublicKeys,
-  });
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  tokenAddress: string;
+  recipient: AccountAddressInput;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction> {
+  const veiledTransfer = new VeiledTransfer(
+    toTwistedEd25519PrivateKey(args.senderPrivateKey),
+    args.encryptedBalance,
+    args.amount,
+    toTwistedEd25519PublicKey(args.recipientPublicKey),
+    args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || [],
+    args.randomness,
+  );
 
-  const auditorU8PublicKeys = (auditorPublicKeys ?? []).map((pk) => publicKeyToU8(pk));
+  await veiledTransfer.init();
+
+  const sigmaProof = await veiledTransfer.genSigmaProof();
+
+  const { rangeProofAmount, rangeProofNewBalance } = await veiledTransfer.genRangeProof();
 
   return generateTransaction({
-    aptosConfig,
-    sender,
+    aptosConfig: args.aptosConfig,
+    sender: args.sender,
     data: {
       function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::fully_veiled_transfer`,
       functionArguments: [
-        tokenAddress,
-        recipient,
-        // TODO: concat before, serialize here
-        concatBytes(...encryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat()),
+        args.tokenAddress,
+        args.recipient,
+        concatBytes(...args.encryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat()),
         concatBytes(
-          ...transferProof.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+          ...veiledTransfer.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
         ),
-        concatBytes(...auditorU8PublicKeys),
-        concatBytes(...transferProof.maskedAuditorsPublicKeys.flat()),
-        transferProof.proof.rangeNewBalance,
-        transferProof.proof.rangeAmount,
-        transferProof.proof.sigma,
+        concatBytes(...veiledTransfer.auditorPublicKeys.map(publicKeyToU8)),
+        concatBytes(...veiledTransfer.auditorsDList.flat()),
+        rangeProofNewBalance,
+        rangeProofAmount,
+        VeiledTransfer.serializeSigmaProof(sigmaProof),
       ],
     },
-    options,
+    options: args.options,
   });
 }
 

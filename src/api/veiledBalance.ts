@@ -4,7 +4,6 @@
 import {
   AccountAddress,
   AccountAddressInput,
-  ProofVeiledTransferInputs,
   SigmaProofVeiledKeyRotationInputs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
@@ -77,14 +76,20 @@ export class VeiledBalance {
     return rolloverPendingVeiledBalanceTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async transferCoin(
-    args: ProofVeiledTransferInputs & {
-      sender: AccountAddressInput;
-      tokenAddress: string;
-      recipient: AccountAddressInput;
-      options?: InputGenerateTransactionOptions;
-    },
-  ): Promise<SimpleTransaction> {
+  async transferCoin(args: {
+    senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
+    recipientPublicKey: TwistedEd25519PublicKey | HexInput;
+    encryptedBalance: TwistedElGamalCiphertext[];
+    amount: bigint;
+    changedBalance: bigint;
+    auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
+    randomness?: bigint[];
+
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    recipient: AccountAddressInput;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
     return veiledTransferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 
