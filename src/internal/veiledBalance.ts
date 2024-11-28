@@ -4,11 +4,10 @@ import {
   AccountAddress,
   AccountAddressInput,
   genProofVeiledTransfer,
-  genProofVeiledWithdraw,
   genSigmaProofVeiledKeyRotation,
   ProofVeiledTransferInputs,
-  ProofVeiledWithdrawInputs,
   SigmaProofVeiledKeyRotationInputs,
+  TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
 } from "../core";
@@ -18,41 +17,55 @@ import { generateTransaction } from "./transactionSubmission";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { view } from "./view";
 import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../core/crypto/veiledOperationZKP/helpers";
+import { VeiledWithdraw } from "../core/crypto/veiledOperationZKP/veiledWithdraw";
 
 // TODO: update the module address as soon as it becomes a system address
-// At the moment, the module work only on TESTNET.
+//  At the moment, the module work only on TESTNET.
 const VEILED_COIN_MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7";
 
-interface VeiledBalanceOutputItem {
+export type VeiledBalanceResponse = {
   left: { data: string };
   right: { data: string };
-}
-
-export interface VeiledBalances {
-  pending: TwistedElGamalCiphertext;
-  actual: TwistedElGamalCiphertext;
-}
+}[]; // tuple of 4
 
 export async function getVeiledBalances(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddress;
   tokenAddress: string;
   options?: LedgerVersionArg;
-}): Promise<VeiledBalances> {
+}): Promise<{
+  pending: TwistedElGamalCiphertext[];
+  actual: TwistedElGamalCiphertext[];
+}> {
   const { aptosConfig, accountAddress, tokenAddress, options } = args;
-  const balances = await view<VeiledBalanceOutputItem[]>({
-    aptosConfig,
-    payload: {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::veiled_balance`,
-      typeArguments: [],
-      functionArguments: [accountAddress, tokenAddress],
-    },
-    options,
-  });
+  const [chunkedPendingBalance, chunkedActualBalances] = await Promise.all([
+    view<VeiledBalanceResponse>({
+      aptosConfig,
+      payload: {
+        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::pending_balance`,
+        typeArguments: [],
+        functionArguments: [accountAddress, tokenAddress],
+      },
+      options,
+    }),
+    view<VeiledBalanceResponse>({
+      aptosConfig,
+      payload: {
+        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::actual_balance`,
+        typeArguments: [],
+        functionArguments: [accountAddress, tokenAddress],
+      },
+      options,
+    }),
+  ]);
 
   return {
-    pending: new TwistedElGamalCiphertext(balances[0].left.data.slice(2), balances[0].right.data.slice(2)),
-    actual: new TwistedElGamalCiphertext(balances[1].left.data.slice(2), balances[1].right.data.slice(2)),
+    pending: chunkedPendingBalance.map(
+      (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
+    ),
+    actual: chunkedActualBalances.map(
+      (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
+    ),
   };
 }
 
@@ -95,31 +108,42 @@ export async function depositToVeiledBalanceTransaction(args: {
   });
 }
 
-export async function veiledWithdrawTransaction(
-  args: ProofVeiledWithdrawInputs & {
-    aptosConfig: AptosConfig;
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    options?: InputGenerateTransactionOptions;
-  },
-): Promise<SimpleTransaction> {
-  const { aptosConfig, privateKey, encryptedBalance, sender, amount, changedBalance, tokenAddress, options } = args;
+export async function veiledWithdrawTransaction(args: {
+  privateKey: TwistedEd25519PrivateKey | HexInput;
+  encryptedBalance: TwistedElGamalCiphertext[];
+  tokenAddress: string;
+  sender: AccountAddressInput;
+  amount: bigint;
+  aptosConfig: AptosConfig;
+  randomness?: bigint[];
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction> {
+  const veiledWithdraw = new VeiledWithdraw(
+    toTwistedEd25519PrivateKey(args.privateKey),
+    args.encryptedBalance,
+    args.amount,
+    args.randomness,
+  );
 
-  const { sigma, range } = await genProofVeiledWithdraw({
-    privateKey,
-    encryptedBalance,
-    amount,
-    changedBalance,
-  });
+  await veiledWithdraw.init();
+
+  const sigmaProof = await veiledWithdraw.genSigmaProof();
+
+  const rangeProof = await veiledWithdraw.genRangeProof();
 
   return generateTransaction({
-    aptosConfig,
-    sender,
+    aptosConfig: args.aptosConfig,
+    sender: args.sender,
     data: {
       function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::unveil`,
-      functionArguments: [tokenAddress, String(amount), range, sigma],
+      functionArguments: [
+        args.tokenAddress,
+        String(args.amount),
+        rangeProof,
+        VeiledWithdraw.serializeSigmaProof(sigmaProof),
+      ],
     },
-    options,
+    options: args.options,
   });
 }
 
@@ -160,21 +184,26 @@ export async function veiledTransferCoinTransaction(
     tokenAddress,
     senderPrivateKey,
     recipientPublicKey,
-    encryptedSenderBalance,
+    // encryptedSenderBalance,
     amount,
-    changedSenderBalance,
-    random,
+    // changedSenderBalance,
+    // random,
     auditorPublicKeys,
     options,
+    encryptedBalance,
+    changedBalance,
+    // randomness,
   } = args;
 
   const transferProof = await genProofVeiledTransfer({
+    changedBalance,
+    encryptedBalance,
     senderPrivateKey,
     recipientPublicKey,
-    encryptedSenderBalance,
+    // encryptedSenderBalance,
     amount,
-    changedSenderBalance,
-    random,
+    // changedSenderBalance,
+    // random,
     auditorPublicKeys,
   });
 
@@ -188,11 +217,13 @@ export async function veiledTransferCoinTransaction(
       functionArguments: [
         tokenAddress,
         recipient,
-        transferProof.encryptedAmountBySender.C.toRawBytes(),
-        transferProof.encryptedAmountBySender.D.toRawBytes(),
-        transferProof.maskedRecipientPublicKey,
+        // TODO: concat before, serialize here
+        concatBytes(...encryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat()),
+        concatBytes(
+          ...transferProof.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+        ),
         concatBytes(...auditorU8PublicKeys),
-        concatBytes(...transferProof.maskedAuditorsPublicKeys),
+        concatBytes(...transferProof.maskedAuditorsPublicKeys.flat()),
         transferProof.proof.rangeNewBalance,
         transferProof.proof.rangeAmount,
         transferProof.proof.sigma,
@@ -223,7 +254,7 @@ export async function veiledBalanceKeyRotationTransaction(
     options,
   } = args;
 
-  const { proof, encryptedBalanceByNewPublicKey } = genSigmaProofVeiledKeyRotation({
+  const { proof, newEncryptedBalance } = genSigmaProofVeiledKeyRotation({
     oldPrivateKey,
     newPrivateKey,
     balance,
@@ -233,8 +264,8 @@ export async function veiledBalanceKeyRotationTransaction(
   const newPublicKeyU8 = toTwistedEd25519PrivateKey(newPrivateKey).publicKey().toUint8Array();
 
   const serializedNewBalance = concatBytes(
-    encryptedBalanceByNewPublicKey.C.toRawBytes(),
-    encryptedBalanceByNewPublicKey.D.toRawBytes(),
+    ...newEncryptedBalance.map((el) => el.C.toRawBytes()),
+    ...newEncryptedBalance.map((el) => el.D.toRawBytes()),
   );
   const method = withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
 

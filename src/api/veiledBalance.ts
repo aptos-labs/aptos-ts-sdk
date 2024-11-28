@@ -5,9 +5,10 @@ import {
   AccountAddress,
   AccountAddressInput,
   ProofVeiledTransferInputs,
-  ProofVeiledWithdrawInputs,
   SigmaProofVeiledKeyRotationInputs,
+  TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
+  TwistedElGamalCiphertext,
 } from "../core";
 import {
   depositToVeiledBalanceTransaction,
@@ -15,7 +16,6 @@ import {
   registerVeiledBalanceTransaction,
   rolloverPendingVeiledBalanceTransaction,
   veiledBalanceKeyRotationTransaction,
-  VeiledBalances,
   veiledTransferCoinTransaction,
   veiledWithdrawTransaction,
 } from "../internal/veiledBalance";
@@ -33,7 +33,7 @@ export class VeiledBalance {
     accountAddress: AccountAddress;
     tokenAddress: string;
     options?: LedgerVersionArg;
-  }): Promise<VeiledBalances> {
+  }): ReturnType<typeof getVeiledBalances> {
     return getVeiledBalances({ aptosConfig: this.config, ...args });
   }
 
@@ -55,13 +55,16 @@ export class VeiledBalance {
     return depositToVeiledBalanceTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async withdraw(
-    args: ProofVeiledWithdrawInputs & {
-      sender: AccountAddressInput;
-      tokenAddress: string;
-      options?: InputGenerateTransactionOptions;
-    },
-  ): Promise<SimpleTransaction> {
+  async withdraw(args: {
+    privateKey: TwistedEd25519PrivateKey | HexInput;
+    encryptedBalance: TwistedElGamalCiphertext[];
+    amount: bigint;
+    changedBalance: bigint;
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    randomness?: bigint[];
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
     return veiledWithdrawTransaction({ aptosConfig: this.config, ...args });
   }
 

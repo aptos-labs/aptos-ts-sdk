@@ -154,7 +154,7 @@ export class TwistedElGamal {
    * Modify ciphertext by ciphertext
    * @param operand1 Сiphertext points encrypted by Twisted ElGamal
    * @param operation Operation to change ciphertext points
-   * @param operand1 Сiphertext points encrypted by Twisted ElGamal
+   * @param operand2 Сiphertext points encrypted by Twisted ElGamal
    */
   static modifyCiphertextByCiphertext(
     operand1: TwistedElGamalCiphertext,
