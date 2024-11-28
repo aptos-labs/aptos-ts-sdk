@@ -82,7 +82,6 @@ export class Deserializer {
   }
 
   /**
-   * @deprecated use `deserializeOption` instead.
    * Deserializes a UTF-8 encoded string from a byte array. It first reads the length of the string in bytes,
    * followed by the actual byte content, and decodes it into a string.
    *
@@ -99,6 +98,23 @@ export class Deserializer {
     const value = this.deserializeBytes();
     const textDecoder = new TextDecoder();
     return textDecoder.decode(value);
+  }
+
+  /**
+   * @deprecated use `deserializeOption("string")` instead.
+   *
+   * The BCS layout for Optional<String> is 0 if none, else 1 followed by the string length and string content.
+   * @returns The deserialized string if it exists, otherwise undefined.
+   * @example
+   * ```typescript
+   * const deserializer = new Deserializer(new Uint8Array([0x00]));
+   * assert(deserializer.deserializeOptionStr() === undefined);
+   * const deserializer = new Deserializer(new Uint8Array([1, 8, 49, 50, 51, 52, 97, 98, 99, 100]));
+   * assert(deserializer.deserializeOptionStr() === "1234abcd");
+   * ```
+   */
+  deserializeOptionStr(): string | undefined {
+    return this.deserializeOption("string");
   }
 
   /**
