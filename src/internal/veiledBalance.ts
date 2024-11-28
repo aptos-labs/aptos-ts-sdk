@@ -176,7 +176,6 @@ export async function veiledTransferCoinTransaction(args: {
   recipientPublicKey: TwistedEd25519PublicKey | HexInput;
   encryptedBalance: TwistedElGamalCiphertext[];
   amount: bigint;
-  changedBalance: bigint;
   auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
   randomness?: bigint[];
 

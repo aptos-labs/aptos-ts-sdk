@@ -58,7 +58,6 @@ export class VeiledBalance {
     privateKey: TwistedEd25519PrivateKey | HexInput;
     encryptedBalance: TwistedElGamalCiphertext[];
     amount: bigint;
-    changedBalance: bigint;
     sender: AccountAddressInput;
     tokenAddress: string;
     randomness?: bigint[];
@@ -81,7 +80,6 @@ export class VeiledBalance {
     recipientPublicKey: TwistedEd25519PublicKey | HexInput;
     encryptedBalance: TwistedElGamalCiphertext[];
     amount: bigint;
-    changedBalance: bigint;
     auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
     randomness?: bigint[];
 

@@ -30,6 +30,7 @@ describe("staking api", () => {
    * Address of the module for minting mocked fungible tokens on the testnet
    */
   const MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7::mock_token";
+  // TODO: decimals?
   const TOKENS_TO_MINT = 500_000;
 
   const INITIAL_APTOS_BALANCE = 100_000_000;
@@ -260,7 +261,7 @@ describe("staking api", () => {
     expect(balance).toBeGreaterThan(0);
   });
 
-  const DEPOSIT_AMOUNT = 7n;
+  const DEPOSIT_AMOUNT = 25n;
   test("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
     const depositTx = await aptos.veiledBalance.deposit({
       sender: alice.accountAddress,
@@ -277,6 +278,7 @@ describe("staking api", () => {
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
 
     const decryptedPendingBalance = chunksToAmount(
       aliceChunkedVeiledBalance.pending.map((el) =>
@@ -290,5 +292,185 @@ describe("staking api", () => {
     expect(decryptedPendingBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
-  test("it should rollover Alice's veiled balance", async () => {});
+  test("it should rollover Alice's veiled balance", async () => {
+    const rolloverTxBody = await aptos.veiledBalance.rolloverPendingBalance({
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+
+    const txResp = await sendAndWaitTx(rolloverTxBody, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  test("it should check Alice's actual veiled balance after rollover", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const decryptedPendingBalance = chunksToAmount(
+      aliceChunkedVeiledBalance.pending.map((el) =>
+        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
+          start: 0n,
+          end: 1000n,
+        }),
+      ),
+    );
+
+    expect(decryptedPendingBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+  });
+
+  const WITHDRAW_AMOUNT = 1n;
+  test("it should withdraw Alice's veiled balance", async () => {
+    const withdrawTx = await aptos.veiledBalance.withdraw({
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      privateKey: aliceVeiledPrivateKey,
+      encryptedBalance: chunkedAliceVb.actual,
+      amount: WITHDRAW_AMOUNT,
+    });
+    const txResp = await sendAndWaitTx(withdrawTx, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  test("it should check Alice's veiled and fungible balance after withdrawal", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const decryptedActualBalance = chunksToAmount(
+      aliceChunkedVeiledBalance.actual.map((el) =>
+        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
+          start: 0n,
+          end: 1000n,
+        }),
+      ),
+    );
+
+    expect(decryptedActualBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT);
+  });
+
+  test("it should check Alice's fungible balance after withdrawal", async () => {
+    const balance = await balanceOf(alice.accountAddress);
+
+    expect(balance).toBeGreaterThanOrEqual(WITHDRAW_AMOUNT); // FIXME: check type and decimals
+  });
+
+  const TRANSFER_AMOUNT = 2n;
+  test("it should transfer Alice's tokens to Bob's veiled balance without auditor", async () => {
+    const transferTx = await aptos.veiledBalance.transferCoin({
+      senderPrivateKey: aliceVeiledPrivateKey,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+      encryptedBalance: chunkedAliceVb.actual,
+      amount: TRANSFER_AMOUNT,
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      recipient: bob.accountAddress,
+    });
+    const txResp = await sendAndWaitTx(transferTx, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  const AUDITOR = TwistedEd25519PrivateKey.generate();
+  test("it should transfer Alice's tokens to Bob's veiled balance with auditor", async () => {
+    const transferTx = await aptos.veiledBalance.transferCoin({
+      senderPrivateKey: aliceVeiledPrivateKey,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+      encryptedBalance: chunkedAliceVb.actual,
+      amount: TRANSFER_AMOUNT,
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      recipient: bob.accountAddress,
+      auditorPublicKeys: [AUDITOR.publicKey()],
+    });
+    const txResp = await sendAndWaitTx(transferTx, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  test("it should check Bob's veiled balance after transfer", async () => {
+    const bobChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: bob.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedBobVb = bobChunkedVeiledBalance;
+
+    const decryptedActualBalance = chunksToAmount(
+      bobChunkedVeiledBalance.actual.map((el) =>
+        TwistedElGamal.decryptWithPK(el, bobVeiledPrivateKey, {
+          start: 0n,
+          end: 1000n,
+        }),
+      ),
+    );
+
+    expect(decryptedActualBalance).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
+  });
+
+  test("it should rollover Alice's veiled balance with freezeOption", async () => {
+    const rolloverTxBody = await aptos.veiledBalance.rolloverPendingBalance({
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      withFreezeBalance: true,
+    });
+
+    const txResp = await sendAndWaitTx(rolloverTxBody, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  // TODO: add rotation test without UnfreezeBalance
+  const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
+  test("it should rotate Alice's veiled balance key", async () => {
+    // TODO: incapsulate key rotation
+    const decryptedActualBalance = chunksToAmount(
+      chunkedAliceVb.actual.map((el) =>
+        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
+          start: 0n,
+          end: 1000n,
+        }),
+      ),
+    );
+
+    const keyRotationAndUnfreezeTx = await aptos.veiledBalance.keyRotation({
+      sender: alice.accountAddress,
+
+      oldPrivateKey: aliceVeiledPrivateKey,
+      newPrivateKey: ALICE_NEW_VEILED_PRIVATE_KEY,
+
+      balance: decryptedActualBalance,
+      oldEncryptedBalance: chunkedAliceVb.actual,
+
+      withUnfreezeBalance: true,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    const txResp = await sendAndWaitTx(keyRotationAndUnfreezeTx, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
+  test("it should get new Alice's veiled balance", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const decryptedActualBalance = chunksToAmount(
+      aliceChunkedVeiledBalance.actual.map((el) =>
+        TwistedElGamal.decryptWithPK(el, ALICE_NEW_VEILED_PRIVATE_KEY, {
+          start: 0n,
+          end: 1000n,
+        }),
+      ),
+    );
+
+    expect(decryptedActualBalance).toBeGreaterThanOrEqual(0);
+  });
 });
