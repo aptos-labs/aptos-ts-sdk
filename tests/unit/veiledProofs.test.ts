@@ -79,10 +79,10 @@ describe("Generate 'veiled coin' proofs", () => {
 
     expect(veiledTransferSigmaProof).toBeDefined();
   });
-  const balanceAfterTransfer = ALICE_BALANCE - TRANSFER_AMOUNT;
-  const encryptedBalanceAfterTransfer = amountToChunks(balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE).map((el) =>
-    TwistedElGamal.encryptWithPK(el, aliceVeiledPrivateKey.publicKey()),
-  );
+  // const balanceAfterTransfer = ALICE_BALANCE - TRANSFER_AMOUNT;
+  // // const encryptedBalanceAfterTransfer = amountToChunks(balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE).map((el) =>
+  // //   TwistedElGamal.encryptWithPK(el, aliceVeiledPrivateKey.publicKey()),
+  // // );
   test("Verify transfer sigma proof", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
       twistedEd25519PrivateKey: aliceVeiledPrivateKey,
@@ -114,8 +114,57 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  // test("Generate transfer with auditors sigma proof", () => {});
-  // test("Verify transfer with auditors sigma proof", () => {});
+  const auditor = TwistedEd25519PrivateKey.generate();
+  const veiledTransferWithAuditors = new VeiledTransfer(
+    aliceVeiledPrivateKey,
+    aliceEncryptedBalance,
+    TRANSFER_AMOUNT,
+    bobVeiledPrivateKey.publicKey(),
+    [auditor.publicKey()],
+  );
+  let veiledTransferWithAuditorsSigmaProof: VeiledTransferSigmaProof;
+  test("Generate transfer with auditors sigma proof", async () => {
+    await veiledTransferWithAuditors.init();
+
+    veiledTransferWithAuditorsSigmaProof = await veiledTransferWithAuditors.genSigmaProof();
+
+    expect(veiledTransferWithAuditorsSigmaProof).toBeDefined();
+  });
+  test("Verify transfer with auditors sigma proof", () => {
+    const isValid = VeiledTransfer.verifySigmaProof({
+      twistedEd25519PrivateKey: aliceVeiledPrivateKey,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+      encryptedActualBalance: aliceEncryptedBalance,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.encryptedActualBalanceAfterTransfer!,
+      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
+      sigmaProof: veiledTransferWithAuditorsSigmaProof,
+      auditors: {
+        publicKeys: [auditor.publicKey()],
+        decryptionKeys: veiledTransferWithAuditors.auditorsDList,
+      },
+    });
+
+    expect(isValid).toBeTruthy();
+  });
+  let veiledTransferWithAuditorsRangeProofs: {
+    rangeProofAmount: Uint8Array[];
+    rangeProofNewBalance: Uint8Array[];
+  };
+  test("Generate transfer with auditors range proofs", async () => {
+    veiledTransferWithAuditorsRangeProofs = await veiledTransferWithAuditors.genRangeProof();
+
+    expect(veiledTransferWithAuditorsRangeProofs).toBeDefined();
+  });
+  test("Verify transfer with auditors range proofs", async () => {
+    const isValid = await VeiledTransfer.verifyRangeProof({
+      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.encryptedActualBalanceAfterTransfer!,
+      rangeProofAmount: veiledTransferWithAuditorsRangeProofs.rangeProofAmount,
+      rangeProofNewBalance: veiledTransferWithAuditorsRangeProofs.rangeProofNewBalance,
+    });
+
+    expect(isValid).toBeTruthy();
+  });
 
   // test("Generate rollover sigma proof", () => {});
   // test("Verify rollover sigma proof", () => {});
