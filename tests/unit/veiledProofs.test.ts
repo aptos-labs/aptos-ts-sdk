@@ -1,3 +1,4 @@
+import { RistrettoPoint } from "@noble/curves/ed25519";
 import {
   amountToChunks,
   TwistedEd25519PrivateKey,
@@ -6,9 +7,10 @@ import {
   VeiledWithdrawSigmaProof,
 } from "../../src";
 import { VeiledWithdraw } from "../../src/core/crypto/veiledOperationZKP/veiledWithdraw";
-import { toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiledOperationZKP/helpers";
+import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiledOperationZKP/helpers";
 import { VEILED_BALANCE_CHUNK_SIZE } from "../../src/core/crypto/veiledOperationZKP/consts";
 import { VeiledTransfer } from "../../src/core/crypto/veiledOperationZKP/veiledTransfer";
+import { ed25519GenListOfRandom } from "../../src/core/crypto/utils";
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;
@@ -145,6 +147,29 @@ describe("Generate 'veiled coin' proofs", () => {
     });
 
     expect(isValid).toBeTruthy();
+  });
+  test("Should fail transfer sigma proof verification with wrong auditors", () => {
+    const invalidAuditor = TwistedEd25519PrivateKey.generate();
+    const newRandomness = ed25519GenListOfRandom();
+    const auditorsDList = [invalidAuditor.publicKey()].map(publicKeyToU8).map((pk) => {
+      const pkRist = RistrettoPoint.fromHex(pk);
+      return newRandomness.map((r) => pkRist.multiply(r).toRawBytes());
+    });
+
+    const isValid = VeiledTransfer.verifySigmaProof({
+      twistedEd25519PrivateKey: aliceVeiledPrivateKey,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+      encryptedActualBalance: aliceEncryptedBalance,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.encryptedActualBalanceAfterTransfer!,
+      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
+      sigmaProof: veiledTransferWithAuditorsSigmaProof,
+      auditors: {
+        publicKeys: [invalidAuditor.publicKey()],
+        decryptionKeys: auditorsDList,
+      },
+    });
+
+    expect(isValid).toBeFalsy();
   });
   let veiledTransferWithAuditorsRangeProofs: {
     rangeProofAmount: Uint8Array[];
