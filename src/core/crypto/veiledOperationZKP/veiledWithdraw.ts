@@ -2,7 +2,7 @@ import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abs
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { amountToChunks, chunksToAmount, genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
-import { H_RISTRETTO, TwistedEd25519PrivateKey } from "../twistedEd25519";
+import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { CHUNK_BITS_BI, PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE, VEILED_BALANCE_CHUNK_SIZE } from "./consts";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
@@ -100,8 +100,6 @@ export class VeiledWithdraw {
   }
 
   async init() {
-    if (!this.isInitialized) throw new TypeError("VeiledWithdraw is not initialized");
-
     const decryptedBalanceChunks = await Promise.all(
       this.encryptedActualBalance.map((el) =>
         TwistedElGamal.decryptWithPK(el, this.twistedEd25519PublicKey, {
@@ -198,33 +196,37 @@ export class VeiledWithdraw {
     };
   }
 
-  verifySigmaProof(sigmaProof: VeiledWithdrawSigmaProof): boolean {
-    if (!this.encryptedActualBalanceAfterWithdraw) throw new TypeError("Encrypted balance after withdraw is not set");
+  static verifySigmaProof(opts: {
+    sigmaProof: VeiledWithdrawSigmaProof;
+    encryptedActualBalance: TwistedElGamalCiphertext[];
+    encryptedActualBalanceAfterWithdraw: TwistedElGamalCiphertext[];
+    twistedEd25519PublicKey: TwistedEd25519PublicKey;
+    amountToWithdraw: bigint;
+  }): boolean {
+    const publicKeyU8 = publicKeyToU8(opts.twistedEd25519PublicKey);
+    const chunkedAmount = amountToChunks(opts.amountToWithdraw, 2);
 
-    const publicKeyU8 = publicKeyToU8(this.twistedEd25519PublicKey.publicKey());
-    const chunkedAmount = amountToChunks(this.amountToWithdraw, 2);
-
-    const alpha1LE = bytesToNumberLE(sigmaProof.alpha1);
-    const alpha2LE = bytesToNumberLE(sigmaProof.alpha2);
-    const alpha3LE = bytesToNumberLE(sigmaProof.alpha3);
-    const alpha4LEList = sigmaProof.alpha4List.map((a) => bytesToNumberLE(a));
-    const alpha5LEList = sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
+    const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
+    const alpha2LE = bytesToNumberLE(opts.sigmaProof.alpha2);
+    const alpha3LE = bytesToNumberLE(opts.sigmaProof.alpha3);
+    const alpha4LEList = opts.sigmaProof.alpha4List.map((a) => bytesToNumberLE(a));
+    const alpha5LEList = opts.sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
       ...chunkedAmount.map((a) => numberToBytesLE(a, 32)),
       publicKeyU8,
-      ...this.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...opts.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
-      sigmaProof.X1,
-      sigmaProof.X2,
-      ...sigmaProof.X3List,
-      ...sigmaProof.X4List,
+      opts.sigmaProof.X1,
+      opts.sigmaProof.X2,
+      ...opts.sigmaProof.X3List,
+      ...opts.sigmaProof.X4List,
     );
 
     const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
-    const { DOldSum, COldSum } = this.encryptedActualBalance.reduce(
+    const { DOldSum, COldSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
         const coef = 2n ** (BigInt(i) * CHUNK_BITS_BI);
         return {
@@ -235,7 +237,7 @@ export class VeiledWithdraw {
       { DOldSum: RistrettoPoint.ZERO, COldSum: RistrettoPoint.ZERO },
     );
     const alpha2DOld = DOldSum.multiply(alpha2LE);
-    const amountG = RistrettoPoint.BASE.multiply(this.amountToWithdraw);
+    const amountG = RistrettoPoint.BASE.multiply(opts.amountToWithdraw);
 
     const alpha3H = H_RISTRETTO.multiply(alpha3LE);
     const pP = RistrettoPoint.fromHex(publicKeyU8).multiply(p);
@@ -243,22 +245,21 @@ export class VeiledWithdraw {
     const X1 = alpha1G.add(alpha2DOld).add(COldSum.subtract(amountG).multiply(p));
     const X2 = alpha3H.add(pP);
 
-    // FIXME: this.encryptedActualBalanceAfterWithdraw ts server not responding
     const X3List = alpha4LEList.map((a, i) => {
       const aG = RistrettoPoint.BASE.multiply(a);
       const aH = H_RISTRETTO.multiply(alpha5LEList[i]);
-      const pC = this.encryptedActualBalanceAfterWithdraw![i].C.multiply(p);
+      const pC = opts.encryptedActualBalanceAfterWithdraw![i].C.multiply(p);
       return aG.add(aH).add(pC);
     });
     const X4List = alpha5LEList.map((a, i) =>
-      RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(this.encryptedActualBalanceAfterWithdraw![i].D.multiply(p)),
+      RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.encryptedActualBalanceAfterWithdraw![i].D.multiply(p)),
     );
 
     return (
-      X1.equals(RistrettoPoint.fromHex(sigmaProof.X1)) &&
-      X2.equals(RistrettoPoint.fromHex(sigmaProof.X2)) &&
-      X3List.every((X3, i) => X3.equals(RistrettoPoint.fromHex(sigmaProof.X3List[i]))) &&
-      X4List.every((X4, i) => X4.equals(RistrettoPoint.fromHex(sigmaProof.X4List[i])))
+      X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
+      X2.equals(RistrettoPoint.fromHex(opts.sigmaProof.X2)) &&
+      X3List.every((X3, i) => X3.equals(RistrettoPoint.fromHex(opts.sigmaProof.X3List[i]))) &&
+      X4List.every((X4, i) => X4.equals(RistrettoPoint.fromHex(opts.sigmaProof.X4List[i])))
     );
   }
 
@@ -284,18 +285,18 @@ export class VeiledWithdraw {
     return rangeProof.map((el) => el.proof);
   }
 
-  async verifyRangeProof(rangeProof: Uint8Array[]) {
-    if (!this.encryptedActualBalanceAfterWithdraw)
-      throw new TypeError("this.encryptedActualBalanceAfterWithdraw is not set");
-
+  static async verifyRangeProof(opts: {
+    rangeProof: Uint8Array[];
+    encryptedActualBalanceAfterWithdraw: TwistedElGamalCiphertext[];
+  }) {
     const rangeProofVerificationResults = await Promise.all(
-      rangeProof.map((proof, i) =>
+      opts.rangeProof.map((proof, i) =>
         verifyRangeZKP({
           proof,
           // commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
-          commitment: this.encryptedActualBalanceAfterWithdraw![i].C.toRawBytes(),
+          commitment: opts.encryptedActualBalanceAfterWithdraw![i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.encryptedActualBalanceAfterWithdraw![i].D.toRawBytes(),
+          randBase: opts.encryptedActualBalanceAfterWithdraw![i].D.toRawBytes(),
         }),
       ),
     );

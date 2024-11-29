@@ -258,7 +258,7 @@ describe("staking api", () => {
     // TODO: moveValue to number
     const balance = await balanceOf(alice.accountAddress);
 
-    expect(balance).toBeGreaterThan(0);
+    expect(balance).toBeGreaterThanOrEqual(TOKENS_TO_MINT);
   });
 
   const DEPOSIT_AMOUNT = 25n;
