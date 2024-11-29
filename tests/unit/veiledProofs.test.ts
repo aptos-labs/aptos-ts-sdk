@@ -3,6 +3,8 @@ import {
   amountToChunks,
   TwistedEd25519PrivateKey,
   TwistedElGamal,
+  VeiledKeyRotationSigmaProof,
+  VeiledNormalizationSigmaProof,
   VeiledTransferSigmaProof,
   VeiledWithdrawSigmaProof,
 } from "../../src";
@@ -11,6 +13,9 @@ import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto
 import { VEILED_BALANCE_CHUNK_SIZE } from "../../src/core/crypto/veiledOperationZKP/consts";
 import { VeiledTransfer } from "../../src/core/crypto/veiledOperationZKP/veiledTransfer";
 import { ed25519GenListOfRandom } from "../../src/core/crypto/utils";
+import { VeiledKeyRotation } from "../../src/core/crypto/veiledOperationZKP/veiledKeyRotation";
+import { VeiledNormalization } from "../../src/core/crypto/veiledOperationZKP/veiledNormalization";
+import { chunksToAmount } from "../../dist/common";
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;
@@ -191,12 +196,90 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  // test("Generate rollover sigma proof", () => {});
-  // test("Verify rollover sigma proof", () => {});
+  const newAliceVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
+  const veiledKeyRotation = new VeiledKeyRotation(
+    aliceVeiledPrivateKey,
+    newAliceVeiledPrivateKey,
+    aliceEncryptedBalance,
+  );
+  let veiledKeyRotationSigmaProof: VeiledKeyRotationSigmaProof;
+  test("Generate key rotation sigma proof", async () => {
+    await veiledKeyRotation.init();
 
-  // test("Generate key rotation sigma proof", () => {});
-  // test("Verify key rotation sigma proof", () => {});
+    veiledKeyRotationSigmaProof = await veiledKeyRotation.genSigmaProof();
 
-  // test("Generate normalization sigma proof", () => {});
-  // test("Verify normalization sigma proof", () => {});
+    expect(veiledKeyRotationSigmaProof).toBeDefined();
+  });
+  test("Verify key rotation sigma proof", () => {
+    if (!veiledKeyRotation.newEncryptedBalance) throw new Error("newEncryptedBalance is not defined");
+
+    const isValid = VeiledKeyRotation.verifySigmaProof({
+      sigmaProof: veiledKeyRotationSigmaProof,
+      currPublicKey: aliceVeiledPrivateKey.publicKey(),
+      newPublicKey: newAliceVeiledPrivateKey.publicKey(),
+      currEncryptedBalance: aliceEncryptedBalance,
+      newEncryptedBalance: veiledKeyRotation.newEncryptedBalance,
+    });
+
+    expect(isValid).toBeTruthy();
+  });
+
+  let veiledKeyRotationRangeProof: Uint8Array[];
+  test("Generate key rotation range proof", async () => {
+    veiledKeyRotationRangeProof = await veiledKeyRotation.genRangeProof();
+
+    expect(veiledKeyRotationRangeProof).toBeDefined();
+  });
+  test("Verify key rotation range proof", async () => {
+    const isValid = VeiledKeyRotation.verifyRangeProof({
+      rangeProof: veiledKeyRotationRangeProof,
+      newEncryptedBalance: veiledKeyRotation.newEncryptedBalance!,
+    });
+
+    expect(isValid).toBeTruthy();
+  });
+
+  const unnormalizedAliceBalanceChunks = [2n ** 32n + 100n, 2n ** 32n + 200n, 2n ** 32n + 300n, 0n];
+  const unnormalizedEncryptedBalanceAlice = unnormalizedAliceBalanceChunks.map((chunk) =>
+    TwistedElGamal.encryptWithPK(chunk, aliceVeiledPrivateKey.publicKey()),
+  );
+  const veiledNormalization = new VeiledNormalization(
+    aliceVeiledPrivateKey,
+    unnormalizedEncryptedBalanceAlice,
+    chunksToAmount(unnormalizedAliceBalanceChunks),
+  );
+  let veiledNormalizationSigmaProof: VeiledNormalizationSigmaProof;
+  test("Generate normalization sigma proof", async () => {
+    await veiledNormalization.init();
+
+    veiledNormalizationSigmaProof = await veiledNormalization.genSigmaProof();
+
+    expect(veiledNormalizationSigmaProof).toBeDefined();
+  });
+  test("Verify normalization sigma proof", () => {
+    if (!veiledNormalization.normalizedEncryptedBalance) throw new Error("normalizedEncryptedBalance is not defined");
+
+    const isValid = VeiledNormalization.verifySigmaProof({
+      publicKey: aliceVeiledPrivateKey.publicKey(),
+      sigmaProof: veiledNormalizationSigmaProof,
+      unnormilizedEncryptedBalance: unnormalizedEncryptedBalanceAlice,
+      normalizedEncryptedBalance: veiledNormalization.normalizedEncryptedBalance,
+    });
+
+    expect(isValid).toBeTruthy();
+  });
+  let veiledNormalizationRangeProof: Uint8Array[];
+  test("Generate normalization range proof", async () => {
+    veiledNormalizationRangeProof = await veiledNormalization.genRangeProof();
+
+    expect(veiledNormalizationRangeProof).toBeDefined();
+  });
+  test("Verify normalization range proof", async () => {
+    const isValid = VeiledNormalization.verifyRangeProof({
+      rangeProof: veiledNormalizationRangeProof,
+      normalizedEncryptedBalance: veiledNormalization.normalizedEncryptedBalance!,
+    });
+
+    expect(isValid).toBeTruthy();
+  });
 });
