@@ -3,24 +3,18 @@ import { AptosConfig } from "../api/aptosConfig";
 import {
   AccountAddress,
   AccountAddressInput,
-  genSigmaProofVeiledKeyRotation,
-  SigmaProofVeiledKeyRotationInputs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
+  VeiledWithdraw,
+  VeiledTransfer,
+  VeiledKeyRotation,
 } from "../core";
-import { InputGenerateTransactionOptions } from "../transactions/types";
+import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
 import { generateTransaction } from "./transactionSubmission";
-import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { view } from "./view";
-import {
-  publicKeyToU8,
-  toTwistedEd25519PrivateKey,
-  toTwistedEd25519PublicKey,
-} from "../core/crypto/veiledOperationZKP/helpers";
-import { VeiledWithdraw } from "../core/crypto/veiledOperationZKP/veiledWithdraw";
-import { VeiledTransfer } from "../core/crypto/veiledOperationZKP/veiledTransfer";
+import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
 
 // TODO: update the module address as soon as it becomes a system address
 //  At the moment, the module work only on TESTNET.
@@ -223,49 +217,50 @@ export async function veiledTransferCoinTransaction(args: {
   });
 }
 
-export async function veiledBalanceKeyRotationTransaction(
-  args: SigmaProofVeiledKeyRotationInputs & {
-    aptosConfig: AptosConfig;
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    withUnfreezeBalance?: boolean;
-    options?: InputGenerateTransactionOptions;
-  },
-): Promise<SimpleTransaction> {
-  const {
-    aptosConfig,
-    sender,
-    tokenAddress,
-    oldPrivateKey,
-    newPrivateKey,
-    balance,
-    oldEncryptedBalance,
-    withUnfreezeBalance,
-    options,
-  } = args;
+export async function veiledBalanceKeyRotationTransaction(args: {
+  oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
+  newPrivateKey: TwistedEd25519PrivateKey | HexInput;
+  balance: bigint;
+  oldEncryptedBalance: TwistedElGamalCiphertext[];
+  randomness?: bigint[];
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  tokenAddress: string;
+  withUnfreezeBalance?: boolean;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction> {
+  const veiledKeyRotation = new VeiledKeyRotation(
+    toTwistedEd25519PrivateKey(args.oldPrivateKey),
+    toTwistedEd25519PrivateKey(args.newPrivateKey),
+    args.oldEncryptedBalance,
+  );
 
-  const { proof, newEncryptedBalance } = genSigmaProofVeiledKeyRotation({
-    oldPrivateKey,
-    newPrivateKey,
-    balance,
-    oldEncryptedBalance,
-  });
+  await veiledKeyRotation.init();
 
-  const newPublicKeyU8 = toTwistedEd25519PrivateKey(newPrivateKey).publicKey().toUint8Array();
+  const sigmaProof = await veiledKeyRotation.genSigmaProof();
+
+  if (!veiledKeyRotation.newEncryptedBalance) throw new TypeError("newEncryptedBalance is not defined");
+
+  const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newPrivateKey).publicKey().toUint8Array();
 
   const serializedNewBalance = concatBytes(
-    ...newEncryptedBalance.map((el) => el.C.toRawBytes()),
-    ...newEncryptedBalance.map((el) => el.D.toRawBytes()),
+    ...veiledKeyRotation.newEncryptedBalance.map((el) => el.C.toRawBytes()),
+    ...veiledKeyRotation.newEncryptedBalance.map((el) => el.D.toRawBytes()),
   );
-  const method = withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
+  const method = args.withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
 
   return generateTransaction({
-    aptosConfig,
-    sender,
+    aptosConfig: args.aptosConfig,
+    sender: args.sender,
     data: {
       function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
-      functionArguments: [tokenAddress, newPublicKeyU8, serializedNewBalance, proof],
+      functionArguments: [
+        args.tokenAddress,
+        newPublicKeyU8,
+        serializedNewBalance,
+        VeiledKeyRotation.serializeSigmaProof(sigmaProof),
+      ],
     },
-    options,
+    options: args.options,
   });
 }

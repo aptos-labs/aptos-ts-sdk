@@ -6,7 +6,6 @@ import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519Pu
 import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { amountToChunks, chunksToAmount, genFiatShamirChallenge } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { deserializeSigmaProofVeiledKeyRotation, serializeSigmaProofVeiledKeyRotation } from "./sigmaProofsSerializers";
 
 export type VeiledKeyRotationSigmaProof = {
   alpha1: Uint8Array;

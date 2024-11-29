@@ -17,7 +17,7 @@ import {
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 
-describe("staking api", () => {
+describe("Veiled balance api", () => {
   const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);

@@ -4,7 +4,6 @@
 import {
   AccountAddress,
   AccountAddressInput,
-  SigmaProofVeiledKeyRotationInputs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
@@ -91,14 +90,17 @@ export class VeiledBalance {
     return veiledTransferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async keyRotation(
-    args: SigmaProofVeiledKeyRotationInputs & {
-      sender: AccountAddressInput;
-      tokenAddress: string;
-      withUnfreezeBalance: boolean;
-      options?: InputGenerateTransactionOptions;
-    },
-  ): Promise<SimpleTransaction> {
+  async keyRotation(args: {
+    oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
+    newPrivateKey: TwistedEd25519PrivateKey | HexInput;
+    balance: bigint;
+    oldEncryptedBalance: TwistedElGamalCiphertext[];
+    randomness?: bigint[];
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    withUnfreezeBalance: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction> {
     return veiledBalanceKeyRotationTransaction({ aptosConfig: this.config, ...args });
   }
 }

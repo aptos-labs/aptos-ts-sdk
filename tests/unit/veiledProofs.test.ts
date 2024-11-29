@@ -7,15 +7,15 @@ import {
   VeiledNormalizationSigmaProof,
   VeiledTransferSigmaProof,
   VeiledWithdrawSigmaProof,
+  VeiledWithdraw,
+  VeiledTransfer,
+  VeiledKeyRotation,
+  VeiledNormalization,
+  chunksToAmount,
 } from "../../src";
-import { VeiledWithdraw } from "../../src/core/crypto/veiledOperationZKP/veiledWithdraw";
-import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiledOperationZKP/helpers";
-import { VEILED_BALANCE_CHUNK_SIZE } from "../../src/core/crypto/veiledOperationZKP/consts";
-import { VeiledTransfer } from "../../src/core/crypto/veiledOperationZKP/veiledTransfer";
+import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiled/helpers";
+import { VEILED_BALANCE_CHUNK_SIZE } from "../../src/core/crypto/veiled/consts";
 import { ed25519GenListOfRandom } from "../../src/core/crypto/utils";
-import { VeiledKeyRotation } from "../../src/core/crypto/veiledOperationZKP/veiledKeyRotation";
-import { VeiledNormalization } from "../../src/core/crypto/veiledOperationZKP/veiledNormalization";
-import { chunksToAmount } from "../../dist/common";
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;

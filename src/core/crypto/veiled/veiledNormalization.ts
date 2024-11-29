@@ -1,7 +1,7 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { VEILED_BALANCE_CHUNK_SIZE } from "./consts";
+import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE, VEILED_BALANCE_CHUNK_SIZE } from "./consts";
 import { amountToChunks, genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
@@ -48,6 +48,55 @@ export class VeiledNormalization {
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationSubproofFiatShamir";
+
+  static serializeSigmaProof(sigmaProof: VeiledNormalizationSigmaProof): Uint8Array {
+    return concatBytes(
+      sigmaProof.alpha1,
+      sigmaProof.alpha2,
+      sigmaProof.alpha3,
+      ...sigmaProof.alpha4List,
+      ...sigmaProof.alpha5List,
+      sigmaProof.X1,
+      sigmaProof.X2,
+      ...sigmaProof.X3List,
+      ...sigmaProof.X4List,
+    );
+  }
+
+  static deserializeSigmaProof(sigmaProof: Uint8Array): VeiledNormalizationSigmaProof {
+    if (sigmaProof.length !== SIGMA_PROOF_NORMALIZATION_SIZE) {
+      throw new Error(
+        `Invalid sigma proof length of veiled normalization: got ${sigmaProof.length}, expected ${SIGMA_PROOF_NORMALIZATION_SIZE}`,
+      );
+    }
+
+    const proofArr: Uint8Array[] = [];
+    for (let i = 0; i < SIGMA_PROOF_NORMALIZATION_SIZE; i += PROOF_CHUNK_SIZE) {
+      proofArr.push(sigmaProof.subarray(i, i + PROOF_CHUNK_SIZE));
+    }
+
+    const alpha1 = proofArr[0];
+    const alpha2 = proofArr[1];
+    const alpha3 = proofArr[2];
+    const alpha4List = proofArr.slice(3, 3 + VEILED_BALANCE_CHUNK_SIZE);
+    const alpha5List = proofArr.slice(7, 7 + VEILED_BALANCE_CHUNK_SIZE);
+    const X1 = proofArr[11];
+    const X2 = proofArr[12];
+    const X3List = proofArr.slice(13, 13 + VEILED_BALANCE_CHUNK_SIZE);
+    const X4List = proofArr.slice(17);
+
+    return {
+      alpha1,
+      alpha2,
+      alpha3,
+      alpha4List,
+      alpha5List,
+      X1,
+      X2,
+      X3List,
+      X4List,
+    };
+  }
 
   async init() {
     this.normalizedBalance = amountToChunks(this.balanceAmount, VEILED_BALANCE_CHUNK_SIZE);
