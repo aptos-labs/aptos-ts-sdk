@@ -37,12 +37,6 @@ export class VeiledKeyRotation {
 
   newVeiledAmount?: VeiledAmount;
 
-  // currDecryptedBalance?: bigint[];
-
-  // currDecryptedBalanceAmount?: bigint;
-
-  // newEncryptedBalance?: TwistedElGamalCiphertext[];
-
   constructor(
     currPrivateKey: TwistedEd25519PrivateKey,
     newPrivateKey: TwistedEd25519PrivateKey,
@@ -116,22 +110,9 @@ export class VeiledKeyRotation {
     const currentBalance = await VeiledAmount.fromEncrypted(this.currEncryptedBalance, this.currPrivateKey);
     this.currVeiledAmount = currentBalance;
 
-    // this.currDecryptedBalance = this.currEncryptedBalance.map((ciphertext) =>
-    //   TwistedElGamal.decryptWithPK(ciphertext, this.currPrivateKey, {
-    //     // TODO: mocked, replace with algo once it's implemented
-    //     start: 0n,
-    //     end: 1000n,
-    //   }),
-    // );
-    // this.currDecryptedBalanceAmount = chunksToAmount(this.currDecryptedBalance);
-
     const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
     newBalance.encryptBalance(this.newPrivateKey.publicKey(), this.randomness);
     this.newVeiledAmount = newBalance;
-
-    // this.newEncryptedBalance = amountToChunks(this.currDecryptedBalanceAmount, VEILED_BALANCE_CHUNK_SIZE).map(
-    //   (chunk, i) => TwistedElGamal.encryptWithPK(chunk, this.newPrivateKey.publicKey(), this.randomness[i]),
-    // );
 
     this.isInitialized = true;
   }

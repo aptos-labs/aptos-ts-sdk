@@ -267,13 +267,11 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledNormalizationSigmaProof).toBeDefined();
   });
   test("Verify normalization sigma proof", () => {
-    if (!veiledNormalization.normalizedEncryptedBalance) throw new Error("normalizedEncryptedBalance is not defined");
-
     const isValid = VeiledNormalization.verifySigmaProof({
       publicKey: aliceVeiledPrivateKey.publicKey(),
       sigmaProof: veiledNormalizationSigmaProof,
       unnormilizedEncryptedBalance: unnormalizedEncryptedBalanceAlice,
-      normalizedEncryptedBalance: veiledNormalization.normalizedEncryptedBalance,
+      normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.encryptedAmount!,
     });
 
     expect(isValid).toBeTruthy();
@@ -287,7 +285,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify normalization range proof", async () => {
     const isValid = VeiledNormalization.verifyRangeProof({
       rangeProof: veiledNormalizationRangeProof,
-      normalizedEncryptedBalance: veiledNormalization.normalizedEncryptedBalance!,
+      normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.encryptedAmount!,
     });
 
     expect(isValid).toBeTruthy();

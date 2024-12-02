@@ -1,12 +1,13 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE, VEILED_BALANCE_CHUNK_SIZE } from "./consts";
-import { amountToChunks, genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "./consts";
+import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
+import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledNormalizationSigmaProof = {
   alpha1: Uint8Array;
@@ -29,11 +30,9 @@ export class VeiledNormalization {
 
   balanceAmount: bigint;
 
+  normalizedVeiledAmount?: VeiledAmount;
+
   randomness: bigint[];
-
-  normalizedBalance?: bigint[];
-
-  normalizedEncryptedBalance?: TwistedElGamalCiphertext[];
 
   constructor(
     privateKey: TwistedEd25519PrivateKey,
@@ -78,11 +77,11 @@ export class VeiledNormalization {
     const alpha1 = proofArr[0];
     const alpha2 = proofArr[1];
     const alpha3 = proofArr[2];
-    const alpha4List = proofArr.slice(3, 3 + VEILED_BALANCE_CHUNK_SIZE);
-    const alpha5List = proofArr.slice(7, 7 + VEILED_BALANCE_CHUNK_SIZE);
+    const alpha4List = proofArr.slice(3, 3 + VeiledAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(7, 7 + VeiledAmount.CHUNKS_COUNT);
     const X1 = proofArr[11];
     const X2 = proofArr[12];
-    const X3List = proofArr.slice(13, 13 + VEILED_BALANCE_CHUNK_SIZE);
+    const X3List = proofArr.slice(13, 13 + VeiledAmount.CHUNKS_COUNT);
     const X4List = proofArr.slice(17);
 
     return {
@@ -99,10 +98,9 @@ export class VeiledNormalization {
   }
 
   async init() {
-    this.normalizedBalance = amountToChunks(this.balanceAmount, VEILED_BALANCE_CHUNK_SIZE);
-    this.normalizedEncryptedBalance = this.normalizedBalance.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, this.privateKey.publicKey(), this.randomness[i]),
-    );
+    const normalizedVeiledAmount = VeiledAmount.fromAmount(this.balanceAmount);
+    normalizedVeiledAmount.encryptBalance(this.privateKey.publicKey(), this.randomness);
+    this.normalizedVeiledAmount = normalizedVeiledAmount;
 
     this.isInitialized = true;
   }
@@ -110,11 +108,9 @@ export class VeiledNormalization {
   async genSigmaProof(): Promise<VeiledNormalizationSigmaProof> {
     if (!this.isInitialized) throw new TypeError("VeiledNormalization instance is not initialized");
 
-    if (!this.normalizedEncryptedBalance) throw new TypeError("this.normalizedEncryptedBalance is not defined");
+    if (!this.normalizedVeiledAmount) throw new TypeError("this.normalizedBalance is not defined");
 
-    if (!this.normalizedBalance) throw new TypeError("this.normalizedBalance is not defined");
-
-    if (this.randomness && this.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
@@ -144,7 +140,7 @@ export class VeiledNormalization {
       H_RISTRETTO.toRawBytes(),
       this.privateKey.publicKey().toUint8Array(),
       ...this.unnormilizedEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.normalizedEncryptedBalance!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...this.normalizedVeiledAmount.encryptedAmount!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List,
@@ -161,7 +157,9 @@ export class VeiledNormalization {
     const alpha1 = ed25519modN(x1 - pt);
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
-    const alpha4List = x4List.map((x4, i) => numberToBytesLE(ed25519modN(x4 - p * this.normalizedBalance![i]), 32));
+    const alpha4List = x4List.map((x4, i) =>
+      numberToBytesLE(ed25519modN(x4 - p * this.normalizedVeiledAmount!.amountChunks![i]), 32),
+    );
     const alpha5List = x5List.map((x5, i) => numberToBytesLE(ed25519modN(x5 - p * this.randomness[i]), 32));
 
     return {
@@ -240,15 +238,15 @@ export class VeiledNormalization {
   async genRangeProof(): Promise<Uint8Array[]> {
     if (!this.isInitialized) throw new TypeError("VeiledNormalization instance is not initialized");
 
-    if (!this.normalizedEncryptedBalance) throw new TypeError("this.normalizedEncryptedBalance is not defined");
+    if (!this.normalizedVeiledAmount) throw new TypeError("this.normalizedVeiledAmount is not defined");
 
     const rangeProof = await Promise.all(
-      amountToChunks(this.balanceAmount, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) =>
+      this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
           r: this.privateKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.normalizedEncryptedBalance![i].D.toRawBytes(),
+          randBase: this.normalizedVeiledAmount!.encryptedAmount![i].D.toRawBytes(),
         }),
       ),
     );
