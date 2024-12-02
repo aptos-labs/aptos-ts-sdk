@@ -215,14 +215,12 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledKeyRotationSigmaProof).toBeDefined();
   });
   test("Verify key rotation sigma proof", () => {
-    if (!veiledKeyRotation.newEncryptedBalance) throw new Error("newEncryptedBalance is not defined");
-
     const isValid = VeiledKeyRotation.verifySigmaProof({
       sigmaProof: veiledKeyRotationSigmaProof,
       currPublicKey: aliceVeiledPrivateKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
       currEncryptedBalance: aliceEncryptedBalance,
-      newEncryptedBalance: veiledKeyRotation.newEncryptedBalance,
+      newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.encryptedAmount!,
     });
 
     expect(isValid).toBeTruthy();
@@ -237,10 +235,18 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify key rotation range proof", async () => {
     const isValid = VeiledKeyRotation.verifyRangeProof({
       rangeProof: veiledKeyRotationRangeProof,
-      newEncryptedBalance: veiledKeyRotation.newEncryptedBalance!,
+      newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.encryptedAmount!,
     });
 
     expect(isValid).toBeTruthy();
+  });
+
+  test("Authorize Key Rotation", async () => {
+    const [{ sigmaProof, rangeProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
+
+    expect(sigmaProof).toBeDefined();
+    expect(rangeProof).toBeDefined();
+    expect(newVB).toBeDefined();
   });
 
   const unnormalizedAliceBalanceChunks = [2n ** 32n + 100n, 2n ** 32n + 200n, 2n ** 32n + 300n, 0n];

@@ -1,11 +1,12 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
-import { CHUNK_BITS_BI, PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE, VEILED_BALANCE_CHUNK_SIZE } from "./consts";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
 import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
-import { amountToChunks, chunksToAmount, genFiatShamirChallenge } from "./helpers";
+import { TwistedElGamalCiphertext } from "../twistedElGamal";
+import { genFiatShamirChallenge } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
+import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledKeyRotationSigmaProof = {
   alpha1: Uint8Array;
@@ -32,11 +33,15 @@ export class VeiledKeyRotation {
 
   currEncryptedBalance: TwistedElGamalCiphertext[];
 
-  currDecryptedBalance?: bigint[];
+  currVeiledAmount?: VeiledAmount;
 
-  currDecryptedBalanceAmount?: bigint;
+  newVeiledAmount?: VeiledAmount;
 
-  newEncryptedBalance?: TwistedElGamalCiphertext[];
+  // currDecryptedBalance?: bigint[];
+
+  // currDecryptedBalanceAmount?: bigint;
+
+  // newEncryptedBalance?: TwistedElGamalCiphertext[];
 
   constructor(
     currPrivateKey: TwistedEd25519PrivateKey,
@@ -84,12 +89,12 @@ export class VeiledKeyRotation {
     const alpha2 = proofArr[1];
     const alpha3 = proofArr[2];
     const alpha4 = proofArr[3];
-    const alpha5List = proofArr.slice(4, 4 + VEILED_BALANCE_CHUNK_SIZE);
-    const alpha6List = proofArr.slice(8, 8 + VEILED_BALANCE_CHUNK_SIZE);
+    const alpha5List = proofArr.slice(4, 4 + VeiledAmount.CHUNKS_COUNT);
+    const alpha6List = proofArr.slice(8, 8 + VeiledAmount.CHUNKS_COUNT);
     const X1 = proofArr[12];
     const X2 = proofArr[13];
     const X3 = proofArr[14];
-    const X4List = proofArr.slice(15, 15 + VEILED_BALANCE_CHUNK_SIZE);
+    const X4List = proofArr.slice(15, 15 + VeiledAmount.CHUNKS_COUNT);
     const X5List = proofArr.slice(19);
 
     return {
@@ -108,33 +113,39 @@ export class VeiledKeyRotation {
   }
 
   async init() {
-    this.currDecryptedBalance = this.currEncryptedBalance.map((ciphertext) =>
-      TwistedElGamal.decryptWithPK(ciphertext, this.currPrivateKey, {
-        // TODO: mocked, replace with algo once it's implemented
-        start: 0n,
-        end: 1000n,
-      }),
-    );
-    this.currDecryptedBalanceAmount = chunksToAmount(this.currDecryptedBalance);
-    this.newEncryptedBalance = amountToChunks(this.currDecryptedBalanceAmount, VEILED_BALANCE_CHUNK_SIZE).map(
-      (chunk, i) => TwistedElGamal.encryptWithPK(chunk, this.newPrivateKey.publicKey(), this.randomness[i]),
-    );
+    const currentBalance = await VeiledAmount.fromEncrypted(this.currEncryptedBalance, this.currPrivateKey);
+    this.currVeiledAmount = currentBalance;
+
+    // this.currDecryptedBalance = this.currEncryptedBalance.map((ciphertext) =>
+    //   TwistedElGamal.decryptWithPK(ciphertext, this.currPrivateKey, {
+    //     // TODO: mocked, replace with algo once it's implemented
+    //     start: 0n,
+    //     end: 1000n,
+    //   }),
+    // );
+    // this.currDecryptedBalanceAmount = chunksToAmount(this.currDecryptedBalance);
+
+    const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
+    newBalance.encryptBalance(this.newPrivateKey.publicKey(), this.randomness);
+    this.newVeiledAmount = newBalance;
+
+    // this.newEncryptedBalance = amountToChunks(this.currDecryptedBalanceAmount, VEILED_BALANCE_CHUNK_SIZE).map(
+    //   (chunk, i) => TwistedElGamal.encryptWithPK(chunk, this.newPrivateKey.publicKey(), this.randomness[i]),
+    // );
 
     this.isInitialized = true;
   }
 
   async genSigmaProof(): Promise<VeiledKeyRotationSigmaProof> {
-    if (this.randomness && this.randomness.length !== VEILED_BALANCE_CHUNK_SIZE) {
+    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
     if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
 
-    if (!this.newEncryptedBalance) throw new TypeError("this.newEncryptedBalance is not defined");
+    if (!this.currVeiledAmount) throw new TypeError("this.currVeiledAmount is not defined");
 
-    if (!this.currDecryptedBalance) throw new TypeError("this.currDecryptedBalance is not defined");
-
-    if (!this.currDecryptedBalanceAmount) throw new TypeError("this.currDecryptedBalanceAmount is not defined");
+    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
 
     const x1 = ed25519GenRandom();
     const x2 = ed25519GenRandom();
@@ -165,7 +176,7 @@ export class VeiledKeyRotation {
       this.currPrivateKey.publicKey().toUint8Array(),
       this.newPrivateKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.newEncryptedBalance!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...this.newVeiledAmount.encryptedAmount!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -178,12 +189,12 @@ export class VeiledKeyRotation {
     const newSLE = bytesToNumberLE(this.newPrivateKey.toUint8Array());
     const invertNewSLE = ed25519InvertN(newSLE);
 
-    const alpha1 = ed25519modN(x1 - p * this.currDecryptedBalanceAmount);
+    const alpha1 = ed25519modN(x1 - p * this.currVeiledAmount.amount);
     const alpha2 = ed25519modN(x2 - p * oldSLE);
     const alpha3 = ed25519modN(x3 - p * invertOldSLE);
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
     const alpha5List = x5List.map((x5, i) => {
-      const pChunk = ed25519modN(p * this.currDecryptedBalance![i]);
+      const pChunk = ed25519modN(p * this.currVeiledAmount!.amountChunks![i]);
       return numberToBytesLE(ed25519modN(x5 - pChunk), 32);
     });
     const alpha6List = x6List.map((x6, i) => {
@@ -238,7 +249,7 @@ export class VeiledKeyRotation {
     const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
     const { DOldSum, COldSum } = opts.currEncryptedBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -280,22 +291,48 @@ export class VeiledKeyRotation {
   async genRangeProof(): Promise<Uint8Array[]> {
     if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
 
-    if (!this.currDecryptedBalanceAmount) throw new TypeError("this.currDecryptedBalanceAmount is not defined");
+    if (!this.currVeiledAmount) throw new TypeError("this.currVeiledAmount is not defined");
 
-    if (!this.newEncryptedBalance) throw new TypeError("this.newEncryptedBalance is not defined");
+    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
 
     const rangeProof = await Promise.all(
-      amountToChunks(this.currDecryptedBalanceAmount!, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) =>
+      this.currVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
           r: this.newPrivateKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.newEncryptedBalance![i].D.toRawBytes(),
+          randBase: this.newVeiledAmount!.encryptedAmount![i].D.toRawBytes(),
         }),
       ),
     );
 
     return rangeProof.map(({ proof }) => proof);
+  }
+
+  async authorizeKeyRotation(): Promise<
+    [
+      {
+        sigmaProof: VeiledKeyRotationSigmaProof;
+        rangeProof: Uint8Array[];
+      },
+      TwistedElGamalCiphertext[],
+    ]
+  > {
+    if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
+
+    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
+
+    const sigmaProof = await this.genSigmaProof();
+
+    const rangeProof = await this.genRangeProof();
+
+    return [
+      {
+        sigmaProof,
+        rangeProof,
+      },
+      this.newVeiledAmount.encryptedAmount!,
+    ];
   }
 
   static async verifyRangeProof(opts: { rangeProof: Uint8Array[]; newEncryptedBalance: TwistedElGamalCiphertext[] }) {
