@@ -11,10 +11,9 @@ import {
   TwistedEd25519PrivateKey,
   AnyRawTransaction,
   CommittedTransactionResponse,
-  TwistedElGamal,
   TwistedElGamalCiphertext,
-  chunksToAmount,
 } from "../../../src";
+import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { longTestTimeout } from "../../unit/helper";
 
 describe("Veiled balance api", () => {
@@ -204,42 +203,10 @@ describe("Veiled balance api", () => {
       bobDecryptedPendingBalance,
       bobDecryptedActualBalance,
     ] = await Promise.all([
-      chunksToAmount(
-        chunkedAliceVb.pending.map((el) =>
-          TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-            // FIXME: mocked, should be removed, once algo is ready
-            start: 0n,
-            end: 1000n,
-          }),
-        ),
-      ),
-      chunksToAmount(
-        chunkedAliceVb.actual.map((el) =>
-          TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-            // FIXME: mocked, should be removed, once algo is ready
-            start: 0n,
-            end: 1000n,
-          }),
-        ),
-      ),
-      chunksToAmount(
-        chunkedBobVb.pending.map((el) =>
-          TwistedElGamal.decryptWithPK(el, bobVeiledPrivateKey, {
-            // FIXME: mocked, should be removed, once algo is ready
-            start: 0n,
-            end: 1000n,
-          }),
-        ),
-      ),
-      chunksToAmount(
-        chunkedBobVb.actual.map((el) =>
-          TwistedElGamal.decryptWithPK(el, bobVeiledPrivateKey, {
-            // FIXME: mocked, should be removed, once algo is ready
-            start: 0n,
-            end: 1000n,
-          }),
-        ),
-      ),
+      (await VeiledAmount.fromEncrypted(chunkedAliceVb.pending, aliceVeiledPrivateKey)).amount,
+      (await VeiledAmount.fromEncrypted(chunkedAliceVb.actual, aliceVeiledPrivateKey)).amount,
+      (await VeiledAmount.fromEncrypted(chunkedBobVb.pending, bobVeiledPrivateKey)).amount,
+      (await VeiledAmount.fromEncrypted(chunkedBobVb.actual, bobVeiledPrivateKey)).amount,
     ]);
 
     expect(aliceDecryptedPendingBalance).toBeDefined();
@@ -280,16 +247,12 @@ describe("Veiled balance api", () => {
     });
     chunkedAliceVb = aliceChunkedVeiledBalance;
 
-    const decryptedPendingBalance = chunksToAmount(
-      aliceChunkedVeiledBalance.pending.map((el) =>
-        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceVeiledPrivateKey,
     );
 
-    expect(decryptedPendingBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
   test("it should rollover Alice's veiled balance", async () => {
@@ -310,16 +273,12 @@ describe("Veiled balance api", () => {
     });
     chunkedAliceVb = aliceChunkedVeiledBalance;
 
-    const decryptedPendingBalance = chunksToAmount(
-      aliceChunkedVeiledBalance.pending.map((el) =>
-        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceVeiledPrivateKey,
     );
 
-    expect(decryptedPendingBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
   const WITHDRAW_AMOUNT = 1n;
@@ -343,16 +302,12 @@ describe("Veiled balance api", () => {
     });
     chunkedAliceVb = aliceChunkedVeiledBalance;
 
-    const decryptedActualBalance = chunksToAmount(
-      aliceChunkedVeiledBalance.actual.map((el) =>
-        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceVeiledPrivateKey,
     );
 
-    expect(decryptedActualBalance).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT);
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT);
   });
 
   test("it should check Alice's fungible balance after withdrawal", async () => {
@@ -401,16 +356,9 @@ describe("Veiled balance api", () => {
     });
     chunkedBobVb = bobChunkedVeiledBalance;
 
-    const decryptedActualBalance = chunksToAmount(
-      bobChunkedVeiledBalance.actual.map((el) =>
-        TwistedElGamal.decryptWithPK(el, bobVeiledPrivateKey, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
-    );
+    const bobVeiledAmount = await VeiledAmount.fromEncrypted(bobChunkedVeiledBalance.pending, bobVeiledPrivateKey);
 
-    expect(decryptedActualBalance).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
+    expect(bobVeiledAmount.amount).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
   });
 
   test("it should rollover Alice's veiled balance with freezeOption", async () => {
@@ -428,15 +376,7 @@ describe("Veiled balance api", () => {
   // TODO: add rotation test without UnfreezeBalance
   const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
   test("it should rotate Alice's veiled balance key", async () => {
-    // TODO: incapsulate key rotation
-    const decryptedActualBalance = chunksToAmount(
-      chunkedAliceVb.actual.map((el) =>
-        TwistedElGamal.decryptWithPK(el, aliceVeiledPrivateKey, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
-    );
+    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(chunkedAliceVb.actual, aliceVeiledPrivateKey);
 
     const keyRotationAndUnfreezeTx = await aptos.veiledBalance.keyRotation({
       sender: alice.accountAddress,
@@ -444,7 +384,7 @@ describe("Veiled balance api", () => {
       oldPrivateKey: aliceVeiledPrivateKey,
       newPrivateKey: ALICE_NEW_VEILED_PRIVATE_KEY,
 
-      balance: decryptedActualBalance,
+      balance: aliceActualVeiledAmount.amount,
       oldEncryptedBalance: chunkedAliceVb.actual,
 
       withUnfreezeBalance: true,
@@ -462,15 +402,11 @@ describe("Veiled balance api", () => {
     });
     chunkedAliceVb = aliceChunkedVeiledBalance;
 
-    const decryptedActualBalance = chunksToAmount(
-      aliceChunkedVeiledBalance.actual.map((el) =>
-        TwistedElGamal.decryptWithPK(el, ALICE_NEW_VEILED_PRIVATE_KEY, {
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
+    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.actual,
+      ALICE_NEW_VEILED_PRIVATE_KEY,
     );
 
-    expect(decryptedActualBalance).toBeGreaterThanOrEqual(0);
+    expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
   });
 });

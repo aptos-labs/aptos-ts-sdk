@@ -1,8 +1,6 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import {
-  amountToChunks,
   TwistedEd25519PrivateKey,
-  TwistedElGamal,
   VeiledKeyRotationSigmaProof,
   VeiledNormalizationSigmaProof,
   VeiledTransferSigmaProof,
@@ -11,11 +9,10 @@ import {
   VeiledTransfer,
   VeiledKeyRotation,
   VeiledNormalization,
-  chunksToAmount,
 } from "../../src";
 import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiled/helpers";
-import { VEILED_BALANCE_CHUNK_SIZE } from "../../src/core/crypto/veiled/consts";
 import { ed25519GenListOfRandom } from "../../src/core/crypto/utils";
+import { VeiledAmount } from "../../src/core/crypto/veiled/veiledAmount";
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;
@@ -23,14 +20,13 @@ describe("Generate 'veiled coin' proofs", () => {
   const aliceVeiledPrivateKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
   const bobVeiledPrivateKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
-  const aliceEncryptedBalance = amountToChunks(ALICE_BALANCE, VEILED_BALANCE_CHUNK_SIZE).map((el) =>
-    new TwistedElGamal(aliceVeiledPrivateKey).encrypt(el),
-  );
+  const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
+  aliceVeiledAmount.encryptBalance(aliceVeiledPrivateKey.publicKey());
 
   const WITHDRAW_AMOUNT = 15n;
   const veiledWithdraw = new VeiledWithdraw(
     toTwistedEd25519PrivateKey(aliceVeiledPrivateKey),
-    aliceEncryptedBalance,
+    aliceVeiledAmount.encryptedAmount!,
     WITHDRAW_AMOUNT,
   );
   let veiledWithdrawSigmaProof: VeiledWithdrawSigmaProof;
@@ -78,7 +74,7 @@ describe("Generate 'veiled coin' proofs", () => {
   const TRANSFER_AMOUNT = 10n;
   const veiledTransfer = new VeiledTransfer(
     aliceVeiledPrivateKey,
-    aliceEncryptedBalance,
+    aliceVeiledAmount.encryptedAmount!,
     TRANSFER_AMOUNT,
     bobVeiledPrivateKey.publicKey(),
   );
@@ -98,7 +94,7 @@ describe("Generate 'veiled coin' proofs", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
       twistedEd25519PrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
-      encryptedActualBalance: aliceEncryptedBalance,
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransfer.veiledAmountAfterTransfer?.encryptedAmount!,
       encryptedAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
       sigmaProof: veiledTransferSigmaProof,
@@ -128,7 +124,7 @@ describe("Generate 'veiled coin' proofs", () => {
   const auditor = TwistedEd25519PrivateKey.generate();
   const veiledTransferWithAuditors = new VeiledTransfer(
     aliceVeiledPrivateKey,
-    aliceEncryptedBalance,
+    aliceVeiledAmount.encryptedAmount!,
     TRANSFER_AMOUNT,
     bobVeiledPrivateKey.publicKey(),
     [auditor.publicKey()],
@@ -145,7 +141,7 @@ describe("Generate 'veiled coin' proofs", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
       twistedEd25519PrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
-      encryptedActualBalance: aliceEncryptedBalance,
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.encryptedAmount!,
       encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
@@ -168,7 +164,7 @@ describe("Generate 'veiled coin' proofs", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
       twistedEd25519PrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
-      encryptedActualBalance: aliceEncryptedBalance,
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.encryptedAmount!,
       encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
@@ -204,7 +200,7 @@ describe("Generate 'veiled coin' proofs", () => {
   const veiledKeyRotation = new VeiledKeyRotation(
     aliceVeiledPrivateKey,
     newAliceVeiledPrivateKey,
-    aliceEncryptedBalance,
+    aliceVeiledAmount.encryptedAmount!,
   );
   let veiledKeyRotationSigmaProof: VeiledKeyRotationSigmaProof;
   test("Generate key rotation sigma proof", async () => {
@@ -219,7 +215,7 @@ describe("Generate 'veiled coin' proofs", () => {
       sigmaProof: veiledKeyRotationSigmaProof,
       currPublicKey: aliceVeiledPrivateKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
-      currEncryptedBalance: aliceEncryptedBalance,
+      currEncryptedBalance: aliceVeiledAmount.encryptedAmount!,
       newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.encryptedAmount!,
     });
 
@@ -249,14 +245,21 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(newVB).toBeDefined();
   });
 
-  const unnormalizedAliceBalanceChunks = [2n ** 32n + 100n, 2n ** 32n + 200n, 2n ** 32n + 300n, 0n];
-  const unnormalizedEncryptedBalanceAlice = unnormalizedAliceBalanceChunks.map((chunk) =>
-    TwistedElGamal.encryptWithPK(chunk, aliceVeiledPrivateKey.publicKey()),
-  );
+  const unnormalizedAliceVeiledAmount = VeiledAmount.fromChunks([
+    2n ** 32n + 100n,
+    2n ** 32n + 200n,
+    2n ** 32n + 300n,
+    0n,
+  ]);
+  unnormalizedAliceVeiledAmount.encryptBalance(aliceVeiledPrivateKey.publicKey());
+  // const unnormalizedAliceBalanceChunks = [2n ** 32n + 100n, 2n ** 32n + 200n, 2n ** 32n + 300n, 0n];
+  // const unnormalizedEncryptedBalanceAlice = unnormalizedAliceBalanceChunks.map((chunk) =>
+  //   TwistedElGamal.encryptWithPK(chunk, aliceVeiledPrivateKey.publicKey()),
+  // );
   const veiledNormalization = new VeiledNormalization(
     aliceVeiledPrivateKey,
-    unnormalizedEncryptedBalanceAlice,
-    chunksToAmount(unnormalizedAliceBalanceChunks),
+    unnormalizedAliceVeiledAmount.encryptedAmount!,
+    unnormalizedAliceVeiledAmount.amount,
   );
   let veiledNormalizationSigmaProof: VeiledNormalizationSigmaProof;
   test("Generate normalization sigma proof", async () => {
@@ -270,7 +273,7 @@ describe("Generate 'veiled coin' proofs", () => {
     const isValid = VeiledNormalization.verifySigmaProof({
       publicKey: aliceVeiledPrivateKey.publicKey(),
       sigmaProof: veiledNormalizationSigmaProof,
-      unnormilizedEncryptedBalance: unnormalizedEncryptedBalanceAlice,
+      unnormilizedEncryptedBalance: unnormalizedAliceVeiledAmount.encryptedAmount!,
       normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.encryptedAmount!,
     });
 
