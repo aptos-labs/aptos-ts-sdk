@@ -42,15 +42,11 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledWithdrawSigmaProof).toBeDefined();
   });
 
-  const balanceAfterWithdraw = ALICE_BALANCE - WITHDRAW_AMOUNT;
-  const encryptedBalanceAfterWithdraw = amountToChunks(balanceAfterWithdraw, VEILED_BALANCE_CHUNK_SIZE).map((el) =>
-    TwistedElGamal.encryptWithPK(el, aliceVeiledPrivateKey.publicKey()),
-  );
   test("Verify withdraw sigma proof", async () => {
     const isValid = VeiledWithdraw.verifySigmaProof({
-      twistedEd25519PublicKey: aliceVeiledPrivateKey.publicKey(),
-      encryptedActualBalance: veiledWithdraw.encryptedActualBalance,
-      encryptedActualBalanceAfterWithdraw: veiledWithdraw.encryptedActualBalanceAfterWithdraw!, // FIXME: does randomness matter?
+      publicKey: aliceVeiledPrivateKey.publicKey(),
+      encryptedActualBalance: veiledWithdraw.encryptedActualBalanceAmount,
+      encryptedActualBalanceAfterWithdraw: veiledWithdraw.veiledAmountAfterWithdraw!.encryptedAmount!,
       amountToWithdraw: WITHDRAW_AMOUNT,
       sigmaProof: veiledWithdrawSigmaProof,
     });
@@ -65,10 +61,18 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify withdraw range proof", async () => {
     const isValid = VeiledWithdraw.verifyRangeProof({
       rangeProof: veiledWithdrawRangeProof,
-      encryptedActualBalanceAfterWithdraw: encryptedBalanceAfterWithdraw,
+      encryptedActualBalanceAfterWithdraw: veiledWithdraw.veiledAmountAfterWithdraw!.encryptedAmount!,
     });
 
     expect(isValid).toBeTruthy();
+  });
+
+  test("Should generate veiled withdraw authorization", async () => {
+    const [{ sigmaProof, rangeProof }, vbNew] = await veiledWithdraw.authorizeWithdrawal();
+
+    expect(sigmaProof).toBeDefined();
+    expect(rangeProof).toBeDefined();
+    expect(vbNew).toBeDefined();
   });
 
   const TRANSFER_AMOUNT = 10n;
