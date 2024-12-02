@@ -1,21 +1,25 @@
 import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 
+const CHUNKS_COUNT = 4;
+
+const CHUNK_BITS = 32;
+
 // TODO: encrypt pending balance as (2)
 export class VeiledAmount {
   amount: bigint;
 
   amountChunks: bigint[];
 
-  chunksCount = VeiledAmount.CHUNKS_COUNT;
+  chunksCount = CHUNKS_COUNT;
 
-  chunkBits = VeiledAmount.CHUNK_BITS;
+  chunkBits = CHUNK_BITS;
 
   encryptedAmount?: TwistedElGamalCiphertext[];
 
-  static CHUNKS_COUNT = 4;
+  static CHUNKS_COUNT = CHUNKS_COUNT;
 
-  static CHUNK_BITS = 32;
+  static CHUNK_BITS = CHUNK_BITS;
 
   static CHUNK_BITS_BI = BigInt(VeiledAmount.CHUNK_BITS);
 

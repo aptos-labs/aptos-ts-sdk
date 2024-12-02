@@ -124,9 +124,7 @@ export async function veiledWithdrawTransaction(args: {
 
   await veiledWithdraw.init();
 
-  const sigmaProof = await veiledWithdraw.genSigmaProof();
-
-  const rangeProof = await veiledWithdraw.genRangeProof();
+  const [{ sigmaProof, rangeProof }] = await veiledWithdraw.authorizeWithdrawal();
 
   return generateTransaction({
     aptosConfig: args.aptosConfig,
@@ -206,7 +204,7 @@ export async function veiledTransferCoinTransaction(args: {
         concatBytes(
           ...veiledTransfer.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
         ),
-        concatBytes(...veiledTransfer.auditorPublicKeys.map(publicKeyToU8)),
+        concatBytes(...veiledTransfer.auditorsU8PublicKeys),
         concatBytes(...veiledTransfer.auditorsDList.flat()),
         rangeProofNewBalance,
         rangeProofAmount,
@@ -237,15 +235,13 @@ export async function veiledBalanceKeyRotationTransaction(args: {
 
   await veiledKeyRotation.init();
 
-  const sigmaProof = await veiledKeyRotation.genSigmaProof();
-
-  if (!veiledKeyRotation.newEncryptedBalance) throw new TypeError("newEncryptedBalance is not defined");
+  const [{ sigmaProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
 
   const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newPrivateKey).publicKey().toUint8Array();
 
   const serializedNewBalance = concatBytes(
-    ...veiledKeyRotation.newEncryptedBalance.map((el) => el.C.toRawBytes()),
-    ...veiledKeyRotation.newEncryptedBalance.map((el) => el.D.toRawBytes()),
+    ...newVB.map((el) => el.C.toRawBytes()),
+    ...newVB.map((el) => el.D.toRawBytes()),
   );
   const method = args.withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
 
