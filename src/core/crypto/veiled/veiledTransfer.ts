@@ -4,11 +4,12 @@ import { utf8ToBytes } from "@noble/hashes/utils";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { CHUNK_BITS_BI, PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE, VEILED_BALANCE_CHUNK_SIZE } from "./consts";
-import { amountToChunks, chunksToAmount, genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
+import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "./consts";
+import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { Hex } from "../../hex";
 import { HexInput } from "../../../types";
 import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledTransferSigmaProof = {
   alpha1: Uint8Array;
@@ -26,32 +27,31 @@ export type VeiledTransferSigmaProof = {
   X7List?: Uint8Array[];
 };
 
+export type VeiledTransferRangeProof = {
+  rangeProofAmount: Uint8Array[];
+  rangeProofNewBalance: Uint8Array[];
+};
+
 export class VeiledTransfer {
   isInitialized = false;
 
-  twistedEd25519PrivateKey: TwistedEd25519PrivateKey;
+  senderPrivateKey: TwistedEd25519PrivateKey;
 
   recipientPublicKey: TwistedEd25519PublicKey;
 
   recipientPublicKeyU8: Uint8Array;
 
-  auditorPublicKeys: TwistedEd25519PublicKey[];
-
   auditorsU8PublicKeys: Uint8Array[];
 
   auditorsDList: Uint8Array[][];
 
+  // auditorsVBList: TwistedElGamalCiphertext[];
+
   encryptedActualBalance: TwistedElGamalCiphertext[];
 
-  chunkedAmountToTransfer: bigint[];
+  veiledAmountToTransfer: VeiledAmount;
 
-  chunkedBalanceAfterTransfer?: bigint[];
-
-  amountToTransfer: bigint;
-
-  balanceAfterTransfer?: bigint;
-
-  encryptedActualBalanceAfterTransfer?: TwistedElGamalCiphertext[];
+  veiledAmountAfterTransfer?: VeiledAmount;
 
   encryptedAmountByRecipient: TwistedElGamalCiphertext[];
 
@@ -66,21 +66,26 @@ export class VeiledTransfer {
     randomness?: bigint[],
   ) {
     this.randomness = randomness ?? ed25519GenListOfRandom();
-    this.twistedEd25519PrivateKey = twistedEd25519PrivateKey;
-    this.encryptedActualBalance = encryptedActualBalance;
-    this.amountToTransfer = amountToTransfer;
+    this.senderPrivateKey = twistedEd25519PrivateKey;
     this.recipientPublicKey = recipientPublicKey;
     this.recipientPublicKeyU8 = publicKeyToU8(this.recipientPublicKey);
-    this.auditorPublicKeys = auditorPublicKeys || [];
+
+    this.encryptedActualBalance = encryptedActualBalance;
+
+    this.veiledAmountToTransfer = VeiledAmount.fromAmount(amountToTransfer);
+    this.encryptedAmountByRecipient = this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
+      TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(this.recipientPublicKeyU8), this.randomness[i]),
+    );
+
     this.auditorsU8PublicKeys = auditorPublicKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
     this.auditorsDList = this.auditorsU8PublicKeys.map((pk) => {
       const pkRist = RistrettoPoint.fromHex(pk);
       return this.randomness.map((r) => pkRist.multiply(r).toRawBytes());
     });
-    this.chunkedAmountToTransfer = amountToChunks(this.amountToTransfer, VEILED_BALANCE_CHUNK_SIZE);
-    this.encryptedAmountByRecipient = this.chunkedAmountToTransfer.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(this.recipientPublicKeyU8), this.randomness[i]),
-    );
+
+    // this.auditorsVBList = this.auditorsDList.map(
+    //   (el, idx) => new TwistedElGamalCiphertext(this.encryptedAmountByRecipient[idx].C.toRawBytes(), el[idx]),
+    // );
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferSubproofFiatShamir";
@@ -134,14 +139,14 @@ export class VeiledTransfer {
 
     const alpha1 = baseProofArray[0];
     const alpha2 = baseProofArray[1];
-    const alpha3List = baseProofArray.slice(2, 2 + VEILED_BALANCE_CHUNK_SIZE);
-    const alpha4List = baseProofArray.slice(6, 6 + VEILED_BALANCE_CHUNK_SIZE);
+    const alpha3List = baseProofArray.slice(2, 2 + VeiledAmount.CHUNKS_COUNT);
+    const alpha4List = baseProofArray.slice(6, 6 + VeiledAmount.CHUNKS_COUNT);
     const alpha5 = baseProofArray[10];
-    const alpha6List = baseProofArray.slice(11, 11 + VEILED_BALANCE_CHUNK_SIZE);
+    const alpha6List = baseProofArray.slice(11, 11 + VeiledAmount.CHUNKS_COUNT);
     const X1 = baseProofArray[15];
-    const X2List = baseProofArray.slice(16, 16 + VEILED_BALANCE_CHUNK_SIZE);
-    const X3List = baseProofArray.slice(20, 20 + VEILED_BALANCE_CHUNK_SIZE);
-    const X4List = baseProofArray.slice(24, 24 + VEILED_BALANCE_CHUNK_SIZE);
+    const X2List = baseProofArray.slice(16, 16 + VeiledAmount.CHUNKS_COUNT);
+    const X3List = baseProofArray.slice(20, 20 + VeiledAmount.CHUNKS_COUNT);
+    const X4List = baseProofArray.slice(24, 24 + VeiledAmount.CHUNKS_COUNT);
     const X5 = baseProofArray[28];
     const X6List = baseProofArray.slice(29);
 
@@ -163,26 +168,11 @@ export class VeiledTransfer {
   }
 
   async init() {
-    const decryptedBalanceChunks = await Promise.all(
-      this.encryptedActualBalance.map((el) =>
-        TwistedElGamal.decryptWithPK(el, this.twistedEd25519PrivateKey, {
-          // FIXME: mocked, should be removed, once algo is ready
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
-    );
+    const actualBalance = await VeiledAmount.fromEncrypted(this.encryptedActualBalance, this.senderPrivateKey);
 
-    const decryptedBalance = chunksToAmount(decryptedBalanceChunks);
+    this.veiledAmountAfterTransfer = VeiledAmount.fromAmount(actualBalance.amount - this.veiledAmountToTransfer.amount);
 
-    this.balanceAfterTransfer = decryptedBalance - this.amountToTransfer;
-
-    this.chunkedBalanceAfterTransfer = amountToChunks(this.balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE);
-
-    const chunkedBalanceAfterWithdraw = amountToChunks(this.balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE);
-    this.encryptedActualBalanceAfterTransfer = chunkedBalanceAfterWithdraw.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, this.twistedEd25519PrivateKey.publicKey(), this.randomness[i]),
-    );
+    this.veiledAmountAfterTransfer.encryptBalance(this.senderPrivateKey.publicKey(), this.randomness);
 
     this.isInitialized = true;
   }
@@ -190,15 +180,13 @@ export class VeiledTransfer {
   async genSigmaProof(): Promise<VeiledTransferSigmaProof> {
     if (!this.isInitialized) throw new TypeError("VeiledTransfer is not initialized");
 
-    if (this.randomness && this.randomness.length !== VEILED_BALANCE_CHUNK_SIZE)
+    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
-    if (this.amountToTransfer > 2n ** (2n * CHUNK_BITS_BI) - 1n)
-      throw new TypeError(`Amount must be less than 2n**${CHUNK_BITS_BI * 2n}`);
+    if (this.veiledAmountToTransfer.amount > 2n ** (2n * VeiledAmount.CHUNK_BITS_BI) - 1n)
+      throw new TypeError(`Amount must be less than 2n**${VeiledAmount.CHUNK_BITS_BI * 2n}`);
 
-    if (!this.balanceAfterTransfer) throw new TypeError("this.balanceAfterTransfer is not defined");
-
-    if (!this.chunkedBalanceAfterTransfer) throw new TypeError("this.chunkedBalanceAfterTransfer is not defined");
+    if (!this.veiledAmountAfterTransfer) throw new TypeError("this.veiledAmountAfterTransfer is not defined");
 
     const x1 = ed25519GenRandom();
     const x2 = ed25519GenRandom();
@@ -207,19 +195,19 @@ export class VeiledTransfer {
     const x5 = ed25519GenRandom();
     const x6List = ed25519GenListOfRandom();
 
-    const senderPKRistretto = RistrettoPoint.fromHex(this.twistedEd25519PrivateKey.publicKey().toUint8Array());
+    const senderPKRistretto = RistrettoPoint.fromHex(this.senderPrivateKey.publicKey().toUint8Array());
     const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientPublicKeyU8);
 
-    const newEncryptedBalance = this.chunkedBalanceAfterTransfer.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, this.twistedEd25519PrivateKey.publicKey(), this.randomness[i]),
+    const newEncryptedBalance = this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
+      TwistedElGamal.encryptWithPK(chunk, this.senderPrivateKey.publicKey(), this.randomness[i]),
     );
 
     const DBal = this.encryptedActualBalance.reduce(
-      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * CHUNK_BITS_BI))),
+      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
       RistrettoPoint.ZERO,
     );
     const DNewBal = newEncryptedBalance.reduce(
-      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * CHUNK_BITS_BI))),
+      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
       RistrettoPoint.ZERO,
     );
 
@@ -241,11 +229,12 @@ export class VeiledTransfer {
       utf8ToBytes(VeiledTransfer.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
-      this.twistedEd25519PrivateKey.publicKey().toUint8Array(),
+      this.senderPrivateKey.publicKey().toUint8Array(),
       this.recipientPublicKeyU8,
       ...this.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...newEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...this.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      // ...this.auditorsVBList.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...this.auditorsDList.flat(),
       X1,
       ...X2List,
@@ -256,15 +245,18 @@ export class VeiledTransfer {
       ...X7List.flat(),
     );
 
-    const sLE = bytesToNumberLE(this.twistedEd25519PrivateKey.toUint8Array());
+    const sLE = bytesToNumberLE(this.senderPrivateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const alpha1 = ed25519modN(x1 - p * this.balanceAfterTransfer);
+    const alpha1 = ed25519modN(x1 - p * this.veiledAmountAfterTransfer.amount);
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((x3, i) => ed25519modN(x3 - p * this.randomness[i]));
-    const alpha4List = x4List.map((x4, i) => ed25519modN(x4 - p * this.chunkedAmountToTransfer[i]));
+    const alpha4List = x4List.map((x4, i) => ed25519modN(x4 - p * this.veiledAmountToTransfer.amountChunks[i]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
-    const alpha6List = x6List.map((x6, i) => ed25519modN(x6 - p * this.chunkedBalanceAfterTransfer![i]), 32);
+    const alpha6List = x6List.map(
+      (x6, i) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer!.amountChunks![i]),
+      32,
+    );
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
@@ -335,7 +327,7 @@ export class VeiledTransfer {
 
     const { oldDSum, oldCSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
         return {
           oldDSum: acc.oldDSum.add(D.multiply(coef)),
           oldCSum: acc.oldCSum.add(C.multiply(coef)),
@@ -345,12 +337,12 @@ export class VeiledTransfer {
     );
 
     const newDSum = opts.encryptedActualBalanceAfterTransfer.reduce((acc, { D }, i) => {
-      const coef = 2n ** (BigInt(i) * CHUNK_BITS_BI);
+      const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
       return acc.add(D.multiply(coef));
     }, RistrettoPoint.ZERO);
 
     const amountCSum = opts.encryptedAmountByRecipient.reduce((acc, { C }, i) => {
-      const coef = 2n ** (BigInt(i) * CHUNK_BITS_BI);
+      const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
       return acc.add(C.multiply(coef));
     }, RistrettoPoint.ZERO);
 
@@ -395,19 +387,15 @@ export class VeiledTransfer {
     );
   }
 
-  async genRangeProof(): Promise<{
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
-  }> {
+  async genRangeProof(): Promise<VeiledTransferRangeProof> {
     if (!this.isInitialized) throw new TypeError("VeiledTransfer is not initialized");
 
-    if (!this.encryptedActualBalanceAfterTransfer)
-      throw new TypeError("this.encryptedActualBalanceAfterTransfer is not defined");
+    if (!this.veiledAmountToTransfer) throw new TypeError("this.veiledAmountToTransfer is not defined");
 
-    if (!this.balanceAfterTransfer) throw new TypeError("Balance after transfer is not defined");
+    if (!this.veiledAmountAfterTransfer) throw new TypeError("this.veiledAmountAfterTransfer is not defined");
 
     const rangeProofAmountPromise = Promise.all(
-      amountToChunks(this.amountToTransfer, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) =>
+      this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
           r: numberToBytesLE(this.randomness[i], 32),
@@ -418,12 +406,12 @@ export class VeiledTransfer {
     );
 
     const rangeProofNewBalancePromise = Promise.all(
-      amountToChunks(this.balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE).map((chunk, i) =>
+      this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
-          r: this.twistedEd25519PrivateKey.toUint8Array(),
+          r: this.senderPrivateKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.encryptedActualBalanceAfterTransfer![i].D.toRawBytes(),
+          randBase: this.veiledAmountAfterTransfer!.encryptedAmount![i].D.toRawBytes(),
         }),
       ),
     );
@@ -438,6 +426,34 @@ export class VeiledTransfer {
       rangeProofNewBalance: rangeProofNewBalance.map((proof) => proof.proof),
     };
   }
+
+  // async authorizeTransfer(): Promise<
+  //   [
+  //     { sigmaProof: VeiledTransferSigmaProof; rangeProof: VeiledTransferRangeProof },
+  //     TwistedElGamalCiphertext[],
+  //     TwistedElGamalCiphertext[],
+  //     TwistedElGamalCiphertext[],
+  //   ]
+  // > {
+  //   if (!this.isInitialized) throw new TypeError("VeiledTransfer is not initialized");
+  //
+  //   const sigmaProof = await this.genSigmaProof();
+  //
+  //   const rangeProof = await this.genRangeProof();
+  //
+  //   if (!this.veiledAmountAfterTransfer?.encryptedAmount)
+  //     throw new TypeError("this.veiledAmountAfterTransfer.encryptedAmount is not defined");
+  //
+  //   return [
+  //     {
+  //       sigmaProof,
+  //       rangeProof,
+  //     },
+  //     this.veiledAmountAfterTransfer.encryptedAmount,
+  //     this.encryptedAmountByRecipient,
+  //     this.auditorsVBList,
+  //   ];
+  // }
 
   static async verifyRangeProof(opts: {
     encryptedAmountByRecipient: TwistedElGamalCiphertext[];

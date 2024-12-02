@@ -17,6 +17,8 @@ export class VeiledAmount {
 
   static CHUNK_BITS = 32;
 
+  static CHUNK_BITS_BI = BigInt(VeiledAmount.CHUNK_BITS);
+
   constructor(args: {
     amount: bigint;
     amountChunks: bigint[];
