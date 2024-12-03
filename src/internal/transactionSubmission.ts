@@ -10,7 +10,14 @@ import { Deserializer, MoveVector, U8 } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKey } from "../core/crypto";
+import {
+  AnyPublicKey,
+  Ed25519PublicKey,
+  FederatedKeylessPublicKey,
+  KeylessPublicKey,
+  KeylessSignature,
+  PrivateKey,
+} from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
 import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
@@ -18,6 +25,7 @@ import {
   generateTransactionPayload,
   generateSignedTransactionForSimulation,
   generateSignedTransaction,
+  getPublicKeyType,
 } from "../transactions/transactionBuilder/transactionBuilder";
 import {
   InputGenerateTransactionData,
@@ -270,6 +278,16 @@ export async function simulateTransaction(
   args: { aptosConfig: AptosConfig } & InputSimulateTransactionData,
 ): Promise<Array<UserTransactionResponse>> {
   const { aptosConfig, transaction, signerPublicKey, secondarySignersPublicKeys, feePayerPublicKey, options } = args;
+
+  if (feePayerPublicKey) {
+    const senderPK = getPublicKeyType(feePayerPublicKey);
+    if (AnyPublicKey.isInstance(senderPK)) {
+      transaction.feePayerAddress = senderPK.authKey().derivedAddress();
+    } else {
+      // is ED25519
+      transaction.feePayerAddress = new Ed25519PublicKey(feePayerPublicKey.toString()).authKey().derivedAddress();
+    }
+  }
 
   const signedTransaction = generateSignedTransactionForSimulation({
     transaction,

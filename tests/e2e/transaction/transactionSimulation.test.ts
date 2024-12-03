@@ -171,7 +171,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -189,7 +188,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -208,7 +206,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -233,7 +230,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerED25519SenderAccount.publicKey,
@@ -358,7 +354,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -376,7 +371,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -395,7 +389,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -420,7 +413,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.multiAgent({
           signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -539,7 +531,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -557,7 +548,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -576,7 +566,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -595,7 +584,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.multiAgent({
           signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -714,7 +702,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
@@ -732,7 +719,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
@@ -751,7 +737,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.simple({
           signerPublicKey: multiKeyAccount.publicKey,
@@ -770,7 +755,6 @@ describe("transaction simulation", () => {
           },
           withFeePayer: true,
         });
-        rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
         const [response] = await aptos.transaction.simulate.multiAgent({
           signerPublicKey: multiKeyAccount.publicKey,
@@ -792,7 +776,6 @@ describe("transaction simulation", () => {
         },
         withFeePayer: true,
       });
-      rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
       const [response] = await aptos.transaction.simulate.simple({
         signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -811,7 +794,6 @@ describe("transaction simulation", () => {
         },
         withFeePayer: true,
       });
-      rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
       const [response] = await aptos.transaction.simulate.multiAgent({
         signerPublicKey: singleSignerSecp256k1Account.publicKey,
@@ -846,7 +828,6 @@ describe("transaction simulation", () => {
       },
       withFeePayer: true,
     });
-    rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
     const [response] = await aptos.transaction.simulate.simple({
       transaction: rawTxn,
@@ -895,7 +876,6 @@ describe("transaction simulation", () => {
       },
       withFeePayer: true,
     });
-    rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
     const [response] = await aptos.transaction.simulate.multiAgent({
       signerPublicKey: legacyED25519SenderAccount.publicKey,
@@ -915,7 +895,6 @@ describe("transaction simulation", () => {
       },
       withFeePayer: true,
     });
-    rawTxn.feePayerAddress = feePayerAccount.accountAddress;
 
     const [response] = await aptos.transaction.simulate.multiAgent({
       signerPublicKey: legacyED25519SenderAccount.publicKey,

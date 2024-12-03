@@ -558,13 +558,7 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorNoAccountAuthenticator();
   }
 
-  // Wrap the public key types below with AnyPublicKey as they are only support through single sender.
-  // Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
-  const convertToAnyPublicKey =
-    KeylessPublicKey.isInstance(publicKey) ||
-    FederatedKeylessPublicKey.isInstance(publicKey) ||
-    Secp256k1PublicKey.isInstance(publicKey);
-  const accountPublicKey = convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
+  const accountPublicKey = getPublicKeyType(publicKey);
 
   // No need to for the signature to be matching in scheme. All that matters for simulations is that it's not valid
   const invalidSignature = new Ed25519Signature(new Uint8Array(64));
@@ -599,6 +593,16 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
 
   throw new Error("Unsupported PublicKey used for simulations");
 }
+
+// Wrap the public key types below with AnyPublicKey as they are only support through single sender.
+// Learn more about AnyPublicKey here - https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-55.md
+export const getPublicKeyType = (publicKey: PublicKey): AnyPublicKey | PublicKey => {
+  const convertToAnyPublicKey =
+    KeylessPublicKey.isInstance(publicKey) ||
+    FederatedKeylessPublicKey.isInstance(publicKey) ||
+    Secp256k1PublicKey.isInstance(publicKey);
+  return convertToAnyPublicKey ? new AnyPublicKey(publicKey) : publicKey;
+};
 
 /**
  * Generate a signed transaction ready for submission to the blockchain.
