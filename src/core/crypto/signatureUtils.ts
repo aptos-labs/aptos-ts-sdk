@@ -1,4 +1,5 @@
-import { HexInput, isHexInput } from "../../types";
+import { HexInput } from "../../types";
+import { isHexInput } from "../../utils";
 import { Secp256k1Signature } from "./secp256k1";
 import { AnySignature } from "./singleKey";
 
