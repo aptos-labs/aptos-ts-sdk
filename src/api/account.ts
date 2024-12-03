@@ -938,7 +938,7 @@ export class Account {
    */
   async verifySecp256k1Account(args: {
     message: HexInput;
-    signature: HexInput | Secp256k1Signature | AnySignature;
+    signature: Secp256k1Signature | AnySignature;
     recoveryBit?: number;
     accountAddress: AccountAddressInput;
   }): Promise<AnyPublicKey> {

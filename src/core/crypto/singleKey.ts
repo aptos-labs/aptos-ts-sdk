@@ -218,6 +218,27 @@ export class AnyPublicKey extends AccountPublicKey {
   static isInstance(publicKey: PublicKey): publicKey is AnyPublicKey {
     return "publicKey" in publicKey && "variant" in publicKey;
   }
+
+  /**
+   * Recover a Secp256k1 AnyPublicKey from a signature and message.
+   *
+   * @param args.signature - The signature to recover the public key from.
+   * @param args.message - The message that was signed.
+   * @param args.recoveryBit - The recovery bit to use for the public key.
+   */
+  static fromSecp256k1SignatureAndMessage(args: {
+    signature: AnySignature;
+    message: HexInput;
+    recoveryBit: number;
+  }): AnyPublicKey {
+    const { signature, message, recoveryBit } = args;
+    const publicKey = Secp256k1PublicKey.fromSignatureAndMessage({
+      signature: toSecp256k1Signature(signature),
+      message,
+      recoveryBit,
+    });
+    return new AnyPublicKey(publicKey);
+  }
 }
 
 /**
@@ -307,27 +328,5 @@ export class AnySignature extends Signature {
       signature.signature !== null &&
       "toUint8Array" in signature.signature
     );
-  }
-
-  /**
-   * Recover a Secp256k1 public key from a signature and message.
-   *
-   * @param args - The arguments for recovering the public key.
-   * @param args.signature - The signature to recover the public key from.
-   * @param args.message - The message that was signed.
-   * @param args.recoveryBit - The recovery bit to use for the public key.
-   */
-  static fromSecp256k1SignatureAndMessage(args: {
-    signature: AnySignature;
-    message: HexInput;
-    recoveryBit: number;
-  }): AnyPublicKey {
-    const { signature, message, recoveryBit } = args;
-    const publicKey = Secp256k1PublicKey.fromSignatureAndMessage({
-      signature: toSecp256k1Signature(signature),
-      message,
-      recoveryBit,
-    });
-    return new AnyPublicKey(publicKey);
   }
 }
