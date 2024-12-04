@@ -186,6 +186,7 @@ export class VeiledTransfer {
   }
 
   async genSigmaProof(): Promise<VeiledTransferSigmaProof> {
+    console.log("genSigmaProof");
     if (!this.isInitialized) throw new TypeError("VeiledTransfer is not initialized");
 
     if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT)
@@ -227,8 +228,8 @@ export class VeiledTransfer {
       .subtract(DNewBal.multiply(x2))
       .add(
         H_RISTRETTO.multiply(x3List[2])
-          .multiply(2n ** VeiledAmount.CHUNK_BITS_BI * BigInt(2))
-          .add(H_RISTRETTO.multiply(x3List[3]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(3)))),
+          .multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
+          .add(H_RISTRETTO.multiply(x3List[3]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n))),
       )
       .toRawBytes();
     const X2List = x3List.map((x3) => senderPKRistretto.multiply(x3).toRawBytes());
@@ -269,8 +270,6 @@ export class VeiledTransfer {
     const sLE = bytesToNumberLE(this.senderPrivateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    console.log(p, this.randomness);
-
     const alpha1 = ed25519modN(x1 - p * this.veiledAmountAfterTransfer.amount);
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - BigInt(p) * BigInt(this.randomness[idx])));
@@ -282,6 +281,9 @@ export class VeiledTransfer {
       (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer!.amountChunks![idx]),
       32,
     );
+
+    console.log("X1", X1);
+    console.log("RistrettoPoint.fromHex(opts.sigmaProof.X1)", RistrettoPoint.fromHex(X1));
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
@@ -312,6 +314,7 @@ export class VeiledTransfer {
       decryptionKeys: HexInput[][];
     };
   }): boolean {
+    console.log("verifySigmaProof");
     const auditorPKs = opts?.auditors?.publicKeys.map((pk) => publicKeyToU8(pk)) ?? [];
     const auditorDecryptionKeys =
       opts?.auditors?.decryptionKeys.map((arr) => arr.map((key) => Hex.fromHexInput(key).toUint8Array())) ?? [];
@@ -377,9 +380,9 @@ export class VeiledTransfer {
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
       .add(
-        H_RISTRETTO.multiply(2n ** VeiledAmount.CHUNK_BITS_BI * BigInt(2))
+        H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
           .multiply(alpha3LEList[2])
-          .add(H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(3))).multiply(alpha3LEList[3])),
+          .add(H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n)).multiply(alpha3LEList[3])),
       )
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));
@@ -411,6 +414,9 @@ export class VeiledTransfer {
             .add(RistrettoPoint.fromHex(auditorDecryptionKeys[pkI][idxJ]).multiply(p)),
         ),
     );
+
+    console.log("X1", X1);
+    console.log("X1.toRawBytes()", X1.toRawBytes());
 
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
