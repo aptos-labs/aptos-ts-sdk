@@ -25,6 +25,9 @@ export class Secp256k1PublicKey extends PublicKey {
   // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
 
+  // If it's compressed, it is only 33 bytes
+  static readonly COMPRESSED_LENGTH: number = 33;
+
   // Hex value of the public key
   private readonly key: Hex;
 
@@ -41,10 +44,17 @@ export class Secp256k1PublicKey extends PublicKey {
     super();
 
     const hex = Hex.fromHexInput(hexInput);
-    if (hex.toUint8Array().length !== Secp256k1PublicKey.LENGTH) {
-      throw new Error(`PublicKey length should be ${Secp256k1PublicKey.LENGTH}`);
+    const { length } = hex.toUint8Array();
+    if (length === Secp256k1PublicKey.LENGTH) {
+      this.key = hex;
+    } else if (length === Secp256k1PublicKey.COMPRESSED_LENGTH) {
+      const point = secp256k1.ProjectivePoint.fromHex(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toRawBytes(false));
+    } else {
+      throw new Error(
+        `PublicKey length should be ${Secp256k1PublicKey.LENGTH} or ${Secp256k1PublicKey.COMPRESSED_LENGTH}, received ${length}`,
+      );
     }
-    this.key = hex;
   }
 
   // region PublicKey

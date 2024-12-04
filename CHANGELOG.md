@@ -4,7 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.33.1 (2024-11-28)
+
 - Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
+- Removed strictness warnings for bytes AIP-80 private key parsing formatting.
+- Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
 
 # 1.33.0 (2024-11-13)
 
