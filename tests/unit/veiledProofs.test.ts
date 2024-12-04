@@ -92,11 +92,11 @@ describe("Generate 'veiled coin' proofs", () => {
   // // );
   test("Verify transfer sigma proof", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
-      twistedEd25519PrivateKey: aliceVeiledPrivateKey,
+      senderPrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransfer.veiledAmountAfterTransfer?.encryptedAmount!,
-      encryptedAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
+      encryptedTransferAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
       sigmaProof: veiledTransferSigmaProof,
     });
 
@@ -139,15 +139,15 @@ describe("Generate 'veiled coin' proofs", () => {
   });
   test("Verify transfer with auditors sigma proof", () => {
     const isValid = VeiledTransfer.verifySigmaProof({
-      twistedEd25519PrivateKey: aliceVeiledPrivateKey,
+      senderPrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.encryptedAmount!,
-      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
-        decryptionKeys: veiledTransferWithAuditors.auditorsDList,
+        decryptionKeys: veiledTransferWithAuditors.auditorsDList!,
       },
     });
 
@@ -162,11 +162,11 @@ describe("Generate 'veiled coin' proofs", () => {
     });
 
     const isValid = VeiledTransfer.verifySigmaProof({
-      twistedEd25519PrivateKey: aliceVeiledPrivateKey,
+      senderPrivateKey: aliceVeiledPrivateKey,
       recipientPublicKey: bobVeiledPrivateKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
       encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.encryptedAmount!,
-      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],

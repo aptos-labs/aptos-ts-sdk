@@ -41,11 +41,13 @@ export class VeiledTransfer {
 
   recipientPublicKeyU8: Uint8Array;
 
-  auditorsU8PublicKeys: Uint8Array[];
+  auditorPublicKeys?: TwistedEd25519PublicKey[];
+
+  auditorsU8PublicKeys?: Uint8Array[];
 
   auditorsDList: Uint8Array[][];
 
-  // auditorsVBList: TwistedElGamalCiphertext[];
+  auditorsVBList?: TwistedElGamalCiphertext[];
 
   encryptedActualBalance: TwistedElGamalCiphertext[];
 
@@ -72,20 +74,19 @@ export class VeiledTransfer {
 
     this.encryptedActualBalance = encryptedActualBalance;
 
-    this.veiledAmountToTransfer = VeiledAmount.fromAmount(amountToTransfer);
+    this.veiledAmountToTransfer = VeiledAmount.fromAmount(amountToTransfer, {
+      chunksCount: 2,
+    });
     this.encryptedAmountByRecipient = this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(this.recipientPublicKeyU8), this.randomness[i]),
     );
 
+    this.auditorPublicKeys = auditorPublicKeys;
     this.auditorsU8PublicKeys = auditorPublicKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
     this.auditorsDList = this.auditorsU8PublicKeys.map((pk) => {
       const pkRist = RistrettoPoint.fromHex(pk);
       return this.randomness.map((r) => pkRist.multiply(r).toRawBytes());
     });
-
-    // this.auditorsVBList = this.auditorsDList.map(
-    //   (el, idx) => new TwistedElGamalCiphertext(this.encryptedAmountByRecipient[idx].C.toRawBytes(), el[idx]),
-    // );
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferSubproofFiatShamir";
@@ -171,8 +172,15 @@ export class VeiledTransfer {
     const actualBalance = await VeiledAmount.fromEncrypted(this.encryptedActualBalance, this.senderPrivateKey);
 
     this.veiledAmountAfterTransfer = VeiledAmount.fromAmount(actualBalance.amount - this.veiledAmountToTransfer.amount);
-
     this.veiledAmountAfterTransfer.encryptBalance(this.senderPrivateKey.publicKey(), this.randomness);
+
+    const auditorsVBList = this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
+      TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(this.recipientPublicKeyU8), this.randomness[i]),
+    );
+
+    if (auditorsVBList?.length) {
+      this.auditorsVBList = auditorsVBList;
+    }
 
     this.isInitialized = true;
   }
@@ -188,42 +196,55 @@ export class VeiledTransfer {
 
     if (!this.veiledAmountAfterTransfer) throw new TypeError("this.veiledAmountAfterTransfer is not defined");
 
-    const x1 = ed25519GenRandom();
-    const x2 = ed25519GenRandom();
-    const x3List = ed25519GenListOfRandom();
-    const x4List = ed25519GenListOfRandom();
-    const x5 = ed25519GenRandom();
-    const x6List = ed25519GenListOfRandom();
-
     const senderPKRistretto = RistrettoPoint.fromHex(this.senderPrivateKey.publicKey().toUint8Array());
     const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientPublicKeyU8);
 
-    const newEncryptedBalance = this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
+    const senderNewEncryptedBalance = this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, this.senderPrivateKey.publicKey(), this.randomness[i]),
     );
 
+    const i = 4;
+    const j = 2;
+
+    const x1 = ed25519GenRandom();
+    const x2 = ed25519GenRandom();
+    const x3List = ed25519GenListOfRandom(i);
+    const x4List = ed25519GenListOfRandom(j);
+    const x5 = ed25519GenRandom();
+    const x6List = ed25519GenListOfRandom(i);
+
     const DBal = this.encryptedActualBalance.reduce(
-      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+      (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * VeiledAmount.CHUNK_BITS_BI))),
       RistrettoPoint.ZERO,
     );
-    const DNewBal = newEncryptedBalance.reduce(
-      (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+    const DNewBal = senderNewEncryptedBalance.reduce(
+      (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * VeiledAmount.CHUNK_BITS_BI))),
       RistrettoPoint.ZERO,
     );
 
-    const X1 = RistrettoPoint.BASE.multiply(x1).add(DBal.multiply(x2)).subtract(DNewBal.multiply(x2)).toRawBytes();
+    const X1 = RistrettoPoint.BASE.multiply(x1)
+      .add(DBal.multiply(x2))
+      .subtract(DNewBal.multiply(x2))
+      .add(
+        H_RISTRETTO.multiply(x3List[2])
+          .multiply(2n ** VeiledAmount.CHUNK_BITS_BI * BigInt(2))
+          .add(H_RISTRETTO.multiply(x3List[3]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(3)))),
+      )
+      .toRawBytes();
     const X2List = x3List.map((x3) => senderPKRistretto.multiply(x3).toRawBytes());
-    const X3List = x3List.map((x3) => recipientPKRistretto.multiply(x3).toRawBytes());
-    const X4List = x4List.map((x4, i) =>
-      RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3List[i])).toRawBytes(),
-    );
+    const X3List = x3List.slice(0, j).map((x3) => recipientPKRistretto.multiply(x3).toRawBytes());
+    const X4List = x4List
+      .slice(0, j)
+      .map((x4, idx) => RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3List[idx])).toRawBytes());
     const X5 = H_RISTRETTO.multiply(x5).toRawBytes();
-    const X6List = x6List.map((x6, i) =>
-      RistrettoPoint.BASE.multiply(x6).add(H_RISTRETTO.multiply(x3List[i])).toRawBytes(),
+    const X6List = x6List.map((x6, idx) =>
+      RistrettoPoint.BASE.multiply(x6).add(H_RISTRETTO.multiply(x3List[idx])).toRawBytes(),
     );
-    const X7List = this.auditorsU8PublicKeys.map((pk) =>
-      x3List.map((x3) => RistrettoPoint.fromHex(pk).multiply(x3).toRawBytes()),
-    );
+
+    const X7List =
+      this.auditorsU8PublicKeys?.map((pk) =>
+        x3List.slice(0, j).map((el) => RistrettoPoint.fromHex(pk).multiply(el).toRawBytes()),
+      ) ?? [];
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledTransfer.FIAT_SHAMIR_SIGMA_DST),
@@ -232,10 +253,10 @@ export class VeiledTransfer {
       this.senderPrivateKey.publicKey().toUint8Array(),
       this.recipientPublicKeyU8,
       ...this.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...newEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...senderNewEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...this.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      // ...this.auditorsVBList.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...this.auditorsDList.flat(),
+      // ...(this.auditorsVBList?.map(({ D }) => D.toRawBytes()) ?? []), FIXME
       X1,
       ...X2List,
       ...X3List,
@@ -248,13 +269,17 @@ export class VeiledTransfer {
     const sLE = bytesToNumberLE(this.senderPrivateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
+    console.log(p, this.randomness);
+
     const alpha1 = ed25519modN(x1 - p * this.veiledAmountAfterTransfer.amount);
     const alpha2 = ed25519modN(x2 - p * sLE);
-    const alpha3List = x3List.map((x3, i) => ed25519modN(x3 - p * this.randomness[i]));
-    const alpha4List = x4List.map((x4, i) => ed25519modN(x4 - p * this.veiledAmountToTransfer.amountChunks[i]));
+    const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - BigInt(p) * BigInt(this.randomness[idx])));
+    const alpha4List = x4List
+      .slice(0, j)
+      .map((el, idx) => ed25519modN(el - p * this.veiledAmountToTransfer.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map(
-      (x6, i) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer!.amountChunks![i]),
+      (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer!.amountChunks![idx]),
       32,
     );
 
@@ -276,11 +301,11 @@ export class VeiledTransfer {
   }
 
   static verifySigmaProof(opts: {
-    twistedEd25519PrivateKey: TwistedEd25519PrivateKey;
+    senderPrivateKey: TwistedEd25519PrivateKey;
     recipientPublicKey: TwistedEd25519PublicKey;
     encryptedActualBalance: TwistedElGamalCiphertext[];
     encryptedActualBalanceAfterTransfer: TwistedElGamalCiphertext[];
-    encryptedAmountByRecipient: TwistedElGamalCiphertext[];
+    encryptedTransferAmountByRecipient: TwistedElGamalCiphertext[];
     sigmaProof: VeiledTransferSigmaProof;
     auditors?: {
       publicKeys: (TwistedEd25519PublicKey | HexInput)[];
@@ -299,7 +324,7 @@ export class VeiledTransfer {
     const alpha5LE = bytesToNumberLE(opts.sigmaProof.alpha5);
     const alpha6LEList = opts.sigmaProof.alpha6List.map((a) => bytesToNumberLE(a));
 
-    const senderPublicKeyU8 = publicKeyToU8(opts.twistedEd25519PrivateKey.publicKey());
+    const senderPublicKeyU8 = publicKeyToU8(opts.senderPrivateKey.publicKey());
     const recipientPublicKeyU8 = publicKeyToU8(opts.recipientPublicKey);
     const senderPKRistretto = RistrettoPoint.fromHex(senderPublicKeyU8);
     const recipientPKRistretto = RistrettoPoint.fromHex(recipientPublicKeyU8);
@@ -312,7 +337,7 @@ export class VeiledTransfer {
       recipientPublicKeyU8,
       ...opts.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...opts.encryptedActualBalanceAfterTransfer.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...opts.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...opts.encryptedTransferAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...auditorDecryptionKeys.flat(),
       opts.sigmaProof.X1,
       ...opts.sigmaProof.X2List,
@@ -341,7 +366,9 @@ export class VeiledTransfer {
       return acc.add(D.multiply(coef));
     }, RistrettoPoint.ZERO);
 
-    const amountCSum = opts.encryptedAmountByRecipient.reduce((acc, { C }, i) => {
+    const j = 2;
+
+    const amountCSum = opts.encryptedTransferAmountByRecipient.slice(0, j).reduce((acc, { C }, i) => {
       const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
       return acc.add(C.multiply(coef));
     }, RistrettoPoint.ZERO);
@@ -349,18 +376,23 @@ export class VeiledTransfer {
     const X1 = alpha1G
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
+      .add(
+        H_RISTRETTO.multiply(2n ** VeiledAmount.CHUNK_BITS_BI * BigInt(2))
+          .multiply(alpha3LEList[2])
+          .add(H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(3))).multiply(alpha3LEList[3])),
+      )
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));
     const X2List = alpha3LEList.map((a3, i) =>
       senderPKRistretto.multiply(a3).add(opts.encryptedActualBalanceAfterTransfer![i].D.multiply(p)),
     );
-    const X3List = alpha3LEList.map((a3, i) =>
-      recipientPKRistretto.multiply(a3).add(opts.encryptedAmountByRecipient[i].D.multiply(p)),
-    );
-    const X4List = alpha4LEList.map((a4, i) => {
+    const X3List = alpha3LEList
+      .slice(0, j)
+      .map((a3, i) => recipientPKRistretto.multiply(a3).add(opts.encryptedTransferAmountByRecipient[i].D.multiply(p)));
+    const X4List = alpha4LEList.slice(0, j).map((a4, i) => {
       const a4G = RistrettoPoint.BASE.multiply(a4);
       const a3H = H_RISTRETTO.multiply(alpha3LEList[i]);
-      const pC = opts.encryptedAmountByRecipient[i].C.multiply(p);
+      const pC = opts.encryptedTransferAmountByRecipient[i].C.multiply(p);
       return a4G.add(a3H).add(pC);
     });
     const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p));
@@ -371,9 +403,13 @@ export class VeiledTransfer {
       return aG.add(aH).add(pC);
     });
     const X7List = auditorPKs.map((pk, pkI) =>
-      alpha3LEList.map((a3, i) =>
-        RistrettoPoint.fromHex(pk).multiply(a3).add(RistrettoPoint.fromHex(auditorDecryptionKeys[pkI][i]).multiply(p)),
-      ),
+      alpha3LEList
+        .slice(0, j)
+        .map((a3, idxJ) =>
+          RistrettoPoint.fromHex(pk)
+            .multiply(a3)
+            .add(RistrettoPoint.fromHex(auditorDecryptionKeys[pkI][idxJ]).multiply(p)),
+        ),
     );
 
     return (
