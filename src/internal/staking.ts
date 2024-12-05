@@ -6,6 +6,7 @@
  * the {@link api/staking}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -22,6 +23,7 @@ import { queryIndexer } from "./general";
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.poolAddress - The address of the pool for which to retrieve the number of delegators.
  * @returns The number of active delegators for the specified pool address.
+ * @group Implementation
  */
 export async function getNumberOfDelegators(args: {
   aptosConfig: AptosConfig;
@@ -48,6 +50,7 @@ export async function getNumberOfDelegators(args: {
  * @param [args.options] - Optional parameters for ordering the results.
  * @param args.options.orderBy - Specifies the order in which to return the results.
  * @returns The number of active delegators per pool.
+ * @group Implementation
  */
 export async function getNumberOfDelegatorsForAllPools(args: {
   aptosConfig: AptosConfig;
@@ -73,6 +76,7 @@ export async function getNumberOfDelegatorsForAllPools(args: {
  * @param args.delegatorAddress - The address of the delegator whose activities are being queried.
  * @param args.poolAddress - The address of the pool associated with the delegated staking activities.
  * @returns The delegated staking activities for the specified delegator and pool.
+ * @group Implementation
  */
 export async function getDelegatedStakingActivities(args: {
   aptosConfig: AptosConfig;

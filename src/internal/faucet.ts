@@ -6,6 +6,7 @@
  * the {@link api/faucet}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -28,6 +29,7 @@ import { waitForTransaction } from "./transaction";
  * @param args.options.checkSuccess - A flag indicating whether to check if the transaction was successful.
  *
  * @throws Error if the transaction does not return a user transaction type.
+ * @group Implementation
  */
 export async function fundAccount(args: {
   aptosConfig: AptosConfig;

@@ -11,10 +11,16 @@ import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 
+/**
+ * @group Implementation
+ * @category Transactions
+ */
 export const promiseFulfilledStatus = "fulfilled";
 
 /**
  * Events emitted by the transaction worker during its operation, allowing the dapp to respond to various transaction states.
+ * @group Implementation
+ * @category Transactions
  */
 export enum TransactionWorkerEventsEnum {
   // fired after a transaction gets sent to the chain
@@ -31,11 +37,8 @@ export enum TransactionWorkerEventsEnum {
 
 /**
  * Defines the events emitted by the transaction worker during various stages of transaction processing. *
- * @event transactionSent - Emitted when a transaction is successfully sent.
- * @event transactionSendFailed - Emitted when sending a transaction fails.
- * @event transactionExecuted - Emitted when a transaction is successfully executed.
- * @event transactionExecutionFailed - Emitted when executing a transaction fails.
- * @event executionFinish - Emitted when the execution process is finished.
+ * @group Implementation
+ * @category Transactions
  */
 export interface TransactionWorkerEvents {
   transactionSent: (data: SuccessEventData) => void;
@@ -47,6 +50,8 @@ export interface TransactionWorkerEvents {
 
 /**
  * The payload for when the worker has finished its job.
+ * @group Implementation
+ * @category Transactions
  */
 export type ExecutionFinishEventData = {
   message: string;
@@ -54,6 +59,8 @@ export type ExecutionFinishEventData = {
 
 /**
  * The payload for a success event.
+ * @group Implementation
+ * @category Transactions
  */
 export type SuccessEventData = {
   message: string;
@@ -62,6 +69,8 @@ export type SuccessEventData = {
 
 /**
  * The payload for a failure event.
+ * @group Implementation
+ * @category Transactions
  */
 export type FailureEventData = {
   message: string;
@@ -79,6 +88,8 @@ export type FailureEventData = {
  * 1) waits for resolution of the submission process or get pre-execution validation error
  * and 2) waits for the resolution of the execution process or get an execution error.
  * The worker fires events for any submission and/or execution success and/or failure.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   readonly aptosConfig: AptosConfig;
@@ -98,6 +109,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * transactions payloads waiting to be generated and signed
    *
    * TODO support entry function payload from ABI builder
+   * @group Implementation
+   * @category Transactions
    */
   transactionsQueue = new AsyncQueue<
     [InputGenerateTransactionPayloadData, InputGenerateTransactionOptions | undefined]
@@ -105,16 +118,22 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
 
   /**
    * signed transactions waiting to be submitted
+   * @group Implementation
+   * @category Transactions
    */
   outstandingTransactions = new AsyncQueue<[Promise<PendingTransactionResponse>, bigint]>();
 
   /**
    * transactions that have been submitted to chain
+   * @group Implementation
+   * @category Transactions
    */
   sentTransactions: Array<[string, bigint, any]> = [];
 
   /**
    * transactions that have been committed to chain
+   * @group Implementation
+   * @category Transactions
    */
   executedTransactions: Array<[string, bigint, any]> = [];
 
@@ -128,6 +147,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @param maximumInFlight - The maximum number of transactions that can be submitted per account, default is 100.
    * @param sleepTime - The time to wait in seconds before re-evaluating if the maximum number of transactions are in flight,
    * default is 10 seconds.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(
     aptosConfig: AptosConfig,
@@ -155,6 +176,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * This function continues to submit transactions until there are no more to process.
    *
    * @throws {Error} Throws an error if the transaction submission fails.
+   * @group Implementation
+   * @category Transactions
    */
   async submitNextTransaction() {
     try {
@@ -189,6 +212,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @event TransactionWorkerEventsEnum.TransactionSendFailed - Emitted when a transaction fails to commit, along with the error
    * reason.
    * @event TransactionWorkerEventsEnum.ExecutionFinish - Emitted when the execution of transactions is complete.
+   * @group Implementation
+   * @category Transactions
    */
   async processTransactions() {
     try {
@@ -247,6 +272,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * Once a transaction has been sent to the chain, this function checks for its execution status.
    * @param sentTransaction - The transaction that was sent to the chain and is now waiting to be executed.
    * @param sequenceNumber - The account's sequence number that was sent with the transaction.
+   * @group Implementation
+   * @category Transactions
    */
   async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, sequenceNumber: bigint) {
     try {
@@ -287,6 +314,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @param options.gasUnitPrice - Gas unit price for the transaction.
    * @param options.expireTimestamp - Expiration timestamp on the transaction.
    * @param options.accountSequenceNumber - The sequence number for the transaction.
+   * @group Implementation
+   * @category Transactions
    */
   async push(
     transactionData: InputGenerateTransactionPayloadData,
@@ -301,6 +330,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @param account - An Aptos account used as the sender of the transaction.
    * @param sequenceNumber - A sequence number the transaction will be generated with.
    * @returns A signed transaction object or undefined if the transaction queue is empty.
+   * @group Implementation
+   * @category Transactions
    */
   async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction | undefined> {
     if (this.transactionsQueue.isEmpty()) return undefined;
@@ -317,6 +348,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * Starts transaction submission and processing by executing tasks from the queue until it is cancelled.
    *
    * @throws {Error} Throws an error if unable to start transaction batching.
+   * @group Implementation
+   * @category Transactions
    */
   async run() {
     try {
@@ -333,6 +366,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * Starts the transaction management process.
    *
    * @throws {Error} Throws an error if the worker has already started.
+   * @group Implementation
+   * @category Transactions
    */
   start() {
     if (this.started) {
@@ -348,6 +383,8 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * Stops the transaction management process.
    *
    * @throws {Error} Throws an error if the worker has already stopped.
+   * @group Implementation
+   * @category Transactions
    */
   stop() {
     if (this.taskQueue.isCancelled()) {

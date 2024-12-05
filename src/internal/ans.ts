@@ -6,6 +6,7 @@
  * the {@link api/name}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * name namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -34,6 +35,7 @@ export const VALIDATION_RULES_DESCRIPTION = [
  *
  * @param fragment - A fragment of a name, either the domain or subdomain.
  * @returns A boolean indicating if the fragment is a valid fragment.
+ * @group Implementation
  */
 export function isValidANSSegment(fragment: string): boolean {
   if (!fragment) return false;
@@ -48,6 +50,7 @@ export function isValidANSSegment(fragment: string): boolean {
  * Checks if an ANS name is valid or not.
  *
  * @param name - A string of the domain name, which can include or exclude the .apt suffix.
+ * @group Implementation
  */
 export function isValidANSName(name: string): { domainName: string; subdomainName?: string } {
   const [first, second, ...rest] = name.replace(/\.apt$/, "").split(".");
@@ -72,6 +75,7 @@ export function isValidANSName(name: string): { domainName: string; subdomainNam
 
 /**
  * Policy for determining how subdomains expire in relation to their parent domain.
+ * @group Implementation
  */
 export enum SubdomainExpirationPolicy {
   Independent = 0,
@@ -86,6 +90,7 @@ export enum SubdomainExpirationPolicy {
  *
  * @param name - An ANS name returned from one of the functions of the SDK.
  * @returns A boolean indicating whether the contract considers the name active or not.
+ * @group Implementation
  */
 export function isActiveANSName(name: GetANSNameResponse[0]): boolean {
   if (!name) return false;
@@ -126,6 +131,7 @@ const NetworkToAnsContract: Record<Network, string | null> = {
  * @param aptosConfig.network - The network for which to retrieve the ANS contract address.
  *
  * @throws Throws an error if the ANS contract is not deployed to the specified network.
+ * @group Implementation
  */
 function getRouterAddress(aptosConfig: AptosConfig): string {
   const address = NetworkToAnsContract[aptosConfig.network];
@@ -148,6 +154,7 @@ const unwrapOption = <T>(option: any): T | undefined => {
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.name - The name of the domain or subdomain to query.
  * @returns The account address of the owner, or undefined if not found.
+ * @group Implementation
  */
 export async function getOwnerAddress(args: {
   aptosConfig: AptosConfig;
@@ -177,6 +184,7 @@ export async function getOwnerAddress(args: {
  * @param sender - The account initiating the name registration.
  * @param name - The name to be registered.
  * @param expiration - The expiration policy for the name registration.
+ * @group Implementation
  */
 export interface RegisterNameParameters {
   aptosConfig: AptosConfig;
@@ -211,6 +219,7 @@ export interface RegisterNameParameters {
  * @throws Error if the subdomain expiration time exceeds the domain expiration time.
  *
  * @returns A transaction object representing the registration process.
+ * @group Implementation
  */
 export async function registerName(args: RegisterNameParameters): Promise<SimpleTransaction> {
   const { aptosConfig, expiration, name, sender, targetAddress, toAddress, options, transferable } = args;
@@ -297,6 +306,7 @@ export async function registerName(args: RegisterNameParameters): Promise<Simple
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.name - The name of the domain or subdomain to check.
  * @returns The expiration time in epoch milliseconds, or undefined if an error occurs.
+ * @group Implementation
  */
 export async function getExpiration(args: { aptosConfig: AptosConfig; name: string }): Promise<number | undefined> {
   const { aptosConfig, name } = args;
@@ -327,6 +337,7 @@ export async function getExpiration(args: { aptosConfig: AptosConfig; name: stri
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.address - The account address for which to retrieve the primary name.
  * @returns The primary name as a string, or undefined if no domain name exists.
+ * @group Implementation
  */
 export async function getPrimaryName(args: {
   aptosConfig: AptosConfig;
@@ -361,6 +372,7 @@ export async function getPrimaryName(args: {
  * @param args.name - The name to set as the primary name. If omitted, the function will clear the primary name.
  * @param args.options - Optional transaction generation options.
  * @returns A transaction object representing the operation.
+ * @group Implementation
  */
 export async function setPrimaryName(args: {
   aptosConfig: AptosConfig;
@@ -407,6 +419,7 @@ export async function setPrimaryName(args: {
  * @param args.aptosConfig - The Aptos configuration object.
  * @param args.name - The name of the domain, which may include a subdomain.
  * @returns The target address as an AccountAddress, or undefined if not found.
+ * @group Implementation
  */
 export async function getTargetAddress(args: {
   aptosConfig: AptosConfig;
@@ -440,6 +453,7 @@ export async function getTargetAddress(args: {
  * @param args.options - Optional parameters for generating the transaction.
  *
  * @returns A transaction object representing the set target address operation.
+ * @group Implementation
  */
 export async function setTargetAddress(args: {
   aptosConfig: AptosConfig;
@@ -472,6 +486,7 @@ export async function setTargetAddress(args: {
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.name - The name to look up, which includes the domain and optional subdomain.
  * @returns The active Aptos name if it exists; otherwise, returns undefined.
+ * @group Implementation
  */
 export async function getName(args: {
   aptosConfig: AptosConfig;
@@ -510,6 +525,7 @@ export async function getName(args: {
  * Options for querying names, including pagination, ordering, and filtering criteria.
  *
  * @param options - Pagination and filtering options for the query.
+ * @group Implementation
  */
 interface QueryNamesOptions {
   options?: PaginationArgs & OrderByArg<GetANSNameResponse[0]> & WhereArg<CurrentAptosNamesBoolExp>;
@@ -519,6 +535,7 @@ interface QueryNamesOptions {
  * Arguments for retrieving account names based on the specified account address.
  *
  * @param accountAddress - The address of the account for which names are to be retrieved.
+ * @group Implementation
  */
 export interface GetAccountNamesArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
@@ -537,6 +554,7 @@ export interface GetAccountNamesArgs extends QueryNamesOptions {
  * @param args.accountAddress - The address of the account for which to retrieve names.
  *
  * @returns An array of sanitized Aptos names associated with the specified account address.
+ * @group Implementation
  */
 export async function getAccountNames(
   args: { aptosConfig: AptosConfig } & GetAccountNamesArgs,
@@ -570,6 +588,7 @@ export async function getAccountNames(
  * Arguments for retrieving the domains associated with a specific account.
  *
  * @param accountAddress - The address of the account for which to fetch domains.
+ * @group Implementation
  */
 export interface GetAccountDomainsArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
@@ -590,6 +609,7 @@ export interface GetAccountDomainsArgs extends QueryNamesOptions {
  * @param args.options.where.subdomain - The specific subdomain to filter by.
  *
  * @returns An array of sanitized domain names owned by the specified account.
+ * @group Implementation
  */
 export async function getAccountDomains(
   args: { aptosConfig: AptosConfig } & GetAccountDomainsArgs,
@@ -624,6 +644,7 @@ export async function getAccountDomains(
  * Arguments for retrieving subdomains associated with a specific account.
  *
  * @param accountAddress - The address of the account for which to fetch subdomains.
+ * @group Implementation
  */
 export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
   accountAddress: AccountAddressInput;
@@ -644,6 +665,7 @@ export interface GetAccountSubdomainsArgs extends QueryNamesOptions {
  * @param args.options.where.expiration_timestamp - The expiration timestamp to filter by.
  * @param args.options.where.subdomain - The subdomain condition to filter by.
  * @param args.accountAddress - The address of the account whose subdomains are being queried.
+ * @group Implementation
  */
 export async function getAccountSubdomains(
   args: { aptosConfig: AptosConfig } & GetAccountSubdomainsArgs,
@@ -678,6 +700,7 @@ export async function getAccountSubdomains(
  * Arguments for retrieving subdomains associated with a specific domain.
  *
  * @param domain - The domain for which to fetch subdomains.
+ * @group Implementation
  */
 export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
   domain: string;
@@ -696,6 +719,7 @@ export interface GetDomainSubdomainsArgs extends QueryNamesOptions {
  * @param args.domain - The domain for which to retrieve subdomains.
  *
  * @returns An array of active subdomain names.
+ * @group Implementation
  */
 export async function getDomainSubdomains(
   args: { aptosConfig: AptosConfig } & GetDomainSubdomainsArgs,
@@ -734,6 +758,7 @@ export async function getDomainSubdomains(
  * @param args - The arguments for the function.
  * @param args.aptosConfig - An AptosConfig object containing the configuration settings.
  * @returns The expiration date in ISO 8601 format.
+ * @group Implementation
  */
 async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise<string> {
   const { aptosConfig } = args;
@@ -762,6 +787,7 @@ async function getANSExpirationDate(args: { aptosConfig: AptosConfig }): Promise
  * @param args.years - The number of years to renew the domain for. Currently, only 1 year renewals are supported. (optional, default is 1)
  * @param args.options - Additional options for generating the transaction. (optional)
  * @throws Error if the name contains a subdomain or if the years parameter is not equal to 1.
+ * @group Implementation
  */
 export async function renewDomain(args: {
   aptosConfig: AptosConfig;
@@ -804,6 +830,7 @@ export async function renewDomain(args: {
  *
  * @param name - The ANS name response to sanitize.
  * @param name.expiration_timestamp - The expiration timestamp in ISO string format.
+ * @group Implementation
  */
 function sanitizeANSName(name: GetANSNameResponse[0]): GetANSNameResponse[0] {
   return {

@@ -50,6 +50,7 @@ import { memoizeAsync } from "../utils/memoize";
 
 /**
  * A class to query all `Account` related queries on Aptos.
+ * @group Account
  */
 export class Account {
   /**
@@ -70,6 +71,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -94,6 +96,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountInfo(args: { accountAddress: AccountAddressInput }): Promise<AccountData> {
     return getInfo({ aptosConfig: this.config, ...args });
@@ -131,6 +134,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountModules(args: {
     accountAddress: AccountAddressInput;
@@ -166,6 +170,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountModule(args: {
     accountAddress: AccountAddressInput;
@@ -207,6 +212,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountTransactions(args: {
     accountAddress: AccountAddressInput;
@@ -242,6 +248,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountResources(args: {
     accountAddress: AccountAddressInput;
@@ -277,6 +284,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountResource<T extends {} = any>(args: {
     accountAddress: AccountAddressInput;
@@ -311,6 +319,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async lookupOriginalAccountAddress(args: {
     authenticationKey: AccountAddressInput;
@@ -342,6 +351,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountTokensCount(args: {
     accountAddress: AccountAddressInput;
@@ -391,6 +401,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountOwnedTokens(args: {
     accountAddress: AccountAddressInput;
@@ -440,6 +451,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountOwnedTokensFromCollectionAddress(args: {
     accountAddress: AccountAddressInput;
@@ -491,6 +503,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountCollectionsWithOwnedTokens(args: {
     accountAddress: AccountAddressInput;
@@ -534,6 +547,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountTransactionsCount(args: {
     accountAddress: AccountAddressInput;
@@ -582,6 +596,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountCoinsData(args: {
     accountAddress: AccountAddressInput;
@@ -623,6 +638,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountCoinsCount(args: {
     accountAddress: AccountAddressInput;
@@ -658,6 +674,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountAPTAmount(args: {
     accountAddress: AccountAddressInput;
@@ -698,6 +715,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountCoinAmount(args: {
     accountAddress: AccountAddressInput;
@@ -823,6 +841,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async getAccountOwnedObjects(args: {
     accountAddress: AccountAddressInput;
@@ -870,6 +889,7 @@ export class Account {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Account
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });

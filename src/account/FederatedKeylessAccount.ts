@@ -21,10 +21,14 @@ import { Hex } from "../core";
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class FederatedKeylessAccount extends AbstractKeylessAccount {
   /**
    * The FederatedKeylessPublicKey associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly publicKey: FederatedKeylessPublicKey;
 

@@ -6,6 +6,7 @@
  * the {@link api/transaction}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * transaction namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -35,6 +36,7 @@ import { getIndexerLastSuccessVersion, getProcessorStatus } from "./general";
  * @param {Object} args.options - The options for pagination.
  * @param {number} args.options.offset - The number of transactions to skip before starting to collect the result set.
  * @param {number} args.options.limit - The maximum number of transactions to return.
+ * @group Implementation
  */
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -55,6 +57,7 @@ export async function getTransactions(args: {
  *
  * @param args - The configuration parameters for the Aptos network.
  * @param args.aptosConfig - The configuration object containing network details.
+ * @group Implementation
  */
 export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) {
   const { aptosConfig } = args;
@@ -80,6 +83,7 @@ export async function getGasPriceEstimation(args: { aptosConfig: AptosConfig }) 
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.ledgerVersion - The ledger version for which to retrieve the transaction.
  * @returns The transaction details for the specified ledger version.
+ * @group Implementation
  */
 export async function getTransactionByVersion(args: {
   aptosConfig: AptosConfig;
@@ -101,6 +105,7 @@ export async function getTransactionByVersion(args: {
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.transactionHash - The hash of the transaction to retrieve.
  * @returns A promise that resolves to the transaction details.
+ * @group Implementation
  */
 export async function getTransactionByHash(args: {
   aptosConfig: AptosConfig;
@@ -124,6 +129,7 @@ export async function getTransactionByHash(args: {
  * @param args.transactionHash - The hash of the transaction to check.
  * @returns A boolean indicating whether the transaction is pending.
  * @throws An error if the transaction cannot be retrieved due to reasons other than a 404 status.
+ * @group Implementation
  */
 export async function isTransactionPending(args: {
   aptosConfig: AptosConfig;
@@ -148,6 +154,7 @@ export async function isTransactionPending(args: {
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration settings for the Aptos client.
  * @param args.transactionHash - The hash of the transaction to wait for.
+ * @group Implementation
  */
 export async function longWaitForTransaction(args: {
   aptosConfig: AptosConfig;
@@ -175,6 +182,7 @@ export async function longWaitForTransaction(args: {
  * @returns A promise that resolves to the transaction response once the transaction is confirmed.
  * @throws WaitForTransactionError if the transaction times out or remains pending.
  * @throws FailedTransactionError if the transaction fails.
+ * @group Implementation
  */
 export async function waitForTransaction(args: {
   aptosConfig: AptosConfig;
@@ -197,6 +205,7 @@ export async function waitForTransaction(args: {
    *
    * @param e - The error object that occurred during the API call.
    * @throws {Error} Throws the last error if it exists; otherwise, throws a WaitForTransactionError indicating a timeout.
+   * @group Implementation
    */
   function handleAPIError(e: any) {
     // In short, this means we will retry if it was an AptosApiError and the code was 404 or 5xx.
@@ -292,6 +301,7 @@ export async function waitForTransaction(args: {
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.minimumLedgerVersion - The minimum ledger version that the indexer should sync to.
  * @param args.processorType - (Optional) The type of processor to check the last success version from.
+ * @group Implementation
  */
 export async function waitForIndexer(args: {
   aptosConfig: AptosConfig;
@@ -338,6 +348,7 @@ export async function waitForIndexer(args: {
  *
  * @param message - A descriptive message for the error.
  * @param lastSubmittedTransaction - The last submitted transaction response, if available.
+ * @group Implementation
  */
 export class WaitForTransactionError extends Error {
   public readonly lastSubmittedTransaction: TransactionResponse | undefined;
@@ -347,6 +358,7 @@ export class WaitForTransactionError extends Error {
    *
    * @param message - The message associated with the transaction.
    * @param lastSubmittedTransaction - The transaction response object containing details about the transaction.
+   * @group Implementation
    */
   constructor(message: string, lastSubmittedTransaction: TransactionResponse | undefined) {
     super(message);
@@ -360,6 +372,7 @@ export class WaitForTransactionError extends Error {
  *
  * @param message - A description of the error.
  * @param transaction - The transaction response associated with the failure.
+ * @group Implementation
  */
 export class FailedTransactionError extends Error {
   public readonly transaction: TransactionResponse;
@@ -379,6 +392,7 @@ export class FailedTransactionError extends Error {
  * @param args.ledgerVersion - The ledger version of the block to retrieve.
  * @param args.options - Optional parameters for the request.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block data.
+ * @group Implementation
  */
 export async function getBlockByVersion(args: {
   aptosConfig: AptosConfig;
@@ -405,6 +419,7 @@ export async function getBlockByVersion(args: {
  * @param args.options - Optional parameters for the request.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block data.
  * @returns A promise that resolves to the block data, potentially including its transactions.
+ * @group Implementation
  */
 export async function getBlockByHeight(args: {
   aptosConfig: AptosConfig;
@@ -429,6 +444,7 @@ export async function getBlockByHeight(args: {
  * @param args.block - The block object that will be filled with transactions.
  * @param args.options - Optional settings for fetching transactions.
  * @param args.options.withTransactions - Indicates whether to include transactions in the block.
+ * @group Implementation
  */
 async function fillBlockTransactions(args: {
   aptosConfig: AptosConfig;

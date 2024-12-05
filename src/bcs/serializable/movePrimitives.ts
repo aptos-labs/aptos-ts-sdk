@@ -20,6 +20,8 @@ import { AnyNumber, Uint16, Uint32, Uint8, ScriptTransactionArgumentVariants } f
  * the boolean value for different contexts, such as entry functions and script functions.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class Bool extends Serializable implements TransactionArgument {
   public readonly value: boolean;
@@ -29,6 +31,8 @@ export class Bool extends Serializable implements TransactionArgument {
    * This ensures that the value is validated to be within the acceptable range.
    *
    * @param value - The number to be validated and assigned, which must be between 0 and MAX_U256_BIG_INT.
+   * @group Implementation
+   * @category BCS
    */
   constructor(value: boolean) {
     super();
@@ -39,6 +43,8 @@ export class Bool extends Serializable implements TransactionArgument {
      *
      * @param value - The value to be checked for boolean type.
      * @throws {Error} Throws an error if the value is not a boolean.
+     * @group Implementation
+     * @category BCS
      */
     ensureBoolean(value);
     this.value = value;
@@ -49,6 +55,8 @@ export class Bool extends Serializable implements TransactionArgument {
    * This function is essential for converting the value into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serialize(serializer: Serializer): void {
     serializer.serializeBool(this.value);
@@ -59,6 +67,8 @@ export class Bool extends Serializable implements TransactionArgument {
    * This allows the instance to be properly formatted for serialization in transactions.
    *
    * @param serializer - The serializer instance used to serialize the byte sequence.
+   * @group Implementation
+   * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
     const bcsBytes = this.bcsToBytes();
@@ -70,6 +80,8 @@ export class Bool extends Serializable implements TransactionArgument {
    * This allows for the conversion of the instance into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serializeForScriptFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Bool);
@@ -80,6 +92,8 @@ export class Bool extends Serializable implements TransactionArgument {
    * Deserializes a U256 value from the provided deserializer.
    *
    * @param deserializer - The deserializer instance used to read the U256 data.
+   * @group Implementation
+   * @category BCS
    */
   // eslint-disable-next-line class-methods-use-this
   deserialize(deserializer: Deserializer) {
@@ -96,6 +110,8 @@ export class Bool extends Serializable implements TransactionArgument {
  * This class extends the Serializable class and provides methods for serialization and deserialization of U8 values.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U8 extends Serializable implements TransactionArgument {
   public readonly value: Uint8;
@@ -131,6 +147,8 @@ export class U8 extends Serializable implements TransactionArgument {
  * and deserialization of the U16 value.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U16 extends Serializable implements TransactionArgument {
   public readonly value: Uint16;
@@ -165,6 +183,8 @@ export class U16 extends Serializable implements TransactionArgument {
  * This class ensures that the value is within the valid range for a U32.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U32 extends Serializable implements TransactionArgument {
   public readonly value: Uint32;
@@ -202,6 +222,8 @@ export class U32 extends Serializable implements TransactionArgument {
  * and script functions.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U64 extends Serializable implements TransactionArgument {
   public readonly value: bigint;
@@ -237,6 +259,8 @@ export class U64 extends Serializable implements TransactionArgument {
  * of U128 values, ensuring that the values are within the valid range.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U128 extends Serializable implements TransactionArgument {
   public readonly value: bigint;
@@ -272,6 +296,8 @@ export class U128 extends Serializable implements TransactionArgument {
  * ensuring that the values are within the valid range.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category BCS
  */
 export class U256 extends Serializable implements TransactionArgument {
   public readonly value: bigint;
