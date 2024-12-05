@@ -363,6 +363,11 @@ export class Move {
       // so we need to keep track of the last stdout
       let lastStdout = "";
 
+      if (showStdout) {
+        // eslint-disable-next-line no-console
+        console.log("Running command: ", args.join(" "));
+      }
+
       // Check if current OS is windows
       if (currentPlatform === "win32") {
         childProcess = spawn("npx", args, { shell: true });
