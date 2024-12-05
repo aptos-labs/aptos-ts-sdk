@@ -10,7 +10,7 @@ import {
   InputViewFunctionData,
   Network,
   NetworkToNetworkName,
-  MoveValue
+  MoveValue,
 } from "@aptos-labs/ts-sdk";
 import { compilePackage, getPackageBytesToPublish } from "./utils";
 /**
@@ -98,17 +98,11 @@ async function fetchTokenName(aptos: Aptos, admin: Account): Promise<string> {
 
     const result: MoveValue[] = await aptos.view({ payload });
 
-    if (
-      !Array.isArray(result) ||
-      result.length === 0 ||
-      typeof result[0] !== "string"
-    ) {
-      throw new Error(
-        "Invalid response format. Ensure the module is deployed correctly."
-      );
+    if (!Array.isArray(result) || result.length === 0 || typeof result[0] !== "string") {
+      throw new Error("Invalid response format. Ensure the module is deployed correctly.");
     }
 
-    return result[0]
+    return result[0];
   } catch (error) {
     console.error("Error fetching token name:", error);
     throw error;
@@ -180,11 +174,15 @@ async function main() {
   console.log(`Bob: ${bob.accountAddress.toString()}`);
   console.log(`Charlie: ${charlie.accountAddress.toString()}`);
 
-  await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: 100_000_000, options: { waitForIndexer: false} });
+  await aptos.fundAccount({
+    accountAddress: alice.accountAddress,
+    amount: 100_000_000,
+    options: { waitForIndexer: false },
+  });
   await aptos.fundAccount({
     accountAddress: bob.accountAddress,
     amount: 100_000_000,
-    options: { waitForIndexer: false}
+    options: { waitForIndexer: false },
   });
 
   console.log("\n=== Compiling FACoin package locally ===");
@@ -215,35 +213,35 @@ async function main() {
   console.log(`Bob's initial balance: ${await getFaBalance(bob, metadataAddress)}.`);
   console.log(`Charlie's initial balance: ${await getFaBalance(charlie, metadataAddress)}.`);
   const tokenName = `"${await fetchTokenName(aptos, alice)}"`; // Adding quotes so when it's printed later it's clear it's a name.
-  
+
   console.log("Alice mints Charlie 100 coins.");
   const mintCoinTransactionHash = await mintCoin(alice, charlie, 100);
-  
+
   await aptos.waitForTransaction({ transactionHash: mintCoinTransactionHash });
   console.log(
     `Charlie's updated ${tokenName} primary fungible store balance: ${await getFaBalance(charlie, metadataAddress)}.`,
   );
-  
+
   console.log("Alice freezes Bob's account.");
   const freezeTransactionHash = await freeze(alice, bob.accountAddress);
   await aptos.waitForTransaction({ transactionHash: freezeTransactionHash });
-  
+
   console.log(
     `Alice as the admin forcefully transfers the newly minted coins of Charlie to Bob ignoring that Bob's account is frozen.`,
   );
   const transferCoinTransactionHash = await transferCoin(alice, charlie.accountAddress, bob.accountAddress, 100);
   await aptos.waitForTransaction({ transactionHash: transferCoinTransactionHash });
   console.log(`Bob's updated ${tokenName} balance: ${await getFaBalance(bob, metadataAddress)}.`);
-  
+
   console.log("Alice unfreezes Bob's account.");
   const unfreezeTransactionHash = await unfreeze(alice, bob.accountAddress);
   await aptos.waitForTransaction({ transactionHash: unfreezeTransactionHash });
-  
+
   console.log("Alice burns 50 coins from Bob.");
   const burnCoinTransactionHash = await burnCoin(alice, bob.accountAddress, 50);
   await aptos.waitForTransaction({ transactionHash: burnCoinTransactionHash });
   console.log(`Bob's updated ${tokenName} balance: ${await getFaBalance(bob, metadataAddress)}.`);
-  
+
   /// Normal fungible asset transfer between primary stores
   console.log("Bob transfers 10 coins to Alice as the owner.");
   const transferFungibleAssetRawTransaction = await aptos.transferFungibleAsset({
@@ -259,7 +257,7 @@ async function main() {
   await aptos.waitForTransaction({ transactionHash: transferFungibleAssetTransaction.hash });
   console.log(`Alice's updated ${tokenName} balance: ${await getFaBalance(alice, metadataAddress)}.`);
   console.log(`Bob's updated ${tokenName} balance: ${await getFaBalance(bob, metadataAddress)}.`);
-  console.log("done.");  
+  console.log("done.");
 }
 
 main();
