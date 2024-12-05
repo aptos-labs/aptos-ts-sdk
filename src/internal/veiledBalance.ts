@@ -177,20 +177,24 @@ export async function veiledTransferCoinTransaction(args: {
   recipient: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const veiledTransfer = new VeiledTransfer(
-    toTwistedEd25519PrivateKey(args.senderPrivateKey),
-    args.encryptedBalance,
-    args.amount,
-    toTwistedEd25519PublicKey(args.recipientPublicKey),
-    args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || [],
-    args.randomness,
-  );
+  const veiledTransfer = await VeiledTransfer.create({
+    senderPrivateKey: toTwistedEd25519PrivateKey(args.senderPrivateKey),
+    encryptedActualBalance: args.encryptedBalance,
+    amountToTransfer: args.amount,
+    recipientPublicKey: toTwistedEd25519PublicKey(args.recipientPublicKey),
+    auditorPublicKeys: args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || [],
+    randomness: args.randomness,
+  });
 
-  await veiledTransfer.init();
-
-  const sigmaProof = await veiledTransfer.genSigmaProof();
-
-  const { rangeProofAmount, rangeProofNewBalance } = await veiledTransfer.genRangeProof();
+  const [
+    {
+      sigmaProof,
+      rangeProof: { rangeProofAmount, rangeProofNewBalance },
+    },
+    // encryptedAmountAfterTransfer,
+    // encryptedAmountByRecipient,
+    // auditorsVBList,
+  ] = await veiledTransfer.authorizeTransfer();
 
   return generateTransaction({
     aptosConfig: args.aptosConfig,
@@ -205,7 +209,7 @@ export async function veiledTransferCoinTransaction(args: {
           ...veiledTransfer.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
         ),
         concatBytes(...veiledTransfer.auditorsU8PublicKeys),
-        concatBytes(...veiledTransfer.auditorsDList.flat()),
+        concatBytes(...veiledTransfer.auditorsVBList.flat().map((el) => el.D.toRawBytes())),
         rangeProofNewBalance,
         rangeProofAmount,
         VeiledTransfer.serializeSigmaProof(sigmaProof),

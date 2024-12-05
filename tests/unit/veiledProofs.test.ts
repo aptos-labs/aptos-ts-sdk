@@ -1,4 +1,3 @@
-import { RistrettoPoint } from "@noble/curves/ed25519";
 import {
   TwistedEd25519PrivateKey,
   VeiledKeyRotationSigmaProof,
@@ -10,8 +9,7 @@ import {
   VeiledKeyRotation,
   VeiledNormalization,
 } from "../../src";
-import { publicKeyToU8, toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiled/helpers";
-import { ed25519GenListOfRandom } from "../../src/core/crypto/utils";
+import { toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiled/helpers";
 import { VeiledAmount } from "../../src/core/crypto/veiled/veiledAmount";
 
 describe("Generate 'veiled coin' proofs", () => {
@@ -72,15 +70,15 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const TRANSFER_AMOUNT = 10n;
-  const veiledTransfer = new VeiledTransfer(
-    aliceVeiledPrivateKey,
-    aliceVeiledAmount.encryptedAmount!,
-    TRANSFER_AMOUNT,
-    bobVeiledPrivateKey.publicKey(),
-  );
+  let veiledTransfer: VeiledTransfer;
   let veiledTransferSigmaProof: VeiledTransferSigmaProof;
   test("Generate transfer sigma proof", async () => {
-    await veiledTransfer.init();
+    veiledTransfer = await VeiledTransfer.create({
+      senderPrivateKey: aliceVeiledPrivateKey,
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
+      amountToTransfer: TRANSFER_AMOUNT,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+    });
 
     veiledTransferSigmaProof = await veiledTransfer.genSigmaProof();
 
@@ -122,16 +120,16 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const auditor = TwistedEd25519PrivateKey.generate();
-  const veiledTransferWithAuditors = new VeiledTransfer(
-    aliceVeiledPrivateKey,
-    aliceVeiledAmount.encryptedAmount!,
-    TRANSFER_AMOUNT,
-    bobVeiledPrivateKey.publicKey(),
-    [auditor.publicKey()],
-  );
+  let veiledTransferWithAuditors: VeiledTransfer;
   let veiledTransferWithAuditorsSigmaProof: VeiledTransferSigmaProof;
   test("Generate transfer with auditors sigma proof", async () => {
-    await veiledTransferWithAuditors.init();
+    veiledTransferWithAuditors = await VeiledTransfer.create({
+      senderPrivateKey: aliceVeiledPrivateKey,
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
+      amountToTransfer: TRANSFER_AMOUNT,
+      recipientPublicKey: bobVeiledPrivateKey.publicKey(),
+      auditorPublicKeys: [auditor.publicKey()],
+    });
 
     veiledTransferWithAuditorsSigmaProof = await veiledTransferWithAuditors.genSigmaProof();
 
@@ -156,11 +154,11 @@ describe("Generate 'veiled coin' proofs", () => {
   });
   test("Should fail transfer sigma proof verification with wrong auditors", () => {
     const invalidAuditor = TwistedEd25519PrivateKey.generate();
-    const newRandomness = ed25519GenListOfRandom();
-    const auditorsDList = [invalidAuditor.publicKey()].map(publicKeyToU8).map((pk) => {
-      const pkRist = RistrettoPoint.fromHex(pk);
-      return newRandomness.map((r) => pkRist.multiply(r).toRawBytes());
-    });
+    // const newRandomness = ed25519GenListOfRandom();
+    // const auditorsDList = [invalidAuditor.publicKey()].map(publicKeyToU8).map((pk) => {
+    //   const pkRist = RistrettoPoint.fromHex(pk);
+    //   return newRandomness.map((r) => pkRist.multiply(r).toRawBytes());
+    // });
 
     const isValid = VeiledTransfer.verifySigmaProof({
       senderPrivateKey: aliceVeiledPrivateKey,
