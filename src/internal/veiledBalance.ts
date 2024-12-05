@@ -115,14 +115,12 @@ export async function veiledWithdrawTransaction(args: {
   randomness?: bigint[];
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const veiledWithdraw = new VeiledWithdraw(
-    toTwistedEd25519PrivateKey(args.privateKey),
-    args.encryptedBalance,
-    args.amount,
-    args.randomness,
-  );
-
-  await veiledWithdraw.init();
+  const veiledWithdraw = await VeiledWithdraw.create({
+    privateKey: toTwistedEd25519PrivateKey(args.privateKey),
+    encryptedActualBalance: args.encryptedBalance,
+    amountToWithdraw: args.amount,
+    randomness: args.randomness,
+  });
 
   const [{ sigmaProof, rangeProof }] = await veiledWithdraw.authorizeWithdrawal();
 

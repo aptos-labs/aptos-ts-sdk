@@ -22,32 +22,57 @@ export type VeiledWithdrawSigmaProof = {
 };
 
 export class VeiledWithdraw {
-  isInitialized = false;
-
   privateKey: TwistedEd25519PrivateKey;
 
   encryptedActualBalanceAmount: TwistedElGamalCiphertext[];
 
   veiledAmountToWithdraw: VeiledAmount;
 
-  veiledAmountAfterWithdraw?: VeiledAmount;
+  veiledAmountAfterWithdraw: VeiledAmount;
 
   randomness: bigint[];
 
-  constructor(
-    privateKey: TwistedEd25519PrivateKey,
-    encryptedActualBalance: TwistedElGamalCiphertext[],
-    amountToWithdraw: bigint,
-    randomness?: bigint[],
-  ) {
-    this.privateKey = privateKey;
-    this.encryptedActualBalanceAmount = encryptedActualBalance;
+  constructor(args: {
+    privateKey: TwistedEd25519PrivateKey;
+    encryptedActualBalance: TwistedElGamalCiphertext[];
+    veiledAmountToWithdraw: VeiledAmount;
+    veiledAmountAfterWithdraw: VeiledAmount;
+    randomness: bigint[];
+  }) {
+    this.privateKey = args.privateKey;
+    this.encryptedActualBalanceAmount = args.encryptedActualBalance;
 
-    this.veiledAmountToWithdraw = VeiledAmount.fromAmount(amountToWithdraw, {
+    this.veiledAmountToWithdraw = args.veiledAmountToWithdraw;
+
+    this.randomness = args.randomness;
+
+    this.veiledAmountAfterWithdraw = args.veiledAmountAfterWithdraw;
+  }
+
+  static async create(args: {
+    privateKey: TwistedEd25519PrivateKey;
+    encryptedActualBalance: TwistedElGamalCiphertext[];
+    amountToWithdraw: bigint;
+    randomness?: bigint[];
+  }) {
+    const randomness = args.randomness ?? ed25519GenListOfRandom();
+
+    const veiledAmountToWithdraw = VeiledAmount.fromAmount(args.amountToWithdraw, {
       chunksCount: 2,
     });
 
-    this.randomness = randomness ?? ed25519GenListOfRandom();
+    const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.privateKey);
+
+    const veiledAmountAfterWithdraw = VeiledAmount.fromAmount(actualBalance.amount - veiledAmountToWithdraw.amount);
+    veiledAmountAfterWithdraw.encryptBalance(args.privateKey.publicKey(), randomness);
+
+    return new VeiledWithdraw({
+      privateKey: args.privateKey,
+      encryptedActualBalance: args.encryptedActualBalance,
+      veiledAmountToWithdraw,
+      veiledAmountAfterWithdraw,
+      randomness,
+    });
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/WithdrawalSubproofFiatShamir";
@@ -101,21 +126,7 @@ export class VeiledWithdraw {
     };
   }
 
-  async init() {
-    const actualBalance = await VeiledAmount.fromEncrypted(this.encryptedActualBalanceAmount, this.privateKey);
-
-    this.veiledAmountAfterWithdraw = VeiledAmount.fromAmount(actualBalance.amount - this.veiledAmountToWithdraw.amount);
-
-    this.veiledAmountAfterWithdraw.encryptBalance(this.privateKey.publicKey(), this.randomness);
-
-    this.isInitialized = true;
-  }
-
   async genSigmaProof(): Promise<VeiledWithdrawSigmaProof> {
-    if (!this.isInitialized) throw new TypeError("VeiledWithdraw is not initialized");
-
-    if (!this.veiledAmountAfterWithdraw) throw new TypeError("this.veiledAmountAfterWithdraw is not set");
-
     if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
@@ -156,7 +167,7 @@ export class VeiledWithdraw {
     const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const pt = ed25519modN(p * this.veiledAmountAfterWithdraw.amount!);
+    const pt = ed25519modN(p * this.veiledAmountAfterWithdraw.amount);
     const ps = ed25519modN(p * sLE);
     const psInvert = ed25519modN(p * invertSLE);
 
@@ -164,7 +175,7 @@ export class VeiledWithdraw {
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
     const alpha4List = x4List.map((x4, i) => {
-      const pChunk = ed25519modN(p * this.veiledAmountAfterWithdraw!.amountChunks[i]);
+      const pChunk = ed25519modN(p * this.veiledAmountAfterWithdraw.amountChunks[i]);
       return numberToBytesLE(ed25519modN(x4 - pChunk), 32);
     });
     const alpha5List = x5List.map((x5, i) => {
@@ -257,17 +268,13 @@ export class VeiledWithdraw {
   }
 
   async genRangeProof() {
-    if (!this.isInitialized) throw new TypeError("VeiledWithdraw is not initialized");
-
-    if (!this.veiledAmountAfterWithdraw) throw new TypeError("this.balanceAfterWithdraw is not set");
-
     const rangeProof = await Promise.all(
       this.veiledAmountAfterWithdraw.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
           r: this.privateKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.veiledAmountAfterWithdraw!.encryptedAmount![i].D.toRawBytes(),
+          randBase: this.veiledAmountAfterWithdraw.encryptedAmount![i].D.toRawBytes(),
         }),
       ),
     );
@@ -284,15 +291,10 @@ export class VeiledWithdraw {
       TwistedElGamalCiphertext[],
     ]
   > {
-    if (!this.isInitialized) throw new TypeError("VeiledWithdraw is not initialized");
-
-    if (!this.veiledAmountAfterWithdraw?.encryptedAmount)
-      throw new TypeError("this.veiledAmountAfterWithdraw.encryptedAmount is not set");
-
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.veiledAmountAfterWithdraw.encryptedAmount];
+    return [{ sigmaProof, rangeProof }, this.veiledAmountAfterWithdraw.encryptedAmount!];
   }
 
   static async verifyRangeProof(opts: {
@@ -303,9 +305,9 @@ export class VeiledWithdraw {
       opts.rangeProof.map((proof, i) =>
         verifyRangeZKP({
           proof,
-          commitment: opts.encryptedActualBalanceAfterWithdraw![i].C.toRawBytes(),
+          commitment: opts.encryptedActualBalanceAfterWithdraw[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: opts.encryptedActualBalanceAfterWithdraw![i].D.toRawBytes(),
+          randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
         }),
       ),
     );

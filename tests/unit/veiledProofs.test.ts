@@ -22,14 +22,14 @@ describe("Generate 'veiled coin' proofs", () => {
   aliceVeiledAmount.encryptBalance(aliceVeiledPrivateKey.publicKey());
 
   const WITHDRAW_AMOUNT = 15n;
-  const veiledWithdraw = new VeiledWithdraw(
-    toTwistedEd25519PrivateKey(aliceVeiledPrivateKey),
-    aliceVeiledAmount.encryptedAmount!,
-    WITHDRAW_AMOUNT,
-  );
+  let veiledWithdraw: VeiledWithdraw;
   let veiledWithdrawSigmaProof: VeiledWithdrawSigmaProof;
   test("Generate withdraw sigma proof", async () => {
-    await veiledWithdraw.init();
+    veiledWithdraw = await VeiledWithdraw.create({
+      privateKey: toTwistedEd25519PrivateKey(aliceVeiledPrivateKey),
+      encryptedActualBalance: aliceVeiledAmount.encryptedAmount!,
+      amountToWithdraw: WITHDRAW_AMOUNT,
+    });
 
     veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
 
