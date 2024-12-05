@@ -129,11 +129,12 @@ export async function veiledWithdrawTransaction(args: {
     aptosConfig: args.aptosConfig,
     sender: args.sender,
     data: {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::unveil`,
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::unveil_to`,
       functionArguments: [
         args.tokenAddress,
+        AccountAddress.from(args.sender),
         String(args.amount),
-        veiledAmountAfterWithdraw.map((el) => el.serialize()).flat(),
+        concatBytes(...veiledAmountAfterWithdraw.map((el) => el.serialize()).flat()),
         rangeProof,
         VeiledWithdraw.serializeSigmaProof(sigmaProof),
       ],
@@ -161,6 +162,59 @@ export async function rolloverPendingVeiledBalanceTransaction(args: {
     },
     options,
   });
+}
+
+export async function safeRolloverPendingVeiledBalanceTransaction(args: {
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  tokenAddress: string;
+  withFreezeBalance?: boolean;
+
+  privateKey: TwistedEd25519PrivateKey;
+  unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+  balanceAmount: bigint;
+  randomness?: bigint[];
+
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction[]> {
+  const txList: SimpleTransaction[] = [];
+
+  const isNormalized = await isUserBalanceNormalized({
+    aptosConfig: args.aptosConfig,
+    accountAddress: AccountAddress.from(args.sender),
+    tokenAddress: args.tokenAddress,
+  });
+
+  if (!isNormalized) {
+    const normalizeTx = await normalizeUserBalance({
+      aptosConfig: args.aptosConfig,
+      accountAddress: AccountAddress.from(args.sender),
+      tokenAddress: args.tokenAddress,
+
+      privateKey: args.privateKey,
+      unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      balanceAmount: args.balanceAmount,
+      randomness: args.randomness,
+
+      sender: args.sender,
+
+      options: args.options,
+    });
+
+    txList.push(normalizeTx);
+  }
+
+  const rolloverTx = await rolloverPendingVeiledBalanceTransaction({
+    aptosConfig: args.aptosConfig,
+    sender: args.sender,
+    tokenAddress: args.tokenAddress,
+    withFreezeBalance: args.withFreezeBalance,
+    options: args.options,
+  });
+
+  txList.push(rolloverTx);
+
+  return txList;
 }
 
 export async function veiledTransferCoinTransaction(args: {
@@ -299,7 +353,7 @@ export async function isUserBalanceNormalized(args: {
   const [isNormalized] = await view<[boolean]>({
     aptosConfig: args.aptosConfig,
     payload: {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_balance_normalized`,
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_normalized`,
       typeArguments: [],
       functionArguments: [args.accountAddress, args.tokenAddress],
     },

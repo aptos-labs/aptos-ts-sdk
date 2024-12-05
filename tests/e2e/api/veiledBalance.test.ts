@@ -22,7 +22,7 @@ describe("Veiled balance api", () => {
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
-  const { TESTNET_PK } = process.env;
+  const { TESTNET_PK, TESTNET_DK } = process.env;
 
   /**
    * Address of the mocked fungible token on the testnet
@@ -104,7 +104,7 @@ describe("Veiled balance api", () => {
   test("it should create Alice veiled balances", async () => {
     aliceVeiledPrivateKey = new TwistedEd25519PrivateKey(
       // TODO: remove
-      "0xfedb8093f1577cc69b45153651f46e71342bd0984776f2c7d7613ef36bb1e569",
+      TESTNET_DK!,
     );
 
     expect(aliceVeiledPrivateKey.toString()).toBeDefined();
@@ -198,67 +198,67 @@ describe("Veiled balance api", () => {
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
-  // test("it should rollover Alice's veiled balance", async () => {
-  //   const rolloverTxBody = await aptos.veiledBalance.rolloverPendingBalance({
-  //     sender: alice.accountAddress,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //   });
-  //
-  //   const txResp = await sendAndWaitTx(rolloverTxBody, alice);
-  //
-  //   expect(txResp.success).toBeTruthy();
-  // });
-  //
-  // test("it should check Alice's actual veiled balance after rollover", async () => {
-  //   const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
-  //     accountAddress: alice.accountAddress,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //   });
-  //   chunkedAliceVb = aliceChunkedVeiledBalance;
-  //
-  //   const aliceVeiledAmount = await VeiledAmount.fromEncrypted(
-  //     aliceChunkedVeiledBalance.pending,
-  //     aliceVeiledPrivateKey,
-  //   );
-  //
-  //   expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
-  // });
-  //
-  // const WITHDRAW_AMOUNT = 1n;
-  // test("it should withdraw Alice's veiled balance", async () => {
-  //   const withdrawTx = await aptos.veiledBalance.withdraw({
-  //     sender: alice.accountAddress,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //     privateKey: aliceVeiledPrivateKey,
-  //     encryptedBalance: chunkedAliceVb.actual,
-  //     amount: WITHDRAW_AMOUNT,
-  //   });
-  //   const txResp = await sendAndWaitTx(withdrawTx, alice);
-  //
-  //   expect(txResp.success).toBeTruthy();
-  // });
-  //
-  // test("it should check Alice's veiled and fungible balance after withdrawal", async () => {
-  //   const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
-  //     accountAddress: alice.accountAddress,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //   });
-  //   chunkedAliceVb = aliceChunkedVeiledBalance;
-  //
-  //   const aliceVeiledAmount = await VeiledAmount.fromEncrypted(
-  //     aliceChunkedVeiledBalance.pending,
-  //     aliceVeiledPrivateKey,
-  //   );
-  //
-  //   expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT - WITHDRAW_AMOUNT);
-  // });
-  //
-  // test("it should check Alice's fungible balance after withdrawal", async () => {
-  //   const balance = await balanceOf(alice.accountAddress);
-  //
-  //   expect(balance).toBeGreaterThanOrEqual(WITHDRAW_AMOUNT); // FIXME: check type and decimals
-  // });
-  //
+  test("it should safely rollover Alice's veiled balance", async () => {
+    const aliceBalances = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+
+    const unnormalizedVeiledAmount = await VeiledAmount.fromEncrypted(aliceBalances.actual, aliceVeiledPrivateKey);
+
+    const rolloverTxBody = await aptos.veiledBalance.safeRolloverPendingVeiledBalanceTransaction({
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      withFreezeBalance: false,
+
+      privateKey: aliceVeiledPrivateKey,
+      unnormilizedEncryptedBalance: unnormalizedVeiledAmount.encryptedAmount!,
+      balanceAmount: unnormalizedVeiledAmount.amount,
+    });
+
+    const txResponses: CommittedTransactionResponse[] = [];
+    for (const tx of rolloverTxBody) {
+      // eslint-disable-next-line no-await-in-loop
+      const txResp = await sendAndWaitTx(tx, alice);
+
+      txResponses.push(txResp);
+    }
+
+    expect(txResponses.every((el) => el.success)).toBeTruthy();
+  });
+
+  test("it should check Alice's actual veiled balance after rollover", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceVeiledPrivateKey);
+
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+  });
+
+  const WITHDRAW_AMOUNT = 1n;
+  test("it should withdraw Alice's veiled balance", async () => {
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(chunkedAliceVb.actual, aliceVeiledPrivateKey);
+
+    console.log("\n\n\naliceVeiledAmount.amount");
+    console.log(aliceVeiledAmount.amount);
+    console.log("\n\n\n");
+
+    const withdrawTx = await aptos.veiledBalance.withdraw({
+      sender: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+      privateKey: aliceVeiledPrivateKey,
+      encryptedBalance: chunkedAliceVb.actual,
+      amount: WITHDRAW_AMOUNT,
+    });
+    const txResp = await sendAndWaitTx(withdrawTx, alice);
+
+    expect(txResp.success).toBeTruthy();
+  });
+
   // const TRANSFER_AMOUNT = 2n;
   // test("it should transfer Alice's tokens to Bob's veiled balance without auditor", async () => {
   //   const transferTx = await aptos.veiledBalance.transferCoin({
@@ -274,7 +274,7 @@ describe("Veiled balance api", () => {
   //
   //   expect(txResp.success).toBeTruthy();
   // });
-  //
+
   // const AUDITOR = TwistedEd25519PrivateKey.generate();
   // test("it should transfer Alice's tokens to Bob's veiled balance with auditor", async () => {
   //   const transferTx = await aptos.veiledBalance.transferCoin({
@@ -351,5 +351,52 @@ describe("Veiled balance api", () => {
   //   );
   //
   //   expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+  // });
+
+  // let isAliceBalanceNormalized = false;
+  // let unnormalizedAliceEncryptedBalance: TwistedElGamalCiphertext[];
+  // test("it should check Alice's veiled balance is normalized", async () => {
+  //     isAliceBalanceNormalized = await aptos.veiledBalance.isUserBalanceNormalized({
+  //         accountAddress: alice.accountAddress,
+  //         tokenAddress: TOKEN_ADDRESS,
+  //     });
+  //
+  //     if (!isAliceBalanceNormalized) {
+  //         const unnormalizedAliceBalances = await aptos.veiledBalance.getBalance({
+  //             accountAddress: alice.accountAddress,
+  //             tokenAddress: TOKEN_ADDRESS,
+  //         });
+  //
+  //         unnormalizedAliceEncryptedBalance = unnormalizedAliceBalances.pending;
+  //     }
+  //
+  //     expect(isAliceBalanceNormalized).toBeTruthy();
+  // });
+  //
+  // test("it should normalize Alice's veiled balance", async () => {
+  //     if (unnormalizedAliceEncryptedBalance && !isAliceBalanceNormalized) {
+  //         const unnormalizedVeiledAmount = await VeiledAmount.fromEncrypted(
+  //             unnormalizedAliceEncryptedBalance,
+  //             aliceVeiledPrivateKey,
+  //             {
+  //                 chunksCount: 2,
+  //             },
+  //         );
+  //
+  //         const normalizeTx = await aptos.veiledBalance.normalizeUserBalance({
+  //             accountAddress: alice.accountAddress,
+  //             tokenAddress: TOKEN_ADDRESS,
+  //
+  //             privateKey: aliceVeiledPrivateKey,
+  //             unnormilizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
+  //             balanceAmount: unnormalizedVeiledAmount.amount,
+  //
+  //             sender: alice.accountAddress,
+  //         });
+  //
+  //         expect(normalizeTx).toBeDefined();
+  //     } else {
+  //         expect(true).toBeTruthy();
+  //     }
   // });
 });

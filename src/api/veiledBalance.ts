@@ -16,6 +16,7 @@ import {
   normalizeUserBalance,
   registerVeiledBalanceTransaction,
   rolloverPendingVeiledBalanceTransaction,
+  safeRolloverPendingVeiledBalanceTransaction,
   veiledBalanceKeyRotationTransaction,
   veiledTransferCoinTransaction,
   veiledWithdrawTransaction,
@@ -75,6 +76,21 @@ export class VeiledBalance {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return rolloverPendingVeiledBalanceTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  async safeRolloverPendingVeiledBalanceTransaction(args: {
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    withFreezeBalance?: boolean;
+
+    privateKey: TwistedEd25519PrivateKey;
+    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    balanceAmount: bigint;
+    randomness?: bigint[];
+
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return safeRolloverPendingVeiledBalanceTransaction({ aptosConfig: this.config, ...args });
   }
 
   async transferCoin(args: {
