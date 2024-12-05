@@ -55,7 +55,7 @@ export class VeiledNormalization {
     const randomness = args.randomness ?? ed25519GenListOfRandom();
 
     const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
-    normalizedVeiledAmount.encryptBalance(args.privateKey.publicKey(), args.randomness);
+    normalizedVeiledAmount.encryptBalance(args.privateKey.publicKey(), randomness);
 
     return new VeiledNormalization({
       privateKey: args.privateKey,
@@ -148,8 +148,8 @@ export class VeiledNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.privateKey.publicKey().toUint8Array(),
-      ...this.unnormilizedEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.normalizedVeiledAmount.encryptedAmount!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...this.unnormilizedEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...this.normalizedVeiledAmount.encryptedAmount!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -204,8 +204,8 @@ export class VeiledNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
-      ...opts.unnormilizedEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...opts.normalizedEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...opts.unnormilizedEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...opts.normalizedEncryptedBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       ...opts.sigmaProof.X3List,
@@ -213,11 +213,14 @@ export class VeiledNormalization {
     );
     const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
     const alpha2D = opts.unnormilizedEncryptedBalance
-      .reduce((acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
+      .reduce(
+        (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+        RistrettoPoint.ZERO,
+      )
       .multiply(alpha2LE);
     const pBlaOld = opts.unnormilizedEncryptedBalance
       .reduce((acc, ciphertext, i) => {
-        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * 32n));
+        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI));
         return acc.add(chunk);
       }, RistrettoPoint.ZERO)
       .multiply(p);
