@@ -9,6 +9,7 @@ import {
   VeiledWithdraw,
   VeiledTransfer,
   VeiledKeyRotation,
+  VeiledNormalization,
 } from "../core";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
@@ -19,9 +20,11 @@ import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } 
 const VEILED_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
 
 export type VeiledBalanceResponse = {
-  left: { data: string };
-  right: { data: string };
-}[]; // tuple of 4
+  chunks: {
+    left: { data: string };
+    right: { data: string };
+  }[];
+}[];
 
 export async function getVeiledBalances(args: {
   aptosConfig: AptosConfig;
@@ -33,7 +36,7 @@ export async function getVeiledBalances(args: {
   actual: TwistedElGamalCiphertext[];
 }> {
   const { aptosConfig, accountAddress, tokenAddress, options } = args;
-  const [chunkedPendingBalance, chunkedActualBalances] = await Promise.all([
+  const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
     view<VeiledBalanceResponse>({
       aptosConfig,
       payload: {
@@ -55,10 +58,10 @@ export async function getVeiledBalances(args: {
   ]);
 
   return {
-    pending: chunkedPendingBalance.map(
+    pending: chunkedPendingBalance.chunks.map(
       (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
     ),
-    actual: chunkedActualBalances.map(
+    actual: chunkedActualBalances.chunks.map(
       (el) => new TwistedElGamalCiphertext(el.left.data.slice(2), el.right.data.slice(2)),
     ),
   };
@@ -97,7 +100,7 @@ export async function depositToVeiledBalanceTransaction(args: {
     sender,
     data: {
       function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::veil_to`,
-      functionArguments: [tokenAddress, addressOfSender(sender), String(amount)], // FIXME
+      functionArguments: [tokenAddress, sender, String(amount)],
     },
     options,
   });
@@ -268,4 +271,79 @@ export async function veiledBalanceKeyRotationTransaction(args: {
   });
 }
 
-// TODO: add normalize api method
+export async function hasUserRegistered(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddress;
+  tokenAddress: string;
+  options?: LedgerVersionArg;
+}): Promise<boolean> {
+  const [isRegister] = await view<[boolean]>({
+    aptosConfig: args.aptosConfig,
+    payload: {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::has_veiled_coin_store`,
+      typeArguments: [],
+      functionArguments: [args.accountAddress, args.tokenAddress],
+    },
+    options: args.options,
+  });
+
+  return isRegister;
+}
+
+export async function isUserBalanceNormalized(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddress;
+  tokenAddress: string;
+  options?: LedgerVersionArg;
+}): Promise<boolean> {
+  const [isNormalized] = await view<[boolean]>({
+    aptosConfig: args.aptosConfig,
+    payload: {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_balance_normalized`,
+      typeArguments: [],
+      functionArguments: [args.accountAddress, args.tokenAddress],
+    },
+    options: args.options,
+  });
+
+  return isNormalized;
+}
+
+export async function normalizeUserBalance(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddress;
+  tokenAddress: string;
+
+  privateKey: TwistedEd25519PrivateKey;
+  unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+  balanceAmount: bigint;
+  randomness?: bigint[];
+
+  sender: AccountAddressInput;
+
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction> {
+  const veiledNormalization = await VeiledNormalization.create({
+    privateKey: args.privateKey,
+    unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+    balanceAmount: args.balanceAmount,
+    randomness: args.randomness,
+  });
+
+  const [{ sigmaProof, rangeProof }, normalizedVB] = await veiledNormalization.authorizeNormalization();
+
+  return generateTransaction({
+    aptosConfig: args.aptosConfig,
+    sender: args.sender,
+    data: {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
+      functionArguments: [
+        args.tokenAddress,
+        concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
+        rangeProof,
+        VeiledNormalization.serializeSigmaProof(sigmaProof),
+      ],
+    },
+    options: args.options,
+  });
+}

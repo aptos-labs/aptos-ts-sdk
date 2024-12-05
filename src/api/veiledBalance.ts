@@ -11,6 +11,9 @@ import {
 import {
   depositToVeiledBalanceTransaction,
   getVeiledBalances,
+  hasUserRegistered,
+  isUserBalanceNormalized,
+  normalizeUserBalance,
   registerVeiledBalanceTransaction,
   rolloverPendingVeiledBalanceTransaction,
   veiledBalanceKeyRotationTransaction,
@@ -102,5 +105,33 @@ export class VeiledBalance {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return veiledBalanceKeyRotationTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  async hasUserRegistered(args: { accountAddress: AccountAddress; tokenAddress: string; options?: LedgerVersionArg }) {
+    return hasUserRegistered({ aptosConfig: this.config, ...args });
+  }
+
+  async isUserBalanceNormalized(args: {
+    accountAddress: AccountAddress;
+    tokenAddress: string;
+    options?: LedgerVersionArg;
+  }) {
+    return isUserBalanceNormalized({ aptosConfig: this.config, ...args });
+  }
+
+  async normalizeUserBalance(args: {
+    accountAddress: AccountAddress;
+    tokenAddress: string;
+
+    privateKey: TwistedEd25519PrivateKey;
+    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    balanceAmount: bigint;
+    randomness?: bigint[];
+
+    sender: AccountAddressInput;
+
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return normalizeUserBalance({ aptosConfig: this.config, ...args });
   }
 }

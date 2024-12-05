@@ -22,28 +22,48 @@ export type VeiledNormalizationSigmaProof = {
 };
 
 export class VeiledNormalization {
-  isInitialized: boolean = false;
-
   privateKey: TwistedEd25519PrivateKey;
 
   unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
 
   balanceAmount: bigint;
 
-  normalizedVeiledAmount?: VeiledAmount;
+  normalizedVeiledAmount: VeiledAmount;
 
   randomness: bigint[];
 
-  constructor(
-    privateKey: TwistedEd25519PrivateKey,
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[],
-    balanceAmount: bigint,
-    randomness?: bigint[],
-  ) {
-    this.privateKey = privateKey;
-    this.unnormilizedEncryptedBalance = unnormilizedEncryptedBalance;
-    this.balanceAmount = balanceAmount;
-    this.randomness = randomness ?? ed25519GenListOfRandom();
+  constructor(args: {
+    privateKey: TwistedEd25519PrivateKey;
+    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    balanceAmount: bigint;
+    normalizedVeiledAmount: VeiledAmount;
+    randomness: bigint[];
+  }) {
+    this.privateKey = args.privateKey;
+    this.unnormilizedEncryptedBalance = args.unnormilizedEncryptedBalance;
+    this.balanceAmount = args.balanceAmount;
+    this.normalizedVeiledAmount = args.normalizedVeiledAmount;
+    this.randomness = args.randomness;
+  }
+
+  static async create(args: {
+    privateKey: TwistedEd25519PrivateKey;
+    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    balanceAmount: bigint;
+    randomness?: bigint[];
+  }) {
+    const randomness = args.randomness ?? ed25519GenListOfRandom();
+
+    const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
+    normalizedVeiledAmount.encryptBalance(args.privateKey.publicKey(), args.randomness);
+
+    return new VeiledNormalization({
+      privateKey: args.privateKey,
+      unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      balanceAmount: args.balanceAmount,
+      normalizedVeiledAmount,
+      randomness,
+    });
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationSubproofFiatShamir";
@@ -97,19 +117,7 @@ export class VeiledNormalization {
     };
   }
 
-  async init() {
-    const normalizedVeiledAmount = VeiledAmount.fromAmount(this.balanceAmount);
-    normalizedVeiledAmount.encryptBalance(this.privateKey.publicKey(), this.randomness);
-    this.normalizedVeiledAmount = normalizedVeiledAmount;
-
-    this.isInitialized = true;
-  }
-
   async genSigmaProof(): Promise<VeiledNormalizationSigmaProof> {
-    if (!this.isInitialized) throw new TypeError("VeiledNormalization instance is not initialized");
-
-    if (!this.normalizedVeiledAmount) throw new TypeError("this.normalizedBalance is not defined");
-
     if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
@@ -236,10 +244,6 @@ export class VeiledNormalization {
   }
 
   async genRangeProof(): Promise<Uint8Array[]> {
-    if (!this.isInitialized) throw new TypeError("VeiledNormalization instance is not initialized");
-
-    if (!this.normalizedVeiledAmount) throw new TypeError("this.normalizedVeiledAmount is not defined");
-
     const rangeProof = await Promise.all(
       this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
@@ -269,5 +273,14 @@ export class VeiledNormalization {
       ),
     );
     return isRangeProofValidations.every((isValid) => isValid);
+  }
+
+  async authorizeNormalization(): Promise<
+    [{ sigmaProof: VeiledNormalizationSigmaProof; rangeProof: Uint8Array[] }, TwistedElGamalCiphertext[]]
+  > {
+    const sigmaProof = await this.genSigmaProof();
+    const rangeProof = await this.genRangeProof();
+
+    return [{ sigmaProof, rangeProof }, this.normalizedVeiledAmount.encryptedAmount!];
   }
 }
