@@ -23,8 +23,6 @@ export type VeiledKeyRotationSigmaProof = {
 };
 
 export class VeiledKeyRotation {
-  isInitialized = false;
-
   randomness: bigint[];
 
   currPrivateKey: TwistedEd25519PrivateKey;
@@ -33,23 +31,50 @@ export class VeiledKeyRotation {
 
   currEncryptedBalance: TwistedElGamalCiphertext[];
 
-  currVeiledAmount?: VeiledAmount;
+  currVeiledAmount: VeiledAmount;
 
-  newVeiledAmount?: VeiledAmount;
+  newVeiledAmount: VeiledAmount;
 
-  constructor(
-    currPrivateKey: TwistedEd25519PrivateKey,
-    newPrivateKey: TwistedEd25519PrivateKey,
-    currEncryptedBalance: TwistedElGamalCiphertext[],
-    randomness?: bigint[],
-  ) {
-    this.randomness = randomness ?? ed25519GenListOfRandom();
-    this.currPrivateKey = currPrivateKey;
-    this.newPrivateKey = newPrivateKey;
-    this.currEncryptedBalance = currEncryptedBalance;
+  constructor(args: {
+    currPrivateKey: TwistedEd25519PrivateKey;
+    newPrivateKey: TwistedEd25519PrivateKey;
+    currEncryptedBalance: TwistedElGamalCiphertext[];
+    randomness: bigint[];
+    currVeiledAmount: VeiledAmount;
+    newVeiledAmount: VeiledAmount;
+  }) {
+    this.randomness = args.randomness;
+    this.currPrivateKey = args.currPrivateKey;
+    this.newPrivateKey = args.newPrivateKey;
+    this.currEncryptedBalance = args.currEncryptedBalance;
+    this.currVeiledAmount = args.currVeiledAmount;
+    this.newVeiledAmount = args.newVeiledAmount;
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
+
+  static async create(args: {
+    currPrivateKey: TwistedEd25519PrivateKey;
+    newPrivateKey: TwistedEd25519PrivateKey;
+    currEncryptedBalance: TwistedElGamalCiphertext[];
+    randomness?: bigint[];
+  }) {
+    const randomness = args.randomness ?? ed25519GenListOfRandom();
+
+    const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currPrivateKey);
+
+    const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
+    newBalance.encryptBalance(args.newPrivateKey.publicKey(), randomness);
+
+    return new VeiledKeyRotation({
+      currPrivateKey: args.currPrivateKey,
+      newPrivateKey: args.newPrivateKey,
+      currEncryptedBalance: args.currEncryptedBalance,
+      randomness,
+      currVeiledAmount: currentBalance,
+      newVeiledAmount: newBalance,
+    });
+  }
 
   static serializeSigmaProof(sigmaProof: VeiledKeyRotationSigmaProof): Uint8Array {
     return concatBytes(
@@ -106,27 +131,10 @@ export class VeiledKeyRotation {
     };
   }
 
-  async init() {
-    const currentBalance = await VeiledAmount.fromEncrypted(this.currEncryptedBalance, this.currPrivateKey);
-    this.currVeiledAmount = currentBalance;
-
-    const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
-    newBalance.encryptBalance(this.newPrivateKey.publicKey(), this.randomness);
-    this.newVeiledAmount = newBalance;
-
-    this.isInitialized = true;
-  }
-
   async genSigmaProof(): Promise<VeiledKeyRotationSigmaProof> {
     if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
-
-    if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
-
-    if (!this.currVeiledAmount) throw new TypeError("this.currVeiledAmount is not defined");
-
-    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
 
     const x1 = ed25519GenRandom();
     const x2 = ed25519GenRandom();
@@ -175,7 +183,7 @@ export class VeiledKeyRotation {
     const alpha3 = ed25519modN(x3 - p * invertOldSLE);
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
     const alpha5List = x5List.map((x5, i) => {
-      const pChunk = ed25519modN(p * this.currVeiledAmount!.amountChunks![i]);
+      const pChunk = ed25519modN(p * this.currVeiledAmount.amountChunks[i]);
       return numberToBytesLE(ed25519modN(x5 - pChunk), 32);
     });
     const alpha6List = x6List.map((x6, i) => {
@@ -270,19 +278,13 @@ export class VeiledKeyRotation {
   }
 
   async genRangeProof(): Promise<Uint8Array[]> {
-    if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
-
-    if (!this.currVeiledAmount) throw new TypeError("this.currVeiledAmount is not defined");
-
-    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
-
     const rangeProof = await Promise.all(
       this.currVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
           r: this.newPrivateKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.newVeiledAmount!.encryptedAmount![i].D.toRawBytes(),
+          randBase: this.newVeiledAmount.encryptedAmount![i].D.toRawBytes(),
         }),
       ),
     );
@@ -299,10 +301,6 @@ export class VeiledKeyRotation {
       TwistedElGamalCiphertext[],
     ]
   > {
-    if (!this.isInitialized) throw new TypeError("VeiledKeyRotation is not initialized");
-
-    if (!this.newVeiledAmount) throw new TypeError("this.newVeiledAmount is not defined");
-
     const sigmaProof = await this.genSigmaProof();
 
     const rangeProof = await this.genRangeProof();

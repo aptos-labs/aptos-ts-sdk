@@ -197,14 +197,14 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const newAliceVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
-  const veiledKeyRotation = new VeiledKeyRotation(
-    aliceVeiledPrivateKey,
-    newAliceVeiledPrivateKey,
-    aliceVeiledAmount.encryptedAmount!,
-  );
+  let veiledKeyRotation: VeiledKeyRotation;
   let veiledKeyRotationSigmaProof: VeiledKeyRotationSigmaProof;
   test("Generate key rotation sigma proof", async () => {
-    await veiledKeyRotation.init();
+    veiledKeyRotation = await VeiledKeyRotation.create({
+      currPrivateKey: toTwistedEd25519PrivateKey(aliceVeiledPrivateKey),
+      newPrivateKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
+      currEncryptedBalance: aliceVeiledAmount.encryptedAmount!,
+    });
 
     veiledKeyRotationSigmaProof = await veiledKeyRotation.genSigmaProof();
 

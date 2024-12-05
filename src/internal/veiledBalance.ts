@@ -291,13 +291,11 @@ export async function veiledBalanceKeyRotationTransaction(args: {
   withUnfreezeBalance?: boolean;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
-  const veiledKeyRotation = new VeiledKeyRotation(
-    toTwistedEd25519PrivateKey(args.oldPrivateKey),
-    toTwistedEd25519PrivateKey(args.newPrivateKey),
-    args.oldEncryptedBalance,
-  );
-
-  await veiledKeyRotation.init();
+  const veiledKeyRotation = await VeiledKeyRotation.create({
+    currPrivateKey: toTwistedEd25519PrivateKey(args.oldPrivateKey),
+    newPrivateKey: toTwistedEd25519PrivateKey(args.newPrivateKey),
+    currEncryptedBalance: args.oldEncryptedBalance,
+  });
 
   const [{ sigmaProof, rangeProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
 
