@@ -21,14 +21,16 @@ describe("Veiled balance api", () => {
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 
+  const { TESTNET_PK } = process.env;
+
   /**
    * Address of the mocked fungible token on the testnet
    */
-  const TOKEN_ADDRESS = "0xff3c50e388b56539542915c6e5b6140d29e35d4fe1c23afda4698dd648bb315b";
+  const TOKEN_ADDRESS = "0x4659b416f0ee349907881a5c422e307ea1838fbbf7041b78f5d3dec078a6faa4";
   /**
    * Address of the module for minting mocked fungible tokens on the testnet
    */
-  const MODULE_ADDRESS = "0xd2fadc8e5abc1a0d2914795b1be91870fded881148d078033716da3f21918fd7::mock_token";
+  const MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5::mock_token";
   // TODO: decimals?
   const TOKENS_TO_MINT = 500_000;
 
@@ -122,7 +124,7 @@ describe("Veiled balance api", () => {
   let aliceVeiledPrivateKey: TwistedEd25519PrivateKey;
   let bobVeiledPrivateKey: TwistedEd25519PrivateKey;
   test("it should create Alice & Bob veiled balances", async () => {
-    aliceVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
+    aliceVeiledPrivateKey = new TwistedEd25519PrivateKey(TESTNET_PK!);
     bobVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
 
     expect(aliceVeiledPrivateKey.toString()).toBeDefined();

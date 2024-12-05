@@ -212,4 +212,8 @@ export class TwistedElGamalCiphertext {
 
     return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
   }
+
+  public serialize(): Uint8Array {
+    return new Uint8Array([...this.C.toRawBytes(), ...this.D.toRawBytes()]);
+  }
 }
