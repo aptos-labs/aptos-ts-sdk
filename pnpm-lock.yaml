@@ -15,8 +15,8 @@ dependencies:
     specifier: ^0.1.1
     version: 0.1.1
   '@aptos-labs/script-composer-pack':
-    specifier: ^0.0.3
-    version: 0.0.3
+    specifier: ^0.0.4
+    version: 0.0.4
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.4.0
@@ -174,8 +174,8 @@ packages:
     resolution: {integrity: sha512-Mm1DXfrXYBNU+FwlyTavIWt4OX/XeOyeC3xTHehBhQTBE5l+hbgkgfOI1+IiSXX7d0gdeZ3ZwnaArPU66h4ZJw==}
     dev: false
 
-  /@aptos-labs/script-composer-pack@0.0.3:
-    resolution: {integrity: sha512-SPquaKU1Bpa41J9nJeqvNewEicvWbLc7SHhjBQ3PqmPK9cPgY9gg5I8Bp37IdQ0uIGMFzKeqtvPT7d3wNwK2EQ==}
+  /@aptos-labs/script-composer-pack@0.0.4:
+    resolution: {integrity: sha512-SRuSVmFQAyyUYbF2WK4U1OsX5t8twHz5xF9lXkNGJd3vioYMNP/MdV3D+BCAeUrqtUQrEuY4CfPXB7ifChDWkg==}
     dependencies:
       '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.2
     dev: false
