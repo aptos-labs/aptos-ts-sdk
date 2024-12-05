@@ -1,11 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+// eslint-disable-next-line max-classes-per-file
 import { JwtPayload, jwtDecode } from "jwt-decode";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Deserializer, Serializable, Serializer } from "../../bcs";
-import { Hex } from "../hex";
+import { Hex, hexToAsciiString } from "../hex";
 import {
   HexInput,
   EphemeralCertificateVariant,
@@ -20,19 +22,58 @@ import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { Groth16VerificationKeyResponse, KeylessConfigurationResponse } from "../../types/keyless";
+import {
+  Groth16VerificationKeyResponse,
+  KeylessConfigurationResponse,
+  MoveAnyStruct,
+  PatchedJWKsResponse,
+} from "../../types/keyless";
 import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
-import { AccountAddress } from "../accountAddress";
+import { AccountAddress, AccountAddressInput } from "../accountAddress";
+import { getErrorMessage } from "../../utils";
+import { KeylessError, KeylessErrorType } from "../../errors";
 
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const EPK_HORIZON_SECS = 10000000;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_AUD_VAL_BYTES = 120;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_UID_KEY_BYTES = 30;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_UID_VAL_BYTES = 330;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_ISS_VAL_BYTES = 120;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_EXTRA_FIELD_BYTES = 350;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_JWT_HEADER_B64_BYTES = 300;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
@@ -42,15 +83,21 @@ export const MAX_COMMITED_EPK_BYTES = 93;
  * including methods for generating and verifying signatures, as well as serialization
  * and deserialization of the key. The KeylessPublicKey is represented in the SDK
  * as `AnyPublicKey`.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessPublicKey extends AccountPublicKey {
   /**
    * The number of bytes that `idCommitment` should be
+   * @group Implementation
+   * @category Serialization
    */
   static readonly ID_COMMITMENT_LENGTH: number = 32;
 
   /**
    * The value of the 'iss' claim on the JWT which identifies the OIDC provider.
+   * @group Implementation
+   * @category Serialization
    */
   readonly iss: string;
 
@@ -58,6 +105,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * A value representing a cryptographic commitment to a user identity.
    *
    * It is calculated from the aud, uidKey, uidVal, pepper.
+   * @group Implementation
+   * @category Serialization
    */
   readonly idCommitment: Uint8Array;
 
@@ -70,6 +119,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.deltaG2 - The hex representation of the delta G2 value.
    * @param args.gammaAbcG1 - An array containing two hex representations for gamma ABC G1 values.
    * @param args.gammaG2 - The hex representation of the gamma G2 value.
+   * @group Implementation
+   * @category Serialization
    */
   // TODO: Fix the JSDoc for the below values
   constructor(iss: string, idCommitment: HexInput) {
@@ -86,6 +137,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * Get the authentication key for the keyless public key.
    *
    * @returns AuthenticationKey - The authentication key derived from the keyless public key.
+   * @group Implementation
+   * @category Serialization
    */
   authKey(): AuthenticationKey {
     const serializer = new Serializer();
@@ -104,6 +157,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the message.
    * @returns true if the signature is valid; otherwise, false.
+   * @group Implementation
+   * @category Serialization
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
@@ -120,6 +175,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param serializer.extraField - An optional additional field for serialization.
    * @param serializer.overrideAudVal - An optional override value for auditing.
    * @param serializer.trainingWheelsSignature - An optional signature for training wheels.
+   * @group Implementation
+   * @category Serialization
    */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
@@ -132,6 +189,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
    * @returns A new instance of ZeroKnowledgeSig.
+   * @group Implementation
+   * @category Serialization
    */
   static deserialize(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
@@ -147,6 +206,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param deserializer.deserializeStr - A method to deserialize a string value.
    * @param deserializer.deserializeBytes - A method to deserialize byte data.
    * @returns A new instance of KeylessPublicKey.
+   * @group Implementation
+   * @category Serialization
    */
   static load(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
@@ -159,6 +220,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param publicKey - The public key to check.
    * @returns A boolean indicating whether the public key is a KeylessPublicKey instance.
+   * @group Implementation
+   * @category Serialization
    */
   static isPublicKey(publicKey: PublicKey): publicKey is KeylessPublicKey {
     return publicKey instanceof KeylessPublicKey;
@@ -173,6 +236,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.aud the client ID of the application
    * @param args.pepper The pepper used to maintain privacy of the account
    * @returns KeylessPublicKey
+   * @group Implementation
+   * @category Serialization
    */
   static create(args: {
     iss: string;
@@ -194,6 +259,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.pepper - The pepper value used in the key creation process.
    * @param args.uidKey - An optional key to retrieve the unique identifier from the JWT payload, defaults to "sub".
    * @returns A KeylessPublicKey instance created from the provided JWT and pepper.
+   * @group Implementation
+   * @category Serialization
    */
   static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
@@ -213,6 +280,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param publicKey - The public key to validate.
    * @returns A boolean indicating whether the public key is a valid instance.
+   * @group Implementation
+   * @category Serialization
    */
   static isInstance(publicKey: PublicKey) {
     return (
@@ -239,30 +308,42 @@ function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string
 
 /**
  * Represents a signature of a message signed via a Keyless Account, utilizing proofs or a JWT token for authentication.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessSignature extends Signature {
   /**
    * The inner signature ZeroKnowledgeSignature or OpenIdSignature
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralCertificate: EphemeralCertificate;
 
   /**
    * The jwt header in the token used to create the proof/signature.  In json string representation.
+   * @group Implementation
+   * @category Serialization
    */
   readonly jwtHeader: string;
 
   /**
    * The expiry timestamp in seconds of the EphemeralKeyPair used to sign
+   * @group Implementation
+   * @category Serialization
    */
   readonly expiryDateSecs: number;
 
   /**
    * The ephemeral public key used to verify the signature
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralPublicKey: EphemeralPublicKey;
 
   /**
    * The signature resulting from signing with the private key of the EphemeralKeyPair
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralSignature: EphemeralSignature;
 
@@ -280,6 +361,15 @@ export class KeylessSignature extends Signature {
     this.expiryDateSecs = expiryDateSecs;
     this.ephemeralPublicKey = ephemeralPublicKey;
     this.ephemeralSignature = ephemeralSignature;
+  }
+
+  /**
+   * Get the kid of the JWT used to derive the Keyless Account used to sign.
+   *
+   * @returns the kid as a string
+   */
+  getJwkKid(): string {
+    return parseJwtHeader(this.jwtHeader).kid;
   }
 
   serialize(serializer: Serializer): void {
@@ -334,12 +424,16 @@ export class KeylessSignature extends Signature {
  * This class can be extended to support additional signature types, such as OpenIdSignature.
  *
  * @extends Signature
+ * @group Implementation
+ * @category Serialization
  */
 export class EphemeralCertificate extends Signature {
   public readonly signature: Signature;
 
   /**
    * Index of the underlying enum variant
+   * @group Implementation
+   * @category Serialization
    */
   private readonly variant: EphemeralCertificateVariant;
 
@@ -353,6 +447,8 @@ export class EphemeralCertificate extends Signature {
    * Get the public key in bytes (Uint8Array).
    *
    * @returns Uint8Array representation of the public key
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.signature.toUint8Array();
@@ -379,6 +475,8 @@ export class EphemeralCertificate extends Signature {
  * This class is used for handling and serializing G1 bytes in cryptographic operations.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 class G1Bytes extends Serializable {
   data: Uint8Array;
@@ -406,6 +504,8 @@ class G1Bytes extends Serializable {
  * This class provides methods for serialization and deserialization of G2 bytes.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 class G2Bytes extends Serializable {
   data: Uint8Array;
@@ -433,20 +533,28 @@ class G2Bytes extends Serializable {
  * The points are the compressed serialization of affine representation of the proof.
  *
  * @extends Proof
+ * @group Implementation
+ * @category Serialization
  */
 export class Groth16Zkp extends Proof {
   /**
    * The bytes of G1 proof point a
+   * @group Implementation
+   * @category Serialization
    */
   a: G1Bytes;
 
   /**
    * The bytes of G2 proof point b
+   * @group Implementation
+   * @category Serialization
    */
   b: G2Bytes;
 
   /**
    * The bytes of G1 proof point c
+   * @group Implementation
+   * @category Serialization
    */
   c: G1Bytes;
 
@@ -476,12 +584,16 @@ export class Groth16Zkp extends Proof {
  * Represents a container for different types of zero-knowledge proofs.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 export class ZkProof extends Serializable {
   public readonly proof: Proof;
 
   /**
    * Index of the underlying enum variant
+   * @group Implementation
+   * @category Serialization
    */
   private readonly variant: ZkpVariant;
 
@@ -511,31 +623,43 @@ export class ZkProof extends Serializable {
  * Represents a zero-knowledge signature, encapsulating the proof and its associated metadata.
  *
  * @extends Signature
+ * @group Implementation
+ * @category Serialization
  */
 export class ZeroKnowledgeSig extends Signature {
   /**
    * The proof
+   * @group Implementation
+   * @category Serialization
    */
   readonly proof: ZkProof;
 
   /**
    * The max lifespan of the proof
+   * @group Implementation
+   * @category Serialization
    */
   readonly expHorizonSecs: number;
 
   /**
    * A key value pair on the JWT token that can be specified on the signature which would reveal the value on chain.
    * Can be used to assert identity or other attributes.
+   * @group Implementation
+   * @category Serialization
    */
   readonly extraField?: string;
 
   /**
    * The 'aud' value of the recovery service which is set when recovering an account.
+   * @group Implementation
+   * @category Serialization
    */
   readonly overrideAudVal?: string;
 
   /**
    * The training wheels signature
+   * @group Implementation
+   * @category Serialization
    */
   readonly trainingWheelsSignature?: EphemeralSignature;
 
@@ -560,6 +684,8 @@ export class ZeroKnowledgeSig extends Signature {
    *
    * @param bytes - The bytes representing the serialized ZeroKnowledgeSig.
    * @returns ZeroKnowledgeSig - The deserialized ZeroKnowledgeSig object.
+   * @group Implementation
+   * @category Serialization
    */
   static fromBytes(bytes: Uint8Array): ZeroKnowledgeSig {
     return ZeroKnowledgeSig.deserialize(new Deserializer(bytes));
@@ -568,16 +694,16 @@ export class ZeroKnowledgeSig extends Signature {
   serialize(serializer: Serializer): void {
     this.proof.serialize(serializer);
     serializer.serializeU64(this.expHorizonSecs);
-    serializer.serializeOptionStr(this.extraField);
-    serializer.serializeOptionStr(this.overrideAudVal);
+    serializer.serializeOption(this.extraField);
+    serializer.serializeOption(this.overrideAudVal);
     serializer.serializeOption(this.trainingWheelsSignature);
   }
 
   static deserialize(deserializer: Deserializer): ZeroKnowledgeSig {
     const proof = ZkProof.deserialize(deserializer);
     const expHorizonSecs = Number(deserializer.deserializeU64());
-    const extraField = deserializer.deserializeOptionStr();
-    const overrideAudVal = deserializer.deserializeOptionStr();
+    const extraField = deserializer.deserializeOption("string");
+    const overrideAudVal = deserializer.deserializeOption("string");
     const trainingWheelsSignature = deserializer.deserializeOption(EphemeralSignature);
     return new ZeroKnowledgeSig({ proof, expHorizonSecs, trainingWheelsSignature, extraField, overrideAudVal });
   }
@@ -589,21 +715,26 @@ export class ZeroKnowledgeSig extends Signature {
  * @remarks
  * This class encapsulates the verification key and the maximum lifespan of ephemeral key pairs,
  * which are essential for the functionality of Keyless accounts.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessConfiguration {
   /**
    * The verification key used to verify Groth16 proofs on chain
+   * @group Implementation
+   * @category Serialization
    */
-  // TODO: Rename to verificationKey
-  readonly verficationKey: Groth16VerificationKey;
+  readonly verificationKey: Groth16VerificationKey;
 
   /**
    * The maximum lifespan of an ephemeral key pair.  This is configured on chain.
+   * @group Implementation
+   * @category Serialization
    */
   readonly maxExpHorizonSecs: number;
 
-  constructor(verficationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
-    this.verficationKey = verficationKey;
+  constructor(verificationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
+    this.verificationKey = verificationKey;
     this.maxExpHorizonSecs = maxExpHorizonSecs;
   }
 
@@ -623,32 +754,44 @@ export class KeylessConfiguration {
 
 /**
  * Represents the verification key stored on-chain used to verify Groth16 proofs.
+ * @group Implementation
+ * @category Serialization
  */
-class Groth16VerificationKey {
+export class Groth16VerificationKey {
   // The docstrings below are borrowed from ark-groth16
 
   /**
    * The `alpha * G`, where `G` is the generator of G1
+   * @group Implementation
+   * @category Serialization
    */
   readonly alphaG1: G1Bytes;
 
   /**
    * The `alpha * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly betaG2: G2Bytes;
 
   /**
    * The `delta * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly deltaG2: G2Bytes;
 
   /**
    * The `gamma^{-1} * (beta * a_i + alpha * b_i + c_i) * H`, where H is the generator of G1
+   * @group Implementation
+   * @category Serialization
    */
-  readonly gammaAbcG1: G1Bytes[];
+  readonly gammaAbcG1: [G1Bytes, G1Bytes];
 
   /**
    * The `gamma * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly gammaG2: G2Bytes;
 
@@ -668,6 +811,27 @@ class Groth16VerificationKey {
   }
 
   /**
+   * Calculates the hash of the serialized form of the verification key.
+   * This is useful for comparing verification keys or using them as unique identifiers.
+   *
+   * @returns The SHA3-256 hash of the serialized verification key as a Uint8Array
+   */
+  public hash(): Uint8Array {
+    const serializer = new Serializer();
+    this.serialize(serializer);
+    return sha3_256.create().update(serializer.toUint8Array()).digest();
+  }
+
+  serialize(serializer: Serializer): void {
+    this.alphaG1.serialize(serializer);
+    this.betaG2.serialize(serializer);
+    this.deltaG2.serialize(serializer);
+    this.gammaAbcG1[0].serialize(serializer);
+    this.gammaAbcG1[1].serialize(serializer);
+    this.gammaG2.serialize(serializer);
+  }
+
+  /**
    * Converts a Groth16VerificationKeyResponse object into a Groth16VerificationKey instance.
    *
    * @param res - The Groth16VerificationKeyResponse object containing the verification key data.
@@ -677,6 +841,8 @@ class Groth16VerificationKey {
    * @param res.gamma_abc_g1 - The gamma ABC G1 value from the response.
    * @param res.gamma_g2 - The gamma G2 value from the response.
    * @returns A Groth16VerificationKey instance constructed from the provided response data.
+   * @group Implementation
+   * @category Serialization
    */
   static fromGroth16VerificationKeyResponse(res: Groth16VerificationKeyResponse): Groth16VerificationKey {
     return new Groth16VerificationKey({
@@ -698,21 +864,72 @@ class Groth16VerificationKey {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, the latest version will be used.
  * @returns KeylessConfiguration - The configuration object containing the verifying key and maximum expiry horizon.
+ * @group Implementation
+ * @category Serialization
  */
 export async function getKeylessConfig(args: {
   aptosConfig: AptosConfig;
   options?: LedgerVersionArg;
 }): Promise<KeylessConfiguration> {
   const { aptosConfig } = args;
-  return memoizeAsync(
-    async () => {
-      const config = await getKeylessConfigurationResource(args);
-      const vk = await getGroth16VerificationKeyResource(args);
-      return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
-    },
-    `keyless-configuration-${aptosConfig.network}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
+  try {
+    return await memoizeAsync(
+      async () => {
+        const config = await getKeylessConfigurationResource(args);
+        const vk = await getGroth16VerificationKeyResource(args);
+        return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
+      },
+      `keyless-configuration-${aptosConfig.network}`,
+      1000 * 60 * 5, // 5 minutes
+    )();
+  } catch (error) {
+    if (error instanceof KeylessError) {
+      throw error;
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_OTHER,
+      error,
+    });
+  }
+}
+
+/**
+ * Parses a JWT and returns the 'iss', 'aud', and 'uid' values.
+ *
+ * @param args - The arguments for parsing the JWT.
+ * @param args.jwt - The JWT to parse.
+ * @param args.uidKey - The key to use for the 'uid' value; defaults to 'sub'.
+ * @returns The 'iss', 'aud', and 'uid' values from the JWT.
+ */
+export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
+  iss: string;
+  aud: string;
+  uidVal: string;
+} {
+  const { jwt, uidKey = "sub" } = args;
+  let jwtPayload: JwtPayload & { [key: string]: string };
+  try {
+    jwtPayload = jwtDecode<JwtPayload & { [key: string]: string }>(jwt);
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: `Failed to parse JWT - ${getErrorMessage(error)}`,
+    });
+  }
+  if (typeof jwtPayload.iss !== "string") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: "JWT is missing 'iss' in the payload. This should never happen.",
+    });
+  }
+  if (typeof jwtPayload.aud !== "string") {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWT_PARSING_ERROR,
+      details: "JWT is missing 'aud' in the payload or 'aud' is an array of values.",
+    });
+  }
+  const uidVal = jwtPayload[uidKey];
+  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };
 }
 
 /**
@@ -723,6 +940,8 @@ export async function getKeylessConfig(args: {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
  * @returns KeylessConfigurationResponse - The response containing the keyless configuration data.
+ * @group Implementation
+ * @category Serialization
  */
 async function getKeylessConfigurationResource(args: {
   aptosConfig: AptosConfig;
@@ -730,14 +949,20 @@ async function getKeylessConfigurationResource(args: {
 }): Promise<KeylessConfigurationResponse> {
   const { aptosConfig, options } = args;
   const resourceType = "0x1::keyless_account::Configuration";
-  const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
-    aptosConfig,
-    originMethod: "getKeylessConfigurationResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-
-  return data.data;
+  try {
+    const { data } = await getAptosFullNode<{}, MoveResource<KeylessConfigurationResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessConfigurationResource",
+      path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    return data.data;
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_CONFIG_LOOKUP_ERROR,
+      error,
+    });
+  }
 }
 
 /**
@@ -748,6 +973,8 @@ async function getKeylessConfigurationResource(args: {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
  * @returns Groth16VerificationKeyResponse - The response containing the Groth16 verification key data.
+ * @group Implementation
+ * @category Serialization
  */
 async function getGroth16VerificationKeyResource(args: {
   aptosConfig: AptosConfig;
@@ -755,12 +982,126 @@ async function getGroth16VerificationKeyResource(args: {
 }): Promise<Groth16VerificationKeyResponse> {
   const { aptosConfig, options } = args;
   const resourceType = "0x1::keyless_account::Groth16VerificationKey";
-  const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
-    aptosConfig,
-    originMethod: "getGroth16VerificationKeyResource",
-    path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
+  try {
+    const { data } = await getAptosFullNode<{}, MoveResource<Groth16VerificationKeyResponse>>({
+      aptosConfig,
+      originMethod: "getGroth16VerificationKeyResource",
+      path: `accounts/${AccountAddress.from("0x1").toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    return data.data;
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_VERIFICATION_KEY_LOOKUP_ERROR,
+      error,
+    });
+  }
+}
 
-  return data.data;
+export async function getKeylessJWKs(args: {
+  aptosConfig: AptosConfig;
+  jwkAddr?: AccountAddressInput;
+  options?: LedgerVersionArg;
+}): Promise<Map<string, MoveJWK[]>> {
+  const { aptosConfig, jwkAddr, options } = args;
+  let resource: MoveResource<PatchedJWKsResponse>;
+  if (!jwkAddr) {
+    const resourceType = "0x1::jwks::PatchedJWKs";
+    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessJWKs",
+      path: `accounts/0x1/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    resource = data;
+  } else {
+    const resourceType = "0x1::jwks::FederatedJWKs";
+    const { data } = await getAptosFullNode<{}, MoveResource<PatchedJWKsResponse>>({
+      aptosConfig,
+      originMethod: "getKeylessJWKs",
+      path: `accounts/${AccountAddress.from(jwkAddr).toString()}/resource/${resourceType}`,
+      params: { ledger_version: options?.ledgerVersion },
+    });
+    resource = data;
+  }
+
+  // Create a map of issuer to JWK arrays
+  const jwkMap = new Map<string, MoveJWK[]>();
+  for (const entry of resource.data.jwks.entries) {
+    const jwks: MoveJWK[] = [];
+    for (const jwkStruct of entry.jwks) {
+      const { data: jwkData } = jwkStruct.variant;
+      const deserializer = new Deserializer(Hex.fromHexInput(jwkData).toUint8Array());
+      const jwk = MoveJWK.deserialize(deserializer);
+      jwks.push(jwk);
+    }
+    jwkMap.set(hexToAsciiString(entry.issuer), jwks);
+  }
+
+  return jwkMap;
+}
+
+export class MoveJWK extends Serializable {
+  public kid: string;
+
+  public kty: string;
+
+  public alg: string;
+
+  public e: string;
+
+  public n: string;
+
+  constructor(args: { kid: string; kty: string; alg: string; e: string; n: string }) {
+    super();
+    const { kid, kty, alg, e, n } = args;
+    this.kid = kid;
+    this.kty = kty;
+    this.alg = alg;
+    this.e = e;
+    this.n = n;
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(this.kid);
+    serializer.serializeStr(this.kty);
+    serializer.serializeStr(this.alg);
+    serializer.serializeStr(this.e);
+    serializer.serializeStr(this.n);
+  }
+
+  static fromMoveStruct(struct: MoveAnyStruct): MoveJWK {
+    const { data } = struct.variant;
+    const deserializer = new Deserializer(Hex.fromHexInput(data).toUint8Array());
+    return MoveJWK.deserialize(deserializer);
+  }
+
+  static deserialize(deserializer: Deserializer): MoveJWK {
+    const kid = deserializer.deserializeStr();
+    const kty = deserializer.deserializeStr();
+    const alg = deserializer.deserializeStr();
+    const n = deserializer.deserializeStr();
+    const e = deserializer.deserializeStr();
+    return new MoveJWK({ kid, kty, alg, n, e });
+  }
+}
+
+interface JwtHeader {
+  kid: string; // Key ID
+}
+/**
+ * Safely parses the JWT header.
+ * @param jwtHeader The JWT header string
+ * @returns Parsed JWT header as an object.
+ */
+export function parseJwtHeader(jwtHeader: string): JwtHeader {
+  try {
+    const header = JSON.parse(jwtHeader);
+    if (header.kid === undefined) {
+      throw new Error("JWT header missing kid");
+    }
+    return header;
+  } catch (error) {
+    throw new Error("Failed to parse JWT header.");
+  }
 }

@@ -6,6 +6,7 @@
  * the {@link api/fungible_asset}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * fungible_asset namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -55,6 +56,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  * @param [args.options.limit] - The maximum number of results to return.
  * @param [args.options.offset] - The number of results to skip before starting to collect the result set.
  * @param [args.options.where] - Conditions to filter the results.
+ * @group Implementation
  */
 export async function getFungibleAssetMetadata(args: {
   aptosConfig: AptosConfig;
@@ -91,6 +93,7 @@ export async function getFungibleAssetMetadata(args: {
  * @param [args.options.offset] - The number of activities to skip before starting to collect the result set.
  * @param [args.options.where] - Conditions to filter the activities.
  * @returns A promise that resolves to an array of fungible asset activities.
+ * @group Implementation
  */
 export async function getFungibleAssetActivities(args: {
   aptosConfig: AptosConfig;
@@ -126,6 +129,7 @@ export async function getFungibleAssetActivities(args: {
  * @param args.options.offset - The number of results to skip before starting to collect the results.
  * @param args.options.where - Conditions to filter the results based on specific criteria.
  * @returns The current balances of fungible assets.
+ * @group Implementation
  */
 export async function getCurrentFungibleAssetBalances(args: {
   aptosConfig: AptosConfig;
@@ -167,6 +171,7 @@ const faTransferAbi: EntryFunctionABI = {
  * @param args.recipient - The address of the account receiving the asset.
  * @param args.amount - The amount of the fungible asset to transfer.
  * @param args.options - Optional settings for generating the transaction.
+ * @group Implementation
  */
 export async function transferFungibleAsset(args: {
   aptosConfig: AptosConfig;

@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import "dotenv";
-import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey } from "../../../src";
+import { AccountAddress, Aptos, AptosApiType, Ed25519PrivateKey, PrivateKey, PrivateKeyVariants } from "../../../src";
 import { LOCAL_ANS_ACCOUNT_PK, LOCAL_ANS_ACCOUNT_ADDRESS } from "../../../src/internal/ans";
 
 /**
@@ -99,8 +99,9 @@ export async function publishAnsContract(
     // eslint-disable-next-line no-restricted-syntax
     for (const contract of contracts) {
       // TODO: This is a temporary fix to unblock CI (`--max-gas`), the CLI should handle simulation correctly, and this hack shouldn't be necessary.
+      // TODO: Convert back to AIP-80 when CLI is updated.
       execCmdBuffer(
-        `${cliInvocation} move publish --max-gas 100000 --package-dir ${repoDir}/${contract} --assume-yes --private-key=${LOCAL_ANS_ACCOUNT_PK} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
+        `${cliInvocation} move publish --max-gas 100000 --package-dir ${repoDir}/${contract} --assume-yes --private-key=${PrivateKey.parseHexInput(LOCAL_ANS_ACCOUNT_PK, PrivateKeyVariants.Ed25519).toString()} --named-addresses aptos_names=${LOCAL_ANS_ACCOUNT_ADDRESS},router=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_v2_1=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_admin=${LOCAL_ANS_ACCOUNT_ADDRESS},aptos_names_funds=${LOCAL_ANS_ACCOUNT_ADDRESS},router_signer=${ROUTER_SIGNER} --url=${aptos.config.getRequestUrl(
           AptosApiType.FULLNODE,
         )}`,
       );

@@ -3,7 +3,16 @@
 
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { secp256k1TestObject, secp256k1WalletTestObject } from "./helper";
-import { Deserializer, Hex, Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature, Serializer } from "../../src";
+import {
+  Deserializer,
+  Hex,
+  PrivateKey,
+  PrivateKeyVariants,
+  Secp256k1PrivateKey,
+  Secp256k1PublicKey,
+  Secp256k1Signature,
+  Serializer,
+} from "../../src";
 
 /* eslint-disable max-len */
 describe("Secp256k1PublicKey", () => {
@@ -18,6 +27,27 @@ describe("Secp256k1PublicKey", () => {
     const publicKey2 = new Secp256k1PublicKey(hexUint8Array);
     expect(publicKey2).toBeInstanceOf(Secp256k1PublicKey);
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
+  });
+
+  it("should work with compressed public keys", () => {
+    const expectedPublicKey = new Secp256k1PublicKey(secp256k1TestObject.publicKey);
+    const uncompressedPublicKey = Hex.fromHexInput(secp256k1TestObject.publicKey);
+    expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
+
+    const point = secp256k1.ProjectivePoint.fromHex(uncompressedPublicKey.toUint8Array());
+    const compressedPublicKey = point.toRawBytes(true);
+    const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
+    expect(compressedPublicKey.length).toEqual(33);
+
+    const publicKey1 = new Secp256k1PublicKey(compressedPublicKeyHex.toString());
+    expect(publicKey1).toBeInstanceOf(Secp256k1PublicKey);
+    expect(publicKey1).toEqual(expectedPublicKey);
+
+    const publicKey2 = new Secp256k1PublicKey(compressedPublicKeyHex.toUint8Array());
+    expect(publicKey2).toBeInstanceOf(Secp256k1PublicKey);
+    expect(publicKey2).toEqual(expectedPublicKey);
+
+    expect(publicKey1).toEqual(publicKey2);
   });
 
   it("should throw an error with invalid hex input length", () => {
@@ -72,22 +102,33 @@ describe("Secp256k1PublicKey", () => {
 });
 
 describe("Secp256k1PrivateKey", () => {
-  it("should create the instance correctly without error", () => {
-    // Create from string
-    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKey);
-    expect(privateKey).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
-
-    // Create from Uint8Array
-    const hexUint8Array = Hex.fromHexString(secp256k1TestObject.privateKey).toUint8Array();
-    const privateKey2 = new Secp256k1PrivateKey(hexUint8Array);
+  it("should create the instance correctly without error with AIP-80 compliant private key", () => {
+    const privateKey2 = new Secp256k1PrivateKey(secp256k1TestObject.privateKey, false);
     expect(privateKey2).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(privateKey2.toString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
+    expect(privateKey2.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
+  });
+
+  it("should create the instance correctly without error with non-AIP-80 compliant private key", () => {
+    const privateKey = new Secp256k1PrivateKey(secp256k1TestObject.privateKeyHex, false);
+    expect(privateKey).toBeInstanceOf(Secp256k1PrivateKey);
+    expect(privateKey.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
+  });
+
+  it("should create the instance correctly without error with Uint8Array private key", () => {
+    // Create from Uint8Array
+    const hexUint8Array = PrivateKey.parseHexInput(
+      secp256k1TestObject.privateKey,
+      PrivateKeyVariants.Secp256k1,
+      false,
+    ).toUint8Array();
+    const privateKey3 = new Secp256k1PrivateKey(hexUint8Array, false);
+    expect(privateKey3).toBeInstanceOf(Secp256k1PrivateKey);
+    expect(privateKey3.toHexString()).toEqual(Hex.fromHexInput(hexUint8Array).toString());
   });
 
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
-    expect(() => new Secp256k1PrivateKey(invalidHexInput)).toThrowError(
+    expect(() => new Secp256k1PrivateKey(invalidHexInput, false)).toThrowError(
       `PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`,
     );
   });
@@ -114,7 +155,7 @@ describe("Secp256k1PrivateKey", () => {
     const deserializer = new Deserializer(serializedPrivateKey);
     const privateKey = Secp256k1PrivateKey.deserialize(deserializer);
 
-    expect(privateKey.toString()).toEqual(secp256k1TestObject.privateKey);
+    expect(privateKey.toAIP80String()).toEqual(secp256k1TestObject.privateKey);
   });
 
   it("should serialize and deserialize correctly", () => {
@@ -138,7 +179,7 @@ describe("Secp256k1PrivateKey", () => {
     const { mnemonic, path, privateKey } = secp256k1WalletTestObject;
     const key = Secp256k1PrivateKey.fromDerivationPath(path, mnemonic);
     expect(key).toBeInstanceOf(Secp256k1PrivateKey);
-    expect(key.toString()).toEqual(privateKey);
+    expect(key.toAIP80String()).toEqual(privateKey);
   });
 });
 

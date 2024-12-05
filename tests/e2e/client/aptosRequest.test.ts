@@ -1,6 +1,5 @@
 import {
   Account,
-  AptosApiError,
   AptosApiType,
   aptosRequest,
   generateSignedTransaction,
@@ -9,6 +8,7 @@ import {
   NetworkToNodeAPI,
   U64,
 } from "../../../src";
+import { AptosApiError } from "../../../src/errors";
 import { VERSION } from "../../../src/version";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";

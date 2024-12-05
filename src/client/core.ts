@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptosConfig";
-import { AptosApiError, AptosResponse } from "./types";
 import { VERSION } from "../version";
-import { AnyNumber, AptosRequest, Client, ClientRequest, ClientResponse, MimeType } from "../types";
+import { AnyNumber, AptosRequest, AptosResponse, Client, ClientRequest, ClientResponse, MimeType } from "../types";
 import { AptosApiType } from "../utils";
+import { AptosApiError } from "../errors";
 
 /**
  * Sends a request using the specified options and returns the response.
@@ -24,6 +24,8 @@ import { AptosApiType } from "../utils";
  * @param client - The client used to make the request.
  *
  * @returns The response from the request.
+ * @group Implementation
+ * @category Client
  */
 export async function request<Req, Res>(options: ClientRequest<Req>, client: Client): Promise<ClientResponse<Res>> {
   const { url, method, body, contentType, params, overrides, originMethod } = options;
@@ -62,6 +64,8 @@ export async function request<Req, Res>(options: ClientRequest<Req>, client: Cli
  * @param aptosConfig - The configuration information for the SDK client instance.
  * @param apiType - The type of API being accessed, which determines how the response is handled.
  * @returns The response from the API request or throws an AptosApiError if the request fails.
+ * @group Implementation
+ * @category Client
  */
 export async function aptosRequest<Req extends {}, Res extends {}>(
   aptosRequestOpts: AptosRequest,

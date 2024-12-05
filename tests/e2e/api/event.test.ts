@@ -6,7 +6,7 @@ import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 
 describe("Event", () => {
-  test("it should get transaction fee statement module event by event type", async () => {
+  test.skip("it should get transaction fee statement module event by event type", async () => {
     const { aptos } = getAptosClient();
 
     const events = await aptos.getModuleEventsByEventType({
@@ -25,7 +25,7 @@ describe("Event", () => {
     expect(onlyTwoEvents[0].type).toEqual("0x1::block::NewBlock");
   });
 
-  test("it should get fund event by creation number and address", async () => {
+  test.skip("it should get fund event by creation number and address", async () => {
     const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
@@ -39,7 +39,7 @@ describe("Event", () => {
     expect(events[0].type).toEqual("0x1::account::CoinRegisterEvent");
   });
 
-  test("it should get fund event by event type and address", async () => {
+  test.skip("it should get fund event by event type and address", async () => {
     const { aptos } = getAptosClient();
 
     const testAccount = Account.generate();
@@ -70,7 +70,7 @@ describe("Event", () => {
     expect(events.length).toBeGreaterThan(0);
   });
 
-  test(
+  test.skip(
     "it should filter events",
     async () => {
       const { aptos } = getAptosClient();

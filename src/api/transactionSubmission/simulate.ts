@@ -10,6 +10,7 @@ import { ValidateFeePayerDataOnSimulation } from "./helpers";
 
 /**
  * A class to handle all `Simulate` transaction operations.
+ * @group Implementation
  */
 export class Simulate {
   readonly config: AptosConfig;
@@ -37,6 +38,7 @@ export class Simulate {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -47,7 +49,7 @@ export class Simulate {
    * This function helps you understand the outcome of a transaction before executing it on the blockchain.
    *
    * @param args - The parameters for simulating the transaction.
-   * @param args.signerPublicKey - The public key of the signer for the transaction.
+   * @param args.signerPublicKey - The public key of the signer for the transaction (optional).
    * @param args.transaction - The raw transaction data to simulate.
    * @param args.feePayerPublicKey - The public key of the fee payer (optional).
    * @param args.options - Additional options for simulating the transaction (optional).
@@ -97,10 +99,11 @@ export class Simulate {
    *
    * example();
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation
   async simple(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey?: PublicKey;
     transaction: AnyRawTransaction;
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
@@ -113,11 +116,12 @@ export class Simulate {
    * This function helps in understanding the outcome of a transaction involving multiple signers before it is executed.
    *
    * @param args - The parameters for simulating the transaction.
-   * @param args.signerPublicKey - The public key of the primary signer.
+   * @param args.signerPublicKey - The public key of the primary signer (optional).
    * @param args.transaction - The raw transaction to be simulated.
-   * @param args.secondarySignersPublicKeys - An array of public keys for secondary signers.
-   * @param args.feePayerPublicKey - (Optional) The public key of the fee payer.
-   * @param args.options - (Optional) Options for simulating the transaction.
+   * @param args.secondarySignersPublicKeys - An array of public keys for secondary signers (optional).
+   *        Each element of the array can be optional, allowing the corresponding key check to be skipped.
+   * @param args.feePayerPublicKey - The public key of the fee payer (optional).
+   * @param args.options - Options for simulating the transaction (optional).
    *
    * @example
    * ```typescript
@@ -173,12 +177,13 @@ export class Simulate {
    *
    * example();
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation
   async multiAgent(args: {
-    signerPublicKey: PublicKey;
+    signerPublicKey?: PublicKey;
     transaction: AnyRawTransaction;
-    secondarySignersPublicKeys: Array<PublicKey>;
+    secondarySignersPublicKeys?: Array<PublicKey | undefined>;
     feePayerPublicKey?: PublicKey;
     options?: InputSimulateTransactionOptions;
   }): Promise<Array<UserTransactionResponse>> {

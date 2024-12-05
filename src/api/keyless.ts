@@ -19,6 +19,7 @@ import { AptosConfig } from "./aptosConfig";
  *
  * More documentation on how to integrate Keyless Accounts see the below
  * [Aptos Keyless Integration Guide](https://aptos.dev/guides/keyless-accounts/#aptos-keyless-integration-guide).
+ * @group Keyless
  */
 export class Keyless {
   /**
@@ -42,6 +43,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -77,6 +79,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async getPepper(args: {
     jwt: string;
@@ -120,6 +123,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async getProof(args: {
     jwt: string;
@@ -155,7 +159,7 @@ export class Keyless {
    * @param args.jwt - The JWT token used for deriving the account.
    * @param args.ephemeralKeyPair - The EphemeralKeyPair used to generate the nonce in the JWT token.
    * @param args.jwkAddress - The address the where the JWKs used to verify signatures are found.  Setting the value derives a
-   * FederatedKeylessAccount
+   * FederatedKeylessAccount.
    * @param args.uidKey - An optional key in the JWT token to set the uidVal in the IdCommitment.
    * @param args.pepper - An optional pepper value.
    * @param args.proofFetchCallback - An optional callback function for fetching the proof in the background, allowing for a more
@@ -186,6 +190,7 @@ export class Keyless {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Keyless
    */
   async deriveKeylessAccount(args: {
     jwt: string;
@@ -201,7 +206,7 @@ export class Keyless {
   /**
    * This installs a set of FederatedJWKs at an address for a given iss.
    *
-   * It will fetch the JWK set from the well-known endpoint and update the FederatedJWKs at the sender's address
+   * It will fetch the JSON Web Keyset (JWK) set from the well-known endpoint and update the FederatedJWKs at the sender's address
    * to reflect it.
    *
    * @param args.sender The account that will install the JWKs
@@ -209,6 +214,7 @@ export class Keyless {
    * @param args.jwksUrl the URL to find the corresponding JWKs. For supported IDP providers this parameter in not necessary.
    *
    * @returns The pending transaction that results from submission.
+   * @group Keyless
    */
   async updateFederatedKeylessJwkSetTransaction(args: {
     sender: Account;

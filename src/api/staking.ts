@@ -14,6 +14,7 @@ import { waitForIndexerOnVersion } from "./utils";
 
 /**
  * A class to query all `Staking` related queries on Aptos.
+ * @group Staking
  */
 export class Staking {
   /**
@@ -39,6 +40,7 @@ export class Staking {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Staking
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -64,6 +66,7 @@ export class Staking {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Staking
    */
   async getNumberOfDelegators(args: {
     poolAddress: AccountAddressInput;
@@ -99,6 +102,7 @@ export class Staking {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Staking
    */
   async getNumberOfDelegatorsForAllPools(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -140,6 +144,7 @@ export class Staking {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Staking
    */
   async getDelegatedStakingActivities(args: {
     delegatorAddress: AccountAddressInput;

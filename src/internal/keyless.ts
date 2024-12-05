@@ -6,6 +6,7 @@
  * the {@link api/keyless}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * keyless namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
@@ -16,6 +17,7 @@ import {
   Groth16Zkp,
   Hex,
   KeylessPublicKey,
+  MoveJWK,
   ZeroKnowledgeSig,
   ZkProof,
   getKeylessConfig,
@@ -29,6 +31,8 @@ import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
+import { KeylessError, KeylessErrorType } from "../errors";
+import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -40,6 +44,7 @@ import { InputGenerateTransactionOptions, SimpleTransaction } from "../transacti
  * @param args.uidKey - An optional unique identifier key (defaults to "sub").
  * @param args.derivationPath - An optional derivation path for the key.
  * @returns A Uint8Array containing the fetched pepper value.
+ * @group Implementation
  */
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -79,6 +84,7 @@ export async function getPepper(args: {
  * @param args.pepper - An optional hex input used to enhance security (default is generated if not provided).
  * @param args.uidKey - An optional string that specifies the unique identifier key (defaults to "sub").
  * @throws Error if the pepper length is not valid or if the ephemeral key pair's lifespan exceeds the maximum allowed.
+ * @group Implementation
  */
 export async function getProof(args: {
   aptosConfig: AptosConfig;
@@ -86,12 +92,19 @@ export async function getProof(args: {
   ephemeralKeyPair: EphemeralKeyPair;
   pepper?: HexInput;
   uidKey?: string;
+  maxExpHorizonSecs?: number;
 }): Promise<ZeroKnowledgeSig> {
-  const { aptosConfig, jwt, ephemeralKeyPair, pepper = await getPepper(args), uidKey = "sub" } = args;
+  const {
+    aptosConfig,
+    jwt,
+    ephemeralKeyPair,
+    pepper = await getPepper(args),
+    uidKey = "sub",
+    maxExpHorizonSecs = (await getKeylessConfig({ aptosConfig })).maxExpHorizonSecs,
+  } = args;
   if (Hex.fromHexInput(pepper).toUint8Array().length !== KeylessAccount.PEPPER_LENGTH) {
     throw new Error(`Pepper needs to be ${KeylessAccount.PEPPER_LENGTH} bytes`);
   }
-  const { maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
   const decodedJwt = jwtDecode<JwtPayload>(jwt);
   if (typeof decodedJwt.iat !== "number") {
     throw new Error("iat was not found");
@@ -144,6 +157,7 @@ export async function getProof(args: {
  * @param args.pepper - An optional hexadecimal input used for additional security.
  * @param args.proofFetchCallback - An optional callback function to handle the proof fetch outcome.
  * @returns A keyless account object.
+ * @group Implementation
  */
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
@@ -174,7 +188,9 @@ export async function deriveKeylessAccount(args: {
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
-  const proofPromise = getProof({ ...args, pepper });
+  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+
+  const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
   // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
   // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
   // allowing for faster rendering of UX.
@@ -190,7 +206,15 @@ export async function deriveKeylessAccount(args: {
       authenticationKey: publicKey.authKey().derivedAddress(),
     });
 
-    return FederatedKeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, jwkAddress });
+    return FederatedKeylessAccount.create({
+      ...args,
+      address,
+      proof,
+      pepper,
+      proofFetchCallback,
+      jwkAddress,
+      verificationKey,
+    });
   }
 
   const publicKey = KeylessPublicKey.fromJwtAndPepper({ jwt, pepper, uidKey });
@@ -198,19 +222,11 @@ export async function deriveKeylessAccount(args: {
     aptosConfig,
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
-  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback });
+  return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
 }
 
-interface JWK {
-  kty: string; // Key type
-  kid: string; // Key ID
-  alg: string; // Algorithm used with the key
-  n: string; // Modulus (for RSA keys)
-  e: string; // Exponent (for RSA keys)
-}
-
-interface JWKS {
-  keys: JWK[];
+export interface JWKS {
+  keys: MoveJWK[];
 }
 
 export async function updateFederatedKeylessJwkSetTransaction(args: {
@@ -221,11 +237,37 @@ export async function updateFederatedKeylessJwkSetTransaction(args: {
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, sender, iss, options } = args;
-  const jwksUrl = args.jwksUrl ?? (iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`);
-  const response = await fetch(jwksUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+
+  let { jwksUrl } = args;
+
+  if (jwksUrl === undefined) {
+    if (FIREBASE_AUTH_ISS_PATTERN.test(iss)) {
+      jwksUrl = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+    } else {
+      jwksUrl = iss.endsWith("/") ? `${iss}.well-known/jwks.json` : `${iss}/.well-known/jwks.json`;
+    }
   }
+
+  let response: Response;
+
+  try {
+    response = await fetch(jwksUrl);
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = `${error.message}`;
+    } else {
+      errorMessage = `error unknown - ${error}`;
+    }
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.JWK_FETCH_FAILED_FEDERATED,
+      details: `Failed to fetch JWKS at ${jwksUrl}: ${errorMessage}`,
+    });
+  }
+
   const jwks: JWKS = await response.json();
   return generateTransaction({
     aptosConfig,

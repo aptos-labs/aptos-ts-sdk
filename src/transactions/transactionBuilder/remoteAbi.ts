@@ -54,6 +54,8 @@ const TEXT_ENCODER = new TextEncoder();
  *
  * @param typeArguments - An optional array of type arguments that may include string representations.
  * @returns An array of TypeTag objects derived from the provided type arguments.
+ * @group Implementation
+ * @category Transactions
  */
 export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<TypeTag> {
   return (
@@ -75,6 +77,8 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
  * @param moduleName - The name of the module containing the function.
  * @param functionName - The name of the function whose ABI is to be fetched.
  * @param aptosConfig - The configuration settings for Aptos.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchFunctionAbi(
   moduleAddress: string,
@@ -102,6 +106,8 @@ export async function fetchFunctionAbi(
  * @param aptosConfig - The configuration settings for Aptos.
  * @returns An object containing the number of signers, type parameters, and function parameters.
  * @throws Error if the ABI cannot be found or if the function is not an entry function.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchEntryFunctionAbi(
   moduleAddress: string,
@@ -145,6 +151,8 @@ export async function fetchEntryFunctionAbi(
  * @param aptosConfig - The configuration settings for Aptos.
  * @returns An object containing the type parameters, parameters, and return types of the view function.
  * @throws Error if the ABI cannot be found or if the function is not a view function.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchViewFunctionAbi(
   moduleAddress: string,
@@ -192,6 +200,8 @@ export async function fetchViewFunctionAbi(
  * @param arg - The argument to be converted, which can be of various types.
  * @param position - The index of the argument in the function's parameter list.
  * @param genericTypeParams - An array of type tags for any generic type parameters.
+ * @group Implementation
+ * @category Transactions
  */
 export function convertArgument(
   functionName: string,
@@ -217,6 +227,8 @@ export function convertArgument(
  * @param param - The expected type tag for the argument.
  * @param position - The position of the argument in the function call.
  * @param genericTypeParams - An array of generic type parameters that may be used for conversion.
+ * @group Implementation
+ * @category Transactions
  */
 export function checkOrConvertArgument(
   arg: SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes,
@@ -235,6 +247,8 @@ export function checkOrConvertArgument(
      * @param typeArgs - The expected type arguments.
      * @param arg - The argument to be checked.
      * @param position - The position of the argument in the context of the check.
+     * @group Implementation
+     * @category Transactions
      */
     checkType(param, arg, position);
     return arg;
@@ -253,6 +267,8 @@ export function checkOrConvertArgument(
  * @param param - The type tag that defines the expected type of the argument.
  * @param position - The position of the argument in the function call, used for error reporting.
  * @param genericTypeParams - An array of type tags for generic type parameters, used when the parameter type is generic.
+ * @group Implementation
+ * @category Transactions
  */
 function parseArg(
   arg: SimpleEntryFunctionArgumentTypes,
@@ -274,6 +290,8 @@ function parseArg(
      *
      * @param moveOption - The name of the move option that caused the type mismatch.
      * @param position - The position where the error occurred.
+     * @group Implementation
+     * @category Transactions
      */
     throwTypeMismatch("boolean", position);
   }
@@ -425,6 +443,8 @@ function parseArg(
  * @param param
  * @param arg
  * @param position
+ * @group Implementation
+ * @category Transactions
  */
 function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number) {
   if (param.isBool()) {

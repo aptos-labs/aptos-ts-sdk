@@ -4,6 +4,8 @@
 /**
  * The global cache Map shared across all functions.  Must keep care to ensure that the
  * cache keys are unique across all functions.
+ * @group Implementation
+ * @category Utils
  */
 const cache = new Map<string, { value: any; timestamp: number }>();
 
@@ -16,6 +18,8 @@ const cache = new Map<string, { value: any; timestamp: number }>();
  * @param key The cache key used to store the result.
  * @param ttlMs The time-to-live in milliseconds for cached data.
  * @returns The cached or latest result.
+ * @group Implementation
+ * @category Utils
  */
 export function memoizeAsync<T>(
   func: (...args: any[]) => Promise<T>,
@@ -48,6 +52,8 @@ export function memoizeAsync<T>(
  * @param func - The function whose result will be cached.
  * @param ttlMs - The time-to-live in milliseconds for cached data.
  * @returns A memoized version of the provided function that returns the cached result if available and within TTL.
+ * @group Implementation
+ * @category Utils
  */
 export function memoize<T>(func: (...args: any[]) => T, key: string, ttlMs?: number): (...args: any[]) => T {
   return (...args: any[]) => {

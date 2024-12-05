@@ -4,6 +4,34 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.33.1 (2024-11-28)
+
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
+- Removed strictness warnings for bytes AIP-80 private key parsing formatting.
+- Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
+
+# 1.33.0 (2024-11-13)
+
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
+
+# 1.32.1 (2024-11-11)
+
+- Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+
+# 1.32.0 (2024-11-08)
+
+- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+- Add support for AIP-80 compliant private key imports and exports through `toAIP80String`
+- Add `PrivateKey` helpers for AIP-80: `PrivateKey.parseHexInput`, `PrivateKey.formatPrivateKey`, and `PrivateKey.AIP80_PREFIXES`.
+- Adds explicit error handling Keyless accounts using `KeylessError`. Handles JWK rotations and Verifying Key rotations.
+- Includes the address in the `AbstractKeylessAccount` serialization to prevent information loss for key rotated accounts.
+- [`Breaking`] Deprecate `serializeOptionStr` and `deserializeOptionStr` in favor of `serializeOption` and `deserializeOption`.
+- [`Breaking`] Renames `KeylessConfiguration.verficationKey` to `verificationKey`
+- Add a new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+
 # 1.31.0 (2024-10-24)
 
 - Bump `@aptos-labs/aptos-cli` to `1.0.2`
@@ -16,7 +44,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support for MultiKey's in transaction simulations
 - Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
 - Bump `@aptos-labs/aptos-cli` to `1.0.1`
-- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
 
 # 1.29.1 (2024-10-09)
 

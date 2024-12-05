@@ -1,5 +1,7 @@
 /**
  * The payload for a prover request, containing a Base64-encoded JWT.
+ * @group Implementation
+ * @category Types
  */
 export type ProverRequest = {
   jwt_b64: string;
@@ -13,6 +15,8 @@ export type ProverRequest = {
 
 /**
  * The response from the prover containing the proof data.
+ * @group Implementation
+ * @category Types
  */
 export type ProverResponse = {
   proof: { a: string; b: string; c: string };
@@ -22,6 +26,8 @@ export type ProverResponse = {
 
 /**
  * The request payload for fetching data, containing a base64 encoded JWT.
+ * @group Implementation
+ * @category Types
  */
 export type PepperFetchRequest = {
   jwt_b64: number;
@@ -34,11 +40,15 @@ export type PepperFetchRequest = {
 
 /**
  * The response object containing the fetched pepper string.
+ * @group Implementation
+ * @category Types
  */
 export type PepperFetchResponse = { pepper: string; address: string };
 
 /**
  * The response for keyless configuration containing the maximum committed EPK bytes.
+ * @group Implementation
+ * @category Types
  */
 export type KeylessConfigurationResponse = {
   max_commited_epk_bytes: number;
@@ -53,6 +63,8 @@ export type KeylessConfigurationResponse = {
 
 /**
  * The response containing the Groth16 verification key, including the alpha_g1 component.
+ * @group Implementation
+ * @category Types
  */
 export type Groth16VerificationKeyResponse = {
   alpha_g1: string;
@@ -60,4 +72,23 @@ export type Groth16VerificationKeyResponse = {
   delta_g2: string;
   gamma_abc_g1: [string, string];
   gamma_g2: string;
+};
+
+/**
+ * The response containing the Groth16 verification key, including the alpha_g1 component.
+ */
+export type PatchedJWKsResponse = {
+  jwks: { entries: [IssuerJWKS] };
+};
+
+/**
+ * The response containing the Groth16 verification key, including the alpha_g1 component.
+ */
+export type IssuerJWKS = {
+  issuer: string;
+  jwks: [MoveAnyStruct];
+};
+
+export type MoveAnyStruct = {
+  variant: { data: string; type_name: string };
 };

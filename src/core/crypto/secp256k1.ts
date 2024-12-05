@@ -6,7 +6,7 @@ import { secp256k1 } from "@noble/curves/secp256k1";
 import { HDKey } from "@scure/bip32";
 import { Serializable, Deserializer, Serializer } from "../../bcs";
 import { Hex } from "../hex";
-import { HexInput } from "../../types";
+import { HexInput, PrivateKeyVariants } from "../../types";
 import { isValidBIP44Path, mnemonicToSeed } from "./hdKey";
 import { PrivateKey } from "./privateKey";
 import { PublicKey, VerifySignatureArgs } from "./publicKey";
@@ -17,12 +17,16 @@ import { convertSigningMessage } from "./utils";
  * Represents a Secp256k1 ECDSA public key.
  *
  * @extends PublicKey
- * @static
  * @property LENGTH - The length of the Secp256k1 public key in bytes.
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256k1PublicKey extends PublicKey {
   // Secp256k1 ecdsa public keys contain a prefix indicating compression and two 32-byte coordinates.
   static readonly LENGTH: number = 65;
+
+  // If it's compressed, it is only 33 bytes
+  static readonly COMPRESSED_LENGTH: number = 33;
 
   // Hex value of the public key
   private readonly key: Hex;
@@ -33,15 +37,24 @@ export class Secp256k1PublicKey extends PublicKey {
    *
    * @param hexInput - A HexInput (string or Uint8Array) representing the signature data.
    * @throws Error if the length of the signature data is not equal to Secp256k1Signature.LENGTH.
+   * @group Implementation
+   * @category Serialization
    */
   constructor(hexInput: HexInput) {
     super();
 
     const hex = Hex.fromHexInput(hexInput);
-    if (hex.toUint8Array().length !== Secp256k1PublicKey.LENGTH) {
-      throw new Error(`PublicKey length should be ${Secp256k1PublicKey.LENGTH}`);
+    const { length } = hex.toUint8Array();
+    if (length === Secp256k1PublicKey.LENGTH) {
+      this.key = hex;
+    } else if (length === Secp256k1PublicKey.COMPRESSED_LENGTH) {
+      const point = secp256k1.ProjectivePoint.fromHex(hex.toUint8Array());
+      this.key = Hex.fromHexInput(point.toRawBytes(false));
+    } else {
+      throw new Error(
+        `PublicKey length should be ${Secp256k1PublicKey.LENGTH} or ${Secp256k1PublicKey.COMPRESSED_LENGTH}, received ${length}`,
+      );
     }
-    this.key = hex;
   }
 
   // region PublicKey
@@ -53,6 +66,8 @@ export class Secp256k1PublicKey extends PublicKey {
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the public key.
+   * @group Implementation
+   * @category Serialization
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     const { message, signature } = args;
@@ -67,6 +82,8 @@ export class Secp256k1PublicKey extends PublicKey {
    * Get the data as a Uint8Array representation.
    *
    * @returns Uint8Array representation of the data.
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.key.toUint8Array();
@@ -81,6 +98,8 @@ export class Secp256k1PublicKey extends PublicKey {
    * This function is essential for converting data into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to convert the data.
+   * @group Implementation
+   * @category Serialization
    */
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.key.toUint8Array());
@@ -91,6 +110,8 @@ export class Secp256k1PublicKey extends PublicKey {
    * This function allows you to reconstruct a Secp256k1Signature object from its serialized byte representation.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
    */
   // eslint-disable-next-line class-methods-use-this
   deserialize(deserializer: Deserializer) {
@@ -110,6 +131,8 @@ export class Secp256k1PublicKey extends PublicKey {
    *
    * @deprecated use `instanceof Secp256k1PublicKey` instead
    * @param publicKey - The public key to check.
+   * @group Implementation
+   * @category Serialization
    */
   static isPublicKey(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
     return publicKey instanceof Secp256k1PublicKey;
@@ -121,6 +144,8 @@ export class Secp256k1PublicKey extends PublicKey {
    *
    * @param publicKey - The public key to validate.
    * @returns A boolean indicating whether the public key is a valid Secp256k1 public key.
+   * @group Implementation
+   * @category Serialization
    */
   static isInstance(publicKey: PublicKey): publicKey is Secp256k1PublicKey {
     return "key" in publicKey && (publicKey.key as any)?.data?.length === Secp256k1PublicKey.LENGTH;
@@ -130,16 +155,22 @@ export class Secp256k1PublicKey extends PublicKey {
 /**
  * Represents a Secp256k1 ECDSA private key, providing functionality to create, sign messages,
  * derive public keys, and serialize/deserialize the key.
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Length of Secp256k1 ecdsa private key
+   * @group Implementation
+   * @category Serialization
    */
   static readonly LENGTH: number = 32;
 
   /**
    * The private key bytes
    * @private
+   * @group Implementation
+   * @category Serialization
    */
   private readonly key: Hex;
 
@@ -148,12 +179,17 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
   /**
    * Create a new PrivateKey instance from a Uint8Array or String.
    *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @param strict If true, private key must AIP-80 compliant.
+   * @group Implementation
+   * @category Serialization
    */
-  constructor(hexInput: HexInput) {
+  constructor(hexInput: HexInput, strict?: boolean) {
     super();
 
-    const privateKeyHex = Hex.fromHexInput(hexInput);
+    const privateKeyHex = PrivateKey.parseHexInput(hexInput, PrivateKeyVariants.Secp256k1, strict);
     if (privateKeyHex.toUint8Array().length !== Secp256k1PrivateKey.LENGTH) {
       throw new Error(`PrivateKey length should be ${Secp256k1PrivateKey.LENGTH}`);
     }
@@ -165,10 +201,12 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Generate a new random private key.
    *
    * @returns Secp256k1PrivateKey - A newly generated Secp256k1 private key.
+   * @group Implementation
+   * @category Serialization
    */
   static generate(): Secp256k1PrivateKey {
     const hexInput = secp256k1.utils.randomPrivateKey();
-    return new Secp256k1PrivateKey(hexInput);
+    return new Secp256k1PrivateKey(hexInput, false);
   }
 
   /**
@@ -180,6 +218,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @returns The generated private key.
    *
    * @throws Error if the provided path is not a valid BIP44 path.
+   * @group Implementation
+   * @category Serialization
    */
   static fromDerivationPath(path: string, mnemonics: string): Secp256k1PrivateKey {
     if (!isValidBIP44Path(path)) {
@@ -196,6 +236,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @param seed - The seed phrase created by the mnemonics, represented as a Uint8Array.
    * @returns The generated private key as an instance of Secp256k1PrivateKey.
    * @throws Error if the derived private key is invalid.
+   * @group Implementation
+   * @category Serialization
    */
   private static fromDerivationPathInner(path: string, seed: Uint8Array): Secp256k1PrivateKey {
     const { privateKey } = HDKey.fromMasterSeed(seed).derive(path);
@@ -204,7 +246,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
       throw new Error("Invalid key");
     }
 
-    return new Secp256k1PrivateKey(privateKey);
+    return new Secp256k1PrivateKey(privateKey, false);
   }
 
   // endregion
@@ -217,6 +259,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    *
    * @param message - A message in HexInput format to be signed.
    * @returns Signature - The generated signature for the provided message.
+   * @group Implementation
+   * @category Serialization
    */
   sign(message: HexInput): Secp256k1Signature {
     const messageToSign = convertSigningMessage(message);
@@ -230,6 +274,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Derive the Secp256k1PublicKey from this private key.
    *
    * @returns Secp256k1PublicKey The derived public key.
+   * @group Implementation
+   * @category Serialization
    */
   publicKey(): Secp256k1PublicKey {
     const bytes = secp256k1.getPublicKey(this.key.toUint8Array(), false);
@@ -240,6 +286,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Get the private key in bytes (Uint8Array).
    *
    * @returns
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.key.toUint8Array();
@@ -249,9 +297,31 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * Get the private key as a string representation.
    *
    * @returns string representation of the private key
+   * @group Implementation
+   * @category Serialization
    */
   toString(): string {
+    return this.toHexString();
+  }
+
+  /**
+   * Get the private key as a hex string with the 0x prefix.
+   *
+   * @returns string representation of the private key.
+   */
+  toHexString(): string {
     return this.key.toString();
+  }
+
+  /**
+   * Get the private key as a AIP-80 compliant hex string.
+   *
+   * [Read about AIP-80](https://github.com/aptos-foundation/AIPs/blob/main/aips/aip-80.md)
+   *
+   * @returns AIP-80 compliant string representation of the private key.
+   */
+  toAIP80String(): string {
+    return PrivateKey.formatPrivateKey(this.key.toString(), PrivateKeyVariants.Secp256k1);
   }
 
   // endregion
@@ -264,7 +334,7 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 
   static deserialize(deserializer: Deserializer): Secp256k1PrivateKey {
     const bytes = deserializer.deserializeBytes();
-    return new Secp256k1PrivateKey(bytes);
+    return new Secp256k1PrivateKey(bytes, false);
   }
 
   // endregion
@@ -275,6 +345,8 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
    * @param privateKey - The private key to be checked.
    *
    * @deprecated use `instanceof Secp256k1PrivateKey` instead
+   * @group Implementation
+   * @category Serialization
    */
   static isPrivateKey(privateKey: PrivateKey): privateKey is Secp256k1PrivateKey {
     return privateKey instanceof Secp256k1PrivateKey;
@@ -284,19 +356,22 @@ export class Secp256k1PrivateKey extends Serializable implements PrivateKey {
 /**
  * Represents a signature of a message signed using a Secp256k1 ECDSA private key.
  *
- * @static
- * @readonly
- * @length The length of Secp256k1 ECDSA signatures, which is 64 bytes.
+ * @group Implementation
+ * @category Serialization
  */
 export class Secp256k1Signature extends Signature {
   /**
    * Secp256k1 ecdsa signatures are 256-bit.
+   * @group Implementation
+   * @category Serialization
    */
   static readonly LENGTH = 64;
 
   /**
    * The signature bytes
    * @private
+   * @group Implementation
+   * @category Serialization
    */
   private readonly data: Hex;
 
@@ -306,6 +381,8 @@ export class Secp256k1Signature extends Signature {
    * Create a new Signature instance from a Uint8Array or String.
    *
    * @param hexInput A HexInput (string or Uint8Array)
+   * @group Implementation
+   * @category Serialization
    */
   constructor(hexInput: HexInput) {
     super();

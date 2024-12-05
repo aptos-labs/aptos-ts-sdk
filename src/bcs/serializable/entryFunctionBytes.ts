@@ -16,6 +16,8 @@ import { HexInput } from "../../types";
  * If you wish to convert this class back to a TransactionArgument, you must know the type
  * of the argument beforehand, and use the appropriate class to deserialize the bytes within
  * an instance of this class.
+ * @group Implementation
+ * @category BCS
  */
 export class EntryFunctionBytes extends Serializable implements EntryFunctionArgument {
   public readonly value: FixedBytes;
@@ -24,6 +26,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
    * Creates an instance of the class with a specified hexadecimal input value.
    *
    * @param value - The hexadecimal input to be converted into FixedBytes.
+   * @group Implementation
+   * @category BCS
    */
   private constructor(value: HexInput) {
     super();
@@ -45,6 +49,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
    * we must not serialize the length prefix.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serialize(serializer: Serializer): void {
     serializer.serialize(this.value);
@@ -62,6 +68,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
    * This process includes serializing the length prefix of the byte vector.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category BCS
    */
   serializeForEntryFunction(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(this.value.value.length);
@@ -74,6 +82,8 @@ export class EntryFunctionBytes extends Serializable implements EntryFunctionArg
    * @param deserializer - The deserializer instance with the buffered bytes.
    * @param length - The length of the bytes to deserialize.
    * @returns An instance of this class, which will now only be usable as an EntryFunctionArgument.
+   * @group Implementation
+   * @category BCS
    */
   static deserialize(deserializer: Deserializer, length: number): EntryFunctionBytes {
     const fixedBytes = FixedBytes.deserialize(deserializer, length);
