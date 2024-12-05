@@ -49,7 +49,7 @@ export class VeiledKeyRotation {
     this.currEncryptedBalance = currEncryptedBalance;
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationSubproofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: VeiledKeyRotationSigmaProof): Uint8Array {
     return concatBytes(

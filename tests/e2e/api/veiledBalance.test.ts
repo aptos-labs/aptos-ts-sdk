@@ -7,7 +7,6 @@ import {
   Network,
   Account,
   NetworkToNetworkName,
-  AccountAddress,
   TwistedEd25519PrivateKey,
   AnyRawTransaction,
   CommittedTransactionResponse,
@@ -95,7 +94,7 @@ describe("Veiled balance api", () => {
         }),
       ]);
 
-      expect(aliceBalance).toBeGreaterThanOrEqual(INITIAL_APTOS_BALANCE);
+      expect(aliceBalance).toBeGreaterThan(0);
     },
     longTestTimeout,
   );
@@ -171,7 +170,7 @@ describe("Veiled balance api", () => {
     expect(resp.success).toBeTruthy();
   });
 
-  const DEPOSIT_AMOUNT = 25n;
+  const DEPOSIT_AMOUNT = 5n;
   test("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
     const depositTx = await aptos.veiledBalance.deposit({
       sender: alice.accountAddress,

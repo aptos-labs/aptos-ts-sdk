@@ -66,7 +66,7 @@ export class VeiledNormalization {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationSubproofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: VeiledNormalizationSigmaProof): Uint8Array {
     return concatBytes(
@@ -131,15 +131,16 @@ export class VeiledNormalization {
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.unnormilizedEncryptedBalance
-        .reduce((acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
+        .reduce(
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          RistrettoPoint.ZERO,
+        )
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
-    const X3List = x4List.map((item, index) =>
-      RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x5List[index])).toRawBytes(),
-    );
+    const X3List = x4List.map((x4, index) => RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x5List[index])));
     const X4List = x5List.map((item) =>
-      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item).toRawBytes(),
+      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item),
     );
 
     const p = genFiatShamirChallenge(
@@ -151,8 +152,8 @@ export class VeiledNormalization {
       ...this.normalizedVeiledAmount.encryptedAmount!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
-      ...X3List,
-      ...X4List,
+      ...X3List.map((X3) => X3.toRawBytes()),
+      ...X4List.map((X4) => X4.toRawBytes()),
     );
 
     const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
@@ -178,8 +179,8 @@ export class VeiledNormalization {
       alpha5List,
       X1: X1.toRawBytes(),
       X2: X2.toRawBytes(),
-      X3List,
-      X4List,
+      X3List: X3List.map((X3) => X3.toRawBytes()),
+      X4List: X4List.map((X4) => X4.toRawBytes()),
     };
   }
 

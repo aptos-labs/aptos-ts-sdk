@@ -75,7 +75,7 @@ export class VeiledWithdraw {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/WithdrawalSubproofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/WithdrawalProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: VeiledWithdrawSigmaProof): Uint8Array {
     return concatBytes(
@@ -151,6 +151,22 @@ export class VeiledWithdraw {
       RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item).toRawBytes(),
     );
 
+    console.log("genFiatShamirChallenge length");
+    console.log(
+      concatBytes(
+        utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
+        ...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
+        this.privateKey.publicKey().toUint8Array(),
+        ...this.encryptedActualBalanceAmount.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+        RistrettoPoint.BASE.toRawBytes(),
+        H_RISTRETTO.toRawBytes(),
+        X1.toRawBytes(),
+        X2.toRawBytes(),
+        ...X3List,
+        ...X4List,
+      ).length,
+    );
+
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
       ...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
@@ -163,6 +179,8 @@ export class VeiledWithdraw {
       ...X3List,
       ...X4List,
     );
+
+    console.log("p", p);
 
     const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);

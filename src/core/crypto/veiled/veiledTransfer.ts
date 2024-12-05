@@ -125,7 +125,7 @@ export class VeiledTransfer {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferSubproofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: VeiledTransferSigmaProof): Uint8Array {
     return concatBytes(
