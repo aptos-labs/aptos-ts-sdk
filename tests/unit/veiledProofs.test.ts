@@ -147,7 +147,8 @@ describe("Generate 'veiled coin' proofs", () => {
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
-        decryptionKeys: veiledTransferWithAuditors.auditorsDList!,
+        // decryptionKeys: veiledTransferWithAuditors.auditorsDList!,
+        auditorsVBList: veiledTransferWithAuditors.auditorsVBList!,
       },
     });
 
@@ -170,7 +171,8 @@ describe("Generate 'veiled coin' proofs", () => {
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],
-        decryptionKeys: auditorsDList,
+        // decryptionKeys: auditorsDList,
+        auditorsVBList: veiledTransferWithAuditors.auditorsVBList!,
       },
     });
 

@@ -45,9 +45,9 @@ export class VeiledTransfer {
 
   auditorsU8PublicKeys?: Uint8Array[];
 
-  auditorsDList: Uint8Array[][];
+  // auditorsDList: Uint8Array[][];
 
-  auditorsVBList?: TwistedElGamalCiphertext[];
+  auditorsVBList: TwistedElGamalCiphertext[][];
 
   encryptedActualBalance: TwistedElGamalCiphertext[];
 
@@ -83,10 +83,17 @@ export class VeiledTransfer {
 
     this.auditorPublicKeys = auditorPublicKeys;
     this.auditorsU8PublicKeys = auditorPublicKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
-    this.auditorsDList = this.auditorsU8PublicKeys.map((pk) => {
-      const pkRist = RistrettoPoint.fromHex(pk);
-      return this.randomness.map((r) => pkRist.multiply(r).toRawBytes());
-    });
+    // this.auditorsDList = this.auditorsU8PublicKeys.map((pk) => {
+    //   const pkRist = RistrettoPoint.fromHex(pk);
+    //   return this.randomness.map((r) => pkRist.multiply(r).toRawBytes());
+    // });
+
+    this.auditorsVBList =
+      auditorPublicKeys?.map((el) =>
+        this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
+          TwistedElGamal.encryptWithPK(chunk, el, this.randomness[i]),
+        ),
+      ) || [];
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferSubproofFiatShamir";
@@ -174,19 +181,10 @@ export class VeiledTransfer {
     this.veiledAmountAfterTransfer = VeiledAmount.fromAmount(actualBalance.amount - this.veiledAmountToTransfer.amount);
     this.veiledAmountAfterTransfer.encryptBalance(this.senderPrivateKey.publicKey(), this.randomness);
 
-    const auditorsVBList = this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
-      TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(this.recipientPublicKeyU8), this.randomness[i]),
-    );
-
-    if (auditorsVBList?.length) {
-      this.auditorsVBList = auditorsVBList;
-    }
-
     this.isInitialized = true;
   }
 
   async genSigmaProof(): Promise<VeiledTransferSigmaProof> {
-    console.log("genSigmaProof");
     if (!this.isInitialized) throw new TypeError("VeiledTransfer is not initialized");
 
     if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT)
@@ -256,8 +254,8 @@ export class VeiledTransfer {
       ...this.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...senderNewEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...this.encryptedAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.auditorsDList.flat(),
-      // ...(this.auditorsVBList?.map(({ D }) => D.toRawBytes()) ?? []), FIXME
+      // ...this.auditorsDList.flat(),
+      ...(this.auditorsVBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
       X1,
       ...X2List,
       ...X3List,
@@ -281,9 +279,6 @@ export class VeiledTransfer {
       (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer!.amountChunks![idx]),
       32,
     );
-
-    console.log("X1", X1);
-    console.log("RistrettoPoint.fromHex(opts.sigmaProof.X1)", RistrettoPoint.fromHex(X1));
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
@@ -311,13 +306,13 @@ export class VeiledTransfer {
     sigmaProof: VeiledTransferSigmaProof;
     auditors?: {
       publicKeys: (TwistedEd25519PublicKey | HexInput)[];
-      decryptionKeys: HexInput[][];
+      // decryptionKeys: HexInput[][];
+      auditorsVBList: TwistedElGamalCiphertext[][];
     };
   }): boolean {
-    console.log("verifySigmaProof");
     const auditorPKs = opts?.auditors?.publicKeys.map((pk) => publicKeyToU8(pk)) ?? [];
-    const auditorDecryptionKeys =
-      opts?.auditors?.decryptionKeys.map((arr) => arr.map((key) => Hex.fromHexInput(key).toUint8Array())) ?? [];
+    // const auditorDecryptionKeys =
+    //   opts?.auditors?.decryptionKeys.map((arr) => arr.map((key) => Hex.fromHexInput(key).toUint8Array())) ?? [];
     const proofX7List = opts.sigmaProof.X7List ?? [];
 
     const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
@@ -341,7 +336,8 @@ export class VeiledTransfer {
       ...opts.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...opts.encryptedActualBalanceAfterTransfer.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...opts.encryptedTransferAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...auditorDecryptionKeys.flat(),
+      // ...auditorDecryptionKeys.flat(),
+      ...(opts.auditors?.auditorsVBList?.flat().map(({ D }) => D.toRawBytes()) || []),
       opts.sigmaProof.X1,
       ...opts.sigmaProof.X2List,
       ...opts.sigmaProof.X3List,
@@ -405,18 +401,15 @@ export class VeiledTransfer {
       const pC = opts.encryptedActualBalanceAfterTransfer![i].C.multiply(p);
       return aG.add(aH).add(pC);
     });
-    const X7List = auditorPKs.map((pk, pkI) =>
+    const X7List = auditorPKs.map((auPk, auPubKIdx) =>
       alpha3LEList
         .slice(0, j)
         .map((a3, idxJ) =>
-          RistrettoPoint.fromHex(pk)
+          RistrettoPoint.fromHex(auPk)
             .multiply(a3)
-            .add(RistrettoPoint.fromHex(auditorDecryptionKeys[pkI][idxJ]).multiply(p)),
+            .add(RistrettoPoint.fromHex(opts.auditors!.auditorsVBList[auPubKIdx][idxJ].D.toRawBytes()!).multiply(p)),
         ),
     );
-
-    console.log("X1", X1);
-    console.log("X1.toRawBytes()", X1.toRawBytes());
 
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
