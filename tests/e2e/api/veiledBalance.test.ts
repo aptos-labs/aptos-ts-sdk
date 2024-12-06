@@ -289,6 +289,18 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
+  test("it should check Alice's veiled balance after transfer", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceVeiledPrivateKey);
+
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+  });
+
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   test("it should transfer Alice's tokens to Alice's veiled balance with auditor", async () => {
     const transferTx = await aptos.veiledBalance.transferCoin({
@@ -306,7 +318,7 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
-  test("it should check Alice's veiled balance after transfer", async () => {
+  test("it should check Alice's veiled balance after transfer with auditors", async () => {
     const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
