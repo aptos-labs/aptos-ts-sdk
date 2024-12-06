@@ -1,6 +1,6 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
-import { utf8ToBytes } from "@noble/hashes/utils";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
@@ -60,6 +60,7 @@ export class VeiledWithdraw {
     const veiledAmountToWithdraw = VeiledAmount.fromAmount(args.amountToWithdraw, {
       chunksCount: 2,
     });
+    veiledAmountToWithdraw.encryptBalance(args.privateKey.publicKey(), randomness);
 
     const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.privateKey);
 
@@ -136,6 +137,7 @@ export class VeiledWithdraw {
     const x3 = ed25519GenRandom();
 
     const x4List = ed25519GenListOfRandom();
+
     const x5List = ed25519GenListOfRandom();
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
@@ -145,42 +147,24 @@ export class VeiledWithdraw {
     );
     const X2 = H_RISTRETTO.multiply(x3);
     const X3List = x4List.map((item, index) =>
-      RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x5List[index])).toRawBytes(),
+      RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x5List[index])),
     );
     const X4List = x5List.map((item) =>
-      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item).toRawBytes(),
-    );
-
-    console.log("genFiatShamirChallenge length");
-    console.log(
-      concatBytes(
-        utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
-        ...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
-        this.privateKey.publicKey().toUint8Array(),
-        ...this.encryptedActualBalanceAmount.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-        RistrettoPoint.BASE.toRawBytes(),
-        H_RISTRETTO.toRawBytes(),
-        X1.toRawBytes(),
-        X2.toRawBytes(),
-        ...X3List,
-        ...X4List,
-      ).length,
+      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item),
     );
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
-      ...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
+      concatBytes(...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32))),
       this.privateKey.publicKey().toUint8Array(),
-      ...this.encryptedActualBalanceAmount.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       X1.toRawBytes(),
       X2.toRawBytes(),
-      ...X3List,
-      ...X4List,
+      ...X3List.map((el) => el.toRawBytes()),
+      ...X4List.map((el) => el.toRawBytes()),
     );
-
-    console.log("p", p);
 
     const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
@@ -194,23 +178,23 @@ export class VeiledWithdraw {
     const alpha3 = ed25519modN(x3 - psInvert);
     const alpha4List = x4List.map((x4, i) => {
       const pChunk = ed25519modN(p * this.veiledAmountAfterWithdraw.amountChunks[i]);
-      return numberToBytesLE(ed25519modN(x4 - pChunk), 32);
+      return ed25519modN(x4 - pChunk);
     });
     const alpha5List = x5List.map((x5, i) => {
       const pRand = ed25519modN(p * this.randomness[i]);
-      return numberToBytesLE(ed25519modN(x5 - pRand), 32);
+      return ed25519modN(x5 - pRand);
     });
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
       alpha2: numberToBytesLE(alpha2, 32),
       alpha3: numberToBytesLE(alpha3, 32),
-      alpha4List,
-      alpha5List,
+      alpha4List: alpha4List.map((el) => numberToBytesLE(el, 32)),
+      alpha5List: alpha5List.map((el) => numberToBytesLE(el, 32)),
       X1: X1.toRawBytes(),
       X2: X2.toRawBytes(),
-      X3List,
-      X4List,
+      X3List: X3List.map((el) => el.toRawBytes()),
+      X4List: X4List.map((el) => el.toRawBytes()),
     };
   }
 
