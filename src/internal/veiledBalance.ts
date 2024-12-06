@@ -16,6 +16,7 @@ import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
 import { generateTransaction } from "./transactionSubmission";
 import { view } from "./view";
 import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
+import { Account } from "../api/account";
 
 const VEILED_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
 
@@ -185,6 +186,18 @@ export async function safeRolloverPendingVeiledBalanceTransaction(args: {
     tokenAddress: args.tokenAddress,
   });
 
+  let accountSequenceNumber = args.options?.accountSequenceNumber;
+
+  if (!accountSequenceNumber) {
+    const account = new Account(args.aptosConfig);
+
+    const senderAccountInfo = await account.getAccountInfo({
+      accountAddress: args.sender,
+    });
+
+    accountSequenceNumber = Number(senderAccountInfo.sequence_number);
+  }
+
   if (!isNormalized) {
     const normalizeTx = await normalizeUserBalance({
       aptosConfig: args.aptosConfig,
@@ -198,7 +211,7 @@ export async function safeRolloverPendingVeiledBalanceTransaction(args: {
 
       sender: args.sender,
 
-      options: args.options,
+      options: { ...args.options, accountSequenceNumber: Number(accountSequenceNumber) },
     });
 
     txList.push(normalizeTx);
@@ -209,7 +222,10 @@ export async function safeRolloverPendingVeiledBalanceTransaction(args: {
     sender: args.sender,
     tokenAddress: args.tokenAddress,
     withFreezeBalance: args.withFreezeBalance,
-    options: args.options,
+    options: {
+      ...args.options,
+      accountSequenceNumber: txList?.length ? Number(accountSequenceNumber) + 1 : Number(accountSequenceNumber),
+    },
   });
 
   txList.push(rolloverTx);
@@ -380,6 +396,18 @@ export async function safeVeiledBalanceKeyRotationTransactions(args: {
     aptosConfig: args.aptosConfig,
   });
 
+  let accountSequenceNumber = args.options?.accountSequenceNumber;
+
+  if (!accountSequenceNumber) {
+    const account = new Account(args.aptosConfig);
+
+    const senderAccountInfo = await account.getAccountInfo({
+      accountAddress: args.sender,
+    });
+
+    accountSequenceNumber = Number(senderAccountInfo.sequence_number);
+  }
+
   const txList: SimpleTransaction[] = [];
 
   if (!isFrozen) {
@@ -390,6 +418,10 @@ export async function safeVeiledBalanceKeyRotationTransactions(args: {
       tokenAddress: args.tokenAddress,
 
       withFreezeBalance: true,
+      options: {
+        ...args.options,
+        accountSequenceNumber: Number(accountSequenceNumber),
+      },
     });
     txList.push(rolloverWithFreezeTx);
   }
@@ -406,7 +438,10 @@ export async function safeVeiledBalanceKeyRotationTransactions(args: {
     withUnfreezeBalance: args.withUnfreezeBalance,
 
     aptosConfig: args.aptosConfig,
-    options: args.options,
+    options: {
+      ...args.options,
+      accountSequenceNumber: txList?.length ? Number(accountSequenceNumber) + 1 : Number(accountSequenceNumber),
+    },
   });
   txList.push(rotateKeyTx);
 
