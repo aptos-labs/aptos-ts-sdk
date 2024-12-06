@@ -217,6 +217,21 @@ export async function safeRolloverPendingVeiledBalanceTransaction(args: {
   return txList;
 }
 
+export async function getGlobalAuditor(args: {
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<[AccountAddressInput, { vec: Uint8Array }]> {
+  const resp = await view<[AccountAddressInput, { vec: Uint8Array }]>({
+    aptosConfig: args.aptosConfig,
+    options: args.options,
+    payload: {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::get_auditor`,
+    },
+  });
+
+  return resp;
+}
+
 export async function veiledTransferCoinTransaction(args: {
   senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
   recipientPublicKey: TwistedEd25519PublicKey | HexInput;
@@ -231,12 +246,17 @@ export async function veiledTransferCoinTransaction(args: {
   recipient: AccountAddressInput;
   options?: InputGenerateTransactionOptions;
 }): Promise<SimpleTransaction> {
+  const [, { vec: globalAuditorPubKey }] = await getGlobalAuditor({ aptosConfig: args.aptosConfig });
+
   const veiledTransfer = await VeiledTransfer.create({
     senderPrivateKey: toTwistedEd25519PrivateKey(args.senderPrivateKey),
     encryptedActualBalance: args.encryptedBalance,
     amountToTransfer: args.amount,
     recipientPublicKey: toTwistedEd25519PublicKey(args.recipientPublicKey),
-    auditorPublicKeys: args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || [],
+    auditorPublicKeys: [
+      ...(globalAuditorPubKey?.length ? [toTwistedEd25519PublicKey(globalAuditorPubKey)] : []),
+      ...(args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || []),
+    ],
     randomness: args.randomness,
   });
 
@@ -279,6 +299,25 @@ export async function veiledTransferCoinTransaction(args: {
   });
 }
 
+export async function isBalanceFrozen(args: {
+  accountAddress: AccountAddress;
+  tokenAddress: string;
+  aptosConfig: AptosConfig;
+  options?: LedgerVersionArg;
+}): Promise<boolean> {
+  const [isFrozen] = await view<[boolean]>({
+    aptosConfig: args.aptosConfig,
+    options: args.options,
+    payload: {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_frozen`,
+      typeArguments: [],
+      functionArguments: [args.accountAddress, args.tokenAddress],
+    },
+  });
+
+  return isFrozen;
+}
+
 export async function veiledBalanceKeyRotationTransaction(args: {
   oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
   newPrivateKey: TwistedEd25519PrivateKey | HexInput;
@@ -304,7 +343,7 @@ export async function veiledBalanceKeyRotationTransaction(args: {
   const serializedNewBalance = concatBytes(...newVB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
   // TODO
-  const method = args.withUnfreezeBalance ? "rotate_public_key_and_unfreeze" : "rotate_public_key";
+  const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
   return generateTransaction({
     aptosConfig: args.aptosConfig,
@@ -321,6 +360,57 @@ export async function veiledBalanceKeyRotationTransaction(args: {
     },
     options: args.options,
   });
+}
+
+export async function safeVeiledBalanceKeyRotationTransactions(args: {
+  oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
+  newPrivateKey: TwistedEd25519PrivateKey | HexInput;
+  balance: bigint;
+  oldEncryptedBalance: TwistedElGamalCiphertext[];
+  randomness?: bigint[];
+  aptosConfig: AptosConfig;
+  sender: AccountAddressInput;
+  tokenAddress: string;
+  withUnfreezeBalance?: boolean;
+  options?: InputGenerateTransactionOptions;
+}): Promise<SimpleTransaction[]> {
+  const isFrozen = await isBalanceFrozen({
+    accountAddress: AccountAddress.from(args.sender),
+    tokenAddress: args.tokenAddress,
+    aptosConfig: args.aptosConfig,
+  });
+
+  const txList: SimpleTransaction[] = [];
+
+  if (!isFrozen) {
+    const rolloverWithFreezeTx = await rolloverPendingVeiledBalanceTransaction({
+      aptosConfig: args.aptosConfig,
+
+      sender: args.sender,
+      tokenAddress: args.tokenAddress,
+
+      withFreezeBalance: true,
+    });
+    txList.push(rolloverWithFreezeTx);
+  }
+
+  const rotateKeyTx = await veiledBalanceKeyRotationTransaction({
+    oldPrivateKey: args.oldPrivateKey,
+    newPrivateKey: args.newPrivateKey,
+    balance: args.balance,
+    oldEncryptedBalance: args.oldEncryptedBalance,
+    randomness: args.randomness,
+
+    sender: args.sender,
+    tokenAddress: args.tokenAddress,
+    withUnfreezeBalance: args.withUnfreezeBalance,
+
+    aptosConfig: args.aptosConfig,
+    options: args.options,
+  });
+  txList.push(rotateKeyTx);
+
+  return txList;
 }
 
 export async function hasUserRegistered(args: {

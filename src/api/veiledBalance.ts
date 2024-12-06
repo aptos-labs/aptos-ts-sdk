@@ -10,13 +10,16 @@ import {
 } from "../core";
 import {
   depositToVeiledBalanceTransaction,
+  getGlobalAuditor,
   getVeiledBalances,
   hasUserRegistered,
+  isBalanceFrozen,
   isUserBalanceNormalized,
   normalizeUserBalance,
   registerVeiledBalanceTransaction,
   rolloverPendingVeiledBalanceTransaction,
   safeRolloverPendingVeiledBalanceTransaction,
+  safeVeiledBalanceKeyRotationTransactions,
   veiledBalanceKeyRotationTransaction,
   veiledTransferCoinTransaction,
   veiledWithdrawTransaction,
@@ -93,6 +96,10 @@ export class VeiledBalance {
     return safeRolloverPendingVeiledBalanceTransaction({ aptosConfig: this.config, ...args });
   }
 
+  async getGlobalAuditor(args?: { options?: LedgerVersionArg }) {
+    return getGlobalAuditor({ aptosConfig: this.config, ...args });
+  }
+
   async transferCoin(args: {
     senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
     recipientPublicKey: TwistedEd25519PublicKey | HexInput;
@@ -109,7 +116,11 @@ export class VeiledBalance {
     return veiledTransferCoinTransaction({ aptosConfig: this.config, ...args });
   }
 
-  async keyRotation(args: {
+  async isBalanceFrozen(args: { accountAddress: AccountAddress; tokenAddress: string; options?: LedgerVersionArg }) {
+    return isBalanceFrozen({ aptosConfig: this.config, ...args });
+  }
+
+  async rotateVBKey(args: {
     oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
     newPrivateKey: TwistedEd25519PrivateKey | HexInput;
     balance: bigint;
@@ -121,6 +132,20 @@ export class VeiledBalance {
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return veiledBalanceKeyRotationTransaction({ aptosConfig: this.config, ...args });
+  }
+
+  async safeRotateVBKey(args: {
+    oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
+    newPrivateKey: TwistedEd25519PrivateKey | HexInput;
+    balance: bigint;
+    oldEncryptedBalance: TwistedElGamalCiphertext[];
+    randomness?: bigint[];
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    withUnfreezeBalance: boolean;
+    options?: InputGenerateTransactionOptions;
+  }): Promise<SimpleTransaction[]> {
+    return safeVeiledBalanceKeyRotationTransactions({ aptosConfig: this.config, ...args });
   }
 
   async hasUserRegistered(args: { accountAddress: AccountAddress; tokenAddress: string; options?: LedgerVersionArg }) {
