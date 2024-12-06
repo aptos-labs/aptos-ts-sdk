@@ -108,7 +108,6 @@ export async function requestPermission(args: {
       // if nft permission has multiple capabilities, we need to add multiple txns
       // For NFT permissions with multiple capabilities, split into separate transactions
 
-      // what is flat map
       const expandedPermissions = permissions.flatMap((permission) => {
         if (permission.type === PermissionType.NFT && permission.capabilities) {
           const expanded = [];
@@ -130,7 +129,7 @@ export async function requestPermission(args: {
       });
       // Grant each requested permission
       await Promise.all(
-        permissions
+        expandedPermissions
           .map((permission) =>
             grantPermission(builder, {
               permissionedSigner: permissionedSigner.signer,
