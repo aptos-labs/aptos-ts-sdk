@@ -389,10 +389,12 @@ describe("Veiled balance api", () => {
       txResponces.push(txResp);
     }
 
+    /* eslint-disable no-console */
     console.log("\n\n\n");
     console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
     console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
     console.log("\n\n\n");
+    /* eslint-enable */
 
     expect(txResponces.every((el) => el.success)).toBeTruthy();
   });

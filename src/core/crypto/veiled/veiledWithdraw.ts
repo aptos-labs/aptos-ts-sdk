@@ -1,6 +1,6 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
-import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
+import { utf8ToBytes } from "@noble/hashes/utils";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
