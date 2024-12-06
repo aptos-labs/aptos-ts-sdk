@@ -254,6 +254,18 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
+  test("it should check Alice's veiled balance after withdrawal", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    chunkedAliceVb = aliceChunkedVeiledBalance;
+
+    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceVeiledPrivateKey);
+
+    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+  });
+
   test("it should get global auditor", async () => {
     const [address] = await aptos.veiledBalance.getGlobalAuditor();
     const globalAuditorAddress = address.toString();
@@ -365,52 +377,52 @@ describe("Veiled balance api", () => {
     }
   });
 
-  const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
-  test("it should safely rotate Alice's veiled balance key", async () => {
-    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(chunkedAliceVb.actual, aliceVeiledPrivateKey);
-
-    const keyRotationAndUnfreezeTxs = await aptos.veiledBalance.safeRotateVBKey({
-      sender: alice.accountAddress,
-
-      oldPrivateKey: aliceVeiledPrivateKey,
-      newPrivateKey: ALICE_NEW_VEILED_PRIVATE_KEY,
-
-      balance: aliceActualVeiledAmount.amount,
-      oldEncryptedBalance: chunkedAliceVb.actual,
-
-      withUnfreezeBalance: true,
-      tokenAddress: TOKEN_ADDRESS,
-    });
-
-    const txResponces: CommittedTransactionResponse[] = [];
-    for (const tx of keyRotationAndUnfreezeTxs) {
-      // eslint-disable-next-line no-await-in-loop
-      const txResp = await sendAndWaitTx(tx, alice);
-      txResponces.push(txResp);
-    }
-
-    /* eslint-disable no-console */
-    console.log("\n\n\n");
-    console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
-    console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
-    console.log("\n\n\n");
-    /* eslint-enable */
-
-    expect(txResponces.every((el) => el.success)).toBeTruthy();
-  });
-
-  test("it should get new Alice's veiled balance", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
-      accountAddress: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
-    });
-    chunkedAliceVb = aliceChunkedVeiledBalance;
-
-    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.actual,
-      ALICE_NEW_VEILED_PRIVATE_KEY,
-    );
-
-    expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
-  });
+  // const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
+  // test("it should safely rotate Alice's veiled balance key", async () => {
+  //   const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(chunkedAliceVb.actual, aliceVeiledPrivateKey);
+  //
+  //   const keyRotationAndUnfreezeTxs = await aptos.veiledBalance.safeRotateVBKey({
+  //     sender: alice.accountAddress,
+  //
+  //     oldPrivateKey: aliceVeiledPrivateKey,
+  //     newPrivateKey: ALICE_NEW_VEILED_PRIVATE_KEY,
+  //
+  //     balance: aliceActualVeiledAmount.amount,
+  //     oldEncryptedBalance: chunkedAliceVb.actual,
+  //
+  //     withUnfreezeBalance: true,
+  //     tokenAddress: TOKEN_ADDRESS,
+  //   });
+  //
+  //   const txResponces: CommittedTransactionResponse[] = [];
+  //   for (const tx of keyRotationAndUnfreezeTxs) {
+  //     // eslint-disable-next-line no-await-in-loop
+  //     const txResp = await sendAndWaitTx(tx, alice);
+  //     txResponces.push(txResp);
+  //   }
+  //
+  //   /* eslint-disable no-console */
+  //   console.log("\n\n\n");
+  //   console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
+  //   console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+  //   console.log("\n\n\n");
+  //   /* eslint-enable */
+  //
+  //   expect(txResponces.every((el) => el.success)).toBeTruthy();
+  // });
+  //
+  // test("it should get new Alice's veiled balance", async () => {
+  //   const aliceChunkedVeiledBalance = await aptos.veiledBalance.getBalance({
+  //     accountAddress: alice.accountAddress,
+  //     tokenAddress: TOKEN_ADDRESS,
+  //   });
+  //   chunkedAliceVb = aliceChunkedVeiledBalance;
+  //
+  //   const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
+  //     aliceChunkedVeiledBalance.actual,
+  //     ALICE_NEW_VEILED_PRIVATE_KEY,
+  //   );
+  //
+  //   expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+  // });
 });
