@@ -19,10 +19,13 @@ import {
 import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
 import { generateTransaction } from "../internal/transactionSubmission";
 import { view } from "../internal/view";
-import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
+import {
+  InputGenerateTransactionOptions,
+  InputGenerateTransactionPayloadData,
+  SimpleTransaction,
+} from "../transactions";
 import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
 import { AptosConfig } from "./aptosConfig";
-import { Account } from "./account";
 
 export type VeiledBalanceResponse = {
   chunks: {
@@ -150,21 +153,28 @@ export class VeiledCoin {
     });
   }
 
+  static buildRolloverPendingBalanceTxPayload(args: {
+    tokenAddress: string;
+    withFreezeBalance?: boolean;
+  }): InputGenerateTransactionPayloadData {
+    const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
+
+    return {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      functionArguments: [args.tokenAddress],
+    };
+  }
+
   async rolloverPendingBalance(args: {
     sender: AccountAddressInput;
     tokenAddress: string;
     withFreezeBalance?: boolean;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
-    const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
-
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
-        functionArguments: [args.tokenAddress],
-      },
+      data: VeiledCoin.buildRolloverPendingBalanceTxPayload(args),
       options: args.options,
     });
   }
@@ -174,55 +184,27 @@ export class VeiledCoin {
       sender: AccountAddressInput;
       tokenAddress: string;
       withFreezeBalance?: boolean;
-
-      options?: InputGenerateTransactionOptions;
     },
-  ) {
-    const txList: SimpleTransaction[] = [];
+  ): Promise<InputGenerateTransactionPayloadData[]> {
+    const txList: InputGenerateTransactionPayloadData[] = [];
 
     const isNormalized = await this.isUserBalanceNormalized({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
     });
 
-    let accountSequenceNumber = args.options?.accountSequenceNumber;
-
-    if (!accountSequenceNumber) {
-      const account = new Account(this.config);
-
-      const senderAccountInfo = await account.getAccountInfo({
-        accountAddress: args.sender,
-      });
-
-      accountSequenceNumber = Number(senderAccountInfo.sequence_number);
-    }
-
     if (!isNormalized) {
-      const normalizeTx = await this.normalizeUserBalance({
-        tokenAddress: args.tokenAddress,
-
-        decryptionKey: args.decryptionKey,
-        unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      const normalizationTx = await VeiledCoin.buildNormalizationTxPayload({
         balanceAmount: args.balanceAmount,
-        randomness: args.randomness,
-
+        decryptionKey: args.decryptionKey,
         sender: args.sender,
-
-        options: { ...args.options, accountSequenceNumber: Number(accountSequenceNumber) },
+        tokenAddress: args.tokenAddress,
+        unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
       });
-
-      txList.push(normalizeTx);
+      txList.push(normalizationTx);
     }
 
-    const rolloverTx = await this.rolloverPendingBalance({
-      sender: args.sender,
-      tokenAddress: args.tokenAddress,
-      withFreezeBalance: args.withFreezeBalance,
-      options: {
-        ...args.options,
-        accountSequenceNumber: txList?.length ? Number(accountSequenceNumber) + 1 : Number(accountSequenceNumber),
-      },
-    });
+    const rolloverTx = VeiledCoin.buildRolloverPendingBalanceTxPayload(args);
 
     txList.push(rolloverTx);
 
@@ -314,7 +296,7 @@ export class VeiledCoin {
     return isFrozen;
   }
 
-  async rotateVBKey(
+  static async buildRotateVBKeyTxPayload(
     args: CreateVeiledKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
@@ -322,7 +304,7 @@ export class VeiledCoin {
       withUnfreezeBalance: boolean;
       options?: InputGenerateTransactionOptions;
     },
-  ): Promise<SimpleTransaction> {
+  ): Promise<InputGenerateTransactionPayloadData> {
     const veiledKeyRotation = await VeiledKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(args.currDecryptionKey),
       newDecryptionKey: toTwistedEd25519PrivateKey(args.newDecryptionKey),
@@ -338,91 +320,60 @@ export class VeiledCoin {
 
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
+    return {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      functionArguments: [
+        args.tokenAddress,
+        newPublicKeyU8,
+        serializedNewBalance,
+        rangeProof,
+        VeiledKeyRotation.serializeSigmaProof(sigmaProof),
+      ],
+    };
+  }
+
+  async rotateVBKey(
+    args: CreateVeiledKeyRotationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+
+      withUnfreezeBalance: boolean;
+      options?: InputGenerateTransactionOptions;
+    },
+  ): Promise<SimpleTransaction> {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
-        functionArguments: [
-          args.tokenAddress,
-          newPublicKeyU8,
-          serializedNewBalance,
-          rangeProof,
-          VeiledKeyRotation.serializeSigmaProof(sigmaProof),
-        ],
-      },
+      data: await VeiledCoin.buildRotateVBKeyTxPayload(args),
       options: args.options,
     });
   }
 
   async safeRotateVBKey(
-    args: CreateVeiledKeyRotationOpArgs &
-      CreateVeiledNormalizationOpArgs & {
-        sender: AccountAddressInput;
-        tokenAddress: string;
-        withUnfreezeBalance: boolean;
-        options?: InputGenerateTransactionOptions;
-      },
-  ): Promise<SimpleTransaction[]> {
+    args: CreateVeiledKeyRotationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+      withUnfreezeBalance: boolean;
+      options?: InputGenerateTransactionOptions;
+    },
+  ): Promise<InputGenerateTransactionPayloadData[]> {
     const isFrozen = await this.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
     });
 
-    let accountSequenceNumber = args.options?.accountSequenceNumber;
-
-    if (!accountSequenceNumber) {
-      const account = new Account(this.config);
-
-      const senderAccountInfo = await account.getAccountInfo({
-        accountAddress: args.sender,
-      });
-
-      accountSequenceNumber = Number(senderAccountInfo.sequence_number);
-    }
-
-    const txList: SimpleTransaction[] = [];
-
-    const { currEncryptedBalance } = args;
+    const txList: InputGenerateTransactionPayloadData[] = [];
 
     if (!isFrozen) {
-      const rolloverWithFreezeTx = await this.safeRolloverPendingVB({
-        sender: args.sender,
+      const rolloverWithFreezeTxPayload = VeiledCoin.buildRolloverPendingBalanceTxPayload({
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
-
-        decryptionKey: args.currDecryptionKey,
-        unnormilizedEncryptedBalance: currEncryptedBalance,
-        balanceAmount: args.balanceAmount,
-
-        options: {
-          ...args.options,
-          accountSequenceNumber: txList?.length
-            ? txList[txList.length - 1].rawTransaction.sequence_number
-            : Number(accountSequenceNumber),
-        },
       });
-      txList.push(...rolloverWithFreezeTx);
+      txList.push(rolloverWithFreezeTxPayload);
     }
 
-    const rotateKeyTx = await this.rotateVBKey({
-      currDecryptionKey: args.currDecryptionKey,
-      newDecryptionKey: args.newDecryptionKey,
-      currEncryptedBalance: args.currEncryptedBalance,
-      randomness: args.randomness,
-
-      sender: args.sender,
-      tokenAddress: args.tokenAddress,
-      withUnfreezeBalance: args.withUnfreezeBalance,
-
-      options: {
-        ...args.options,
-        accountSequenceNumber: txList?.length
-          ? txList[txList.length - 1].rawTransaction.sequence_number
-          : Number(accountSequenceNumber),
-      },
-    });
-    txList.push(rotateKeyTx);
+    const rotateKeyTxPayload = await VeiledCoin.buildRotateVBKeyTxPayload(args);
+    txList.push(rotateKeyTxPayload);
 
     return txList;
   }
@@ -459,14 +410,14 @@ export class VeiledCoin {
     return isNormalized;
   }
 
-  async normalizeUserBalance(
+  static async buildNormalizationTxPayload(
     args: CreateVeiledNormalizationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
 
       options?: InputGenerateTransactionOptions;
     },
-  ) {
+  ): Promise<InputGenerateTransactionPayloadData> {
     const veiledNormalization = await VeiledNormalization.create({
       decryptionKey: args.decryptionKey,
       unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
@@ -476,18 +427,29 @@ export class VeiledCoin {
 
     const [{ sigmaProof, rangeProof }, normalizedVB] = await veiledNormalization.authorizeNormalization();
 
+    return {
+      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
+      functionArguments: [
+        args.tokenAddress,
+        concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
+        rangeProof,
+        VeiledNormalization.serializeSigmaProof(sigmaProof),
+      ],
+    };
+  }
+
+  async normalizeUserBalance(
+    args: CreateVeiledNormalizationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+
+      options?: InputGenerateTransactionOptions;
+    },
+  ) {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
-        functionArguments: [
-          args.tokenAddress,
-          concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
-          rangeProof,
-          VeiledNormalization.serializeSigmaProof(sigmaProof),
-        ],
-      },
+      data: await VeiledCoin.buildNormalizationTxPayload(args),
       options: args.options,
     });
   }

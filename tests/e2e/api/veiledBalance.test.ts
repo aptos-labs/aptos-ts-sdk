@@ -12,6 +12,8 @@ import {
   CommittedTransactionResponse,
   TwistedElGamalCiphertext,
   Ed25519PrivateKey,
+  TransactionWorkerEventsEnum,
+  InputGenerateTransactionPayloadData,
 } from "../../../src";
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { longTestTimeout } from "../../unit/helper";
@@ -55,6 +57,33 @@ describe("Veiled balance api", () => {
   ): Promise<CommittedTransactionResponse> => {
     const pendingTxn = await aptos.signAndSubmitTransaction({ signer, transaction });
     return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+  };
+
+  const sendAndWaitBatchTxs = async (
+    txPayloads: InputGenerateTransactionPayloadData[],
+    sender: Account,
+  ): Promise<CommittedTransactionResponse[]> => {
+    aptos.transaction.batch.forSingleAccount({
+      sender,
+      data: txPayloads,
+    });
+
+    let allTxSentPromiseResolve: (value: void | PromiseLike<void>) => void;
+
+    const txHashes: string[] = [];
+    aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+      txHashes.push(data.transactionHash);
+
+      if (txHashes.length === txPayloads.length) {
+        allTxSentPromiseResolve();
+      }
+    });
+
+    await new Promise<void>((resolve) => {
+      allTxSentPromiseResolve = resolve;
+    });
+
+    return Promise.all(txHashes.map((txHash) => aptos.waitForTransaction({ transactionHash: txHash })));
   };
 
   const alice = Account.fromPrivateKey({
@@ -190,7 +219,7 @@ describe("Veiled balance api", () => {
 
     const unnormalizedVeiledAmount = await VeiledAmount.fromEncrypted(aliceBalances.actual, aliceDecryptionKey);
 
-    const rolloverTxBody = await aptos.veiledCoin.safeRolloverPendingVB({
+    const rolloverTxPayloads = await aptos.veiledCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
@@ -200,13 +229,7 @@ describe("Veiled balance api", () => {
       balanceAmount: unnormalizedVeiledAmount.amount,
     });
 
-    const txResponses: CommittedTransactionResponse[] = [];
-    for (const tx of rolloverTxBody) {
-      // eslint-disable-next-line no-await-in-loop
-      const txResp = await sendAndWaitTx(tx, alice);
-
-      txResponses.push(txResp);
-    }
+    const txResponses = await sendAndWaitBatchTxs(rolloverTxPayloads, alice);
 
     expect(txResponses.every((el) => el.success)).toBeTruthy();
   });
@@ -381,52 +404,44 @@ describe("Veiled balance api", () => {
     expect(aliceVeiledAmount.amount).toBeDefined();
   });
 
-  // const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
-  // test("it should safely rotate Alice's veiled balance key", async () => {
-  //   const keyRotationAndUnfreezeTxs = await aptos.veiledCoin.safeRotateVBKey({
-  //     balanceAmount: 0n,
-  //     decryptionKey: undefined,
-  //     unnormilizedEncryptedBalance: [],
-  //     sender: alice.accountAddress,
-  //
-  //     currDecryptionKey: aliceDecryptionKey,
-  //     newDecryptionKey: ALICE_NEW_VEILED_PRIVATE_KEY,
-  //
-  //     currEncryptedBalance: chunkedAliceVb.actual,
-  //
-  //     withUnfreezeBalance: true,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //   });
-  //
-  //   const txResponces: CommittedTransactionResponse[] = [];
-  //   for (const tx of keyRotationAndUnfreezeTxs) {
-  //     // eslint-disable-next-line no-await-in-loop
-  //     const txResp = await sendAndWaitTx(tx, alice);
-  //     txResponces.push(txResp);
-  //   }
-  //
-  //   /* eslint-disable no-console */
-  //   console.log("\n\n\n");
-  //   console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
-  //   console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
-  //   console.log("\n\n\n");
-  //   /* eslint-enable */
-  //
-  //   expect(txResponces.every((el) => el.success)).toBeTruthy();
-  // });
-  //
-  // test("it should get new Alice's veiled balance", async () => {
-  //   const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
-  //     accountAddress: alice.accountAddress,
-  //     tokenAddress: TOKEN_ADDRESS,
-  //   });
-  //   chunkedAliceVb = aliceChunkedVeiledBalance;
-  //
-  //   const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
-  //     aliceChunkedVeiledBalance.actual,
-  //     ALICE_NEW_VEILED_PRIVATE_KEY,
-  //   );
-  //
-  //   expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
-  // });
+  const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
+  test("it should safely rotate Alice's veiled balance key", async () => {
+    const keyRotationAndUnfreezeTxs = await aptos.veiledCoin.safeRotateVBKey({
+      sender: alice.accountAddress,
+
+      currDecryptionKey: aliceDecryptionKey,
+      newDecryptionKey: ALICE_NEW_VEILED_PRIVATE_KEY,
+
+      currEncryptedBalance: aliceVeiledBalances.actual,
+
+      withUnfreezeBalance: true,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+
+    const txResponses = await sendAndWaitBatchTxs(keyRotationAndUnfreezeTxs, alice);
+
+    /* eslint-disable no-console */
+    console.log("\n\n\n");
+    console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
+    console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+    console.log("\n\n\n");
+    /* eslint-enable */
+
+    expect(txResponses.every((el) => el.success)).toBeTruthy();
+  });
+
+  test("it should get new Alice's veiled balance", async () => {
+    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+      accountAddress: alice.accountAddress,
+      tokenAddress: TOKEN_ADDRESS,
+    });
+    aliceVeiledBalances = aliceChunkedVeiledBalance;
+
+    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.actual,
+      ALICE_NEW_VEILED_PRIVATE_KEY,
+    );
+
+    expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+  });
 });
