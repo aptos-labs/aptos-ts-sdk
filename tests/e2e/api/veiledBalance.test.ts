@@ -17,7 +17,7 @@ import {
 } from "../../../src";
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { longTestTimeout } from "../../unit/helper";
-import { VeiledBalance } from "../../../src/api/veiledCoin";
+import { VeiledBalance, VeiledCoin } from "../../../src/api/veiledCoin";
 
 describe("Veiled balance api", () => {
   const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
@@ -406,7 +406,7 @@ describe("Veiled balance api", () => {
 
   const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
   test("it should safely rotate Alice's veiled balance key", async () => {
-    const keyRotationAndUnfreezeTxs = await aptos.veiledCoin.safeRotateVBKey({
+    const keyRotationAndUnfreezeTxResponse = await VeiledCoin.safeRotateVBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceDecryptionKey,
@@ -418,8 +418,6 @@ describe("Veiled balance api", () => {
       tokenAddress: TOKEN_ADDRESS,
     });
 
-    const txResponses = await sendAndWaitBatchTxs(keyRotationAndUnfreezeTxs, alice);
-
     /* eslint-disable no-console */
     console.log("\n\n\n");
     console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
@@ -427,7 +425,7 @@ describe("Veiled balance api", () => {
     console.log("\n\n\n");
     /* eslint-enable */
 
-    expect(txResponses.every((el) => el.success)).toBeTruthy();
+    expect(keyRotationAndUnfreezeTxResponse.success).toBeTruthy();
   });
 
   test("it should get new Alice's veiled balance", async () => {

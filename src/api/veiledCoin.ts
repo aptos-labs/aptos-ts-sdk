@@ -24,9 +24,10 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
+import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } from "../types";
 import { AptosConfig } from "./aptosConfig";
-import { VeiledAmount } from "../core/crypto/veiled/veiledAmount";
+import { Aptos } from "./aptos";
+import { Account } from "../account";
 
 export type VeiledBalanceResponse = {
   chunks: {
@@ -350,47 +351,63 @@ export class VeiledCoin {
     });
   }
 
-  async safeRotateVBKey(
+  static async safeRotateVBKey(
+    aptosClient: Aptos,
+    signer: Account,
     args: CreateVeiledKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
       withUnfreezeBalance: boolean;
       options?: InputGenerateTransactionOptions;
     },
-  ): Promise<InputGenerateTransactionPayloadData[]> {
-    const isFrozen = await this.isBalanceFrozen({
+  ): Promise<CommittedTransactionResponse> {
+    const isFrozen = await aptosClient.veiledCoin.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
     });
 
-    const txList: InputGenerateTransactionPayloadData[] = [];
-
-    let { currEncryptedBalance } = args;
+    let currEncryptedBalance = [...args.currEncryptedBalance];
     if (!isFrozen) {
-      const rolloverWithFreezeTxPayload = VeiledCoin.buildRolloverPendingBalanceTxPayload({
+      const rolloverWithFreezeTxBody = await aptosClient.veiledCoin.rolloverPendingBalance({
+        sender: args.sender,
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
       });
-      txList.push(rolloverWithFreezeTxPayload);
 
-      const currVeiledBalances = await this.getBalance({
+      const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+        signer,
+        transaction: rolloverWithFreezeTxBody,
+      });
+
+      const committedTransactionResponse = await aptosClient.waitForTransaction({
+        transactionHash: pendingTxResponse.hash,
+      });
+
+      if (!committedTransactionResponse.success) {
+        throw new TypeError("Failed to freeze balance"); // FIXME: mb create specified error class
+      }
+
+      const currVeiledBalances = await aptosClient.veiledCoin.getBalance({
         accountAddress: AccountAddress.from(args.sender),
         tokenAddress: args.tokenAddress,
       });
 
-      currEncryptedBalance = currEncryptedBalance.map((el, idx) => {
-        if (currVeiledBalances.pending[idx]) {
-          return el.addCiphertext(currVeiledBalances.pending[idx]);
-        }
-
-        return el;
-      });
+      currEncryptedBalance = currVeiledBalances.actual;
     }
 
-    const rotateKeyTxPayload = await VeiledCoin.buildRotateVBKeyTxPayload({ ...args, currEncryptedBalance });
-    txList.push(rotateKeyTxPayload);
+    const rotateKeyTxBody = await aptosClient.veiledCoin.rotateVBKey({
+      ...args,
+      currEncryptedBalance,
+    });
 
-    return txList;
+    const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+      signer,
+      transaction: rotateKeyTxBody,
+    });
+
+    return aptosClient.waitForTransaction({
+      transactionHash: pendingTxResponse.hash,
+    });
   }
 
   async hasUserRegistered(args: { accountAddress: AccountAddress; tokenAddress: string; options?: LedgerVersionArg }) {
