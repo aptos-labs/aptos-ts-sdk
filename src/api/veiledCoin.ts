@@ -26,6 +26,7 @@ import {
 } from "../transactions";
 import { AnyNumber, HexInput, LedgerVersionArg } from "../types";
 import { AptosConfig } from "./aptosConfig";
+import { VeiledAmount } from "../core/crypto/veiled/veiledAmount";
 
 export type VeiledBalanceResponse = {
   chunks: {
@@ -364,15 +365,29 @@ export class VeiledCoin {
 
     const txList: InputGenerateTransactionPayloadData[] = [];
 
+    let { currEncryptedBalance } = args;
     if (!isFrozen) {
       const rolloverWithFreezeTxPayload = VeiledCoin.buildRolloverPendingBalanceTxPayload({
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
       });
       txList.push(rolloverWithFreezeTxPayload);
+
+      const currVeiledBalances = await this.getBalance({
+        accountAddress: AccountAddress.from(args.sender),
+        tokenAddress: args.tokenAddress,
+      });
+
+      currEncryptedBalance = currEncryptedBalance.map((el, idx) => {
+        if (currVeiledBalances.pending[idx]) {
+          return el.addCiphertext(currVeiledBalances.pending[idx]);
+        }
+
+        return el;
+      });
     }
 
-    const rotateKeyTxPayload = await VeiledCoin.buildRotateVBKeyTxPayload(args);
+    const rotateKeyTxPayload = await VeiledCoin.buildRotateVBKeyTxPayload({ ...args, currEncryptedBalance });
     txList.push(rotateKeyTxPayload);
 
     return txList;
