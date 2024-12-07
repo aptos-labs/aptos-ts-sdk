@@ -5,7 +5,10 @@ import { concatBytes } from "@noble/hashes/utils";
 import {
   AccountAddress,
   AccountAddressInput,
-  TwistedEd25519PrivateKey,
+  CreateVeiledKeyRotationOpArgs,
+  CreateVeiledNormalizationOpArgs,
+  CreateVeiledTransferOpArgs,
+  CreateVeiledWithdrawOpArgs,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
   VeiledKeyRotation,
@@ -28,22 +31,24 @@ export type VeiledBalanceResponse = {
   }[];
 }[];
 
+export type VeiledBalance = {
+  pending: TwistedElGamalCiphertext[];
+  actual: TwistedElGamalCiphertext[];
+};
+
 const VEILED_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
 
 /**
  * A class to handle veiled balance operations
  */
-export class VeiledBalance {
+export class VeiledCoin {
   constructor(readonly config: AptosConfig) {}
 
   async getBalance(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
     options?: LedgerVersionArg;
-  }): Promise<{
-    pending: TwistedElGamalCiphertext[];
-    actual: TwistedElGamalCiphertext[];
-  }> {
+  }): Promise<VeiledBalance> {
     const { accountAddress, tokenAddress, options } = args;
     const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
       view<VeiledBalanceResponse>({
@@ -111,19 +116,17 @@ export class VeiledBalance {
     });
   }
 
-  async withdraw(args: {
-    privateKey: TwistedEd25519PrivateKey | HexInput;
-    encryptedBalance: TwistedElGamalCiphertext[];
-    amount: bigint;
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    randomness?: bigint[];
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  async withdraw(
+    args: CreateVeiledWithdrawOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+      options?: InputGenerateTransactionOptions;
+    },
+  ): Promise<SimpleTransaction> {
     const veiledWithdraw = await VeiledWithdraw.create({
-      privateKey: toTwistedEd25519PrivateKey(args.privateKey),
-      encryptedActualBalance: args.encryptedBalance,
-      amountToWithdraw: args.amount,
+      decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
+      encryptedActualBalance: args.encryptedActualBalance,
+      amountToWithdraw: args.amountToWithdraw,
       randomness: args.randomness,
     });
 
@@ -137,7 +140,7 @@ export class VeiledBalance {
         functionArguments: [
           args.tokenAddress,
           AccountAddress.from(args.sender),
-          String(args.amount),
+          String(args.amountToWithdraw),
           concatBytes(...veiledAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
           VeiledWithdraw.serializeSigmaProof(sigmaProof),
@@ -166,18 +169,15 @@ export class VeiledBalance {
     });
   }
 
-  async safeRolloverPendingVeiledBalanceTransaction(args: {
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    withFreezeBalance?: boolean;
+  async safeRolloverPendingVB(
+    args: CreateVeiledNormalizationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+      withFreezeBalance?: boolean;
 
-    privateKey: TwistedEd25519PrivateKey;
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
-    balanceAmount: bigint;
-    randomness?: bigint[];
-
-    options?: InputGenerateTransactionOptions;
-  }) {
+      options?: InputGenerateTransactionOptions;
+    },
+  ) {
     const txList: SimpleTransaction[] = [];
 
     const isNormalized = await this.isUserBalanceNormalized({
@@ -199,10 +199,9 @@ export class VeiledBalance {
 
     if (!isNormalized) {
       const normalizeTx = await this.normalizeUserBalance({
-        accountAddress: AccountAddress.from(args.sender),
         tokenAddress: args.tokenAddress,
 
-        privateKey: args.privateKey,
+        decryptionKey: args.decryptionKey,
         unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
         balanceAmount: args.balanceAmount,
         randomness: args.randomness,
@@ -231,40 +230,33 @@ export class VeiledBalance {
   }
 
   async getGlobalAuditor(args?: { options?: LedgerVersionArg }) {
-    const resp = await view<[AccountAddressInput, { vec: Uint8Array }]>({
+    return view<[AccountAddressInput, { vec: Uint8Array }]>({
       aptosConfig: this.config,
       options: args?.options,
       payload: {
         function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::get_auditor`,
       },
     });
-
-    return resp;
   }
 
-  async transferCoin(args: {
-    senderPrivateKey: TwistedEd25519PrivateKey | HexInput;
-    recipientPublicKey: TwistedEd25519PublicKey | HexInput;
-    encryptedBalance: TwistedElGamalCiphertext[];
-    amount: bigint;
-    auditorPublicKeys?: (TwistedEd25519PublicKey | HexInput)[];
-    randomness?: bigint[];
-
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    recipient: AccountAddressInput;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  async transferCoin(
+    args: CreateVeiledTransferOpArgs & {
+      sender: AccountAddressInput;
+      recipientAddress: AccountAddressInput;
+      tokenAddress: string;
+      options?: InputGenerateTransactionOptions;
+    },
+  ): Promise<SimpleTransaction> {
     const [, { vec: globalAuditorPubKey }] = await this.getGlobalAuditor();
 
     const veiledTransfer = await VeiledTransfer.create({
-      senderPrivateKey: toTwistedEd25519PrivateKey(args.senderPrivateKey),
-      encryptedActualBalance: args.encryptedBalance,
-      amountToTransfer: args.amount,
-      recipientPublicKey: toTwistedEd25519PublicKey(args.recipientPublicKey),
-      auditorPublicKeys: [
+      senderDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
+      encryptedActualBalance: args.encryptedActualBalance,
+      amountToTransfer: args.amountToTransfer,
+      recipientEncryptionKey: toTwistedEd25519PublicKey(args.recipientEncryptionKey),
+      auditorEncryptionKeys: [
         ...(globalAuditorPubKey?.length ? [toTwistedEd25519PublicKey(globalAuditorPubKey)] : []),
-        ...(args.auditorPublicKeys?.map((el) => toTwistedEd25519PublicKey(el)) || []),
+        ...(args.auditorEncryptionKeys?.map((el) => toTwistedEd25519PublicKey(el)) || []),
       ],
       randomness: args.randomness,
     });
@@ -281,7 +273,7 @@ export class VeiledBalance {
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
     const transferBalance = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
-    const auditorEks = veiledTransfer.auditorsU8PublicKeys;
+    const auditorEks = veiledTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsVBList
       .flat()
       .map((el) => el.serialize())
@@ -294,7 +286,7 @@ export class VeiledBalance {
         function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::fully_veiled_transfer`,
         functionArguments: [
           args.tokenAddress,
-          args.recipient,
+          args.recipientAddress,
           concatBytes(...newBalance),
           concatBytes(...transferBalance),
           concatBytes(...auditorEks),
@@ -322,26 +314,25 @@ export class VeiledBalance {
     return isFrozen;
   }
 
-  async rotateVBKey(args: {
-    oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
-    newPrivateKey: TwistedEd25519PrivateKey | HexInput;
-    balance: bigint;
-    oldEncryptedBalance: TwistedElGamalCiphertext[];
-    randomness?: bigint[];
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    withUnfreezeBalance: boolean;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  async rotateVBKey(
+    args: CreateVeiledKeyRotationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
+
+      withUnfreezeBalance: boolean;
+      options?: InputGenerateTransactionOptions;
+    },
+  ): Promise<SimpleTransaction> {
     const veiledKeyRotation = await VeiledKeyRotation.create({
-      currPrivateKey: toTwistedEd25519PrivateKey(args.oldPrivateKey),
-      newPrivateKey: toTwistedEd25519PrivateKey(args.newPrivateKey),
-      currEncryptedBalance: args.oldEncryptedBalance,
+      currDecryptionKey: toTwistedEd25519PrivateKey(args.currDecryptionKey),
+      newDecryptionKey: toTwistedEd25519PrivateKey(args.newDecryptionKey),
+      currEncryptedBalance: args.currEncryptedBalance,
+      randomness: args.randomness,
     });
 
     const [{ sigmaProof, rangeProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
 
-    const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newPrivateKey).publicKey().toUint8Array();
+    const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newDecryptionKey).publicKey().toUint8Array();
 
     const serializedNewBalance = concatBytes(...newVB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
@@ -364,17 +355,15 @@ export class VeiledBalance {
     });
   }
 
-  async safeRotateVBKey(args: {
-    oldPrivateKey: TwistedEd25519PrivateKey | HexInput;
-    newPrivateKey: TwistedEd25519PrivateKey | HexInput;
-    balance: bigint;
-    oldEncryptedBalance: TwistedElGamalCiphertext[];
-    randomness?: bigint[];
-    sender: AccountAddressInput;
-    tokenAddress: string;
-    withUnfreezeBalance: boolean;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction[]> {
+  async safeRotateVBKey(
+    args: CreateVeiledKeyRotationOpArgs &
+      CreateVeiledNormalizationOpArgs & {
+        sender: AccountAddressInput;
+        tokenAddress: string;
+        withUnfreezeBalance: boolean;
+        options?: InputGenerateTransactionOptions;
+      },
+  ): Promise<SimpleTransaction[]> {
     const isFrozen = await this.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
@@ -394,25 +383,32 @@ export class VeiledBalance {
 
     const txList: SimpleTransaction[] = [];
 
+    const { currEncryptedBalance } = args;
+
     if (!isFrozen) {
-      const rolloverWithFreezeTx = await this.rolloverPendingBalance({
+      const rolloverWithFreezeTx = await this.safeRolloverPendingVB({
         sender: args.sender,
         tokenAddress: args.tokenAddress,
-
         withFreezeBalance: true,
+
+        decryptionKey: args.currDecryptionKey,
+        unnormilizedEncryptedBalance: currEncryptedBalance,
+        balanceAmount: args.balanceAmount,
+
         options: {
           ...args.options,
-          accountSequenceNumber: Number(accountSequenceNumber),
+          accountSequenceNumber: txList?.length
+            ? txList[txList.length - 1].rawTransaction.sequence_number
+            : Number(accountSequenceNumber),
         },
       });
-      txList.push(rolloverWithFreezeTx);
+      txList.push(...rolloverWithFreezeTx);
     }
 
     const rotateKeyTx = await this.rotateVBKey({
-      oldPrivateKey: args.oldPrivateKey,
-      newPrivateKey: args.newPrivateKey,
-      balance: args.balance,
-      oldEncryptedBalance: args.oldEncryptedBalance,
+      currDecryptionKey: args.currDecryptionKey,
+      newDecryptionKey: args.newDecryptionKey,
+      currEncryptedBalance: args.currEncryptedBalance,
       randomness: args.randomness,
 
       sender: args.sender,
@@ -421,7 +417,9 @@ export class VeiledBalance {
 
       options: {
         ...args.options,
-        accountSequenceNumber: txList?.length ? Number(accountSequenceNumber) + 1 : Number(accountSequenceNumber),
+        accountSequenceNumber: txList?.length
+          ? txList[txList.length - 1].rawTransaction.sequence_number
+          : Number(accountSequenceNumber),
       },
     });
     txList.push(rotateKeyTx);
@@ -461,21 +459,16 @@ export class VeiledBalance {
     return isNormalized;
   }
 
-  async normalizeUserBalance(args: {
-    accountAddress: AccountAddress;
-    tokenAddress: string;
+  async normalizeUserBalance(
+    args: CreateVeiledNormalizationOpArgs & {
+      sender: AccountAddressInput;
+      tokenAddress: string;
 
-    privateKey: TwistedEd25519PrivateKey;
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
-    balanceAmount: bigint;
-    randomness?: bigint[];
-
-    sender: AccountAddressInput;
-
-    options?: InputGenerateTransactionOptions;
-  }) {
+      options?: InputGenerateTransactionOptions;
+    },
+  ) {
     const veiledNormalization = await VeiledNormalization.create({
-      privateKey: args.privateKey,
+      decryptionKey: args.decryptionKey,
       unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       randomness: args.randomness,

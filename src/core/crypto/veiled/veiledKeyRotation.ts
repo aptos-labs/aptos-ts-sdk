@@ -22,12 +22,19 @@ export type VeiledKeyRotationSigmaProof = {
   X5List: Uint8Array[];
 };
 
+export type CreateVeiledKeyRotationOpArgs = {
+  currDecryptionKey: TwistedEd25519PrivateKey;
+  newDecryptionKey: TwistedEd25519PrivateKey;
+  currEncryptedBalance: TwistedElGamalCiphertext[];
+  randomness?: bigint[];
+};
+
 export class VeiledKeyRotation {
   randomness: bigint[];
 
-  currPrivateKey: TwistedEd25519PrivateKey;
+  currDecryptionKey: TwistedEd25519PrivateKey;
 
-  newPrivateKey: TwistedEd25519PrivateKey;
+  newDecryptionKey: TwistedEd25519PrivateKey;
 
   currEncryptedBalance: TwistedElGamalCiphertext[];
 
@@ -36,16 +43,16 @@ export class VeiledKeyRotation {
   newVeiledAmount: VeiledAmount;
 
   constructor(args: {
-    currPrivateKey: TwistedEd25519PrivateKey;
-    newPrivateKey: TwistedEd25519PrivateKey;
+    currDecryptionKey: TwistedEd25519PrivateKey;
+    newDecryptionKey: TwistedEd25519PrivateKey;
     currEncryptedBalance: TwistedElGamalCiphertext[];
     randomness: bigint[];
     currVeiledAmount: VeiledAmount;
     newVeiledAmount: VeiledAmount;
   }) {
     this.randomness = args.randomness;
-    this.currPrivateKey = args.currPrivateKey;
-    this.newPrivateKey = args.newPrivateKey;
+    this.currDecryptionKey = args.currDecryptionKey;
+    this.newDecryptionKey = args.newDecryptionKey;
     this.currEncryptedBalance = args.currEncryptedBalance;
     this.currVeiledAmount = args.currVeiledAmount;
     this.newVeiledAmount = args.newVeiledAmount;
@@ -53,22 +60,17 @@ export class VeiledKeyRotation {
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
-  static async create(args: {
-    currPrivateKey: TwistedEd25519PrivateKey;
-    newPrivateKey: TwistedEd25519PrivateKey;
-    currEncryptedBalance: TwistedElGamalCiphertext[];
-    randomness?: bigint[];
-  }) {
+  static async create(args: CreateVeiledKeyRotationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom();
 
-    const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currPrivateKey);
+    const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
 
     const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
-    newBalance.encryptBalance(args.newPrivateKey.publicKey(), randomness);
+    newBalance.encrypt(args.newDecryptionKey.publicKey(), randomness);
 
     return new VeiledKeyRotation({
-      currPrivateKey: args.currPrivateKey,
-      newPrivateKey: args.newPrivateKey,
+      currDecryptionKey: args.currDecryptionKey,
+      newDecryptionKey: args.newDecryptionKey,
       currEncryptedBalance: args.currEncryptedBalance,
       randomness,
       currVeiledAmount: currentBalance,
@@ -155,17 +157,17 @@ export class VeiledKeyRotation {
       RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x6List[index])).toRawBytes(),
     );
     const X5List = x6List.map((item) =>
-      RistrettoPoint.fromHex(this.newPrivateKey.publicKey().toUint8Array()).multiply(item).toRawBytes(),
+      RistrettoPoint.fromHex(this.newDecryptionKey.publicKey().toUint8Array()).multiply(item).toRawBytes(),
     );
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledKeyRotation.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
-      this.currPrivateKey.publicKey().toUint8Array(),
-      this.newPrivateKey.publicKey().toUint8Array(),
+      this.currDecryptionKey.publicKey().toUint8Array(),
+      this.newDecryptionKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.newVeiledAmount.encryptedAmount!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...this.newVeiledAmount.amountEncrypted!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -173,9 +175,9 @@ export class VeiledKeyRotation {
       ...X5List,
     );
 
-    const oldSLE = bytesToNumberLE(this.currPrivateKey.toUint8Array());
+    const oldSLE = bytesToNumberLE(this.currDecryptionKey.toUint8Array());
     const invertOldSLE = ed25519InvertN(oldSLE);
-    const newSLE = bytesToNumberLE(this.newPrivateKey.toUint8Array());
+    const newSLE = bytesToNumberLE(this.newDecryptionKey.toUint8Array());
     const invertNewSLE = ed25519InvertN(newSLE);
 
     const alpha1 = ed25519modN(x1 - p * this.currVeiledAmount.amount);
@@ -282,9 +284,9 @@ export class VeiledKeyRotation {
       this.currVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
-          r: this.newPrivateKey.toUint8Array(),
+          r: this.newDecryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.newVeiledAmount.encryptedAmount![i].D.toRawBytes(),
+          randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
         }),
       ),
     );
@@ -310,7 +312,7 @@ export class VeiledKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newVeiledAmount.encryptedAmount!,
+      this.newVeiledAmount.amountEncrypted!,
     ];
   }
 

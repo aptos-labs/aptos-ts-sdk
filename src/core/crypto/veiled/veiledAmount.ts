@@ -15,7 +15,7 @@ export class VeiledAmount {
 
   chunkBits = CHUNK_BITS;
 
-  encryptedAmount?: TwistedElGamalCiphertext[];
+  amountEncrypted?: TwistedElGamalCiphertext[];
 
   static CHUNKS_COUNT = CHUNKS_COUNT;
 
@@ -34,7 +34,7 @@ export class VeiledAmount {
     this.amountChunks = args.amountChunks;
 
     if (args.encryptedAmount) {
-      this.encryptedAmount = args.encryptedAmount;
+      this.amountEncrypted = args.encryptedAmount;
     }
 
     if (args.chunksCount) {
@@ -139,11 +139,11 @@ export class VeiledAmount {
     return new VeiledAmount({ amount, amountChunks: decryptedAmountChunks, encryptedAmount: encrypted, ...opts });
   }
 
-  encryptBalance(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
-    this.encryptedAmount = this.amountChunks.map((chunk, i) =>
+  encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
+    this.amountEncrypted = this.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, publicKey, randomness?.[i]),
     );
 
-    return this.encryptedAmount;
+    return this.amountEncrypted;
   }
 }

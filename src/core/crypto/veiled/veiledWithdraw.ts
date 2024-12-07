@@ -21,8 +21,15 @@ export type VeiledWithdrawSigmaProof = {
   X4List: Uint8Array[];
 };
 
+export type CreateVeiledWithdrawOpArgs = {
+  decryptionKey: TwistedEd25519PrivateKey;
+  encryptedActualBalance: TwistedElGamalCiphertext[];
+  amountToWithdraw: bigint;
+  randomness?: bigint[];
+};
+
 export class VeiledWithdraw {
-  privateKey: TwistedEd25519PrivateKey;
+  decryptionKey: TwistedEd25519PrivateKey;
 
   encryptedActualBalanceAmount: TwistedElGamalCiphertext[];
 
@@ -33,13 +40,13 @@ export class VeiledWithdraw {
   randomness: bigint[];
 
   constructor(args: {
-    privateKey: TwistedEd25519PrivateKey;
+    decryptionKey: TwistedEd25519PrivateKey;
     encryptedActualBalance: TwistedElGamalCiphertext[];
     veiledAmountToWithdraw: VeiledAmount;
     veiledAmountAfterWithdraw: VeiledAmount;
     randomness: bigint[];
   }) {
-    this.privateKey = args.privateKey;
+    this.decryptionKey = args.decryptionKey;
     this.encryptedActualBalanceAmount = args.encryptedActualBalance;
 
     this.veiledAmountToWithdraw = args.veiledAmountToWithdraw;
@@ -49,26 +56,21 @@ export class VeiledWithdraw {
     this.veiledAmountAfterWithdraw = args.veiledAmountAfterWithdraw;
   }
 
-  static async create(args: {
-    privateKey: TwistedEd25519PrivateKey;
-    encryptedActualBalance: TwistedElGamalCiphertext[];
-    amountToWithdraw: bigint;
-    randomness?: bigint[];
-  }) {
+  static async create(args: CreateVeiledWithdrawOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom();
 
     const veiledAmountToWithdraw = VeiledAmount.fromAmount(args.amountToWithdraw, {
       chunksCount: 2,
     });
-    veiledAmountToWithdraw.encryptBalance(args.privateKey.publicKey(), randomness);
+    veiledAmountToWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
-    const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.privateKey);
+    const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.decryptionKey);
 
     const veiledAmountAfterWithdraw = VeiledAmount.fromAmount(actualBalance.amount - veiledAmountToWithdraw.amount);
-    veiledAmountAfterWithdraw.encryptBalance(args.privateKey.publicKey(), randomness);
+    veiledAmountAfterWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new VeiledWithdraw({
-      privateKey: args.privateKey,
+      decryptionKey: args.decryptionKey,
       encryptedActualBalance: args.encryptedActualBalance,
       veiledAmountToWithdraw,
       veiledAmountAfterWithdraw,
@@ -150,13 +152,13 @@ export class VeiledWithdraw {
       RistrettoPoint.BASE.multiply(item).add(H_RISTRETTO.multiply(x5List[index])),
     );
     const X4List = x5List.map((item) =>
-      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item),
+      RistrettoPoint.fromHex(this.decryptionKey.publicKey().toUint8Array()).multiply(item),
     );
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
       concatBytes(...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32))),
-      this.privateKey.publicKey().toUint8Array(),
+      this.decryptionKey.publicKey().toUint8Array(),
       concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
@@ -166,7 +168,7 @@ export class VeiledWithdraw {
       ...X4List.map((el) => el.toRawBytes()),
     );
 
-    const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
+    const sLE = bytesToNumberLE(this.decryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
     const pt = ed25519modN(p * this.veiledAmountAfterWithdraw.amount);
@@ -274,9 +276,9 @@ export class VeiledWithdraw {
       this.veiledAmountAfterWithdraw.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
-          r: this.privateKey.toUint8Array(),
+          r: this.decryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.veiledAmountAfterWithdraw.encryptedAmount![i].D.toRawBytes(),
+          randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
         }),
       ),
     );
@@ -296,7 +298,7 @@ export class VeiledWithdraw {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.veiledAmountAfterWithdraw.encryptedAmount!];
+    return [{ sigmaProof, rangeProof }, this.veiledAmountAfterWithdraw.amountEncrypted!];
   }
 
   static async verifyRangeProof(opts: {

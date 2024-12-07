@@ -15,7 +15,7 @@ import { Transaction } from "./transaction";
 import { Table } from "./table";
 import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
-import { VeiledBalance } from "./veiledBalance";
+import { VeiledCoin } from "./veiledCoin";
 
 /**
  * This class is the main entry point into Aptos's
@@ -55,7 +55,7 @@ export class Aptos {
 
   readonly keyless: Keyless;
 
-  readonly veiledBalance: VeiledBalance;
+  readonly veiledCoin: VeiledCoin;
 
   readonly object: AptosObject;
 
@@ -73,7 +73,7 @@ export class Aptos {
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
-    this.veiledBalance = new VeiledBalance(this.config);
+    this.veiledCoin = new VeiledCoin(this.config);
     this.object = new AptosObject(this.config);
   }
 }

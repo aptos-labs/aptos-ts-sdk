@@ -21,8 +21,15 @@ export type VeiledNormalizationSigmaProof = {
   X4List: Uint8Array[];
 };
 
+export type CreateVeiledNormalizationOpArgs = {
+  decryptionKey: TwistedEd25519PrivateKey;
+  unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+  balanceAmount: bigint;
+  randomness?: bigint[];
+};
+
 export class VeiledNormalization {
-  privateKey: TwistedEd25519PrivateKey;
+  decryptionKey: TwistedEd25519PrivateKey;
 
   unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
 
@@ -33,32 +40,27 @@ export class VeiledNormalization {
   randomness: bigint[];
 
   constructor(args: {
-    privateKey: TwistedEd25519PrivateKey;
+    decryptionKey: TwistedEd25519PrivateKey;
     unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
     balanceAmount: bigint;
     normalizedVeiledAmount: VeiledAmount;
     randomness: bigint[];
   }) {
-    this.privateKey = args.privateKey;
+    this.decryptionKey = args.decryptionKey;
     this.unnormilizedEncryptedBalance = args.unnormilizedEncryptedBalance;
     this.balanceAmount = args.balanceAmount;
     this.normalizedVeiledAmount = args.normalizedVeiledAmount;
     this.randomness = args.randomness;
   }
 
-  static async create(args: {
-    privateKey: TwistedEd25519PrivateKey;
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
-    balanceAmount: bigint;
-    randomness?: bigint[];
-  }) {
+  static async create(args: CreateVeiledNormalizationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom();
 
     const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
-    normalizedVeiledAmount.encryptBalance(args.privateKey.publicKey(), randomness);
+    normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new VeiledNormalization({
-      privateKey: args.privateKey,
+      decryptionKey: args.decryptionKey,
       unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       normalizedVeiledAmount,
@@ -140,23 +142,23 @@ export class VeiledNormalization {
     const X2 = H_RISTRETTO.multiply(x3);
     const X3List = x4List.map((x4, index) => RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x5List[index])));
     const X4List = x5List.map((item) =>
-      RistrettoPoint.fromHex(this.privateKey.publicKey().toUint8Array()).multiply(item),
+      RistrettoPoint.fromHex(this.decryptionKey.publicKey().toUint8Array()).multiply(item),
     );
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledNormalization.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
-      this.privateKey.publicKey().toUint8Array(),
+      this.decryptionKey.publicKey().toUint8Array(),
       ...this.unnormilizedEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.normalizedVeiledAmount.encryptedAmount!.map((el) => el.serialize()).flat(),
+      ...this.normalizedVeiledAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
       ...X4List.map((X4) => X4.toRawBytes()),
     );
 
-    const sLE = bytesToNumberLE(this.privateKey.toUint8Array());
+    const sLE = bytesToNumberLE(this.decryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
     const pt = ed25519modN(p * this.balanceAmount);
@@ -252,9 +254,9 @@ export class VeiledNormalization {
       this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
         generateRangeZKP({
           v: chunk,
-          r: this.privateKey.toUint8Array(),
+          r: this.decryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.normalizedVeiledAmount!.encryptedAmount![i].D.toRawBytes(),
+          randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
         }),
       ),
     );
@@ -285,6 +287,6 @@ export class VeiledNormalization {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedVeiledAmount.encryptedAmount!];
+    return [{ sigmaProof, rangeProof }, this.normalizedVeiledAmount.amountEncrypted!];
   }
 }
