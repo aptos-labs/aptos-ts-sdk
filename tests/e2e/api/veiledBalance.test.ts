@@ -37,7 +37,7 @@ describe("Veiled balance api", () => {
   // TODO: decimals?
   const TOKENS_TO_MINT = 1_000;
 
-  // const INITIAL_APTOS_BALANCE = 0.5 * 10 ** 8;
+  const INITIAL_APTOS_BALANCE = 0.5 * 10 ** 8;
 
   const mintFungibleTokens = async (account: Account) => {
     const transaction = await aptos.transaction.build.simple({
@@ -90,21 +90,20 @@ describe("Veiled balance api", () => {
     privateKey: new Ed25519PrivateKey(TESTNET_PK!),
   });
 
-  // TODO: implement once faucet works
-  // test(
-  //   "it should fund Alice aptos accounts balances",
-  //   async () => {
-  //     const [aliceResponse] = await Promise.all([
-  //       aptos.fundAccount({
-  //         accountAddress: alice.accountAddress,
-  //         amount: INITIAL_APTOS_BALANCE,
-  //       }),
-  //     ]);
-  //
-  //     expect(aliceResponse.success).toBeTruthy();
-  //   },
-  //   longTestTimeout,
-  // );
+  test(
+    "it should fund Alice aptos accounts balances",
+    async () => {
+      const [aliceResponse] = await Promise.all([
+        aptos.fundAccount({
+          accountAddress: alice.accountAddress,
+          amount: INITIAL_APTOS_BALANCE,
+        }),
+      ]);
+
+      expect(aliceResponse.success).toBeTruthy();
+    },
+    longTestTimeout,
+  );
 
   test(
     "it should ensure Alice able to afford transactions",
@@ -120,10 +119,14 @@ describe("Veiled balance api", () => {
     longTestTimeout,
   );
 
-  const aliceDecryptionKey = new TwistedEd25519PrivateKey(
-    // TODO: remove
-    TESTNET_DK!,
-  );
+  const aliceDecryptionKey = new TwistedEd25519PrivateKey(TESTNET_DK!);
+  // const aliceDecryptionKey = TwistedEd25519PrivateKey.generate();
+
+  // console.log("\n\n\n");
+  // console.log(aliceDecryptionKey.toString());
+  // console.log(aliceDecryptionKey.publicKey().toString());
+  // console.log(aliceDecryptionKey.publicKey().toUint8Array());
+  // console.log("\n\n\n");
 
   let isAliceRegistered = false;
   test("it should check Alice veiled balance registered", async () => {

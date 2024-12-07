@@ -26,7 +26,7 @@ import {
 } from "../transactions";
 import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } from "../types";
 import { AptosConfig } from "./aptosConfig";
-import { Aptos } from "./aptos";
+import type { Aptos } from "./aptos";
 import { Account } from "../account";
 
 export type VeiledBalanceResponse = {

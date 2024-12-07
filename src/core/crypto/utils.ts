@@ -4,7 +4,6 @@ import { ed25519 } from "@noble/curves/ed25519";
 import { randomBytes } from "@noble/hashes/utils";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
-import { VEILED_BALANCE_CHUNK_SIZE } from "./veiled/consts";
 
 /**
  * Helper function to convert a message to sign or to verify to a valid message input
@@ -57,6 +56,6 @@ export function ed25519GenRandom(): bigint {
 /*
  * Generate list of random number less then order of curve ed25519
  */
-export function ed25519GenListOfRandom(len = VEILED_BALANCE_CHUNK_SIZE) {
+export function ed25519GenListOfRandom(len = 4) {
   return new Array(len).fill(0n).map(() => ed25519GenRandom());
 }

@@ -1,8 +1,14 @@
 import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 
+/**
+ * Number of chunks for veiled balance
+ */
 const CHUNKS_COUNT = 4;
 
+/**
+ * Max bits of amount in a chunk for normalized veiled balance
+ */
 const CHUNK_BITS = 32;
 
 // TODO: encrypt pending balance as (2)
