@@ -401,7 +401,9 @@ describe("Veiled balance api", () => {
         sender: alice.accountAddress,
       });
 
-      expect(normalizeTx).toBeDefined();
+      const txResp = await sendAndWaitTx(normalizeTx, alice);
+
+      expect(txResp.success).toBeTruthy();
     } else {
       expect(true).toBeTruthy();
     }

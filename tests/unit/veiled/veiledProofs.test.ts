@@ -8,9 +8,9 @@ import {
   VeiledTransfer,
   VeiledKeyRotation,
   VeiledNormalization,
-} from "../../src";
-import { toTwistedEd25519PrivateKey } from "../../src/core/crypto/veiled/helpers";
-import { VeiledAmount } from "../../src/core/crypto/veiled/veiledAmount";
+} from "../../../src";
+import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
+import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;

@@ -130,6 +130,9 @@ export class VeiledAmount {
       chunkBits?: number;
     },
   ) {
+    const chunksCount = opts?.chunksCount || encrypted.length;
+    const chunkBits = opts?.chunkBits || encrypted[0].C.toRawBytes().length;
+
     const decryptedAmountChunks = await Promise.all(
       encrypted.map((el) =>
         TwistedElGamal.decryptWithPK(el, privateKey, {
@@ -140,9 +143,15 @@ export class VeiledAmount {
       ),
     );
 
-    const amount = VeiledAmount.chunksToAmount(decryptedAmountChunks, opts?.chunkBits);
+    const amount = VeiledAmount.chunksToAmount(decryptedAmountChunks, chunkBits);
 
-    return new VeiledAmount({ amount, amountChunks: decryptedAmountChunks, encryptedAmount: encrypted, ...opts });
+    return new VeiledAmount({
+      amount,
+      amountChunks: decryptedAmountChunks,
+      encryptedAmount: encrypted,
+      chunksCount,
+      chunkBits,
+    });
   }
 
   encrypt(publicKey: TwistedEd25519PublicKey, randomness?: bigint[]): TwistedElGamalCiphertext[] {
