@@ -46,7 +46,7 @@ describe("Veiled balance api", () => {
   const addNewContentLineToFile = (filename: string, data: string) => {
     const filePath = path.resolve(rootDir, filename);
 
-    const content = `\n#TESTNET_DK=${data}\n`;
+    const content = `\n${data}\n`;
 
     fs.appendFileSync(filePath, content);
   };
@@ -442,7 +442,7 @@ describe("Veiled balance api", () => {
     console.log("\n\n\n");
     /* eslint-enable */
 
-    addNewContentLineToFile(".env.development", ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+    addNewContentLineToFile(".env.development", `#TESTNET_DK=${ALICE_NEW_VEILED_PRIVATE_KEY.toString()}`);
 
     expect(keyRotationAndUnfreezeTxResponse.success).toBeTruthy();
   });

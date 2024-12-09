@@ -69,6 +69,42 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(vbNew).toBeDefined();
   });
 
+  test("Should generate and verify veiled withdraw with large amounts", async () => {
+    const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
+    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 100n);
+    newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
+
+    const newWithdrawAmount = 2n ** 32n + 10n;
+
+    const largeVeiledWithdrawal = await VeiledWithdraw.create({
+      decryptionKey: newAliceDecryptionKey,
+      encryptedActualBalance: newAliceBalance.amountEncrypted!,
+      amountToWithdraw: newWithdrawAmount,
+    });
+
+    const [{ sigmaProof, rangeProof }, vbNew] = await largeVeiledWithdrawal.authorizeWithdrawal();
+
+    expect(sigmaProof).toBeDefined();
+    expect(rangeProof).toBeDefined();
+    expect(vbNew).toBeDefined();
+
+    const isSigmaProofValid = VeiledWithdraw.verifySigmaProof({
+      publicKey: newAliceDecryptionKey.publicKey(),
+      encryptedActualBalance: largeVeiledWithdrawal.encryptedActualBalanceAmount,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
+      amountToWithdraw: newWithdrawAmount,
+      sigmaProof,
+    });
+
+    const isRangeProofValid = VeiledWithdraw.verifyRangeProof({
+      rangeProof,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
+    });
+
+    expect(isSigmaProofValid).toBeTruthy();
+    expect(isRangeProofValid).toBeTruthy();
+  });
+
   const TRANSFER_AMOUNT = 10n;
   let veiledTransfer: VeiledTransfer;
   let veiledTransferSigmaProof: VeiledTransferSigmaProof;
