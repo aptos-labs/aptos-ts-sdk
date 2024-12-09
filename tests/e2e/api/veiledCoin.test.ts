@@ -46,7 +46,7 @@ describe("Veiled balance api", () => {
   const addNewContentLineToFile = (filename: string, data: string) => {
     const filePath = path.resolve(rootDir, filename);
 
-    const content = `\n# TESTNET_DK=${data}\n`;
+    const content = `\n#TESTNET_DK=${data}\n`;
 
     fs.appendFileSync(filePath, content);
   };
