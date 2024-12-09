@@ -134,13 +134,7 @@ export class VeiledAmount {
     const chunkBits = opts?.chunkBits || encrypted[0].C.toRawBytes().length;
 
     const decryptedAmountChunks = await Promise.all(
-      encrypted.map((el) =>
-        TwistedElGamal.decryptWithPK(el, privateKey, {
-          // FIXME: mocked, should be removed, once algo is ready
-          start: 0n,
-          end: 1000n,
-        }),
-      ),
+      encrypted.map((el) => TwistedElGamal.decryptWithPK(el, privateKey)),
     );
 
     const amount = VeiledAmount.chunksToAmount(decryptedAmountChunks, chunkBits);

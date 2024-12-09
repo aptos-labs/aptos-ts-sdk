@@ -6,6 +6,7 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { HexInput } from "../../types";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "./utils";
+import { KangarooEd25519 } from "./kangaroo/kangarooEd25519";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -108,6 +109,11 @@ export class TwistedElGamal {
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
     const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
+
+    const r = 128n;
+    const secretSize = 32;
+
+    const kangaroo = new KangarooEd25519(n, w, r, secretSize);
 
     // TODO: Replace brute-force search with another algorithm for optimization
     let amount = decryptionRange?.start ?? BigInt(0);
