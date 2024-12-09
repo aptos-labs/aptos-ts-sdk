@@ -1,3 +1,10 @@
+const path = require("path");
+const envPath = path.resolve(__dirname, ".env.development");
+
+require("dotenv").config({
+  path: [envPath],
+});
+
 /** @type {import("ts-jest/dist/types").InitialOptionsTsJest} */
 module.exports = {
   preset: "ts-jest",

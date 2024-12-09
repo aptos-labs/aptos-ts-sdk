@@ -154,7 +154,7 @@ export class TwistedElGamal {
    * Modify ciphertext by ciphertext
    * @param operand1 Сiphertext points encrypted by Twisted ElGamal
    * @param operation Operation to change ciphertext points
-   * @param operand1 Сiphertext points encrypted by Twisted ElGamal
+   * @param operand2 Сiphertext points encrypted by Twisted ElGamal
    */
   static modifyCiphertextByCiphertext(
     operand1: TwistedElGamalCiphertext,
@@ -211,5 +211,9 @@ export class TwistedElGamalCiphertext {
     const updatedD = this.D.subtract(ciphertext.D);
 
     return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
+  }
+
+  public serialize(): Uint8Array {
+    return new Uint8Array([...this.C.toRawBytes(), ...this.D.toRawBytes()]);
   }
 }

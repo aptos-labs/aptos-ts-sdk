@@ -14,4 +14,4 @@ export * from "./signature";
 export * from "./singleKey";
 export * from "./twistedEd25519";
 export * from "./twistedElGamal";
-export * from "./veiledOperationZKP";
+export * from "./veiled";
