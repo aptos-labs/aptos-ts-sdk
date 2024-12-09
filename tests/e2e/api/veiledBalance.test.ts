@@ -1,6 +1,8 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import path from "path";
+import fs from "fs";
 import {
   AptosConfig,
   Aptos,
@@ -38,6 +40,16 @@ describe("Veiled balance api", () => {
   const TOKENS_TO_MINT = 1_000;
 
   const INITIAL_APTOS_BALANCE = 0.5 * 10 ** 8;
+
+  const rootDir = path.resolve(__dirname, "../../../");
+
+  const addNewContentLineToFile = (filename: string, data: string) => {
+    const filePath = path.resolve(rootDir, filename);
+
+    const content = `\n# TESTNET_DK=${data}\n`;
+
+    fs.appendFileSync(filePath, content);
+  };
 
   const mintFungibleTokens = async (account: Account) => {
     const transaction = await aptos.transaction.build.simple({
@@ -427,6 +439,8 @@ describe("Veiled balance api", () => {
     console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
     console.log("\n\n\n");
     /* eslint-enable */
+
+    addNewContentLineToFile(".env.development", ALICE_NEW_VEILED_PRIVATE_KEY.toString());
 
     expect(keyRotationAndUnfreezeTxResponse.success).toBeTruthy();
   });
