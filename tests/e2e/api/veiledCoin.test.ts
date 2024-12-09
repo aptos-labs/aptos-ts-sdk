@@ -227,21 +227,11 @@ describe("Veiled balance api", () => {
   });
 
   test("it should safely rollover Alice's veiled balance", async () => {
-    const aliceBalances = await aptos.veiledCoin.getBalance({
-      accountAddress: alice.accountAddress,
-      tokenAddress: TOKEN_ADDRESS,
-    });
-
-    const unnormalizedVeiledAmount = await VeiledAmount.fromEncrypted(aliceBalances.actual, aliceDecryptionKey);
-
     const rolloverTxPayloads = await aptos.veiledCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
-
       decryptionKey: aliceDecryptionKey,
-      unnormilizedEncryptedBalance: unnormalizedVeiledAmount.amountEncrypted!,
-      balanceAmount: unnormalizedVeiledAmount.amount,
     });
 
     const txResponses = await sendAndWaitBatchTxs(rolloverTxPayloads, alice);

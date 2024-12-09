@@ -9,6 +9,7 @@ import {
   CreateVeiledNormalizationOpArgs,
   CreateVeiledTransferOpArgs,
   CreateVeiledWithdrawOpArgs,
+  TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
   VeiledKeyRotation,
@@ -28,6 +29,7 @@ import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } f
 import { AptosConfig } from "./aptosConfig";
 import type { Aptos } from "./aptos";
 import { Account } from "../account";
+import { VeiledAmount } from "../core/crypto/veiled/veiledAmount";
 
 export type VeiledBalanceResponse = {
   chunks: {
@@ -181,13 +183,12 @@ export class VeiledCoin {
     });
   }
 
-  async safeRolloverPendingVB(
-    args: CreateVeiledNormalizationOpArgs & {
-      sender: AccountAddressInput;
-      tokenAddress: string;
-      withFreezeBalance?: boolean;
-    },
-  ): Promise<InputGenerateTransactionPayloadData[]> {
+  async safeRolloverPendingVB(args: {
+    sender: AccountAddressInput;
+    tokenAddress: string;
+    withFreezeBalance?: boolean;
+    decryptionKey: TwistedEd25519PrivateKey;
+  }): Promise<InputGenerateTransactionPayloadData[]> {
     const txList: InputGenerateTransactionPayloadData[] = [];
 
     const isNormalized = await this.isUserBalanceNormalized({
@@ -196,12 +197,19 @@ export class VeiledCoin {
     });
 
     if (!isNormalized) {
+      const aliceBalances = await this.getBalance({
+        accountAddress: AccountAddress.from(args.sender),
+        tokenAddress: args.tokenAddress,
+      });
+
+      const aliceVB = await VeiledAmount.fromEncrypted(aliceBalances.actual, args.decryptionKey);
+
       const normalizationTx = await VeiledCoin.buildNormalizationTxPayload({
-        balanceAmount: args.balanceAmount,
         decryptionKey: args.decryptionKey,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
-        unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+        unnormilizedEncryptedBalance: aliceBalances.pending,
+        balanceAmount: aliceVB.amount,
       });
       txList.push(normalizationTx);
     }
