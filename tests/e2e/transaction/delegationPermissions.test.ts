@@ -5,11 +5,9 @@
 /* eslint-disable no-console */
 /* eslint-disable no-await-in-loop */
 
-import { BatchArgument } from "@wgb5445/aptos-intent-npm";
 import {
   Account,
   SigningSchemeInput,
-  MoveString,
   Network,
   AccountAddress,
   Ed25519Account,
@@ -21,8 +19,14 @@ import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
-import { FungibleAssetPermission, getHandleAddress, getPermissions, NFTPermission, Permission, PermissionType, RevokeFungibleAssetPermission, RevokePermission } from "../../../src/internal/permissions";
-import { FungibleAsset } from "../../../src/api/fungibleAsset";
+import {
+  buildFungibleAssetPermission,
+  buildNFTPermission,
+  buildRevokeFungibleAssetPermission,
+  Permission,
+  PermissionType,
+  RevokePermission,
+} from "../../../src/types/permissions";
 
 const LOCAL_NET = getAptosClient();
 const CUSTOM_NET = getAptosClient({
@@ -55,8 +59,8 @@ describe("transaction submission", () => {
 
   test("Able to re-grant permissions for the same subaccount", async () => {
     // account
-    const APT_PERMISSION: FungibleAssetPermission = FungibleAssetPermission({
-      asset:  AccountAddress.A.toString(),// apt address
+    const APT_PERMISSION = buildFungibleAssetPermission({
+      asset: AccountAddress.A.toString(), // apt address
       balance: "10",
     });
     await requestPermission({
@@ -69,10 +73,10 @@ describe("transaction submission", () => {
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
 
-    const APT_PERMISSION2: FungibleAssetPermission = FungibleAssetPermission({
+    const APT_PERMISSION2 = buildFungibleAssetPermission({
       asset: AccountAddress.A.toString(),
-      balance:"20"
-    })
+      balance: "20",
+    });
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
@@ -92,9 +96,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [
-        NFTPermission({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } }),
-      ],
+      permissions: [buildNFTPermission({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
     });
 
     const perm1 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.NFT });
@@ -123,7 +125,7 @@ describe("transaction submission", () => {
       },
     });
 
-    const APT_PERMISSION: FungibleAssetPermission = FungibleAssetPermission({
+    const APT_PERMISSION = buildFungibleAssetPermission({
       asset: AccountAddress.A.toString(),
       balance: "10",
     });
@@ -177,10 +179,14 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" } )],
+      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
     });
 
-    await revokePermission({ primaryAccount, subAccount, permissions: [RevokeFungibleAssetPermission({ asset: AccountAddress.A.toString() })] });
+    await revokePermission({
+      primaryAccount,
+      subAccount,
+      permissions: [buildRevokeFungibleAssetPermission({ asset: AccountAddress.A.toString() })],
+    });
 
     const txn1 = await signSubmitAndWait({
       sender: primaryAccount,
@@ -208,7 +214,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
+      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -296,7 +302,6 @@ export async function revokePermission({
 
   return response;
 }
-
 
 // ====================================================================
 // Test Helper Functions
