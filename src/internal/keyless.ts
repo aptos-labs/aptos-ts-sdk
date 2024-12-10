@@ -6,6 +6,7 @@
  * the {@link api/keyless}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * keyless namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AptosConfig } from "../api/aptosConfig";
@@ -43,6 +44,7 @@ import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
  * @param args.uidKey - An optional unique identifier key (defaults to "sub").
  * @param args.derivationPath - An optional derivation path for the key.
  * @returns A Uint8Array containing the fetched pepper value.
+ * @group Implementation
  */
 export async function getPepper(args: {
   aptosConfig: AptosConfig;
@@ -82,6 +84,7 @@ export async function getPepper(args: {
  * @param args.pepper - An optional hex input used to enhance security (default is generated if not provided).
  * @param args.uidKey - An optional string that specifies the unique identifier key (defaults to "sub").
  * @throws Error if the pepper length is not valid or if the ephemeral key pair's lifespan exceeds the maximum allowed.
+ * @group Implementation
  */
 export async function getProof(args: {
   aptosConfig: AptosConfig;
@@ -154,6 +157,7 @@ export async function getProof(args: {
  * @param args.pepper - An optional hexadecimal input used for additional security.
  * @param args.proofFetchCallback - An optional callback function to handle the proof fetch outcome.
  * @returns A keyless account object.
+ * @group Implementation
  */
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;

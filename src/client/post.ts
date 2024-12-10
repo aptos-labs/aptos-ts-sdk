@@ -8,48 +8,70 @@ import { AptosApiType } from "../utils/const";
 
 /**
  * Options for making a POST request, including the API client configuration.
+ * @group Implementation
+ * @category Client
  */
 export type PostRequestOptions = {
   /**
    * The config for the API client
+   * @group Implementation
+   * @category Client
    */
   aptosConfig: AptosConfig;
   /**
    * The type of API endpoint to call e.g. fullnode, indexer, etc
+   * @group Implementation
+   * @category Client
    */
   type: AptosApiType;
   /**
    * The name of the API method
+   * @group Implementation
+   * @category Client
    */
   originMethod: string;
   /**
    * The URL path to the API method
+   * @group Implementation
+   * @category Client
    */
   path: string;
   /**
    * The content type of the request body
+   * @group Implementation
+   * @category Client
    */
   contentType?: MimeType;
   /**
    * The accepted content type of the response of the API
+   * @group Implementation
+   * @category Client
    */
   acceptType?: MimeType;
   /**
    * The query parameters for the request
+   * @group Implementation
+   * @category Client
    */
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   /**
    * The body of the request, should match the content type of the request
+   * @group Implementation
+   * @category Client
    */
   body?: any;
   /**
    * Specific client overrides for this request to override aptosConfig
+   * @group Implementation
+   * @category Client
    */
   overrides?: ClientConfig;
 };
 
 /**
  * Options for posting a request to Aptos, excluding the type field.
+ * @group Implementation
+ * @category Client
  */
 export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
 
@@ -67,6 +89,8 @@ export type PostAptosRequestOptions = Omit<PostRequestOptions, "type">;
  * @param options.aptosConfig - Configuration settings for the Aptos request.
  * @param options.overrides - Any overrides for the default request behavior.
  * @returns The response from the POST request.
+ * @group Implementation
+ * @category Client
  */
 export async function post<Req extends {}, Res extends {}>(
   options: PostRequestOptions,
@@ -100,6 +124,8 @@ export async function post<Req extends {}, Res extends {}>(
  * @param options.aptosConfig.clientConfig - Client-specific configuration settings.
  * @param options.aptosConfig.fullnodeConfig - Full node-specific configuration settings.
  * @param options.overrides - Additional overrides for the request.
+ * @group Implementation
+ * @category Client
  */
 export async function postAptosFullNode<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
@@ -128,6 +154,8 @@ export async function postAptosFullNode<Req extends {}, Res extends {}>(
  * @param options.aptosConfig.indexerConfig - The indexer configuration settings.
  * @param options.overrides - Additional overrides for the request.
  * @param options.overrides.HEADERS - Custom headers to include in the request.
+ * @group Implementation
+ * @category Client
  */
 export async function postAptosIndexer<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
@@ -156,6 +184,8 @@ export async function postAptosIndexer<Req extends {}, Res extends {}>(
  * @param options.aptosConfig.clientConfig.HEADERS - Optional headers to include in the request.
  * @param options.aptosConfig.faucetConfig - The configuration settings specific to the faucet.
  * @param options.overrides - Additional overrides for the request configuration.
+ * @group Implementation
+ * @category Client
  */
 export async function postAptosFaucet<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
@@ -190,6 +220,8 @@ export async function postAptosFaucet<Req extends {}, Res extends {}>(
  * @param options.headers - The headers to include in the request.
  * @param options.body - The body of the request.
  * @returns A promise that resolves to the response from the pepper service.
+ * @group Implementation
+ * @category Client
  */
 export async function postAptosPepperService<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,
@@ -203,6 +235,8 @@ export async function postAptosPepperService<Req extends {}, Res extends {}>(
  * @param options - The options for the request to the Aptos proving service.
  * @param options.type - The type of the request, which should be set to AptosApiType.PROVER.
  * @param options.data - The data to be included in the request.
+ * @group Implementation
+ * @category Client
  */
 export async function postAptosProvingService<Req extends {}, Res extends {}>(
   options: PostAptosRequestOptions,

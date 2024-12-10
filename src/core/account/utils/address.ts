@@ -9,6 +9,8 @@ import { DeriveScheme } from "../../../types";
  * @param seed The seed in either Uint8Array | string type
  *
  * @returns The object account address
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8Array | string): AccountAddress => {
   const creatorBytes = creatorAddress.bcsToBytes();
@@ -27,6 +29,8 @@ export const createObjectAddress = (creatorAddress: AccountAddress, seed: Uint8A
  * @param seed The seed in either Uint8Array | string type
  *
  * @returns The resource account address
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export const createResourceAddress = (creatorAddress: AccountAddress, seed: Uint8Array | string): AccountAddress => {
   const creatorBytes = creatorAddress.bcsToBytes();
@@ -46,6 +50,8 @@ export const createResourceAddress = (creatorAddress: AccountAddress, seed: Uint
  * @param tokenName The token name
  *
  * @returns The token account address
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export const createTokenAddress = (
   creatorAddress: AccountAddress,

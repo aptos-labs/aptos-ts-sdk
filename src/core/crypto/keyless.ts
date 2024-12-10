@@ -35,13 +35,45 @@ import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { getErrorMessage } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
 
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const EPK_HORIZON_SECS = 10000000;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_AUD_VAL_BYTES = 120;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_UID_KEY_BYTES = 30;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_UID_VAL_BYTES = 330;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_ISS_VAL_BYTES = 120;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_EXTRA_FIELD_BYTES = 350;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_JWT_HEADER_B64_BYTES = 300;
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const MAX_COMMITED_EPK_BYTES = 93;
 
 /**
@@ -51,15 +83,21 @@ export const MAX_COMMITED_EPK_BYTES = 93;
  * including methods for generating and verifying signatures, as well as serialization
  * and deserialization of the key. The KeylessPublicKey is represented in the SDK
  * as `AnyPublicKey`.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessPublicKey extends AccountPublicKey {
   /**
    * The number of bytes that `idCommitment` should be
+   * @group Implementation
+   * @category Serialization
    */
   static readonly ID_COMMITMENT_LENGTH: number = 32;
 
   /**
    * The value of the 'iss' claim on the JWT which identifies the OIDC provider.
+   * @group Implementation
+   * @category Serialization
    */
   readonly iss: string;
 
@@ -67,6 +105,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * A value representing a cryptographic commitment to a user identity.
    *
    * It is calculated from the aud, uidKey, uidVal, pepper.
+   * @group Implementation
+   * @category Serialization
    */
   readonly idCommitment: Uint8Array;
 
@@ -79,6 +119,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.deltaG2 - The hex representation of the delta G2 value.
    * @param args.gammaAbcG1 - An array containing two hex representations for gamma ABC G1 values.
    * @param args.gammaG2 - The hex representation of the gamma G2 value.
+   * @group Implementation
+   * @category Serialization
    */
   // TODO: Fix the JSDoc for the below values
   constructor(iss: string, idCommitment: HexInput) {
@@ -95,6 +137,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * Get the authentication key for the keyless public key.
    *
    * @returns AuthenticationKey - The authentication key derived from the keyless public key.
+   * @group Implementation
+   * @category Serialization
    */
   authKey(): AuthenticationKey {
     const serializer = new Serializer();
@@ -113,6 +157,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the message.
    * @returns true if the signature is valid; otherwise, false.
+   * @group Implementation
+   * @category Serialization
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
@@ -129,6 +175,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param serializer.extraField - An optional additional field for serialization.
    * @param serializer.overrideAudVal - An optional override value for auditing.
    * @param serializer.trainingWheelsSignature - An optional signature for training wheels.
+   * @group Implementation
+   * @category Serialization
    */
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
@@ -141,6 +189,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
    * @returns A new instance of ZeroKnowledgeSig.
+   * @group Implementation
+   * @category Serialization
    */
   static deserialize(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
@@ -156,6 +206,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param deserializer.deserializeStr - A method to deserialize a string value.
    * @param deserializer.deserializeBytes - A method to deserialize byte data.
    * @returns A new instance of KeylessPublicKey.
+   * @group Implementation
+   * @category Serialization
    */
   static load(deserializer: Deserializer): KeylessPublicKey {
     const iss = deserializer.deserializeStr();
@@ -168,6 +220,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param publicKey - The public key to check.
    * @returns A boolean indicating whether the public key is a KeylessPublicKey instance.
+   * @group Implementation
+   * @category Serialization
    */
   static isPublicKey(publicKey: PublicKey): publicKey is KeylessPublicKey {
     return publicKey instanceof KeylessPublicKey;
@@ -182,6 +236,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.aud the client ID of the application
    * @param args.pepper The pepper used to maintain privacy of the account
    * @returns KeylessPublicKey
+   * @group Implementation
+   * @category Serialization
    */
   static create(args: {
     iss: string;
@@ -203,6 +259,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args.pepper - The pepper value used in the key creation process.
    * @param args.uidKey - An optional key to retrieve the unique identifier from the JWT payload, defaults to "sub".
    * @returns A KeylessPublicKey instance created from the provided JWT and pepper.
+   * @group Implementation
+   * @category Serialization
    */
   static fromJwtAndPepper(args: { jwt: string; pepper: HexInput; uidKey?: string }): KeylessPublicKey {
     const { jwt, pepper, uidKey = "sub" } = args;
@@ -222,6 +280,8 @@ export class KeylessPublicKey extends AccountPublicKey {
    *
    * @param publicKey - The public key to validate.
    * @returns A boolean indicating whether the public key is a valid instance.
+   * @group Implementation
+   * @category Serialization
    */
   static isInstance(publicKey: PublicKey) {
     return (
@@ -248,30 +308,42 @@ function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string
 
 /**
  * Represents a signature of a message signed via a Keyless Account, utilizing proofs or a JWT token for authentication.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessSignature extends Signature {
   /**
    * The inner signature ZeroKnowledgeSignature or OpenIdSignature
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralCertificate: EphemeralCertificate;
 
   /**
    * The jwt header in the token used to create the proof/signature.  In json string representation.
+   * @group Implementation
+   * @category Serialization
    */
   readonly jwtHeader: string;
 
   /**
    * The expiry timestamp in seconds of the EphemeralKeyPair used to sign
+   * @group Implementation
+   * @category Serialization
    */
   readonly expiryDateSecs: number;
 
   /**
    * The ephemeral public key used to verify the signature
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralPublicKey: EphemeralPublicKey;
 
   /**
    * The signature resulting from signing with the private key of the EphemeralKeyPair
+   * @group Implementation
+   * @category Serialization
    */
   readonly ephemeralSignature: EphemeralSignature;
 
@@ -352,12 +424,16 @@ export class KeylessSignature extends Signature {
  * This class can be extended to support additional signature types, such as OpenIdSignature.
  *
  * @extends Signature
+ * @group Implementation
+ * @category Serialization
  */
 export class EphemeralCertificate extends Signature {
   public readonly signature: Signature;
 
   /**
    * Index of the underlying enum variant
+   * @group Implementation
+   * @category Serialization
    */
   private readonly variant: EphemeralCertificateVariant;
 
@@ -371,6 +447,8 @@ export class EphemeralCertificate extends Signature {
    * Get the public key in bytes (Uint8Array).
    *
    * @returns Uint8Array representation of the public key
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.signature.toUint8Array();
@@ -397,6 +475,8 @@ export class EphemeralCertificate extends Signature {
  * This class is used for handling and serializing G1 bytes in cryptographic operations.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 class G1Bytes extends Serializable {
   data: Uint8Array;
@@ -424,6 +504,8 @@ class G1Bytes extends Serializable {
  * This class provides methods for serialization and deserialization of G2 bytes.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 class G2Bytes extends Serializable {
   data: Uint8Array;
@@ -451,20 +533,28 @@ class G2Bytes extends Serializable {
  * The points are the compressed serialization of affine representation of the proof.
  *
  * @extends Proof
+ * @group Implementation
+ * @category Serialization
  */
 export class Groth16Zkp extends Proof {
   /**
    * The bytes of G1 proof point a
+   * @group Implementation
+   * @category Serialization
    */
   a: G1Bytes;
 
   /**
    * The bytes of G2 proof point b
+   * @group Implementation
+   * @category Serialization
    */
   b: G2Bytes;
 
   /**
    * The bytes of G1 proof point c
+   * @group Implementation
+   * @category Serialization
    */
   c: G1Bytes;
 
@@ -494,12 +584,16 @@ export class Groth16Zkp extends Proof {
  * Represents a container for different types of zero-knowledge proofs.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Serialization
  */
 export class ZkProof extends Serializable {
   public readonly proof: Proof;
 
   /**
    * Index of the underlying enum variant
+   * @group Implementation
+   * @category Serialization
    */
   private readonly variant: ZkpVariant;
 
@@ -529,31 +623,43 @@ export class ZkProof extends Serializable {
  * Represents a zero-knowledge signature, encapsulating the proof and its associated metadata.
  *
  * @extends Signature
+ * @group Implementation
+ * @category Serialization
  */
 export class ZeroKnowledgeSig extends Signature {
   /**
    * The proof
+   * @group Implementation
+   * @category Serialization
    */
   readonly proof: ZkProof;
 
   /**
    * The max lifespan of the proof
+   * @group Implementation
+   * @category Serialization
    */
   readonly expHorizonSecs: number;
 
   /**
    * A key value pair on the JWT token that can be specified on the signature which would reveal the value on chain.
    * Can be used to assert identity or other attributes.
+   * @group Implementation
+   * @category Serialization
    */
   readonly extraField?: string;
 
   /**
    * The 'aud' value of the recovery service which is set when recovering an account.
+   * @group Implementation
+   * @category Serialization
    */
   readonly overrideAudVal?: string;
 
   /**
    * The training wheels signature
+   * @group Implementation
+   * @category Serialization
    */
   readonly trainingWheelsSignature?: EphemeralSignature;
 
@@ -578,6 +684,8 @@ export class ZeroKnowledgeSig extends Signature {
    *
    * @param bytes - The bytes representing the serialized ZeroKnowledgeSig.
    * @returns ZeroKnowledgeSig - The deserialized ZeroKnowledgeSig object.
+   * @group Implementation
+   * @category Serialization
    */
   static fromBytes(bytes: Uint8Array): ZeroKnowledgeSig {
     return ZeroKnowledgeSig.deserialize(new Deserializer(bytes));
@@ -607,15 +715,21 @@ export class ZeroKnowledgeSig extends Signature {
  * @remarks
  * This class encapsulates the verification key and the maximum lifespan of ephemeral key pairs,
  * which are essential for the functionality of Keyless accounts.
+ * @group Implementation
+ * @category Serialization
  */
 export class KeylessConfiguration {
   /**
    * The verification key used to verify Groth16 proofs on chain
+   * @group Implementation
+   * @category Serialization
    */
   readonly verificationKey: Groth16VerificationKey;
 
   /**
    * The maximum lifespan of an ephemeral key pair.  This is configured on chain.
+   * @group Implementation
+   * @category Serialization
    */
   readonly maxExpHorizonSecs: number;
 
@@ -640,32 +754,44 @@ export class KeylessConfiguration {
 
 /**
  * Represents the verification key stored on-chain used to verify Groth16 proofs.
+ * @group Implementation
+ * @category Serialization
  */
 export class Groth16VerificationKey {
   // The docstrings below are borrowed from ark-groth16
 
   /**
    * The `alpha * G`, where `G` is the generator of G1
+   * @group Implementation
+   * @category Serialization
    */
   readonly alphaG1: G1Bytes;
 
   /**
    * The `alpha * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly betaG2: G2Bytes;
 
   /**
    * The `delta * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly deltaG2: G2Bytes;
 
   /**
    * The `gamma^{-1} * (beta * a_i + alpha * b_i + c_i) * H`, where H is the generator of G1
+   * @group Implementation
+   * @category Serialization
    */
   readonly gammaAbcG1: [G1Bytes, G1Bytes];
 
   /**
    * The `gamma * H`, where `H` is the generator of G2
+   * @group Implementation
+   * @category Serialization
    */
   readonly gammaG2: G2Bytes;
 
@@ -715,6 +841,8 @@ export class Groth16VerificationKey {
    * @param res.gamma_abc_g1 - The gamma ABC G1 value from the response.
    * @param res.gamma_g2 - The gamma G2 value from the response.
    * @returns A Groth16VerificationKey instance constructed from the provided response data.
+   * @group Implementation
+   * @category Serialization
    */
   static fromGroth16VerificationKeyResponse(res: Groth16VerificationKeyResponse): Groth16VerificationKey {
     return new Groth16VerificationKey({
@@ -736,6 +864,8 @@ export class Groth16VerificationKey {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, the latest version will be used.
  * @returns KeylessConfiguration - The configuration object containing the verifying key and maximum expiry horizon.
+ * @group Implementation
+ * @category Serialization
  */
 export async function getKeylessConfig(args: {
   aptosConfig: AptosConfig;
@@ -810,6 +940,8 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
  * @returns KeylessConfigurationResponse - The response containing the keyless configuration data.
+ * @group Implementation
+ * @category Serialization
  */
 async function getKeylessConfigurationResource(args: {
   aptosConfig: AptosConfig;
@@ -841,6 +973,8 @@ async function getKeylessConfigurationResource(args: {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
  * @returns Groth16VerificationKeyResponse - The response containing the Groth16 verification key data.
+ * @group Implementation
+ * @category Serialization
  */
 async function getGroth16VerificationKeyResource(args: {
   aptosConfig: AptosConfig;

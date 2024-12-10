@@ -10,6 +10,7 @@ import { ValidateFeePayerDataOnSimulation } from "./helpers";
 
 /**
  * A class to handle all `Simulate` transaction operations.
+ * @group Implementation
  */
 export class Simulate {
   readonly config: AptosConfig;
@@ -37,6 +38,7 @@ export class Simulate {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Implementation
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -97,6 +99,7 @@ export class Simulate {
    *
    * example();
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation
   async simple(args: {
@@ -174,6 +177,7 @@ export class Simulate {
    *
    * example();
    * ```
+   * @group Implementation
    */
   @ValidateFeePayerDataOnSimulation
   async multiAgent(args: {

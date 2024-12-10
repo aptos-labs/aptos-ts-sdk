@@ -7,6 +7,8 @@ import { HexInput } from "../types";
 
 /**
  * Provides reasons for parsing failures related to hexadecimal values.
+ * @group Implementation
+ * @category Serialization
  */
 export enum HexInvalidReason {
   TOO_SHORT = "too_short",
@@ -37,6 +39,8 @@ export enum HexInvalidReason {
  * Other ways to chain the functions together:
  * - `Hex.fromHexString({ hexInput: "0x1f" }).toUint8Array()`
  * - `new Hex([1, 3]).toStringWithoutPrefix()`
+ * @group Implementation
+ * @category Serialization
  */
 export class Hex {
   private readonly data: Uint8Array;
@@ -45,6 +49,8 @@ export class Hex {
    * Create a new Hex instance from a Uint8Array.
    *
    * @param data - The Uint8Array containing the data to initialize the Hex instance.
+   * @group Implementation
+   * @category Serialization
    */
   constructor(data: Uint8Array) {
     this.data = data;
@@ -58,6 +64,8 @@ export class Hex {
    * Get the inner hex data as a Uint8Array. The inner data is already a Uint8Array, so no conversion takes place.
    *
    * @returns Hex data as Uint8Array
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.data;
@@ -67,6 +75,8 @@ export class Hex {
    * Get the hex data as a string without the 0x prefix.
    *
    * @returns Hex string without 0x prefix
+   * @group Implementation
+   * @category Serialization
    */
   toStringWithoutPrefix(): string {
     return bytesToHex(this.data);
@@ -76,6 +86,8 @@ export class Hex {
    * Get the hex data as a string with the 0x prefix.
    *
    * @returns Hex string with 0x prefix
+   * @group Implementation
+   * @category Serialization
    */
   toString(): string {
     return `0x${this.toStringWithoutPrefix()}`;
@@ -93,6 +105,8 @@ export class Hex {
    * @throws ParsingError - If the hex string is too short, has an odd number of characters, or contains invalid hex characters.
    *
    * @returns Hex - The resulting Hex instance created from the provided string.
+   * @group Implementation
+   * @category Serialization
    */
   static fromHexString(str: string): Hex {
     let input = str;
@@ -128,6 +142,8 @@ export class Hex {
    *
    * @param hexInput - A HexInput which can be a string or Uint8Array.
    * @returns A Hex instance created from the provided hexInput.
+   * @group Implementation
+   * @category Serialization
    */
   static fromHexInput(hexInput: HexInput): Hex {
     if (hexInput instanceof Uint8Array) return new Hex(hexInput);
@@ -192,6 +208,8 @@ export class Hex {
    *  - valid: A boolean indicating whether the string is valid.
    *  - invalidReason: The reason for invalidity if the string is not valid.
    *  - invalidReasonMessage: A message explaining why the string is invalid.
+   * @group Implementation
+   * @category Serialization
    */
   static isValid(str: string): ParsingResult<HexInvalidReason> {
     try {
@@ -211,6 +229,8 @@ export class Hex {
    *
    * @param other The Hex instance to compare to.
    * @returns true if the Hex instances are equal, false if not.
+   * @group Implementation
+   * @category Serialization
    */
   equals(other: Hex): boolean {
     if (this.data.length !== other.data.length) return false;

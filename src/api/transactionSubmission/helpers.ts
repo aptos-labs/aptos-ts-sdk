@@ -43,6 +43,7 @@
  * }
  * runExample().catch(console.error);
  * ```
+ * @group Implementation
  */
 export function ValidateFeePayerDataOnSubmission(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
@@ -92,6 +93,7 @@ export function ValidateFeePayerDataOnSubmission(target: unknown, propertyKey: s
  * }
  * runExample().catch(console.error);
  * ```
+ * @group Implementation
  */
 export function ValidateFeePayerDataOnSimulation(target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;

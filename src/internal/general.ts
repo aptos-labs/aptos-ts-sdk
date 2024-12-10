@@ -6,6 +6,7 @@
  * the {@link api/general}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * general namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -20,6 +21,7 @@ import { ProcessorType } from "../utils/const";
  *
  * @param args - The arguments for retrieving ledger information.
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @group Implementation
  */
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
@@ -38,6 +40,7 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.limit - The maximum number of transactions to retrieve.
  * @returns An array of user transactions.
+ * @group Implementation
  */
 export async function getChainTopUserTransactions(args: {
   aptosConfig: AptosConfig;
@@ -66,6 +69,7 @@ export async function getChainTopUserTransactions(args: {
  * @param args.query - The GraphQL query to be executed.
  * @param args.originMethod - An optional string to specify the origin method for tracking purposes.
  * @returns The data returned from the query execution.
+ * @group Implementation
  */
 export async function queryIndexer<T extends {}>(args: {
   aptosConfig: AptosConfig;
@@ -89,6 +93,7 @@ export async function queryIndexer<T extends {}>(args: {
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @returns The statuses of the processors.
+ * @group Implementation
  */
 export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
   const { aptosConfig } = args;
@@ -112,6 +117,7 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
  * @param args - The arguments for the function.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @returns The last success version as a BigInt.
+ * @group Implementation
  */
 export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
   const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
@@ -126,6 +132,7 @@ export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosCon
  * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
  * @param args.processorType - The type of processor whose status you want to retrieve.
  * @returns The status of the specified processor.
+ * @group Implementation
  */
 export async function getProcessorStatus(args: {
   aptosConfig: AptosConfig;

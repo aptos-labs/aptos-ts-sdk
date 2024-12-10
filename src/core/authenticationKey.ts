@@ -17,17 +17,23 @@ import { Deserializer } from "../bcs/deserializer";
  * @see {@link https://aptos.dev/concepts/accounts | Account Basics}
  *
  * Account addresses can be derived from the AuthenticationKey.
+ * @group Implementation
+ * @category Serialization
  */
 export class AuthenticationKey extends Serializable {
   /**
    * An authentication key is always a SHA3-256 hash of data, and is always 32 bytes.
    *
    * The data to hash depends on the underlying public key type and the derivation scheme.
+   * @group Implementation
+   * @category Serialization
    */
   static readonly LENGTH: number = 32;
 
   /**
    * The raw bytes of the authentication key.
+   * @group Implementation
+   * @category Serialization
    */
   public readonly data: Hex;
 
@@ -39,6 +45,8 @@ export class AuthenticationKey extends Serializable {
    * @param args.data - The hex input data to be used for the Authentication Key.
    * @throws {Error} Throws an error if the length of the provided hex input is not equal to the required Authentication Key
    * length.
+   * @group Implementation
+   * @category Serialization
    */
   constructor(args: { data: HexInput }) {
     super();
@@ -54,6 +62,8 @@ export class AuthenticationKey extends Serializable {
    * Serializes the fixed bytes data into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Serialization
    */
   serialize(serializer: Serializer): void {
     serializer.serializeFixedBytes(this.data.toUint8Array());
@@ -63,6 +73,8 @@ export class AuthenticationKey extends Serializable {
    * Deserialize an AuthenticationKey from the byte buffer in a Deserializer instance.
    * @param deserializer - The deserializer to deserialize the AuthenticationKey from.
    * @returns An instance of AuthenticationKey.
+   * @group Implementation
+   * @category Serialization
    */
   static deserialize(deserializer: Deserializer): AuthenticationKey {
     const bytes = deserializer.deserializeFixedBytes(AuthenticationKey.LENGTH);
@@ -75,6 +87,8 @@ export class AuthenticationKey extends Serializable {
    * This function is useful for obtaining a byte representation of the data, which can be utilized for serialization or transmission.
    *
    * @returns Uint8Array representation of the internal data.
+   * @group Implementation
+   * @category Serialization
    */
   toUint8Array(): Uint8Array {
     return this.data.toUint8Array();
@@ -88,6 +102,8 @@ export class AuthenticationKey extends Serializable {
    * @param args.scheme - The authentication key scheme to use.
    * @param args.input - The input data in hexadecimal format to derive the key.
    * @returns An instance of AuthenticationKey containing the generated key data.
+   * @group Implementation
+   * @category Serialization
    */
   static fromSchemeAndBytes(args: { scheme: AuthenticationKeyScheme; input: HexInput }): AuthenticationKey {
     const { scheme, input } = args;
@@ -106,6 +122,8 @@ export class AuthenticationKey extends Serializable {
    * @param args - The arguments for deriving the authentication key.
    * @param args.publicKey - The public key used for the derivation.
    * @param args.scheme - The scheme to use for deriving the authentication key.
+   * @group Implementation
+   * @category Serialization
    */
   public static fromPublicKeyAndScheme(args: { publicKey: AccountPublicKey; scheme: AuthenticationKeyScheme }) {
     const { publicKey } = args;
@@ -118,6 +136,8 @@ export class AuthenticationKey extends Serializable {
    * @param args - The arguments for the function.
    * @param args.publicKey - The PublicKey to be converted.
    * @returns AuthenticationKey - The derived AuthenticationKey.
+   * @group Implementation
+   * @category Serialization
    */
   static fromPublicKey(args: { publicKey: AccountPublicKey }): AuthenticationKey {
     const { publicKey } = args;
@@ -128,6 +148,8 @@ export class AuthenticationKey extends Serializable {
    * Derives an account address from an AuthenticationKey by translating the AuthenticationKey bytes directly to an AccountAddress.
    *
    * @returns AccountAddress - The derived account address.
+   * @group Implementation
+   * @category Serialization
    */
   derivedAddress(): AccountAddress {
     return new AccountAddress(this.data.toUint8Array());

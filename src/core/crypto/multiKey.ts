@@ -11,6 +11,8 @@ import { AnyPublicKey, AnySignature } from "./singleKey";
  * This function can help you determine the population count of a given byte value.
  *
  * @param byte - The byte value for which to count the number of set bits.
+ * @group Implementation
+ * @category Serialization
  */
 /* eslint-disable no-bitwise */
 function bitCount(byte: number) {
@@ -29,15 +31,21 @@ function bitCount(byte: number) {
  * The public keys of each individual agent can be any type of public key supported by Aptos.
  * Since [AIP-55](https://github.com/aptos-foundation/AIPs/pull/263), Aptos supports
  * `Legacy` and `Unified` authentication keys.
+ * @group Implementation
+ * @category Serialization
  */
 export class MultiKey extends AccountPublicKey {
   /**
    * List of any public keys
+   * @group Implementation
+   * @category Serialization
    */
   public readonly publicKeys: AnyPublicKey[];
 
   /**
    * The minimum number of valid signatures required, for the number of public keys specified
+   * @group Implementation
+   * @category Serialization
    */
   public readonly signaturesRequired: number;
 
@@ -52,6 +60,8 @@ export class MultiKey extends AccountPublicKey {
    *
    * @throws Error if the number of signatures exceeds the maximum supported, if the bitmap length is incorrect, or if the number
    * of signatures does not match the bitmap.
+   * @group Implementation
+   * @category Serialization
    */
   // region Constructors
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
@@ -89,6 +99,8 @@ export class MultiKey extends AccountPublicKey {
    * @param args - The arguments for verifying the signature.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify.
+   * @group Implementation
+   * @category Serialization
    */
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   verifySignature(args: VerifySignatureArgs): boolean {
@@ -100,6 +112,8 @@ export class MultiKey extends AccountPublicKey {
    * This key can be used for secure authentication processes within the system.
    *
    * @returns {AuthenticationKey} The generated authentication key.
+   * @group Implementation
+   * @category Serialization
    */
   authKey(): AuthenticationKey {
     return AuthenticationKey.fromSchemeAndBytes({
@@ -117,6 +131,8 @@ export class MultiKey extends AccountPublicKey {
    * This allows the object to be converted into a format suitable for transmission or storage.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Serialization
    */
   serialize(serializer: Serializer): void {
     serializer.serializeVector(this.publicKeys);
@@ -128,6 +144,8 @@ export class MultiKey extends AccountPublicKey {
    * This function retrieves the signatures and bitmap necessary for creating a MultiKeySignature object.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Serialization
    */
   static deserialize(deserializer: Deserializer): MultiKey {
     const keys = deserializer.deserializeVector(AnyPublicKey);
@@ -144,6 +162,8 @@ export class MultiKey extends AccountPublicKey {
    *
    * @param args.bits array of the index mapping to the matching public keys
    * @returns Uint8array bit map
+   * @group Implementation
+   * @category Serialization
    */
   createBitmap(args: { bits: number[] }): Uint8Array {
     const { bits } = args;
@@ -188,6 +208,8 @@ export class MultiKey extends AccountPublicKey {
    * @param publicKey - The public key to find the index for.
    * @returns The corresponding index of the public key, if it exists.
    * @throws Error - If the public key is not found in the MultiKey.
+   * @group Implementation
+   * @category Serialization
    */
   getIndex(publicKey: PublicKey): number {
     const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
@@ -211,20 +233,28 @@ export class MultiKey extends AccountPublicKey {
  *
  * It includes functionality to validate the number of signatures against a bitmap,
  * which indicates which public keys have signed the transaction.
+ * @group Implementation
+ * @category Serialization
  */
 export class MultiKeySignature extends Signature {
   /**
    * Number of bytes in the bitmap representing who signed the transaction (32-bits)
+   * @group Implementation
+   * @category Serialization
    */
   static BITMAP_LEN: number = 4;
 
   /**
    * Maximum number of Ed25519 signatures supported
+   * @group Implementation
+   * @category Serialization
    */
   static MAX_SIGNATURES_SUPPORTED = MultiKeySignature.BITMAP_LEN * 8;
 
   /**
    * The list of underlying Ed25519 signatures
+   * @group Implementation
+   * @category Serialization
    */
   public readonly signatures: AnySignature[];
 
@@ -232,6 +262,8 @@ export class MultiKeySignature extends Signature {
    * 32-bit Bitmap representing who signed the transaction
    *
    * This is represented where each public key can be masked to determine whether the message was signed by that key.
+   * @group Implementation
+   * @category Serialization
    */
   public readonly bitmap: Uint8Array;
 
@@ -244,6 +276,8 @@ export class MultiKeySignature extends Signature {
    * @param args.signatures A list of signatures
    * @param args.bitmap 4 bytes, at most 32 signatures are supported. If Nth bit value is `1`, the Nth
    * signature should be provided in `signatures`. Bits are read from left to right
+   * @group Implementation
+   * @category Serialization
    */
   constructor(args: { signatures: Array<Signature | AnySignature>; bitmap: Uint8Array | number[] }) {
     super();
@@ -285,6 +319,8 @@ export class MultiKeySignature extends Signature {
    * The result bitmap should be 0b1010000000000000000000000000001
    *
    * @returns bitmap that is 32bit long
+   * @group Implementation
+   * @category Serialization
    */
   static createBitmap(args: { bits: number[] }): Uint8Array {
     const { bits } = args;
