@@ -29,6 +29,7 @@ import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
 import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
 import { KeylessError, KeylessErrorType } from "../errors";
+import type { SingleKeySigner } from "./SingleKeyAccount";
 
 /**
  * An interface which defines if an Account utilizes Keyless signing.
@@ -47,7 +48,7 @@ export function isKeylessSigner(obj: any): obj is KeylessSigner {
  * @group Implementation
  * @category Account (On-Chain Model)
  */
-export abstract class AbstractKeylessAccount extends Serializable implements KeylessSigner {
+export abstract class AbstractKeylessAccount extends Serializable implements KeylessSigner, SingleKeySigner {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
@@ -120,7 +121,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  readonly signingScheme: SigningScheme;
+  readonly signingScheme: SigningScheme = SigningScheme.SingleKey;
 
   /**
    * The JWT token used to derive the account
@@ -211,7 +212,6 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
       // Note, this is purposely not awaited to be non-blocking.  The caller should await on the proofFetchCallback.
       this.init(proof);
     }
-    this.signingScheme = SigningScheme.SingleKey;
     const pepperBytes = Hex.fromHexInput(pepper).toUint8Array();
     if (pepperBytes.length !== AbstractKeylessAccount.PEPPER_LENGTH) {
       throw new Error(`Pepper length in bytes should be ${AbstractKeylessAccount.PEPPER_LENGTH}`);
@@ -223,6 +223,10 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
       }
       this.verificationKeyHash = Hex.hexInputToUint8Array(verificationKeyHash);
     }
+  }
+
+  getAnyPublicKey(): AnyPublicKey {
+    return new AnyPublicKey(this.publicKey);
   }
 
   /**

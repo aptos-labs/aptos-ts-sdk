@@ -3,7 +3,8 @@
 
 /* eslint-disable no-bitwise */
 import { MAX_U32_NUMBER } from "./consts";
-import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256 } from "../types";
+import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
+import { Hex } from "../core/hex";
 
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
@@ -60,6 +61,11 @@ export class Deserializer {
     this.buffer = new ArrayBuffer(data.length);
     new Uint8Array(this.buffer).set(data, 0);
     this.offset = 0;
+  }
+
+  static fromHex(hex: HexInput): Deserializer {
+    const data = Hex.hexInputToUint8Array(hex);
+    return new Deserializer(data);
   }
 
   /**
