@@ -69,7 +69,11 @@ describe("transaction submission", () => {
       permissions: [APT_PERMISSION],
     });
 
-    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.FungibleAsset });
+    const perm1 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+      filter: PermissionType.FungibleAsset,
+    });
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
 
@@ -83,7 +87,11 @@ describe("transaction submission", () => {
       permissions: [APT_PERMISSION2],
     });
 
-    const perm2 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.FungibleAsset });
+    const perm2 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+      filter: PermissionType.FungibleAsset,
+    });
     expect(perm2.length).toBe(1);
     expect(perm2[0].balance).toBe("30");
   });
@@ -99,7 +107,11 @@ describe("transaction submission", () => {
       permissions: [buildNFTPermission({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
     });
 
-    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.NFT });
+    const perm1 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+      filter: PermissionType.NFT,
+    });
     expect(perm1.length).toBe(1);
 
     const txn1 = await signSubmitAndWait({
@@ -135,7 +147,11 @@ describe("transaction submission", () => {
       permissions: [APT_PERMISSION],
     });
 
-    const perm1 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.FungibleAsset });
+    const perm1 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+      filter: PermissionType.FungibleAsset,
+    });
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
 
@@ -151,7 +167,11 @@ describe("transaction submission", () => {
     expect(txn1.response.signature?.type).toBe("single_sender");
     expect(txn1.submittedTransaction.success).toBe(true);
 
-    const perm2 = await aptos.getPermissions({ primaryAccount, subAccount, filter: PermissionType.FungibleAsset });
+    const perm2 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+      filter: PermissionType.FungibleAsset,
+    });
     expect(perm2.length).toBe(1);
     expect(perm2[0].balance).toBe("9");
 
@@ -161,7 +181,10 @@ describe("transaction submission", () => {
       subAccount,
     });
 
-    const perm3 = await aptos.getPermissions({ primaryAccount, subAccount });
+    const perm3 = await aptos.getPermissions({
+      primaryAccountAddress: primaryAccount.accountAddress,
+      subAccountPublicKey: subAccount.publicKey,
+    });
     expect(perm3.length).toBe(0);
   });
 
@@ -256,8 +279,8 @@ export async function requestPermission({
   requestsPerSecond?: number;
 }) {
   const transaction = await aptos.permissions.requestPermissions({
-    primaryAccount,
-    permissionedAccount,
+    primaryAccountAddress: primaryAccount.accountAddress,
+    permissionedAccountPublicKey: permissionedAccount.publicKey,
     permissions,
   });
 
@@ -283,8 +306,8 @@ export async function revokePermission({
   permissions: RevokePermission[];
 }) {
   const transaction = await aptos.permissions.revokePermission({
-    primaryAccount,
-    subAccount,
+    primaryAccountAddress: primaryAccount.accountAddress,
+    subAccountPublicKey: subAccount.publicKey,
     permissions,
   });
 

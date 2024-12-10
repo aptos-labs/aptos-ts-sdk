@@ -12,7 +12,6 @@ import { BatchArgument } from "@wgb5445/aptos-intent-npm";
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, Ed25519PublicKey } from "../core";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { Aptos } from "../api";
 import { MoveString } from "../bcs";
 import { AptosIntentBuilder } from "../transactions";
 import {
@@ -24,6 +23,8 @@ import {
   buildFungibleAssetPermission,
   buildNFTPermission,
 } from "../types/permissions";
+import { Transaction } from "../api/transaction";
+import { view } from "./view";
 
 // functions
 export async function getPermissions<T extends PermissionType>({
@@ -87,7 +88,7 @@ export async function requestPermission(args: {
   requestsPerSecond?: number;
 }): Promise<SimpleTransaction> {
   const { aptosConfig, primaryAccountAddress, permissionedAccountPublicKey, permissions } = args;
-  const aptos = new Aptos(aptosConfig);
+  const transaction = new Transaction(aptosConfig);
 
   // Get or create a handle for the permissioned account
   const existingHandleAddress = await getHandleAddress({
@@ -96,7 +97,7 @@ export async function requestPermission(args: {
     subAccountPublicKey: permissionedAccountPublicKey,
   });
 
-  return aptos.transaction.build.batched_intents({
+  return transaction.build.batched_intents({
     sender: primaryAccountAddress,
     builder: async (builder) => {
       // Get the permissioned signer - either create new one or use existing
@@ -160,8 +161,8 @@ export async function revokePermissions(args: {
 }): Promise<SimpleTransaction> {
   const { aptosConfig, primaryAccountAddress, subAccountPublicKey, permissions } = args;
 
-  const aptos = new Aptos(aptosConfig);
-  const transaction = await aptos.transaction.build.batched_intents({
+  const transaction = new Transaction(aptosConfig);
+  return transaction.build.batched_intents({
     sender: primaryAccountAddress,
     builder: async (builder) => {
       const signer = await builder.add_batched_calls({
@@ -198,12 +199,9 @@ export async function revokePermissions(args: {
       return builder;
     },
   });
-
-  return transaction;
 }
 
 //  helper functions
-
 async function getPermissionedSigner(
   builder: AptosIntentBuilder,
   args: {
@@ -315,9 +313,9 @@ export async function getHandleAddress({
   primaryAccountAddress: AccountAddress;
   subAccountPublicKey: Ed25519PublicKey;
 }) {
-  const aptos = new Aptos(aptosConfig);
   try {
-    const [handle] = await aptos.view<string[]>({
+    const [handle] = await view<string[]>({
+      aptosConfig,
       payload: {
         function: "0x1::permissioned_delegation::handle_address_by_key",
         functionArguments: [primaryAccountAddress, subAccountPublicKey.toUint8Array()],
