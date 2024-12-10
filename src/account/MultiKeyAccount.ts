@@ -103,6 +103,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
         // eslint-disable-next-line max-len
         `Not enough signers provided to satisfy the required signatures. Need ${multiKey.signaturesRequired} signers, but only ${signers.length} provided`,
       );
+    } else if (multiKey.signaturesRequired < signers.length) {
+      throw new Error(
+        // eslint-disable-next-line max-len
+        `More signers provided than required. Need ${multiKey.signaturesRequired} signers, but ${signers.length} provided`,
+      );
     }
 
     this.publicKey = multiKey;
@@ -144,11 +149,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   static fromPublicKeysAndSigners(args: {
-    publicKeys?: PublicKey[];
+    publicKeys: PublicKey[];
     signaturesRequired: number;
     signers: SingleKeySignerOrLegacyEd25519Account[];
   }): MultiKeyAccount {
-    const { publicKeys = args.signers.map((signer) => signer.publicKey), signaturesRequired, signers } = args;
+    const { publicKeys, signaturesRequired, signers } = args;
     const multiKey = new MultiKey({ publicKeys, signaturesRequired });
     return new MultiKeyAccount({ multiKey, signers });
   }
