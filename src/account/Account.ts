@@ -6,10 +6,6 @@ import { AccountPublicKey, Ed25519PrivateKey, PrivateKeyInput, Signature, Verify
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
-import { Serializable } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
-import { deserializeSchemeAndAddress } from "./utils";
-import { deserializeNonMultiKeyAccount, MultiKeyAccount } from "./MultiKeyAccount";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.
@@ -132,7 +128,7 @@ export interface PrivateKeyFromDerivationPathArgs {
  *
  * Note: Generating an account instance does not create the account on-chain.
  */
-export abstract class Account extends Serializable {
+export abstract class Account {
   /**
    * Public key associated with the account
    */
@@ -288,26 +284,5 @@ export abstract class Account extends Serializable {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
-  }
-
-  static fromHex(hex: HexInput): Account {
-    return Account.deserialize(Deserializer.fromHex(hex));
-  }
-
-  static deserialize(deserializer: Deserializer): Account {
-    const offset = deserializer.getOffset();
-    const { signingScheme } = deserializeSchemeAndAddress(deserializer);
-    switch (signingScheme) {
-      case SigningScheme.Ed25519:
-      case SigningScheme.SingleKey: {
-        deserializer.reset(offset);
-        return deserializeNonMultiKeyAccount(deserializer);
-      }
-      case SigningScheme.MultiKey:
-        deserializer.reset(offset);
-        return MultiKeyAccount.deserialize(deserializer);
-      default:
-        throw new Error(`Deserialization of Account failed: invalid signingScheme value ${signingScheme}`);
-    }
   }
 }

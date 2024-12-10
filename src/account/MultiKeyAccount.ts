@@ -4,18 +4,13 @@
 import type { Account } from "./Account";
 import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AnyPublicKeyVariant, HexInput, SigningScheme } from "../types";
+import { HexInput, SigningScheme } from "../types";
 import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/account";
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
 import { AptosConfig } from "../api/aptosConfig";
-import { Serializable, Serializer } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
-import { deserializeSchemeAndAddress } from "./utils";
 import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
 import { Ed25519Account } from "./Ed25519Account";
-import { KeylessAccount } from "./KeylessAccount";
-import { FederatedKeylessAccount } from "./FederatedKeylessAccount";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.
@@ -36,7 +31,7 @@ export interface VerifyMultiKeySignatureArgs {
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
-export class MultiKeyAccount extends Serializable implements Account, KeylessSigner {
+export class MultiKeyAccount implements Account, KeylessSigner {
   /**
    * Public key associated with the account
    */
@@ -81,7 +76,6 @@ export class MultiKeyAccount extends Serializable implements Account, KeylessSig
     signers: SingleKeySignerOrLegacyEd25519Account[];
     address?: AccountAddressInput;
   }) {
-    super();
     const { multiKey, address } = args;
 
     const signers: SingleKeySigner[] = args.signers.map((signer) =>
@@ -250,72 +244,5 @@ export class MultiKeyAccount extends Serializable implements Account, KeylessSig
       }
     }
     return true;
-  }
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.signingScheme);
-    this.accountAddress.serialize(serializer);
-    this.publicKey.serialize(serializer);
-    serializer.serializeVector(this.signers);
-  }
-
-  /**
-   * Deserialize bytes using this account's information.
-   *
-   * @param hex The hex being deserialized into an MultiKeyAccount.
-   * @returns
-   */
-  static fromHex(hex: HexInput): MultiKeyAccount {
-    return MultiKeyAccount.deserialize(Deserializer.fromHex(hex));
-  }
-
-  static deserialize(deserializer: Deserializer): MultiKeyAccount {
-    const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
-    if (signingScheme !== SigningScheme.MultiKey) {
-      throw new Error(
-        `Deserialization of MultiKeyAccount failed: Signing scheme was not MultiKey, was ${signingScheme}`,
-      );
-    }
-    const multiKey = MultiKey.deserialize(deserializer);
-    const length = deserializer.deserializeUleb128AsU32();
-    const signers = new Array<SingleKeySignerOrLegacyEd25519Account>();
-    for (let i = 0; i < length; i += 1) {
-      signers.push(deserializeNonMultiKeyAccount(deserializer));
-    }
-    return new MultiKeyAccount({ multiKey, signers, address });
-  }
-}
-
-export function deserializeNonMultiKeyAccount(deserializer: Deserializer): SingleKeySignerOrLegacyEd25519Account {
-  const offset = deserializer.getOffset();
-  const { signingScheme } = deserializeSchemeAndAddress(deserializer);
-  switch (signingScheme) {
-    case SigningScheme.Ed25519:
-      deserializer.reset(offset);
-      return Ed25519Account.deserialize(deserializer);
-    case SigningScheme.SingleKey: {
-      const anyKeyVariant = deserializer.deserializeUleb128AsU32();
-      const anyKeyVariantOffset = deserializer.getOffset();
-      deserializer.reset(offset);
-      switch (anyKeyVariant) {
-        case AnyPublicKeyVariant.Keyless:
-          return KeylessAccount.deserialize(deserializer);
-        case AnyPublicKeyVariant.FederatedKeyless:
-          return FederatedKeylessAccount.deserialize(deserializer);
-        case AnyPublicKeyVariant.Ed25519:
-        case AnyPublicKeyVariant.Secp256k1:
-          return SingleKeyAccount.deserialize(deserializer);
-        default:
-          throw new Error(
-            // eslint-disable-next-line max-len
-            `Deserialization of Account failed: AnyPublicKey variant ${anyKeyVariant} is invalid ending at offset ${anyKeyVariantOffset}.\n
-              ${JSON.stringify(deserializer, null, 2)}`,
-          );
-      }
-    }
-    default:
-      throw new Error(
-        `Deserialization of Account failed: SigningScheme variant ${signingScheme} is invalid ending at offset ${offset}`,
-      );
   }
 }

@@ -5,8 +5,6 @@
 import {
   Account,
   SigningSchemeInput,
-  Ed25519Account,
-  SingleKeyAccount,
   MultiKeyAccount,
   KeylessAccount,
   FederatedKeylessAccount,
@@ -17,8 +15,13 @@ import {
   ZkpVariant,
   Groth16VerificationKey,
 } from "../../src";
+import { AccountUtils } from "../../src/account/AccountUtils";
 
-import { testAccountSerializationDeserialization } from "./helper";
+export function testAccountSerializationDeserialization(account: Account) {
+  const bytes = AccountUtils.toBytes(account);
+  const deserializedAccount = AccountUtils.fromBytes(bytes);
+  expect(bytes).toEqual(AccountUtils.toBytes(deserializedAccount));
+}
 
 describe("Account Serialization", () => {
   const proof = new ZeroKnowledgeSig({
@@ -74,36 +77,44 @@ describe("Account Serialization", () => {
 
   describe("serialize", () => {
     it("legacy Ed25519 Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(legacyEdAccount, Ed25519Account);
-      testAccountSerializationDeserialization(legacyEdAccount, Account);
+      testAccountSerializationDeserialization(legacyEdAccount);
+      const accountAsHex = AccountUtils.toHexString(legacyEdAccount);
+      expect(legacyEdAccount).toEqual(AccountUtils.ed25519AccountFromHex(accountAsHex));
     });
     it("SingleKey Ed25519 Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(singleSignerEdAccount, SingleKeyAccount);
-      testAccountSerializationDeserialization(singleSignerEdAccount, Account);
+      testAccountSerializationDeserialization(singleSignerEdAccount);
+      const accountAsHex = AccountUtils.toHexString(singleSignerEdAccount);
+      expect(singleSignerEdAccount).toEqual(AccountUtils.singleKeyAccountFromHex(accountAsHex));
     });
     it("SingleKey Secp256k1 Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(secp256k1Account, SingleKeyAccount);
-      testAccountSerializationDeserialization(secp256k1Account, Account);
+      testAccountSerializationDeserialization(secp256k1Account);
+      const accountAsHex = AccountUtils.toHexString(secp256k1Account);
+      expect(secp256k1Account).toEqual(AccountUtils.singleKeyAccountFromHex(accountAsHex));
     });
     it("Keyless Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(keylessAccount, KeylessAccount);
-      testAccountSerializationDeserialization(keylessAccount, Account);
+      testAccountSerializationDeserialization(keylessAccount);
+      const accountAsHex = AccountUtils.toHexString(keylessAccount);
+      expect(keylessAccount).toEqual(AccountUtils.keylessAccountFromHex(accountAsHex));
     });
     it("Keyless Account with verification key should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(keylessAccountWithVerificationKey, KeylessAccount);
-      testAccountSerializationDeserialization(keylessAccountWithVerificationKey, Account);
+      testAccountSerializationDeserialization(keylessAccountWithVerificationKey);
+      const accountAsHex = AccountUtils.toHexString(keylessAccountWithVerificationKey);
+      expect(keylessAccountWithVerificationKey).toEqual(AccountUtils.keylessAccountFromHex(accountAsHex));
     });
     it("FederatedKeyless Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(federatedKeylessAccount, FederatedKeylessAccount);
-      testAccountSerializationDeserialization(federatedKeylessAccount, Account);
+      testAccountSerializationDeserialization(federatedKeylessAccount);
+      const accountAsHex = AccountUtils.toHexString(federatedKeylessAccount);
+      expect(federatedKeylessAccount).toEqual(AccountUtils.federatedKeylessAccountFromHex(accountAsHex));
     });
     it("MultiKey Account should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(multiKeyAccount, MultiKeyAccount);
-      testAccountSerializationDeserialization(multiKeyAccount, Account);
+      testAccountSerializationDeserialization(multiKeyAccount);
+      const accountAsHex = AccountUtils.toHexString(multiKeyAccount);
+      expect(multiKeyAccount).toEqual(AccountUtils.multiKeyAccountFromHex(accountAsHex));
     });
     it("MultiKey Account with backup signer should serlialize and deserialize properly", () => {
-      testAccountSerializationDeserialization(keylessAccountWithBackupSigner, MultiKeyAccount);
-      testAccountSerializationDeserialization(keylessAccountWithBackupSigner, Account);
+      testAccountSerializationDeserialization(keylessAccountWithBackupSigner);
+      const accountAsHex = AccountUtils.toHexString(keylessAccountWithBackupSigner);
+      expect(keylessAccountWithBackupSigner).toEqual(AccountUtils.multiKeyAccountFromHex(accountAsHex));
     });
   });
 });

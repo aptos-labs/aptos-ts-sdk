@@ -27,6 +27,8 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
    */
   readonly publicKey: FederatedKeylessPublicKey;
 
+  readonly audless: boolean;
+
   /**
    * Use the static generator `FederatedKeylessAccount.create(...)` instead.
    * Creates a KeylessAccount instance using the provided parameters.
@@ -41,7 +43,7 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
    * @param args.uidKey - Optional key for user identification, defaults to "sub".
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
    */
-  private constructor(args: {
+  constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;
@@ -54,10 +56,12 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
     proofFetchCallback?: ProofFetchCallback;
     jwt: string;
     verificationKeyHash?: HexInput;
+    audless?: boolean;
   }) {
     const publicKey = FederatedKeylessPublicKey.create(args);
     super({ publicKey, ...args });
     this.publicKey = publicKey;
+    this.audless = args.audless ?? false;
   }
 
   /**
@@ -99,17 +103,6 @@ export class FederatedKeylessAccount extends AbstractKeylessAccount {
   }
 
   /**
-   * Deserialize hex using this account's information.
-   *
-   * @param hex The hex being deserialized into an FederatedKeylessAccount.
-   * @returns
-   */
-  static fromHex(hex: HexInput): FederatedKeylessAccount {
-    return FederatedKeylessAccount.deserialize(Deserializer.fromHex(hex));
-  }
-
-  /**
-   * @deprecated Use `fromHex` instead.
    * Deserialize bytes using this account's information.
    *
    * @param bytes The bytes being interpreted.

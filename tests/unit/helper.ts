@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /* eslint-disable max-len */
 
-import { ClientRequest, ClientResponse, DeserializableAccount, Deserializer, Serializable } from "../../src";
+import { ClientRequest, ClientResponse } from "../../src";
 
 export const FUND_AMOUNT = 100_000_000;
 export const TRANSFER_AMOUNT = 500_000;
@@ -114,16 +114,6 @@ export const multiKeyTestObject = {
 };
 
 export const longTestTimeout = 120 * 1000;
-
-export function testAccountSerializationDeserialization<T extends Serializable, U extends Serializable>(
-  obj: T,
-  cls: DeserializableAccount<U>,
-) {
-  const bytes = obj.bcsToBytes();
-  const deserialized = cls.deserialize(new Deserializer(bytes));
-  expect(bytes).toEqual(deserialized.bcsToBytes());
-  expect(bytes).toEqual(cls.fromHex(bytes).bcsToBytes());
-}
 
 export async function customClient<Req, Res>(requestOptions: ClientRequest<Req>): Promise<ClientResponse<Res>> {
   const { params, method, url, headers, body } = requestOptions;

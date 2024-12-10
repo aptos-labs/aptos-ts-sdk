@@ -6,10 +6,6 @@ import { MAX_U32_NUMBER } from "./consts";
 import { Uint8, Uint16, Uint32, Uint64, Uint128, Uint256, HexInput } from "../types";
 import { Hex } from "../core/hex";
 
-export interface DeserializableAccount<T> extends Deserializable<T> {
-  fromHex(hex: HexInput): T;
-}
-
 /**
  * This interface exists to define Deserializable<T> inputs for functions that
  * deserialize a byte buffer into a type T.
@@ -92,26 +88,7 @@ export class Deserializer {
   }
 
   /**
-   * Resets the deserializer's offset back to the beginning of the buffer.
-   * This allows reusing the same deserializer instance to read the buffer again from the start.
-   *
-   * @example
-   * ```typescript
-   * const deserializer = new Deserializer(new Uint8Array([1, 2, 3]));
-   * deserializer.deserializeU8(); // reads first byte
-   * deserializer.reset(); // resets to beginning
-   * deserializer.deserializeU8(); // reads first byte again
-   * ```
-   */
-  reset(offset?: number): void {
-    this.offset = offset ?? 0;
-  }
-
-  getOffset(): number {
-    return this.offset;
-  }
-
-  /**
+   * @deprecated use `deserializeOption` instead.
    * Deserializes a UTF-8 encoded string from a byte array. It first reads the length of the string in bytes,
    * followed by the actual byte content, and decodes it into a string.
    *

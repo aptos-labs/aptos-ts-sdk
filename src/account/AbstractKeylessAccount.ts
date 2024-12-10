@@ -3,7 +3,7 @@
 
 import EventEmitter from "eventemitter3";
 import { jwtDecode } from "jwt-decode";
-import { AnyPublicKeyVariant, EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
+import { EphemeralCertificateVariant, HexInput, SigningScheme } from "../types";
 import { AccountAddress } from "../core/accountAddress";
 import {
   AnyPublicKey,
@@ -26,10 +26,9 @@ import { deriveTransactionType, generateSigningMessage } from "../transactions/t
 import { AnyRawTransaction, AnyRawTransactionInstance } from "../transactions/types";
 import { base64UrlDecode } from "../utils/helpers";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
-import type { Account } from "./Account";
+import { Account } from "./Account";
 import { AptosConfig } from "../api/aptosConfig";
 import { KeylessError, KeylessErrorType } from "../errors";
-import { deserializeSchemeAndAddress } from "./utils";
 import type { SingleKeySigner } from "./SingleKeyAccount";
 
 /**
@@ -228,13 +227,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @param serializer - The serializer instance used to convert the jwt data into bytes.
    */
   serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.signingScheme);
     this.accountAddress.serialize(serializer);
-    if (this.publicKey instanceof KeylessPublicKey) {
-      serializer.serializeU32AsUleb128(AnyPublicKeyVariant.Keyless);
-    } else {
-      serializer.serializeU32AsUleb128(AnyPublicKeyVariant.FederatedKeyless);
-    }
     serializer.serializeStr(this.jwt);
     serializer.serializeStr(this.uidKey);
     serializer.serializeFixedBytes(this.pepper);
@@ -255,22 +248,7 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
     proof: ZeroKnowledgeSig;
     verificationKeyHash?: Uint8Array;
   } {
-    const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
-    if (signingScheme !== SigningScheme.SingleKey) {
-      throw new Error(
-        `Deserialization of AbstractKeylessAccount failed: Signing scheme was not SingleKey, was ${signingScheme}`,
-      );
-    }
-    const anyPublicKeyIndex = deserializer.deserializeUleb128AsU32();
-    if (
-      anyPublicKeyIndex !== AnyPublicKeyVariant.Keyless &&
-      anyPublicKeyIndex !== AnyPublicKeyVariant.FederatedKeyless
-    ) {
-      throw new Error(
-        // eslint-disable-next-line max-len
-        `Deserialization of AbstractKeylessAccount failed: Public key variant was not Keyless or FederatedKeyless, was ${anyPublicKeyIndex}`,
-      );
-    }
+    const address = AccountAddress.deserialize(deserializer);
     const jwt = deserializer.deserializeStr();
     const uidKey = deserializer.deserializeStr();
     const pepper = deserializer.deserializeFixedBytes(31);

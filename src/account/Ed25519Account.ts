@@ -5,9 +5,6 @@ import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/c
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
-import { Serializable, Serializer } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
-import { deserializeSchemeAndAddress } from "./utils";
 
 /**
  * Arguments required to create an instance of an Ed25519 signer.
@@ -48,7 +45,7 @@ export interface VerifyEd25519SignatureArgs {
  *
  * Note: Generating an instance of this class does not create the account on-chain.
  */
-export class Ed25519Account extends Serializable implements Account {
+export class Ed25519Account implements Account {
   /**
    * Private key associated with the account
    */
@@ -71,7 +68,6 @@ export class Ed25519Account extends Serializable implements Account {
    * @param args.address - The optional account address; if not provided, it will derive the address from the public key.
    */
   constructor(args: Ed25519SignerConstructorArgs) {
-    super();
     const { privateKey, address } = args;
     this.privateKey = privateKey;
     this.publicKey = privateKey.publicKey();
@@ -160,32 +156,4 @@ export class Ed25519Account extends Serializable implements Account {
   }
 
   // endregion
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.signingScheme);
-    this.accountAddress.serialize(serializer);
-    this.privateKey.serialize(serializer);
-  }
-
-  /**
-   * Deserialize bytes using this account's information.
-   *
-   * @param hex The hex being deserialized into an Ed25519Account.
-   * @returns
-   */
-  static fromHex(hex: HexInput): Ed25519Account {
-    return Ed25519Account.deserialize(Deserializer.fromHex(hex));
-  }
-
-  static deserialize(deserializer: Deserializer): Ed25519Account {
-    const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
-    if (signingScheme !== SigningScheme.Ed25519) {
-      throw new Error(
-        // eslint-disable-next-line max-len
-        `Deserialization of Ed25519Account failed: Signing scheme was not Ed25519, was ${signingScheme} at offset ${deserializer.getOffset()}`,
-      );
-    }
-    const privateKey = Ed25519PrivateKey.deserialize(deserializer);
-    return new Ed25519Account({ privateKey, address });
-  }
 }

@@ -1,13 +1,10 @@
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
-import { AnyPublicKeyVariant, type HexInput, SigningScheme, SigningSchemeInput } from "../types";
+import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKeyInput, Secp256k1PrivateKey } from "../core/crypto";
 import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
-import { Serializable, Serializer } from "../bcs/serializer";
-import { Deserializer } from "../bcs/deserializer";
-import { deserializeSchemeAndAddress } from "./utils";
 import { Ed25519Account } from "./Ed25519Account";
 
 /**
@@ -17,6 +14,15 @@ import { Ed25519Account } from "./Ed25519Account";
  */
 export interface SingleKeySigner extends Account {
   getAnyPublicKey(): AnyPublicKey;
+}
+
+export function isSingleKeySigner(obj: unknown): obj is SingleKeySigner {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "getAnyPublicKey" in obj &&
+    typeof (obj as any).getAnyPublicKey === "function"
+  );
 }
 
 export type SingleKeySignerOrLegacyEd25519Account = SingleKeySigner | Ed25519Account;
@@ -67,7 +73,7 @@ export interface VerifySingleKeySignatureArgs {
  *
  * Note: Generating a signer instance does not create the account on-chain.
  */
-export class SingleKeyAccount extends Serializable implements Account, SingleKeySigner {
+export class SingleKeyAccount implements Account, SingleKeySigner {
   /**
    * Private key associated with the account
    */
@@ -88,7 +94,6 @@ export class SingleKeyAccount extends Serializable implements Account, SingleKey
    * @param args.address - The optional account address; if not provided, it will derive the address from the public key.
    */
   constructor(args: SingleKeySignerConstructorArgs) {
-    super();
     const { privateKey, address } = args;
     this.privateKey = privateKey;
     this.publicKey = new AnyPublicKey(privateKey.publicKey());
@@ -204,43 +209,6 @@ export class SingleKeyAccount extends Serializable implements Account, SingleKey
   }
 
   // endregion
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeU32AsUleb128(this.signingScheme);
-    this.accountAddress.serialize(serializer);
-    serializer.serializeU32AsUleb128(this.publicKey.variant);
-    this.privateKey.serialize(serializer);
-  }
-
-  /**
-   * Deserialize bytes using this account's information.
-   *
-   * @param hex The hex being deserialized into an SingleKeyAccount.
-   * @returns
-   */
-  static fromHex(hex: HexInput): SingleKeyAccount {
-    return SingleKeyAccount.deserialize(Deserializer.fromHex(hex));
-  }
-
-  static deserialize(deserializer: Deserializer): SingleKeyAccount {
-    const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
-    if (signingScheme !== SigningScheme.SingleKey) {
-      throw new Error(`Deserialization of SingleKeyAccount failed: Unsupported signing scheme ${signingScheme}`);
-    }
-    const variantIndex = deserializer.deserializeUleb128AsU32();
-    let privateKey: PrivateKeyInput;
-    switch (variantIndex) {
-      case AnyPublicKeyVariant.Ed25519:
-        privateKey = Ed25519PrivateKey.deserialize(deserializer);
-        break;
-      case AnyPublicKeyVariant.Secp256k1:
-        privateKey = Secp256k1PrivateKey.deserialize(deserializer);
-        break;
-      default:
-        throw new Error(`Unsupported public key variant ${variantIndex}`);
-    }
-    return new SingleKeyAccount({ privateKey, address });
-  }
 
   static fromEd25519Account(account: Ed25519Account): SingleKeyAccount {
     return new SingleKeyAccount({ privateKey: account.privateKey, address: account.accountAddress });

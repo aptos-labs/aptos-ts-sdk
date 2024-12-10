@@ -45,7 +45,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
    * @param args.jwt - A JSON Web Token used for authentication.
    */
-  private constructor(args: {
+  constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;
@@ -99,17 +99,6 @@ export class KeylessAccount extends AbstractKeylessAccount {
   }
 
   /**
-   * Deserialize bytes using this account's information.
-   *
-   * @param hex The hex being deserialized into an MultiKeyAccount.
-   * @returns
-   */
-  static fromHex(hex: HexInput): KeylessAccount {
-    return KeylessAccount.deserialize(Deserializer.fromHex(hex));
-  }
-
-  /**
-   * @deprecated Use `fromHex` instead.
    * Deserialize bytes using this account's information.
    *
    * @param bytes The bytes being interpreted.
