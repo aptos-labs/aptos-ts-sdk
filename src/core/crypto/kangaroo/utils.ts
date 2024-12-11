@@ -67,7 +67,7 @@ export class Utils {
   // Function that returns a promise to wait for any worker to complete
   static waitForAnyWorker(workers: Worker[]): Promise<bigint> {
     const promises = workers.map(
-      (worker) =>
+      (worker, index) =>
         new Promise<bigint>((resolve) => {
           worker.onmessage = (event: MessageEvent) => {
             console.log("received new message");
@@ -92,39 +92,5 @@ export class Utils {
 
   static add(point1: ExtPointType, point2: ExtPointType): ExtPointType {
     return point1.add(point2);
-  }
-}
-
-export class WorkerData {
-  secretSize: number;
-
-  pubKey: ExtPointType;
-
-  w: bigint;
-
-  r: bigint;
-
-  slog: bigint[];
-
-  s: ExtPointType[];
-
-  table: Map<bigint, bigint>;
-
-  constructor(
-    secretSize: number,
-    pubKey: ExtPointType,
-    w: bigint,
-    r: bigint,
-    slog: bigint[],
-    s: ExtPointType[],
-    table: Map<bigint, bigint>,
-  ) {
-    this.secretSize = secretSize;
-    this.pubKey = pubKey;
-    this.w = w;
-    this.r = r;
-    this.slog = slog;
-    this.s = s;
-    this.table = table;
   }
 }
