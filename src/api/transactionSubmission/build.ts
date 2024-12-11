@@ -124,7 +124,7 @@ export class Build {
    *
    * async function runExample() {
    *   // Build a transaction from a chained series of Move calls.
-   *   const transaction = await aptos.transaction.script_composer({
+   *   const transaction = await aptos.transaction.build.scriptComposer({
    *     sender: "0x1", // replace with a real sender account address
    *     builder: builder: async (builder) => {
    *       const coin = await builder.addBatchedCalls({
