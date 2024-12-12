@@ -34,6 +34,7 @@ import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { getErrorMessage } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
+import { getClaimWithoutUnescaping } from "./utils";
 
 export const EPK_HORIZON_SECS = 10000000;
 export const MAX_AUD_VAL_BYTES = 120;
@@ -43,62 +44,6 @@ export const MAX_ISS_VAL_BYTES = 120;
 export const MAX_EXTRA_FIELD_BYTES = 350;
 export const MAX_JWT_HEADER_B64_BYTES = 300;
 export const MAX_COMMITED_EPK_BYTES = 93;
-
-function b64DecodeUnicode(str: string) {
-  return decodeURIComponent(
-    atob(str).replace(/(.)/g, (m, p) => {
-      let code = (p as string).charCodeAt(0).toString(16).toUpperCase();
-      if (code.length < 2) {
-        code = `0${  code}`;
-      }
-      return `%${  code}`;
-    }),
-  );
-}
-
-function base64UrlDecode(str: string) {
-  let output = str.replace(/-/g, "+").replace(/_/g, "/");
-  switch (output.length % 4) {
-    case 0:
-      break;
-    case 2:
-      output += "==";
-      break;
-    case 3:
-      output += "=";
-      break;
-    default:
-      throw new Error("base64 string is not of the correct length");
-  }
-
-  try {
-    return b64DecodeUnicode(output);
-  } catch (err) {
-    return atob(output);
-  }
-}
-
-function getClaim(jwt: string, claim: string): string {
-  const parts = jwt.split(".");
-  const payload = parts[1];
-  const payloadStr = base64UrlDecode(payload);
-  const claimIdx = payloadStr.indexOf(`"${claim}"`) + claim.length + 2;
-  let claimVal = "";
-  let foundStart = false;
-  for (let i = claimIdx; i < payloadStr.length; i += 1) {
-    if (payloadStr[i] === "\"") {
-      if (foundStart) {
-        break;
-      }
-      foundStart = true;
-      continue;
-    }
-    if (foundStart) {
-      claimVal += payloadStr[i];
-    }
-  }
-  return claimVal;
-}
 
 /**
  * Represents a Keyless Public Key used for authentication.
@@ -849,6 +794,28 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
     });
   }
   return { iss: getClaim(jwt, "iss"), aud: getClaim(jwt, "aud"), uidVal: getClaim(jwt, uidKey) };
+}
+
+/**
+ * Parses a JWT and returns the 'iss', 'aud', and 'uid' values without unescaping the values.
+ *
+ * @param args - The arguments for parsing the JWT.
+ * @param args.jwt - The JWT to parse.
+ * @param args.uidKey - The key to use for the 'uid' value; defaults to 'sub'.
+ * @returns The 'iss', 'aud', and 'uid' values from the JWT.
+ */
+export function getIssAudAndUidValWithoutUnescaping(args: { jwt: string; uidKey?: string }): {
+  iss: string;
+  aud: string;
+  uidVal: string;
+} {
+  const { jwt, uidKey = "sub" } = args;
+  getIssAudAndUidVal(args);
+  return {
+    iss: getClaimWithoutUnescaping(jwt, "iss"),
+    aud: getClaimWithoutUnescaping(jwt, "aud"),
+    uidVal: getClaimWithoutUnescaping(jwt, uidKey),
+  };
 }
 
 /**

@@ -17,12 +17,21 @@ import {
   Hex,
   KeylessPublicKey,
   MoveJWK,
+  MultiKey,
   ZeroKnowledgeSig,
   ZkProof,
+  getIssAudAndUidVal,
   getKeylessConfig,
 } from "../core";
 import { HexInput, ZkpVariant } from "../types";
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import {
+  Account,
+  EphemeralKeyPair,
+  KeylessAccount,
+  KeylessSigner,
+  MultiKeyAccount,
+  ProofFetchCallback,
+} from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
@@ -31,7 +40,7 @@ import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { KeylessError, KeylessErrorType } from "../errors";
-import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
+import { COGNITO_ISS_PATTERN, FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -172,7 +181,7 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<FederatedKeylessAccount>;
+}): Promise<FederatedKeylessAccount | MultiKeyAccount>;
 
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
@@ -182,7 +191,7 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<KeylessAccount | FederatedKeylessAccount> {
+}): Promise<KeylessSigner> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
 
@@ -196,6 +205,32 @@ export async function deriveKeylessAccount(args: {
 
   // Look up the original address to handle key rotations and then instantiate the account.
   if (jwkAddress !== undefined) {
+    if (isCognito(jwt)) {
+      const multiKey = new MultiKey({
+        publicKeys: [
+          FederatedKeylessPublicKey.fromJwtAndPepperWithoutUnescaping({ jwt, pepper, jwkAddress, uidKey }),
+          FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey }),
+        ],
+        signaturesRequired: 1,
+      });
+      const address = await lookupOriginalAccountAddress({
+        aptosConfig,
+        authenticationKey: multiKey.authKey().derivedAddress(),
+      });
+      const signer = FederatedKeylessAccount.create({
+        ...args,
+        address,
+        proof,
+        pepper,
+        proofFetchCallback,
+        jwkAddress,
+        verificationKey,
+      });
+      return new MultiKeyAccount({
+        multiKey,
+        signers: [signer],
+      });
+    }
     const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
     const address = await lookupOriginalAccountAddress({
       aptosConfig,
@@ -219,6 +254,11 @@ export async function deriveKeylessAccount(args: {
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
+}
+
+function isCognito(jwt: string): boolean {
+  const { iss } = getIssAudAndUidVal({ jwt });
+  return COGNITO_ISS_PATTERN.test(iss);
 }
 
 export interface JWKS {
