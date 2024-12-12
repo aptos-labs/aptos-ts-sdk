@@ -4,7 +4,8 @@
  * along with interfaces and factory functions for creating and revoking permissions.
  */
 
-import { Deserializer, Serializable, Serializer } from "../bcs";
+import { Deserializer } from "../bcs/deserializer";
+import { Serializable, Serializer } from "../bcs/serializer";
 import { AccountAddress } from "../core/accountAddress";
 
 /**
