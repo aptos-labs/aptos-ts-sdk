@@ -923,7 +923,8 @@ export function getIssAudAndUidVal(args: { jwt: string; uidKey?: string }): {
       details: "JWT is missing 'aud' in the payload or 'aud' is an array of values.",
     });
   }
-  return { iss: getClaim(jwt, "iss"), aud: getClaim(jwt, "aud"), uidVal: getClaim(jwt, uidKey) };
+  const uidVal = jwtPayload[uidKey];
+  return { iss: jwtPayload.iss, aud: jwtPayload.aud, uidVal };
 }
 
 /**
