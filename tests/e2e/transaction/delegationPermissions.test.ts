@@ -20,9 +20,9 @@ import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
 import {
-  buildFungibleAssetPermission,
-  buildNFTPermission,
   buildRevokeFungibleAssetPermission,
+  FungibleAssetPermission,
+  NFTPermission,
   Permission,
   PermissionType,
   RevokePermission,
@@ -59,8 +59,8 @@ describe("transaction submission", () => {
 
   test("Able to re-grant permissions for the same subaccount", async () => {
     // account
-    const APT_PERMISSION = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(), // apt address
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A, // apt address
       balance: "10",
     });
     await requestPermission({
@@ -77,8 +77,8 @@ describe("transaction submission", () => {
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
 
-    const APT_PERMISSION2 = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(),
+    const APT_PERMISSION2 = FungibleAssetPermission.from({
+      asset: AccountAddress.A,
       balance: "20",
     });
     await requestPermission({
@@ -104,7 +104,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildNFTPermission({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
+      permissions: [NFTPermission.from({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
     });
 
     const perm1 = await aptos.getPermissions({
@@ -137,8 +137,8 @@ describe("transaction submission", () => {
       },
     });
 
-    const APT_PERMISSION = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(),
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A,
       balance: "10",
     });
     await requestPermission({
@@ -202,13 +202,13 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
     });
 
     await revokePermission({
       primaryAccount,
       subAccount,
-      permissions: [buildRevokeFungibleAssetPermission({ asset: AccountAddress.A.toString() })],
+      permissions: [buildRevokeFungibleAssetPermission({ asset: AccountAddress.A })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -237,7 +237,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
     });
 
     const txn1 = await signSubmitAndWait({

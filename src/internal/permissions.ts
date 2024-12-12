@@ -20,8 +20,8 @@ import {
   MoveVMPermissionType,
   RevokePermission,
   Permission,
-  buildFungibleAssetPermission,
-  buildNFTPermission,
+  FungibleAssetPermission,
+  NFTPermission,
 } from "../types/permissions";
 import { Transaction } from "../api/transaction";
 import { view } from "./view";
@@ -59,13 +59,13 @@ export async function getPermissions<T extends PermissionType>({
   const permissions = data[0].data.perms.data.map((d) => {
     switch (d.key.type_name) {
       case MoveVMPermissionType.FungibleAsset: // can this be better? i dont rly like this
-        return buildFungibleAssetPermission({
-          asset: d.key.data,
+        return FungibleAssetPermission.from({
+          asset: AccountAddress.fromString(d.key.data),
           balance: d.value,
         });
       case MoveVMPermissionType.TransferPermission:
-        return buildNFTPermission({
-          assetAddress: d.key.data,
+        return NFTPermission.from({
+          assetAddress: AccountAddress.fromString(d.key.data),
           capabilities: { transfer: true, mutate: false },
         });
       default:
@@ -108,21 +108,24 @@ export async function requestPermission(args: {
 
       // if nft permission has multiple capabilities, we need to add multiple txns
       // For NFT permissions with multiple capabilities, split into separate transactions
-
       const expandedPermissions = permissions.flatMap((permission) => {
         if (permission.type === PermissionType.NFT && permission.capabilities) {
-          const expanded = [];
+          const expanded: Permission[] = [];
           if (permission.capabilities.transfer) {
-            expanded.push({
-              ...permission,
-              capabilities: { transfer: true, mutate: false },
-            });
+            expanded.push(
+              NFTPermission.from({
+                assetAddress: permission.assetAddress,
+                capabilities: { transfer: true, mutate: false },
+              }),
+            );
           }
           if (permission.capabilities.mutate) {
-            expanded.push({
-              ...permission,
-              capabilities: { transfer: false, mutate: true },
-            });
+            expanded.push(
+              NFTPermission.from({
+                assetAddress: permission.assetAddress,
+                capabilities: { transfer: false, mutate: true },
+              }),
+            );
           }
           return expanded;
         }
