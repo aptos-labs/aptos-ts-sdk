@@ -30,6 +30,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class for querying and managing fungible asset-related operations on the Aptos blockchain.
+ * @group FungibleAsset
  */
 export class FungibleAsset {
   /**
@@ -53,6 +54,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -79,6 +81,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async getFungibleAssetMetadata(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -119,6 +122,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async getFungibleAssetMetadataByAssetType(args: {
     assetType: string;
@@ -169,6 +173,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async getFungibleAssetMetadataByCreatorAddress(args: {
     creatorAddress: AccountAddressInput;
@@ -213,6 +218,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async getFungibleAssetActivities(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -250,6 +256,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async getCurrentFungibleAssetBalances(args?: {
     minimumLedgerVersion?: AnyNumber;
@@ -297,6 +304,7 @@ export class FungibleAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group FungibleAsset
    */
   async transferFungibleAsset(args: {
     sender: Account;

@@ -19,10 +19,14 @@ import { Hex } from "../core/hex";
  *
  * When the proof expires or the JWT becomes invalid, the KeylessAccount must be instantiated again with a new JWT,
  * EphemeralKeyPair, and corresponding proof.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class KeylessAccount extends AbstractKeylessAccount {
   /**
    * The KeylessPublicKey associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly publicKey: KeylessPublicKey;
 
@@ -44,6 +48,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param args.proof - A Zero Knowledge Signature or a promise that resolves to one.
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
    * @param args.jwt - A JSON Web Token used for authentication.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   private constructor(args: {
     address?: AccountAddress;
@@ -68,6 +74,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * This function ensures that both the transaction bytes and the proof are properly serialized.
    *
    * @param serializer - The serializer instance used to convert the transaction data into bytes.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   serialize(serializer: Serializer): void {
     super.serialize(serializer);
@@ -79,6 +87,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    *
    * @param deserializer - The deserializer instance used to retrieve the serialized data.
    * @returns A KeylessAccount instance created from the deserialized data.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static deserialize(deserializer: Deserializer): KeylessAccount {
     const { address, proof, ephemeralKeyPair, jwt, uidKey, pepper, verificationKeyHash } =
@@ -121,6 +131,8 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @param args.pepper - A hexadecimal input used for additional security.
    * @param args.uidKey - Optional key for user identification, defaults to "sub".
    * @param args.proofFetchCallback - Optional callback function for fetching proof.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   static create(args: {
     address?: AccountAddress;

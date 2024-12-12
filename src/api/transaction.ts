@@ -126,6 +126,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *
  * example();
  * ```
+ * @group Transaction
  */
 export class Transaction {
   readonly config: AptosConfig;
@@ -159,6 +160,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   constructor(config: AptosConfig) {
     this.config = config;
@@ -199,6 +201,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async getTransactions(args?: { options?: PaginationArgs }): Promise<TransactionResponse[]> {
     return getTransactions({
@@ -229,6 +232,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async getTransactionByVersion(args: { ledgerVersion: AnyNumber }): Promise<TransactionResponse> {
     return getTransactionByVersion({
@@ -259,6 +263,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async getTransactionByHash(args: { transactionHash: HexInput }): Promise<TransactionResponse> {
     return getTransactionByHash({
@@ -289,6 +294,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async isPendingTransaction(args: { transactionHash: HexInput }): Promise<boolean> {
     return isTransactionPending({
@@ -340,6 +346,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async waitForTransaction(args: {
     transactionHash: HexInput;
@@ -373,6 +380,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async getGasPriceEstimation(): Promise<GasEstimation> {
     return getGasPriceEstimation({
@@ -407,6 +415,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   // eslint-disable-next-line class-methods-use-this
   getSigningMessage(args: { transaction: AnyRawTransaction }): Uint8Array {
@@ -453,6 +462,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async publishPackageTransaction(args: {
     account: AccountAddressInput;
@@ -494,6 +504,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
@@ -535,6 +546,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   // eslint-disable-next-line class-methods-use-this
   sign(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
@@ -578,6 +590,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   // eslint-disable-next-line class-methods-use-this
   signAsFeePayer(args: { signer: Account; transaction: AnyRawTransaction }): AccountAuthenticator {
@@ -626,6 +639,7 @@ export class Transaction {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Transaction
    */
   async batchTransactionsForSingleAccount(args: {
     sender: Account;
@@ -676,6 +690,7 @@ export class Transaction {
    * runExample().catch(console.error);
    * ```
    * @return PendingTransactionResponse
+   * @group Transaction
    */
   async signAndSubmitTransaction(
     args: FeePayerOrFeePayerAuthenticatorOrNeither & {
@@ -706,6 +721,7 @@ export class Transaction {
    * })
    *
    * @return PendingTransactionResponse
+   * @group Transaction
    */
   async signAndSubmitAsFeePayer(args: {
     feePayer: Account;

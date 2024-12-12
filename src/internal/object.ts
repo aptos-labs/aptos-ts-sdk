@@ -17,6 +17,7 @@ import { queryIndexer } from "./general";
  * @param [args.options.orderBy] - The criteria for ordering the results.
  * @param [args.options.where] - The conditions to filter the results.
  * @returns The current objects that match the specified criteria.
+ * @group Implementation
  */
 export async function getObjectData(args: {
   aptosConfig: AptosConfig;
@@ -50,6 +51,7 @@ export async function getObjectData(args: {
  * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
  * @param args.objectAddress - The address of the object whose data is being retrieved.
  * @param args.options - Optional parameters for pagination and ordering of the results.
+ * @group Implementation
  */
 export async function getObjectDataByObjectAddress(args: {
   aptosConfig: AptosConfig;

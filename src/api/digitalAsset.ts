@@ -52,6 +52,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 
 /**
  * A class to query all `DigitalAsset` related queries on Aptos.
+ * @group DigitalAsset
  */
 export class DigitalAsset {
   /**
@@ -75,6 +76,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   constructor(readonly config: AptosConfig) {}
 
@@ -111,6 +113,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCollectionData(args: {
     creatorAddress: AccountAddressInput;
@@ -169,6 +172,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCollectionDataByCreatorAddressAndCollectionName(args: {
     creatorAddress: AccountAddressInput;
@@ -217,6 +221,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCollectionDataByCreatorAddress(args: {
     creatorAddress: AccountAddressInput;
@@ -257,6 +262,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCollectionDataByCollectionId(args: {
     collectionId: AccountAddressInput;
@@ -299,6 +305,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCollectionId(args: {
     creatorAddress: AccountAddressInput;
@@ -339,6 +346,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getDigitalAssetData(args: {
     digitalAssetAddress: AccountAddressInput;
@@ -378,6 +386,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getCurrentDigitalAssetOwnership(args: {
     digitalAssetAddress: AccountAddressInput;
@@ -417,6 +426,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getOwnedDigitalAssets(args: {
     ownerAddress: AccountAddressInput;
@@ -458,6 +468,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async getDigitalAssetActivity(args: {
     digitalAssetAddress: AccountAddressInput;
@@ -519,6 +530,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async createCollectionTransaction(
     args: {
@@ -569,6 +581,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async mintDigitalAssetTransaction(args: {
     creator: Account;
@@ -616,6 +629,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async transferDigitalAssetTransaction(args: {
     sender: Account;
@@ -667,6 +681,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async mintSoulBoundTransaction(args: {
     account: Account;
@@ -712,6 +727,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async burnDigitalAssetTransaction(args: {
     creator: Account;
@@ -752,6 +768,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async freezeDigitalAssetTransaferTransaction(args: {
     creator: Account;
@@ -792,6 +809,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   // TODO: Rename Transafer to Transfer
   async unfreezeDigitalAssetTransaferTransaction(args: {
@@ -834,6 +852,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async setDigitalAssetDescriptionTransaction(args: {
     creator: Account;
@@ -879,6 +898,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async setDigitalAssetNameTransaction(args: {
     creator: Account;
@@ -920,6 +940,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async setDigitalAssetURITransaction(args: {
     creator: Account;
@@ -966,6 +987,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async addDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -1015,6 +1037,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async removeDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -1063,6 +1086,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async updateDigitalAssetPropertyTransaction(args: {
     creator: Account;
@@ -1113,6 +1137,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async addDigitalAssetTypedPropertyTransaction(args: {
     creator: Account;
@@ -1162,6 +1187,7 @@ export class DigitalAsset {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group DigitalAsset
    */
   async updateDigitalAssetTypedPropertyTransaction(args: {
     creator: Account;
