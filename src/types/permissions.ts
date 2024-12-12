@@ -58,14 +58,14 @@ export class FungibleAssetPermission extends Serializable {
 
   readonly balance: string;
 
-  constructor(asset: AccountAddress, balance: string) {
+  constructor({ asset, balance }: { asset: AccountAddress; balance: string }) {
     super();
     this.asset = asset;
     this.balance = balance;
   }
 
-  static from({ asset, balance }: { asset: AccountAddress; balance: string }): FungibleAssetPermission {
-    return new FungibleAssetPermission(asset, balance);
+  static from(args: { asset: AccountAddress; balance: string }): FungibleAssetPermission {
+    return new FungibleAssetPermission(args);
   }
 
   serialize(serializer: Serializer): void {
@@ -78,7 +78,7 @@ export class FungibleAssetPermission extends Serializable {
     deserializer.deserializeStr() as PermissionType.FungibleAsset; // type, is this needed?;
     const asset = AccountAddress.deserialize(deserializer);
     const balance = deserializer.deserializeStr();
-    return new FungibleAssetPermission(asset, balance);
+    return FungibleAssetPermission.from({ asset, balance });
   }
 }
 
@@ -87,12 +87,12 @@ export class GasPermission extends Serializable {
 
   readonly amount: number;
 
-  constructor(amount: number) {
+  constructor({ amount }: { amount: number }) {
     super();
     this.amount = amount;
   }
 
-  static from = ({ amount }: { amount: number }): GasPermission => new GasPermission(amount);
+  static from = (args: { amount: number }): GasPermission => new GasPermission(args);
 
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.type);
@@ -102,7 +102,7 @@ export class GasPermission extends Serializable {
   static deserialize(deserializer: Deserializer): GasPermission {
     deserializer.deserializeStr() as PermissionType.Gas; // type, is this needed?;
     const amount = deserializer.deserializeU16();
-    return new GasPermission(amount);
+    return GasPermission.from({ amount });
   }
 }
 
@@ -113,19 +113,20 @@ export class NFTPermission extends Serializable {
 
   readonly capabilities: Record<NFTCapability, boolean>; // (string[], bool[])
 
-  constructor(assetAddress: AccountAddress, capabilities: Record<NFTCapability, boolean>) {
-    super();
-    this.assetAddress = assetAddress;
-    this.capabilities = capabilities;
-  }
-
-  static from = ({
+  constructor({
     assetAddress,
     capabilities,
   }: {
     assetAddress: AccountAddress;
     capabilities: Record<NFTCapability, boolean>;
-  }): NFTPermission => new NFTPermission(assetAddress, capabilities);
+  }) {
+    super();
+    this.assetAddress = assetAddress;
+    this.capabilities = capabilities;
+  }
+
+  static from = (args: { assetAddress: AccountAddress; capabilities: Record<NFTCapability, boolean> }): NFTPermission =>
+    NFTPermission.from(args);
 
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.type);
@@ -148,7 +149,7 @@ export class NFTPermission extends Serializable {
       (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
       {} as Record<NFTCapability, boolean>,
     );
-    return new NFTPermission(assetAddress, capabilities);
+    return NFTPermission.from({ assetAddress, capabilities });
   }
 }
 
@@ -159,19 +160,22 @@ export class NFTCollectionPermission extends Serializable {
 
   capabilities: Record<NFTCollectionCapability, boolean>;
 
-  constructor(collectionAddress: AccountAddress, capabilities: Record<NFTCollectionCapability, boolean>) {
-    super();
-    this.collectionAddress = collectionAddress;
-    this.capabilities = capabilities;
-  }
-
-  static from = ({
+  constructor({
     collectionAddress,
     capabilities,
   }: {
     collectionAddress: AccountAddress;
     capabilities: Record<NFTCollectionCapability, boolean>;
-  }): NFTCollectionPermission => new NFTCollectionPermission(collectionAddress, capabilities);
+  }) {
+    super();
+    this.collectionAddress = collectionAddress;
+    this.capabilities = capabilities;
+  }
+
+  static from = (args: {
+    collectionAddress: AccountAddress;
+    capabilities: Record<NFTCollectionCapability, boolean>;
+  }): NFTCollectionPermission => new NFTCollectionPermission(args);
 
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.type);
@@ -194,7 +198,7 @@ export class NFTCollectionPermission extends Serializable {
       (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
       {} as Record<NFTCapability, boolean>,
     );
-    return new NFTCollectionPermission(collectionAddress, capabilities);
+    return NFTCollectionPermission.from({ collectionAddress, capabilities });
   }
 }
 
