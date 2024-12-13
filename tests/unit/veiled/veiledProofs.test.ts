@@ -8,9 +8,15 @@ import {
   VeiledTransfer,
   VeiledKeyRotation,
   VeiledNormalization,
+  RangeProofExecutor,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
+import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
+
+/** !important: for testing purposes */
+RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
+RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 
 describe("Generate 'veiled coin' proofs", () => {
   const ALICE_BALANCE = 70n;
@@ -31,7 +37,11 @@ describe("Generate 'veiled coin' proofs", () => {
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
 
+    const sigmaProofStartTime = performance.now();
     veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
+    const sigmaProofStartTimeEnd = performance.now();
+
+    console.log("sigmaProofStartTime", sigmaProofStartTimeEnd - sigmaProofStartTime);
 
     expect(veiledWithdrawSigmaProof).toBeDefined();
   });
@@ -50,7 +60,11 @@ describe("Generate 'veiled coin' proofs", () => {
 
   let veiledWithdrawRangeProof: Uint8Array[];
   test("Generate withdraw range proof", async () => {
+    const rangeProofStartTime = performance.now();
     veiledWithdrawRangeProof = await veiledWithdraw.genRangeProof();
+    const rangeProofStartTimeEnd = performance.now();
+
+    console.log("rangeProofStartTime", rangeProofStartTimeEnd - rangeProofStartTime);
   });
   test("Verify withdraw range proof", async () => {
     const isValid = VeiledWithdraw.verifyRangeProof({

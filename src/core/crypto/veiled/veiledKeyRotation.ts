@@ -1,7 +1,7 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
-import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { RangeProofExecutor } from "../rangeProof";
 import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { genFiatShamirChallenge } from "./helpers";
@@ -282,7 +282,7 @@ export class VeiledKeyRotation {
   async genRangeProof(): Promise<Uint8Array[]> {
     const rangeProof = await Promise.all(
       this.currVeiledAmount.amountChunks.map((chunk, i) =>
-        generateRangeZKP({
+        RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: this.newDecryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -319,7 +319,7 @@ export class VeiledKeyRotation {
   static async verifyRangeProof(opts: { rangeProof: Uint8Array[]; newEncryptedBalance: TwistedElGamalCiphertext[] }) {
     const rangeProofValidations = await Promise.all(
       opts.rangeProof.map((proof, i) =>
-        verifyRangeZKP({
+        RangeProofExecutor.verifyRangeZKP({
           proof,
           commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
