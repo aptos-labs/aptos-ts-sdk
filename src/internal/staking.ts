@@ -5,7 +5,7 @@
  * This file contains the underlying implementations for exposed API surface in
  * the {@link api/staking}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
- * faucet namespace and without having a dependency cycle error.
+ * staking namespace and without having a dependency cycle error.
  * @group Implementation
  */
 
