@@ -12,8 +12,11 @@ import { AccountAddress } from "../core/accountAddress";
  * Core permission type definitions
  */
 export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission;
-export type RevokePermission = RevokeFungibleAssetPermission | RevokeNFTPermission | Permission;
-export type FilteredPermissions<T extends PermissionType> = Array<Extract<Permission, { type: T }>>;
+
+export enum MoveVMPermissionType {
+  FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
+  TransferPermission = "0x1::object::TransferPermission",
+}
 
 /**
  * Permission handle metadata and configuration
@@ -52,8 +55,6 @@ export enum PermissionType {
  * Permission interfaces for different asset types
  */
 export class FungibleAssetPermission extends Serializable {
-  readonly type = PermissionType.FungibleAsset;
-
   readonly asset: AccountAddress;
 
   readonly balance: string;
@@ -69,13 +70,11 @@ export class FungibleAssetPermission extends Serializable {
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.type);
     this.asset.serialize(serializer);
     serializer.serializeStr(this.balance);
   }
 
   static deserialize(deserializer: Deserializer): FungibleAssetPermission {
-    deserializer.deserializeStr() as PermissionType.FungibleAsset; // type, is this needed?;
     const asset = AccountAddress.deserialize(deserializer);
     const balance = deserializer.deserializeStr();
     return FungibleAssetPermission.from({ asset, balance });
@@ -83,8 +82,6 @@ export class FungibleAssetPermission extends Serializable {
 }
 
 export class GasPermission extends Serializable {
-  readonly type = PermissionType.Gas;
-
   readonly amount: number;
 
   constructor({ amount }: { amount: number }) {
@@ -95,20 +92,16 @@ export class GasPermission extends Serializable {
   static from = (args: { amount: number }): GasPermission => new GasPermission(args);
 
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.type);
     serializer.serializeU16(this.amount);
   }
 
   static deserialize(deserializer: Deserializer): GasPermission {
-    deserializer.deserializeStr() as PermissionType.Gas; // type, is this needed?;
     const amount = deserializer.deserializeU16();
     return GasPermission.from({ amount });
   }
 }
 
 export class NFTPermission extends Serializable {
-  readonly type = PermissionType.NFT;
-
   readonly assetAddress: AccountAddress;
 
   readonly capabilities: Record<NFTCapability, boolean>; // (string[], bool[])
@@ -126,10 +119,9 @@ export class NFTPermission extends Serializable {
   }
 
   static from = (args: { assetAddress: AccountAddress; capabilities: Record<NFTCapability, boolean> }): NFTPermission =>
-    NFTPermission.from(args);
+    new NFTPermission(args);
 
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.type);
     this.assetAddress.serialize(serializer);
 
     const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
@@ -141,7 +133,6 @@ export class NFTPermission extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): NFTPermission {
-    deserializer.deserializeStr() as PermissionType.NFT; // type, is this needed?;
     const assetAddress = AccountAddress.deserialize(deserializer);
     const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
     const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
@@ -154,8 +145,6 @@ export class NFTPermission extends Serializable {
 }
 
 export class NFTCollectionPermission extends Serializable {
-  readonly type = PermissionType.NFTCollection;
-
   collectionAddress: AccountAddress;
 
   capabilities: Record<NFTCollectionCapability, boolean>;
@@ -178,7 +167,6 @@ export class NFTCollectionPermission extends Serializable {
   }): NFTCollectionPermission => new NFTCollectionPermission(args);
 
   serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.type);
     this.collectionAddress.serialize(serializer);
 
     const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
@@ -190,7 +178,6 @@ export class NFTCollectionPermission extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): NFTCollectionPermission {
-    deserializer.deserializeStr() as PermissionType.NFTCollection; // type, is this needed?;
     const collectionAddress = AccountAddress.deserialize(deserializer);
     const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
     const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
@@ -202,25 +189,3 @@ export class NFTCollectionPermission extends Serializable {
   }
 }
 
-/**
- * Revoke permission types
- */
-export type RevokeFungibleAssetPermission = Pick<FungibleAssetPermission, "type" | "asset">;
-export type RevokeNFTPermission = Pick<NFTPermission, "type" | "assetAddress">;
-
-export enum MoveVMPermissionType {
-  FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
-  TransferPermission = "0x1::object::TransferPermission",
-}
-
-/**
- * Factory functions for creating revoke permissions
- */
-export function buildRevokeFungibleAssetPermission(
-  args: Omit<RevokeFungibleAssetPermission, "type">,
-): RevokeFungibleAssetPermission {
-  return { type: PermissionType.FungibleAsset, ...args };
-}
-export function buildRevokeNFTPermission(args: Omit<RevokeNFTPermission, "type">): RevokeNFTPermission {
-  return { type: PermissionType.NFT, ...args };
-}

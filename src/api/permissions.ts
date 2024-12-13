@@ -4,7 +4,7 @@
 import { getPermissions, requestPermission, revokePermissions } from "../internal/permissions";
 import { AptosConfig } from "./aptosConfig";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
-import { FilteredPermissions, Permission, PermissionType, RevokePermission } from "../types/permissions";
+import { Permission } from "../types/permissions";
 import { AccountAddress, Ed25519PublicKey } from "../core";
 
 /**
@@ -32,12 +32,11 @@ export class Permissions {
    *
    * @returns A promise that resolves to an array of current permissions and their remaining balances.
    */
-  async getPermissions<T extends PermissionType>(args: {
+  async getPermissions<T extends Permission>(args: {
     primaryAccountAddress: AccountAddress;
     subAccountPublicKey: Ed25519PublicKey;
-
-    filter?: T;
-  }): Promise<FilteredPermissions<T>> {
+    filter?: new (...a: any) => T;
+  }): Promise<T[]> {
     return getPermissions({
       aptosConfig: this.config,
       primaryAccountAddress: args.primaryAccountAddress,
@@ -111,7 +110,7 @@ export class Permissions {
   async revokePermission(args: {
     primaryAccountAddress: AccountAddress;
     subAccountPublicKey: Ed25519PublicKey;
-    permissions: RevokePermission[];
+    permissions: Permission[];
   }): Promise<SimpleTransaction> {
     return revokePermissions({
       aptosConfig: this.config,
