@@ -4,12 +4,20 @@
  * along with interfaces and factory functions for creating and revoking permissions.
  */
 
+import type { Deserializer } from "../bcs/deserializer";
+import type { Serializer } from "../bcs/serializer";
+import { Serializable } from "../bcs/serializer";
+import { AccountAddress } from "../core/accountAddress";
+
 /**
  * Core permission type definitions
  */
 export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission;
-export type RevokePermission = RevokeFungibleAssetPermission | RevokeNFTPermission | Permission;
-export type FilteredPermissions<T extends PermissionType> = Array<Extract<Permission, { type: T }>>;
+
+export enum MoveVMPermissionType {
+  FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
+  TransferPermission = "0x1::object::TransferPermission",
+}
 
 /**
  * Permission handle metadata and configuration
@@ -24,88 +32,147 @@ export interface PermissionHandle {
   permissions: Permission[];
 }
 
-/**
- * Capability and permission type enums
- */
-export enum NFTCapability {
+export class FungibleAssetPermission extends Serializable {
+  readonly asset: AccountAddress;
+
+  readonly balance: string;
+
+  constructor({ asset, balance }: { asset: AccountAddress; balance: string }) {
+    super();
+    this.asset = asset;
+    this.balance = balance;
+  }
+
+  static from(args: { asset: AccountAddress; balance: string }): FungibleAssetPermission {
+    return new FungibleAssetPermission(args);
+  }
+
+  serialize(serializer: Serializer): void {
+    this.asset.serialize(serializer);
+    serializer.serializeStr(this.balance);
+  }
+
+  static deserialize(deserializer: Deserializer): FungibleAssetPermission {
+    const asset = AccountAddress.deserialize(deserializer);
+    const balance = deserializer.deserializeStr();
+    return FungibleAssetPermission.from({ asset, balance });
+  }
+}
+
+export class GasPermission extends Serializable {
+  readonly amount: number;
+
+  constructor({ amount }: { amount: number }) {
+    super();
+    this.amount = amount;
+  }
+
+  static from = (args: { amount: number }): GasPermission => new GasPermission(args);
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeU16(this.amount);
+  }
+
+  static deserialize(deserializer: Deserializer): GasPermission {
+    const amount = deserializer.deserializeU16();
+    return GasPermission.from({ amount });
+  }
+}
+
+enum NFTCapability {
   transfer = "transfer",
   mutate = "mutate",
 }
 
-export enum PermissionType {
-  FungibleAsset = "FungibleAsset",
-  Gas = "Gas",
-  NFT = "NFT",
-  NFTCollection = "Collection",
+export class NFTPermission extends Serializable {
+  readonly assetAddress: AccountAddress;
+
+  readonly capabilities: Record<NFTCapability, boolean>;
+
+  constructor({
+    assetAddress,
+    capabilities,
+  }: {
+    assetAddress: AccountAddress;
+    capabilities: Record<NFTCapability, boolean>;
+  }) {
+    super();
+    this.assetAddress = assetAddress;
+    this.capabilities = capabilities;
+  }
+
+  static from = (args: { assetAddress: AccountAddress; capabilities: Record<NFTCapability, boolean> }): NFTPermission =>
+    new NFTPermission(args);
+
+  serialize(serializer: Serializer): void {
+    this.assetAddress.serialize(serializer);
+
+    const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
+      ([keys, values], [key, value]) => [keys.concat(key), values.concat(value)],
+      [[] as string[], [] as boolean[]],
+    );
+    serializer.serializeStr(JSON.stringify(capabilityKeys));
+    serializer.serializeStr(JSON.stringify(capabilityValues));
+  }
+
+  static deserialize(deserializer: Deserializer): NFTPermission {
+    const assetAddress = AccountAddress.deserialize(deserializer);
+    const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
+    const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
+    const capabilities = capabilityKeys.reduce(
+      (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
+      {} as Record<NFTCapability, boolean>,
+    );
+    return NFTPermission.from({ assetAddress, capabilities });
+  }
 }
 
-/**
- * Permission interfaces for different asset types
- */
-export interface FungibleAssetPermission {
-  type: PermissionType.FungibleAsset;
-  asset: string;
-  // Question: best type here?: number | string | bigint
-  balance: string;
+enum NFTCollectionCapability {
+  transfer = "transfer",
+  mutate = "mutate",
 }
 
-export interface GasPermission {
-  type: PermissionType.Gas;
-  amount: number;
-}
+export class NFTCollectionPermission extends Serializable {
+  collectionAddress: AccountAddress;
 
-export interface NFTPermission {
-  type: PermissionType.NFT;
-  assetAddress: string;
-  capabilities: Record<NFTCapability, boolean>;
-}
-
-export interface NFTCollectionPermission {
-  type: PermissionType.NFTCollection;
-  collectionAddress: string;
   capabilities: Record<NFTCollectionCapability, boolean>;
-}
 
-export enum NFTCollectionCapability {
-  transfer = "transfer",
-  mutate = "mutate",
-}
+  constructor({
+    collectionAddress,
+    capabilities,
+  }: {
+    collectionAddress: AccountAddress;
+    capabilities: Record<NFTCollectionCapability, boolean>;
+  }) {
+    super();
+    this.collectionAddress = collectionAddress;
+    this.capabilities = capabilities;
+  }
 
-/**
- * Revoke permission types
- */
-export type RevokeFungibleAssetPermission = Pick<FungibleAssetPermission, "type" | "asset">;
-export type RevokeNFTPermission = Pick<NFTPermission, "type" | "assetAddress">;
+  static from = (args: {
+    collectionAddress: AccountAddress;
+    capabilities: Record<NFTCollectionCapability, boolean>;
+  }): NFTCollectionPermission => new NFTCollectionPermission(args);
 
-export enum MoveVMPermissionType {
-  FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
-  TransferPermission = "0x1::object::TransferPermission",
-}
+  serialize(serializer: Serializer): void {
+    this.collectionAddress.serialize(serializer);
 
-/**
- * Factory functions for creating permissions
- */
-export function buildFungibleAssetPermission(args: Omit<FungibleAssetPermission, "type">): FungibleAssetPermission {
-  return { type: PermissionType.FungibleAsset, ...args };
-}
-export function buildGasPermission(args: Omit<GasPermission, "type">): GasPermission {
-  return { type: PermissionType.Gas, ...args };
-}
-export function buildNFTPermission(args: Omit<NFTPermission, "type">): NFTPermission {
-  return { type: PermissionType.NFT, ...args };
-}
-export function buildNFTCollectionPermission(args: Omit<NFTCollectionPermission, "type">): NFTCollectionPermission {
-  return { type: PermissionType.NFTCollection, ...args };
-}
+    const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
+      ([keys, values], [key, value]) => [keys.concat(key), values.concat(value)],
+      [[] as string[], [] as boolean[]],
+    );
+    serializer.serializeStr(JSON.stringify(capabilityKeys));
+    serializer.serializeStr(JSON.stringify(capabilityValues));
+  }
 
-/**
- * Factory functions for creating revoke permissions
- */
-export function buildRevokeFungibleAssetPermission(
-  args: Omit<RevokeFungibleAssetPermission, "type">,
-): RevokeFungibleAssetPermission {
-  return { type: PermissionType.FungibleAsset, ...args };
-}
-export function buildRevokeNFTPermission(args: Omit<RevokeNFTPermission, "type">): RevokeNFTPermission {
-  return { type: PermissionType.NFT, ...args };
+  static deserialize(deserializer: Deserializer): NFTCollectionPermission {
+    const collectionAddress = AccountAddress.deserialize(deserializer);
+    const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
+    const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
+    const capabilities = capabilityKeys.reduce(
+      (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
+      {} as Record<NFTCapability, boolean>,
+    );
+    return NFTCollectionPermission.from({ collectionAddress, capabilities });
+  }
 }
