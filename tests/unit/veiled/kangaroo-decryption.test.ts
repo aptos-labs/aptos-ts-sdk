@@ -1,4 +1,3 @@
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { TwistedEd25519PrivateKey, TwistedElGamal } from "../../../src";
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { KangarooRistretto } from "../../../src/core/crypto/kangaroo/kangarooRistretto";
@@ -11,35 +10,56 @@ function generateRandomInteger(bits: number): bigint {
   return randomValue;
 }
 
+async function loadTableMap(url: string) {
+  const tableMapResponse = await fetch(url);
+
+  if (!tableMapResponse.ok) {
+    throw new TypeError("Failed to load table map");
+  }
+
+  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()));
+}
+
 describe("decrypt amount", () => {
   const aliceDecryptionKey = TwistedEd25519PrivateKey.generate();
 
-  console.log("dk", aliceDecryptionKey.toString());
-
-  console.log("ek", aliceDecryptionKey.publicKey().toString());
-
-  const n = 4_000;
-  const w = 2048n;
-  const r = 128n;
-  const secretSize = 32;
-
   it("Pre load table map", async () => {
-    const tableMapResponse = await fetch("http://localhost:5173/ristretto/output_2048_4000_32_128.json");
+    const [table16, table32, table48] = await Promise.all([
+      loadTableMap(
+        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
+      ),
+      loadTableMap(
+        // "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
+        "http://localhost:5173/ristretto/output_2048_4000_32_128.json",
+      ),
+      loadTableMap(
+        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
+      ),
+    ]);
 
-    if (!tableMapResponse.ok) {
-      throw new Error("Failed to load table map");
-    }
+    KangarooRistretto.setTableWithParams({
+      table: table16,
+      n: 8_000,
+      w: 8n,
+      r: 64n,
+      secretSize: 16,
+    });
+    KangarooRistretto.setTableWithParams({
+      table: table32,
+      n: 4_000,
+      w: 2048n,
+      r: 128n,
+      secretSize: 32,
+    });
+    KangarooRistretto.setTableWithParams({
+      table: table48,
+      n: 40_000,
+      w: 65536n,
+      r: 128n,
+      secretSize: 48,
+    });
 
-    const tableMapJson = await tableMapResponse.json();
-
-    KangarooRistretto.setTable(TableMap.createFromJson(JSON.stringify(tableMapJson)));
-    KangarooRistretto.setParams(n, w, r, secretSize);
-
-    expect(KangarooRistretto.table).toBeDefined();
-    expect(KangarooRistretto.n).toEqual(n);
-    expect(KangarooRistretto.w).toEqual(w);
-    expect(KangarooRistretto.r).toEqual(r);
-    expect(KangarooRistretto.secretSize).toEqual(secretSize);
+    expect(Object.keys(KangarooRistretto.tablesMapWithParams).length).toEqual(3);
   });
 
   it("Kangaroo 140n", async () => {
@@ -64,27 +84,21 @@ describe("decrypt amount", () => {
     expect(decryptedAmount.amount).toEqual(ALICE_BALANCE);
   });
 
+  it("Should decrypt 1 chunk", async () => {
+    const ALICE_BALANCE = 2n ** 32n - 1n;
+
+    const aliceVB = VeiledAmount.fromAmount(ALICE_BALANCE);
+    aliceVB.encrypt(aliceDecryptionKey.publicKey());
+
+    const decryptedChunk = await TwistedElGamal.decryptWithPK(aliceVB.amountEncrypted![0], aliceDecryptionKey);
+
+    expect(decryptedChunk).toBeDefined();
+  });
+
   it("Kangaroo for random numbers [0n, 2n**32n]", async () => {
-    const randBalances = Array.from({ length: 50 }, () => generateRandomInteger(32));
+    const randBalances = Array.from({ length: 50 }, () => generateRandomInteger(16));
 
     console.log(randBalances.toString());
-
-    // const decryptedAmounts = await Promise.all(
-    //   randBalances.map(async (balance) => {
-    //     const newAlice = TwistedEd25519PrivateKey.generate();
-    //
-    //     const newAliceVB = VeiledAmount.fromAmount(balance);
-    //     newAliceVB.encrypt(newAlice.publicKey());
-    //
-    //     const startMainTime = performance.now();
-    //     const result = await VeiledAmount.fromEncrypted(newAliceVB.amountEncrypted!, newAlice);
-    //     const endMainTime = performance.now();
-    //
-    //     const elapsedMainTime = endMainTime - startMainTime;
-    //
-    //     return { result, elapsedTime: elapsedMainTime };
-    //   }),
-    // );
 
     const decryptedAmounts: { result: VeiledAmount; elapsedTime: number }[] = [];
 
@@ -116,16 +130,5 @@ describe("decrypt amount", () => {
     decryptedAmounts.forEach(({ result }, i) => {
       expect(result.amount).toEqual(randBalances[i]);
     });
-  });
-
-  it("Should decrypt 1 chunk", async () => {
-    const ALICE_BALANCE = 2n ** 32n - 1n;
-
-    const aliceVB = VeiledAmount.fromAmount(ALICE_BALANCE);
-    aliceVB.encrypt(aliceDecryptionKey.publicKey());
-
-    const decryptedChunk = await TwistedElGamal.decryptWithPK(aliceVB.amountEncrypted![0], aliceDecryptionKey);
-
-    expect(decryptedChunk).toBeDefined();
   });
 });

@@ -5,68 +5,83 @@ import { TableMap } from "./tableMap";
 import { Utils } from "./utils";
 
 export class KangarooRistretto {
-  static n: number;
+  // static table: TableMap;
 
-  static w: bigint;
+  static tablesMapWithParams: Record<
+    number,
+    {
+      table: TableMap;
+      n: number;
+      w: bigint;
+      l: bigint;
+      r: bigint;
+      secretSize: number;
+    }
+  > = {};
 
-  static l: bigint;
-
-  static r: bigint;
-
-  static secretSize: number;
-
-  static table: TableMap;
-
-  static setTable(table: TableMap) {
-    this.table = table;
-  }
-
-  static setParams(n: number, w: bigint, r: bigint, secretSize: number) {
-    this.n = n;
-    this.w = w;
-    this.l = BigInt(Math.ceil(Math.log2(n)));
-    this.r = r;
-    this.secretSize = secretSize;
+  static setTableWithParams(opts: { table: TableMap; n: number; w: bigint; r: bigint; secretSize: number }) {
+    this.tablesMapWithParams[opts.secretSize] = {
+      table: opts.table,
+      n: opts.n,
+      w: opts.w,
+      l: BigInt(Math.ceil(Math.log2(opts.n))),
+      r: opts.r,
+      secretSize: opts.secretSize,
+    };
   }
 
   static async solveDLP(pubKey: bigint): Promise<bigint> {
-    if (!this.table) throw new TypeError("table is not set");
+    if (!Object.entries(this.tablesMapWithParams).length) throw new TypeError("table & params is not set");
 
-    if (!this.n || !this.w || !this.r || !this.secretSize) throw new TypeError("parameters are not set");
+    const sortedTablesAndParams = Object.entries(this.tablesMapWithParams)
+      .sort(([keyA], [keyB]) => Number(keyA) - Number(keyB))
+      .map(([, value]) => value);
 
-    const sanitizedHex = bytesToHex(numberToBytesLE(pubKey, this.secretSize));
+    for (const variant of sortedTablesAndParams) {
+      const sanitizedHex = bytesToHex(numberToBytesLE(pubKey, 32));
 
-    if (sanitizedHex === RistrettoPoint.ZERO.toHex()) return 0n;
+      if (sanitizedHex === RistrettoPoint.ZERO.toHex()) return 0n;
 
-    const pubKeyPoint = RistrettoPoint.fromHex(sanitizedHex);
+      const pubKeyPoint = RistrettoPoint.fromHex(sanitizedHex);
 
-    while (true) {
-      let wdist = Utils.generateRandomInteger(this.secretSize - 8);
+      let attempts = 0;
+      let foundedNumber: bigint | undefined;
+      do {
+        let wdist = Utils.generateRandomInteger(variant.secretSize - 8);
 
-      let w = pubKeyPoint.add(RistrettoPoint.BASE.multiply(wdist));
-      let wBig = bytesToNumberLE(w.toRawBytes()); // BigInt(`0x${w.toHex()}`);
-
-      for (let loop = 0; loop < 8n * this.w; loop++) {
-        if (Utils.isDistinguished(wBig, this.w)) {
-          const tableEntry = this.table.get(wBig);
-
-          if (tableEntry !== undefined) {
-            wdist = tableEntry - wdist;
-
-            if (bytesToNumberLE(RistrettoPoint.BASE.multiply(wdist).toRawBytes()) === pubKey) {
-              return wdist;
-            }
-          }
-
-          break;
+        if (wdist === 0n) {
+          continue;
         }
 
-        const h = Utils.hash(wBig, this.r);
-        wdist += this.table.slog[h];
+        let w = pubKeyPoint.add(RistrettoPoint.BASE.multiply(wdist));
+        let wBig = bytesToNumberLE(w.toRawBytes());
 
-        w = w.add(RistrettoPoint.fromHex(this.table.s[h].toString(16)));
-        wBig = BigInt(`0x${w.toString()}`);
-      }
+        for (let loop = 0; loop < 8n * variant.w; loop++) {
+          if (Utils.isDistinguished(wBig, variant.w)) {
+            const tableEntry = variant.table.get(wBig);
+
+            if (tableEntry !== undefined) {
+              wdist = tableEntry - wdist;
+
+              if (bytesToNumberLE(RistrettoPoint.BASE.multiply(wdist).toRawBytes()) === pubKey) {
+                return wdist;
+              }
+            }
+
+            break;
+          }
+
+          const h = Utils.hash(wBig, variant.r);
+          wdist += variant.table.slog[h];
+
+          w = w.add(variant.table.s[h]);
+          wBig = BigInt(`0x${w.toHex()}`);
+        }
+
+        attempts += 1;
+      } while (foundedNumber === undefined && attempts < 100);
     }
+
+    return 0n;
   }
 }

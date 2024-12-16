@@ -1,13 +1,14 @@
 import { RistrettoPoint } from "@noble/curves/ed25519";
+import { RistPoint } from "../twistedEd25519";
 
 export class TableMap {
-  s: bigint[];
+  s: RistPoint[];
 
   slog: bigint[];
 
   table: Map<bigint, bigint>;
 
-  constructor(s: bigint[], slog: bigint[], table: Map<bigint, bigint>) {
+  constructor(s: RistPoint[], slog: bigint[], table: Map<bigint, bigint>) {
     this.s = s;
     this.slog = slog;
     this.table = table;
