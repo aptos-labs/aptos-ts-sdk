@@ -5,7 +5,6 @@ import { Network } from "../utils/apiEndpoints";
 import { OrderBy, TokenStandard } from "./indexer";
 
 export * from "./indexer";
-export * from "./permissions";
 
 export enum MimeType {
   /**

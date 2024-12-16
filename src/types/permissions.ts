@@ -4,8 +4,9 @@
  * along with interfaces and factory functions for creating and revoking permissions.
  */
 
-import { Deserializer } from "../bcs/deserializer";
-import { Serializable, Serializer } from "../bcs/serializer";
+import type { Deserializer } from "../bcs/deserializer";
+import type { Serializer } from "../bcs/serializer";
+import { Serializable } from "../bcs/serializer";
 import { AccountAddress } from "../core/accountAddress";
 
 /**
@@ -31,29 +32,6 @@ export interface PermissionHandle {
   permissions: Permission[];
 }
 
-/**
- * Capability and permission type enums
- */
-export enum NFTCapability {
-  transfer = "transfer",
-  mutate = "mutate",
-}
-
-export enum NFTCollectionCapability {
-  transfer = "transfer",
-  mutate = "mutate",
-}
-
-export enum PermissionType {
-  FungibleAsset = "FungibleAsset",
-  Gas = "Gas",
-  NFT = "NFT",
-  NFTCollection = "Collection",
-}
-
-/**
- * Permission interfaces for different asset types
- */
 export class FungibleAssetPermission extends Serializable {
   readonly asset: AccountAddress;
 
@@ -101,10 +79,15 @@ export class GasPermission extends Serializable {
   }
 }
 
+enum NFTCapability {
+  transfer = "transfer",
+  mutate = "mutate",
+}
+
 export class NFTPermission extends Serializable {
   readonly assetAddress: AccountAddress;
 
-  readonly capabilities: Record<NFTCapability, boolean>; // (string[], bool[])
+  readonly capabilities: Record<NFTCapability, boolean>;
 
   constructor({
     assetAddress,
@@ -142,6 +125,11 @@ export class NFTPermission extends Serializable {
     );
     return NFTPermission.from({ assetAddress, capabilities });
   }
+}
+
+enum NFTCollectionCapability {
+  transfer = "transfer",
+  mutate = "mutate",
 }
 
 export class NFTCollectionPermission extends Serializable {
