@@ -220,6 +220,7 @@ export class VeiledTransfer {
       TwistedElGamal.encryptWithPK(chunk, this.senderDecryptionKey.publicKey(), this.randomness[i]),
     );
 
+    // Prover selects random x1, x2, x3i[], x4j[], x5, x6i[], where i in {0, 3} and j in {0, 1}
     const i = 4;
     const j = 2;
 

@@ -51,6 +51,8 @@ const VEILED_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d
 export class VeiledCoin {
   constructor(readonly config: AptosConfig) {}
 
+  static VEILED_COIN_MODULE_ADDRESS = VEILED_COIN_MODULE_ADDRESS;
+
   async getBalance(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
@@ -197,19 +199,19 @@ export class VeiledCoin {
     });
 
     if (!isNormalized) {
-      const aliceBalances = await this.getBalance({
+      const accountBalance = await this.getBalance({
         accountAddress: AccountAddress.from(args.sender),
         tokenAddress: args.tokenAddress,
       });
 
-      const aliceVB = await VeiledAmount.fromEncrypted(aliceBalances.actual, args.decryptionKey);
+      const accountVB = await VeiledAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
       const normalizationTx = await VeiledCoin.buildNormalizationTxPayload({
         decryptionKey: args.decryptionKey,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
-        unnormilizedEncryptedBalance: aliceBalances.pending,
-        balanceAmount: aliceVB.amount,
+        unnormalizedEncryptedBalance: accountBalance.actual,
+        balanceAmount: accountVB.amount,
       });
       txList.push(normalizationTx);
     }
@@ -460,7 +462,7 @@ export class VeiledCoin {
   ): Promise<InputGenerateTransactionPayloadData> {
     const veiledNormalization = await VeiledNormalization.create({
       decryptionKey: args.decryptionKey,
-      unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       randomness: args.randomness,
     });

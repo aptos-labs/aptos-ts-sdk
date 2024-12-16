@@ -385,7 +385,7 @@ describe("Veiled balance api", () => {
       const normalizeTx = await aptos.veiledCoin.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceDecryptionKey,
-        unnormilizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
+        unnormalizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
         balanceAmount: unnormalizedVeiledAmount.amount,
 
         sender: alice.accountAddress,
