@@ -119,7 +119,6 @@ const example = async () => {
 
 example();
 
-
 // const testPermissioned = () => {
 
 //   const subAccount = AbstractedEd25519Account.generate();

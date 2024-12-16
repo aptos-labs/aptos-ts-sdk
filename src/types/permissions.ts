@@ -176,4 +176,3 @@ export class NFTCollectionPermission extends Serializable {
     return NFTCollectionPermission.from({ collectionAddress, capabilities });
   }
 }
-

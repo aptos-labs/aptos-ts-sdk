@@ -385,4 +385,3 @@ async function signSubmitAndWait({
     submittedTransaction,
   };
 }
-
