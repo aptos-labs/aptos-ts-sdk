@@ -6,7 +6,7 @@ import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "./consts";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { RangeProofExecutor } from "../rangeProof";
 import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledWithdrawSigmaProof = {
@@ -274,7 +274,7 @@ export class VeiledWithdraw {
   async genRangeProof() {
     const rangeProof = await Promise.all(
       this.veiledAmountAfterWithdraw.amountChunks.map((chunk, i) =>
-        generateRangeZKP({
+        RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: this.decryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -307,7 +307,7 @@ export class VeiledWithdraw {
   }) {
     const rangeProofVerificationResults = await Promise.all(
       opts.rangeProof.map((proof, i) =>
-        verifyRangeZKP({
+        RangeProofExecutor.verifyRangeZKP({
           proof,
           commitment: opts.encryptedActualBalanceAfterWithdraw[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),

@@ -15,3 +15,4 @@ export * from "./singleKey";
 export * from "./twistedEd25519";
 export * from "./twistedElGamal";
 export * from "./veiled";
+export * from "./rangeProof";
