@@ -4,6 +4,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrades pnpm and node support, to support only more modern versions.
+- Updates Github support for latest actions
+- Overrides cross-spawn
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
 # 1.33.1 (2024-11-28)
