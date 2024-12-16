@@ -3,6 +3,7 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- Added `verifySecp256k1Account` function to verify secp256k1 signatures to prove account ownership. Also enables public key recovery for such accounts.
 
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
