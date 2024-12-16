@@ -14,20 +14,12 @@ import { AccountAddress, Ed25519PublicKey } from "../core";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MoveString } from "../bcs";
 import { AptosIntentBuilder } from "../transactions";
-import {
-  FilteredPermissions,
-  PermissionType,
-  MoveVMPermissionType,
-  RevokePermission,
-  Permission,
-  buildFungibleAssetPermission,
-  buildNFTPermission,
-} from "../types/permissions";
+import { MoveVMPermissionType, Permission, FungibleAssetPermission, NFTPermission } from "../types/permissions";
 import { Transaction } from "../api/transaction";
 import { view } from "./view";
 
 // functions
-export async function getPermissions<T extends PermissionType>({
+export async function getPermissions<T extends Permission>({
   aptosConfig,
   primaryAccountAddress,
   subAccountPublicKey,
@@ -36,8 +28,8 @@ export async function getPermissions<T extends PermissionType>({
   aptosConfig: AptosConfig;
   primaryAccountAddress: AccountAddress;
   subAccountPublicKey: Ed25519PublicKey;
-  filter?: T;
-}): Promise<FilteredPermissions<T>> {
+  filter?: new (...a: any) => T;
+}): Promise<T[]> {
   const handle = await getHandleAddress({ aptosConfig, primaryAccountAddress, subAccountPublicKey });
 
   const res = await fetch(`${aptosConfig.fullnode}/accounts/${handle}/resources`);
@@ -59,13 +51,13 @@ export async function getPermissions<T extends PermissionType>({
   const permissions = data[0].data.perms.data.map((d) => {
     switch (d.key.type_name) {
       case MoveVMPermissionType.FungibleAsset: // can this be better? i dont rly like this
-        return buildFungibleAssetPermission({
-          asset: d.key.data,
+        return FungibleAssetPermission.from({
+          asset: AccountAddress.fromString(d.key.data),
           balance: d.value,
         });
       case MoveVMPermissionType.TransferPermission:
-        return buildNFTPermission({
-          assetAddress: d.key.data,
+        return NFTPermission.from({
+          assetAddress: AccountAddress.fromString(d.key.data),
           capabilities: { transfer: true, mutate: false },
         });
       default:
@@ -74,8 +66,8 @@ export async function getPermissions<T extends PermissionType>({
     }
   });
 
-  const filtered = filter ? permissions.filter((p) => filter.includes(p.type as PermissionType)) : permissions;
-  return filtered as FilteredPermissions<T>;
+  const filtered = filter ? permissions.filter((p) => p instanceof filter) : permissions;
+  return filtered as T[];
 }
 
 // should it return the requested permissions? on success? and when it fails it
@@ -108,21 +100,24 @@ export async function requestPermission(args: {
 
       // if nft permission has multiple capabilities, we need to add multiple txns
       // For NFT permissions with multiple capabilities, split into separate transactions
-
       const expandedPermissions = permissions.flatMap((permission) => {
-        if (permission.type === PermissionType.NFT && permission.capabilities) {
-          const expanded = [];
+        if (permission instanceof NFTPermission && permission.capabilities) {
+          const expanded: Permission[] = [];
           if (permission.capabilities.transfer) {
-            expanded.push({
-              ...permission,
-              capabilities: { transfer: true, mutate: false },
-            });
+            expanded.push(
+              NFTPermission.from({
+                assetAddress: permission.assetAddress,
+                capabilities: { transfer: true, mutate: false },
+              }),
+            );
           }
           if (permission.capabilities.mutate) {
-            expanded.push({
-              ...permission,
-              capabilities: { transfer: false, mutate: true },
-            });
+            expanded.push(
+              NFTPermission.from({
+                assetAddress: permission.assetAddress,
+                capabilities: { transfer: false, mutate: true },
+              }),
+            );
           }
           return expanded;
         }
@@ -157,7 +152,7 @@ export async function revokePermissions(args: {
   aptosConfig: AptosConfig;
   primaryAccountAddress: AccountAddress;
   subAccountPublicKey: Ed25519PublicKey;
-  permissions: RevokePermission[];
+  permissions: Permission[];
 }): Promise<SimpleTransaction> {
   const { aptosConfig, primaryAccountAddress, subAccountPublicKey, permissions } = args;
 
@@ -172,27 +167,24 @@ export async function revokePermissions(args: {
       });
 
       const permissionPromises = permissions.map((permission) => {
-        switch (permission.type) {
-          case PermissionType.FungibleAsset: {
-            return builder.add_batched_calls({
-              function: "0x1::fungible_asset::revoke_permission",
-              functionArguments: [signer[0].borrow(), permission.asset],
-              typeArguments: [],
-            });
-          }
-          // TODO: object nft revoke
-          case PermissionType.NFT: {
-            return builder.add_batched_calls({
-              function: "0x1::object::revoke_permission",
-              functionArguments: [signer[0].borrow(), permission.assetAddress],
-              typeArguments: ["0x4::token::Token"],
-            });
-          }
-          default: {
-            console.log("Not implemented");
-            return Promise.resolve();
-          }
+        if (permission instanceof FungibleAssetPermission) {
+          return builder.add_batched_calls({
+            function: "0x1::fungible_asset::revoke_permission",
+            functionArguments: [signer[0].borrow(), permission.asset],
+            typeArguments: [],
+          });
         }
+        // TODO: object nft revoke
+        if (permission instanceof NFTPermission) {
+          return builder.add_batched_calls({
+            function: "0x1::object::revoke_permission",
+            functionArguments: [signer[0].borrow(), permission.assetAddress],
+            typeArguments: ["0x4::token::Token"],
+          });
+        }
+
+        console.log("Not implemented");
+        return Promise.resolve();
       });
 
       await Promise.all(permissionPromises);
@@ -241,42 +233,41 @@ async function grantPermission(
     permission: Permission;
   },
 ) {
-  switch (args.permission.type) {
-    case PermissionType.FungibleAsset:
+  if (args.permission instanceof FungibleAssetPermission) {
+    return builder.add_batched_calls({
+      function: "0x1::fungible_asset::grant_permission",
+      functionArguments: [
+        BatchArgument.new_signer(0),
+        args.permissionedSigner[0].borrow(),
+        args.permission.asset, // do i need to convert this to AccountAddress? .... i guess not??
+        args.permission.balance,
+      ],
+      typeArguments: [],
+    });
+  }
+  if (args.permission instanceof NFTPermission) {
+    const txn: Promise<BatchArgument[]>[] = [];
+    if (args.permission.capabilities.transfer) {
       return builder.add_batched_calls({
-        function: "0x1::fungible_asset::grant_permission",
+        function: "0x1::object::grant_permission",
         functionArguments: [
           BatchArgument.new_signer(0),
           args.permissionedSigner[0].borrow(),
-          args.permission.asset, // do i need to convert this to AccountAddress? .... i guess not??
-          args.permission.balance,
+          args.permission.assetAddress,
         ],
-        typeArguments: [],
+        typeArguments: ["0x4::token::Token"],
       });
-    case PermissionType.NFT: {
-      const txn: Promise<BatchArgument[]>[] = [];
-      if (args.permission.capabilities.transfer) {
-        return builder.add_batched_calls({
-          function: "0x1::object::grant_permission",
-          functionArguments: [
-            BatchArgument.new_signer(0),
-            args.permissionedSigner[0].borrow(),
-            args.permission.assetAddress,
-          ],
-          typeArguments: ["0x4::token::Token"],
-        });
-      }
-      if (args.permission.capabilities.mutate) {
-        console.log("mutate not implemented");
-        throw new Error("mutate not implemented");
-      }
-      return txn;
     }
-    default:
-      console.log("Not implemented");
-      throw new Error(`${args.permission.type} not implemented`);
-      return Promise.resolve();
+    if (args.permission.capabilities.mutate) {
+      console.log("mutate not implemented");
+      throw new Error("mutate not implemented");
+    }
+    return txn;
   }
+
+  console.log("Not implemented");
+  throw new Error(`${args.permission} not implemented`);
+  return Promise.resolve();
 }
 
 async function finalizeNewHandle(
