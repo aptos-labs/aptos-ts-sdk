@@ -10,12 +10,14 @@ import {
   SingleKeyAccount,
   PendingTransactionResponse,
   InputGenerateTransactionPayloadData,
+  Serializer,
+  Deserializer,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
-import { FungibleAssetPermission, NFTPermission, Permission } from "../../../src/types/permissions";
+import { FungibleAssetPermission, GasPermission, NFTPermission, Permission } from "../../../src/types/permissions";
 
 const LOCAL_NET = getAptosClient();
 const CUSTOM_NET = getAptosClient({
@@ -50,7 +52,7 @@ describe("transaction submission", () => {
     // account
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A, // apt address
-      balance: "10",
+      amount: 10,
     });
     await requestPermission({
       primaryAccount,
@@ -64,11 +66,11 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
-    expect(perm1[0].balance).toBe("10");
+    expect(perm1[0].amount).toEqual(BigInt(10));
 
     const APT_PERMISSION2 = FungibleAssetPermission.from({
       asset: AccountAddress.A,
-      balance: "20",
+      amount: 20,
     });
     await requestPermission({
       primaryAccount,
@@ -82,7 +84,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
-    expect(perm2[0].balance).toBe("30");
+    expect(perm2[0].amount).toEqual(BigInt(30));
   });
 
   test("Able to grant permissions for NFTs", async () => {
@@ -128,7 +130,7 @@ describe("transaction submission", () => {
 
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A,
-      balance: "10",
+      amount: 10,
     });
     await requestPermission({
       primaryAccount,
@@ -142,7 +144,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
-    expect(perm1[0].balance).toBe("10");
+    expect(perm1[0].amount).toEqual(BigInt(10));
 
     const txn1 = await signSubmitAndWait({
       sender: primaryAccount,
@@ -162,7 +164,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
-    expect(perm2[0].balance).toBe("9");
+    expect(perm2[0].amount).toEqual(BigInt(9));
 
     await revokePermission({
       permissions: [APT_PERMISSION],
@@ -191,13 +193,13 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 10 })],
     });
 
     await revokePermission({
       primaryAccount,
       subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "0" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 0 })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -226,7 +228,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 10 })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -253,6 +255,34 @@ describe("transaction submission", () => {
     });
     expect(txn2.response.signature?.type).toBe("single_sender");
     expect(txn2.submittedTransaction.success).toBe(false);
+  });
+
+  test("Serializer", async () => {
+    const test = GasPermission.from({ amount: 2 });
+    console.log(typeof test.amount);
+
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A,
+      amount: 10,
+    });
+    const GAS_PERMISSION = GasPermission.from({
+      amount: 1,
+    });
+    const NFT_PERMISSION = NFTPermission.from({
+      assetAddress: AccountAddress.A,
+      capabilities: { transfer: true, mutate: false },
+    });
+
+    const serializer = new Serializer();
+    APT_PERMISSION.serialize(serializer);
+    GAS_PERMISSION.serialize(serializer);
+    NFT_PERMISSION.serialize(serializer);
+    const serialized = serializer.toUint8Array();
+
+    const deserializer = new Deserializer(serialized);
+    expect(FungibleAssetPermission.deserialize(deserializer)).toEqual(APT_PERMISSION);
+    expect(GasPermission.deserialize(deserializer)).toEqual(GAS_PERMISSION);
+    expect(NFTPermission.deserialize(deserializer)).toEqual(NFT_PERMISSION);
   });
 });
 
