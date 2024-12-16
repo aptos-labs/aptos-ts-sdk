@@ -29,8 +29,7 @@ describe("decrypt amount", () => {
         "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
       ),
       loadTableMap(
-        // "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
-        "http://localhost:5173/ristretto/output_2048_4000_32_128.json",
+        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
       ),
       loadTableMap(
         "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
@@ -96,7 +95,7 @@ describe("decrypt amount", () => {
   });
 
   it("Kangaroo for random numbers [0n, 2n**32n]", async () => {
-    const randBalances = Array.from({ length: 50 }, () => generateRandomInteger(16));
+    const randBalances = Array.from({ length: 50 }, () => generateRandomInteger(48));
 
     console.log(randBalances.toString());
 
