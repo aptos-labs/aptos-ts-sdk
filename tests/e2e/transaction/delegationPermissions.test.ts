@@ -1,10 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable no-lone-blocks */
-/* eslint-disable no-console */
-/* eslint-disable no-await-in-loop */
-
 import {
   Account,
   SigningSchemeInput,
@@ -19,14 +15,7 @@ import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, publishTransferPackage } from "./helper";
 import { AbstractedEd25519Account } from "../../../src/account/AbstractedAccount";
-import {
-  buildFungibleAssetPermission,
-  buildNFTPermission,
-  buildRevokeFungibleAssetPermission,
-  Permission,
-  PermissionType,
-  RevokePermission,
-} from "../../../src/types/permissions";
+import { FungibleAssetPermission, NFTPermission, Permission } from "../../../src/types/permissions";
 
 const LOCAL_NET = getAptosClient();
 const CUSTOM_NET = getAptosClient({
@@ -59,8 +48,8 @@ describe("transaction submission", () => {
 
   test("Able to re-grant permissions for the same subaccount", async () => {
     // account
-    const APT_PERMISSION = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(), // apt address
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A, // apt address
       balance: "10",
     });
     await requestPermission({
@@ -72,13 +61,13 @@ describe("transaction submission", () => {
     const perm1 = await aptos.getPermissions({
       primaryAccountAddress: primaryAccount.accountAddress,
       subAccountPublicKey: subAccount.publicKey,
-      filter: PermissionType.FungibleAsset,
+      filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
 
-    const APT_PERMISSION2 = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(),
+    const APT_PERMISSION2 = FungibleAssetPermission.from({
+      asset: AccountAddress.A,
       balance: "20",
     });
     await requestPermission({
@@ -90,7 +79,7 @@ describe("transaction submission", () => {
     const perm2 = await aptos.getPermissions({
       primaryAccountAddress: primaryAccount.accountAddress,
       subAccountPublicKey: subAccount.publicKey,
-      filter: PermissionType.FungibleAsset,
+      filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
     expect(perm2[0].balance).toBe("30");
@@ -104,13 +93,13 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildNFTPermission({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
+      permissions: [NFTPermission.from({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } })],
     });
 
     const perm1 = await aptos.getPermissions({
       primaryAccountAddress: primaryAccount.accountAddress,
       subAccountPublicKey: subAccount.publicKey,
-      filter: PermissionType.NFT,
+      filter: NFTPermission,
     });
     expect(perm1.length).toBe(1);
 
@@ -137,8 +126,8 @@ describe("transaction submission", () => {
       },
     });
 
-    const APT_PERMISSION = buildFungibleAssetPermission({
-      asset: AccountAddress.A.toString(),
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A,
       balance: "10",
     });
     await requestPermission({
@@ -150,7 +139,7 @@ describe("transaction submission", () => {
     const perm1 = await aptos.getPermissions({
       primaryAccountAddress: primaryAccount.accountAddress,
       subAccountPublicKey: subAccount.publicKey,
-      filter: PermissionType.FungibleAsset,
+      filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
     expect(perm1[0].balance).toBe("10");
@@ -170,7 +159,7 @@ describe("transaction submission", () => {
     const perm2 = await aptos.getPermissions({
       primaryAccountAddress: primaryAccount.accountAddress,
       subAccountPublicKey: subAccount.publicKey,
-      filter: PermissionType.FungibleAsset,
+      filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
     expect(perm2[0].balance).toBe("9");
@@ -202,13 +191,13 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
     });
 
     await revokePermission({
       primaryAccount,
       subAccount,
-      permissions: [buildRevokeFungibleAssetPermission({ asset: AccountAddress.A.toString() })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "0" })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -237,7 +226,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [buildFungibleAssetPermission({ asset: AccountAddress.A.toString(), balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -303,7 +292,7 @@ export async function revokePermission({
 }: {
   primaryAccount: SingleKeyAccount;
   subAccount: AbstractedEd25519Account;
-  permissions: RevokePermission[];
+  permissions: Permission[];
 }) {
   const transaction = await aptos.permissions.revokePermission({
     primaryAccountAddress: primaryAccount.accountAddress,
