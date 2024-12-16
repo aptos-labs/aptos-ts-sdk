@@ -36,7 +36,7 @@ describe("Veiled balance api", () => {
    * Address of the module for minting mocked fungible tokens on the testnet
    */
   const MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
-  // TODO: decimals?
+  // TODO: add tests with token with 10^18 precision
   const TOKENS_TO_MINT = 1_000;
 
   const INITIAL_APTOS_BALANCE = 0.5 * 10 ** 8;
