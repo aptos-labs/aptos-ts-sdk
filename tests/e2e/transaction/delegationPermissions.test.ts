@@ -50,7 +50,7 @@ describe("transaction submission", () => {
     // account
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A, // apt address
-      balance: "10",
+      amount: BigInt(10),
     });
     await requestPermission({
       primaryAccount,
@@ -64,11 +64,11 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
-    expect(perm1[0].balance).toBe("10");
+    expect(perm1[0].amount).toEqual(BigInt(10));
 
     const APT_PERMISSION2 = FungibleAssetPermission.from({
       asset: AccountAddress.A,
-      balance: "20",
+      amount: BigInt(20),
     });
     await requestPermission({
       primaryAccount,
@@ -82,7 +82,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
-    expect(perm2[0].balance).toBe("30");
+    expect(perm2[0].amount).toEqual(BigInt(30));
   });
 
   test("Able to grant permissions for NFTs", async () => {
@@ -128,7 +128,7 @@ describe("transaction submission", () => {
 
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A,
-      balance: "10",
+      amount: BigInt(10),
     });
     await requestPermission({
       primaryAccount,
@@ -142,7 +142,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm1.length).toBe(1);
-    expect(perm1[0].balance).toBe("10");
+    expect(perm1[0].amount).toEqual(BigInt(10));
 
     const txn1 = await signSubmitAndWait({
       sender: primaryAccount,
@@ -162,7 +162,7 @@ describe("transaction submission", () => {
       filter: FungibleAssetPermission,
     });
     expect(perm2.length).toBe(1);
-    expect(perm2[0].balance).toBe("9");
+    expect(perm2[0].amount).toEqual(BigInt(9));
 
     await revokePermission({
       permissions: [APT_PERMISSION],
@@ -191,13 +191,13 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: BigInt(10) })],
     });
 
     await revokePermission({
       primaryAccount,
       subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "0" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: BigInt(0) })],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -226,7 +226,7 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, balance: "10" })],
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: BigInt(10) })],
     });
 
     const txn1 = await signSubmitAndWait({

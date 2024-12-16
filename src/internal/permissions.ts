@@ -53,7 +53,7 @@ export async function getPermissions<T extends Permission>({
       case MoveVMPermissionType.FungibleAsset: // can this be better? i dont rly like this
         return FungibleAssetPermission.from({
           asset: AccountAddress.fromString(d.key.data),
-          balance: d.value,
+          amount: BigInt(d.value),
         });
       case MoveVMPermissionType.TransferPermission:
         return NFTPermission.from({
@@ -240,7 +240,7 @@ async function grantPermission(
         BatchArgument.new_signer(0),
         args.permissionedSigner[0].borrow(),
         args.permission.asset, // do i need to convert this to AccountAddress? .... i guess not??
-        args.permission.balance,
+        args.permission.amount,
       ],
       typeArguments: [],
     });

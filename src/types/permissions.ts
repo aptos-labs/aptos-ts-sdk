@@ -35,46 +35,46 @@ export interface PermissionHandle {
 export class FungibleAssetPermission extends Serializable {
   readonly asset: AccountAddress;
 
-  readonly balance: string;
+  readonly amount: bigint;
 
-  constructor({ asset, balance }: { asset: AccountAddress; balance: string }) {
+  constructor({ asset, amount }: { asset: AccountAddress; amount: bigint }) {
     super();
     this.asset = asset;
-    this.balance = balance;
+    this.amount = amount;
   }
 
-  static from(args: { asset: AccountAddress; balance: string }): FungibleAssetPermission {
+  static from(args: { asset: AccountAddress; amount: bigint }): FungibleAssetPermission {
     return new FungibleAssetPermission(args);
   }
 
   serialize(serializer: Serializer): void {
     this.asset.serialize(serializer);
-    serializer.serializeStr(this.balance);
+    serializer.serializeU256(this.amount);
   }
 
   static deserialize(deserializer: Deserializer): FungibleAssetPermission {
     const asset = AccountAddress.deserialize(deserializer);
-    const balance = deserializer.deserializeStr();
-    return FungibleAssetPermission.from({ asset, balance });
+    const amount = deserializer.deserializeU256();
+    return FungibleAssetPermission.from({ asset, amount });
   }
 }
 
 export class GasPermission extends Serializable {
-  readonly amount: number;
+  readonly amount: bigint;
 
-  constructor({ amount }: { amount: number }) {
+  constructor({ amount }: { amount: bigint }) {
     super();
     this.amount = amount;
   }
 
-  static from = (args: { amount: number }): GasPermission => new GasPermission(args);
+  static from = (args: { amount: bigint }): GasPermission => new GasPermission(args);
 
   serialize(serializer: Serializer): void {
-    serializer.serializeU16(this.amount);
+    serializer.serializeU256(this.amount);
   }
 
   static deserialize(deserializer: Deserializer): GasPermission {
-    const amount = deserializer.deserializeU16();
+    const amount = deserializer.deserializeU256();
     return GasPermission.from({ amount });
   }
 }
