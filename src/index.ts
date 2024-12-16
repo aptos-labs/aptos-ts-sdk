@@ -10,4 +10,5 @@ export * from "./errors";
 export * from "./transactions";
 export * from "./transactions/management";
 export * from "./types";
+export * from "./types/permissions";
 export * from "./utils";
