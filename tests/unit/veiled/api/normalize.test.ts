@@ -10,7 +10,7 @@ describe("Normalize", () => {
     const normalizeTx = await aptos.veiledCoin.normalizeUserBalance({
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceVeiled,
-      unnormilizedEncryptedBalance: balances.actual.amountEncrypted!,
+      unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
       balanceAmount: balances.actual.amount,
 
       sender: alice.accountAddress,

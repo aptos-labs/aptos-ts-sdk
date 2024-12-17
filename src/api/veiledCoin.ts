@@ -204,14 +204,14 @@ export class VeiledCoin {
         tokenAddress: args.tokenAddress,
       });
 
-      const aliceVB = await VeiledAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
+      const accountVB = await VeiledAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
       const normalizationTx = await VeiledCoin.buildNormalizationTxPayload({
         decryptionKey: args.decryptionKey,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
-        unnormilizedEncryptedBalance: accountBalance.actual,
-        balanceAmount: aliceVB.amount,
+        unnormalizedEncryptedBalance: accountBalance.actual,
+        balanceAmount: accountVB.amount,
       });
       txList.push(normalizationTx);
     }
@@ -462,7 +462,7 @@ export class VeiledCoin {
   ): Promise<InputGenerateTransactionPayloadData> {
     const veiledNormalization = await VeiledNormalization.create({
       decryptionKey: args.decryptionKey,
-      unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       randomness: args.randomness,
     });

@@ -23,7 +23,7 @@ export type VeiledNormalizationSigmaProof = {
 
 export type CreateVeiledNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
-  unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+  unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
   balanceAmount: bigint;
   randomness?: bigint[];
 };
@@ -31,7 +31,7 @@ export type CreateVeiledNormalizationOpArgs = {
 export class VeiledNormalization {
   decryptionKey: TwistedEd25519PrivateKey;
 
-  unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+  unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
 
   balanceAmount: bigint;
 
@@ -41,13 +41,13 @@ export class VeiledNormalization {
 
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     balanceAmount: bigint;
     normalizedVeiledAmount: VeiledAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
-    this.unnormilizedEncryptedBalance = args.unnormilizedEncryptedBalance;
+    this.unnormalizedEncryptedBalance = args.unnormalizedEncryptedBalance;
     this.balanceAmount = args.balanceAmount;
     this.normalizedVeiledAmount = args.normalizedVeiledAmount;
     this.randomness = args.randomness;
@@ -61,7 +61,7 @@ export class VeiledNormalization {
 
     return new VeiledNormalization({
       decryptionKey: args.decryptionKey,
-      unnormilizedEncryptedBalance: args.unnormilizedEncryptedBalance,
+      unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       normalizedVeiledAmount,
       randomness,
@@ -132,7 +132,7 @@ export class VeiledNormalization {
     const x5List = ed25519GenListOfRandom();
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
-      this.unnormilizedEncryptedBalance
+      this.unnormalizedEncryptedBalance
         .reduce(
           (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
           RistrettoPoint.ZERO,
@@ -150,7 +150,7 @@ export class VeiledNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
-      ...this.unnormilizedEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...this.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
       ...this.normalizedVeiledAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
@@ -190,7 +190,7 @@ export class VeiledNormalization {
     publicKey: TwistedEd25519PublicKey;
     sigmaProof: VeiledNormalizationSigmaProof;
 
-    unnormilizedEncryptedBalance: TwistedElGamalCiphertext[];
+    unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     normalizedEncryptedBalance: TwistedElGamalCiphertext[];
   }): boolean {
     const publicKeyU8 = publicKeyToU8(opts.publicKey);
@@ -206,7 +206,7 @@ export class VeiledNormalization {
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
-      ...opts.unnormilizedEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...opts.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
       ...opts.normalizedEncryptedBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
@@ -214,13 +214,13 @@ export class VeiledNormalization {
       ...opts.sigmaProof.X4List,
     );
     const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
-    const alpha2D = opts.unnormilizedEncryptedBalance
+    const alpha2D = opts.unnormalizedEncryptedBalance
       .reduce(
         (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
         RistrettoPoint.ZERO,
       )
       .multiply(alpha2LE);
-    const pBlaOld = opts.unnormilizedEncryptedBalance
+    const pBalOld = opts.unnormalizedEncryptedBalance
       .reduce((acc, ciphertext, i) => {
         const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI));
         return acc.add(chunk);
@@ -229,7 +229,7 @@ export class VeiledNormalization {
 
     const alpha3H = H_RISTRETTO.multiply(alpha3LE);
     const pP = RistrettoPoint.fromHex(publicKeyU8).multiply(p);
-    const X1 = alpha1G.add(alpha2D).add(pBlaOld);
+    const X1 = alpha1G.add(alpha2D).add(pBalOld);
     const X2 = alpha3H.add(pP);
     const X3List = alpha4LEList.map((a, i) => {
       const aG = RistrettoPoint.BASE.multiply(a);
