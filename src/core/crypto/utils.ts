@@ -54,8 +54,9 @@ export function ed25519GenRandom(): bigint {
   return rand;
 }
 
-/*
+/**
  * Generate list of random number less then order of curve ed25519
+ * @param len - chunks count
  */
 export function ed25519GenListOfRandom(len = 4) {
   return new Array(len).fill(0n).map(() => ed25519GenRandom());

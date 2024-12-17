@@ -311,7 +311,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Generate normalization sigma proof", async () => {
     veiledNormalization = await VeiledNormalization.create({
       decryptionKey: aliceVeiledDecryptionKey,
-      unnormilizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
+      unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
       balanceAmount: unnormalizedAliceVeiledAmount.amount,
     });
 
@@ -323,7 +323,7 @@ describe("Generate 'veiled coin' proofs", () => {
     const isValid = VeiledNormalization.verifySigmaProof({
       publicKey: aliceVeiledDecryptionKey.publicKey(),
       sigmaProof: veiledNormalizationSigmaProof,
-      unnormilizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
+      unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
       normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.amountEncrypted!,
     });
 
