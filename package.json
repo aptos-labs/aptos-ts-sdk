@@ -1,10 +1,10 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@8.9.0",
+  "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=11.0.0"
+    "node": ">=20.0.0"
   },
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
