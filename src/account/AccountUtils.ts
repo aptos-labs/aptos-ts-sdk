@@ -19,40 +19,40 @@ import {
 import { deserializeSchemeAndAddress } from "./utils";
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
 
+function serializeKeylessAccountCommon(account: AbstractKeylessAccount, serializer: Serializer): void {
+  serializer.serializeStr(account.jwt);
+  serializer.serializeStr(account.uidKey);
+  serializer.serializeFixedBytes(account.pepper);
+  account.ephemeralKeyPair.serialize(serializer);
+  if (account.proof === undefined) {
+    throw new Error("Cannot serialize - proof undefined");
+  }
+  account.proof.serialize(serializer);
+  serializer.serializeOption(account.verificationKeyHash, 32);
+}
+
+function deserializeKeylessAccountCommon(deserializer: Deserializer): {
+  jwt: string;
+  uidKey: string;
+  pepper: Uint8Array;
+  ephemeralKeyPair: EphemeralKeyPair;
+  proof: ZeroKnowledgeSig;
+  verificationKeyHash?: Uint8Array;
+} {
+  const jwt = deserializer.deserializeStr();
+  const uidKey = deserializer.deserializeStr();
+  const pepper = deserializer.deserializeFixedBytes(31);
+  const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
+  const proof = ZeroKnowledgeSig.deserialize(deserializer);
+  const verificationKeyHash = deserializer.deserializeOption("fixedBytes", 32);
+  return { jwt, uidKey, pepper, ephemeralKeyPair, proof, verificationKeyHash };
+}
+
 /**
  * Utility functions for working with accounts.
  */
-export class AccountUtils {
-  private static serializeKeylessAccountCommon(account: AbstractKeylessAccount, serializer: Serializer): void {
-    serializer.serializeStr(account.jwt);
-    serializer.serializeStr(account.uidKey);
-    serializer.serializeFixedBytes(account.pepper);
-    account.ephemeralKeyPair.serialize(serializer);
-    if (account.proof === undefined) {
-      throw new Error("Cannot serialize - proof undefined");
-    }
-    account.proof.serialize(serializer);
-    serializer.serializeOption(account.verificationKeyHash, 32);
-  }
-
-  private static deserializeKeylessAccountCommon(deserializer: Deserializer): {
-    jwt: string;
-    uidKey: string;
-    pepper: Uint8Array;
-    ephemeralKeyPair: EphemeralKeyPair;
-    proof: ZeroKnowledgeSig;
-    verificationKeyHash?: Uint8Array;
-  } {
-    const jwt = deserializer.deserializeStr();
-    const uidKey = deserializer.deserializeStr();
-    const pepper = deserializer.deserializeFixedBytes(31);
-    const ephemeralKeyPair = EphemeralKeyPair.deserialize(deserializer);
-    const proof = ZeroKnowledgeSig.deserialize(deserializer);
-    const verificationKeyHash = deserializer.deserializeOption("fixedBytes", 32);
-    return { jwt, uidKey, pepper, ephemeralKeyPair, proof, verificationKeyHash };
-  }
-
-  static toBytes(account: Account): Uint8Array {
+export namespace AccountUtils {
+  export function toBytes(account: Account): Uint8Array {
     const serializer = new Serializer();
     serializer.serializeU32AsUleb128(account.signingScheme);
     account.accountAddress.serialize(serializer);
@@ -69,12 +69,12 @@ export class AccountUtils {
         switch (anyPublicKey.variant) {
           case AnyPublicKeyVariant.Keyless: {
             const keylessAccount = account as KeylessAccount;
-            this.serializeKeylessAccountCommon(keylessAccount, serializer);
+            serializeKeylessAccountCommon(keylessAccount, serializer);
             return serializer.toUint8Array();
           }
           case AnyPublicKeyVariant.FederatedKeyless: {
             const federatedKeylessAccount = account as FederatedKeylessAccount;
-            this.serializeKeylessAccountCommon(federatedKeylessAccount, serializer);
+            serializeKeylessAccountCommon(federatedKeylessAccount, serializer);
             federatedKeylessAccount.publicKey.jwkAddress.serialize(serializer);
             serializer.serializeBool(federatedKeylessAccount.audless);
             return serializer.toUint8Array();
@@ -95,7 +95,7 @@ export class AccountUtils {
         multiKeyAccount.publicKey.serialize(serializer);
         serializer.serializeU32AsUleb128(multiKeyAccount.signers.length);
         multiKeyAccount.signers.forEach((signer) => {
-          serializer.serializeFixedBytes(this.toBytes(signer));
+          serializer.serializeFixedBytes(toBytes(signer));
         });
         return serializer.toUint8Array();
       }
@@ -104,15 +104,15 @@ export class AccountUtils {
     }
   }
 
-  static toHexStringWithoutPrefix(account: Account): string {
-    return Hex.hexInputToStringWithoutPrefix(this.toBytes(account));
+  export function toHexStringWithoutPrefix(account: Account): string {
+    return Hex.hexInputToStringWithoutPrefix(toBytes(account));
   }
 
-  static toHexString(account: Account): string {
-    return Hex.hexInputToString(this.toBytes(account));
+  export function toHexString(account: Account): string {
+    return Hex.hexInputToString(toBytes(account));
   }
 
-  static deserialize(deserializer: Deserializer): Account {
+  export function deserialize(deserializer: Deserializer): Account {
     const { address, signingScheme } = deserializeSchemeAndAddress(deserializer);
     switch (signingScheme) {
       case SigningScheme.Ed25519: {
@@ -131,12 +131,12 @@ export class AccountUtils {
             return new SingleKeyAccount({ privateKey, address });
           }
           case AnyPublicKeyVariant.Keyless: {
-            const keylessComponents = this.deserializeKeylessAccountCommon(deserializer);
+            const keylessComponents = deserializeKeylessAccountCommon(deserializer);
             const jwtClaims = getIssAudAndUidVal(keylessComponents);
             return new KeylessAccount({ ...keylessComponents, ...jwtClaims });
           }
           case AnyPublicKeyVariant.FederatedKeyless: {
-            const keylessComponents = this.deserializeKeylessAccountCommon(deserializer);
+            const keylessComponents = deserializeKeylessAccountCommon(deserializer);
             const jwkAddress = AccountAddress.deserialize(deserializer);
             const audless = deserializer.deserializeBool();
             const jwtClaims = getIssAudAndUidVal(keylessComponents);
@@ -151,7 +151,7 @@ export class AccountUtils {
         const length = deserializer.deserializeUleb128AsU32();
         const signers = new Array<SingleKeySignerOrLegacyEd25519Account>();
         for (let i = 0; i < length; i += 1) {
-          const signer = this.deserialize(deserializer);
+          const signer = deserialize(deserializer);
           if (!isSingleKeySigner(signer) && !(signer instanceof Ed25519Account)) {
             throw new Error(
               "Deserialization of MultiKeyAccount failed. Signer is not a SingleKeySigner or Ed25519Account",
@@ -166,51 +166,51 @@ export class AccountUtils {
     }
   }
 
-  static keylessAccountFromHex(hex: HexInput): KeylessAccount {
-    const account = this.fromHex(hex);
+  export function keylessAccountFromHex(hex: HexInput): KeylessAccount {
+    const account = fromHex(hex);
     if (!(account instanceof KeylessAccount)) {
       throw new Error("Deserialization of KeylessAccount failed");
     }
     return account;
   }
 
-  static federatedKeylessAccountFromHex(hex: HexInput): FederatedKeylessAccount {
-    const account = this.fromHex(hex);
+  export function federatedKeylessAccountFromHex(hex: HexInput): FederatedKeylessAccount {
+    const account = fromHex(hex);
     if (!(account instanceof FederatedKeylessAccount)) {
       throw new Error("Deserialization of FederatedKeylessAccount failed");
     }
     return account;
   }
 
-  static multiKeyAccountFromHex(hex: HexInput): MultiKeyAccount {
-    const account = this.fromHex(hex);
+  export function multiKeyAccountFromHex(hex: HexInput): MultiKeyAccount {
+    const account = fromHex(hex);
     if (!(account instanceof MultiKeyAccount)) {
       throw new Error("Deserialization of MultiKeyAccount failed");
     }
     return account;
   }
 
-  static singleKeyAccountFromHex(hex: HexInput): SingleKeyAccount {
-    const account = this.fromHex(hex);
+  export function singleKeyAccountFromHex(hex: HexInput): SingleKeyAccount {
+    const account = fromHex(hex);
     if (!(account instanceof SingleKeyAccount)) {
       throw new Error("Deserialization of SingleKeyAccount failed");
     }
     return account;
   }
 
-  static ed25519AccountFromHex(hex: HexInput): Ed25519Account {
-    const account = this.fromHex(hex);
+  export function ed25519AccountFromHex(hex: HexInput): Ed25519Account {
+    const account = fromHex(hex);
     if (!(account instanceof Ed25519Account)) {
       throw new Error("Deserialization of Ed25519Account failed");
     }
     return account;
   }
 
-  static fromHex(hex: HexInput): Account {
-    return this.deserialize(Deserializer.fromHex(hex));
+  export function fromHex(hex: HexInput): Account {
+    return deserialize(Deserializer.fromHex(hex));
   }
 
-  static fromBytes(bytes: Uint8Array): Account {
-    return this.fromHex(bytes);
+  export function fromBytes(bytes: Uint8Array): Account {
+    return fromHex(bytes);
   }
 }
