@@ -1,10 +1,10 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@8.9.0",
+  "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=11.0.0"
+    "node": ">=20.0.0"
   },
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
@@ -95,6 +95,11 @@
     "typedoc": "^0.26.8",
     "typedoc-plugin-missing-exports": "^3.0.0",
     "typescript": "^5.6.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "cross-spawn": ">=7.0.5"
+    }
   },
   "version": "1.33.1"
 }
