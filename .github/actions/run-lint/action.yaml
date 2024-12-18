@@ -11,8 +11,6 @@ runs:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
-      with:
-        version: 8.9.0
 
     # Run eslint
     - run: pnpm install --frozen-lockfile && pnpm lint
