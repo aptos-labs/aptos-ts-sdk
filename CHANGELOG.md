@@ -3,6 +3,7 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources.  Also, adds more appropriate documentation on offset.
 
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
