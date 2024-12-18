@@ -51,7 +51,7 @@ export class KeylessAccount extends AbstractKeylessAccount {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  private constructor(args: {
+  constructor(args: {
     address?: AccountAddress;
     ephemeralKeyPair: EphemeralKeyPair;
     iss: string;

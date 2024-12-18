@@ -1,12 +1,14 @@
 import { Deserializer, Serializer } from "../../bcs";
 import { AnyPublicKeyVariant, AnySignatureVariant, SigningScheme as AuthenticationKeyScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
-import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
+import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
-import { Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
+import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
+
+export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
 /**
  * Represents any public key supported by Aptos.
