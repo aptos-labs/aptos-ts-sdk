@@ -177,6 +177,14 @@ export class AptosConfig {
         return NetworkToNodeAPI[this.network];
       case AptosApiType.FAUCET:
         if (this.faucet !== undefined) return this.faucet;
+        if (this.network === Network.TESTNET) {
+          throw new Error(
+            "There is no way to programmatically mint testnet APT, you must use the minting site at https://aptos.dev/network/faucet",
+          );
+        }
+        if (this.network === Network.MAINNET) {
+          throw new Error("There is no mainnet faucet");
+        }
         if (this.network === Network.CUSTOM) throw new Error("Please provide a custom faucet url");
         return NetworkToFaucetAPI[this.network];
       case AptosApiType.INDEXER:

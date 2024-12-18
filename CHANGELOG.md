@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+
 # 1.33.1 (2024-11-28)
 
 - Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions

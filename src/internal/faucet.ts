@@ -20,6 +20,9 @@ import { waitForTransaction } from "./transaction";
  * Funds an account with a specified amount of tokens from the Aptos faucet.
  * This function is useful for quickly providing a new or existing account with tokens to facilitate transactions.
  *
+ * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+ * the minting page at https://aptos.dev/network/faucet.
+ *
  * @param args - The arguments for funding the account.
  * @param args.aptosConfig - The configuration settings for connecting to the Aptos network.
  * @param args.accountAddress - The address of the account to be funded.
