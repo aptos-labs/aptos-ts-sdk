@@ -66,7 +66,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *   );
  *
  *   // Set up the client
- *   const config = new AptosConfig({ network: Network.TESTNET });
+ *   const config = new AptosConfig({ network: Network.DEVNET });
  *   const aptos = new Aptos(config);
  *
  *   // Generate two account credentials
