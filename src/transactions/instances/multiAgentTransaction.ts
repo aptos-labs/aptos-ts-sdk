@@ -9,7 +9,14 @@ import { AccountAddress } from "../../core";
 import { RawTransaction } from "./rawTransaction";
 
 /**
- * Representation of a Raw Transaction that can serialized and deserialized
+ * Represents a multi-agent transaction that can be serialized and deserialized.
+ * This transaction includes a raw transaction, optional fee payer address, and multiple secondary signer addresses.
+ *
+ * @param rawTransaction The raw transaction to be executed.
+ * @param secondarySignerAddresses An array of secondary signer addresses involved in the transaction.
+ * @param feePayerAddress An optional account address that sponsors the transaction's gas fees.
+ * @group Implementation
+ * @category Transactions
  */
 export class MultiAgentTransaction extends Serializable {
   public rawTransaction: RawTransaction;
@@ -19,14 +26,14 @@ export class MultiAgentTransaction extends Serializable {
   public secondarySignerAddresses: AccountAddress[];
 
   /**
-   * SimpleTransaction represents a simple transaction type of a single signer that
-   * can be submitted to Aptos chain for execution.
+   * Represents a MultiAgentTransaction that can be submitted to the Aptos chain for execution.
+   * This class encapsulates the raw transaction data, the secondary signer addresses, and an optional fee payer address.
    *
-   * SimpleTransaction metadata contains the Raw Transaction and an optional
-   * sponsor Account Address to pay the gas fees.
-   *
-   * @param rawTransaction The Raw Tranasaction
-   * @param feePayerAddress The sponsor Account Address
+   * @param rawTransaction The raw transaction data.
+   * @param secondarySignerAddresses An array of secondary signer addresses.
+   * @param feePayerAddress An optional account address that sponsors the gas fees.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(
     rawTransaction: RawTransaction,
@@ -39,6 +46,14 @@ export class MultiAgentTransaction extends Serializable {
     this.secondarySignerAddresses = secondarySignerAddresses;
   }
 
+  /**
+   * Serializes the transaction data, including the raw transaction, secondary signer addresses, and fee payer address.
+   * This function is essential for preparing the transaction for transmission or storage in a serialized format.
+   *
+   * @param serializer - The serializer instance used to serialize the transaction data.
+   * @group Implementation
+   * @category Transactions
+   */
   serialize(serializer: Serializer): void {
     this.rawTransaction.serialize(serializer);
 
@@ -52,14 +67,23 @@ export class MultiAgentTransaction extends Serializable {
     }
   }
 
+  /**
+   * Deserializes a MultiAgentTransaction from the provided deserializer.
+   * This function allows you to reconstruct a MultiAgentTransaction object from its serialized form, including any secondary
+   * signer addresses and the fee payer address if present.
+   *
+   * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
+   */
   static deserialize(deserializer: Deserializer): MultiAgentTransaction {
     const rawTransaction = RawTransaction.deserialize(deserializer);
 
     const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress);
 
-    const feepayerPresent = deserializer.deserializeBool();
+    const feePayerPresent = deserializer.deserializeBool();
     let feePayerAddress;
-    if (feepayerPresent) {
+    if (feePayerPresent) {
       feePayerAddress = AccountAddress.deserialize(deserializer);
     }
 

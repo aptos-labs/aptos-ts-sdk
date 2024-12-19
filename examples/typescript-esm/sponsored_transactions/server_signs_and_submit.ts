@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 /**
- * This example demostrates how one can generate and sign a transaction
+ * This example demonstrates how one can generate and sign a transaction
  * on one server (for example, frontend) and have it serialized and send
  * it to another server (for example, backend) to deserialize and submit.
  */
@@ -22,7 +22,7 @@ const TRANSFER_AMOUNT = 100;
 
 // Default to devnet, but allow for overriding
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK] || Network.DEVNET;
-// Setup the client
+// Set up the client
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 

@@ -6,6 +6,7 @@
  * the {@link api/general}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * general namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -15,6 +16,13 @@ import { GetChainTopUserTransactionsQuery, GetProcessorStatusQuery } from "../ty
 import { GetChainTopUserTransactions, GetProcessorStatus } from "../types/generated/queries";
 import { ProcessorType } from "../utils/const";
 
+/**
+ * Retrieves information about the current ledger.
+ *
+ * @param args - The arguments for retrieving ledger information.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @group Implementation
+ */
 export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise<LedgerInfo> {
   const { aptosConfig } = args;
   const { data } = await getAptosFullNode<{}, LedgerInfo>({
@@ -25,6 +33,15 @@ export async function getLedgerInfo(args: { aptosConfig: AptosConfig }): Promise
   return data;
 }
 
+/**
+ * Retrieves the top user transactions for a specific blockchain chain.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.limit - The maximum number of transactions to retrieve.
+ * @returns An array of user transactions.
+ * @group Implementation
+ */
 export async function getChainTopUserTransactions(args: {
   aptosConfig: AptosConfig;
   limit: number;
@@ -44,6 +61,16 @@ export async function getChainTopUserTransactions(args: {
   return data.user_transactions;
 }
 
+/**
+ * Executes a GraphQL query against the Aptos indexer and retrieves the resulting data.
+ *
+ * @param args - The arguments for the query.
+ * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.query - The GraphQL query to be executed.
+ * @param args.originMethod - An optional string to specify the origin method for tracking purposes.
+ * @returns The data returned from the query execution.
+ * @group Implementation
+ */
 export async function queryIndexer<T extends {}>(args: {
   aptosConfig: AptosConfig;
   query: GraphqlQuery;
@@ -60,6 +87,14 @@ export async function queryIndexer<T extends {}>(args: {
   return data;
 }
 
+/**
+ * Retrieves the current statuses of processors.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @returns The statuses of the processors.
+ * @group Implementation
+ */
 export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): Promise<GetProcessorStatusResponse> {
   const { aptosConfig } = args;
 
@@ -76,11 +111,29 @@ export async function getProcessorStatuses(args: { aptosConfig: AptosConfig }): 
   return data.processor_status;
 }
 
+/**
+ * Retrieves the last success version from the indexer.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @returns The last success version as a BigInt.
+ * @group Implementation
+ */
 export async function getIndexerLastSuccessVersion(args: { aptosConfig: AptosConfig }): Promise<bigint> {
   const response = await getProcessorStatuses({ aptosConfig: args.aptosConfig });
   return BigInt(response[0].last_success_version);
 }
 
+/**
+ * Retrieves the status of a specified processor in the Aptos network.
+ * This function allows you to check the current operational status of a processor, which can be useful for monitoring and troubleshooting.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for connecting to the Aptos network.
+ * @param args.processorType - The type of processor whose status you want to retrieve.
+ * @returns The status of the specified processor.
+ * @group Implementation
+ */
 export async function getProcessorStatus(args: {
   aptosConfig: AptosConfig;
   processorType: ProcessorType;

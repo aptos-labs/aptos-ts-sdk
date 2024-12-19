@@ -1,51 +1,86 @@
 import { AptosConfig } from "../api/aptosConfig";
 import { aptosRequest } from "./core";
-import { AptosResponse } from "./types";
-import { AnyNumber, ClientConfig, MimeType } from "../types";
+import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosApiType } from "../utils/const";
 
+/**
+ * Options for making a GET request, including configuration for the API client.
+ * @group Implementation
+ * @category Client
+ */
 export type GetRequestOptions = {
   /**
    * The config for the API client
+   * @group Implementation
+   * @category Client
    */
   aptosConfig: AptosConfig;
   /**
    * The type of API endpoint to call e.g. fullnode, indexer, etc
+   * @group Implementation
+   * @category Client
    */
   type: AptosApiType;
   /**
    * The name of the API method
+   * @group Implementation
+   * @category Client
    */
   originMethod: string;
   /**
    * The URL path to the API method
+   * @group Implementation
+   * @category Client
    */
   path: string;
   /**
    * The content type of the request body
+   * @group Implementation
+   * @category Client
    */
   contentType?: MimeType;
   /**
    * The accepted content type of the response of the API
+   * @group Implementation
+   * @category Client
    */
   acceptType?: MimeType;
   /**
    * The query parameters for the request
+   * @group Implementation
+   * @category Client
    */
   params?: Record<string, string | AnyNumber | boolean | undefined>;
   /**
    * Specific client overrides for this request to override aptosConfig
+   * @group Implementation
+   * @category Client
    */
   overrides?: ClientConfig;
 };
 
+/**
+ * Options for making a request to the Aptos API, excluding the "type" field.
+ * @group Implementation
+ * @category Client
+ */
 export type GetAptosRequestOptions = Omit<GetRequestOptions, "type">;
 
 /**
- * Main function to do a Get request
+ * Executes a GET request to retrieve data based on the provided options.
  *
- * @param options GetRequestOptions
- * @returns
+ * @param options - The options for the GET request.
+ * @param options.aptosConfig - The configuration object for Aptos requests.
+ * @param options.overrides - Optional overrides for the request configuration.
+ * @param options.params - Query parameters to include in the request.
+ * @param options.contentType - The content type of the request.
+ * @param options.acceptType - The accepted response type.
+ * @param options.path - The specific path for the request.
+ * @param options.originMethod - The original method of the request.
+ * @param options.type - The type of request being made.
+ * @returns The response from the GET request.
+ * @group Implementation
+ * @category Client
  */
 export async function get<Req extends {}, Res extends {}>(
   options: GetRequestOptions,
@@ -72,6 +107,20 @@ export async function get<Req extends {}, Res extends {}>(
   );
 }
 
+/**
+ * Retrieves data from the Aptos full node using the provided options.
+ *
+ * @param options - The options for the request to the Aptos full node.
+ * @param options.aptosConfig - Configuration settings specific to the Aptos client and full node.
+ * @param options.aptosConfig.clientConfig - The client configuration settings.
+ * @param options.aptosConfig.fullnodeConfig - The full node configuration settings.
+ * @param options.overrides - Additional overrides for the request.
+ * @param options.type - The type of API request being made.
+ *
+ * @returns A promise that resolves with the response from the Aptos full node.
+ * @group Implementation
+ * @category Client
+ */
 export async function getAptosFullNode<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
 ): Promise<AptosResponse<Req, Res>> {
@@ -90,10 +139,14 @@ export async function getAptosFullNode<Req extends {}, Res extends {}>(
 }
 
 /**
- * Makes a get request to the pepper service
+ * Makes a GET request to the Aptos Pepper service to retrieve data.
  *
- * @param options GetAptosRequestOptions
- * @returns AptosResponse
+ * @param options - The options for the request.
+ * @param options.param1 - Description of param1.
+ * @param options.param2 - Description of param2.
+ * @returns AptosResponse - The response from the Aptos Pepper service.
+ * @group Implementation
+ * @category Client
  */
 export async function getAptosPepperService<Req extends {}, Res extends {}>(
   options: GetAptosRequestOptions,
@@ -101,7 +154,11 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
   return get<Req, Res>({ ...options, type: AptosApiType.PEPPER });
 }
 
-/// This function is a helper for paginating using a function wrapping an API
+/**
+ * This function is a helper for paginating using a function wrapping an API
+ * @group Implementation
+ * @category Client
+ */
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
@@ -122,6 +179,8 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
      * the cursor is a "state key" from the API perspective. Client
      * should not need to "care" what it represents but just use it
      * to query the next chunk of data.
+     * @group Implementation
+     * @category Client
      */
     cursor = response.headers["x-aptos-cursor"];
     // Now that we have the cursor (if any), we remove the headers before

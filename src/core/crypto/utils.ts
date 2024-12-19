@@ -12,14 +12,16 @@ import { HexInput } from "../../types";
  * @param message a message as a string or Uint8Array
  *
  * @returns a valid HexInput - string or Uint8Array
+ * @group Implementation
+ * @category Serialization
  */
 export const convertSigningMessage = (message: HexInput): HexInput => {
   // if message is of type string, verify it is a valid Hex string
   if (typeof message === "string") {
     const isValid = Hex.isValid(message);
-    // If message is not a valid Hex string, convert it into a Buffer
+    // If message is not a valid Hex string, convert it
     if (!isValid.valid) {
-      return Buffer.from(message, "utf8");
+      return new TextEncoder().encode(message);
     }
     // If message is a valid Hex string, return it
     return message;

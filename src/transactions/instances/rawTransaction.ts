@@ -11,7 +11,11 @@ import { TransactionPayload } from "./transactionPayload";
 import { TransactionVariants } from "../../types";
 
 /**
- * Representation of a Raw Transaction that can serialized and deserialized
+ * Represents a raw transaction that can be serialized and deserialized.
+ * Raw transactions contain the metadata and payloads that can be submitted to the Aptos chain for execution.
+ * They must be signed before the Aptos chain can execute them.
+ * @group Implementation
+ * @category Transactions
  */
 export class RawTransaction extends Serializable {
   public readonly sender: AccountAddress;
@@ -42,6 +46,8 @@ export class RawTransaction extends Serializable {
    * @param gas_unit_price Price to be paid per gas unit.
    * @param expiration_timestamp_secs The blockchain timestamp at which the blockchain would discard this transaction.
    * @param chain_id The chain ID of the blockchain that this transaction is intended to be run on.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(
     sender: AccountAddress,
@@ -62,6 +68,15 @@ export class RawTransaction extends Serializable {
     this.chain_id = chain_id;
   }
 
+  /**
+   * Serializes the transaction data, including the fee payer transaction type, raw transaction, secondary signer addresses,
+   * and fee payer address.
+   * This function is essential for preparing the transaction for transmission or storage in a serialized format.
+   *
+   * @param serializer - The serializer instance used to serialize the transaction data.
+   * @group Implementation
+   * @category Transactions
+   */
   serialize(serializer: Serializer): void {
     this.sender.serialize(serializer);
     serializer.serializeU64(this.sequence_number);
@@ -72,6 +87,14 @@ export class RawTransaction extends Serializable {
     this.chain_id.serialize(serializer);
   }
 
+  /**
+   * Deserialize a Raw Transaction With Data.
+   * This function retrieves the appropriate raw transaction based on the variant index provided by the deserializer.
+   *
+   * @param deserializer - An instance of the Deserializer used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
+   */
   static deserialize(deserializer: Deserializer): RawTransaction {
     const sender = AccountAddress.deserialize(deserializer);
     const sequence_number = deserializer.deserializeU64();
@@ -93,16 +116,24 @@ export class RawTransaction extends Serializable {
 }
 
 /**
- * Representation of a Raw Transaction With Data that can serialized and deserialized
+ * Represents a raw transaction with associated data that can be serialized and deserialized.
+ *
+ * @extends Serializable
+ * @group Implementation
+ * @category Transactions
  */
 export abstract class RawTransactionWithData extends Serializable {
   /**
    * Serialize a Raw Transaction With Data
+   * @group Implementation
+   * @category Transactions
    */
   abstract serialize(serializer: Serializer): void;
 
   /**
    * Deserialize a Raw Transaction With Data
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): RawTransactionWithData {
     // index enum variant
@@ -119,16 +150,24 @@ export abstract class RawTransactionWithData extends Serializable {
 }
 
 /**
- * Representation of a Multi Agent Transaction that can serialized and deserialized
+ * Represents a multi-agent transaction that can be serialized and deserialized.
+ *
+ * @extends RawTransactionWithData
+ * @group Implementation
+ * @category Transactions
  */
 export class MultiAgentRawTransaction extends RawTransactionWithData {
   /**
    * The raw transaction
+   * @group Implementation
+   * @category Transactions
    */
   public readonly raw_txn: RawTransaction;
 
   /**
    * The secondary signers on this transaction
+   * @group Implementation
+   * @category Transactions
    */
   public readonly secondary_signer_addresses: Array<AccountAddress>;
 
@@ -144,6 +183,16 @@ export class MultiAgentRawTransaction extends RawTransactionWithData {
     serializer.serializeVector(this.secondary_signer_addresses);
   }
 
+  /**
+   * Deserializes a Fee Payer Raw Transaction from the provided deserializer.
+   * This function allows you to reconstruct a Fee Payer Raw Transaction object, which includes the raw transaction data,
+   * secondary signer addresses, and the fee payer address.
+   *
+   * @param deserializer - The deserializer used to read the raw transaction data.
+   * @returns A FeePayerRawTransaction object constructed from the deserialized data.
+   * @group Implementation
+   * @category Transactions
+   */
   static load(deserializer: Deserializer): MultiAgentRawTransaction {
     const rawTxn = RawTransaction.deserialize(deserializer);
     const secondarySignerAddresses = deserializer.deserializeVector(AccountAddress);
@@ -153,21 +202,29 @@ export class MultiAgentRawTransaction extends RawTransactionWithData {
 }
 
 /**
- * Representation of a Fee Payer Transaction that can serialized and deserialized
+ * Represents a Fee Payer Transaction that can be serialized and deserialized.
+ * @group Implementation
+ * @category Transactions
  */
 export class FeePayerRawTransaction extends RawTransactionWithData {
   /**
    * The raw transaction
+   * @group Implementation
+   * @category Transactions
    */
   public readonly raw_txn: RawTransaction;
 
   /**
    * The secondary signers on this transaction - optional and can be empty
+   * @group Implementation
+   * @category Transactions
    */
   public readonly secondary_signer_addresses: Array<AccountAddress>;
 
   /**
    * The fee payer account address
+   * @group Implementation
+   * @category Transactions
    */
   public readonly fee_payer_address: AccountAddress;
 

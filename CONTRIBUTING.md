@@ -141,6 +141,7 @@ these commands.
 ```bash
 git checkout "bump_version"
 // update version in `package.json`
+// update CHANGELOG.md
 pnpm update-version
 ```
 

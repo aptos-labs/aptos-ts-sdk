@@ -6,6 +6,7 @@
  * the {@link api/digitalAsset}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * digitalAsset namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -75,11 +76,18 @@ const PropertyTypeMap = {
   ARRAY: "vector<u8>",
 };
 
+/**
+ * The keys of the PropertyTypeMap, representing different property types.
+ * @group Implementation
+ */
 export type PropertyType = keyof typeof PropertyTypeMap;
 
-// Accepted property value types for user input
-// To pass in an Array, use Uint8Array type
-// for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
+/**
+ * Accepted property value types for user input, including boolean, number, bigint, string, AccountAddress, and Uint8Array.
+ * To pass in an Array, use Uint8Array type
+ * for example `new MoveVector([new MoveString("hello"), new MoveString("world")]).bcsToBytes()`
+ * @group Implementation
+ */
 export type PropertyValue = boolean | number | bigint | string | AccountAddress | Uint8Array;
 
 // The default digital asset type to use if non provided
@@ -87,6 +95,15 @@ const defaultDigitalAssetType = "0x4::token::Token";
 
 // FETCH QUERIES
 
+/**
+ * Retrieves data for a specific digital asset using its address.
+ *
+ * @param args - The arguments for fetching digital asset data.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.digitalAssetAddress - The address of the digital asset to retrieve data for.
+ * @returns The data of the specified digital asset.
+ * @group Implementation
+ */
 export async function getDigitalAssetData(args: {
   aptosConfig: AptosConfig;
   digitalAssetAddress: AccountAddressInput;
@@ -113,6 +130,15 @@ export async function getDigitalAssetData(args: {
   return data.current_token_datas_v2[0];
 }
 
+/**
+ * Retrieves the current ownership details of a specified digital asset.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.digitalAssetAddress - The address of the digital asset to query ownership for.
+ * @returns The current ownership details of the specified digital asset.
+ * @group Implementation
+ */
 export async function getCurrentDigitalAssetOwnership(args: {
   aptosConfig: AptosConfig;
   digitalAssetAddress: AccountAddressInput;
@@ -140,6 +166,20 @@ export async function getCurrentDigitalAssetOwnership(args: {
   return data.current_token_ownerships_v2[0];
 }
 
+/**
+ * Retrieves the digital assets owned by a specified account address.
+ *
+ * @param args - The arguments for retrieving owned digital assets.
+ * @param args.aptosConfig - The configuration for connecting to the Aptos network.
+ * @param args.ownerAddress - The address of the account whose owned digital assets are being queried.
+ * @param args.options - Optional pagination and ordering parameters for the query.
+ * @param args.options.offset - The number of records to skip for pagination.
+ * @param args.options.limit - The maximum number of records to return.
+ * @param args.options.orderBy - The criteria for ordering the results.
+ *
+ * @returns An array of digital assets currently owned by the specified account.
+ * @group Implementation
+ */
 export async function getOwnedDigitalAssets(args: {
   aptosConfig: AptosConfig;
   ownerAddress: AccountAddressInput;
@@ -171,6 +211,20 @@ export async function getOwnedDigitalAssets(args: {
   return data.current_token_ownerships_v2;
 }
 
+/**
+ * Retrieves the activity associated with a specific digital asset.
+ * This function allows you to track the token activities for a given digital asset address.
+ *
+ * @param args - The arguments for retrieving digital asset activity.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.digitalAssetAddress - The address of the digital asset to query.
+ * @param args.options - Optional parameters for pagination and ordering.
+ * @param args.options.offset - The number of records to skip before starting to collect the result set.
+ * @param args.options.limit - The maximum number of records to return.
+ * @param args.options.orderBy - The criteria to order the results by.
+ * @returns A promise that resolves to an array of token activities for the specified digital asset.
+ * @group Implementation
+ */
 export async function getDigitalAssetActivity(args: {
   aptosConfig: AptosConfig;
   digitalAssetAddress: AccountAddressInput;
@@ -201,6 +255,24 @@ export async function getDigitalAssetActivity(args: {
   return data.token_activities_v2;
 }
 
+/**
+ * Options for creating a collection, allowing customization of various attributes such as supply limits, mutability of metadata,
+ * and royalty settings.
+ *
+ * @param maxSupply - Maximum number of tokens that can be minted in the collection.
+ * @param mutableDescription - Indicates if the collection description can be changed after creation.
+ * @param mutableRoyalty - Indicates if the royalty settings can be modified after creation.
+ * @param mutableURI - Indicates if the collection URI can be updated.
+ * @param mutableTokenDescription - Indicates if individual token descriptions can be modified.
+ * @param mutableTokenName - Indicates if individual token names can be changed.
+ * @param mutableTokenProperties - Indicates if individual token properties can be altered.
+ * @param mutableTokenURI - Indicates if individual token URIs can be updated.
+ * @param tokensBurnableByCreator - Indicates if the creator can burn tokens from the collection.
+ * @param tokensFreezableByCreator - Indicates if the creator can freeze tokens in the collection.
+ * @param royaltyNumerator - The numerator for calculating royalties.
+ * @param royaltyDenominator - The denominator for calculating royalties.
+ * @group Implementation
+ */
 export interface CreateCollectionOptions {
   maxSupply?: AnyNumber;
   mutableDescription?: boolean;
@@ -237,6 +309,31 @@ const createCollectionAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Creates a new collection transaction on the Aptos blockchain.
+ * This function allows you to define the properties of the collection, including its name, description, and URI.
+ *
+ * @param args - The parameters for creating the collection transaction.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.creator - The account that will create the collection.
+ * @param args.description - A description of the collection.
+ * @param args.name - The name of the collection.
+ * @param args.uri - The URI associated with the collection.
+ * @param args.options - Optional parameters for generating the transaction.
+ * @param args.maxSupply - The maximum supply of tokens in the collection (optional).
+ * @param args.mutableDescription - Indicates if the collection description can be changed (optional, defaults to true).
+ * @param args.mutableRoyalty - Indicates if the royalty settings can be changed (optional, defaults to true).
+ * @param args.mutableURI - Indicates if the URI can be changed (optional, defaults to true).
+ * @param args.mutableTokenDescription - Indicates if the token description can be changed (optional, defaults to true).
+ * @param args.mutableTokenName - Indicates if the token name can be changed (optional, defaults to true).
+ * @param args.mutableTokenProperties - Indicates if the token properties can be changed (optional, defaults to true).
+ * @param args.mutableTokenURI - Indicates if the token URI can be changed (optional, defaults to true).
+ * @param args.tokensBurnableByCreator - Indicates if tokens can be burned by the creator (optional, defaults to true).
+ * @param args.tokensFreezableByCreator - Indicates if tokens can be frozen by the creator (optional, defaults to true).
+ * @param args.royaltyNumerator - The numerator for calculating royalties (optional, defaults to 0).
+ * @param args.royaltyDenominator - The denominator for calculating royalties (optional, defaults to 1).
+ * @group Implementation
+ */
 export async function createCollectionTransaction(
   args: {
     aptosConfig: AptosConfig;
@@ -277,6 +374,19 @@ export async function createCollectionTransaction(
   });
 }
 
+/**
+ * Retrieves data for the current collections based on specified options.
+ *
+ * @param args - The arguments for the function.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.options - Optional parameters for filtering and pagination.
+ * @param args.options.tokenStandard - The token standard to filter the collections (default is "v2").
+ * @param args.options.offset - The offset for pagination.
+ * @param args.options.limit - The limit for pagination.
+ * @param args.options.where - The conditions to filter the collections.
+ * @returns The data of the current collections.
+ * @group Implementation
+ */
 export async function getCollectionData(args: {
   aptosConfig: AptosConfig;
   options?: TokenStandardArg & PaginationArgs & WhereArg<CurrentCollectionsV2BoolExp>;
@@ -306,6 +416,18 @@ export async function getCollectionData(args: {
   return data.current_collections_v2[0];
 }
 
+/**
+ * Retrieves collection data based on the creator's address and the collection name.
+ *
+ * @param args - The arguments for retrieving the collection data.
+ * @param args.aptosConfig - The Aptos configuration object.
+ * @param args.creatorAddress - The address of the creator whose collection data is being retrieved.
+ * @param args.collectionName - The name of the collection to fetch data for.
+ * @param args.options - Optional parameters for filtering the results, including token standard and pagination options.
+ * @param args.options.tokenStandard - The token standard to filter the results by (optional).
+ * @param args.options.pagination - Pagination options for the results (optional).
+ * @group Implementation
+ */
 export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
@@ -326,6 +448,18 @@ export async function getCollectionDataByCreatorAddressAndCollectionName(args: {
   return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
+/**
+ * Retrieves collection data associated with a specific creator's address.
+ * This function allows you to filter the collections based on the creator's address and optional token standards.
+ *
+ * @param args - The arguments for retrieving collection data.
+ * @param args.aptosConfig - The configuration for the Aptos network.
+ * @param args.creatorAddress - The address of the creator whose collection data is being retrieved.
+ * @param args.options - Optional parameters for filtering the results.
+ * @param args.options.tokenStandard - The token standard to filter the collections by.
+ * @param args.options.pagination - Pagination options for the results.
+ * @group Implementation
+ */
 export async function getCollectionDataByCreatorAddress(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
@@ -344,6 +478,19 @@ export async function getCollectionDataByCreatorAddress(args: {
   return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
+/**
+ * Retrieves data for a specific collection using its unique identifier.
+ * This function allows you to filter the collection data based on the token standard and pagination options.
+ *
+ * @param args - The arguments for retrieving collection data.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.collectionId - The unique identifier for the collection.
+ * @param args.options - Optional parameters for filtering by token standard and pagination.
+ * @param args.options.tokenStandard - The standard of the token to filter the collection data.
+ * @param args.options.page - The page number for pagination.
+ * @param args.options.limit - The number of items per page for pagination.
+ * @group Implementation
+ */
 export async function getCollectionDataByCollectionId(args: {
   aptosConfig: AptosConfig;
   collectionId: AccountAddressInput;
@@ -363,6 +510,19 @@ export async function getCollectionDataByCollectionId(args: {
   return getCollectionData({ aptosConfig, options: { ...options, where: whereCondition } });
 }
 
+/**
+ * Retrieves the collection ID based on the creator's address and the collection name.
+ * This function helps in identifying a specific collection within the Aptos ecosystem.
+ *
+ * @param args - The parameters for retrieving the collection ID.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.creatorAddress - The address of the creator of the collection.
+ * @param args.collectionName - The name of the collection to look up.
+ * @param args.options - Optional parameters for additional filtering.
+ * @param args.options.tokenStandard - The token standard to filter the collection (default is "v2").
+ * @returns The ID of the specified collection.
+ * @group Implementation
+ */
 export async function getCollectionId(args: {
   aptosConfig: AptosConfig;
   creatorAddress: AccountAddressInput;
@@ -398,6 +558,23 @@ const mintDigitalAssetAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Creates a transaction to mint a digital asset on the Aptos blockchain.
+ * This function allows you to specify various attributes of the asset, including its collection, description, name, and URI.
+ *
+ * @param args - The arguments for minting the digital asset.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.creator - The account that will create the digital asset.
+ * @param args.collection - The name of the collection to which the asset belongs.
+ * @param args.description - A brief description of the digital asset.
+ * @param args.name - The name of the digital asset.
+ * @param args.uri - The URI pointing to the asset's metadata.
+ * @param [args.propertyKeys] - Optional array of property keys associated with the asset.
+ * @param [args.propertyTypes] - Optional array of property types corresponding to the asset's properties.
+ * @param [args.propertyValues] - Optional array of property values for the asset's properties.
+ * @param [args.options] - Optional transaction generation options.
+ * @group Implementation
+ */
 export async function mintDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -435,6 +612,15 @@ export async function mintDigitalAssetTransaction(args: {
         new MoveString(uri),
         MoveVector.MoveString(propertyKeys ?? []),
         MoveVector.MoveString(convertedPropertyType ?? []),
+
+        /**
+         * Retrieves the raw values of specified properties from an array of property values based on their types.
+         *
+         * @param propertyValues - An array of property values from which to extract the raw data.
+         * @param propertyTypes - An array of strings representing the types of properties to retrieve.
+         * @returns An array of Uint8Array containing the raw values for the specified property types.
+         * @group Implementation
+         */
         getPropertyValueRaw(propertyValues ?? [], convertedPropertyType ?? []),
       ],
       abi: mintDigitalAssetAbi,
@@ -448,6 +634,19 @@ const transferDigitalAssetAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0))), new TypeTagAddress()],
 };
 
+/**
+ * Initiates a transaction to transfer a digital asset from one account to another.
+ * This function helps in executing the transfer of digital assets securely and efficiently.
+ *
+ * @param args - The arguments required to perform the transfer.
+ * @param args.aptosConfig - Configuration settings for the Aptos client.
+ * @param args.sender - The account initiating the transfer.
+ * @param args.digitalAssetAddress - The address of the digital asset being transferred.
+ * @param args.recipient - The address of the account receiving the digital asset.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset being transferred.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function transferDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
   sender: Account;
@@ -484,6 +683,25 @@ const mintSoulBoundAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Creates a transaction to mint a soul-bound token.
+ * This function allows you to specify the token's attributes and recipient, facilitating the creation of unique digital assets.
+ *
+ * @param args - The parameters required to mint the soul-bound token.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.account - The account initiating the minting transaction.
+ * @param args.collection - The name of the collection to which the token belongs.
+ * @param args.description - A description of the token being minted.
+ * @param args.name - The name of the token.
+ * @param args.uri - The URI pointing to the token's metadata.
+ * @param args.recipient - The address of the account that will receive the minted token.
+ * @param [args.propertyKeys] - Optional array of property keys associated with the token.
+ * @param [args.propertyTypes] - Optional array of property types corresponding to the property keys.
+ * @param [args.propertyValues] - Optional array of property values that match the property keys and types.
+ * @param [args.options] - Optional transaction generation options.
+ * @throws Error if the counts of property keys, property types, and property values do not match.
+ * @group Implementation
+ */
 export async function mintSoulBoundTransaction(args: {
   aptosConfig: AptosConfig;
   account: Account;
@@ -543,6 +761,18 @@ const burnDigitalAssetAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0)))],
 };
 
+/**
+ * Creates a transaction to burn a specified digital asset.
+ * This function allows users to permanently remove a digital asset from their account.
+ *
+ * @param args - The arguments for the transaction.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.creator - The account that is initiating the burn transaction.
+ * @param args.digitalAssetAddress - The address of the digital asset to be burned.
+ * @param args.digitalAssetType - Optional; the type of the digital asset being burned.
+ * @param args.options - Optional; additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function burnDigitalAssetTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -569,6 +799,18 @@ const freezeDigitalAssetAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0)))],
 };
 
+/**
+ * Creates a transaction to freeze the transfer of a digital asset.
+ * This function helps you prevent the transfer of a specified digital asset by generating the appropriate transaction.
+ *
+ * @param args - The parameters for the transaction.
+ * @param args.aptosConfig - The configuration settings for the Aptos client.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.digitalAssetAddress - The address of the digital asset to be frozen.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset as a Move struct ID.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function freezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -595,6 +837,17 @@ const unfreezeDigitalAssetAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0)))],
 };
 
+/**
+ * Unfreezes a digital asset transfer transaction, allowing the transfer of the specified digital asset.
+ *
+ * @param args - The arguments for unfreezing the digital asset transfer transaction.
+ * @param args.aptosConfig - The Aptos configuration settings.
+ * @param args.creator - The account that is initiating the unfreeze transaction.
+ * @param args.digitalAssetAddress - The address of the digital asset to be unfrozen.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset being unfrozen.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function unfreezeDigitalAssetTransferTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -621,6 +874,18 @@ const setDigitalAssetDescriptionAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0))), new TypeTagStruct(stringStructTag())],
 };
 
+/**
+ * Sets the description for a digital asset, allowing users to provide additional context or information about the asset.
+ *
+ * @param args - The arguments for setting the digital asset description.
+ * @param args.aptosConfig - The Aptos configuration to use for the transaction.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.description - The new description for the digital asset.
+ * @param args.digitalAssetAddress - The address of the digital asset whose description is being set.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function setDigitalAssetDescriptionTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -648,6 +913,19 @@ const setDigitalAssetNameAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0))), new TypeTagStruct(stringStructTag())],
 };
 
+/**
+ * Sets the name of a digital asset on the Aptos blockchain.
+ * This function allows you to update the name of a specified digital asset, enabling better identification and categorization.
+ *
+ * @param args - The parameters for setting the digital asset name.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.name - The new name to assign to the digital asset.
+ * @param args.digitalAssetAddress - The address of the digital asset to update.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset, represented as a Move struct ID.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function setDigitalAssetNameTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -675,6 +953,18 @@ const setDigitalAssetURIAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0))), new TypeTagStruct(stringStructTag())],
 };
 
+/**
+ * Sets the URI for a digital asset, allowing you to update the metadata associated with it.
+ *
+ * @param args - The arguments for setting the digital asset URI.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.uri - The new URI to be set for the digital asset.
+ * @param args.digitalAssetAddress - The address of the digital asset whose URI is being set.
+ * @param args.digitalAssetType - The optional type of the digital asset; defaults to a predefined type if not provided.
+ * @param args.options - Optional settings for generating the transaction.
+ * @group Implementation
+ */
 export async function setDigitalAssetURITransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -707,6 +997,21 @@ const addDigitalAssetPropertyAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Creates a transaction to add a property to a digital asset.
+ * This function helps in enhancing the metadata associated with a digital asset by allowing the addition of custom properties.
+ *
+ * @param args - The arguments for the transaction.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.propertyKey - The key for the property being added.
+ * @param args.propertyType - The type of the property being added.
+ * @param args.propertyValue - The value of the property being added.
+ * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
+ * @param args.digitalAssetType - The optional type of the digital asset.
+ * @param args.options - Optional transaction generation options.
+ * @group Implementation
+ */
 export async function addDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -750,6 +1055,19 @@ const removeDigitalAssetPropertyAbi: EntryFunctionABI = {
   parameters: [new TypeTagStruct(objectStructTag(new TypeTagGeneric(0))), new TypeTagStruct(stringStructTag())],
 };
 
+/**
+ * Removes a property from a digital asset on the Aptos blockchain.
+ * This function helps in managing the attributes of digital assets by allowing the removal of specific properties.
+ *
+ * @param args - The arguments for the transaction.
+ * @param args.aptosConfig - The configuration object for Aptos.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.propertyKey - The key of the property to be removed.
+ * @param args.digitalAssetAddress - The address of the digital asset from which the property will be removed.
+ * @param args.digitalAssetType - The type of the digital asset (optional).
+ * @param args.options - Additional options for generating the transaction (optional).
+ * @group Implementation
+ */
 export async function removeDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -782,6 +1100,21 @@ const updateDigitalAssetPropertyAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Updates a property of a digital asset by generating a transaction for the Aptos blockchain.
+ * This function allows you to modify attributes of a digital asset, facilitating dynamic changes to its properties.
+ *
+ * @param args - The arguments for updating the digital asset property.
+ * @param args.aptosConfig - The configuration settings for the Aptos blockchain.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.propertyKey - The key of the property to be updated.
+ * @param args.propertyType - The type of the property being updated.
+ * @param args.propertyValue - The new value for the property.
+ * @param args.digitalAssetAddress - The address of the digital asset to update.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function updateDigitalAssetPropertyTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -812,6 +1145,15 @@ export async function updateDigitalAssetPropertyTransaction(args: {
         AccountAddress.from(digitalAssetAddress),
         new MoveString(propertyKey),
         new MoveString(PropertyTypeMap[propertyType]),
+
+        /**
+         * Retrieves the raw byte representation of a single property value based on its type.
+         *
+         * @param propertyValue - The value of the property to convert.
+         * @param propertyType - The type of the property, which determines how the value is processed.
+         * @returns The raw byte representation of the property value.
+         * @group Implementation
+         */
         getSinglePropertyValueRaw(propertyValue, PropertyTypeMap[propertyType]),
       ],
       abi: updateDigitalAssetPropertyAbi,
@@ -829,6 +1171,21 @@ const addDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Creates a transaction to add a typed property to a digital asset.
+ * This function helps in customizing digital assets by associating them with specific properties.
+ *
+ * @param args - The arguments required to create the transaction.
+ * @param args.aptosConfig - The configuration settings for Aptos.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.propertyKey - The key for the property being added.
+ * @param args.propertyType - The type of the property being added.
+ * @param args.propertyValue - The value of the property being added.
+ * @param args.digitalAssetAddress - The address of the digital asset to which the property is being added.
+ * @param args.digitalAssetType - (Optional) The type of the digital asset.
+ * @param args.options - (Optional) Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function addDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;
@@ -871,6 +1228,20 @@ const updateDigitalAssetTypedPropertyAbi: EntryFunctionABI = {
   ],
 };
 
+/**
+ * Updates the typed property of a digital asset by generating a transaction for the Aptos blockchain.
+ *
+ * @param args - The arguments for updating the digital asset typed property.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.creator - The account that is creating the transaction.
+ * @param args.propertyKey - The key of the property to be updated.
+ * @param args.propertyType - The type of the property being updated.
+ * @param args.propertyValue - The new value for the property.
+ * @param args.digitalAssetAddress - The address of the digital asset to be updated.
+ * @param args.digitalAssetType - Optional. The type of the digital asset, if not provided, defaults to the standard type.
+ * @param args.options - Optional. Additional options for generating the transaction.
+ * @group Implementation
+ */
 export async function updateDigitalAssetTypedPropertyTransaction(args: {
   aptosConfig: AptosConfig;
   creator: Account;

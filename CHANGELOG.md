@@ -4,6 +4,69 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+
+# 1.33.1 (2024-11-28)
+
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
+- Removed strictness warnings for bytes AIP-80 private key parsing formatting.
+- Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
+
+# 1.33.0 (2024-11-13)
+
+- Allow optional provision of public keys in transaction simulation
+- Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
+
+# 1.32.1 (2024-11-11)
+
+- Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
+- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+
+# 1.32.0 (2024-11-08)
+
+- [`Breaking`] Updated `AccountAddress.fromString` and `AccountAddress.from` to only accept SHORT strings that are 60-64 characters long by default (with the exception of special addresses). This can be adjusted using `maxMissingChars` which is set to `4` by default. If you would like to keep the previous behavior, set `maxMissingChars` to `63` for relaxed parsing.
+- Add support for AIP-80 compliant private key imports and exports through `toAIP80String`
+- Add `PrivateKey` helpers for AIP-80: `PrivateKey.parseHexInput`, `PrivateKey.formatPrivateKey`, and `PrivateKey.AIP80_PREFIXES`.
+- Adds explicit error handling Keyless accounts using `KeylessError`. Handles JWK rotations and Verifying Key rotations.
+- Includes the address in the `AbstractKeylessAccount` serialization to prevent information loss for key rotated accounts.
+- [`Breaking`] Deprecate `serializeOptionStr` and `deserializeOptionStr` in favor of `serializeOption` and `deserializeOption`.
+- [`Breaking`] Renames `KeylessConfiguration.verficationKey` to `verificationKey`
+- Add a new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+
+# 1.31.0 (2024-10-24)
+
+- Bump `@aptos-labs/aptos-cli` to `1.0.2`
+- Fix the `Move` CLI command to correctly handle the success/error outputs
+
+# 1.30.0 (2024-10-21)
+
+- Add the `isPrimitive` function to `TypeTag`.
+- Add `showStdout` optional property to `Move` and `LocalNode` classes to control the output of the CLI commands
+- Add support for MultiKey's in transaction simulations
+- Adds default implementation for `toString` and `toStringWithoutPrefix` for `Serializable`
+- Bump `@aptos-labs/aptos-cli` to `1.0.1`
+
+# 1.29.1 (2024-10-09)
+
+- Fix the `FederatedKeylessAccount` constructor to derive the correct address.
+
+# 1.29.0 (2024-10-04)
+
+- Remove usage of Buffer.from and replace with TextEncoder for greater compatibility
+- Switch `getAccountCoinAmount` to use a `view` function for more up to date data
+- Add support for federated keyless accounts as defined in AIP-96
+- Add a `signAndSubmitAsFeePayer` function to the API to allow for submission by the fee payer.
+- Add an optional `feePayerAuthenticator` and `feePayer` parameter to `signAndSubmitTransaction` to support signing and submitting in one line.
+
+# 1.28.0 (2024-09-19)
+
+- Support `Serialized Type` to Script txn. Now can use vector<String> for example.
+- Add optional address parameter to MultiKeyAccount constructor.
+- Populate `coinType` for `getAccountCoinAmount` if only `faMetadataAddress` is provided.
+- [`Fix`] `getModuleEventsByEventType` will also account for EventHandle events.
+- [`Hot Fix`] change regex to find object address when using `createObjectAndPublishPackage` move function
+
 # 1.27.1 (2024-08-23)
 
 - [Security Fix] Bump `@aptos-labs/aptos-client` to version 0.1.1

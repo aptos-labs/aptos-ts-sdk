@@ -4,56 +4,64 @@ import { platform } from "os";
 import { AccountAddress } from "../core";
 import { Network } from "../utils";
 
+/**
+ * Class representing a Move package management utility for the Aptos blockchain.
+ * This class provides methods to initialize directories, compile packages, run tests, publish modules, create objects, upgrade
+ * packages, build transaction payloads, and run scripts.
+ * @group Implementation
+ * @category CLI
+ */
 export class Move {
   /**
-   * Function to initialize current directory for Aptos
+   * Initialize the current directory for Aptos by configuring the necessary settings.
+   * Configuration will be pushed into .aptos/config.yaml.
    *
-   * Configuration will be pushed into .aptos/config.yaml
-   * @param args.network optional Network type argument to use for default settings, default is local
-   * @param args.profile optional Profile to use from the config file, default is 'default'
-   * This will be used to override associated settings such as the REST URL, the Faucet URL, and the private key arguments.
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   *
+   * @param args - The arguments for initialization.
+   * @param args.network - Optional Network type argument to use for default settings; defaults to local.
+   * @param args.profile - Optional Profile to use from the config file; defaults to 'default'. This will override associated
+   * settings such as the REST URL, the Faucet URL, and the private key arguments.
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
    * @returns stdout
+   * @group Implementation
+   * @category CLI
    */
   async init(args: {
     network?: Network;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { network, profile, extraArguments } = args;
+    const { network, profile, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "init", `--network=${network ?? "local"}`, `--profile=${profile ?? "default"}`];
 
     if (extraArguments) {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Function to compile a package
+   * Compile a Move package located at the specified directory path.
+   * This function helps in preparing the Move package for deployment or further processing.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   *
+   * @param args - The arguments for compiling the package.
+   * @param args.packageDirectoryPath - Path to a Move package (the folder with a Move.toml file).
+   * @param args.namedAddresses - Named addresses for the move binary. Ex. { alice: 0x1234, bob: 0x5678 }
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
    * @returns stdout
+   * @group Implementation
+   * @category CLI
    */
   async compile(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "move", "compile", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
@@ -64,30 +72,28 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Function to run Move unit tests for a package
+   * Run Move unit tests for a specified package.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   *
-   * @returns stdout
+   * @param args - The arguments for running the tests.
+   * @param args.packageDirectoryPath - The path to a Move package (the folder containing a Move.toml file).
+   * @param args.namedAddresses - Named addresses for the move binary. Ex. { alice: 0x1234, bob: 0x5678 }
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
+   * @returns The stdout output from running the tests.
+   * @group Implementation
+   * @category CLI
    */
   async test(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = ["aptos", "move", "test", "--package-dir", packageDirectoryPath];
 
     const addressesMap = this.parseNamedAddresses(namedAddresses);
@@ -98,32 +104,30 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Function to publish the modules to the publisher account on the Aptos blockchain
+   * Publishes the modules to the publisher account on the Aptos blockchain.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   * @param args.profile optional Profile to use from the config file.
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   *
+   * @param args - The arguments for publishing the modules.
+   * @param args.packageDirectoryPath - The path to a move package (the folder with a Move.toml file).
+   * @param args.namedAddresses - Named addresses for the move binary. Ex. { alice: 0x1234, bob: 0x5678 }
+   * @param args.profile - Optional profile to use from the config file.
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
    * @returns stdout
+   * @group Implementation
+   * @category CLI
    */
   async publish(args: {
     packageDirectoryPath: string;
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -141,34 +145,30 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Function to create a new object and publish the Move package to it on the Aptos blockchain
+   * Create a new object and publish the Move package to it on the Aptos blockchain.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.addressName Address name for the Move package
-   * @example
-   * MoonCoin, please find the actual address name in Move.toml
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   * @param args.profile optional Profile to use from the config file.
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
+   * @param args - The arguments for creating the object and publishing the package.
+   * @param args.packageDirectoryPath - Path to a Move package (the folder with a Move.toml file).
+   * @param args.addressName - Address name for the Move package.
+   * @param args.namedAddresses - Named addresses for the Move binary.
+   * @param args.profile - Optional profile to use from the config file.
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
+   * @returns The object address.
    *
-   * A complete example in cli
+   * A complete example in CLI:
    * aptos move create-object-and-publish-package \
    * --package-dir path_to_directory_that_has_move.toml \
    * --address-name launchpad_addr \
-   * --named-addresses "launchpad_addr=0x123,initial_creator_addr=0x456"\
+   * --named-addresses "launchpad_addr=0x123,initial_creator_addr=0x456" \
    * --profile my_profile \
    * --assume-yes
-   * @returns object address
+   * @group Implementation
+   * @category CLI
    */
   async createObjectAndPublishPackage(args: {
     packageDirectoryPath: string;
@@ -176,8 +176,9 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ objectAddress: string }> {
-    const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, addressName, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -197,29 +198,24 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    const result = await this.runCommand(cliArgs);
-    return { objectAddress: this.extractAddressFromOutput(result.output) };
+    const { output } = await this.runCommand(cliArgs, showStdout);
+    return { objectAddress: this.extractAddressFromOutput(output) };
   }
 
   /**
-   * Function to upgrade a Move package previously published to an object on the Aptos blockchain
-   * Caller must be the object owner to call this function
+   * Upgrade a Move package previously published to an object on the Aptos blockchain.
+   * The caller must be the object owner to execute this function.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.objectAddress Address of the object that the Move package published to
-   * @example
-   * 0x1000
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   * @param args.profile optional Profile to use from the config file.
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   *
+   * @param args - The arguments for upgrading the object package.
+   * @param args.packageDirectoryPath - Path to a Move package (the folder with a Move.toml file).
+   * @param args.objectAddress - Address of the object that the Move package published to. Ex. 0x1000
+   * @param args.namedAddresses - Named addresses for the move binary. Ex. { alice: 0x1234, bob: 0x5678 }
+   * @param args.profile - Optional profile to use from the config file.
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
    * @returns stdout
+   * @group Implementation
+   * @category CLI
    */
   async upgradeObjectPackage(args: {
     packageDirectoryPath: string;
@@ -227,8 +223,9 @@ export class Move {
     namedAddresses: Record<string, AccountAddress>;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments } = args;
+    const { packageDirectoryPath, objectAddress, namedAddresses, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -248,32 +245,30 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Build a publication transaction payload and store it in a JSON output file
+   * Build a publication transaction payload and store it in a JSON output file.
    *
-   * @param args.packageDirectoryPath Path to a move package (the folder with a Move.toml file)
-   * @param args.outputFile Output file to write publication transaction to
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * {
-   *  alice:0x1234, bob:0x5678
-   * }
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
-   *
+   * @param args - The arguments for building the publishing payload.
+   * @param args.packageDirectoryPath - Path to a move package (the folder with a Move.toml file).
+   * @param args.outputFile - Output file to write the publication transaction to.
+   * @param args.namedAddresses - Named addresses for the move binary. Ex. { alice: 0x1234, bob: 0x5678 }
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]   *
    * @returns stdout
+   * @group Implementation
+   * @category CLI
    */
   async buildPublishPayload(args: {
     packageDirectoryPath: string;
     outputFile: string;
     namedAddresses: Record<string, AccountAddress>;
     extraArguments?: Array<string>;
-  }) {
-    const { outputFile, packageDirectoryPath, namedAddresses, extraArguments } = args;
+    showStdout?: boolean;
+  }): Promise<{ output: string }> {
+    const { outputFile, packageDirectoryPath, namedAddresses, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -292,29 +287,31 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Function to run a Move script, please run compile before running this
+   * Runs a Move script using the provided compiled script path and optional parameters. Ensure that the script is compiled
+   * before executing this function.
    *
-   * @param args.compiledScriptPath Path to a compiled Move script bytecode file
-   * @param args.namedAddresses  Named addresses for the move binary
-   * @example
-   * build/my_package/bytecode_scripts/my_move_script.mv
-   * @param args.profile optional Profile to use from the config file.
-   * @param args.extraArguments (optional) Any extra arguments to include in the form of an array of strings
-   * @example
-   * ["--assume-yes","--gas-unit-price=10"]
+   * @param args - The arguments for running the script.
+   * @param args.compiledScriptPath - Path to a compiled Move script bytecode file.
+   * Ex. "build/my_package/bytecode_scripts/my_move_script.mv"
+   * @param args.profile - Optional profile to use from the config file.
+   * @param args.extraArguments - Optional extra arguments to include in the form of an array of strings.
+   * Ex. ["--assume-yes","--gas-unit-price=10"]
    *
-   * @returns stdout
+   * @returns The standard output from running the script.
+   * @group Implementation
+   * @category CLI
    */
   async runScript(args: {
     compiledScriptPath: string;
     profile?: string;
     extraArguments?: Array<string>;
+    showStdout?: boolean;
   }): Promise<{ output: string }> {
-    const { compiledScriptPath, profile, extraArguments } = args;
+    const { compiledScriptPath, profile, extraArguments, showStdout } = args;
     const cliArgs = [
       "aptos",
       "move",
@@ -328,21 +325,43 @@ export class Move {
       cliArgs.push(...extraArguments);
     }
 
-    return this.runCommand(cliArgs);
+    return this.runCommand(cliArgs, showStdout);
+  }
+
+  async gasProfile(args: {
+    network: string;
+    transactionId: string;
+    extraArguments?: Array<string>;
+    showStdout?: boolean;
+  }): Promise<{ output: string; result?: any }> {
+    const { network, transactionId, extraArguments, showStdout } = args;
+    const cliArgs = ["aptos", "move", "replay", "--profile-gas", "--network", network, "--txn-id", transactionId];
+
+    if (extraArguments) {
+      cliArgs.push(...extraArguments);
+    }
+
+    return this.runCommand(cliArgs, showStdout);
   }
 
   /**
-   * Run a move command
+   * Run a command with the specified arguments and return the output.
    *
-   * @param args
-   * @returns stdout
+   * @param args - An array of strings representing the command-line arguments to be passed to the command.
+   * @param showStdout - Show the standard output generated by the command.
+   * @returns The standard output generated by the command.
+   * @group Implementation
+   * @category CLI
    */
   // eslint-disable-next-line class-methods-use-this
-  private async runCommand(args: Array<string>): Promise<{ output: string }> {
+  private async runCommand(args: Array<string>, showStdout: boolean = true): Promise<{ result?: any; output: string }> {
     return new Promise((resolve, reject) => {
       const currentPlatform = platform();
       let childProcess;
       let stdout = "";
+      // CLI final stdout is the Result/Error JSON string output
+      // so we need to keep track of the last stdout
+      let lastStdout = "";
 
       // Check if current OS is windows
       if (currentPlatform === "win32") {
@@ -352,16 +371,30 @@ export class Move {
       }
 
       childProcess.stdout.on("data", (data) => {
+        lastStdout = data.toString();
         stdout += data.toString();
       });
 
-      childProcess.stdout.pipe(process.stdout);
-      childProcess.stderr.pipe(process.stderr);
+      if (showStdout) {
+        childProcess.stdout.pipe(process.stdout);
+        childProcess.stderr.pipe(process.stderr);
+      }
       process.stdin.pipe(childProcess.stdin);
 
       childProcess.on("close", (code) => {
         if (code === 0) {
-          resolve({ output: stdout }); // Resolve with stdout if the child process exits successfully
+          try {
+            // parse the last stdout as it might be the result
+            const parsed = JSON.parse(lastStdout);
+            if (parsed.Error) {
+              reject(new Error(`Error: ${parsed.Error}`)); // Reject if the "Error" key exists
+            } else if (parsed.Result) {
+              resolve({ result: parsed.Result, output: stdout }); // Resolve if the "Result" key exists
+            }
+          } catch (error: any) {
+            // resolve the stdout as it might be just a stdout
+            resolve({ output: stdout });
+          }
         } else {
           reject(new Error(`Child process exited with code ${code}`)); // Reject with an error if the child process exits with an error code
         }
@@ -370,14 +403,13 @@ export class Move {
   }
 
   /**
-   * Convert named addresses from a Map into an array seperated by a comma
+   * Convert named addresses from a Map into an array separated by a comma.
    *
-   * @example
-   * input: {'alice' => '0x123', 'bob' => '0x456'}
-   * output: "alice=0x123,bob=0x456"
-   *
-   * @param namedAddresses
-   * @returns An array of names addresses seperated by a comma
+   * @param namedAddresses - A Map where the key is a string representing the name and the value is an AccountAddress.
+   * Ex. {'alice' => '0x123', 'bob' => '0x456'}
+   * @returns An array of named addresses formatted as strings separated by a comma. Ex. "alice=0x123,bob=0x456"
+   * @group Implementation
+   * @category CLI
    */
   // eslint-disable-next-line class-methods-use-this
   private prepareNamedAddresses(namedAddresses: Map<string, AccountAddress>): Array<string> {
@@ -400,10 +432,15 @@ export class Move {
   }
 
   /**
-   * Parse named addresses from a Record type into a Map
+   * Parse named addresses from a Record type into a Map.
    *
-   * @param namedAddresses
-   * @returns Map<name,address>
+   * This function transforms a collection of named addresses into a more accessible format by mapping each name to its
+   * corresponding address.
+   *
+   * @param namedAddresses - A record containing named addresses where the key is the name and the value is the AccountAddress.
+   * @returns A Map where each key is a name and each value is the corresponding address.
+   * @group Implementation
+   * @category CLI
    */
   // eslint-disable-next-line class-methods-use-this
   private parseNamedAddresses(namedAddresses: Record<string, AccountAddress>): Map<string, AccountAddress> {
@@ -418,14 +455,17 @@ export class Move {
   }
 
   /**
-   * Extract object address from the output
+   * Extracts the object address from the provided output string.
    *
-   * @param output
-   * @returns object address
+   * @param output - The output string containing the object address.
+   * @returns The extracted object address.
+   * @throws Error if the object address cannot be extracted from the output.
+   * @group Implementation
+   * @category CLI
    */
   // eslint-disable-next-line class-methods-use-this
   private extractAddressFromOutput(output: string): string {
-    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)\\.");
+    const match = output.match("Code was successfully deployed to object address (0x[0-9a-fA-F]+)");
     if (match) {
       return match[1];
     }

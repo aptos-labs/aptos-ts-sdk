@@ -5,6 +5,11 @@ import { hmac } from "@noble/hashes/hmac";
 import { sha512 } from "@noble/hashes/sha512";
 import * as bip39 from "@scure/bip39";
 
+/**
+ * Contains the derived cryptographic key as a Uint8Array.
+ * @group Implementation
+ * @category Serialization
+ */
 export type DerivedKeys = {
   key: Uint8Array;
   chainCode: Uint8Array;
@@ -12,28 +17,43 @@ export type DerivedKeys = {
 
 /**
  * Aptos derive path is 637
+ * @group Implementation
+ * @category Serialization
  */
 export const APTOS_HARDENED_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+'\/[0-9]+'?$/;
+
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const APTOS_BIP44_REGEX = /^m\/44'\/637'\/[0-9]+'\/[0-9]+\/[0-9]+$/;
 
 /**
- * A list of supported key types and associated seeds
+ * Supported key types and their associated seeds.
+ * @group Implementation
+ * @category Serialization
  */
 export enum KeyType {
   ED25519 = "ed25519 seed",
 }
 
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const HARDENED_OFFSET = 0x80000000;
 
 /**
- * Aptos derive path is 637
- *
+ * Validate a BIP-44 derivation path string to ensure it meets the required format.
+ * This function checks if the provided path adheres to the BIP-44 standard for Secp256k1.
  * Parse and validate a path that is compliant to BIP-44 in form m/44'/637'/{account_index}'/{change_index}/{address_index}
  * for Secp256k1
  *
- * Note that for secp256k1, last two components must be non-hardened.
+ * Note that for Secp256k1, the last two components must be non-hardened.
  *
- * @param path path string (e.g. `m/44'/637'/0'/0/0`).
+ * @param path - The path string to validate (e.g. `m/44'/637'/0'/0/0`).
+ * @group Implementation
+ * @category Serialization
  */
 export function isValidBIP44Path(path: string): boolean {
   return APTOS_BIP44_REGEX.test(path);
@@ -53,12 +73,18 @@ export function isValidBIP44Path(path: string): boolean {
  * This is because the PK in Ed25519 is, more or less, computed as 𝑔𝐻(𝑠𝑘),
  * with the hash function breaking the homomorphism.
  *
- * @param path path string (e.g. `m/44'/637'/0'/0'/0'`).
+ * @param path - The derivation path string to validate (e.g. `m/44'/637'/0'/0'/0'`).
+ * @group Implementation
+ * @category Serialization
  */
 export function isValidHardenedPath(path: string): boolean {
   return APTOS_HARDENED_REGEX.test(path);
 }
 
+/**
+ * @group Implementation
+ * @category Serialization
+ */
 export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | string): DerivedKeys => {
   const digest = hmac.create(sha512, hashSeed).update(data).digest();
   return {
@@ -72,7 +98,8 @@ export const deriveKey = (hashSeed: Uint8Array | string, data: Uint8Array | stri
  * @param key
  * @param chainCode
  * @param index
- * @constructor
+ * @group Implementation
+ * @category Serialization
  */
 export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): DerivedKeys => {
   const buffer = new ArrayBuffer(4);
@@ -83,17 +110,21 @@ export const CKDPriv = ({ key, chainCode }: DerivedKeys, index: number): Derived
   return deriveKey(chainCode, data);
 };
 
-const removeApostrophes = (val: string): string => val.replace("'", "");
+const removeApostrophes = (val: string): string => val.replace(/'/g, "");
 
 /**
  * Splits derive path into segments
  * @param path
+ * @group Implementation
+ * @category Serialization
  */
 export const splitPath = (path: string): Array<string> => path.split("/").slice(1).map(removeApostrophes);
 
 /**
  * Normalizes the mnemonic by removing extra whitespace and making it lowercase
  * @param mnemonic the mnemonic seed phrase
+ * @group Implementation
+ * @category Serialization
  */
 export const mnemonicToSeed = (mnemonic: string): Uint8Array => {
   const normalizedMnemonic = mnemonic

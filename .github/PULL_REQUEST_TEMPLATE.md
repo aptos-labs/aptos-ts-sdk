@@ -6,3 +6,8 @@
 
 ### Related Links
 <!-- Please link to any relevant issues or pull requests! -->
+
+### Checklist
+  - [ ] Have you ran `pnpm fmt`?
+  - [ ] Have you updated the `CHANGELOG.md`?
+  

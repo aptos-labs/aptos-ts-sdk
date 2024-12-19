@@ -8,7 +8,6 @@
 import { Account, AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 100;
 const TRANSFER_AMOUNT = 10_000;
@@ -21,21 +20,18 @@ const TRANSFER_AMOUNT = 10_000;
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, name: string, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
+const balance = async (aptos: Aptos, name: string, address: AccountAddress): Promise<any> => {
+  const amount = await aptos.getAccountAPTAmount({
     accountAddress: address,
-    resourceType: COIN_STORE,
   });
-  const amount = Number(resource.coin.value);
-
   console.log(`${name}'s balance is: ${amount}`);
   return amount;
 };
 
 const example = async () => {
-  // Setup the client
-  const config = new AptosConfig({ network: Network.DEVNET });
+  // Set up the client
+  const network = Network.DEVNET;
+  const config = new AptosConfig({ network });
   const aptos = new Aptos(config);
 
   // Generate the ephemeral (temporary) key pair that will be used to sign transactions.
@@ -52,10 +48,9 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
+    return readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
       hideEchoBack: false,
     });
-    return jwt;
   }
 
   const jwt = inputJwt();
@@ -68,7 +63,7 @@ const example = async () => {
   console.log("=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
+  console.log(`Alice's ephemeral public key is: ${aliceEphem.getPublicKey().toString()}`);
 
   const bob = Account.generate();
   console.log(`Bob's address is: ${bob.accountAddress}`);
@@ -101,7 +96,7 @@ const example = async () => {
   const committedTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction });
 
   await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-  console.log(`Committed transaction: ${committedTxn.hash}`);
+  console.log(`\nCommitted transaction:\nhttps://explorer.aptoslabs.com/txn/${committedTxn.hash}?network=${network}`);
 
   console.log("\n=== Balances after transfer ===\n");
   const newAliceBalance = await balance(aptos, "Alice", alice.accountAddress);

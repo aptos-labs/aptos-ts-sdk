@@ -17,6 +17,7 @@ import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
+import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
 
 const { aptos } = getAptosClient();
 
@@ -748,15 +749,9 @@ describe("transaction submission", () => {
     });
   });
   describe("sponsor transactions", () => {
-    test("submits simple sponsored transaction for an uncreated main signer account", async () => {
-      const uncreatedAccount = Account.generate();
-
-      // expect uncreatedAccount has not been created on chain
-      await expect(() =>
-        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
-      ).rejects.toThrow();
-      // TODO add local move entry function to support this test
-      const transaction = await aptos.transaction.build.simple({
+    // TODO add local move entry function to support this test
+    const createTransaction = async (uncreatedAccount: Account) =>
+      aptos.transaction.build.simple({
         sender: uncreatedAccount.accountAddress,
         data: {
           function: "0x4::aptos_token::create_collection",
@@ -781,16 +776,81 @@ describe("transaction submission", () => {
         },
         withFeePayer: true,
       });
+
+    test("submits simple sponsored transaction for an uncreated main signer account", async () => {
+      const uncreatedAccount = Account.generate();
+
+      // expect uncreatedAccount has not been created on chain
+      await expect(() =>
+        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
+      ).rejects.toThrow();
+      const transaction = await createTransaction(uncreatedAccount);
+
+      const response = await aptos.signAndSubmitTransaction({
+        signer: uncreatedAccount,
+        feePayer: feePayerAccount,
+        transaction,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      // expect transaction is a sponsored transaction
+      expect(response.signature?.type).toBe("fee_payer_signature");
+
+      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+        accountAddress: uncreatedAccount.accountAddress,
+      });
+      // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
+      expect(uncreatedAccountInfo.sequence_number).toEqual("1");
+    });
+
+    test("submits simple sponsored transaction by the fee payer", async () => {
+      const uncreatedAccount = Account.generate();
+
+      // expect uncreatedAccount has not been created on chain
+      await expect(() =>
+        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
+      ).rejects.toThrow();
+      const transaction = await createTransaction(uncreatedAccount);
+
       const senderAuthenticator = aptos.transaction.sign({ signer: uncreatedAccount, transaction });
+
+      const response = await aptos.signAndSubmitAsFeePayer({
+        transaction,
+        senderAuthenticator,
+        feePayer: feePayerAccount,
+      });
+
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      // expect transaction is a sponsored transaction
+      expect(response.signature?.type).toBe("fee_payer_signature");
+
+      const uncreatedAccountInfo = await aptos.account.getAccountInfo({
+        accountAddress: uncreatedAccount.accountAddress,
+      });
+      // expect uncreatedAccount' created on chain and sequence number is 1 since there was a transaction
+      expect(uncreatedAccountInfo.sequence_number).toEqual("1");
+    });
+
+    test("submits a sponsored transaction by with a fee payer authenticator", async () => {
+      const uncreatedAccount = Account.generate();
+
+      // expect uncreatedAccount has not been created on chain
+      await expect(() =>
+        aptos.account.getAccountInfo({ accountAddress: uncreatedAccount.accountAddress }),
+      ).rejects.toThrow();
+      const transaction = await createTransaction(uncreatedAccount);
 
       const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
         signer: feePayerAccount,
         transaction,
       });
-
-      const response = await aptos.transaction.submit.simple({
+      const response = await aptos.signAndSubmitTransaction({
         transaction,
-        senderAuthenticator,
+        signer: uncreatedAccount,
         feePayerAuthenticator: feePayerSignerAuthenticator,
       });
 
@@ -826,6 +886,34 @@ describe("transaction submission", () => {
       });
 
       expect(submittedTransaction.success).toBe(true);
+    });
+  });
+
+  describe("transactions with no account authenticator", () => {
+    test("it fails to submit a transaction when authenticator in not provided", async () => {
+      const transaction = await aptos.transaction.build.simple({
+        sender: singleSignerED25519SenderAccount.accountAddress,
+        data: {
+          bytecode: singleSignerScriptBytecode,
+          functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+        },
+      });
+      const authenticator = new AccountAuthenticatorNoAccountAuthenticator();
+      try {
+        const response = await aptos.transaction.submit.simple({
+          transaction,
+          senderAuthenticator: authenticator,
+        });
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+        fail("Expected an error to be thrown");
+      } catch (error: any) {
+        const errorStr = error.toString();
+        expect(errorStr).toContain("Invalid transaction");
+        expect(errorStr).toContain("INVALID_SIGNATURE");
+        expect(errorStr).toContain("vm_error");
+      }
     });
   });
 });

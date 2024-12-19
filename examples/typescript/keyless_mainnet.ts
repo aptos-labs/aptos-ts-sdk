@@ -8,7 +8,6 @@
 import { AccountAddress, Aptos, AptosConfig, EphemeralKeyPair, Network } from "@aptos-labs/ts-sdk";
 import * as readlineSync from "readline-sync";
 
-const COIN_STORE = "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>";
 const TRANSFER_AMOUNT = 10;
 
 /**
@@ -18,18 +17,13 @@ const TRANSFER_AMOUNT = 10;
  * @returns {Promise<*>}
  *
  */
-const balance = async (aptos: Aptos, address: AccountAddress) => {
-  type Coin = { coin: { value: string } };
-  const resource = await aptos.getAccountResource<Coin>({
+const balance = async (aptos: Aptos, address: AccountAddress): Promise<any> =>
+  aptos.getAccountAPTAmount({
     accountAddress: address,
-    resourceType: COIN_STORE,
   });
-  const amount = Number(resource.coin.value);
-  return amount;
-};
 
 const example = async () => {
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: Network.MAINNET });
   const aptos = new Aptos(config);
 
@@ -47,10 +41,9 @@ const example = async () => {
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
-    const jwt: string = readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
+    return readlineSync.question("Paste the JWT (id_token) token here and press enter: ", {
       hideEchoBack: false,
     });
-    return jwt;
   }
 
   const jwt = inputJwt();
@@ -63,7 +56,7 @@ const example = async () => {
   console.log("=== Addresses ===\n");
   console.log(`Alice's keyless account address is: ${alice.accountAddress}`);
   console.log(`Alice's nonce is: ${aliceEphem.nonce}`);
-  console.log(`Alice's ephem pubkey is: ${aliceEphem.getPublicKey().toString()}`);
+  console.log(`Alice's ephemeral public key is: ${aliceEphem.getPublicKey().toString()}`);
 
   let aliceBalance;
   try {

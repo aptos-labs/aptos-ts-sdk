@@ -42,9 +42,10 @@ import { EntryFunctionArgument, TransactionArgument } from "../../transactions/i
  * const vecOfStrings = new MoveVector([new MoveString("hello"), new MoveString("world")]);
  * const vecOfStrings2 = MoveVector.MoveString(["hello", "world"]);
  *
- * @params
- * values: an Array<T> of values where T is a class that implements Serializable
+ * @param values an Array<T> of values where T is a class that implements Serializable
  * @returns a `MoveVector<T>` with the values `values`
+ * @group Implementation
+ * @category BCS
  */
 export class MoveVector<T extends Serializable & EntryFunctionArgument>
   extends Serializable
@@ -52,11 +53,27 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
 {
   public values: Array<T>;
 
+  /**
+   * Initializes a new instance of the class with an optional value.
+   * This constructor sets up the internal vector based on the provided value.
+   *
+   * @param values - The initial value to be stored in the vector, or null to initialize an empty vector.
+   * @group Implementation
+   * @category BCS
+   */
   constructor(values: Array<T>) {
     super();
     this.values = values;
   }
 
+  /**
+   * Serializes the current instance into a byte sequence suitable for entry functions.
+   * This allows the data to be properly formatted for transmission or storage.
+   *
+   * @param serializer - The serializer instance used to serialize the byte sequence.
+   * @group Implementation
+   * @category BCS
+   */
   serializeForEntryFunction(serializer: Serializer): void {
     const bcsBytes = this.bcsToBytes();
     serializer.serializeBytes(bcsBytes);
@@ -65,27 +82,44 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   /**
    * NOTE: This function will only work when the inner values in the `MoveVector` are `U8`s.
    * @param serializer
+   * @group Implementation
+   * @category BCS
+   */
+
+  /**
+   * Serialize the string as a fixed byte string without the length prefix for use in a script function.
+   * @param serializer - The serializer used to convert the byte vector into a format suitable for a script function.
+   * @group Implementation
+   * @category BCS
    */
   serializeForScriptFunction(serializer: Serializer): void {
-    // runtime check to ensure that you can't serialize anything other than vector<u8>
-    const isU8 = this.values[0] instanceof U8;
-    // if the inner array is length 0, we can't check the type because it has no instance, so we assume it's a u8
-    // it may not be, but we don't care because regardless of a vector's type,
-    // a zero-length vector is serialized to a single byte value: 0
-    if (!isU8 && this.values[0] !== undefined) {
-      throw new Error("Script function arguments only accept u8 vectors");
+    // This checks if the type of a non-empty vector is of type other than U8.  If so, we use the Serialized
+    // transaction argument type to serialize the argument.
+    if (this.values[0] !== undefined && !(this.values[0] instanceof U8)) {
+      const serialized = new Serialized(this.bcsToBytes());
+      serialized.serializeForScriptFunction(serializer);
+      return;
     }
     serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.U8Vector);
     serializer.serialize(this);
   }
 
   /**
-   * Factory method to generate a MoveVector of U8s from an array of numbers.
+   * Factory method to generate a MoveVector<U8> from a `number` or `undefined`.
+   *
+   * This method allows you to create a MoveVector that encapsulates a U8 value, enabling you to handle optional U8 values
+   * effectively.
+   *
+   * @param values - The values used to fill the MoveVector. If `values` is undefined or null, the resulting MoveVector's
+   * `.isSome()` method will return false.
+   * @returns A MoveVector<U8> with an inner value `value`.
    *
    * @example
+   * ```typescript
    * const v = MoveVector.U8([1, 2, 3, 4]);
-   * @params values: an array of `numbers` to convert to U8s
-   * @returns a `MoveVector<U8>`
+   * ```
+   * @group Implementation
+   * @category BCS
    */
   static U8(values: Array<number> | HexInput): MoveVector<U8> {
     let numbers: Array<number>;
@@ -108,89 +142,146 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 
   /**
-   * Factory method to generate a MoveVector of U16s from an array of numbers.
+   * Factory method to generate a MoveOption<U16> from a `number` or `null`.
    *
+   * This method allows you to create a MoveVector that can either hold a U16 value or be empty.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is null or undefined, the resulting MoveVector's
+   * `.isSome()` method will return false.
+   * @returns A MoveVector<U16> with an inner value `value`.
    * @example
+   * ```typescript
    * const v = MoveVector.U16([1, 2, 3, 4]);
-   * @params values: an array of `numbers` to convert to U16s
-   * @returns a `MoveVector<U16>`
+   * ```
+   * @group Implementation
+   * @category BCS
+
    */
   static U16(values: Array<number>): MoveVector<U16> {
     return new MoveVector<U16>(values.map((v) => new U16(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of U32s from an array of numbers.
+   * Factory method to generate a MoveVector<U32> from a `number` or `null`.
+   *
+   * This method allows you to create a MoveVector that can either hold a U32 value or be empty.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is null or undefined,
+   * the resulting MoveVector's .isSome() method will return false.
+   * @returns A MoveVector<U32> with an inner value `value`.
    *
    * @example
+   * ```
    * const v = MoveVector.U32([1, 2, 3, 4]);
-   * @params values: an array of `numbers` to convert to U32s
-   * @returns a `MoveVector<U32>`
+   * ```
+   * @group Implementation
+   * @category BCS
+
    */
   static U32(values: Array<number>): MoveVector<U32> {
     return new MoveVector<U32>(values.map((v) => new U32(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of U64s from an array of numbers or bigints.
+   * Factory method to generate a MoveVector<U64> from a number, bigint, or null/undefined.
+   * This allows for the creation of an optional U64 value that can be checked for presence.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined or null, the resulting MoveVector's
+   * `.isSome()` method will return false.
+   * @returns A MoveVector<U64> with an inner value `value`.
    *
    * @example
+   * ```typescript
    * const v = MoveVector.U64([1, 2, 3, 4]);
-   * @params values: an array of numbers of type `number | bigint` to convert to U64s
-   * @returns a `MoveVector<U64>`
+   * ```
+   * @group Implementation
+   * @category BCS
    */
   static U64(values: Array<AnyNumber>): MoveVector<U64> {
     return new MoveVector<U64>(values.map((v) => new U64(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of U128s from an array of numbers or bigints.
+   * Factory method to generate a MoveVector<U128> from a number, bigint, or undefined.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's `.isSome()`
+   * method will return false.
+   * @returns A MoveVector<U128> with an inner value `value`.
    *
    * @example
+   * ```typescript
    * const v = MoveVector.U128([1, 2, 3, 4]);
-   * @params values: an array of numbers of type `number | bigint` to convert to U128s
-   * @returns a `MoveVector<U128>`
+   * ```
+   * @group Implementation
+   * @category BCS
    */
   static U128(values: Array<AnyNumber>): MoveVector<U128> {
     return new MoveVector<U128>(values.map((v) => new U128(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of U256s from an array of numbers or bigints.
+   * Factory method to generate a MoveVector<U256> from a number, bigint, or null/undefined.
+   * This allows for the creation of an optional U256 value, enabling checks for presence or absence of a value.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined or null,
+   *                the resulting MoveVector's .isSome() method will return false.
+   * @returns A MoveVector<U256> with an inner value `value`.
    *
    * @example
+   * ```typescript
    * const v = MoveVector.U256([1, 2, 3, 4]);
-   * @params values: an array of numbers of type `number | bigint` to convert to U256s
-   * @returns a `MoveVector<U256>`
+   * ```
+   * @group Implementation
+   * @category BCS
    */
   static U256(values: Array<AnyNumber>): MoveVector<U256> {
     return new MoveVector<U256>(values.map((v) => new U256(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of Bools from an array of booleans.
+   * Factory method to generate a MoveVector<Bool> from a `boolean` or `undefined`.
+   * This method allows you to create an optional boolean value that can be used in various contexts where a boolean may or may
+   * not be present.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method
+   * will return false.
+   * @returns A MoveVector<Bool> with an inner value `value`.
    *
    * @example
-   * const v = MoveVector.Bool([true, false, true, false]);
-   * @params values: an array of `bools` to convert to Bools
-   * @returns a `MoveVector<Bool>`
+   *    * const v = MoveVector.Bool([true, false, true, false]);
+   * @group Implementation
+   * @category BCS
    */
   static Bool(values: Array<boolean>): MoveVector<Bool> {
     return new MoveVector<Bool>(values.map((v) => new Bool(v)));
   }
 
   /**
-   * Factory method to generate a MoveVector of MoveStrings from an array of strings.
+   * Factory method to generate a MoveVector<MoveString> from a `string` or `undefined`.
+   * This function creates a MoveVector that encapsulates a MoveString if the provided value is not null or undefined.
+   *
+   * @param values - The value used to fill the MoveVector. If `value` is undefined, the resulting MoveVector's .isSome() method
+   * will return false.
+   * @returns A MoveVector<MoveString> with an inner value `value`.
    *
    * @example
    * const v = MoveVector.MoveString(["hello", "world"]);
-   * @params values: an array of `strings` to convert to MoveStrings
-   * @returns a `MoveVector<MoveString>`
+   * @group Implementation
+   * @category BCS
    */
   static MoveString(values: Array<string>): MoveVector<MoveString> {
     return new MoveVector<MoveString>(values.map((v) => new MoveString(v)));
   }
 
+  /**
+   * Serializes the current object using the provided serializer.
+   * This function will serialize the value if it is present.
+   *
+   * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category BCS
+   */
+  serialize(serializer: Serializer): void;
   serialize(serializer: Serializer): void {
     serializer.serializeVector(this.values);
   }
@@ -207,10 +298,12 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
    *
    * @example
    * const vec = MoveVector.deserialize(deserializer, U64);
-   * @params deserializer: the Deserializer instance to use, with bytes loaded into it already.
-   * cls: the class to typecast the input values to, must be a Serializable and Deserializable type.
+   * @param deserializer the Deserializer instance to use, with bytes loaded into it already.
+   * @param cls the class to typecast the input values to, must be a Serializable and Deserializable type.
    * @returns a MoveVector of the corresponding class T
-   * *
+   *
+   * @group Implementation
+   * @category BCS
    */
   static deserialize<T extends Serializable & EntryFunctionArgument>(
     deserializer: Deserializer,
@@ -225,6 +318,66 @@ export class MoveVector<T extends Serializable & EntryFunctionArgument>
   }
 }
 
+/**
+ * Represents a serialized data structure that encapsulates a byte array.
+ * This class extends the Serializable class and provides methods for serialization
+ * and deserialization of byte data, as well as converting to a MoveVector.
+ *
+ * @extends Serializable
+ * @group Implementation
+ * @category BCS
+ */
+export class Serialized extends Serializable implements TransactionArgument {
+  public readonly value: Uint8Array;
+
+  constructor(value: HexInput) {
+    super();
+    this.value = Hex.fromHexInput(value).toUint8Array();
+  }
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeBytes(this.value);
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    this.serialize(serializer);
+  }
+
+  serializeForScriptFunction(serializer: Serializer): void {
+    serializer.serializeU32AsUleb128(ScriptTransactionArgumentVariants.Serialized);
+    this.serialize(serializer);
+  }
+
+  static deserialize(deserializer: Deserializer): Serialized {
+    return new Serialized(deserializer.deserializeBytes());
+  }
+
+  /**
+   * Deserialize the bytecode into a MoveVector of the specified type.
+   * This function allows you to convert serialized data into a usable MoveVector format.
+   *
+   * @param cls - The class type of the elements in the MoveVector.
+   * @group Implementation
+   * @category BCS
+   */
+  toMoveVector<T extends Serializable & EntryFunctionArgument>(cls: Deserializable<T>): MoveVector<T> {
+    const deserializer = new Deserializer(this.bcsToBytes());
+    deserializer.deserializeUleb128AsU32();
+    const vec = deserializer.deserializeVector(cls);
+    return new MoveVector(vec);
+  }
+}
+
+/**
+ * Represents a string value that can be serialized and deserialized.
+ * This class extends the Serializable base class and provides methods
+ * for serializing the string in different contexts, such as for entry
+ * functions and script functions.
+ *
+ * @extends Serializable
+ * @group Implementation
+ * @category BCS
+ */
 export class MoveString extends Serializable implements TransactionArgument {
   public value: string;
 
@@ -244,7 +397,8 @@ export class MoveString extends Serializable implements TransactionArgument {
 
   serializeForScriptFunction(serializer: Serializer): void {
     // Serialize the string as a fixed byte string, i.e., without the length prefix
-    const fixedStringBytes = this.bcsToBytes().slice(1);
+    const textEncoder = new TextEncoder();
+    const fixedStringBytes = textEncoder.encode(this.value);
     // Put those bytes into a vector<u8> and serialize it as a script function argument
     const vectorU8 = MoveVector.U8(fixedStringBytes);
     vectorU8.serializeForScriptFunction(serializer);
@@ -282,10 +436,8 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
   /**
    * Retrieves the inner value of the MoveOption.
    *
-   * This method is inspired by Rust's `Option<T>.unwrap()`.
-   * In Rust, attempting to unwrap a `None` value results in a panic.
-   *
-   * Similarly, this method will throw an error if the value is not present.
+   * This method is inspired by Rust's `Option<T>.unwrap()`, where attempting to unwrap a `None` value results in a panic.
+   * This method will throw an error if the value is not present.
    *
    * @example
    * const option = new MoveOption<Bool>(new Bool(true));
@@ -294,6 +446,8 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * @throws {Error} Throws an error if the MoveOption does not contain a value.
    *
    * @returns {T} The contained value if present.
+   * @group Implementation
+   * @category BCS
    */
   unwrap(): T {
     if (!this.isSome()) {
@@ -303,7 +457,13 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
     }
   }
 
-  // Check if the MoveOption has a value.
+  /**
+   * Check if the MoveOption has a value.
+   *
+   * @returns {boolean} Returns true if there is exactly one value in the MoveOption.
+   * @group Implementation
+   * @category BCS
+   */
   isSome(): boolean {
     return this.vec.values.length === 1;
   }
@@ -321,9 +481,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U8(1).isSome() === true;
    * MoveOption.U8().isSome() === false;
    * MoveOption.U8(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U8> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U8(value?: number | null): MoveOption<U8> {
     return new MoveOption<U8>(value !== null && value !== undefined ? new U8(value) : undefined);
@@ -336,9 +498,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U16(1).isSome() === true;
    * MoveOption.U16().isSome() === false;
    * MoveOption.U16(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U16> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U16(value?: number | null): MoveOption<U16> {
     return new MoveOption<U16>(value !== null && value !== undefined ? new U16(value) : undefined);
@@ -351,9 +515,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U32(1).isSome() === true;
    * MoveOption.U32().isSome() === false;
    * MoveOption.U32(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U32> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U32(value?: number | null): MoveOption<U32> {
     return new MoveOption<U32>(value !== null && value !== undefined ? new U32(value) : undefined);
@@ -366,9 +532,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U64(1).isSome() === true;
    * MoveOption.U64().isSome() === false;
    * MoveOption.U64(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U64> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U64(value?: AnyNumber | null): MoveOption<U64> {
     return new MoveOption<U64>(value !== null && value !== undefined ? new U64(value) : undefined);
@@ -381,9 +549,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U128(1).isSome() === true;
    * MoveOption.U128().isSome() === false;
    * MoveOption.U128(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U128> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U128(value?: AnyNumber | null): MoveOption<U128> {
     return new MoveOption<U128>(value !== null && value !== undefined ? new U128(value) : undefined);
@@ -396,9 +566,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.U256(1).isSome() === true;
    * MoveOption.U256().isSome() === false;
    * MoveOption.U256(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<U256> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static U256(value?: AnyNumber | null): MoveOption<U256> {
     return new MoveOption<U256>(value !== null && value !== undefined ? new U256(value) : undefined);
@@ -411,9 +583,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.Bool(true).isSome() === true;
    * MoveOption.Bool().isSome() === false;
    * MoveOption.Bool(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<Bool> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static Bool(value?: boolean | null): MoveOption<Bool> {
     return new MoveOption<Bool>(value !== null && value !== undefined ? new Bool(value) : undefined);
@@ -427,9 +601,11 @@ export class MoveOption<T extends Serializable & EntryFunctionArgument>
    * MoveOption.MoveString("").isSome() === true;
    * MoveOption.MoveString().isSome() === false;
    * MoveOption.MoveString(undefined).isSome() === false;
-   * @params value: the value used to fill the MoveOption. If `value` is undefined
+   * @param value the value used to fill the MoveOption. If `value` is undefined
    * the resulting MoveOption's .isSome() method will return false.
    * @returns a MoveOption<MoveString> with an inner value `value`
+   * @group Implementation
+   * @category BCS
    */
   static MoveString(value?: string | null): MoveOption<MoveString> {
     return new MoveOption<MoveString>(value !== null && value !== undefined ? new MoveString(value) : undefined);

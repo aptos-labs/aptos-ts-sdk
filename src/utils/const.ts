@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Type of API endpoint for request routing
+ * Types of API endpoints used for routing requests in the Aptos network.
+ * @group Implementation
+ * @category Utils
  */
 export enum AptosApiType {
   FULLNODE = "Fullnode",
@@ -19,6 +21,8 @@ export enum AptosApiType {
  *
  * Note that max gas amount varies based on the transaction.  A larger transaction will go over this
  * default gas amount, and the value will need to be changed for the specific transaction.
+ * @group Implementation
+ * @category Utils
  */
 export const DEFAULT_MAX_GAS_AMOUNT = 200000;
 
@@ -29,6 +33,8 @@ export const DEFAULT_MAX_GAS_AMOUNT = 200000;
  *
  * Note that the transaction expiration time varies based on network connection and network load.  It may need to be
  * increased for the transaction to be processed.
+ * @group Implementation
+ * @category Utils
  */
 export const DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
 
@@ -37,22 +43,38 @@ export const DEFAULT_TXN_EXP_SEC_FROM_NOW = 20;
  *
  * This time is the amount of time that the SDK will wait for a transaction to be processed when waiting for
  * the results of the transaction.  It may take longer based on network connection and network load.
+ * @group Implementation
+ * @category Utils
  */
 export const DEFAULT_TXN_TIMEOUT_SEC = 20;
 
 /**
  * The default gas currency for the network.
+ * @group Implementation
+ * @category Utils
  */
 export const APTOS_COIN = "0x1::aptos_coin::AptosCoin";
-
+/**
+ * @group Implementation
+ * @category Utils
+ */
+export const APTOS_FA = "0x000000000000000000000000000000000000000000000000000000000000000a";
+/**
+ * @group Implementation
+ * @category Utils
+ */
 export const RAW_TRANSACTION_SALT = "APTOS::RawTransaction";
+/**
+ * @group Implementation
+ * @category Utils
+ */
 export const RAW_TRANSACTION_WITH_DATA_SALT = "APTOS::RawTransactionWithData";
 
 /**
- * The list of supported Processor types for our indexer api.
- *
- * These can be found from the processor_status table in the indexer database.
+ * Supported processor types for the indexer API, sourced from the processor_status table in the indexer database.
  * {@link https://cloud.hasura.io/public/graphiql?endpoint=https://api.mainnet.aptoslabs.com/v1/graphql}
+ * @group Implementation
+ * @category Utils
  */
 export enum ProcessorType {
   ACCOUNT_TRANSACTION_PROCESSOR = "account_transactions_processor",
@@ -66,3 +88,10 @@ export enum ProcessorType {
   USER_TRANSACTION_PROCESSOR = "user_transaction_processor",
   OBJECT_PROCESSOR = "objects_processor",
 }
+
+/**
+ * Regular expression pattern for Firebase Auth issuer URLs
+ * Matches URLs in the format: https://securetoken.google.com/[project-id]
+ * where project-id can contain letters, numbers, hyphens, and underscores
+ */
+export const FIREBASE_AUTH_ISS_PATTERN = /^https:\/\/securetoken\.google\.com\/[a-zA-Z0-9-_]+$/;

@@ -16,6 +16,8 @@ import {
   TransactionArgument,
   ScriptFunctionArgument,
   deserializeFromScriptArgument,
+  Serialized,
+  MoveString,
 } from "../../src";
 
 describe("Tests for the script transaction argument class", () => {
@@ -29,6 +31,8 @@ describe("Tests for the script transaction argument class", () => {
   let scriptBoolBytes: Uint8Array;
   let scriptAddressBytes: Uint8Array;
   let scriptVectorU8Bytes: Uint8Array;
+  let scriptVectorStringBytes: Uint8Array;
+  let scriptSerializedBytes: Uint8Array;
 
   beforeEach(() => {
     serializer = new Serializer();
@@ -43,6 +47,8 @@ describe("Tests for the script transaction argument class", () => {
     scriptBoolBytes = new Uint8Array([5, 0]);
     scriptAddressBytes = new Uint8Array([3, ...AccountAddress.FOUR.data]);
     scriptVectorU8Bytes = new Uint8Array([4, 5, 1, 2, 3, 4, 5]);
+    scriptVectorStringBytes = new Uint8Array([9, 5, 2, 1, 49, 1, 50]);
+    scriptSerializedBytes = new Uint8Array([9, 2, 1, 2]);
   });
 
   it("should serialize all types of ScriptTransactionArguments correctly", () => {
@@ -61,6 +67,8 @@ describe("Tests for the script transaction argument class", () => {
     validateBytes(new Bool(false), scriptBoolBytes);
     validateBytes(AccountAddress.FOUR, scriptAddressBytes);
     validateBytes(MoveVector.U8([1, 2, 3, 4, 5]), scriptVectorU8Bytes);
+    validateBytes(MoveVector.MoveString(["1", "2"]), scriptVectorStringBytes);
+    validateBytes(new Serialized("0x0102"), scriptSerializedBytes);
   });
 
   const deserializeAsScriptArg = <T extends TransactionArgument>(input: ScriptFunctionArgument): T => {
@@ -80,6 +88,10 @@ describe("Tests for the script transaction argument class", () => {
     const scriptArgBool = deserializeAsScriptArg<Bool>(new Bool(false));
     const scriptArgAddress = deserializeAsScriptArg<AccountAddress>(AccountAddress.FOUR);
     const scriptArgU8Vector = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
+    const scriptArgStringVector = deserializeAsScriptArg<Serialized>(MoveVector.MoveString(["1", "2"])).toMoveVector(
+      MoveString,
+    );
+    const scriptArgSerialized = deserializeAsScriptArg<Serialized>(new Serialized("0x0102"));
 
     expect(scriptArgU8.value).toEqual(1);
     expect(scriptArgU16.value).toEqual(2);
@@ -90,6 +102,8 @@ describe("Tests for the script transaction argument class", () => {
     expect(scriptArgBool.value).toEqual(false);
     expect(scriptArgAddress.data).toEqual(AccountAddress.FOUR.data);
     expect(scriptArgU8Vector.values.map((v) => v.value)).toEqual([1, 2, 3, 4, 5]);
+    expect(scriptArgStringVector.values.map((v) => v.value)).toEqual(["1", "2"]);
+    expect(scriptArgSerialized.value).toEqual(new Uint8Array([1, 2]));
   });
 
   it("should convert all Move primitives to script transaction arguments correctly", () => {
@@ -104,5 +118,6 @@ describe("Tests for the script transaction argument class", () => {
     expect(deserializeAsScriptArg(MoveVector.U8([1, 2, 3, 4, 5])) instanceof MoveVector).toBe(true);
     const deserializedVectorU8 = deserializeAsScriptArg<MoveVector<U8>>(MoveVector.U8([1, 2, 3, 4, 5]));
     expect(deserializedVectorU8.values.every((v) => v instanceof U8)).toBe(true);
+    expect(deserializeAsScriptArg(new Serialized("0x0102")) instanceof Serialized).toBe(true);
   });
 });

@@ -50,7 +50,7 @@ describe("general api", () => {
 
       const payload2: InputViewFunctionData = {
         function: "0x1::account::exists_at",
-        functionArguments: ["0x12345"],
+        functionArguments: ["0xc"],
       };
 
       const exists2 = (await aptos.view<[boolean]>({ payload: payload2 }))[0];
@@ -108,7 +108,7 @@ describe("general api", () => {
     test("view functions that fail in the VM fail here", async () => {
       const payload: InputViewFunctionData = {
         function: "0x1::account::get_sequence_number",
-        functionArguments: ["0x123456"],
+        functionArguments: ["0xc"],
       };
 
       await expect(() => aptos.view<[string]>({ payload })).rejects.toThrow("VMError");

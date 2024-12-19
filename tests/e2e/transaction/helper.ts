@@ -9,12 +9,24 @@ import {
   EntryFunctionArgumentTypes,
   HexInput,
   InputGenerateTransactionData,
+  InputViewFunctionData,
   SimpleEntryFunctionArgumentTypes,
   MoveVector,
   AnyRawTransaction,
   isUserTransactionResponse,
+  Ed25519PrivateKey,
+  EphemeralKeyPair,
+  generateTransactionPayload,
+  InputEntryFunctionData,
 } from "../../../src";
 import { FUND_AMOUNT, TRANSFER_AMOUNT } from "../../unit/helper";
+import { getAptosClient } from "../helper";
+
+export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
+  privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
+  expiryDateSecs: 1735475012, // Expires Sunday, December 29, 2024 12:23:32 PM GMT
+  blinder: new Uint8Array(31),
+});
 
 export async function publishPackage(
   aptos: Aptos,
@@ -85,6 +97,59 @@ export async function fundAccounts(aptos: Aptos, accounts: Array<Account>) {
     throw new Error("Expected user transaction response");
   }
   return response;
+}
+
+export async function createAndFundMultisigAccount(owner: Account) {
+  const { aptos } = getAptosClient();
+  const payload: InputViewFunctionData = {
+    function: "0x1::multisig_account::get_next_multisig_account_address",
+    functionArguments: [owner.accountAddress.toString()],
+  };
+  const [multisigAddress] = await aptos.view<[string]>({ payload });
+  const createMultisig = await aptos.transaction.build.simple({
+    sender: owner.accountAddress,
+    data: {
+      function: "0x1::multisig_account::create",
+      functionArguments: [1, [], []],
+    },
+  });
+  const ownerAuthenticator = aptos.transaction.sign({ signer: owner, transaction: createMultisig });
+  const res = await aptos.transaction.submit.simple({
+    senderAuthenticator: ownerAuthenticator,
+    transaction: createMultisig,
+  });
+  await aptos.waitForTransaction({ transactionHash: res.hash });
+  await aptos.fundAccount({ accountAddress: multisigAddress, amount: FUND_AMOUNT });
+  return multisigAddress;
+}
+
+export async function createMultisigTransaction(
+  owner: Account,
+  multisigAddress: string,
+  multisigEntryFunction: InputEntryFunctionData,
+) {
+  const { aptos, config } = getAptosClient();
+  const transactionPayload = await generateTransactionPayload({
+    multisigAddress,
+    function: multisigEntryFunction.function,
+    functionArguments: multisigEntryFunction.functionArguments,
+    aptosConfig: config,
+  });
+  const createMultisigTx = await aptos.transaction.build.simple({
+    sender: owner.accountAddress,
+    data: {
+      function: "0x1::multisig_account::create_transaction",
+      functionArguments: [multisigAddress, transactionPayload.multiSig.transaction_payload!.bcsToBytes()],
+    },
+  });
+
+  const createMultisigTxAuthenticator = aptos.transaction.sign({ signer: owner, transaction: createMultisigTx });
+
+  const createMultisigTxResponse = await aptos.transaction.submit.simple({
+    senderAuthenticator: createMultisigTxAuthenticator,
+    transaction: createMultisigTx,
+  });
+  await aptos.waitForTransaction({ transactionHash: createMultisigTxResponse.hash });
 }
 
 export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, recipient: Account) {
@@ -253,7 +318,7 @@ export const rawTransactionMultiAgentHelper = async (
   return response;
 };
 
-export const PUBLISHER_ACCOUNT_PK = "0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";
+export const PUBLISHER_ACCOUNT_PK = "ed25519-priv-0xc694948143dea59c195a4918d7fe06c2329624318a073b95f6078ce54940dae9";
 export const PUBLISHER_ACCOUNT_ADDRESS = "2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c";
 
 // script function byte code form `transfer/sources/script_coin_transfer.move`

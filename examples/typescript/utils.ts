@@ -35,14 +35,12 @@ export function compilePackage(
 
 /**
  * A convenience function to get the compiled package metadataBytes and byteCode
- * @param packageDir
- * @param outputFile
- * @param namedAddresses
+ * @param filePath
  */
 export function getPackageBytesToPublish(filePath: string) {
   // current working directory - the root folder of this repo
   const cwd = process.cwd();
-  // target directory - current working directory + filePath (filePath json file is generated with the prevoius, compilePackage, cli command)
+  // target directory - current working directory + filePath (filePath json file is generated with the previous, compilePackage, cli command)
   const modulePath = path.join(cwd, filePath);
 
   const jsonData = JSON.parse(fs.readFileSync(modulePath, "utf8"));

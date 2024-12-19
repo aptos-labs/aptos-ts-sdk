@@ -71,7 +71,7 @@ class ExternalSigner {
   }
 
   /**
-   * Setup the account making sure it has funds and exists
+   * Set up the account making sure it has funds and exists
    */
   async setup() {
     if (this.isSetup) {
@@ -119,7 +119,7 @@ class ExternalSigner {
 const example = async () => {
   console.log("This example will pretend that hot is on a separate server, and never access information from it");
 
-  // Setup the client
+  // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
 

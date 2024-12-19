@@ -11,16 +11,16 @@ const ALICE_INITIAL_BALANCE = 100_000_000;
 const BOB_INITIAL_BALANCE = 0;
 const TRANSFER_AMOUNT = 1_000_000;
 
-// Setup the client
+// Set up the client
 const APTOS_NETWORK: Network = NetworkToNetworkName[process.env.APTOS_NETWORK ?? Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
 const aptos = new Aptos(config);
 
 /**
  * Prints the balance of an account
- * @param aptos
  * @param name
- * @param address
+ * @param accountAddress
+ * @param versionToWaitFor
  * @returns {Promise<number>}
  *
  */

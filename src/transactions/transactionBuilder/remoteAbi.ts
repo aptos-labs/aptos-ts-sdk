@@ -50,7 +50,12 @@ import { MoveFunction } from "../../types";
 const TEXT_ENCODER = new TextEncoder();
 
 /**
- * Convert type arguments to only type tags, allowing for string representations of type tags
+ * Convert type arguments to only type tags, allowing for string representations of type tags.
+ *
+ * @param typeArguments - An optional array of type arguments that may include string representations.
+ * @returns An array of TypeTag objects derived from the provided type arguments.
+ * @group Implementation
+ * @category Transactions
  */
 export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<TypeTag> {
   return (
@@ -65,11 +70,15 @@ export function standardizeTypeTags(typeArguments?: Array<TypeArgument>): Array<
 }
 
 /**
- * Fetches a function ABI from the on-chain module ABI.  It doesn't validate whether it's a view or entry function.
- * @param moduleAddress
- * @param moduleName
- * @param functionName
- * @param aptosConfig
+ * Fetches the ABI of a specified function from the on-chain module ABI. This function allows you to access the details of a
+ * specific function within a module.
+ *
+ * @param moduleAddress - The address of the module from which to fetch the function ABI.
+ * @param moduleName - The name of the module containing the function.
+ * @param functionName - The name of the function whose ABI is to be fetched.
+ * @param aptosConfig - The configuration settings for Aptos.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchFunctionAbi(
   moduleAddress: string,
@@ -88,12 +97,17 @@ export async function fetchFunctionAbi(
 }
 
 /**
- * Fetches the ABI for an entry function from the module
+ * Fetches the ABI for an entry function from the specified module address.
+ * This function validates if the ABI corresponds to an entry function and retrieves its parameters.
  *
- * @param moduleAddress
- * @param moduleName
- * @param functionName
- * @param aptosConfig
+ * @param moduleAddress - The address of the module containing the entry function.
+ * @param moduleName - The name of the module containing the entry function.
+ * @param functionName - The name of the entry function to fetch the ABI for.
+ * @param aptosConfig - The configuration settings for Aptos.
+ * @returns An object containing the number of signers, type parameters, and function parameters.
+ * @throws Error if the ABI cannot be found or if the function is not an entry function.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchEntryFunctionAbi(
   moduleAddress: string,
@@ -128,12 +142,17 @@ export async function fetchEntryFunctionAbi(
 }
 
 /**
- * Fetches the ABI for a view function from the module
+ * Fetches the ABI for a view function from the specified module address.
+ * This function ensures that the ABI is valid and retrieves the type parameters, parameters, and return types for the view function.
  *
- * @param moduleAddress
- * @param moduleName
- * @param functionName
- * @param aptosConfig
+ * @param moduleAddress - The address of the module containing the view function.
+ * @param moduleName - The name of the module containing the view function.
+ * @param functionName - The name of the view function for which to fetch the ABI.
+ * @param aptosConfig - The configuration settings for Aptos.
+ * @returns An object containing the type parameters, parameters, and return types of the view function.
+ * @throws Error if the ABI cannot be found or if the function is not a view function.
+ * @group Implementation
+ * @category Transactions
  */
 export async function fetchViewFunctionAbi(
   moduleAddress: string,
@@ -173,12 +192,16 @@ export async function fetchViewFunctionAbi(
 }
 
 /**
- * Converts a non-BCS encoded argument into BCS encoded, if necessary
- * @param functionName
- * @param functionAbi
- * @param arg
- * @param position
- * @param genericTypeParams
+ * Converts a non-BCS encoded argument into BCS encoded, if necessary.
+ * This function checks the provided argument against the expected parameter type and converts it accordingly.
+ *
+ * @param functionName - The name of the function for which the argument is being converted.
+ * @param functionAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
+ * @param arg - The argument to be converted, which can be of various types.
+ * @param position - The index of the argument in the function's parameter list.
+ * @param genericTypeParams - An array of type tags for any generic type parameters.
+ * @group Implementation
+ * @category Transactions
  */
 export function convertArgument(
   functionName: string,
@@ -196,6 +219,17 @@ export function convertArgument(
   return checkOrConvertArgument(arg, param, position, genericTypeParams);
 }
 
+/**
+ * Checks if the provided argument is BCS encoded and converts it if necessary, ensuring type compatibility with the ABI.
+ * This function helps in validating and converting arguments for entry functions based on their expected types.
+ *
+ * @param arg - The argument to check or convert, which can be either a simple or entry function argument type.
+ * @param param - The expected type tag for the argument.
+ * @param position - The position of the argument in the function call.
+ * @param genericTypeParams - An array of generic type parameters that may be used for conversion.
+ * @group Implementation
+ * @category Transactions
+ */
 export function checkOrConvertArgument(
   arg: SimpleEntryFunctionArgumentTypes | EntryFunctionArgumentTypes,
   param: TypeTag,
@@ -205,6 +239,17 @@ export function checkOrConvertArgument(
   // If the argument is bcs encoded, we can just use it directly
   if (isEncodedEntryFunctionArgument(arg)) {
     // Ensure the type matches the ABI
+
+    /**
+     * Checks the type of the provided argument against the expected type.
+     * This function helps validate that the argument conforms to the specified type requirements.
+     *
+     * @param typeArgs - The expected type arguments.
+     * @param arg - The argument to be checked.
+     * @param position - The position of the argument in the context of the check.
+     * @group Implementation
+     * @category Transactions
+     */
     checkType(param, arg, position);
     return arg;
   }
@@ -214,11 +259,16 @@ export function checkOrConvertArgument(
 }
 
 /**
- * Parses a non-BCS encoded argument into a BCS encoded argument recursively
- * @param arg
- * @param param
- * @param position
- * @param genericTypeParams
+ * Parses a non-BCS encoded argument into a BCS encoded argument recursively.
+ * This function helps convert various types of input arguments into their corresponding BCS encoded formats based on the
+ * specified parameter type.
+ *
+ * @param arg - The argument to be parsed, which can be of various types.
+ * @param param - The type tag that defines the expected type of the argument.
+ * @param position - The position of the argument in the function call, used for error reporting.
+ * @param genericTypeParams - An array of type tags for generic type parameters, used when the parameter type is generic.
+ * @group Implementation
+ * @category Transactions
  */
 function parseArg(
   arg: SimpleEntryFunctionArgumentTypes,
@@ -234,6 +284,15 @@ function parseArg(
       if (arg === "true") return new Bool(true);
       if (arg === "false") return new Bool(false);
     }
+
+    /**
+     * Throws a type mismatch error for the specified move option.
+     *
+     * @param moveOption - The name of the move option that caused the type mismatch.
+     * @param position - The position where the error occurred.
+     * @group Implementation
+     * @category Transactions
+     */
     throwTypeMismatch("boolean", position);
   }
   // TODO: support uint8array?
@@ -283,7 +342,7 @@ function parseArg(
     throwTypeMismatch("bigint | number | string", position);
   }
 
-  // Generic needs to use the sub-type
+  // Generic needs to use the subtype
   if (param.isGeneric()) {
     const genericIndex = param.value;
     if (genericIndex < 0 || genericIndex >= genericTypeParams.length) {
@@ -297,7 +356,7 @@ function parseArg(
   if (param.isVector()) {
     // Check special case for Vector<u8>
     if (param.value.isU8()) {
-      // We don't allow vector<u8>, but we convert strings to UTF8 uint8array
+      // We don't allow vector<u8>, but we convert strings to UTF8 Uint8Array
       // This is legacy behavior from the original SDK
       if (isString(arg)) {
         return MoveVector.U8(TEXT_ENCODER.encode(arg));
@@ -380,10 +439,12 @@ function parseArg(
 }
 
 /**
- * Checks that the type of an already BCS encoded argument matches the ABI
+ * Checks that the type of the BCS encoded argument matches the ABI
  * @param param
  * @param arg
  * @param position
+ * @group Implementation
+ * @category Transactions
  */
 function checkType(param: TypeTag, arg: EntryFunctionArgumentTypes, position: number) {
   if (param.isBool()) {

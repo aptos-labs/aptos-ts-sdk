@@ -10,21 +10,67 @@ import { ProcessorType } from "../utils";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
+ * @group Faucet
  */
 export class Faucet {
+  /**
+   * Initializes a new instance of the Aptos client with the specified configuration.
+   *
+   * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+   * the minting page at https://aptos.dev/network/faucet.
+   *
+   * @param config - The configuration settings for the Aptos client.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   *
+   * async function runExample() {
+   *     // Create a configuration for the Aptos client
+   *     const config = new AptosConfig({ network: Network.DEVNET }); // specify your own network if needed
+   *
+   *     // Initialize the Aptos client with the configuration
+   *     const aptos = new Aptos(config);
+   *
+   *     console.log("Aptos client initialized:", aptos);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Faucet
+   */
   constructor(readonly config: AptosConfig) {}
 
   /**
-   * This creates an account if it does not exist and mints the specified amount of
-   * coins into that account
+   * This function creates an account if it does not exist and mints the specified amount of coins into that account.
+   *
+   * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+   * the minting page at https://aptos.dev/network/faucet.
+   *
+   * @param args - The arguments for funding the account.
+   * @param args.accountAddress - The address of the account to fund.
+   * @param args.amount - The amount of tokens to fund the account with.
+   * @param args.options - Configuration options for waiting for the transaction.
+   * @returns Transaction hash of the transaction that funded the account.
    *
    * @example
-   * const transaction = await aptos.fundAccount({accountAddress:"0x123", amount: 100})
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * @param args.accountAddress Address of the account to fund
-   * @param args.amount Amount of tokens to fund the account with
-   * @param args.options Configuration options for waitForTransaction
-   * @returns Transaction hash of the transaction that funded the account
+   * const config = new AptosConfig({ network: Network.DEVNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Fund an account with a specified amount of tokens
+   *   const transaction = await aptos.fundAccount({
+   *     accountAddress: "0x1", // replace with your account address
+   *     amount: 100,
+   *   });
+   *
+   *   console.log("Transaction hash:", transaction.hash);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Faucet
    */
   async fundAccount(args: {
     accountAddress: AccountAddressInput;
