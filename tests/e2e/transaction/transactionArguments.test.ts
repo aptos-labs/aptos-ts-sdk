@@ -287,7 +287,7 @@ describe("various transaction arguments", () => {
           ),
           parseTypeTag(
             // eslint-disable-next-line max-len
-            `vector<vector<0x1::option::Option<vector<0x1::option::Option<0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>>>>>>`,
+            `vector<0x1::option::Option<0x1::object::Object<${PUBLISHER_ACCOUNT_ADDRESS}::tx_args_module::EmptyResource>>>`,
           ),
         ],
         [],
