@@ -1,4 +1,4 @@
-import { Serializable } from "../../bcs";
+import { Serializable } from "../../bcs/serializer";
 import { Hex } from "../hex";
 
 /**

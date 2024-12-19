@@ -1,9 +1,10 @@
-import { Serializer, Deserializer } from "../../bcs";
 import { EphemeralPublicKeyVariant, EphemeralSignatureVariant, HexInput } from "../../types";
 import { PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { Hex } from "../hex";
+import { Deserializer } from "../../bcs/deserializer";
+import { Serializer } from "../../bcs/serializer";
 
 /**
  * Represents ephemeral public keys for Aptos Keyless accounts.

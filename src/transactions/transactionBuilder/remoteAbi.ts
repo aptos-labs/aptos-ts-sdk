@@ -45,7 +45,7 @@ import {
   throwTypeMismatch,
   convertNumber,
 } from "./helpers";
-import { MoveFunction } from "../../types";
+import { CallArgument, MoveFunction } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -97,8 +97,35 @@ export async function fetchFunctionAbi(
 }
 
 /**
- * Fetches the ABI for an entry function from the specified module address.
- * This function validates if the ABI corresponds to an entry function and retrieves its parameters.
+ * Fetches a function ABI from the on-chain module ABI.  It doesn't validate whether it's a view or entry function.
+ * @param moduleAddress
+ * @param moduleName
+ * @param functionName
+ * @param aptosConfig
+ */
+export async function fetchMoveFunctionAbi(
+  moduleAddress: string,
+  moduleName: string,
+  functionName: string,
+  aptosConfig: AptosConfig,
+): Promise<FunctionABI> {
+  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  if (!functionAbi) {
+    throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+  }
+  const params: TypeTag[] = [];
+  for (let i = 0; i < functionAbi.params.length; i += 1) {
+    params.push(parseTypeTag(functionAbi.params[i], { allowGenerics: true }));
+  }
+
+  return {
+    typeParameters: functionAbi.generic_type_params,
+    parameters: params,
+  };
+}
+
+/**
+ * Fetches the ABI for an entry function from the module
  *
  * @param moduleAddress - The address of the module containing the entry function.
  * @param moduleName - The name of the module containing the entry function.
@@ -189,6 +216,32 @@ export async function fetchViewFunctionAbi(
     parameters: params,
     returnTypes,
   };
+}
+
+/**
+ * Converts a entry function argument into CallArgument, if necessary.
+ * This function checks the provided argument against the expected parameter type and converts it accordingly.
+ *
+ * @param functionName - The name of the function for which the argument is being converted.
+ * @param functionAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
+ * @param argument - The argument to be converted, which can be of various types. If the argument is already
+ *                   CallArgument returned from TransactionComposer it would be returned immediately.
+ * @param position - The index of the argument in the function's parameter list.
+ * @param genericTypeParams - An array of type tags for any generic type parameters.
+ */
+export function convertCallArgument(
+  argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
+  functionName: string,
+  functionAbi: FunctionABI,
+  position: number,
+  genericTypeParams: Array<TypeTag>,
+): CallArgument {
+  if (argument instanceof CallArgument) {
+    return argument;
+  }
+  return CallArgument.new_bytes(
+    convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
+  );
 }
 
 /**

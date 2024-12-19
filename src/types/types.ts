@@ -63,6 +63,7 @@ export enum ScriptTransactionArgumentVariants {
   U32 = 7,
   U256 = 8,
   Serialized = 9,
+  Raw = 10,
 }
 
 /**
@@ -106,6 +107,7 @@ export enum AccountAuthenticatorVariant {
   SingleKey = 2,
   MultiKey = 3,
   NoAccountAuthenticator = 4,
+  Abstraction = 5,
 }
 
 /**
@@ -1442,6 +1444,8 @@ export enum SigningScheme {
   SingleKey = 2,
 
   MultiKey = 3,
+
+  Abstraction = 4,
 }
 
 /**

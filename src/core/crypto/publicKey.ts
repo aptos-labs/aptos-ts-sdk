@@ -1,4 +1,4 @@
-import { Serializable } from "../../bcs";
+import { Serializable } from "../../bcs/serializer";
 import { HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
