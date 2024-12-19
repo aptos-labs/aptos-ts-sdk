@@ -178,6 +178,9 @@ export async function postAptosIndexer<Req extends {}, Res extends {}>(
  * Sends a request to the Aptos faucet to obtain test tokens.
  * This function modifies the provided configuration to ensure that the API_KEY is not included in the request.
  *
+ * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+ * the minting page at https://aptos.dev/network/faucet.
+ *
  * @param options - The options for the request.
  * @param options.aptosConfig - The configuration settings for the Aptos client.
  * @param options.aptosConfig.clientConfig - The client-specific configuration settings.
