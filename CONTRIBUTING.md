@@ -11,7 +11,7 @@ for full details. This page describes [our development process](#our-development
 ## Aptos SDK
 
 To contribute to the Aptos SDK implementation, first fork the [aptos-ts-sdk](https://github.com/aptos-labs/aptos-ts-sdk)
-repository. For more information on how to fork see the [Github documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
+repository. For more information on how to fork see the [GitHub documentation](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
 
 ## Our Development Process
 
@@ -155,7 +155,7 @@ After you pulled latest main, it is recommended to first do a dry-run to make su
 npm publish --dry-run
 ```
 
-This command gives us a preview of what we will be releasing to NPM, make sure it does not include hidden files or anything we dont want to publish. Also, compare the package size and the total files with what is on [npm](https://www.npmjs.com/package/@aptos-labs/ts-sdk) and validate it is resonable.
+This command gives us a preview of what we will be releasing to NPM, make sure it does not include hidden files or anything we dont want to publish. Also, compare the package size and the total files with what is on [npm](https://www.npmjs.com/package/@aptos-labs/ts-sdk) and validate it is reasonable.
 
 Then, when we are ready to publish to NPM, simply run:
 
