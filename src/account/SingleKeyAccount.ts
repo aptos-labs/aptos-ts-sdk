@@ -1,10 +1,31 @@
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKey, Secp256k1PrivateKey } from "../core/crypto";
+import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKeyInput, Secp256k1PrivateKey } from "../core/crypto";
 import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
+import { Ed25519Account } from "./Ed25519Account";
+
+/**
+ * An interface which defines if an Account utilizes SingleKey signing.
+ *
+ * Such an account will use the AnyPublicKey enum to represent its public key when deriving the auth key.
+ */
+export interface SingleKeySigner extends Account {
+  getAnyPublicKey(): AnyPublicKey;
+}
+
+export function isSingleKeySigner(obj: unknown): obj is SingleKeySigner {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "getAnyPublicKey" in obj &&
+    typeof (obj as any).getAnyPublicKey === "function"
+  );
+}
+
+export type SingleKeySignerOrLegacyEd25519Account = SingleKeySigner | Ed25519Account;
 
 /**
  * Arguments required to create a single key signer.
@@ -15,7 +36,7 @@ import { AnyRawTransaction } from "../transactions/types";
  * @category Account (On-Chain Model)
  */
 export interface SingleKeySignerConstructorArgs {
-  privateKey: PrivateKey;
+  privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
 }
 
@@ -62,13 +83,13 @@ export interface VerifySingleKeySignatureArgs {
  * @group Implementation
  * @category Account (On-Chain Model)
  */
-export class SingleKeyAccount implements Account {
+export class SingleKeyAccount implements Account, SingleKeySigner {
   /**
    * Private key associated with the account
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  readonly privateKey: PrivateKey;
+  readonly privateKey: PrivateKeyInput;
 
   readonly publicKey: AnyPublicKey;
 
@@ -93,6 +114,10 @@ export class SingleKeyAccount implements Account {
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
   }
 
+  getAnyPublicKey(): AnyPublicKey {
+    return this.publicKey;
+  }
+
   /**
    * Derives an account from a randomly generated private key based on the specified signing scheme.
    * The default generation scheme is Ed25519, but it can also support Secp256k1Ecdsa.
@@ -106,7 +131,7 @@ export class SingleKeyAccount implements Account {
    */
   static generate(args: SingleKeySignerGenerateArgs = {}) {
     const { scheme = SigningSchemeInput.Ed25519 } = args;
-    let privateKey: PrivateKey;
+    let privateKey: PrivateKeyInput;
     switch (scheme) {
       case SigningSchemeInput.Ed25519:
         privateKey = Ed25519PrivateKey.generate();
@@ -135,7 +160,7 @@ export class SingleKeyAccount implements Account {
    */
   static fromDerivationPath(args: SingleKeySignerFromDerivationPathArgs) {
     const { scheme = SigningSchemeInput.Ed25519, path, mnemonic } = args;
-    let privateKey: PrivateKey;
+    let privateKey: PrivateKeyInput;
     switch (scheme) {
       case SigningSchemeInput.Ed25519:
         privateKey = Ed25519PrivateKey.fromDerivationPath(path, mnemonic);
@@ -212,4 +237,8 @@ export class SingleKeyAccount implements Account {
   }
 
   // endregion
+
+  static fromEd25519Account(account: Ed25519Account): SingleKeyAccount {
+    return new SingleKeyAccount({ privateKey: account.privateKey, address: account.accountAddress });
+  }
 }
