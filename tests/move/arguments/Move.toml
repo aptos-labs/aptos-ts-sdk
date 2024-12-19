@@ -3,13 +3,11 @@ name = "Argument Tests for the Typescript SDK"
 version = "0.0.0"
 
 [dependencies]
-AptosFramework = { local = "../../../../aptos-core-1/aptos-move/framework/aptos-framework" }
-AptosTokenObjects = { local = "../../../../aptos-core-1/aptos-move/framework/aptos-token-objects" }
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-framework"}
+AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-token-objects"}
 
 [addresses]
-aptos_framework = "0x1"
-aptos_token_objects = "0x4"
-transaction_arguments = "_"
+transaction_arguments = "0x2cca48b8b0d7f77ef28bfd608883c599680c5b8db8192c5e3baaae1aee45114c"
 
 [dev-addresses]
 transaction_arguments="0xbeefcafe"
