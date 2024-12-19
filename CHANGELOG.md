@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+
+- [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
 # 1.33.1 (2024-11-28)
