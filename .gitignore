@@ -21,3 +21,4 @@ examples/typescript/facoin/facoin.json
 
 .env
 .env.*
+*.tgz

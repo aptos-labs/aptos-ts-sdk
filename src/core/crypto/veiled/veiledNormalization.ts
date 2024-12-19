@@ -6,7 +6,7 @@ import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
-import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { RangeProofExecutor } from "../rangeProof";
 import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledNormalizationSigmaProof = {
@@ -252,7 +252,7 @@ export class VeiledNormalization {
   async genRangeProof(): Promise<Uint8Array[]> {
     const rangeProof = await Promise.all(
       this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
-        generateRangeZKP({
+        RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: this.decryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -270,7 +270,7 @@ export class VeiledNormalization {
   }): Promise<boolean> {
     const isRangeProofValidations = await Promise.all(
       opts.rangeProof.map((proof, i) =>
-        verifyRangeZKP({
+        RangeProofExecutor.verifyRangeZKP({
           proof,
           commitment: opts.normalizedEncryptedBalance[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),

@@ -2,6 +2,7 @@ import { invert, mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
 import { randomBytes } from "@noble/hashes/utils";
+import { Buffer } from "buffer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 

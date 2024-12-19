@@ -20,6 +20,8 @@ import {
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { longTestTimeout } from "../../unit/helper";
 import { VeiledBalance, VeiledCoin } from "../../../src/api/veiledCoin";
+import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
+import { generateRangeZKP, verifyRangeZKP } from "../../unit/veiled/wasmRangeProof";
 
 describe("Veiled balance api", () => {
   const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
@@ -101,6 +103,10 @@ describe("Veiled balance api", () => {
   const alice = Account.fromPrivateKey({
     privateKey: new Ed25519PrivateKey(TESTNET_PK!),
   });
+
+  /** !important: for testing purposes */
+  RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
+  RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 
   test(
     "it should fund Alice aptos accounts balances",
@@ -366,7 +372,7 @@ describe("Veiled balance api", () => {
         tokenAddress: TOKEN_ADDRESS,
       });
 
-      unnormalizedAliceEncryptedBalance = unnormalizedAliceBalances.pending;
+      unnormalizedAliceEncryptedBalance = unnormalizedAliceBalances.actual;
     }
 
     expect(isAliceBalanceNormalized).toBeTruthy();

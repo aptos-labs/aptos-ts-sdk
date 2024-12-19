@@ -7,7 +7,7 @@ import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN }
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_TRANSFER_SIZE } from "./consts";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { HexInput } from "../../../types";
-import { generateRangeZKP, verifyRangeZKP } from "./rangeProof";
+import { RangeProofExecutor } from "../rangeProof";
 import { VeiledAmount } from "./veiledAmount";
 
 export type VeiledTransferSigmaProof = {
@@ -445,7 +445,7 @@ export class VeiledTransfer {
   async genRangeProof(): Promise<VeiledTransferRangeProof> {
     const rangeProofAmountPromise = Promise.all(
       this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
-        generateRangeZKP({
+        RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -456,7 +456,7 @@ export class VeiledTransfer {
 
     const rangeProofNewBalancePromise = Promise.all(
       this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
-        generateRangeZKP({
+        RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: this.senderDecryptionKey.toUint8Array(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -510,7 +510,7 @@ export class VeiledTransfer {
   }) {
     const rangeProofsValidations = await Promise.all([
       ...opts.rangeProofAmount.map((proof, i) =>
-        verifyRangeZKP({
+        RangeProofExecutor.verifyRangeZKP({
           proof,
           commitment: opts.encryptedAmountByRecipient[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
@@ -518,7 +518,7 @@ export class VeiledTransfer {
         }),
       ),
       ...opts.rangeProofNewBalance.map((proof, i) =>
-        verifyRangeZKP({
+        RangeProofExecutor.verifyRangeZKP({
           proof,
           commitment: opts.encryptedActualBalanceAfterTransfer[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),

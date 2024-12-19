@@ -13,8 +13,10 @@ import {
   NetworkToNetworkName,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
+  VeiledAmount,
 } from "../../../src";
-import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
+import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
+import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
 /**
  * Address of the mocked fungible token on the testnet
@@ -102,3 +104,7 @@ export const getTestVeiledAccount = () => {
 
   return TwistedEd25519PrivateKey.generate();
 };
+
+/** !important: for testing purposes */
+RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
+RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
