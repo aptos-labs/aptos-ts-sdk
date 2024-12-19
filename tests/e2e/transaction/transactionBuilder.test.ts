@@ -10,7 +10,6 @@ import {
   parseTypeTag,
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
-  AptosIntentBuilder,
   FeePayerRawTransaction,
   MultiAgentRawTransaction,
   RawTransaction,
