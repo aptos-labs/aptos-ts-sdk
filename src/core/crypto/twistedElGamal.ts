@@ -6,6 +6,8 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { HexInput } from "../../types";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "./utils";
+import { KangarooRistretto } from "./kangaroo/kangarooRistretto";
+// import { ShanksRistretto } from "./bsgs";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -48,10 +50,9 @@ export class TwistedElGamal {
    * Decrypts the amount with Twisted ElGamal
    *
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
-   * @param decryptionRange The range of amounts to be used in decryption
    */
-  public decrypt(ciphertext: TwistedElGamalCiphertext, decryptionRange?: DecryptionRange): bigint {
-    return TwistedElGamal.decryptWithPK(ciphertext, this.privateKey, decryptionRange);
+  public async decrypt(ciphertext: TwistedElGamalCiphertext): Promise<bigint> {
+    return TwistedElGamal.decryptWithPK(ciphertext, this.privateKey);
   }
 
   /**
@@ -99,34 +100,43 @@ export class TwistedElGamal {
    * @param privateKey Twisted ElGamal Ed25519 private key.
    * @param decryptionRange The range of amounts to be used in decryption
    */
-  static decryptWithPK(
+  static async decryptWithPK(
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
-    decryptionRange?: DecryptionRange,
-  ): bigint {
+  ): Promise<bigint> {
     const { C, D } = ciphertext;
     const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
     const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
 
+    /* Kangaroo Ristretto */
+
+    const decryptedAmount = await KangarooRistretto.solveDLP(bytesToNumberLE(mG.toRawBytes()));
+
+    /* Baby step Giant step Ristretto */
+
+    // const decryptedAmount = ShanksRistretto.babyStepGiantStepRistretto(mG);
+
     // TODO: Replace brute-force search with another algorithm for optimization
-    let amount = decryptionRange?.start ?? BigInt(0);
-    if (amount === BigInt(0)) {
-      if (mG.equals(RistrettoPoint.ZERO)) return BigInt(0);
+    // let amount = decryptionRange?.start ?? BigInt(0);
+    // if (amount === BigInt(0)) {
+    //   if (mG.equals(RistrettoPoint.ZERO)) return BigInt(0);
+    //
+    //   amount += BigInt(1);
+    // }
+    //
+    // let searchablePoint = RistrettoPoint.BASE.multiply(amount);
+    // const endAmount = decryptionRange?.end ?? ed25519.CURVE.n - 1n;
+    //
+    // while (!mG.equals(searchablePoint)) {
+    //   if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
+    //
+    //   amount += BigInt(1);
+    //   searchablePoint = searchablePoint.add(RistrettoPoint.BASE);
+    // }
+    // return amount;
 
-      amount += BigInt(1);
-    }
-
-    let searchablePoint = RistrettoPoint.BASE.multiply(amount);
-    const endAmount = decryptionRange?.end ?? ed25519.CURVE.n - 1n;
-
-    while (!mG.equals(searchablePoint)) {
-      if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
-
-      amount += BigInt(1);
-      searchablePoint = searchablePoint.add(RistrettoPoint.BASE);
-    }
-    return amount;
+    return decryptedAmount || 0n;
   }
 
   /**
@@ -154,7 +164,7 @@ export class TwistedElGamal {
    * Modify ciphertext by ciphertext
    * @param operand1 Сiphertext points encrypted by Twisted ElGamal
    * @param operation Operation to change ciphertext points
-   * @param operand1 Сiphertext points encrypted by Twisted ElGamal
+   * @param operand2 Сiphertext points encrypted by Twisted ElGamal
    */
   static modifyCiphertextByCiphertext(
     operand1: TwistedElGamalCiphertext,
@@ -211,5 +221,9 @@ export class TwistedElGamalCiphertext {
     const updatedD = this.D.subtract(ciphertext.D);
 
     return new TwistedElGamalCiphertext(updatedC.toRawBytes(), updatedD.toRawBytes());
+  }
+
+  public serialize(): Uint8Array {
+    return new Uint8Array([...this.C.toRawBytes(), ...this.D.toRawBytes()]);
   }
 }

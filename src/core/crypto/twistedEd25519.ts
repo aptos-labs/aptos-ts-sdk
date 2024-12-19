@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
-import { bytesToNumberLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializable, Serializer } from "../../bcs/serializer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
-import { ed25519InvertN } from "./utils";
+import { ed25519InvertN, ed25519modN } from "./utils";
+import { Ed25519Signature } from "./ed25519";
 
 export { RistrettoPoint } from "@noble/curves/ed25519";
 export type RistPoint = InstanceType<typeof RistrettoPoint>;
@@ -156,6 +157,16 @@ export class TwistedEd25519PrivateKey extends Serializable {
       throw new Error(`Invalid derivation path ${path}`);
     }
     return TwistedEd25519PrivateKey.fromDerivationPathInner(path, mnemonicToSeed(mnemonics));
+  }
+
+  static decryptionKeyDerivationMessage = "Sign this message to derive decryption key from your private key";
+
+  static fromSignature(signature: Ed25519Signature): TwistedEd25519PrivateKey {
+    const scalarLE = bytesToNumberLE(signature.toUint8Array());
+    const invertModScalarLE = ed25519modN(scalarLE);
+    const key = numberToBytesLE(invertModScalarLE, 32);
+
+    return new TwistedEd25519PrivateKey(key);
   }
 
   /**
