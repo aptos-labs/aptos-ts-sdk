@@ -21,6 +21,7 @@ export const NetworkToNodeAPI: Record<string, string> = {
   testnet: "https://api.testnet.aptoslabs.com/v1",
   devnet: "https://api.devnet.aptoslabs.com/v1",
   local: "http://127.0.0.1:8080/v1",
+  custom: "http://127.0.0.1:8080/v1",
 };
 
 /**
