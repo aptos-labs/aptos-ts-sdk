@@ -8,15 +8,15 @@
  * name namespace and without having a dependency cycle error.
  */
 
-import { BatchArgument } from "@wgb5445/aptos-intent-npm";
+import { CallArgument } from "@aptos-labs/script-composer-pack";
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, Ed25519PublicKey } from "../core";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MoveString } from "../bcs";
-import { AptosIntentBuilder } from "../transactions";
 import { MoveVMPermissionType, Permission, FungibleAssetPermission, NFTPermission } from "../types/permissions";
 import { Transaction } from "../api/transaction";
 import { view } from "./view";
+import { AptosScriptComposer } from "../transactions";
 
 // functions
 export async function getPermissions<T extends Permission>({
@@ -89,7 +89,7 @@ export async function requestPermission(args: {
     subAccountPublicKey: permissionedAccountPublicKey,
   });
 
-  return transaction.build.batched_intents({
+  return transaction.build.scriptComposer({
     sender: primaryAccountAddress,
     builder: async (builder) => {
       // Get the permissioned signer - either create new one or use existing
@@ -157,18 +157,18 @@ export async function revokePermissions(args: {
   const { aptosConfig, primaryAccountAddress, subAccountPublicKey, permissions } = args;
 
   const transaction = new Transaction(aptosConfig);
-  return transaction.build.batched_intents({
+  return transaction.build.scriptComposer({
     sender: primaryAccountAddress,
     builder: async (builder) => {
-      const signer = await builder.add_batched_calls({
+      const signer = await builder.addBatchedCalls({
         function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-        functionArguments: [BatchArgument.new_signer(0), subAccountPublicKey.toUint8Array()],
+        functionArguments: [CallArgument.new_signer(0), subAccountPublicKey.toUint8Array()],
         typeArguments: [],
       });
 
       const permissionPromises = permissions.map((permission) => {
         if (permission instanceof FungibleAssetPermission) {
-          return builder.add_batched_calls({
+          return builder.addBatchedCalls({
             function: "0x1::fungible_asset::revoke_permission",
             functionArguments: [signer[0].borrow(), permission.asset],
             typeArguments: [],
@@ -176,7 +176,7 @@ export async function revokePermissions(args: {
         }
         // TODO: object nft revoke
         if (permission instanceof NFTPermission) {
-          return builder.add_batched_calls({
+          return builder.addBatchedCalls({
             function: "0x1::object::revoke_permission",
             functionArguments: [signer[0].borrow(), permission.assetAddress],
             typeArguments: ["0x4::token::Token"],
@@ -195,29 +195,29 @@ export async function revokePermissions(args: {
 
 //  helper functions
 async function getPermissionedSigner(
-  builder: AptosIntentBuilder,
+  builder: AptosScriptComposer,
   args: {
     existingHandleAddress: string | null;
     permissionedAccountPublicKey: Ed25519PublicKey;
   },
 ) {
   if (args.existingHandleAddress) {
-    const signer = await builder.add_batched_calls({
+    const signer = await builder.addBatchedCalls({
       function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-      functionArguments: [BatchArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array()],
+      functionArguments: [CallArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array()],
       typeArguments: [],
     });
     return { signer, isNewHandle: false };
   }
 
   // Create new handle and signer
-  const handle = await builder.add_batched_calls({
+  const handle = await builder.addBatchedCalls({
     function: "0x1::permissioned_signer::create_storable_permissioned_handle",
-    functionArguments: [BatchArgument.new_signer(0), 360],
+    functionArguments: [CallArgument.new_signer(0), 360],
     typeArguments: [],
   });
 
-  const signer = await builder.add_batched_calls({
+  const signer = await builder.addBatchedCalls({
     function: "0x1::permissioned_signer::signer_from_storable_permissioned",
     functionArguments: [handle[0].borrow()],
     typeArguments: [],
@@ -227,17 +227,17 @@ async function getPermissionedSigner(
 }
 
 async function grantPermission(
-  builder: AptosIntentBuilder,
+  builder: AptosScriptComposer,
   args: {
-    permissionedSigner: BatchArgument[];
+    permissionedSigner: CallArgument[];
     permission: Permission;
   },
 ) {
   if (args.permission instanceof FungibleAssetPermission) {
-    return builder.add_batched_calls({
+    return builder.addBatchedCalls({
       function: "0x1::fungible_asset::grant_permission",
       functionArguments: [
-        BatchArgument.new_signer(0),
+        CallArgument.new_signer(0),
         args.permissionedSigner[0].borrow(),
         args.permission.asset,
         args.permission.amount,
@@ -246,12 +246,12 @@ async function grantPermission(
     });
   }
   if (args.permission instanceof NFTPermission) {
-    const txn: Promise<BatchArgument[]>[] = [];
+    const txn: Promise<CallArgument[]>[] = [];
     if (args.permission.capabilities.transfer) {
-      return builder.add_batched_calls({
+      return builder.addBatchedCalls({
         function: "0x1::object::grant_permission",
         functionArguments: [
-          BatchArgument.new_signer(0),
+          CallArgument.new_signer(0),
           args.permissionedSigner[0].borrow(),
           args.permission.assetAddress,
         ],
@@ -271,22 +271,22 @@ async function grantPermission(
 }
 
 async function finalizeNewHandle(
-  builder: AptosIntentBuilder,
+  builder: AptosScriptComposer,
   args: {
     permissionedAccountPublicKey: Ed25519PublicKey;
-    handle: BatchArgument[];
+    handle: CallArgument[];
   },
 ) {
-  await builder.add_batched_calls({
+  await builder.addBatchedCalls({
     function: "0x1::permissioned_delegation::add_permissioned_handle",
-    functionArguments: [BatchArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array(), args.handle[0]],
+    functionArguments: [CallArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array(), args.handle[0]],
     typeArguments: [],
   });
 
-  await builder.add_batched_calls({
+  await builder.addBatchedCalls({
     function: "0x1::lite_account::add_dispatchable_authentication_function",
     functionArguments: [
-      BatchArgument.new_signer(0),
+      CallArgument.new_signer(0),
       AccountAddress.ONE,
       new MoveString("permissioned_delegation"),
       new MoveString("authenticate"),
