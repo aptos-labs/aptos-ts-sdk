@@ -33,6 +33,7 @@ describe("transaction submission", () => {
   let contractPublisherAccount: Ed25519Account;
   let primaryAccount: SingleKeyAccount;
   let subAccount: AbstractedEd25519Account;
+  let subAccount2: AbstractedEd25519Account;
   let receiverAccounts: Ed25519Account[];
 
   beforeAll(async () => {
@@ -44,9 +45,52 @@ describe("transaction submission", () => {
   beforeEach(async () => {
     primaryAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
     subAccount = AbstractedEd25519Account.generate();
+    subAccount2 = AbstractedEd25519Account.generate();
     receiverAccounts = [Account.generate(), Account.generate()];
     await fundAccounts(LOCAL_NET.aptos, [primaryAccount, ...receiverAccounts]);
   }, longTestTimeout);
+
+  test("Able to grant permissions to multiple sub accounts with the same primary account", async () => {
+    const APT_PERMISSION = FungibleAssetPermission.from({
+      asset: AccountAddress.A, // apt address
+      amount: 10,
+    });
+
+    try {
+      await requestPermission({
+        primaryAccount,
+        permissionedAccount: subAccount,
+        permissions: [APT_PERMISSION],
+      });
+
+      const perm1 = await aptos.getPermissions({
+        primaryAccountAddress: primaryAccount.accountAddress,
+        subAccountPublicKey: subAccount.publicKey,
+        filter: FungibleAssetPermission,
+      });
+      expect(perm1.length).toBe(1);
+    } catch (e) {
+      console.log("Error: ", e);
+      expect(false).toBeTruthy();
+    }
+
+    try {
+      await requestPermission({
+        primaryAccount,
+        permissionedAccount: subAccount2,
+        permissions: [APT_PERMISSION],
+      });
+      const perm2 = await aptos.getPermissions({
+        primaryAccountAddress: primaryAccount.accountAddress,
+        subAccountPublicKey: subAccount2.publicKey,
+        filter: FungibleAssetPermission,
+      });
+      expect(perm2.length).toBe(1);
+    } catch (e) {
+      console.log("Error: ", e);
+      expect(false).toBeTruthy();
+    }
+  });
 
   test("Able to re-grant permissions for the same subaccount", async () => {
     // account
