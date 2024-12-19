@@ -14,15 +14,21 @@ import { KeylessPublicKey, KeylessSignature } from "./keyless";
  * These keys use an on-chain address as a source of truth for the JWK used to verify signatures.
  *
  * FederatedKeylessPublicKey authentication key is represented in the SDK as `AnyPublicKey`.
+ * @group Implementation
+ * @category Serialization
  */
 export class FederatedKeylessPublicKey extends AccountPublicKey {
   /**
    * The address that contains the JWK set to be used for verification.
+   * @group Implementation
+   * @category Serialization
    */
   readonly jwkAddress: AccountAddress;
 
   /**
    * The inner public key which contains the standard Keyless public key.
+   * @group Implementation
+   * @category Serialization
    */
   readonly keylessPublicKey: KeylessPublicKey;
 
@@ -36,6 +42,8 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    * Get the authentication key for the federated keyless public key
    *
    * @returns AuthenticationKey
+   * @group Implementation
+   * @category Serialization
    */
   authKey(): AuthenticationKey {
     const serializer = new Serializer();
@@ -53,6 +61,8 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    * @param args.message message
    * @param args.signature The signature
    * @returns true if the signature is valid
+   * @group Implementation
+   * @category Serialization
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
@@ -83,6 +93,8 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    * @param args.aud the client ID of the application
    * @param args.pepper The pepper used to maintain privacy of the account
    * @returns FederatedKeylessPublicKey
+   * @group Implementation
+   * @category Serialization
    */
   static create(args: {
     iss: string;

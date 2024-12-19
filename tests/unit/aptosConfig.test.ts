@@ -30,7 +30,7 @@ describe("aptos config", () => {
     const aptosConfig = new AptosConfig(settings);
     expect(aptosConfig.network).toEqual("testnet");
     expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.TESTNET]);
-    expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.TESTNET]);
+    expect(() => aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toThrow();
     expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.TESTNET]);
   });
 
@@ -41,7 +41,7 @@ describe("aptos config", () => {
     const aptosConfig = new AptosConfig(settings);
     expect(aptosConfig.network).toEqual("mainnet");
     expect(aptosConfig.getRequestUrl(AptosApiType.FULLNODE)).toBe(NetworkToNodeAPI[Network.MAINNET]);
-    expect(aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toBe(NetworkToFaucetAPI[Network.MAINNET]);
+    expect(() => aptosConfig.getRequestUrl(AptosApiType.FAUCET)).toThrow();
     expect(aptosConfig.getRequestUrl(AptosApiType.INDEXER)).toBe(NetworkToIndexerAPI[Network.MAINNET]);
   });
 

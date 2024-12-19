@@ -6,6 +6,7 @@
  * the {@link api/faucet}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * faucet namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 
 import { AptosConfig } from "../api/aptosConfig";
@@ -19,6 +20,9 @@ import { waitForTransaction } from "./transaction";
  * Funds an account with a specified amount of tokens from the Aptos faucet.
  * This function is useful for quickly providing a new or existing account with tokens to facilitate transactions.
  *
+ * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+ * the minting page at https://aptos.dev/network/faucet.
+ *
  * @param args - The arguments for funding the account.
  * @param args.aptosConfig - The configuration settings for connecting to the Aptos network.
  * @param args.accountAddress - The address of the account to be funded.
@@ -28,6 +32,7 @@ import { waitForTransaction } from "./transaction";
  * @param args.options.checkSuccess - A flag indicating whether to check if the transaction was successful.
  *
  * @throws Error if the transaction does not return a user transaction type.
+ * @group Implementation
  */
 export async function fundAccount(args: {
   aptosConfig: AptosConfig;

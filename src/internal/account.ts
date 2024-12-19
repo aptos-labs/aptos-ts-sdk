@@ -6,6 +6,7 @@
  * the {@link api/account}. By moving the methods out into a separate file,
  * other namespaces and processes can access these methods without depending on the entire
  * account namespace and without having a dependency cycle error.
+ * @group Implementation
  */
 import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, paginateWithCursor } from "../client";
@@ -63,6 +64,7 @@ import { AptosApiError } from "../errors";
  * @param args - The arguments for retrieving account information.
  * @param args.aptosConfig - The configuration object for Aptos.
  * @param args.accountAddress - The address of the account to retrieve information for.
+ * @group Implementation
  */
 export async function getInfo(args: {
   aptosConfig: AptosConfig;
@@ -87,6 +89,7 @@ export async function getInfo(args: {
  * @param args.options.limit - The maximum number of modules to retrieve (default is 1000).
  * @param args.options.offset - The starting point for pagination.
  * @param args.options.ledgerVersion - The specific ledger version to query.
+ * @group Implementation
  */
 export async function getModules(args: {
   aptosConfig: AptosConfig;
@@ -117,6 +120,7 @@ export async function getModules(args: {
  * @param args.options - Optional parameters for the request.
  * @param args.options.ledgerVersion - Specifies the ledger version of transactions. By default, the latest version will be used.
  * @returns The move module.
+ * @group Implementation
  */
 export async function getModule(args: {
   aptosConfig: AptosConfig;
@@ -146,6 +150,7 @@ export async function getModule(args: {
  * @param args.moduleName - The name of the module to retrieve.
  * @param args.options - Optional parameters for specifying the ledger version.
  * @param args.options.ledgerVersion - The specific ledger version to query.
+ * @group Implementation
  */
 async function getModuleInner(args: {
   aptosConfig: AptosConfig;
@@ -174,6 +179,7 @@ async function getModuleInner(args: {
  * @param args.options - Optional pagination parameters.
  * @param args.options.offset - The starting point for pagination.
  * @param args.options.limit - The maximum number of transactions to retrieve.
+ * @group Implementation
  */
 export async function getTransactions(args: {
   aptosConfig: AptosConfig;
@@ -199,6 +205,7 @@ export async function getTransactions(args: {
  * @param args.options.offset - The starting point for pagination.
  * @param args.options.limit - The maximum number of resources to retrieve (default is 999).
  * @param args.options.ledgerVersion - The specific ledger version to query.
+ * @group Implementation
  */
 export async function getResources(args: {
   aptosConfig: AptosConfig;
@@ -226,6 +233,7 @@ export async function getResources(args: {
  * @param args.accountAddress - The address of the account from which to retrieve the resource.
  * @param args.resourceType - The type of the resource to retrieve, specified as a MoveStructId.
  * @param args.options - Optional parameters for specifying the ledger version.
+ * @group Implementation
  */
 export async function getResource<T extends {}>(args: {
   aptosConfig: AptosConfig;
@@ -252,6 +260,7 @@ export async function getResource<T extends {}>(args: {
  * @param args.options - Optional parameters for specifying the ledger version.
  * @returns The original account address or the provided authentication key address if not found.
  * @throws Throws an error if the lookup fails for reasons other than the address not being found.
+ * @group Implementation
  */
 export async function lookupOriginalAccountAddress(args: {
   aptosConfig: AptosConfig;
@@ -306,6 +315,7 @@ export async function lookupOriginalAccountAddress(args: {
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.accountAddress - The address of the account for which to count the tokens.
  * @returns The count of tokens owned by the specified account.
+ * @group Implementation
  */
 export async function getAccountTokensCount(args: {
   aptosConfig: AptosConfig;
@@ -350,6 +360,7 @@ export async function getAccountTokensCount(args: {
  * @param args.options.limit - The maximum number of records to return.
  * @param args.options.orderBy - The criteria for ordering the results.
  * @returns A promise that resolves to the current token ownerships of the specified account.
+ * @group Implementation
  */
 export async function getAccountOwnedTokens(args: {
   aptosConfig: AptosConfig;
@@ -397,6 +408,7 @@ export async function getAccountOwnedTokens(args: {
  * @param args.collectionAddress - The address of the collection from which tokens are being retrieved.
  * @param args.options - Optional parameters for filtering and pagination, including token standard, pagination arguments, and
  * order by options.
+ * @group Implementation
  */
 export async function getAccountOwnedTokensFromCollectionAddress(args: {
   aptosConfig: AptosConfig;
@@ -453,6 +465,7 @@ export async function getAccountOwnedTokensFromCollectionAddress(args: {
  * @param args.options.offset - An optional offset for pagination.
  * @param args.options.limit - An optional limit for the number of results returned.
  * @param args.options.orderBy - An optional parameter to specify the order of the results.
+ * @group Implementation
  */
 export async function getAccountCollectionsWithOwnedTokens(args: {
   aptosConfig: AptosConfig;
@@ -501,6 +514,7 @@ export async function getAccountCollectionsWithOwnedTokens(args: {
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account for which to retrieve the transaction count.
  * @returns The number of transactions associated with the specified account.
+ * @group Implementation
  */
 export async function getAccountTransactionsCount(args: {
   aptosConfig: AptosConfig;
@@ -536,6 +550,7 @@ export async function getAccountTransactionsCount(args: {
  * @param args.faMetadataAddress - Optional; the address of the fungible asset metadata.
  * @returns The amount of the specified coin held by the account, or 0 if none is found.
  * @throws Error if neither coinType nor faMetadataAddress is provided.
+ * @group Implementation
  */
 export async function getAccountCoinAmount(args: {
   aptosConfig: AptosConfig;
@@ -600,6 +615,7 @@ export async function getAccountCoinAmount(args: {
  * @param args.options.limit - The maximum number of items to return.
  * @param args.options.orderBy - The criteria for ordering the results.
  * @param args.options.where - Conditions to filter the results based on the current fungible asset balances.
+ * @group Implementation
  */
 export async function getAccountCoinsData(args: {
   aptosConfig: AptosConfig;
@@ -640,6 +656,7 @@ export async function getAccountCoinsData(args: {
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.accountAddress - The address of the account for which to retrieve the coin count.
  * @throws Error if the count of account coins cannot be retrieved.
+ * @group Implementation
  */
 export async function getAccountCoinsCount(args: {
   aptosConfig: AptosConfig;
@@ -677,6 +694,7 @@ export async function getAccountCoinsCount(args: {
  * @param args.options.limit - The maximum number of items to return.
  * @param args.options.orderBy - The criteria to order the results by.
  * @returns A promise that resolves to the current objects owned by the specified account.
+ * @group Implementation
  */
 export async function getAccountOwnedObjects(args: {
   aptosConfig: AptosConfig;
@@ -721,6 +739,7 @@ export async function getAccountOwnedObjects(args: {
  * @param args.aptosConfig - The Aptos configuration used for account lookup.
  * @param args.privateKey - The private key used to derive the account.
  * @throws Error if the account cannot be derived from the private key.
+ * @group Implementation
  */
 export async function deriveAccountFromPrivateKey(args: {
   aptosConfig: AptosConfig;
@@ -773,6 +792,7 @@ export async function deriveAccountFromPrivateKey(args: {
  * @returns A promise that resolves to a boolean indicating whether the account exists.
  *
  * @throws Throws an Error if there is an issue while looking for account information.
+ * @group Implementation
  */
 export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: AuthenticationKey }): Promise<boolean> {
   const { aptosConfig, authKey } = args;

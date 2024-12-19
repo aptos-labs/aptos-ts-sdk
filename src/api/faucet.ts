@@ -10,10 +10,14 @@ import { ProcessorType } from "../utils";
 
 /**
  * A class to query all `Faucet` related queries on Aptos.
+ * @group Faucet
  */
 export class Faucet {
   /**
    * Initializes a new instance of the Aptos client with the specified configuration.
+   *
+   * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+   * the minting page at https://aptos.dev/network/faucet.
    *
    * @param config - The configuration settings for the Aptos client.
    *
@@ -23,7 +27,7 @@ export class Faucet {
    *
    * async function runExample() {
    *     // Create a configuration for the Aptos client
-   *     const config = new AptosConfig({ network: Network.TESTNET }); // specify your own network if needed
+   *     const config = new AptosConfig({ network: Network.DEVNET }); // specify your own network if needed
    *
    *     // Initialize the Aptos client with the configuration
    *     const aptos = new Aptos(config);
@@ -32,11 +36,15 @@ export class Faucet {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Faucet
    */
   constructor(readonly config: AptosConfig) {}
 
   /**
    * This function creates an account if it does not exist and mints the specified amount of coins into that account.
+   *
+   * Note that only devnet has a publicly accessible faucet. For testnet, you must use
+   * the minting page at https://aptos.dev/network/faucet.
    *
    * @param args - The arguments for funding the account.
    * @param args.accountAddress - The address of the account to fund.
@@ -48,7 +56,7 @@ export class Faucet {
    * ```typescript
    * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
    *
-   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const config = new AptosConfig({ network: Network.DEVNET });
    * const aptos = new Aptos(config);
    *
    * async function runExample() {
@@ -62,6 +70,7 @@ export class Faucet {
    * }
    * runExample().catch(console.error);
    * ```
+   * @group Faucet
    */
   async fundAccount(args: {
     accountAddress: AccountAddressInput;

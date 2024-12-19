@@ -16,6 +16,8 @@ import { AccountAuthenticatorVariant } from "../../types";
  * and deserialization of various authenticator types.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Transactions
  */
 export abstract class AccountAuthenticator extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -25,6 +27,8 @@ export abstract class AccountAuthenticator extends Serializable {
    * This function helps in reconstructing the AccountAuthenticator object based on the variant index.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): AccountAuthenticator {
     const index = deserializer.deserializeUleb128AsU32();
@@ -48,6 +52,8 @@ export abstract class AccountAuthenticator extends Serializable {
    * Determines if the current instance is an Ed25519 account authenticator.
    *
    * @returns {boolean} True if the instance is of type AccountAuthenticatorEd25519, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isEd25519(): this is AccountAuthenticatorEd25519 {
     return this instanceof AccountAuthenticatorEd25519;
@@ -57,6 +63,8 @@ export abstract class AccountAuthenticator extends Serializable {
    * Determines if the current instance is of type AccountAuthenticatorMultiEd25519.
    *
    * @returns {boolean} True if the instance is a multi-signature Ed25519 account authenticator, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isMultiEd25519(): this is AccountAuthenticatorMultiEd25519 {
     return this instanceof AccountAuthenticatorMultiEd25519;
@@ -66,6 +74,8 @@ export abstract class AccountAuthenticator extends Serializable {
    * Determines if the current instance is of the type AccountAuthenticatorSingleKey.
    *
    * @returns {boolean} True if the instance is an AccountAuthenticatorSingleKey, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isSingleKey(): this is AccountAuthenticatorSingleKey {
     return this instanceof AccountAuthenticatorSingleKey;
@@ -75,6 +85,8 @@ export abstract class AccountAuthenticator extends Serializable {
    * Determine if the current instance is of type AccountAuthenticatorMultiKey.
    *
    * @returns {boolean} Returns true if the instance is an AccountAuthenticatorMultiKey, otherwise false.
+   * @group Implementation
+   * @category Transactions
    */
   isMultiKey(): this is AccountAuthenticatorMultiKey {
     return this instanceof AccountAuthenticatorMultiKey;
@@ -87,6 +99,8 @@ export abstract class AccountAuthenticator extends Serializable {
  *
  * @param public_key - The Ed25519 public key associated with the account.
  * @param signature - The Ed25519 signature for the account.
+ * @group Implementation
+ * @category Transactions
  */
 export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
   public readonly public_key: Ed25519PublicKey;
@@ -98,6 +112,8 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
    *
    * @param public_key The public key used for verification.
    * @param signature The signatures corresponding to the public keys.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
     super();
@@ -110,6 +126,8 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
    * This function captures the multi-key variant, public keys, and signatures for serialization.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Ed25519);
@@ -122,6 +140,8 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
    * This function helps in reconstructing the authenticator object using the deserialized public keys and signatures.
    *
    * @param deserializer - The deserializer used to extract the necessary data for loading the authenticator.
+   * @group Implementation
+   * @category Transactions
    */
   static load(deserializer: Deserializer): AccountAuthenticatorEd25519 {
     const public_key = Ed25519PublicKey.deserialize(deserializer);
@@ -135,6 +155,8 @@ export class AccountAuthenticatorEd25519 extends AccountAuthenticator {
  *
  * @param public_key - The MultiEd25519 public key of the account.
  * @param signature - The MultiEd25519 signature of the account.
+ * @group Implementation
+ * @category Transactions
  */
 export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
   public readonly public_key: MultiEd25519PublicKey;
@@ -166,6 +188,8 @@ export class AccountAuthenticatorMultiEd25519 extends AccountAuthenticator {
  *
  * @param public_key - The public key used for authentication.
  * @param signature - The signature associated with the public key.
+ * @group Implementation
+ * @category Transactions
  */
 export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
   public readonly public_key: AnyPublicKey;
@@ -196,6 +220,8 @@ export class AccountAuthenticatorSingleKey extends AccountAuthenticator {
  *
  * @param public_keys - The public keys used for authentication.
  * @param signatures - The signatures corresponding to the public keys.
+ * @group Implementation
+ * @category Transactions
  */
 export class AccountAuthenticatorMultiKey extends AccountAuthenticator {
   public readonly public_keys: MultiKey;

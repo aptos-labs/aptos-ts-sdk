@@ -17,6 +17,8 @@ import { AnyNumber, Uint16, Uint32, Uint8 } from "../types";
  * This class serves as a base class for all serializable types. It facilitates
  * composable serialization of complex types and enables the serialization of
  * instances to their BCS (Binary Canonical Serialization) representation.
+ * @group Implementation
+ * @category BCS
  */
 export abstract class Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -25,6 +27,8 @@ export abstract class Serializable {
    * Serializes a `Serializable` value to its BCS representation.
    * This function is the TypeScript SDK equivalent of `bcs::to_bytes` in Move.
    * @returns the BCS representation of the Serializable instance as a byte buffer.
+   * @group Implementation
+   * @category BCS
    */
   bcsToBytes(): Uint8Array {
     const serializer = new Serializer();
@@ -36,6 +40,8 @@ export abstract class Serializable {
    * Converts the BCS-serialized bytes of a value into a Hex instance.
    * This function provides a Hex representation of the BCS-serialized data for easier handling and manipulation.
    * @returns A Hex instance with the BCS-serialized bytes loaded into its underlying Uint8Array.
+   * @group Implementation
+   * @category BCS
    */
   bcsToHex(): Hex {
     const bcsBytes = this.bcsToBytes();
@@ -64,6 +70,8 @@ export abstract class Serializable {
  * It provides methods to serialize strings, bytes, numbers, and other serializable objects
  * using the Binary Coded Serialization (BCS) layout. The serialized data can be retrieved as a
  * Uint8Array.
+ * @group Implementation
+ * @category BCS
  */
 export class Serializer {
   private buffer: ArrayBuffer;
@@ -75,6 +83,8 @@ export class Serializer {
    * The `length` must be greater than 0.
    *
    * @param length - The size of the buffer in bytes.
+   * @group Implementation
+   * @category BCS
    */
   constructor(length: number = 64) {
     if (length <= 0) {
@@ -89,6 +99,8 @@ export class Serializer {
    * This function dynamically resizes the buffer if the current size is insufficient.
    *
    * @param bytes - The number of bytes to ensure the buffer can handle.
+   * @group Implementation
+   * @category BCS
    */
   private ensureBufferWillHandleSize(bytes: number) {
     while (this.buffer.byteLength < this.offset + bytes) {
@@ -102,6 +114,8 @@ export class Serializer {
    * Appends the specified values to the buffer, ensuring that the buffer can accommodate the new data.
    *
    * @param {Uint8Array} values - The values to be appended to the buffer.
+   * @group Implementation
+   * @category BCS
    */
   protected appendToBuffer(values: Uint8Array) {
     this.ensureBufferWillHandleSize(values.length);
@@ -116,6 +130,8 @@ export class Serializer {
    * @param fn.byteOffset - The byte offset at which to write the value.
    * @param fn.value - The numeric value to serialize into the buffer.
    * @param fn.littleEndian - Optional flag indicating whether to use little-endian byte order (defaults to true).
+   * @group Implementation
+   * @category BCS
    */
   // TODO: JSDoc bytesLength and value
   private serializeWithFunction(
@@ -145,6 +161,8 @@ export class Serializer {
    * serializer.serializeStr("1234abcd");
    * assert(serializer.toUint8Array() === new Uint8Array([8, 49, 50, 51, 52, 97, 98, 99, 100]));
    * ```
+   * @group Implementation
+   * @category BCS
    */
   serializeStr(value: string) {
     const textEncoder = new TextEncoder();
@@ -158,6 +176,8 @@ export class Serializer {
    * BCS layout for "bytes": bytes_length | bytes
    * where bytes_length is a u32 integer encoded as a uleb128 integer, equal to the length of the bytes array.
    * @param value - The byte array to serialize.
+   * @group Implementation
+   * @category BCS
    */
   serializeBytes(value: Uint8Array) {
     this.serializeU32AsUleb128(value.length);
@@ -170,6 +190,8 @@ export class Serializer {
    * When deserializing, the number of bytes to deserialize needs to be passed in.
 
    * @param value - The Uint8Array to be serialized.
+   * @group Implementation
+   * @category BCS
    */
   serializeFixedBytes(value: Uint8Array) {
     this.appendToBuffer(value);
@@ -181,6 +203,8 @@ export class Serializer {
    * The BCS layout for a boolean uses one byte, where "0x01" represents true and "0x00" represents false.
    *
    * @param value - The boolean value to serialize.
+   * @group Implementation
+   * @category BCS
    */
   serializeBool(value: boolean) {
     /**
@@ -189,6 +213,8 @@ export class Serializer {
      *
      * @param value - The value to be checked for boolean type.
      * @throws {Error} Throws an error if the value is not a boolean.
+     * @group Implementation
+     * @category BCS
      */
     ensureBoolean(value);
     const byteValue = value ? 1 : 0;
@@ -200,6 +226,8 @@ export class Serializer {
    * BCS layout for "uint8": One byte. Binary format in little-endian representation.
    *
    * @param value - The Uint8 value to serialize.
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(0, MAX_U8_NUMBER)
   serializeU8(value: Uint8) {
@@ -209,6 +237,8 @@ export class Serializer {
   /**
    * Serializes a uint16 number.
    *
+   * @group Implementation
+   * @category BCS
 
    */
 
@@ -223,6 +253,8 @@ export class Serializer {
    * serializer.serializeU16(4660);
    * assert(serializer.toUint8Array() === new Uint8Array([0x34, 0x12]));
    * ```
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(0, MAX_U16_NUMBER)
   serializeU16(value: Uint16) {
@@ -239,6 +271,8 @@ export class Serializer {
    * assert(serializer.toUint8Array() === new Uint8Array([0x78, 0x56, 0x34, 0x12]));
    * ```
    * @param value - The 32-bit unsigned integer value to serialize.
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(0, MAX_U32_NUMBER)
   serializeU32(value: Uint32) {
@@ -256,6 +290,8 @@ export class Serializer {
    * serializer.serializeU64(1311768467750121216);
    * assert(serializer.toUint8Array() === new Uint8Array([0x00, 0xEF, 0xCD, 0xAB, 0x78, 0x56, 0x34, 0x12]));
    * ```
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(BigInt(0), MAX_U64_BIG_INT)
   serializeU64(value: AnyNumber) {
@@ -271,6 +307,8 @@ export class Serializer {
    * Serializes a U128 value into a format suitable for storage or transmission.
    *
    * @param value - The U128 value to serialize, represented as a number.
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(BigInt(0), MAX_U128_BIG_INT)
   serializeU128(value: AnyNumber) {
@@ -287,6 +325,8 @@ export class Serializer {
    * This function is essential for encoding large numbers in a compact format suitable for transmission or storage.
    *
    * @param value - The U256 value to serialize, represented as an AnyNumber.
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(BigInt(0), MAX_U256_BIG_INT)
   serializeU256(value: AnyNumber) {
@@ -303,6 +343,8 @@ export class Serializer {
    * BCS uses uleb128 encoding in two cases: (1) lengths of variable-length sequences and (2) tags of enum values
    *
    * @param val - The 32-bit unsigned integer value to be serialized.
+   * @group Implementation
+   * @category BCS
    */
   @checkNumberRange(0, MAX_U32_NUMBER)
   serializeU32AsUleb128(val: Uint32) {
@@ -322,6 +364,8 @@ export class Serializer {
    * This function allows you to retrieve the byte representation of the buffer up to the current offset.
    *
    * @returns Uint8Array - The byte array representation of the buffer.
+   * @group Implementation
+   * @category BCS
    */
   toUint8Array(): Uint8Array {
     return new Uint8Array(this.buffer).slice(0, this.offset);
@@ -333,6 +377,8 @@ export class Serializer {
    * @param value The Serializable value to serialize.
    *
    * @returns the serializer instance
+   * @group Implementation
+   * @category BCS
    */
   serialize<T extends Serializable>(value: T): void {
     // NOTE: The `serialize` method called by `value` is defined in `value`'s
@@ -358,6 +404,8 @@ export class Serializer {
    * // serializedBytes is now the BCS-serialized bytes
    * // The equivalent value in Move would be:
    * // `bcs::to_bytes(&vector<address> [@0x1, @0x2, @0xa, @0xb])`;
+   * @group Implementation
+   * @category BCS
    */
   serializeVector<T extends Serializable>(values: Array<T>): void {
     this.serializeU32AsUleb128(values.length);
@@ -382,6 +430,8 @@ export class Serializer {
    * serializer.serializeOption(new AccountAddress(...));  // Serializes optional Serializable
    * serializer.serializeOption(undefined);  // Serializes none case
    * ```
+   * @group Implementation
+   * @category BCS
    */
   serializeOption<T extends Serializable | string | Uint8Array>(value?: T, len?: number): void {
     const hasValue = value !== undefined;
@@ -411,6 +461,8 @@ export class Serializer {
    * BCS layout for undefined: 0
    *
    * @param value - The optional string to serialize. If undefined, it will serialize as 0.
+   * @group Implementation
+   * @category BCS
    */
   serializeOptionStr(value?: string): void {
     if (value === undefined) {
@@ -422,12 +474,19 @@ export class Serializer {
   }
 }
 
+/**
+ * @group Implementation
+ * @category BCS
+ */
 export function ensureBoolean(value: unknown): asserts value is boolean {
   if (typeof value !== "boolean") {
     throw new Error(`${value} is not a boolean value`);
   }
 }
-
+/**
+ * @group Implementation
+ * @category BCS
+ */
 export const outOfRangeErrorMessage = (value: AnyNumber, min: AnyNumber, max: AnyNumber) =>
   `${value} is out of range: [${min}, ${max}]`;
 
@@ -438,6 +497,8 @@ export const outOfRangeErrorMessage = (value: AnyNumber, min: AnyNumber, max: An
  * @param value - The number to validate.
  * @param minValue - The minimum allowable value (inclusive).
  * @param maxValue - The maximum allowable value (inclusive).
+ * @group Implementation
+ * @category BCS
  */
 export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T, maxValue: T) {
   const valueBigInt = BigInt(value);
@@ -452,6 +513,8 @@ export function validateNumberInRange<T extends AnyNumber>(value: T, minValue: T
  *
  * @param minValue - The input argument must be greater than or equal to this value.
  * @param maxValue - The input argument must be less than or equal to this value.
+ * @group Implementation
+ * @category BCS
  */
 function checkNumberRange<T extends AnyNumber>(minValue: T, maxValue: T) {
   return (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) => {

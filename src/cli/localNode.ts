@@ -7,9 +7,11 @@ import { platform } from "os";
 import { sleep } from "../utils/helpers";
 
 /**
- * Represents a local node for running a testnet environment.
- * This class provides methods to start, stop, and check the status of the local testnet process.
+ * Represents a local node for running a localnet environment.
+ * This class provides methods to start, stop, and check the status of the localnet process.
  * It manages the lifecycle of the node process and ensures that it is operational before executing tests.
+ * @group Implementation
+ * @category CLI
  */
 export class LocalNode {
   readonly MAXIMUM_WAIT_TIME_SEC = 75;
@@ -29,6 +31,8 @@ export class LocalNode {
    *
    * @returns {Promise<void>} A promise that resolves to true if the process was successfully killed.
    * @throws {Error} If there is an error while attempting to kill the process.
+   * @group Implementation
+   * @category CLI
    */
   async stop(): Promise<void> {
     await new Promise((resolve, reject) => {
@@ -41,6 +45,8 @@ export class LocalNode {
        * @param callback - A function that is called after the termination attempt is complete.
        * @param callback.err - An error object if the termination failed; otherwise, null.
        * @param callback.resolve - A boolean indicating whether the termination was successful.
+       * @group Implementation
+       * @category CLI
        */
       kill(this.process.pid, (err) => {
         if (err) {
@@ -53,10 +59,12 @@ export class LocalNode {
   }
 
   /**
-   * Runs a local testnet and waits for the process to be up.
+   * Runs a localnet and waits for the process to be up.
    * If the local node process is already running, it returns without starting the process.
    *
    * @returns {Promise<void>} A promise that resolves when the process is up.
+   * @group Implementation
+   * @category CLI
    */
   async run(): Promise<void> {
     const nodeIsUp = await this.checkIfProcessIsUp();
@@ -68,11 +76,13 @@ export class LocalNode {
   }
 
   /**
-   * Starts the local testnet by running the Aptos node with the specified command-line arguments.
+   * Starts the localnet by running the Aptos node with the specified command-line arguments.
    *
    * @returns {void}
    *
-   * @throws {Error} If there is an issue starting the local testnet.
+   * @throws {Error} If there is an issue starting the localnet.
+   * @group Implementation
+   * @category CLI
    */
   start(): void {
     const cliCommand = "npx";
@@ -105,10 +115,12 @@ export class LocalNode {
   }
 
   /**
-   * Waits for the local testnet process to be operational within a specified maximum wait time.
+   * Waits for the localnet process to be operational within a specified maximum wait time.
    * This function continuously checks if the process is up and will throw an error if it fails to start.
    *
    * @returns Promise<boolean> - Resolves to true if the process is up, otherwise throws an error.
+   * @group Implementation
+   * @category CLI
    */
   async waitUntilProcessIsUp(): Promise<boolean> {
     let operational = await this.checkIfProcessIsUp();
@@ -133,9 +145,11 @@ export class LocalNode {
   }
 
   /**
-   * Checks if the local testnet is up by querying the readiness endpoint.
+   * Checks if the localnet is up by querying the readiness endpoint.
    *
-   * @returns Promise<boolean> - A promise that resolves to true if the testnet is up, otherwise false.
+   * @returns Promise<boolean> - A promise that resolves to true if the localnet is up, otherwise false.
+   * @group Implementation
+   * @category CLI
    */
   async checkIfProcessIsUp(): Promise<boolean> {
     try {

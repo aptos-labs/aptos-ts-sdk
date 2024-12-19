@@ -167,6 +167,18 @@ async function stopLocalNode() {
   }
 }
 
+async function profileGas() {
+  try {
+    console.log("running gas profiling");
+    await move.gasProfile({
+      network: "mainnet",
+      transactionId: "1702334345",
+    });
+  } catch (error) {
+    console.error("error running gas profiling", error);
+  }
+}
+
 async function run() {
   // start the localnet
   await runLocalNode();
@@ -182,6 +194,9 @@ async function run() {
 
   // stop the localnet
   await stopLocalNode();
+
+  // run gas profiling
+  await profileGas();
 }
 
 run();

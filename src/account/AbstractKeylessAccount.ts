@@ -44,64 +44,88 @@ export function isKeylessSigner(obj: any): obj is KeylessSigner {
 /**
  * Account implementation for the Keyless authentication scheme.  This abstract class is used for standard Keyless Accounts
  * and Federated Keyless Accounts.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export abstract class AbstractKeylessAccount extends Serializable implements KeylessSigner {
   static readonly PEPPER_LENGTH: number = 31;
 
   /**
    * The KeylessPublicKey associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
 
   /**
    * The EphemeralKeyPair used to generate sign.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly ephemeralKeyPair: EphemeralKeyPair;
 
   /**
    * The claim on the JWT to identify a user.  This is typically 'sub' or 'email'.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly uidKey: string;
 
   /**
    * The value of the uidKey claim on the JWT.  This intended to be a stable user identifier.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly uidVal: string;
 
   /**
    * The value of the 'aud' claim on the JWT, also known as client ID.  This is the identifier for the dApp's
    * OIDC registration with the identity provider.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly aud: string;
 
   /**
    * A value contains 31 bytes of entropy that preserves privacy of the account. Typically fetched from a pepper provider.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly pepper: Uint8Array;
 
   /**
    * Account address associated with the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly accountAddress: AccountAddress;
 
   /**
    * The zero knowledge signature (if ready) which contains the proof used to validate the EphemeralKeyPair.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   proof: ZeroKnowledgeSig | undefined;
 
   /**
    * The proof of the EphemeralKeyPair or a promise that provides the proof.  This is used to allow for awaiting on
    * fetching the proof.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly proofOrPromise: ZeroKnowledgeSig | Promise<ZeroKnowledgeSig>;
 
   /**
    * Signing scheme used to sign transactions
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly signingScheme: SigningScheme;
 
   /**
    * The JWT token used to derive the account
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly jwt: string;
 
@@ -113,6 +137,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
 
   /**
    * An event emitter used to assist in handling asynchronous proof fetching.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   private readonly emitter: EventEmitter<ProofFetchEvents>;
 
@@ -200,8 +226,10 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   }
 
   /**
-   * This initializes the asynchronous proof fetch.
+   * This initializes the asynchronous proof fetch
    * @return Emits whether the proof succeeds or fails, but has no return.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   async init(promise: Promise<ZeroKnowledgeSig>) {
     try {
@@ -259,6 +287,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Checks if the proof is expired.  If so the account must be re-derived with a new EphemeralKeyPair
    * and JWT token.
    * @return boolean
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   isExpired(): boolean {
     return this.ephemeralKeyPair.isExpired();
@@ -268,6 +298,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Sign a message using Keyless.
    * @param message the message to sign, as binary input
    * @return the AccountAuthenticator containing the signature, together with the account's public key
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signWithAuthenticator(message: HexInput): AccountAuthenticatorSingleKey {
     const signature = new AnySignature(this.sign(message));
@@ -279,6 +311,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Sign a transaction using Keyless.
    * @param transaction the raw transaction
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorSingleKey {
     const signature = new AnySignature(this.signTransaction(transaction));
@@ -289,6 +323,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
   /**
    * Waits for asynchronous proof fetching to finish.
    * @return
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   async waitForProofFetch() {
     if (this.proofOrPromise instanceof Promise) {
@@ -339,6 +375,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Sign the given message using Keyless.
    * @param message in HexInput format
    * @returns Signature
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   sign(message: HexInput): KeylessSignature {
     const { expiryDateSecs } = this.ephemeralKeyPair;
@@ -370,6 +408,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * Signs the transaction and proof to guard against proof malleability.
    * @param transaction the transaction to be signed
    * @returns KeylessSignature
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   signTransaction(transaction: AnyRawTransaction): KeylessSignature {
     if (this.proof === undefined) {
@@ -394,6 +434,8 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    * @param args.message the message that was signed.
    * @param args.signature the KeylessSignature to verify
    * @returns boolean
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
     const { message, signature } = args;
@@ -462,20 +504,28 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
 /**
  * A container class to hold a transaction and a proof.  It implements CryptoHashable which is used to create
  * the signing message for Keyless transactions.  We sign over the proof to ensure non-malleability.
+ * @group Implementation
+ * @category Account (On-Chain Model)
  */
 export class TransactionAndProof extends Serializable {
   /**
    * The transaction to sign.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   transaction: AnyRawTransactionInstance;
 
   /**
    * The zero knowledge proof used in signing the transaction.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   proof?: ZkProof;
 
   /**
    * The domain separator prefix used when hashing.
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   readonly domainSeparator = "APTOS::TransactionAndProof";
 
@@ -500,25 +550,42 @@ export class TransactionAndProof extends Serializable {
    * Hashes the bcs serialized from of the class. This is the typescript corollary to the BCSCryptoHash macro in aptos-core.
    *
    * @returns Uint8Array
+   * @group Implementation
+   * @category Account (On-Chain Model)
    */
   hash(): Uint8Array {
     return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
   }
 }
-
+/**
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
 export type ProofFetchSuccess = {
   status: "Success";
 };
-
+/**
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
 export type ProofFetchFailure = {
   status: "Failed";
   error: string;
 };
-
+/**
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
 export type ProofFetchStatus = ProofFetchSuccess | ProofFetchFailure;
-
+/**
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
 export type ProofFetchCallback = (status: ProofFetchStatus) => Promise<void>;
-
+/**
+ * @group Implementation
+ * @category Account (On-Chain Model)
+ */
 export interface ProofFetchEvents {
   proofFetchFinish: (status: ProofFetchStatus) => void;
 }

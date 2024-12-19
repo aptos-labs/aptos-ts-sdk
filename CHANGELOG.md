@@ -4,11 +4,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+
+# 1.33.1 (2024-11-28)
+
+- Add `gasProfile` function to `Move` class to allow for gas profiling of Aptos Move functions
+- `PrivateKey.formatPrivateKey` now supports formatting AIP-80 strings
+- Removed strictness warnings for bytes AIP-80 private key parsing formatting.
+- Add accidentally deleted `deserializeOptionStr` and mark deprecated to unbreak Wallet Adapter
+
 # 1.33.0 (2024-11-13)
+
 - Allow optional provision of public keys in transaction simulation
 - Update the multisig v2 example to demonstrate a new way to pre-check a multisig payload before it is created on-chain
 
 # 1.32.1 (2024-11-11)
+
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
 - [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 

@@ -29,6 +29,27 @@ describe("Secp256k1PublicKey", () => {
     expect(publicKey2.toUint8Array()).toEqual(hexUint8Array);
   });
 
+  it("should work with compressed public keys", () => {
+    const expectedPublicKey = new Secp256k1PublicKey(secp256k1TestObject.publicKey);
+    const uncompressedPublicKey = Hex.fromHexInput(secp256k1TestObject.publicKey);
+    expect(uncompressedPublicKey.toUint8Array().length).toEqual(65);
+
+    const point = secp256k1.ProjectivePoint.fromHex(uncompressedPublicKey.toUint8Array());
+    const compressedPublicKey = point.toRawBytes(true);
+    const compressedPublicKeyHex = Hex.fromHexInput(compressedPublicKey);
+    expect(compressedPublicKey.length).toEqual(33);
+
+    const publicKey1 = new Secp256k1PublicKey(compressedPublicKeyHex.toString());
+    expect(publicKey1).toBeInstanceOf(Secp256k1PublicKey);
+    expect(publicKey1).toEqual(expectedPublicKey);
+
+    const publicKey2 = new Secp256k1PublicKey(compressedPublicKeyHex.toUint8Array());
+    expect(publicKey2).toBeInstanceOf(Secp256k1PublicKey);
+    expect(publicKey2).toEqual(expectedPublicKey);
+
+    expect(publicKey1).toEqual(publicKey2);
+  });
+
   it("should throw an error with invalid hex input length", () => {
     const invalidHexInput = "0123456789abcdef"; // Invalid length
     expect(() => new Secp256k1PublicKey(invalidHexInput)).toThrowError(

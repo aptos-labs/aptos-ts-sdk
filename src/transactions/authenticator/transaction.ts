@@ -15,6 +15,8 @@ import { TransactionAuthenticatorVariant } from "../../types";
  * This class provides methods for serializing and deserializing different types of transaction authenticators.
  *
  * @extends Serializable
+ * @group Implementation
+ * @category Transactions
  */
 export abstract class TransactionAuthenticator extends Serializable {
   abstract serialize(serializer: Serializer): void;
@@ -24,6 +26,8 @@ export abstract class TransactionAuthenticator extends Serializable {
    * This function helps in reconstructing the TransactionAuthenticator based on the variant index found in the serialized data.
    *
    * @param deserializer - The deserializer instance used to read the serialized data.
+   * @group Implementation
+   * @category Transactions
    */
   static deserialize(deserializer: Deserializer): TransactionAuthenticator {
     const index = deserializer.deserializeUleb128AsU32();
@@ -72,6 +76,8 @@ export abstract class TransactionAuthenticator extends Serializable {
  * @param signature - The Ed25519 signature of a raw transaction.
  * @see {@link https://aptos.dev/integration/creating-a-signed-transaction | Creating a Signed Transaction}
  * for details about generating a signature.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
   public readonly public_key: Ed25519PublicKey;
@@ -83,6 +89,8 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
    *
    * @param public_key - The Ed25519PublicKey that will be used for authentication.
    * @param signature - The Ed25519Signature that will be used for authentication.
+   * @group Implementation
+   * @category Transactions
    */
   constructor(public_key: Ed25519PublicKey, signature: Ed25519Signature) {
     super();
@@ -94,6 +102,8 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
    * Serializes the transaction authenticator by encoding the sender information.
    *
    * @param serializer - The serializer instance used to perform the serialization.
+   * @group Implementation
+   * @category Transactions
    */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TransactionAuthenticatorVariant.Ed25519);
@@ -106,6 +116,8 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
    * This function helps in deserializing the sender information to create a transaction authenticator.
    *
    * @param deserializer - The deserializer used to extract the sender data.
+   * @group Implementation
+   * @category Transactions
    */
   static load(deserializer: Deserializer): TransactionAuthenticatorEd25519 {
     const public_key = Ed25519PublicKey.deserialize(deserializer);
@@ -120,6 +132,8 @@ export class TransactionAuthenticatorEd25519 extends TransactionAuthenticator {
  *
  * @param public_key - The public key of the client involved in the transaction.
  * @param signature - The multi-signature of the raw transaction.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticator {
   public readonly public_key: MultiEd25519PublicKey;
@@ -153,6 +167,8 @@ export class TransactionAuthenticatorMultiEd25519 extends TransactionAuthenticat
  * @param sender - The authenticator for the sender account.
  * @param secondary_signer_addresses - An array of addresses for the secondary signers.
  * @param secondary_signers - An array of authenticators for the secondary signer accounts.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
@@ -196,6 +212,8 @@ export class TransactionAuthenticatorMultiAgent extends TransactionAuthenticator
  * @param secondary_signer_addresses - An array of addresses for secondary signers.
  * @param secondary_signers - An array of authenticators for secondary signers' accounts.
  * @param fee_payer - An object containing the fee payer's account address and authenticator.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
@@ -247,6 +265,8 @@ export class TransactionAuthenticatorFeePayer extends TransactionAuthenticator {
  * This class is responsible for managing the authentication of a transaction initiated by a single sender.
  *
  * @param sender - An instance of AccountAuthenticator that represents the account of the sender.
+ * @group Implementation
+ * @category Transactions
  */
 export class TransactionAuthenticatorSingleSender extends TransactionAuthenticator {
   public readonly sender: AccountAuthenticator;
