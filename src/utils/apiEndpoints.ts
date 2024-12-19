@@ -28,8 +28,6 @@ export const NetworkToNodeAPI: Record<string, string> = {
  * @category Network
  */
 export const NetworkToFaucetAPI: Record<string, string> = {
-  mainnet: "https://faucet.mainnet.aptoslabs.com",
-  testnet: "https://faucet.testnet.aptoslabs.com",
   devnet: "https://faucet.devnet.aptoslabs.com",
   local: "http://127.0.0.1:8081",
 };
