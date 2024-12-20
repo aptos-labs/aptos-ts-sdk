@@ -11,12 +11,23 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  TableMap,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   VeiledAmount,
 } from "../../../src";
 import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
+
+export async function loadTableMap(url: string) {
+  const tableMapResponse = await fetch(url);
+
+  if (!tableMapResponse.ok) {
+    throw new TypeError("Failed to load table map");
+  }
+
+  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()));
+}
 
 /**
  * Address of the mocked fungible token on the testnet

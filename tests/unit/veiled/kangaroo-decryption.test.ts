@@ -1,23 +1,13 @@
 import { TwistedEd25519PrivateKey, TwistedElGamal } from "../../../src";
 import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { KangarooRistretto } from "../../../src/core/crypto/kangaroo/kangarooRistretto";
-import { TableMap } from "../../../src/core/crypto/kangaroo/tableMap";
+import { loadTableMap } from "./helpers";
 
 function generateRandomInteger(bits: number): bigint {
   const max = (1n << BigInt(bits)) - 1n;
   const randomValue = BigInt(Math.floor(Math.random() * (Number(max) + 1)));
 
   return randomValue;
-}
-
-async function loadTableMap(url: string) {
-  const tableMapResponse = await fetch(url);
-
-  if (!tableMapResponse.ok) {
-    throw new TypeError("Failed to load table map");
-  }
-
-  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()));
 }
 
 describe("decrypt amount", () => {

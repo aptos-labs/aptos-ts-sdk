@@ -1,7 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import initWasm, { range_proof as rangeProof, verify_proof as verifyProof } from "@distributedlab/aptos-wasm-bindings";
+import initWasm, {
+  range_proof as rangeProof,
+  verify_proof as verifyProof,
+} from "@distributedlab/aptos-wasm-bindings/range-proofs";
 
 export interface RangeProofInputs {
   v: bigint;
@@ -19,7 +22,7 @@ export interface VerifyRangeProofInputs {
   bits?: number;
 }
 
-const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindings@0.2.4/aptos-wasm-bindings-bg.wasm";
+const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindings/range-proofs/aptos_rp_wasm_bg.wasm";
 
 /**
  * Generate range Zero Knowledge Proof
