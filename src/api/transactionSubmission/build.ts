@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAddressInput } from "../../core";
+import { AccountAddress, AccountAddressInput } from "../../core";
 import { generateTransaction } from "../../internal/transactionSubmission";
 import {
   InputGenerateTransactionPayloadData,
@@ -171,7 +171,7 @@ export class Build {
       payload: TransactionPayloadScript.load(new Deserializer(bytes)),
       ...args,
     });
-    return new SimpleTransaction(rawTxn);
+    return new SimpleTransaction(rawTxn, args.withFeePayer === true ? AccountAddress.ZERO : undefined);
   }
 
   /**
