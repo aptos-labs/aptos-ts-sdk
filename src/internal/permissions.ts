@@ -8,15 +8,21 @@
  * name namespace and without having a dependency cycle error.
  */
 
-import { CallArgument } from "@aptos-labs/script-composer-pack";
 import { AptosConfig } from "../api/aptosConfig";
 import { AccountAddress, Ed25519PublicKey } from "../core";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MoveString } from "../bcs";
-import { MoveVMPermissionType, Permission, FungibleAssetPermission, NFTPermission } from "../types/permissions";
+import {
+  MoveVMPermissionType,
+  Permission,
+  FungibleAssetPermission,
+  NFTPermission,
+  GasPermission,
+} from "../types/permissions";
 import { Transaction } from "../api/transaction";
 import { view } from "./view";
 import { AptosScriptComposer } from "../transactions";
+import { CallArgument } from "../types";
 
 // functions
 export async function getPermissions<T extends Permission>({
@@ -33,6 +39,7 @@ export async function getPermissions<T extends Permission>({
   const handle = await getHandleAddress({ aptosConfig, primaryAccountAddress, subAccountPublicKey });
 
   const res = await fetch(`${aptosConfig.fullnode}/accounts/${handle}/resources`);
+  console.log(`${aptosConfig.fullnode}/accounts/${handle}/resources`);
 
   type NodeDataResponse = Array<{
     type: string;
@@ -48,23 +55,24 @@ export async function getPermissions<T extends Permission>({
 
   const data = (await res.json()) as NodeDataResponse;
 
-  const permissions = data[0].data.perms.data.map((d) => {
-    switch (d.key.type_name) {
-      case MoveVMPermissionType.FungibleAsset: // can this be better? i dont rly like this
-        return FungibleAssetPermission.from({
-          asset: AccountAddress.fromString(d.key.data),
-          amount: Number(d.value),
-        });
-      case MoveVMPermissionType.TransferPermission:
-        return NFTPermission.from({
-          assetAddress: AccountAddress.fromString(d.key.data),
-          capabilities: { transfer: true, mutate: false },
-        });
-      default:
-        // todo throw here
-        throw new Error();
-    }
-  });
+  const permissions =
+    data?.[0]?.data?.perms?.data?.map((d) => {
+      switch (d.key.type_name) {
+        case MoveVMPermissionType.FungibleAsset:
+          return FungibleAssetPermission.from({
+            asset: AccountAddress.fromString(d.key.data),
+            amount: Number(d.value),
+          });
+        case MoveVMPermissionType.TransferPermission:
+          return NFTPermission.from({
+            assetAddress: AccountAddress.fromString(d.key.data),
+            capabilities: { transfer: true, mutate: false },
+          });
+        default:
+          // todo throw here
+          throw new Error();
+      }
+    }) ?? [];
 
   const filtered = filter ? permissions.filter((p) => p instanceof filter) : permissions;
   return filtered as T[];
@@ -82,7 +90,7 @@ export async function requestPermission(args: {
   const { aptosConfig, primaryAccountAddress, permissionedAccountPublicKey, permissions } = args;
   const transaction = new Transaction(aptosConfig);
 
-  // Get or create a handle for the permissioned account
+  // Get or create a handle for the permission account
   const existingHandleAddress = await getHandleAddress({
     aptosConfig,
     primaryAccountAddress,
@@ -93,9 +101,11 @@ export async function requestPermission(args: {
     sender: primaryAccountAddress,
     builder: async (builder) => {
       // Get the permissioned signer - either create new one or use existing
-      const permissionedSigner = await getPermissionedSigner(builder, {
+      const permissionedSigner = await getOrCreatePermissionedSigner(builder, {
         existingHandleAddress,
         permissionedAccountPublicKey,
+        expirationTime: args.expiration,
+        maxTxnPerMinute: args.requestsPerSecond,
       });
 
       // if nft permission has multiple capabilities, we need to add multiple txns
@@ -135,14 +145,6 @@ export async function requestPermission(args: {
           .flat(),
       );
 
-      // If we created a new handle, finalize the setup
-      if (permissionedSigner.isNewHandle) {
-        await finalizeNewHandle(builder, {
-          permissionedAccountPublicKey,
-          handle: permissionedSigner.handle!,
-        });
-      }
-
       return builder;
     },
   });
@@ -174,6 +176,13 @@ export async function revokePermissions(args: {
             typeArguments: [],
           });
         }
+        if (permission instanceof GasPermission) {
+          return builder.addBatchedCalls({
+            function: "0x1::transaction_validation::revoke_permission",
+            functionArguments: [signer[0].borrow()],
+            typeArguments: [],
+          });
+        }
         // TODO: object nft revoke
         if (permission instanceof NFTPermission) {
           return builder.addBatchedCalls({
@@ -194,36 +203,54 @@ export async function revokePermissions(args: {
 }
 
 //  helper functions
-async function getPermissionedSigner(
+async function getOrCreatePermissionedSigner(
   builder: AptosScriptComposer,
   args: {
     existingHandleAddress: string | null;
     permissionedAccountPublicKey: Ed25519PublicKey;
+    maxTxnPerMinute?: number;
+    expirationTime?: number;
   },
 ) {
-  if (args.existingHandleAddress) {
+  const {
+    existingHandleAddress,
+    permissionedAccountPublicKey,
+    maxTxnPerMinute = 100,
+    expirationTime = Date.now() + 24 * 60 * 60 * 1000,
+  } = args;
+
+  if (existingHandleAddress) {
     const signer = await builder.addBatchedCalls({
       function: "0x1::permissioned_delegation::permissioned_signer_by_key",
-      functionArguments: [CallArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array()],
+      functionArguments: [CallArgument.new_signer(0), permissionedAccountPublicKey.toUint8Array()],
       typeArguments: [],
     });
-    return { signer, isNewHandle: false };
+    return { signer };
   }
 
-  // Create new handle and signer
-  const handle = await builder.addBatchedCalls({
-    function: "0x1::permissioned_signer::create_storable_permissioned_handle",
-    functionArguments: [CallArgument.new_signer(0), 360],
-    typeArguments: [],
-  });
-
   const signer = await builder.addBatchedCalls({
-    function: "0x1::permissioned_signer::signer_from_storable_permissioned",
-    functionArguments: [handle[0].borrow()],
+    function: "0x1::permissioned_delegation::add_permissioned_handle",
+    functionArguments: [
+      CallArgument.new_signer(0),
+      permissionedAccountPublicKey.toUint8Array(),
+      maxTxnPerMinute,
+      expirationTime,
+    ],
     typeArguments: [],
   });
 
-  return { signer, handle, isNewHandle: true };
+  await builder.addBatchedCalls({
+    function: "0x1::lite_account::add_dispatchable_authentication_function",
+    functionArguments: [
+      CallArgument.new_signer(0),
+      AccountAddress.ONE,
+      new MoveString("permissioned_delegation"),
+      new MoveString("authenticate"),
+    ],
+    typeArguments: [],
+  });
+
+  return { signer };
 }
 
 async function grantPermission(
@@ -242,6 +269,13 @@ async function grantPermission(
         args.permission.asset,
         args.permission.amount,
       ],
+      typeArguments: [],
+    });
+  }
+  if (args.permission instanceof GasPermission) {
+    return builder.addBatchedCalls({
+      function: "0x1::transaction_validation::grant_gas_permission",
+      functionArguments: [CallArgument.new_signer(0), args.permissionedSigner[0].borrow(), args.permission.amount],
       typeArguments: [],
     });
   }
@@ -268,31 +302,6 @@ async function grantPermission(
   console.log("Not implemented");
   throw new Error(`${args.permission} not implemented`);
   return Promise.resolve();
-}
-
-async function finalizeNewHandle(
-  builder: AptosScriptComposer,
-  args: {
-    permissionedAccountPublicKey: Ed25519PublicKey;
-    handle: CallArgument[];
-  },
-) {
-  await builder.addBatchedCalls({
-    function: "0x1::permissioned_delegation::add_permissioned_handle",
-    functionArguments: [CallArgument.new_signer(0), args.permissionedAccountPublicKey.toUint8Array(), args.handle[0]],
-    typeArguments: [],
-  });
-
-  await builder.addBatchedCalls({
-    function: "0x1::lite_account::add_dispatchable_authentication_function",
-    functionArguments: [
-      CallArgument.new_signer(0),
-      AccountAddress.ONE,
-      new MoveString("permissioned_delegation"),
-      new MoveString("authenticate"),
-    ],
-    typeArguments: [],
-  });
 }
 
 export async function getHandleAddress({

@@ -259,7 +259,51 @@ describe("transaction submission", () => {
     expect(txn1.submittedTransaction.success).toBe(false);
   });
 
-  test("Aaron's test case", async () => {
+  test.only("Aaron's test case", async () => {
+    await signSubmitAndWait({
+      sender: primaryAccount,
+      data: {
+        function: "0x1::coin::migrate_to_fungible_store",
+        functionArguments: [],
+        typeArguments: ["0x1::aptos_coin::AptosCoin"],
+      },
+    });
+    console.log("1");
+
+    await requestPermission({
+      primaryAccount,
+      permissionedAccount: subAccount,
+      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 10 })],
+    });
+    console.log("2");
+
+    const txn1 = await signSubmitAndWait({
+      sender: primaryAccount,
+      signer: subAccount,
+      data: {
+        function: "0x1::primary_fungible_store::transfer",
+        functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 10],
+        typeArguments: ["0x1::fungible_asset::Metadata"],
+      },
+    });
+    expect(txn1.response.signature?.type).toBe("single_sender");
+    expect(txn1.submittedTransaction.success).toBe(true);
+
+    // step 3: use AA to send APT FA again. should fail.
+    const txn2 = await signSubmitAndWait({
+      sender: primaryAccount,
+      signer: subAccount,
+      data: {
+        function: "0x1::primary_fungible_store::transfer",
+        functionArguments: [AccountAddress.A, receiverAccounts[0].accountAddress, 1],
+        typeArguments: ["0x1::fungible_asset::Metadata"],
+      },
+    });
+    expect(txn2.response.signature?.type).toBe("single_sender");
+    expect(txn2.submittedTransaction.success).toBe(false);
+  });
+
+  test("Gas permission positive test case", async () => {
     await signSubmitAndWait({
       sender: primaryAccount,
       data: {
@@ -272,7 +316,10 @@ describe("transaction submission", () => {
     await requestPermission({
       primaryAccount,
       permissionedAccount: subAccount,
-      permissions: [FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 10 })],
+      permissions: [
+        GasPermission.from({ amount: 1 }),
+        FungibleAssetPermission.from({ asset: AccountAddress.A, amount: 10 }),
+      ],
     });
 
     const txn1 = await signSubmitAndWait({
@@ -302,9 +349,6 @@ describe("transaction submission", () => {
   });
 
   test("Serializer", async () => {
-    const test = GasPermission.from({ amount: 2 });
-    console.log(typeof test.amount);
-
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A,
       amount: 10,
@@ -355,6 +399,8 @@ export async function requestPermission({
   await aptos.waitForTransaction({
     transactionHash: response.hash,
   });
+
+  console.log(`https://explorer.aptoslabs.com/txn/${response.hash}?network=local`);
 
   return response;
 }
