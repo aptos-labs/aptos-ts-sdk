@@ -15,18 +15,30 @@ import {
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   VeiledAmount,
+  RangeProofExecutor,
 } from "../../../src";
-import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
-export async function loadTableMap(url: string) {
+export async function loadTableMapJSON(url: string): Promise<{
+  file_name: string;
+  s: string[];
+  slog: string[];
+  table: {
+    point: string;
+    value: string;
+  }[];
+}> {
   const tableMapResponse = await fetch(url);
 
   if (!tableMapResponse.ok) {
     throw new TypeError("Failed to load table map");
   }
 
-  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()));
+  return tableMapResponse.json();
+}
+
+export async function loadTableMap(url: string) {
+  return TableMap.createFromJson(JSON.stringify(await loadTableMapJSON(url)));
 }
 
 /**
