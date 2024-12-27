@@ -9,54 +9,60 @@ import {
   VeiledKeyRotation,
   VeiledNormalization,
   RangeProofExecutor,
-  KangarooRistretto,
+  TwistedElGamal,
+  VeiledAmount,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
-import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
-import { loadTableMap } from "./helpers";
+import { loadTableMapJSON } from "./helpers";
+import { createKangaroo } from "./wasmPollardKangaroo";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
 RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 
 describe("Generate 'veiled coin' proofs", () => {
-  it("Pre load table map", async () => {
+  it("Pre load wasm table map", async () => {
     const [table16, table32, table48] = await Promise.all([
-      loadTableMap(
+      loadTableMapJSON(
         "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
       ),
-      loadTableMap(
+      loadTableMapJSON(
         "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
       ),
-      loadTableMap(
+      loadTableMapJSON(
         "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
       ),
     ]);
 
-    KangarooRistretto.setTableWithParams({
-      table: table16,
-      n: 8_000,
-      w: 8n,
-      r: 64n,
-      secretSize: 16,
-    });
-    KangarooRistretto.setTableWithParams({
-      table: table32,
-      n: 4_000,
-      w: 2048n,
-      r: 128n,
-      secretSize: 32,
-    });
-    KangarooRistretto.setTableWithParams({
-      table: table48,
-      n: 40_000,
-      w: 65536n,
-      r: 128n,
-      secretSize: 48,
+    const kangarooWasmAll = await createKangaroo({
+      16: {
+        n: 8000n,
+        w: 8n,
+        r: 64n,
+        bits: 16,
+        table: table16,
+        max_attempts: 20,
+      },
+      32: {
+        n: 4000n,
+        w: 2048n,
+        r: 128n,
+        bits: 32,
+        table: table32,
+        max_attempts: 40,
+      },
+      48: {
+        n: 40_000n,
+        w: 65536n,
+        r: 128n,
+        bits: 48,
+        table: table48,
+        max_attempts: 1000,
+      },
     });
 
-    expect(Object.keys(KangarooRistretto.tablesMapWithParams).length).toEqual(3);
+    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasmAll.solve_dlp(pk));
   });
 
   const ALICE_BALANCE = 70n;

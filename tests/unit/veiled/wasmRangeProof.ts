@@ -34,7 +34,7 @@ const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindi
  * @param opts.bits Bits size of value to create the range proof
  */
 export async function generateRangeZKP(opts: RangeProofInputs) {
-  await initWasm(RANGE_PROOF_WASM_URL);
+  await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
   const proof = rangeProof(opts.v, opts.r, opts.valBase, opts.randBase, opts.bits ?? 32);
 
   return {
@@ -53,7 +53,7 @@ export async function generateRangeZKP(opts: RangeProofInputs) {
  * @param opts.bits Bits size of the value for range proof
  */
 export async function verifyRangeZKP(opts: VerifyRangeProofInputs) {
-  await initWasm(RANGE_PROOF_WASM_URL);
+  await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
 
   return verifyProof(opts.proof, opts.commitment, opts.valBase, opts.randBase, opts.bits ?? 32);
 }
