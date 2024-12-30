@@ -1,7 +1,7 @@
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
-import { KangarooRistretto, TwistedEd25519PrivateKey, TwistedElGamal } from "../../../src";
-import { loadTableMap, loadTableMapJSON } from "./helpers";
-import { createKangaroo, type WASMKangaroo } from "./wasmPollardKangaroo";
+import { KangarooRistretto, TwistedEd25519PrivateKey, TwistedElGamal } from "../../../../src";
+import { loadTableMap } from "../helpers";
+import { preloadTables } from "./wasmPollardKangaroo";
 
 function generateRandomInteger(bits: number): bigint {
   // eslint-disable-next-line no-bitwise
@@ -10,11 +10,6 @@ function generateRandomInteger(bits: number): bigint {
 
   return randomValue;
 }
-
-let kangarooWasm16: WASMKangaroo;
-let kangarooWasm32: WASMKangaroo;
-let kangarooWasm48: WASMKangaroo;
-let kangarooWasmAll: WASMKangaroo;
 
 const execution = async (
   bitsAmount: 16 | 32 | 48,
@@ -34,8 +29,6 @@ const execution = async (
     const endMainTime = performance.now();
 
     const elapsedMainTime = endMainTime - startMainTime;
-
-    console.log({ decryptedBalance, elapsedMainTime });
 
     decryptedAmounts.push({ result: decryptedBalance, elapsedTime: elapsedMainTime });
   }
@@ -60,113 +53,11 @@ const execution = async (
 
 describe("decrypt amount", () => {
   it("Pre load wasm table map", async () => {
-    const [table16, table32, table48] = await Promise.all([
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
-      ),
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
-      ),
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
-      ),
-    ]);
-
-    kangarooWasm16 = await createKangaroo({
-      16: {
-        n: 8000n,
-        w: 8n,
-        r: 64n,
-        bits: 16,
-        table: table16,
-        max_attempts: 100,
-      },
-    });
-    kangarooWasm32 = await createKangaroo({
-      32: {
-        n: 4000n,
-        w: 2048n,
-        r: 128n,
-        bits: 32,
-        table: table32,
-        max_attempts: 100,
-      },
-    });
-    kangarooWasm48 = await createKangaroo({
-      48: {
-        n: 40_000n,
-        w: 65536n,
-        r: 128n,
-        bits: 48,
-        table: table48,
-        max_attempts: 100,
-      },
-    });
-
-    kangarooWasmAll = await createKangaroo({
-      16: {
-        n: 8000n,
-        w: 8n,
-        r: 64n,
-        bits: 16,
-        table: table16,
-        max_attempts: 20,
-      },
-      32: {
-        n: 4000n,
-        w: 2048n,
-        r: 128n,
-        bits: 32,
-        table: table32,
-        max_attempts: 40,
-      },
-      48: {
-        n: 40_000n,
-        w: 65536n,
-        r: 128n,
-        bits: 48,
-        table: table48,
-        max_attempts: 1000,
-      },
-    });
-  });
-
-  it.skip("KangarooWasm16: Should decrypt 50 rand numbers", async () => {
-    console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasm16.solve_dlp(pk));
-
-    const { randBalances, results } = await execution(16);
-
-    results.forEach(({ result }, i) => {
-      expect(result).toEqual(randBalances[i]);
-    });
-  });
-
-  it.skip("KangarooWasm32: Should decrypt 50 rand numbers", async () => {
-    console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasm32.solve_dlp(pk));
-
-    const { randBalances, results } = await execution(32);
-
-    results.forEach(({ result }, i) => {
-      expect(result).toEqual(randBalances[i]);
-    });
-  });
-
-  it.skip("KangarooWasm48: Should decrypt 50 rand numbers", async () => {
-    console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasm48.solve_dlp(pk));
-
-    const { randBalances, results } = await execution(48);
-
-    results.forEach(({ result }, i) => {
-      expect(result).toEqual(randBalances[i]);
-    });
+    await preloadTables();
   });
 
   it("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasmAll.solve_dlp(pk));
 
     const { randBalances, results } = await execution(16);
 
@@ -177,7 +68,6 @@ describe("decrypt amount", () => {
 
   it("kangarooWasmAll(32): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasmAll.solve_dlp(pk));
 
     const { randBalances, results } = await execution(32);
 
@@ -188,7 +78,6 @@ describe("decrypt amount", () => {
 
   it("kangarooWasmAll(48): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasmAll.solve_dlp(pk));
 
     const { randBalances, results } = await execution(48);
 

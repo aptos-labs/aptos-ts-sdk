@@ -15,7 +15,7 @@ import {
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import { loadTableMapJSON } from "./helpers";
-import { createKangaroo } from "./wasmPollardKangaroo";
+import { createKangaroo } from "./kangaroo/wasmPollardKangaroo";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
@@ -37,25 +37,25 @@ describe("Generate 'veiled coin' proofs", () => {
 
     const kangarooWasmAll = await createKangaroo({
       16: {
-        n: 8000n,
-        w: 8n,
-        r: 64n,
+        n: 8000,
+        w: 8,
+        r: 64,
         bits: 16,
         table: table16,
         max_attempts: 20,
       },
       32: {
-        n: 4000n,
-        w: 2048n,
-        r: 128n,
+        n: 4000,
+        w: 2048,
+        r: 128,
         bits: 32,
         table: table32,
         max_attempts: 40,
       },
       48: {
-        n: 40_000n,
-        w: 65536n,
-        r: 128n,
+        n: 40_000,
+        w: 65536,
+        r: 128,
         bits: 48,
         table: table48,
         max_attempts: 1000,
