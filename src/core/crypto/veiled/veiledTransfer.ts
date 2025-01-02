@@ -458,9 +458,11 @@ export class VeiledTransfer {
       this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: this.senderDecryptionKey.toUint8Array(),
+          // r: this.senderDecryptionKey.toUint8Array(),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.veiledAmountAfterTransfer.amountEncrypted![i].D.toRawBytes(),
+          // randBase: this.veiledAmountAfterTransfer.amountEncrypted![i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
@@ -522,7 +524,8 @@ export class VeiledTransfer {
           proof,
           commitment: opts.encryptedActualBalanceAfterTransfer[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: opts.encryptedActualBalanceAfterTransfer[i].D.toRawBytes(),
+          // randBase: opts.encryptedActualBalanceAfterTransfer[i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     ]);

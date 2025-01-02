@@ -284,9 +284,11 @@ export class VeiledKeyRotation {
       this.currVeiledAmount.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: this.newDecryptionKey.toUint8Array(),
+          // r: this.newDecryptionKey.toUint8Array(),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
+          // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
@@ -323,7 +325,8 @@ export class VeiledKeyRotation {
           proof,
           commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
+          // randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
