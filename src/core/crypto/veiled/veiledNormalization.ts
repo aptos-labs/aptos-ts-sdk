@@ -254,9 +254,11 @@ export class VeiledNormalization {
       this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: this.decryptionKey.toUint8Array(),
+          // r: this.decryptionKey.toUint8Array(),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
+          // randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
@@ -274,7 +276,8 @@ export class VeiledNormalization {
           proof,
           commitment: opts.normalizedEncryptedBalance[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
+          // randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );

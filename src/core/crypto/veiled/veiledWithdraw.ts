@@ -276,9 +276,10 @@ export class VeiledWithdraw {
       this.veiledAmountAfterWithdraw.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: this.decryptionKey.toUint8Array(),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
+          // randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
@@ -311,7 +312,8 @@ export class VeiledWithdraw {
           proof,
           commitment: opts.encryptedActualBalanceAfterWithdraw[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
+          // randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
+          randBase: H_RISTRETTO.toRawBytes(),
         }),
       ),
     );
