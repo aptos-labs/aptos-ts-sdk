@@ -231,6 +231,48 @@ describe("transaction submission", () => {
         });
         expect(response.signature?.type).toBe("fee_payer_signature");
       });
+      test("with batch payload", async () => {
+        const transaction = await aptos.transaction.build.scriptComposer({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          builder: async (builder) => {
+            const coin = await builder.addBatchedCalls({
+              function: "0x1::coin::withdraw",
+              functionArguments: [CallArgument.new_signer(0), 1],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            const fungibleAsset = await builder.addBatchedCalls({
+              function: "0x1::coin::coin_to_fungible_asset",
+              functionArguments: [coin[0]],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            await builder.addBatchedCalls({
+              function: "0x1::primary_fungible_store::deposit",
+              functionArguments: [singleSignerED25519SenderAccount.accountAddress, fungibleAsset[0]],
+            });
+            return builder;
+          },
+          withFeePayer: true,
+        });
+
+        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+          signer: feePayerAccount,
+          transaction,
+        });
+
+        const response = await aptos.transaction.submit.simple({
+          transaction,
+          senderAuthenticator,
+          feePayerAuthenticator: feePayerSignerAuthenticator,
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+        expect(response.signature?.type).toBe("fee_payer_signature");
+      });
       test("with entry function payload", async () => {
         const transaction = await aptos.transaction.build.simple({
           sender: singleSignerED25519SenderAccount.accountAddress,
