@@ -14,6 +14,32 @@ import { AccountAddress } from "../core/accountAddress";
  */
 export type Permission = FungibleAssetPermission | GasPermission | NFTPermission | NFTCollectionPermission;
 
+export abstract class MovePermission extends Serializable {
+  static type: string;
+
+  abstract toString(): string;
+
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(this.toString());
+  }
+
+  static deserialize(deserializer: Deserializer): MovePermission {
+    const payload = JSON.parse(deserializer.deserializeStr());
+    switch (payload.type) {
+      case FungibleAssetPermission.type:
+        return FungibleAssetPermission.from(payload);
+      case GasPermission.type:
+        return GasPermission.from(payload);
+      case NFTPermission.type:
+        return NFTPermission.from(payload);
+      case NFTCollectionPermission.type:
+        return NFTCollectionPermission.from(payload);
+      default:
+        throw new Error(`Unknown permission type: ${payload}`);
+    }
+  }
+}
+
 export enum MoveVMPermissionType {
   FungibleAsset = "0x1::fungible_asset::WithdrawPermission",
   TransferPermission = "0x1::object::TransferPermission",
@@ -32,50 +58,76 @@ export interface PermissionHandle {
   permissions: Permission[];
 }
 
-export class FungibleAssetPermission extends Serializable {
+type ToPayload<T> = { [K in keyof T]: string } & { readonly type: string };
+
+interface FungibleAssetPermissionProperties {
+  readonly asset: AccountAddress;
+  readonly amount: bigint | number;
+}
+type FungibleAssetPermissionPayload = ToPayload<FungibleAssetPermissionProperties>;
+
+export class FungibleAssetPermission extends MovePermission implements FungibleAssetPermissionProperties {
+  static readonly type = "FungibleAsset";
+
   readonly asset: AccountAddress;
 
   readonly amount: bigint;
 
-  constructor({ asset, amount }: { asset: AccountAddress; amount: number | bigint }) {
+  constructor({ asset, amount }: FungibleAssetPermissionProperties) {
     super();
     this.asset = asset;
     this.amount = BigInt(amount);
   }
 
-  static from(args: { asset: AccountAddress; amount: number | bigint }): FungibleAssetPermission {
-    return new FungibleAssetPermission(args);
+  static from(args: FungibleAssetPermissionProperties): FungibleAssetPermission;
+  static from(args: FungibleAssetPermissionPayload): FungibleAssetPermission;
+  static from(args: FungibleAssetPermissionPayload | FungibleAssetPermissionProperties): FungibleAssetPermission {
+    return new FungibleAssetPermission({
+      amount: BigInt(args.amount),
+      asset: AccountAddress.from(args.asset),
+    });
   }
 
-  serialize(serializer: Serializer): void {
-    this.asset.serialize(serializer);
-    serializer.serializeStr(this.amount.toString());
-  }
+  toString(): string {
+    const payload: FungibleAssetPermissionPayload = {
+      type: FungibleAssetPermission.type,
+      asset: this.asset.toString(),
+      amount: this.amount.toString(),
+    };
 
-  static deserialize(deserializer: Deserializer): FungibleAssetPermission {
-    const asset = AccountAddress.deserialize(deserializer);
-    const amount = BigInt(deserializer.deserializeStr());
-    return FungibleAssetPermission.from({ asset, amount });
+    return JSON.stringify(payload);
   }
 }
 
-export class GasPermission extends Serializable {
+interface GasPermissionProperties {
+  readonly amount: bigint | number;
+}
+type GasPermissionPayload = ToPayload<GasPermissionProperties>;
+
+export class GasPermission extends MovePermission implements GasPermissionProperties {
+  static type = "Gas";
+
   readonly amount: bigint;
 
-  constructor({ amount }: { amount: number | bigint }) {
+  constructor({ amount }: GasPermissionProperties) {
     super();
     this.amount = BigInt(amount);
   }
 
-  static from = (args: { amount: number | bigint }): GasPermission => new GasPermission(args);
-
-  serialize(serializer: Serializer): void {
-    serializer.serializeStr(this.amount.toString());
+  static from(args: GasPermissionPayload): GasPermission;
+  static from(args: GasPermissionProperties): GasPermission;
+  static from(args: GasPermissionPayload | GasPermissionProperties): GasPermission {
+    return new GasPermission({
+      amount: BigInt(args.amount),
+    });
   }
 
-  static deserialize(deserializer: Deserializer): GasPermission {
-    const amount = BigInt(deserializer.deserializeStr());
-    return GasPermission.from({ amount });
+  toString(): string {
+    const payload: GasPermissionPayload = {
+      type: GasPermission.type,
+      amount: this.amount.toString(),
+    };
+    return JSON.stringify(payload);
   }
 }
 
@@ -84,46 +136,41 @@ enum NFTCapability {
   mutate = "mutate",
 }
 
-export class NFTPermission extends Serializable {
+interface NFTPermissionProperties {
+  assetAddress: AccountAddress;
+  capabilities: Record<NFTCapability, boolean>;
+}
+type NFTPermissionPayload = ToPayload<NFTPermissionProperties>;
+export class NFTPermission extends MovePermission implements NFTPermissionProperties {
+  static type = "NFT";
+
   readonly assetAddress: AccountAddress;
 
   readonly capabilities: Record<NFTCapability, boolean>;
 
-  constructor({
-    assetAddress,
-    capabilities,
-  }: {
-    assetAddress: AccountAddress;
-    capabilities: Record<NFTCapability, boolean>;
-  }) {
+  constructor({ assetAddress, capabilities }: NFTPermissionProperties) {
     super();
     this.assetAddress = assetAddress;
     this.capabilities = capabilities;
   }
 
-  static from = (args: { assetAddress: AccountAddress; capabilities: Record<NFTCapability, boolean> }): NFTPermission =>
-    new NFTPermission(args);
-
-  serialize(serializer: Serializer): void {
-    this.assetAddress.serialize(serializer);
-
-    const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
-      ([keys, values], [key, value]) => [keys.concat(key), values.concat(value)],
-      [[] as string[], [] as boolean[]],
-    );
-    serializer.serializeStr(JSON.stringify(capabilityKeys));
-    serializer.serializeStr(JSON.stringify(capabilityValues));
+  static from(args: NFTPermissionProperties): NFTPermission;
+  static from(args: NFTPermissionPayload): NFTPermission;
+  static from(args: NFTPermissionPayload | NFTPermissionProperties): NFTPermission {
+    return new NFTPermission({
+      assetAddress: AccountAddress.from(args.assetAddress),
+      capabilities: typeof args.capabilities === "string" ? JSON.parse(args.capabilities) : args.capabilities,
+    });
   }
 
-  static deserialize(deserializer: Deserializer): NFTPermission {
-    const assetAddress = AccountAddress.deserialize(deserializer);
-    const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
-    const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
-    const capabilities = capabilityKeys.reduce(
-      (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
-      {} as Record<NFTCapability, boolean>,
-    );
-    return NFTPermission.from({ assetAddress, capabilities });
+  toString(): string {
+    const payload: NFTPermissionPayload = {
+      type: NFTPermission.type,
+      assetAddress: this.assetAddress.toString(),
+      capabilities: JSON.stringify(this.capabilities),
+    };
+
+    return JSON.stringify(payload);
   }
 }
 
@@ -132,47 +179,40 @@ enum NFTCollectionCapability {
   mutate = "mutate",
 }
 
-export class NFTCollectionPermission extends Serializable {
+interface NFTCollectionPermissionProperties {
   collectionAddress: AccountAddress;
-
   capabilities: Record<NFTCollectionCapability, boolean>;
+}
+type NFTCollectionPermissionPayload = ToPayload<NFTCollectionPermissionProperties>;
 
-  constructor({
-    collectionAddress,
-    capabilities,
-  }: {
-    collectionAddress: AccountAddress;
-    capabilities: Record<NFTCollectionCapability, boolean>;
-  }) {
+export class NFTCollectionPermission extends MovePermission {
+  static type = "NFTCollection";
+
+  readonly collectionAddress: AccountAddress;
+
+  readonly capabilities: Record<NFTCollectionCapability, boolean>;
+
+  constructor({ collectionAddress, capabilities }: NFTCollectionPermissionProperties) {
     super();
     this.collectionAddress = collectionAddress;
     this.capabilities = capabilities;
   }
 
-  static from = (args: {
-    collectionAddress: AccountAddress;
-    capabilities: Record<NFTCollectionCapability, boolean>;
-  }): NFTCollectionPermission => new NFTCollectionPermission(args);
-
-  serialize(serializer: Serializer): void {
-    this.collectionAddress.serialize(serializer);
-
-    const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
-      ([keys, values], [key, value]) => [keys.concat(key), values.concat(value)],
-      [[] as string[], [] as boolean[]],
-    );
-    serializer.serializeStr(JSON.stringify(capabilityKeys));
-    serializer.serializeStr(JSON.stringify(capabilityValues));
+  static from(args: NFTCollectionPermissionProperties): NFTCollectionPermission;
+  static from(args: NFTCollectionPermissionPayload): NFTCollectionPermission;
+  static from(args: NFTCollectionPermissionPayload | NFTCollectionPermissionProperties): NFTCollectionPermission {
+    return new NFTCollectionPermission({
+      capabilities: typeof args.capabilities === "string" ? JSON.parse(args.capabilities) : args.capabilities,
+      collectionAddress: AccountAddress.from(args.collectionAddress),
+    });
   }
 
-  static deserialize(deserializer: Deserializer): NFTCollectionPermission {
-    const collectionAddress = AccountAddress.deserialize(deserializer);
-    const capabilityKeys = JSON.parse(deserializer.deserializeStr()) as string[];
-    const capabilityValues = JSON.parse(deserializer.deserializeStr()) as boolean[];
-    const capabilities = capabilityKeys.reduce(
-      (acc, key, i) => ({ ...acc, [key]: capabilityValues[i] }),
-      {} as Record<NFTCapability, boolean>,
-    );
-    return NFTCollectionPermission.from({ collectionAddress, capabilities });
+  toString(): string {
+    const payload: NFTCollectionPermissionPayload = {
+      type: NFTCollectionPermission.type,
+      collectionAddress: this.collectionAddress.toString(),
+      capabilities: JSON.stringify(this.capabilities),
+    };
+    return JSON.stringify(payload);
   }
 }
