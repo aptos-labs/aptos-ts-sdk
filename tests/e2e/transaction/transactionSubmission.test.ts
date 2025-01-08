@@ -662,6 +662,17 @@ describe("transaction submission", () => {
       });
       expect(response.signature?.type).toBe("single_sender");
     });
+    test("constructing a multi key account with insufficient signers fails", async () => {
+      const multiKey = new MultiKey({
+        publicKeys: [
+          singleSignerED25519SenderAccount.publicKey,
+          legacyED25519SenderAccount.publicKey,
+          singleSignerSecp256k1Account.publicKey,
+        ],
+        signaturesRequired: 2,
+      });
+      expect(() => new MultiKeyAccount({ multiKey, signers: [singleSignerED25519SenderAccount] })).toThrow();
+    });
   });
   describe("publish move module", () => {
     const account = Account.generate();

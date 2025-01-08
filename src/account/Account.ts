@@ -2,7 +2,7 @@ import type { AccountAuthenticator } from "../transactions/authenticator/account
 import { HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import type { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { AuthenticationKey } from "../core/authenticationKey";
-import { AccountPublicKey, Ed25519PrivateKey, PrivateKey, Signature, VerifySignatureArgs } from "../core/crypto";
+import { AccountPublicKey, Ed25519PrivateKey, PrivateKeyInput, Signature, VerifySignatureArgs } from "../core/crypto";
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
@@ -50,7 +50,7 @@ export interface CreateEd25519SingleKeyAccountFromPrivateKeyArgs {
  * @category Account (On-Chain Model)
  */
 export interface CreateSingleKeyAccountFromPrivateKeyArgs {
-  privateKey: Exclude<PrivateKey, Ed25519PrivateKey>;
+  privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
   legacy?: false;
 }
@@ -65,7 +65,7 @@ export interface CreateSingleKeyAccountFromPrivateKeyArgs {
  * @category Account (On-Chain Model)
  */
 export interface CreateAccountFromPrivateKeyArgs {
-  privateKey: PrivateKey;
+  privateKey: PrivateKeyInput;
   address?: AccountAddressInput;
   legacy?: boolean;
 }
@@ -206,10 +206,9 @@ export abstract class Account {
    * @category Account (On-Chain Model)
    */
   static fromPrivateKey(args: CreateEd25519AccountFromPrivateKeyArgs): Ed25519Account;
-  static fromPrivateKey(args: CreateEd25519SingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
   static fromPrivateKey(args: CreateSingleKeyAccountFromPrivateKeyArgs): SingleKeyAccount;
-  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): Account;
-  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs) {
+  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): SingleKeyAccount;
+  static fromPrivateKey(args: CreateAccountFromPrivateKeyArgs): Ed25519Account | SingleKeyAccount {
     const { privateKey, address, legacy = true } = args;
     if (privateKey instanceof Ed25519PrivateKey && legacy) {
       return new Ed25519Account({
