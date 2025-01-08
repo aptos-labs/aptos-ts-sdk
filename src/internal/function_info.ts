@@ -1,5 +1,5 @@
 import { Deserializer, Serializable, Serializer } from "../bcs";
-import { AccountAddress, Hex } from "../core";
+import { AccountAddress } from "../core";
 
 export class FunctionInfo extends Serializable {
   readonly module_address: AccountAddress;
@@ -22,9 +22,12 @@ export class FunctionInfo extends Serializable {
   }
 
   static deserialize(deserializer: Deserializer): FunctionInfo {
-    const module_address = AccountAddress.deserialize(deserializer);
-    const module_name = deserializer.deserializeStr();
-    const function_name = deserializer.deserializeStr();
-    return new FunctionInfo(module_address, module_name, function_name);
+    const moduleAddress = AccountAddress.deserialize(deserializer);
+    console.log(moduleAddress.toUint8Array());
+    const moduleName = deserializer.deserializeStr();
+    console.log(moduleName);
+    const functionName = deserializer.deserializeStr();
+    console.log(functionName);
+    return new FunctionInfo(moduleAddress, moduleName, functionName);
   }
 }

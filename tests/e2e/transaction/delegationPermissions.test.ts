@@ -286,6 +286,7 @@ describe("transaction submission", () => {
         typeArguments: ["0x1::fungible_asset::Metadata"],
       },
     });
+    console.log("3");
     expect(txn1.response.signature?.type).toBe("single_sender");
     expect(txn1.submittedTransaction.success).toBe(true);
 
@@ -484,20 +485,24 @@ async function signSubmitAndWait({
   checkSuccess?: boolean;
   data: InputGenerateTransactionPayloadData;
 }) {
+  console.log("a");
   const transaction = await aptos.transaction.build.simple({
     sender: sender.accountAddress,
     data,
   });
+  console.log("b");
   const response = await aptos.signAndSubmitTransaction({
     signer: signer || sender,
     transaction,
   });
+  console.log("c");
   const submittedTransaction = await aptos.waitForTransaction({
     transactionHash: response.hash,
     options: {
       checkSuccess,
     },
   });
+  console.log("d");
 
   return {
     transaction,

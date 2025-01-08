@@ -1,11 +1,13 @@
-import { AccountAuthenticatorEd25519, AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import { sha3_256 } from "@noble/hashes/sha3";
+import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
 import { HexInput, SigningScheme } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "../core/crypto";
 import type { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
-import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { FunctionInfo } from "../internal/function_info";
+import { Hex } from "../core/hex";
+import { generateSigningMessageForTransaction } from "../transactions";
 
 export interface Ed25519SignerConstructorArgs {
   privateKey: Ed25519PrivateKey;
@@ -100,6 +102,7 @@ export class AbstractedEd25519Account implements Account {
       this.publicKey,
       new FunctionInfo(AccountAddress.ONE, "permissioned_delegation", "authenticate"),
       this.privateKey.sign(message),
+      Hex.fromHexInput(message).toUint8Array(),
     );
   }
 
@@ -109,10 +112,17 @@ export class AbstractedEd25519Account implements Account {
    * @return the AccountAuthenticator containing the signature of the transaction, together with the account's public key
    */
   signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
+    const signingMessage = generateSigningMessageForTransaction(transaction);
+    console.log(signingMessage);
+    const signingMessageDigest = sha3_256.create().update(signingMessage).digest();
+    console.log(signingMessageDigest);
+
+    console.log(this.sign(signingMessageDigest));
     return new AccountAuthenticatorAbstraction(
       this.publicKey,
       new FunctionInfo(AccountAddress.ONE, "permissioned_delegation", "authenticate"),
-      this.signTransaction(transaction),
+      this.sign(signingMessageDigest),
+      signingMessageDigest,
     );
   }
 
@@ -130,7 +140,7 @@ export class AbstractedEd25519Account implements Account {
    * @param transaction the transaction to be signed
    * @returns Signature
    */
-  signTransaction(transaction: AnyRawTransaction): Ed25519Signature {
+  signTransaction(): Ed25519Signature {
     const r = this.sign(new Uint8Array([1, 2, 3]));
     // console.log(r);
     return r;

@@ -285,16 +285,26 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
 
   public readonly signature: Ed25519Signature;
 
-  constructor(public_key: Ed25519PublicKey, function_info: FunctionInfo, signature: Ed25519Signature) {
+  public readonly signing_message_digest: Uint8Array;
+
+  constructor(
+    public_key: Ed25519PublicKey,
+    function_info: FunctionInfo,
+    signature: Ed25519Signature,
+    digest: Uint8Array,
+  ) {
     super();
     this.public_key = public_key;
     this.function_info = function_info;
     this.signature = signature;
+    this.signing_message_digest = digest;
   }
 
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(AccountAuthenticatorVariant.Abstraction);
     this.function_info.serialize(serializer);
+    serializer.serializeU32AsUleb128(0);
+    serializer.serializeBytes(this.signing_message_digest);
     const ser = new Serializer();
     this.public_key.serialize(ser);
     this.signature.serialize(ser);
@@ -304,10 +314,12 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
 
   static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
     const function_info = FunctionInfo.deserialize(deserializer);
-    const aa_signature = deserializer.deserializeBytes();
-    const der = new Deserializer(aa_signature);
+    deserializer.deserializeUleb128AsU32();
+    const signingMessageDigest = deserializer.deserializeBytes();
+    const authenticator = deserializer.deserializeBytes();
+    const der = new Deserializer(authenticator);
     const public_key = Ed25519PublicKey.deserialize(der);
     const signature = Ed25519Signature.deserialize(der);
-    return new AccountAuthenticatorAbstraction(public_key, function_info, signature);
+    return new AccountAuthenticatorAbstraction(public_key, function_info, signature, signingMessageDigest);
   }
 }
