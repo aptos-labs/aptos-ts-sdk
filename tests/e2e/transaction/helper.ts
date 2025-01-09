@@ -24,7 +24,7 @@ import { getAptosClient } from "../helper";
 
 export const EPHEMERAL_KEY_PAIR = new EphemeralKeyPair({
   privateKey: new Ed25519PrivateKey("ed25519-priv-0x1111111111111111111111111111111111111111111111111111111111111111"),
-  expiryDateSecs: 1735475012, // Expires Sunday, December 29, 2024 12:23:32 PM GMT
+  expiryDateSecs: 9876543210, // Expires Friday, December 22, 2282 8:13:30 PM GMT
   blinder: new Uint8Array(31),
 });
 
