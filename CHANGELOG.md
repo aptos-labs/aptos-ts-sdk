@@ -6,6 +6,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - node now no longer supports older than v20
 - overriding cross spawn for patch
+- Add `AccountUtils` class to help with account serialization and deserialization
+- Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
 # 1.33.1 (2024-11-28)
