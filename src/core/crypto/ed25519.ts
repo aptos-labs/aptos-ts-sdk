@@ -9,7 +9,8 @@ import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import type { VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
