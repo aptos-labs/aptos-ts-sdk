@@ -12,7 +12,13 @@ import { AccountAddress } from "../../core";
 import { Identifier } from "./identifier";
 import { ModuleId } from "./moduleId";
 import type { EntryFunctionArgument, ScriptFunctionArgument, TransactionArgument } from "./transactionArgument";
-import { MoveModuleId, ScriptTransactionArgumentVariants, TransactionPayloadVariants, TransactionExecutableVariants, TransactionExtraConfigVariants } from "../../types";
+import {
+  MoveModuleId,
+  ScriptTransactionArgumentVariants,
+  TransactionPayloadVariants,
+  TransactionExecutableVariants,
+  TransactionExtraConfigVariants,
+} from "../../types";
 import { TypeTag } from "../typeTag";
 
 /**
@@ -322,7 +328,7 @@ export class TransactionExecutableEntryFunction extends TransactionExecutable {
    * @param serializer - The serializer instance used to serialize the transaction data.
    * @group Implementation
    * @category Transactions
-  */
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TransactionExecutableVariants.EntryFunction);
     this.entryFunction.serialize(serializer);
@@ -342,7 +348,6 @@ export class TransactionExecutableEntryFunction extends TransactionExecutable {
   }
 }
 
-
 /**
  * Represents a transaction executable entry function that can be serialized and deserialized.
  *
@@ -351,7 +356,6 @@ export class TransactionExecutableEntryFunction extends TransactionExecutable {
  * @category Transactions
  */
 export class TransactionExecutableEmpty extends TransactionExecutable {
-
   constructor() {
     super();
   }
@@ -362,7 +366,7 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
    * @param serializer - The serializer instance used to serialize the transaction data.
    * @group Implementation
    * @category Transactions
-  */
+   */
   serialize(serializer: Serializer): void {
     serializer.serializeU32AsUleb128(TransactionExecutableVariants.Empty);
   }
@@ -379,7 +383,6 @@ export class TransactionExecutableEmpty extends TransactionExecutable {
     return new TransactionExecutableEmpty();
   }
 }
-
 
 /**
  * Represents a supported TransactionExtraConfig that can be serialized and deserialized.
@@ -416,7 +419,6 @@ export abstract class TransactionExtraConfig extends Serializable {
   }
 }
 
-
 export class TransactionExtraConfigV1 extends TransactionExtraConfig {
   public readonly multisigAddress: AccountAddress | undefined;
   // Question: Is it correct to define replayProtectionNonce as a U64?
@@ -429,7 +431,7 @@ export class TransactionExtraConfigV1 extends TransactionExtraConfig {
   }
 
   serialize(serializer: Serializer): void {
-    // TODO: How to serialize these optional fields?  
+    // TODO: How to serialize these optional fields?
     if (this.multisigAddress) {
       this.multisigAddress.serialize(serializer);
     }
@@ -439,7 +441,7 @@ export class TransactionExtraConfigV1 extends TransactionExtraConfig {
   }
 
   static load(deserializer: Deserializer): TransactionExtraConfigV1 {
-    // TODO: How to serialize these optional fields?  
+    // TODO: How to serialize these optional fields?
     const hasMultisigAddress = deserializer.deserializeBool();
     let multisigAddress;
     if (hasMultisigAddress) {

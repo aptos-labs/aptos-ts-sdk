@@ -77,9 +77,7 @@ export type FailureEventData = {
   error: string;
 };
 
-type ReplayProtector = 
-  | { type: "SequenceNumber"; value: bigint }
-  | { type: "Nonce"; value: bigint };
+type ReplayProtector = { type: "SequenceNumber"; value: bigint } | { type: "Nonce"; value: bigint };
 
 /**
  * TransactionWorker provides a simple framework for receiving payloads to be processed.
@@ -204,7 +202,10 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
             transaction,
             signer: this.account,
           });
-          await this.outstandingTransactions.enqueue([pendingTransaction, { type: "Nonce", value: replayProtectionNonce }]);
+          await this.outstandingTransactions.enqueue([
+            pendingTransaction,
+            { type: "Nonce", value: replayProtectionNonce },
+          ]);
         } else {
           // Generate sequence number based transaction
           const sequenceNumber = await this.accountSequenceNumber.nextSequenceNumber();
@@ -214,14 +215,17 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
             sender: this.account.accountAddress,
             data: transactionData,
             options: { ...options, accountSequenceNumber: sequenceNumber },
-          })
+          });
           if (!transaction) return;
           const pendingTransaction = signAndSubmitTransaction({
             aptosConfig: this.aptosConfig,
             transaction,
             signer: this.account,
           });
-          await this.outstandingTransactions.enqueue([pendingTransaction, { type: "SequenceNumber", value: sequenceNumber }]);
+          await this.outstandingTransactions.enqueue([
+            pendingTransaction,
+            { type: "SequenceNumber", value: sequenceNumber },
+          ]);
         }
       }
     } catch (error: any) {
@@ -307,7 +311,10 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    */
 
   // Question: Is it okay to change this function signature to take replayProtector instead of sequenceNumber?
-  async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, replayProtector: ReplayProtector) {
+  async checkTransaction(
+    sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>,
+    replayProtector: ReplayProtector,
+  ) {
     try {
       const waitFor: Array<Promise<TransactionResponse>> = [];
       waitFor.push(waitForTransaction({ aptosConfig: this.aptosConfig, transactionHash: sentTransaction.value.hash }));

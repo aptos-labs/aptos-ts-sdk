@@ -104,8 +104,8 @@ import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
  */
 // Question: Is it correct to define the return type as TransactionPayloadScript | TransactionPayloadInner?
 export async function generateTransactionPayload(
-  args: InputScriptData, 
-  options?: InputGenerateTransactionOptions
+  args: InputScriptData,
+  options?: InputGenerateTransactionOptions,
 ): Promise<TransactionPayloadScript | TransactionPayloadInner>;
 /**
  * @group Implementation
@@ -114,7 +114,7 @@ export async function generateTransactionPayload(
 // Question: Is it correct to define the return type as TransactionPayloadEntryFunction | TransactionPayloadInner?
 export async function generateTransactionPayload(
   args: InputEntryFunctionDataWithRemoteABI,
-  options?: InputGenerateTransactionOptions
+  options?: InputGenerateTransactionOptions,
 ): Promise<TransactionPayloadEntryFunction | TransactionPayloadInner>;
 /**
  * @group Implementation
@@ -153,10 +153,9 @@ export async function generateTransactionPayload(
     } else {
       return new TransactionPayloadScript(generateScript(args));
     }
-  }
- else {
+  } else {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
-  
+
     const functionAbi = await fetchAbi({
       key: "entry-function",
       moduleAddress,
@@ -166,7 +165,7 @@ export async function generateTransactionPayload(
       abi: args.abi,
       fetch: fetchEntryFunctionAbi,
     });
-  
+
     // Fill in the ABI
     return generateTransactionPayloadWithABI({ ...args, abi: functionAbi }, options);
   }
@@ -188,13 +187,19 @@ export async function generateTransactionPayload(
  * @category Transactions
  */
 // Question: Is it correct to define the return type as TransactionPayloadEntryFunction | TransactionPayloadInner?
-export function generateTransactionPayloadWithABI(args: InputEntryFunctionDataWithABI, options?: InputGenerateTransactionOptions): TransactionPayloadEntryFunction | TransactionPayloadInner;
+export function generateTransactionPayloadWithABI(
+  args: InputEntryFunctionDataWithABI,
+  options?: InputGenerateTransactionOptions,
+): TransactionPayloadEntryFunction | TransactionPayloadInner;
 /**
  * @group Implementation
  * @category Transactions
  */
 // Question: Is it correct to define the return type as TransactionPayloadMultiSig | TransactionPayloadInner?
-export function generateTransactionPayloadWithABI(args: InputMultiSigDataWithABI, options?: InputGenerateTransactionOptions): TransactionPayloadMultiSig | TransactionPayloadInner;
+export function generateTransactionPayloadWithABI(
+  args: InputMultiSigDataWithABI,
+  options?: InputGenerateTransactionOptions,
+): TransactionPayloadMultiSig | TransactionPayloadInner;
 /**
  * @group Implementation
  * @category Transactions
@@ -262,7 +267,7 @@ export function generateTransactionPayloadWithABI(
     let executable = new TransactionExecutableEntryFunction(entryFunctionPayload);
     return new TransactionPayloadInner(executable, extraConfig);
   } else {
-      // Send it as multi sig if it's a multisig payload
+    // Send it as multi sig if it's a multisig payload
     if ("multisigAddress" in args) {
       const multisigAddress = AccountAddress.from(args.multisigAddress);
       return new TransactionPayloadMultiSig(
@@ -365,10 +370,10 @@ export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWi
  */
 function generateScript(args: InputScriptData) {
   return new Script(
-      Hex.fromHexInput(args.bytecode).toUint8Array(),
-      standardizeTypeTags(args.typeArguments),
-      args.functionArguments,
-    );
+    Hex.fromHexInput(args.bytecode).toUint8Array(),
+    standardizeTypeTags(args.typeArguments),
+    args.functionArguments,
+  );
 }
 
 /**
