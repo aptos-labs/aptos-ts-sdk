@@ -2,6 +2,7 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { KangarooRistretto, TwistedEd25519PrivateKey, TwistedElGamal } from "../../../../src";
 import { loadTableMap } from "../helpers";
 import { preloadTables } from "./wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 function generateRandomInteger(bits: number): bigint {
   // eslint-disable-next-line no-bitwise
@@ -52,9 +53,13 @@ const execution = async (
 };
 
 describe("decrypt amount", () => {
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
   it("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");

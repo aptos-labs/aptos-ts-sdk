@@ -9,13 +9,11 @@ import {
   VeiledKeyRotation,
   VeiledNormalization,
   RangeProofExecutor,
-  TwistedElGamal,
   VeiledAmount,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
-import { loadTableMapJSON } from "./helpers";
-import { createKangaroo } from "./kangaroo/wasmPollardKangaroo";
+import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
@@ -23,46 +21,7 @@ RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 
 describe("Generate 'veiled coin' proofs", () => {
   it("Pre load wasm table map", async () => {
-    const [table16, table32, table48] = await Promise.all([
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
-      ),
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
-      ),
-      loadTableMapJSON(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
-      ),
-    ]);
-
-    const kangarooWasmAll = await createKangaroo({
-      16: {
-        n: 8000,
-        w: 8,
-        r: 64,
-        bits: 16,
-        table: table16,
-        max_attempts: 20,
-      },
-      32: {
-        n: 4000,
-        w: 2048,
-        r: 128,
-        bits: 32,
-        table: table32,
-        max_attempts: 40,
-      },
-      48: {
-        n: 40_000,
-        w: 65536,
-        r: 128,
-        bits: 48,
-        table: table48,
-        max_attempts: 1000,
-      },
-    });
-
-    TwistedElGamal.setDecryptionFn(async (pk) => kangarooWasmAll.solve_dlp(pk));
+    await preloadTables();
   });
 
   const ALICE_BALANCE = 70n;

@@ -122,6 +122,15 @@ export class VeiledAmount {
     return new VeiledAmount({ amount, amountChunks: chunks });
   }
 
+  static decryptBalanceFn: (
+    encrypted: TwistedElGamalCiphertext[],
+    privateKey: TwistedEd25519PrivateKey,
+  ) => Promise<bigint[]>;
+
+  static setDecryptBalanceFn(fn: typeof VeiledAmount.decryptBalanceFn) {
+    VeiledAmount.decryptBalanceFn = fn;
+  }
+
   static async fromEncrypted(
     encrypted: TwistedElGamalCiphertext[],
     privateKey: TwistedEd25519PrivateKey,
@@ -133,9 +142,9 @@ export class VeiledAmount {
     const chunksCount = opts?.chunksCount || encrypted.length;
     const chunkBits = opts?.chunkBits || encrypted[0].C.toRawBytes().length;
 
-    const decryptedAmountChunks = await Promise.all(
-      encrypted.map((el) => TwistedElGamal.decryptWithPK(el, privateKey)),
-    );
+    const decryptedAmountChunks: bigint[] = VeiledAmount.decryptBalanceFn
+      ? await VeiledAmount.decryptBalanceFn(encrypted, privateKey)
+      : await Promise.all(encrypted.map((el) => TwistedElGamal.decryptWithPK(el, privateKey)));
 
     const amount = VeiledAmount.chunksToAmount(decryptedAmountChunks, chunkBits);
 

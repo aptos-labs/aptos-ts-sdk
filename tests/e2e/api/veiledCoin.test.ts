@@ -16,11 +16,12 @@ import {
   Ed25519PrivateKey,
   TransactionWorkerEventsEnum,
   InputGenerateTransactionPayloadData,
+  VeiledAmount,
+  VeiledBalance,
+  VeiledCoin,
+  RangeProofExecutor,
 } from "../../../src";
-import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { longTestTimeout } from "../../unit/helper";
-import { VeiledBalance, VeiledCoin } from "../../../src/api/veiledCoin";
-import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
 import { generateRangeZKP, verifyRangeZKP } from "../../unit/veiled/wasmRangeProof";
 
 describe("Veiled balance api", () => {
