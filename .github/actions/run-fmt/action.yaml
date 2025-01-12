@@ -11,8 +11,6 @@ runs:
         node-version-file: .node-version
         registry-url: "https://registry.npmjs.org"
     - uses: pnpm/action-setup@v4
-      with:
-        version: 8.9.0
 
     # Verify that the format is correct
     - run: pnpm install --frozen-lockfile && pnpm _fmt --check
