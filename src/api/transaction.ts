@@ -36,7 +36,7 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, PrivateKey } from "../core";
+import { AccountAddressInput, PrivateKeyInput } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
@@ -66,7 +66,7 @@ import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
  *   );
  *
  *   // Set up the client
- *   const config = new AptosConfig({ network: Network.TESTNET });
+ *   const config = new AptosConfig({ network: Network.DEVNET });
  *   const aptos = new Aptos(config);
  *
  *   // Generate two account credentials
@@ -506,7 +506,7 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKey }): Promise<TransactionResponse> {
+  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKeyInput }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 

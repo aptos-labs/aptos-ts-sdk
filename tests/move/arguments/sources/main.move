@@ -1,3 +1,4 @@
+/// Generate code with `aptos move build-publish-payload --json-output-file publish.json --included-artifacts none`
 module transaction_arguments::tx_args_module {
     use std::string;
     use std::error;
@@ -7,7 +8,6 @@ module transaction_arguments::tx_args_module {
     use std::object::{Self, Object};
     use std::string::String;
     use std::type_info::{Self};
-
     /// The vector lengths are not equal.
     const INCORRECT_VECTOR_LENGTH: u64 = 100;
     /// The inner vector values are not equal.
@@ -96,41 +96,40 @@ module transaction_arguments::tx_args_module {
         _e: Object<T4>,
     ) { }
 
+    const ERROR_OFFSET: u64 = 0x133700;
+
     public entry fun type_tags<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30>() {
-        assert!(
-            type_info::type_name<T0>() == type_info::type_name<bool>() &&
-            type_info::type_name<T1>() == type_info::type_name<u8>() &&
-            type_info::type_name<T2>() == type_info::type_name<u16>() &&
-            type_info::type_name<T3>() == type_info::type_name<u32>() &&
-            type_info::type_name<T4>() == type_info::type_name<u64>() &&
-            type_info::type_name<T5>() == type_info::type_name<u128>() &&
-            type_info::type_name<T6>() == type_info::type_name<u256>() &&
-            type_info::type_name<T7>() == type_info::type_name<address>() &&
-            type_info::type_name<T8>() == type_info::type_name<String>() &&
-            type_info::type_name<T9>() == type_info::type_name<Object<EmptyResource>>() &&
-            type_info::type_name<T10>() == type_info::type_name<vector<bool>>() &&
-            type_info::type_name<T11>() == type_info::type_name<vector<u8>>() &&
-            type_info::type_name<T12>() == type_info::type_name<vector<u16>>() &&
-            type_info::type_name<T13>() == type_info::type_name<vector<u32>>() &&
-            type_info::type_name<T14>() == type_info::type_name<vector<u64>>() &&
-            type_info::type_name<T15>() == type_info::type_name<vector<u128>>() &&
-            type_info::type_name<T16>() == type_info::type_name<vector<u256>>() &&
-            type_info::type_name<T17>() == type_info::type_name<vector<address>>() &&   
-            type_info::type_name<T18>() == type_info::type_name<vector<String>>() &&
-            type_info::type_name<T19>() == type_info::type_name<vector<Object<EmptyResource>>>() &&
-            type_info::type_name<T20>() == type_info::type_name<Option<bool>>() &&
-            type_info::type_name<T21>() == type_info::type_name<Option<u8>>() &&
-            type_info::type_name<T22>() == type_info::type_name<Option<u16>>() &&
-            type_info::type_name<T23>() == type_info::type_name<Option<u32>>() &&
-            type_info::type_name<T24>() == type_info::type_name<Option<u64>>() &&
-            type_info::type_name<T25>() == type_info::type_name<Option<u128>>() &&
-            type_info::type_name<T26>() == type_info::type_name<Option<u256>>() &&
-            type_info::type_name<T27>() == type_info::type_name<Option<address>>() &&
-            type_info::type_name<T28>() == type_info::type_name<Option<String>>() &&
-            type_info::type_name<T29>() == type_info::type_name<Option<Object<EmptyResource>>>() &&
-            type_info::type_name<T30>() == type_info::type_name<vector<vector<Option<vector<Option<Object<EmptyResource>>>>>>>(),
-            0
-        );
+        assert!(type_info::type_name<T0>() == type_info::type_name<bool>(), ERROR_OFFSET + 0);
+        assert!(type_info::type_name<T1>() == type_info::type_name<u8>(), ERROR_OFFSET + 1);
+            assert!(type_info::type_name<T2>() == type_info::type_name<u16>(), ERROR_OFFSET + 2);
+            assert!(type_info::type_name<T3>() == type_info::type_name<u32>(), ERROR_OFFSET + 3);
+            assert!(type_info::type_name<T4>() == type_info::type_name<u64>(), ERROR_OFFSET + 4);
+            assert!(type_info::type_name<T5>() == type_info::type_name<u128>(), ERROR_OFFSET + 5);
+            assert!(type_info::type_name<T6>() == type_info::type_name<u256>(), ERROR_OFFSET + 6);
+            assert!(type_info::type_name<T7>() == type_info::type_name<address>(), ERROR_OFFSET + 7);
+            assert!(type_info::type_name<T8>() == type_info::type_name<String>(), ERROR_OFFSET + 8);
+            assert!(type_info::type_name<T9>() == type_info::type_name<Object<EmptyResource>>(), ERROR_OFFSET + 9);
+            assert!(type_info::type_name<T10>() == type_info::type_name<vector<bool>>(), ERROR_OFFSET + 10);
+            assert!(type_info::type_name<T11>() == type_info::type_name<vector<u8>>(), ERROR_OFFSET + 11);
+            assert!(type_info::type_name<T12>() == type_info::type_name<vector<u16>>(), ERROR_OFFSET + 12);
+            assert!(type_info::type_name<T13>() == type_info::type_name<vector<u32>>(), ERROR_OFFSET + 13);
+            assert!(type_info::type_name<T14>() == type_info::type_name<vector<u64>>(), ERROR_OFFSET + 14);
+            assert!(type_info::type_name<T15>() == type_info::type_name<vector<u128>>(), ERROR_OFFSET + 15);
+            assert!(type_info::type_name<T16>() == type_info::type_name<vector<u256>>(), ERROR_OFFSET + 16);
+            assert!(type_info::type_name<T17>() == type_info::type_name<vector<address>>(), ERROR_OFFSET + 17);
+            assert!(type_info::type_name<T18>() == type_info::type_name<vector<String>>(), ERROR_OFFSET + 18);
+            assert!(type_info::type_name<T19>() == type_info::type_name<vector<Object<EmptyResource>>>(), ERROR_OFFSET + 19);
+            assert!(type_info::type_name<T20>() == type_info::type_name<Option<bool>>(), ERROR_OFFSET + 20);
+            assert!(type_info::type_name<T21>() == type_info::type_name<Option<u8>>(), ERROR_OFFSET + 21);
+            assert!(type_info::type_name<T22>() == type_info::type_name<Option<u16>>(), ERROR_OFFSET + 22);
+            assert!(type_info::type_name<T23>() == type_info::type_name<Option<u32>>(), ERROR_OFFSET + 23);
+            assert!(type_info::type_name<T24>() == type_info::type_name<Option<u64>>(), ERROR_OFFSET + 24);
+            assert!(type_info::type_name<T25>() == type_info::type_name<Option<u128>>(), ERROR_OFFSET + 25);
+            assert!(type_info::type_name<T26>() == type_info::type_name<Option<u256>>(), ERROR_OFFSET + 26);
+            assert!(type_info::type_name<T27>() == type_info::type_name<Option<address>>(), ERROR_OFFSET + 27);
+            assert!(type_info::type_name<T28>() == type_info::type_name<Option<String>>(), ERROR_OFFSET + 28);
+            assert!(type_info::type_name<T29>() == type_info::type_name<Option<Object<EmptyResource>>>(), ERROR_OFFSET + 29);
+            assert!(type_info::type_name<T30>() == type_info::type_name<vector<Option<Object<EmptyResource>>>>(), ERROR_OFFSET + 30);
     }
 
     public entry fun public_arguments(
@@ -381,10 +380,11 @@ module transaction_arguments::tx_args_module {
     }
 
     public inline fun assert_vectors_equal<T: drop>(vec_1: vector<T>, vec_2: vector<T>, arg_index: u64) {
-        assert!(vector::length<T>(&vec_1) == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
-        vector::zip<T, T>(vec_1, vec_2, |a, b| {
-            assert!(a == b, error::invalid_state(arg_index));
-        });
+        let length = vector::length<T>(&vec_1);
+        assert!(length == vector::length<T>(&vec_2), error::invalid_state(INCORRECT_VECTOR_LENGTH + arg_index));
+        for (i in 0..length) {
+            assert!(vector::borrow(&vec_1, i) == vector::borrow(&vec_2, i), error::invalid_state(arg_index))
+        };
     }
 
     public inline fun assert_deep_equality<T: drop>(vec_1: vector<vector<T>>, vec_2: vector<vector<T>>, arg_index: u64) {
@@ -666,7 +666,7 @@ module transaction_arguments::tx_args_module {
             option::some(string::utf8(EXPECTED_STRING)),
             option::some(get_setup_data().empty_object_1),
         );
-        
+
         public_arguments_multiple_signers(
             deployer,
             signer_2_clone,
@@ -782,7 +782,7 @@ module transaction_arguments::tx_args_module {
             string::utf8(b"vector<u64>") == type_info::type_name<vector<u64>>() &&
             string::utf8(b"vector<u128>") == type_info::type_name<vector<u128>>() &&
             string::utf8(b"vector<u256>") == type_info::type_name<vector<u256>>() &&
-            string::utf8(b"vector<address>") == type_info::type_name<vector<address>>() &&   
+            string::utf8(b"vector<address>") == type_info::type_name<vector<address>>() &&
             string::utf8(b"vector<0x1::string::String>") == type_info::type_name<vector<String>>() &&
             string::utf8(b"vector<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>") == type_info::type_name<vector<Object<EmptyResource>>>() &&
             string::utf8(b"0x1::option::Option<bool>") == type_info::type_name<Option<bool>>() &&
@@ -795,7 +795,7 @@ module transaction_arguments::tx_args_module {
             string::utf8(b"0x1::option::Option<address>") == type_info::type_name<Option<address>>() &&
             string::utf8(b"0x1::option::Option<0x1::string::String>") == type_info::type_name<Option<String>>() &&
             string::utf8(b"0x1::option::Option<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>") == type_info::type_name<Option<Object<EmptyResource>>>() &&
-            string::utf8(b"vector<vector<0x1::option::Option<vector<0x1::option::Option<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>>>>>") == type_info::type_name<vector<vector<Option<vector<Option<Object<EmptyResource>>>>>>>(),
+            string::utf8(b"vector<0x1::option::Option<0x1::object::Object<0xbeefcafe::tx_args_module::EmptyResource>>>") == type_info::type_name<vector<Option<Object<EmptyResource>>>>(),
             0,
         );
     }

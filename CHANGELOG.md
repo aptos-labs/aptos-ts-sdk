@@ -5,6 +5,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - Log the Move command if `showStdout` is set to true
+- node now no longer supports older than v20
+- overriding cross spawn for patch
+- Add `AccountUtils` class to help with account serialization and deserialization
+- Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
+- We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
 
 # 1.33.1 (2024-11-28)
 
@@ -21,7 +26,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 1.32.1 (2024-11-11)
 
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
-- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allower SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
@@ -177,11 +182,11 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.14.0 (2024-05-09)
 
-- [`Fix`] fixed `trasnferFungibleAsset` function
+- [`Fix`] fixed `transferFungibleAsset` function
 - Run all examples in CI
-- Introcude cli `Move` class that holds `move` related commands
+- Introduce cli `Move` class that holds `move` related commands
 - Add common cli commands - `move.init()`, `move.compile()`, `move.test()`, `move.publish()`
-- [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `intanceOf`
+- [`Fix`] Fix `generateSigningMessage` to check type explicitly instead of using `instanceOf`
 - Remove `randomnet` from the known Network enum
 
 # 1.13.3 (2024-04-30)
@@ -245,7 +250,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # 1.9.1 (2024-02-28)
 
-- [`Fix`] Remove decimals field from `CurrentTokenOwnershipFields` gql fragement
+- [`Fix`] Remove decimals field from `CurrentTokenOwnershipFields` gql fragment
 
 # 1.9.0 (2024-02-27)
 
@@ -304,7 +309,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Update dependencies in the Typescript SDK to keep up with latest changes
 - Updated @aptos-labs/aptos-client dependency
 - [`Breaking`] Hex string inputs to `vector<u8>` entry function arguments will now be interpreted as a string instead of hex
-- String inputs to `vector<u8>` entry function arguments will now be interpeted as UTF-8 bytes
+- String inputs to `vector<u8>` entry function arguments will now be interpreted as UTF-8 bytes
 - ArrayBuffer is now a possible input for `vector<u8>` entry function arguments
 
 ## 1.1.0 (2023-12-11)
