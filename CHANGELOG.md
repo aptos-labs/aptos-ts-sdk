@@ -3,7 +3,10 @@
 All notable changes to the Aptos TypeScript SDK will be captured in this file. This changelog is written by hand for now. It adheres to the format set out by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 # Unreleased
+- [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources.  Also, adds more appropriate documentation on offset.
 
+- node now no longer supports older than v20
+- overriding cross spawn for patch
 - Add `AccountUtils` class to help with account serialization and deserialization
 - Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
