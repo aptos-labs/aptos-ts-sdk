@@ -6,7 +6,6 @@ import { JwtPayload, jwtDecode } from "jwt-decode";
 import { sha3_256 } from "@noble/hashes/sha3";
 import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Signature } from "./signature";
-import { Deserializer, Serializable, Serializer } from "../../bcs";
 import { Hex, hexToAsciiString } from "../hex";
 import {
   HexInput,
@@ -34,6 +33,8 @@ import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
 import { getErrorMessage } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
+import { Serializable, Serializer } from "../../bcs/serializer";
+import { Deserializer } from "../../bcs/deserializer";
 
 /**
  * @group Implementation
