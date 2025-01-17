@@ -43,7 +43,7 @@ export type VeiledBalance = {
   actual: TwistedElGamalCiphertext[];
 };
 
-const VEILED_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
+const VEILED_COIN_MODULE_ADDRESS = "0xa69bfbeae0dbc76802ca3cbfc6455d088dfc7212a7bfbe1edfd05be81aca132c";
 
 /**
  * A class to handle veiled balance operations
