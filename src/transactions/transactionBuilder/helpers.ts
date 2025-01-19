@@ -338,3 +338,8 @@ export function getFunctionParts(functionArg: MoveFunctionId) {
   const functionName = funcNameParts[2];
   return { moduleAddress, moduleName, functionName };
 }
+
+export function isValidFunctionInfo(functionInfo: string): boolean {
+  const parts = functionInfo.split("::");
+  return parts.length === 3 && AccountAddress.isValid({ input: parts[0] }).valid;
+}
