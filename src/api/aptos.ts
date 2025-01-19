@@ -15,6 +15,7 @@ import { Transaction } from "./transaction";
 import { Table } from "./table";
 import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
+import { AccountAbstraction } from "./account/abstraction";
 
 /**
  * The main entry point for interacting with the Aptos APIs,
@@ -94,6 +95,7 @@ export class Aptos {
   constructor(settings?: AptosConfig) {
     this.config = new AptosConfig(settings);
     this.account = new Account(this.config);
+    this.abstraction = new AccountAbstraction(this.config);
     this.ans = new ANS(this.config);
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
@@ -149,6 +151,7 @@ function applyMixin(targetClass: any, baseClass: any, baseClassProp: string) {
 }
 
 applyMixin(Aptos, Account, "account");
+applyMixin(Aptos, AccountAbstraction, "abstraction");
 applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
