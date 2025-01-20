@@ -16,6 +16,7 @@ import {
   TwistedEd25519PrivateKey,
   VeiledAmount,
   RangeProofExecutor,
+  Ed25519Account,
 } from "../../../src";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
@@ -120,12 +121,16 @@ export const getTestAccount = () => {
   return Account.generate();
 };
 
-export const getTestVeiledAccount = () => {
+export const getTestVeiledAccount = (account?: Ed25519Account) => {
   if (process.env.TESTNET_DK) {
     return new TwistedEd25519PrivateKey(process.env.TESTNET_DK);
   }
 
-  return TwistedEd25519PrivateKey.generate();
+  if (!account) return TwistedEd25519PrivateKey.generate();
+
+  const signature = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
+
+  return TwistedEd25519PrivateKey.fromSignature(signature);
 };
 
 /** !important: for testing purposes */

@@ -4,6 +4,7 @@
 import initWasm, { create_kangaroo } from "@distributedlab/aptos-wasm-bindings/pollard-kangaroo";
 
 // import fs from "fs";
+import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { TwistedElGamal } from "../../../../src";
 
 const POLLARD_KANGAROO_WASM_URL =
@@ -22,6 +23,8 @@ export const preloadTables = async () => {
 
   // TwistedElGamal.setDecryptionFn(async (pk) => wrappedDecryptFn(pk));
   TwistedElGamal.setDecryptionFn(async (pk) => {
+    if (bytesToNumberLE(pk) === 0n) return 0n;
+
     let result = kangaroo32.solve_dlp(pk, 120n);
 
     if (!result) {
