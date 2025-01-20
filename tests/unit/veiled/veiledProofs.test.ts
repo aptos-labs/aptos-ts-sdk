@@ -42,11 +42,7 @@ describe("Generate 'veiled coin' proofs", () => {
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
 
-    const sigmaProofStartTime = performance.now();
     veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
-    const sigmaProofStartTimeEnd = performance.now();
-
-    console.log("sigmaProofStartTime", sigmaProofStartTimeEnd - sigmaProofStartTime);
 
     expect(veiledWithdrawSigmaProof).toBeDefined();
   });
@@ -65,11 +61,7 @@ describe("Generate 'veiled coin' proofs", () => {
 
   let veiledWithdrawRangeProof: Uint8Array[];
   test("Generate withdraw range proof", async () => {
-    const rangeProofStartTime = performance.now();
     veiledWithdrawRangeProof = await veiledWithdraw.genRangeProof();
-    const rangeProofStartTimeEnd = performance.now();
-
-    console.log("rangeProofStartTime", rangeProofStartTimeEnd - rangeProofStartTime);
   });
   test("Verify withdraw range proof", async () => {
     const isValid = VeiledWithdraw.verifyRangeProof({

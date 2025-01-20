@@ -1,9 +1,18 @@
 import { getBalances, getTestAccount, getTestVeiledAccount } from "../helpers";
+import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 describe("Check balance", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount();
+  const aliceVeiled = getTestVeiledAccount(alice);
 
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
   it("should check balance", async () => {
     const balances = await getBalances(aliceVeiled, alice.accountAddress);
 

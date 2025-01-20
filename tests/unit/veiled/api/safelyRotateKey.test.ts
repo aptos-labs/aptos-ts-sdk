@@ -11,7 +11,7 @@ import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 
 describe("Safely rotate Alice's veiled balance key", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount();
+  const aliceVeiled = getTestVeiledAccount(alice);
 
   it("Pre load wasm table map", async () => {
     await preloadTables();
