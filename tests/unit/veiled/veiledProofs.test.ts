@@ -293,9 +293,7 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const unnormalizedAliceVeiledAmount = VeiledAmount.fromChunks([
-    2n ** 32n + 100n,
-    2n ** 32n + 200n,
-    2n ** 32n + 300n,
+    ...Array.from({ length: VeiledAmount.CHUNKS_COUNT - 1 }, (_) => 2n ** VeiledAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
   unnormalizedAliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());

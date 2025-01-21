@@ -144,7 +144,10 @@ export class VeiledWithdraw {
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.encryptedActualBalanceAmount
-        .reduce((acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
+        .reduce(
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          RistrettoPoint.ZERO,
+        )
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
@@ -157,7 +160,7 @@ export class VeiledWithdraw {
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
-      concatBytes(...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32))),
+      concatBytes(...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, VeiledAmount.CHUNK_BITS))),
       this.decryptionKey.publicKey().toUint8Array(),
       concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
       RistrettoPoint.BASE.toRawBytes(),
@@ -188,11 +191,11 @@ export class VeiledWithdraw {
     });
 
     return {
-      alpha1: numberToBytesLE(alpha1, 32),
-      alpha2: numberToBytesLE(alpha2, 32),
-      alpha3: numberToBytesLE(alpha3, 32),
-      alpha4List: alpha4List.map((el) => numberToBytesLE(el, 32)),
-      alpha5List: alpha5List.map((el) => numberToBytesLE(el, 32)),
+      alpha1: numberToBytesLE(alpha1, VeiledAmount.CHUNK_BITS),
+      alpha2: numberToBytesLE(alpha2, VeiledAmount.CHUNK_BITS),
+      alpha3: numberToBytesLE(alpha3, VeiledAmount.CHUNK_BITS),
+      alpha4List: alpha4List.map((el) => numberToBytesLE(el, VeiledAmount.CHUNK_BITS)),
+      alpha5List: alpha5List.map((el) => numberToBytesLE(el, VeiledAmount.CHUNK_BITS)),
       X1: X1.toRawBytes(),
       X2: X2.toRawBytes(),
       X3List: X3List.map((el) => el.toRawBytes()),
@@ -220,7 +223,7 @@ export class VeiledWithdraw {
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
-      ...veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
+      ...veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, VeiledAmount.CHUNK_BITS)),
       publicKeyU8,
       ...opts.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       RistrettoPoint.BASE.toRawBytes(),
@@ -276,7 +279,7 @@ export class VeiledWithdraw {
       this.veiledAmountAfterWithdraw.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
+          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),

@@ -148,7 +148,10 @@ export class VeiledKeyRotation {
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.currEncryptedBalance
-        .reduce((acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
+        .reduce(
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          RistrettoPoint.ZERO,
+        )
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
@@ -186,18 +189,18 @@ export class VeiledKeyRotation {
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
     const alpha5List = x5List.map((x5, i) => {
       const pChunk = ed25519modN(p * this.currVeiledAmount.amountChunks[i]);
-      return numberToBytesLE(ed25519modN(x5 - pChunk), 32);
+      return numberToBytesLE(ed25519modN(x5 - pChunk), VeiledAmount.CHUNK_BITS);
     });
     const alpha6List = x6List.map((x6, i) => {
       const pRand = ed25519modN(p * this.randomness[i]);
-      return numberToBytesLE(ed25519modN(x6 - pRand), 32);
+      return numberToBytesLE(ed25519modN(x6 - pRand), VeiledAmount.CHUNK_BITS);
     });
 
     return {
-      alpha1: numberToBytesLE(alpha1, 32),
-      alpha2: numberToBytesLE(alpha2, 32),
-      alpha3: numberToBytesLE(alpha3, 32),
-      alpha4: numberToBytesLE(alpha4, 32),
+      alpha1: numberToBytesLE(alpha1, VeiledAmount.CHUNK_BITS),
+      alpha2: numberToBytesLE(alpha2, VeiledAmount.CHUNK_BITS),
+      alpha3: numberToBytesLE(alpha3, VeiledAmount.CHUNK_BITS),
+      alpha4: numberToBytesLE(alpha4, VeiledAmount.CHUNK_BITS),
       alpha5List,
       alpha6List,
       X1: X1.toRawBytes(),
@@ -285,7 +288,7 @@ export class VeiledKeyRotation {
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
           // r: this.newDecryptionKey.toUint8Array(),
-          r: numberToBytesLE(this.randomness[i], 32),
+          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),

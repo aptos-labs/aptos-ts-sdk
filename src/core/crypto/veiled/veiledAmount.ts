@@ -4,12 +4,12 @@ import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd2
 /**
  * Number of chunks for veiled balance
  */
-const CHUNKS_COUNT = 4;
+const CHUNKS_COUNT = 8;
 
 /**
  * Max bits of amount in a chunk for normalized veiled balance
  */
-const CHUNK_BITS = 32;
+const CHUNK_BITS = 16;
 
 // TODO: encrypt pending balance as (2)
 export class VeiledAmount {

@@ -94,7 +94,7 @@ export class VeiledTransfer {
     const recipientPublicKeyU8 = publicKeyToU8(args.recipientEncryptionKey);
 
     const veiledAmountToTransfer = VeiledAmount.fromAmount(args.amountToTransfer, {
-      chunksCount: 2,
+      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
     });
     const encryptedAmountByRecipient = veiledAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
@@ -296,16 +296,16 @@ export class VeiledTransfer {
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map(
       (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer.amountChunks[idx]),
-      32,
+      VeiledAmount.CHUNK_BITS,
     );
 
     return {
-      alpha1: numberToBytesLE(alpha1, 32),
-      alpha2: numberToBytesLE(alpha2, 32),
-      alpha3List: alpha3List.map((a) => numberToBytesLE(a, 32)),
-      alpha4List: alpha4List.map((a) => numberToBytesLE(a, 32)),
-      alpha5: numberToBytesLE(alpha5, 32),
-      alpha6List: alpha6List.map((a) => numberToBytesLE(a, 32)),
+      alpha1: numberToBytesLE(alpha1, VeiledAmount.CHUNK_BITS),
+      alpha2: numberToBytesLE(alpha2, VeiledAmount.CHUNK_BITS),
+      alpha3List: alpha3List.map((a) => numberToBytesLE(a, VeiledAmount.CHUNK_BITS)),
+      alpha4List: alpha4List.map((a) => numberToBytesLE(a, VeiledAmount.CHUNK_BITS)),
+      alpha5: numberToBytesLE(alpha5, VeiledAmount.CHUNK_BITS),
+      alpha6List: alpha6List.map((a) => numberToBytesLE(a, VeiledAmount.CHUNK_BITS)),
       X1,
       X2List,
       X3List,
@@ -447,7 +447,7 @@ export class VeiledTransfer {
       this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
+          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
         }),
@@ -459,7 +459,7 @@ export class VeiledTransfer {
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
           // r: this.senderDecryptionKey.toUint8Array(),
-          r: numberToBytesLE(this.randomness[i], 32),
+          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.veiledAmountAfterTransfer.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
