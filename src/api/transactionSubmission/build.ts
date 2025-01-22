@@ -167,7 +167,9 @@ export class Build {
     options?: InputGenerateTransactionOptions;
     withFeePayer?: boolean;
   }): Promise<SimpleTransaction> {
-    const builder = await args.builder(new AptosScriptComposer(this.config));
+    let composer = new AptosScriptComposer(this.config);
+    await composer.init();
+    const builder = await args.builder(composer);
     const bytes = builder.build();
     const rawTxn = await generateRawTransaction({
       aptosConfig: this.config,

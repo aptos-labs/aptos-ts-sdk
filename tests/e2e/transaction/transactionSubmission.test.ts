@@ -69,6 +69,7 @@ describe("transaction submission", () => {
       });
       test("with batch payload", async () => {
         const builder = new AptosScriptComposer(aptos.config);
+        await builder.init();
         await builder.addBatchedCalls({
           function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
           functionArguments: [CallArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],

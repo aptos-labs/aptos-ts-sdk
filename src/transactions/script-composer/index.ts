@@ -1,7 +1,6 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionComposer, initSync, wasm } from "@aptos-labs/script-composer-pack";
 import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
@@ -9,25 +8,35 @@ import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../
 import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
-(async () => {
-  initSync({ module: wasm });
-})();
-
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer.
 //
 // This class allows the SDK caller to build a transaction that invokes multiple Move functions
 // and allow for arguments to be passed around.
 export class AptosScriptComposer {
-  private builder: TransactionComposer;
-
   private config: AptosConfig;
+  
+  private builder?: any;
+
+  private static transactionComposer?: any;
 
   constructor(aptosConfig: AptosConfig) {
-    this.builder = TransactionComposer.single_signer();
     this.config = aptosConfig;
+    this.builder = undefined;
   }
 
+  // Initializing the wasm needed for the script composer, must be called
+  // before using the composer.
+  async init() {
+    if (!AptosScriptComposer.transactionComposer) {
+      const module = await import("@aptos-labs/script-composer-pack");
+      const { TransactionComposer, initSync, wasm } = module;
+      initSync({module: wasm});
+      AptosScriptComposer.transactionComposer = TransactionComposer;
+    }
+    this.builder = AptosScriptComposer.transactionComposer.single_signer();
+  }
+    
   // Add a move function invocation to the TransactionComposer.
   //
   // Similar to how to create an entry function, the difference is that input arguments could
