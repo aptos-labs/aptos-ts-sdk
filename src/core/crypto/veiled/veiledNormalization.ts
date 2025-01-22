@@ -54,7 +54,7 @@ export class VeiledNormalization {
   }
 
   static async create(args: CreateVeiledNormalizationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
     normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
@@ -128,8 +128,8 @@ export class VeiledNormalization {
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom();
-    const x5List = ed25519GenListOfRandom();
+    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.unnormalizedEncryptedBalance
@@ -169,16 +169,14 @@ export class VeiledNormalization {
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
     const alpha4List = x4List.map((x4, i) =>
-      numberToBytesLE(ed25519modN(x4 - p * this.normalizedVeiledAmount!.amountChunks![i]), VeiledAmount.CHUNK_BITS),
+      numberToBytesLE(ed25519modN(x4 - p * this.normalizedVeiledAmount!.amountChunks![i]), 32),
     );
-    const alpha5List = x5List.map((x5, i) =>
-      numberToBytesLE(ed25519modN(x5 - p * this.randomness[i]), VeiledAmount.CHUNK_BITS),
-    );
+    const alpha5List = x5List.map((x5, i) => numberToBytesLE(ed25519modN(x5 - p * this.randomness[i]), 32));
 
     return {
-      alpha1: numberToBytesLE(alpha1, VeiledAmount.CHUNK_BITS),
-      alpha2: numberToBytesLE(alpha2, VeiledAmount.CHUNK_BITS),
-      alpha3: numberToBytesLE(alpha3, VeiledAmount.CHUNK_BITS),
+      alpha1: numberToBytesLE(alpha1, 32),
+      alpha2: numberToBytesLE(alpha2, 32),
+      alpha3: numberToBytesLE(alpha3, 32),
       alpha4List,
       alpha5List,
       X1: X1.toRawBytes(),
@@ -257,10 +255,11 @@ export class VeiledNormalization {
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
           // r: this.decryptionKey.toUint8Array(),
-          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -280,6 +279,7 @@ export class VeiledNormalization {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );

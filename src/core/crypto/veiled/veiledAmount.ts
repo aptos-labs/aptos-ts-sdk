@@ -11,7 +11,7 @@ const CHUNKS_COUNT = 8;
  */
 const CHUNK_BITS = 16;
 
-// TODO: encrypt pending balance as (2)
+// TODO: encrypt pending balance as (CHUNKS_COUNT / 2)
 export class VeiledAmount {
   amount: bigint;
 
@@ -80,25 +80,11 @@ export class VeiledAmount {
     chunksCount = VeiledAmount.CHUNKS_COUNT,
     chunkBits = VeiledAmount.CHUNK_BITS,
   ): bigint[] {
-    const chunkBitsBI = BigInt(chunkBits);
+    const chunks: bigint[] = [];
+    const chunkBitsBi = BigInt(chunkBits);
 
-    const chunksCountBI = BigInt(chunksCount);
-    if (amount > 2n ** (chunksCountBI * chunkBitsBI) - 1n) {
-      throw new Error(`Amount must be less than 2n**${chunkBitsBI * chunksCountBI}`);
-    }
-
-    const chunks = [];
-    let a = amount;
-    for (let i = chunksCount - 1; i >= 0; i -= 1) {
-      if (i === 0) {
-        chunks[i] = a;
-      } else {
-        const bits = 2n ** (chunkBitsBI * BigInt(i));
-        const aMod = a % bits;
-        const chunk = a === aMod ? 0n : (a - aMod) / bits;
-        chunks[i] = chunk;
-        a = aMod;
-      }
+    for (let i = 0; i < chunksCount; i++) {
+      chunks.push((amount >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n));
     }
 
     return chunks;

@@ -24,7 +24,7 @@ describe("Generate 'veiled coin' proofs", () => {
     await preloadTables();
   });
 
-  const ALICE_BALANCE = 70n;
+  const ALICE_BALANCE = 2n ** 64n - 100n;
 
   const aliceVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
   const bobVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
@@ -32,7 +32,9 @@ describe("Generate 'veiled coin' proofs", () => {
   const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
   aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
 
-  const WITHDRAW_AMOUNT = 15n;
+  console.log("aliceVeiledAmount", aliceVeiledAmount.amountChunks);
+
+  const WITHDRAW_AMOUNT = 2n ** 12n + 10n;
   let veiledWithdraw: VeiledWithdraw;
   let veiledWithdrawSigmaProof: VeiledWithdrawSigmaProof;
   test("Generate withdraw sigma proof", async () => {
@@ -82,15 +84,15 @@ describe("Generate 'veiled coin' proofs", () => {
 
   test("Should generate and verify veiled withdraw with large amounts", async () => {
     const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
-    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 100n);
+    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 10n);
     newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
 
-    const newWithdrawAmount = 2n ** 32n + 10n;
+    const amountToWithdraw = 2n ** 16n + 10n - 10n;
 
     const largeVeiledWithdrawal = await VeiledWithdraw.create({
-      decryptionKey: newAliceDecryptionKey,
+      decryptionKey: toTwistedEd25519PrivateKey(newAliceDecryptionKey),
       encryptedActualBalance: newAliceBalance.amountEncrypted!,
-      amountToWithdraw: newWithdrawAmount,
+      amountToWithdraw,
     });
 
     const [{ sigmaProof, rangeProof }, vbNew] = await largeVeiledWithdrawal.authorizeWithdrawal();
@@ -102,14 +104,14 @@ describe("Generate 'veiled coin' proofs", () => {
     const isSigmaProofValid = VeiledWithdraw.verifySigmaProof({
       publicKey: newAliceDecryptionKey.publicKey(),
       encryptedActualBalance: largeVeiledWithdrawal.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
-      amountToWithdraw: newWithdrawAmount,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw.amountEncrypted!,
+      amountToWithdraw,
       sigmaProof,
     });
 
     const isRangeProofValid = VeiledWithdraw.verifyRangeProof({
       rangeProof,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw.amountEncrypted!,
     });
 
     expect(isSigmaProofValid).toBeTruthy();

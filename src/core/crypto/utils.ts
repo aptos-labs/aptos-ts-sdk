@@ -49,7 +49,7 @@ export function ed25519InvertN(a: bigint): bigint {
 export function ed25519GenRandom(): bigint {
   let rand: bigint;
   do {
-    rand = bytesToNumberBE(randomBytes(16));
+    rand = bytesToNumberBE(randomBytes(32));
   } while (rand > ed25519.CURVE.n);
 
   return rand;
@@ -59,6 +59,6 @@ export function ed25519GenRandom(): bigint {
  * Generate list of random number less then order of curve ed25519
  * @param len - chunks count
  */
-export function ed25519GenListOfRandom(len = 8) {
+export function ed25519GenListOfRandom(len: number) {
   return new Array(len).fill(0n).map(() => ed25519GenRandom());
 }

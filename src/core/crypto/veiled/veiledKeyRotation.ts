@@ -61,7 +61,7 @@ export class VeiledKeyRotation {
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
   static async create(args: CreateVeiledKeyRotationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
 
@@ -143,8 +143,8 @@ export class VeiledKeyRotation {
     const x3 = ed25519GenRandom();
     const x4 = ed25519GenRandom();
 
-    const x5List = ed25519GenListOfRandom();
-    const x6List = ed25519GenListOfRandom();
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x6List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.currEncryptedBalance
@@ -189,18 +189,18 @@ export class VeiledKeyRotation {
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
     const alpha5List = x5List.map((x5, i) => {
       const pChunk = ed25519modN(p * this.currVeiledAmount.amountChunks[i]);
-      return numberToBytesLE(ed25519modN(x5 - pChunk), VeiledAmount.CHUNK_BITS);
+      return numberToBytesLE(ed25519modN(x5 - pChunk), 32);
     });
     const alpha6List = x6List.map((x6, i) => {
       const pRand = ed25519modN(p * this.randomness[i]);
-      return numberToBytesLE(ed25519modN(x6 - pRand), VeiledAmount.CHUNK_BITS);
+      return numberToBytesLE(ed25519modN(x6 - pRand), 32);
     });
 
     return {
-      alpha1: numberToBytesLE(alpha1, VeiledAmount.CHUNK_BITS),
-      alpha2: numberToBytesLE(alpha2, VeiledAmount.CHUNK_BITS),
-      alpha3: numberToBytesLE(alpha3, VeiledAmount.CHUNK_BITS),
-      alpha4: numberToBytesLE(alpha4, VeiledAmount.CHUNK_BITS),
+      alpha1: numberToBytesLE(alpha1, 32),
+      alpha2: numberToBytesLE(alpha2, 32),
+      alpha3: numberToBytesLE(alpha3, 32),
+      alpha4: numberToBytesLE(alpha4, 32),
       alpha5List,
       alpha6List,
       X1: X1.toRawBytes(),
@@ -288,10 +288,11 @@ export class VeiledKeyRotation {
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
           // r: this.newDecryptionKey.toUint8Array(),
-          r: numberToBytesLE(this.randomness[i], VeiledAmount.CHUNK_BITS),
+          r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -330,6 +331,7 @@ export class VeiledKeyRotation {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
