@@ -47,7 +47,9 @@
     "check-version": "scripts/checkVersion.sh",
     "update-version": "scripts/updateVersion.sh && pnpm doc",
     "spec": "pnpm build && pnpm _spec",
-    "_spec": "cucumber-js -p default"
+    "_spec": "cucumber-js -p default",
+    "watch:build": "nodemon",
+    "watch:test": "jest --watch --collectCoverage=false tests/e2e/transaction/delegationPermissions.test.ts"
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
@@ -61,6 +63,7 @@
     "form-data": "^4.0.0",
     "js-base64": "^3.7.7",
     "jwt-decode": "^4.0.0",
+    "nodemon": "^3.1.7",
     "poseidon-lite": "^0.2.0"
   },
   "devDependencies": {
@@ -102,5 +105,5 @@
       "cross-spawn": ">=7.0.5"
     }
   },
-  "version": "1.33.1"
+  "version": "1.33.0-sc.1"
 }
