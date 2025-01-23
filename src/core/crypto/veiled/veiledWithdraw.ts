@@ -263,15 +263,6 @@ export class VeiledWithdraw {
       RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.encryptedActualBalanceAfterWithdraw[i].D.multiply(p)),
     );
 
-    console.log("X1", X1.toHex(), RistrettoPoint.fromHex(opts.sigmaProof.X1).toHex());
-
-    console.log(
-      X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)),
-      X2.equals(RistrettoPoint.fromHex(opts.sigmaProof.X2)),
-      X3List.every((X3, i) => X3.equals(RistrettoPoint.fromHex(opts.sigmaProof.X3List[i]))),
-      X4List.every((X4, i) => X4.equals(RistrettoPoint.fromHex(opts.sigmaProof.X4List[i]))),
-    );
-
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
       X2.equals(RistrettoPoint.fromHex(opts.sigmaProof.X2)) &&

@@ -32,8 +32,6 @@ describe("Generate 'veiled coin' proofs", () => {
   const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
   aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
 
-  console.log("aliceVeiledAmount", aliceVeiledAmount.amountChunks);
-
   const WITHDRAW_AMOUNT = 2n ** 12n + 10n;
   let veiledWithdraw: VeiledWithdraw;
   let veiledWithdrawSigmaProof: VeiledWithdrawSigmaProof;
@@ -251,8 +249,8 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Generate key rotation sigma proof", async () => {
     veiledKeyRotation = await VeiledKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
-      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
+      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
     });
 
     veiledKeyRotationSigmaProof = await veiledKeyRotation.genSigmaProof();
@@ -260,12 +258,13 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledKeyRotationSigmaProof).toBeDefined();
   });
   test("Verify key rotation sigma proof", () => {
+    console.log(aliceVeiledAmount.amountChunks);
     const isValid = VeiledKeyRotation.verifySigmaProof({
       sigmaProof: veiledKeyRotationSigmaProof,
       currPublicKey: aliceVeiledDecryptionKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
-      newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.amountEncrypted!,
+      newEncryptedBalance: veiledKeyRotation.newVeiledAmount.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
@@ -295,7 +294,7 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const unnormalizedAliceVeiledAmount = VeiledAmount.fromChunks([
-    ...Array.from({ length: VeiledAmount.CHUNKS_COUNT - 1 }, (_) => 2n ** VeiledAmount.CHUNK_BITS_BI + 100n),
+    ...Array.from({ length: VeiledAmount.CHUNKS_COUNT - 1 }, () => 2n ** VeiledAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
   unnormalizedAliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
