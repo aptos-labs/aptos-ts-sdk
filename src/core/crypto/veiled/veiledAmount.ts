@@ -126,7 +126,7 @@ export class VeiledAmount {
     },
   ) {
     const chunksCount = opts?.chunksCount || encrypted.length;
-    const chunkBits = opts?.chunkBits || encrypted[0].C.toRawBytes().length;
+    const chunkBits = opts?.chunkBits || VeiledAmount.CHUNK_BITS;
 
     const decryptedAmountChunks: bigint[] = VeiledAmount.decryptBalanceFn
       ? await VeiledAmount.decryptBalanceFn(encrypted, privateKey)

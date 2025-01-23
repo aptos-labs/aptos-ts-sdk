@@ -1,5 +1,5 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { bytesToNumberLE, hexToNumber, numberToBytesLE } from "@noble/curves/abstract/utils";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import {
   TwistedEd25519PrivateKey,
   VeiledKeyRotationSigmaProof,
@@ -38,16 +38,7 @@ describe("Generate 'veiled coin' proofs", () => {
   const bobVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
   const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
-  aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey(), [
-    bytesToNumberLE(hexToBytes("ab056c9544b16ab4d0d91fd1391560fcc648f4f0fa30fa6ba8fefee20747ce00")),
-    bytesToNumberLE(hexToBytes("e6b5c4e45c2a5bff86fd907b18be3ecfdf00c9bc22f3f34ac875f2abf16c9504")),
-    bytesToNumberLE(hexToBytes("d10db9cf2155610881db268031ad2f8981ac917fbfa97b8b055b3fc09aa2a306")),
-    bytesToNumberLE(hexToBytes("c9027a3ddc9badd22b8ec19b6ebb92d10ebf8cccfc63757f867f39659b0fc307")),
-    bytesToNumberLE(hexToBytes("92020f8533ba97650848287357f788929a5893279cd1a940de8da96254affe0b")),
-    bytesToNumberLE(hexToBytes("190d344b71402f86e16956d42685ddfc4ff6cd84f3896af0ef6708df5fafd00a")),
-    bytesToNumberLE(hexToBytes("8fc95adedbe58d1b6b85bf48675aa744496e1c71fcc035b285ed8662a530f101")),
-    bytesToNumberLE(hexToBytes("ccb1cadb09e4336c1a57d9322ed1425d792c68f9583572774e4cc313ffa99e07")),
-  ]);
+  aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
   let veiledWithdraw: VeiledWithdraw;
@@ -57,16 +48,6 @@ describe("Generate 'veiled coin' proofs", () => {
       decryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
-      randomness: [
-        bytesToNumberLE(hexToBytes("dd43034642d08b766de44e8a72ac5f7fa851c6c776e56e4e5988f0ba862c6104")),
-        bytesToNumberLE(hexToBytes("43fb9b5910d069fc84f33623647bfa74a56bd74f1c33727d30102e812ee60e02")),
-        bytesToNumberLE(hexToBytes("7fe0b1381353403c9af6ed7c39032c7ac9f89f84e7534d95e803d04f6942270e")),
-        bytesToNumberLE(hexToBytes("b40219a5882a5f44f88a5eb19715eeac3d5bf1edb29fec76bfe76b9b63156b06")),
-        bytesToNumberLE(hexToBytes("746bfd4884002d44a07761b8dede1976b6bfe6a1bfadb5b0882ef283b7c2e90d")),
-        bytesToNumberLE(hexToBytes("d8c10948d8f0dbc8a075e0fc580af7a4b8ef01133ed1b6fbc4eabf6210c00500")),
-        bytesToNumberLE(hexToBytes("43899f061536344fc294c2f70b43249d4a73fbc9524830b072494853d5a59502")),
-        bytesToNumberLE(hexToBytes("b87da5499accba8457acd8026c739a0f20da5db0f0e051f55b3eba81e2336204")),
-      ],
     });
 
     veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
@@ -285,7 +266,6 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledKeyRotationSigmaProof).toBeDefined();
   });
   test("Verify key rotation sigma proof", () => {
-    console.log(aliceVeiledAmount.amountChunks);
     const isValid = VeiledKeyRotation.verifySigmaProof({
       sigmaProof: veiledKeyRotationSigmaProof,
       currPublicKey: aliceVeiledDecryptionKey.publicKey(),

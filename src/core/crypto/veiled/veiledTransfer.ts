@@ -240,13 +240,20 @@ export class VeiledTransfer {
       RistrettoPoint.ZERO,
     );
 
+    const lastHalfIndexesOfChunksCount = Array.from(
+      { length: VeiledAmount.CHUNKS_COUNT / 2 },
+      (_, i) => i + VeiledAmount.CHUNKS_COUNT / 2,
+    );
+
     const X1 = RistrettoPoint.BASE.multiply(x1)
       .add(DBal.multiply(x2))
       .subtract(DNewBal.multiply(x2))
       .add(
-        H_RISTRETTO.multiply(x3List[2])
-          .multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
-          .add(H_RISTRETTO.multiply(x3List[3]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n))),
+        lastHalfIndexesOfChunksCount.reduce(
+          (acc, curr) =>
+            acc.add(H_RISTRETTO.multiply(x3List[curr]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(curr)))),
+          RistrettoPoint.ZERO,
+        ),
       )
       .toRawBytes();
     const X2List = x3List.map((x3) => senderPKRistretto.multiply(x3).toRawBytes());
@@ -385,7 +392,12 @@ export class VeiledTransfer {
       return acc.add(D.multiply(coef));
     }, RistrettoPoint.ZERO);
 
-    const j = 2;
+    const j = VeiledAmount.CHUNKS_COUNT / 2;
+
+    const lastHalfIndexesOfChunksCount = Array.from(
+      { length: VeiledAmount.CHUNKS_COUNT / 2 },
+      (_, i) => i + VeiledAmount.CHUNKS_COUNT / 2,
+    );
 
     const amountCSum = opts.encryptedTransferAmountByRecipient.slice(0, j).reduce((acc, { C }, i) => {
       const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
@@ -396,9 +408,13 @@ export class VeiledTransfer {
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
       .add(
-        H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
-          .multiply(alpha3LEList[2])
-          .add(H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n)).multiply(alpha3LEList[3])),
+        lastHalfIndexesOfChunksCount.reduce(
+          (acc, curr) =>
+            acc.add(
+              H_RISTRETTO.multiply(alpha3LEList[curr]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(curr))),
+            ),
+          RistrettoPoint.ZERO,
+        ),
       )
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));

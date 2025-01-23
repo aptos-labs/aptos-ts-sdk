@@ -1,12 +1,6 @@
-import {
-  bytesToNumberLE,
-  concatBytes,
-  hexToNumber,
-  numberToBytesBE,
-  numberToBytesLE,
-} from "@noble/curves/abstract/utils";
+import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { RistrettoPoint } from "@noble/curves/ed25519";
-import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";
+import { utf8ToBytes } from "@noble/hashes/utils";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
@@ -138,46 +132,23 @@ export class VeiledWithdraw {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1 = bytesToNumberLE(hexToBytes("a9d5584c8e8aa2c202e4e4d00e1b0e09fc65bfd27bb76173f4c5399e165fd909")); // ed25519GenRandom();
-    const x2 = bytesToNumberLE(hexToBytes("8298896b362589d77524b58d75823eaebc4f5018aec6c21fb0deaac71876260c")); // ed25519GenRandom();
-    const x3 = bytesToNumberLE(hexToBytes("9287f9e659cea686adcd84d59c9b207435d69fc0be94eead281b4bccead5ee0d")); // ed25519GenRandom();
+    const x1 = ed25519GenRandom();
+    const x2 = ed25519GenRandom();
+    const x3 = ed25519GenRandom();
 
-    const x4List = [
-      bytesToNumberLE(hexToBytes("fab774f64ae62b682a2c26e7ceeaccbfaa508370446156a3ff68e86ef855fb03")),
-      bytesToNumberLE(hexToBytes("375d4605de435e02d8534f199e9690e0a46c29232517c69604cdd8d0fdc7dc04")),
-      bytesToNumberLE(hexToBytes("8c12c04b8e5eefae09531f68213b12b95948ba7012aeab1691bf158d4d5d5a0e")),
-      bytesToNumberLE(hexToBytes("27059a801250d7bc87059c2fb09853cee513326e9f863d7439363a43dcb70f05")),
-      bytesToNumberLE(hexToBytes("c15defc82724f31855361408de701d27b17bb5c95aa47a2e51dbf71cc34b610f")),
-      bytesToNumberLE(hexToBytes("6e106f6f9ab8f6a9a710b87c09d8c3d2036aa08019fd55276f489fb85497780c")),
-      bytesToNumberLE(hexToBytes("0e06c77dd53966d244c2b2f60691afd3a47c29453614c0355cd8908468ae9508")),
-      bytesToNumberLE(hexToBytes("b770f889819ab6d44084520b6d40d24c867eab701b9f124d39754016785d510c")),
-    ]; // ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
-    const x5List = [
-      bytesToNumberLE(hexToBytes("b6a8aaf63f4b286817fb6666a86eb8aa3fadf66602bb168485401fcccc152207")),
-      bytesToNumberLE(hexToBytes("c7634c57f7d913c4e95beefbabe9a5e1c104465118e440ef5db28f0507752904")),
-      bytesToNumberLE(hexToBytes("00bb3206248fc203f84ea6f4c4fc9ac104ded13ab947eaf9e637e90a7746e804")),
-      bytesToNumberLE(hexToBytes("749eb392009c8481fe3072ca51519bd7af5e2f3ee90508422de7e1a555ba860c")),
-      bytesToNumberLE(hexToBytes("b33387b579bdff898b730ddf7322efe3e93e89a105910d855c96e4cbc95dcd06")),
-      bytesToNumberLE(hexToBytes("2e97ce524f4c991774e5c1abee6dc389e108417a59ce9ac80a1f64aea3132e0e")),
-      bytesToNumberLE(hexToBytes("6280b86e35aa182ff98bd6153eaa691a2cad842830b2d307ccaf6bf9f0efed0c")),
-      bytesToNumberLE(hexToBytes("110721bf31628cc352392304a8980ec79fd37681e9ad5be6206b077da779a60f")),
-    ]; // ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
-
-    const toAlphaHex = (number: bigint) => bytesToHex(numberToBytesBE(number, 32));
-
-    console.log("\n\n\n\n\n\n\n");
-    console.log("x1G", RistrettoPoint.BASE.multiply(x1).toHex());
-    console.log(this.encryptedActualBalanceAmount.map((el) => `${el.D.toHex()}:${el.C.toHex()}`));
-    console.log("\n\n\n\n\n\n\n");
+    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.encryptedActualBalanceAmount.reduce((acc, el, i) => {
         const { D } = el;
         const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
 
-        const res = acc.add(D.multiply(coef)).multiply(x2);
-        console.log(`[${i}]: {D: ${D.toHex()}, coef: ${coef}, ref: ${res}`);
-        return res;
+        const DCoef = D.multiply(coef);
+
+        const DCoefX2 = DCoef.multiply(x2);
+
+        return acc.add(DCoefX2);
       }, RistrettoPoint.ZERO),
     );
     const X2 = H_RISTRETTO.multiply(x3);
@@ -218,63 +189,6 @@ export class VeiledWithdraw {
     const alpha5List = x5List.map((x5, i) => {
       const pRand = ed25519modN(p * this.randomness[i]);
       return ed25519modN(x5 - pRand);
-    });
-
-    console.log({
-      // 2e256dbd3c01e2eed1f19ed5653d4f7a0627e0a87b271b65309b7a522abfaa8
-      alpha1: toAlphaHex(alpha1),
-      // d5be2886316d4b18b18ad6f3debe29edb7ed0d2e1f9336b48a83badf6214681
-      alpha2: toAlphaHex(alpha2),
-      // 6ca82c63ae2acc2f19bf08a5e029433cacf9e2378efb774436c313e63aa6983
-      alpha3: toAlphaHex(alpha3),
-      /*
-    '8a00a621b5ed538cb1f935eb8fe3b005c315e11ddd3605025cf4fc523a2059',
-    'd7bcfc0b1a9813a6cffe8c6b0339770442f9bf246cb2c530805200666ce6e1b',
-    '6f965106de673c6ece57fb3fdc4732507d24696f2a38eae5c83d79c50524f83',
-    'daebf9f240aea6f4a775840fb3c3eb131f29e045d17de02c27e2c3ae222160b',
-    '8005385fdc88f8704b475fc56bfa67c75dd7c53929871f9c6879d35cd819ab8',
-    '5179f17996ffca4fd8fcebb0daa94cf2183e37f073c4c4c578b31a874014d65',
-    '134b62b65618c920bf9e5d7d233a770226f9c7c8136fde97ffab2e382594305',
-    '4f0653af711296f234c70bcfdb5a9519b924be295d6bfe5824b138f8e8aadae'
-    * */
-      alpha4List: alpha4List.map((el) => toAlphaHex(el)),
-      /*
-        '5f304d18a31bfcb8b1b8cb3ca169cdef961306b5f96a3b545476182e8d78157',
-        'd902ac67b106c1bab325958e25219065c948a5f7764b55110b0a5dbba7c8d3b',
-        '42d5abd8a55d295c4d105fc206df8afe46eb6408f5db2e5e9094d0d28a48163',
-        '5a06de7dbd2da752a1210c6c9cd7a08d9d0fba4f0bbc8d01989aab995143486',
-        '36b13b9a8de7528d156f24c4b6ced4180f6b0dfe636aa9ad33367a4ba668360',
-        'ab8e48967c509098cd3bc4cb70fc4850aaee1d4884d89a3e1df22a8e50781a',
-        '2ac56cc1e0860db3ec9bb349959979ae538ca8a452009d317fda7ba4d4c1172',
-        '9d373d156f633ea6790678b7ea0d8d6a7aa149aa9944d5c5555e4193f353520'
-        * */
-      alpha5List: alpha5List.map((el) => toAlphaHex(el)),
-      // '0xee5ea38a9e2461d94a932f31773db2075a3e3e6dcdd58608a4e8a24183321007'
-      X1: X1.toHex(),
-      // '0x68b25da54b2e9948ea3b4aefd0fc11ccbd52c077244db31718069544efe4b45a'
-      X2: X2.toHex(),
-      /*
-        'da4efda6ed902ae3d304c1bfca116f05eb424d353e4756110d69002209e2086d',
-        '06b19bbee2c85843cbe50534bc75fae1f3a7a74154102192ebf73cdf8df40d56',
-        '620a47b85404984be0c73fd5630f771ad6291b3530c00e3e87982391f0fc8c61',
-        'f0829d613bfb1ebe4a48ee090b29facbdb928e0c1df3f409b65fe8ca55050144',
-        '2811252f8d87de8ce1346822626529cad6296184d2aa1610f6a3e6c4be815b60',
-        '7637210f186483d00b53f3016481da0fe55306531af29a6196377efb22584f12',
-        '806b12a4e28d6e4882ef9d936245ed1ba178791ef5b316b5ed1484a6d1326136',
-        'a487907e250e06bb7f414cb02977b3bc45dc26b64b1ce0b42ff900ea9b884867'
-        * */
-      X3List: X3List.map((el) => el.toHex()),
-      /*
-        'dc91f754590fc45c351c4c8981b70a6bf2df5c2e05568347a7ba1b2d133e3620',
-        'de31972718d3452d1a20ef7609729c740993832ff4bcf07a622d0d488a88f13f',
-        'fc7dc04f96f60897d48204d5a4a88ce30439670a96369328e1f75bdb28044b56',
-        'c2c497154168e08cf1406308c90e22484dbe20dc3f46b6fcd62c0090e035a139',
-        '62d5f3e40255e18f338c87b8f0615d01a20c6adb888a5714624763681801f60f',
-        '58c1826d42097999710856ad5928ed11c04a9b1ecf8d47171884483d89216134',
-        '125524ed184cc22e8955ff208a7784285d44985b79c472a36a324419c60d316a',
-        '6cc5a950279b6fd08051db6b9880197ab4f0fd16a5144b8757ec5c63d7d1f50e'
-        * */
-      X4List: X4List.map((el) => el.toHex()),
     });
 
     return {
@@ -346,15 +260,6 @@ export class VeiledWithdraw {
     });
     const X4List = alpha5LEList.map((a, i) =>
       RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.encryptedActualBalanceAfterWithdraw[i].D.multiply(p)),
-    );
-
-    console.log("X1", X1.toHex(), bytesToHex(opts.sigmaProof.X1));
-
-    console.log(
-      X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)),
-      X2.equals(RistrettoPoint.fromHex(opts.sigmaProof.X2)),
-      X3List.every((X3, i) => X3.equals(RistrettoPoint.fromHex(opts.sigmaProof.X3List[i]))),
-      X4List.every((X4, i) => X4.equals(RistrettoPoint.fromHex(opts.sigmaProof.X4List[i]))),
     );
 
     return (

@@ -178,8 +178,6 @@ export class VeiledKeyRotation {
       ...X5List,
     );
 
-    console.log("generate", p);
-
     const oldSLE = bytesToNumberLE(this.currDecryptionKey.toUint8Array());
     const invertOldSLE = ed25519InvertN(oldSLE);
     const newSLE = bytesToNumberLE(this.newDecryptionKey.toUint8Array());
@@ -191,23 +189,6 @@ export class VeiledKeyRotation {
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
     const alpha5List = x5List.map((x5, i) => ed25519modN(x5 - p * this.currVeiledAmount.amountChunks[i]));
     const alpha6List = x6List.map((x6, i) => ed25519modN(x6 - p * this.randomness[i]));
-
-    console.log("sigmaProof");
-    console.log(
-      JSON.stringify({
-        alpha1: numberToBytesLE(alpha1, 32),
-        alpha2: numberToBytesLE(alpha2, 32),
-        alpha3: numberToBytesLE(alpha3, 32),
-        alpha4: numberToBytesLE(alpha4, 32),
-        alpha5List: alpha5List.map((el) => numberToBytesLE(el, 32)),
-        alpha6List: alpha6List.map((el) => numberToBytesLE(el, 32)),
-        X1: X1.toRawBytes(),
-        X2: X2.toRawBytes(),
-        X3: X3.toRawBytes(),
-        X4List,
-        X5List,
-      }),
-    );
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
@@ -253,8 +234,6 @@ export class VeiledKeyRotation {
       ...opts.sigmaProof.X5List,
     );
 
-    console.log("verify", p);
-
     const pkOldRist = RistrettoPoint.fromHex(opts.currPublicKey.toUint8Array());
     const pkNewRist = RistrettoPoint.fromHex(opts.newPublicKey.toUint8Array());
 
@@ -283,29 +262,6 @@ export class VeiledKeyRotation {
       const pD = opts.newEncryptedBalance[i].D.multiply(p);
       return aPK.add(pD);
     });
-
-    console.log("X1", {
-      passed: bytesToHex(opts.sigmaProof.X1),
-      passed2: bytesToNumberLE(opts.sigmaProof.X1).toString(16),
-      generated: X1.toHex(),
-    });
-
-    // FIXME: not equal indexes: 1,3,4,6
-    console.log(
-      "X4",
-      opts.sigmaProof.X4List.map((el, idx) => ({
-        generated: X4List[idx].toHex(),
-        passed: bytesToHex(el),
-      })),
-    );
-
-    console.log(
-      X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)),
-      X2.equals(RistrettoPoint.fromHex(opts.sigmaProof.X2)),
-      X3.equals(RistrettoPoint.fromHex(opts.sigmaProof.X3)),
-      X4List.every((X4, i) => X4.equals(RistrettoPoint.fromHex(opts.sigmaProof.X4List[i]))),
-      X5List.every((X5, i) => X5.equals(RistrettoPoint.fromHex(opts.sigmaProof.X5List[i]))),
-    );
 
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
