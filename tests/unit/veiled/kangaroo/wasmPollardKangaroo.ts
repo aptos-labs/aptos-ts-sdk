@@ -61,8 +61,8 @@ export const preloadTablesForBalances = async () => {
       const yongerChunks = mGs.slice(-4).map((el) => el.toRawBytes());
 
       return Promise.all([
-        ...(await olderChunks.map((el) => decryptChunk(el, kangaroo32))),
-        ...(await yongerChunks.map((el) => decryptChunk(el, kangaroo16))),
+        ...(await olderChunks.map((el) => decryptChunk(el, kangaroo16))),
+        ...(await yongerChunks.map((el) => decryptChunk(el, kangaroo32))),
       ]);
     },
   );
