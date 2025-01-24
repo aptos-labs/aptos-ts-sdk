@@ -11,7 +11,7 @@ function generateRandomInteger(bits: number): bigint {
 }
 
 const executionSimple = async (
-  bitsAmount: 16 | 32 | 48,
+  bitsAmount: number,
   length = 50,
 ): Promise<{ randBalances: bigint[]; results: { result: bigint; elapsedTime: number }[] }> => {
   const randBalances = Array.from({ length }, () => generateRandomInteger(bitsAmount));
@@ -51,7 +51,7 @@ const executionSimple = async (
 };
 
 const executionBalance = async (
-  bitsAmount: 16 | 32 | 48,
+  bitsAmount: number,
   length = 50,
 ): Promise<{ randBalances: bigint[]; results: { result: bigint; elapsedTime: number }[] }> => {
   const randBalances = Array.from({ length }, () => generateRandomInteger(bitsAmount));
@@ -83,6 +83,7 @@ const executionBalance = async (
     `Average time: ${averageTime} ms\n`,
     `Lowest time: ${lowestTime} ms\n`,
     `Highest time: ${highestTime} ms`,
+    decryptedAmounts,
   );
 
   return {
@@ -92,7 +93,7 @@ const executionBalance = async (
 };
 
 describe("decrypt amount", () => {
-  it(
+  it.skip(
     "Pre load wasm table map",
     async () => {
       await preloadTables();
@@ -100,7 +101,7 @@ describe("decrypt amount", () => {
     longTestTimeout,
   );
 
-  it("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
+  it.skip("kangarooWasmAll(16): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
 
     const { randBalances, results } = await executionSimple(16);
@@ -110,7 +111,7 @@ describe("decrypt amount", () => {
     });
   });
 
-  it("kangarooWasmAll(32): Should decrypt 50 rand numbers", async () => {
+  it.skip("kangarooWasmAll(32): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
 
     const { randBalances, results } = await executionSimple(32);
@@ -120,7 +121,7 @@ describe("decrypt amount", () => {
     });
   });
 
-  it("kangarooWasmAll(48): Should decrypt 50 rand numbers", async () => {
+  it.skip("kangarooWasmAll(48): Should decrypt 50 rand numbers", async () => {
     console.log("WASM:");
 
     const { randBalances, results } = await executionSimple(48);
@@ -148,6 +149,38 @@ describe("decrypt amount", () => {
 
   it("kangarooWasmAll(32): Should decrypt 50 rand numbers", async () => {
     const { randBalances, results } = await executionBalance(32);
+
+    results.forEach(({ result }, i) => {
+      expect(result).toEqual(randBalances[i]);
+    });
+  });
+
+  it("kangarooWasmAll(48): Should decrypt 50 rand numbers", async () => {
+    const { randBalances, results } = await executionBalance(48);
+
+    results.forEach(({ result }, i) => {
+      expect(result).toEqual(randBalances[i]);
+    });
+  });
+
+  it("kangarooWasmAll(64): Should decrypt 50 rand numbers", async () => {
+    const { randBalances, results } = await executionBalance(64);
+
+    results.forEach(({ result }, i) => {
+      expect(result).toEqual(randBalances[i]);
+    });
+  });
+
+  it("kangarooWasmAll(96): Should decrypt 50 rand numbers", async () => {
+    const { randBalances, results } = await executionBalance(96);
+
+    results.forEach(({ result }, i) => {
+      expect(result).toEqual(randBalances[i]);
+    });
+  });
+
+  it("kangarooWasmAll(128): Should decrypt 50 rand numbers", async () => {
+    const { randBalances, results } = await executionBalance(128);
 
     results.forEach(({ result }, i) => {
       expect(result).toEqual(randBalances[i]);

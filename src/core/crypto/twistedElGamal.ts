@@ -98,6 +98,15 @@ export class TwistedElGamal {
     this.decryptionFn = fn;
   }
 
+  static calculateCiphertextMG(ciphertext: TwistedElGamalCiphertext, privateKey: TwistedEd25519PrivateKey): RistPoint {
+    const { C, D } = ciphertext;
+    const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
+    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
+    const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
+
+    return mG;
+  }
+
   /**
    * Decrypts the amount with Twisted ElGamal
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
@@ -108,10 +117,7 @@ export class TwistedElGamal {
     ciphertext: TwistedElGamalCiphertext,
     privateKey: TwistedEd25519PrivateKey,
   ): Promise<bigint> {
-    const { C, D } = ciphertext;
-    const modS = ed25519modN(bytesToNumberLE(privateKey.toUint8Array()));
-    const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
-    const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
+    const mG = TwistedElGamal.calculateCiphertextMG(ciphertext, privateKey);
 
     return TwistedElGamal.decryptionFn(mG.toRawBytes());
   }
