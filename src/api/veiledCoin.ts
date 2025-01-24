@@ -16,6 +16,7 @@ import {
   VeiledNormalization,
   VeiledTransfer,
   VeiledWithdraw,
+  VeiledAmount,
 } from "../core";
 import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
 import { generateTransaction } from "../internal/transactionSubmission";
@@ -29,7 +30,6 @@ import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } f
 import { AptosConfig } from "./aptosConfig";
 import type { Aptos } from "./aptos";
 import { Account } from "../account";
-import { VeiledAmount } from "../core/crypto/veiled/veiledAmount";
 
 export type VeiledBalanceResponse = {
   chunks: {
@@ -43,7 +43,8 @@ export type VeiledBalance = {
   actual: TwistedElGamalCiphertext[];
 };
 
-const VEILED_COIN_MODULE_ADDRESS = "0xa69bfbeae0dbc76802ca3cbfc6455d088dfc7212a7bfbe1edfd05be81aca132c";
+// 8 chunks module
+const VEILED_COIN_MODULE_ADDRESS = "0x78812b8cb4980793621276f253f1be30e991beb8fca6c058362c39a9722d3503";
 
 /**
  * A class to handle veiled balance operations
@@ -52,6 +53,10 @@ export class VeiledCoin {
   constructor(readonly config: AptosConfig) {}
 
   static VEILED_COIN_MODULE_ADDRESS = VEILED_COIN_MODULE_ADDRESS;
+
+  static setVeiledCoinModuleAddress(addr: string) {
+    this.VEILED_COIN_MODULE_ADDRESS = addr;
+  }
 
   async getBalance(args: {
     accountAddress: AccountAddress;
