@@ -3,7 +3,6 @@
 
 import initWasm, { create_kangaroo } from "@distributedlab/aptos-wasm-bindings/pollard-kangaroo";
 
-// import fs from "fs";
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { TwistedElGamal } from "../../../../src";
 
@@ -17,18 +16,40 @@ export async function createKangaroo(secret_size: number) {
 }
 
 export const preloadTables = async () => {
-  // const kangaroo16 = await createKangaroo(16);
-  const kangaroo32 = await createKangaroo(0);
-  const kangaroo48 = await createKangaroo(1);
+  const kangaroo16 = await createKangaroo(16);
+  const kangaroo32 = await createKangaroo(32);
+  const kangaroo48 = await createKangaroo(48);
 
-  // TwistedElGamal.setDecryptionFn(async (pk) => wrappedDecryptFn(pk));
   TwistedElGamal.setDecryptionFn(async (pk) => {
     if (bytesToNumberLE(pk) === 0n) return 0n;
 
-    let result = kangaroo32.solve_dlp(pk, 120n);
+    let result = kangaroo16.solve_dlp(pk, 30n);
+
+    if (!result) {
+      result = kangaroo32.solve_dlp(pk, 120n);
+    }
 
     if (!result) {
       result = kangaroo48.solve_dlp(pk);
+    }
+
+    if (!result) throw new TypeError("Decryption failed");
+
+    return result;
+  });
+};
+
+export const preloadTablesForBalances = async () => {
+  const kangaroo16 = await createKangaroo(16);
+  const kangaroo32 = await createKangaroo(32);
+
+  TwistedElGamal.setDecryptionFn(async (pk) => {
+    if (bytesToNumberLE(pk) === 0n) return 0n;
+
+    let result = kangaroo16.solve_dlp(pk, 30n);
+
+    if (!result) {
+      result = kangaroo32.solve_dlp(pk);
     }
 
     if (!result) throw new TypeError("Decryption failed");
