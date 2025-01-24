@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Update default max gas amount to 100000.
+
 # 1.33.2 (2025-01-22)
 
 - [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.
