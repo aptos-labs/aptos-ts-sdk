@@ -24,7 +24,7 @@ export enum AptosApiType {
  * @group Implementation
  * @category Utils
  */
-export const DEFAULT_MAX_GAS_AMOUNT = 200000;
+export const DEFAULT_MAX_GAS_AMOUNT = 100000;
 
 /**
  * The default transaction expiration seconds from now.
