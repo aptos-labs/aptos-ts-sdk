@@ -4,7 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
-- Update default max gas amount to 100000.
+- Update default max gas amount to 100000 from 200000.  This has a very small chance to be breaking if you are submitting extremely expensive transactions.  In that case, you can set the `maxGasAmount` property on the transaction builder to the previous value of 200000.
 
 # 1.33.2 (2025-01-22)
 
