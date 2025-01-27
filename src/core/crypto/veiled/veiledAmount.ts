@@ -11,7 +11,6 @@ const CHUNKS_COUNT = 8;
  */
 const CHUNK_BITS = 16;
 
-// TODO: encrypt pending balance as (CHUNKS_COUNT / 2)
 export class VeiledAmount {
   amount: bigint;
 
@@ -65,28 +64,40 @@ export class VeiledAmount {
   }
 
   /**
-   * Returns a list of chunks of the given length from the amount, where each chunk is represented as a 32-bit number
+   * Splits a given bigint amount into an array of smaller "chunk" values (also as bigints).
    *
-   * @example
-   * const amount = 10n + 20n * (2n ** 32n) + 30n (2n ** 64n) + 40n * (2n ** 96n )
-   * const chunkedAmount = amountToChunks(a, 4)
-   * // an example of the returned data
-   * ```
-   * chunkedAmount = [10n, 20n, 30n, 40n]
-   * ```
+   * @param amount - The original amount as a bigint.
+   * @param chunksCount - The number of chunks to split the amount into (default is VeiledAmount.CHUNKS_COUNT).
+   * @param chunkBits - The number of bits each chunk should contain (default is VeiledAmount.CHUNK_BITS).
+   * @returns An array of bigints, where each element represents a segment of the original amount.
    */
   static amountToChunks(
     amount: bigint,
     chunksCount = VeiledAmount.CHUNKS_COUNT,
     chunkBits = VeiledAmount.CHUNK_BITS,
   ): bigint[] {
+    // Initialize an empty array that will hold the chunked values.
     const chunks: bigint[] = [];
+
+    // Convert chunkBits to a bigint so it can be used in bitwise operations with `amount`.
     const chunkBitsBi = BigInt(chunkBits);
 
+    // Loop over the total number of chunks we want.
     for (let i = 0; i < chunksCount; i++) {
-      chunks.push((amount >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n));
+      /**
+       * 1. Shift the amount right by (chunkBitsBi * i) bits to move the desired chunk
+       *    into the lowest bits of the number.
+       *
+       * 2. Use a bitmask ( (1n << chunkBitsBi) - 1n ) to extract only those `chunkBits`
+       *    bits. This mask is effectively a number with `chunkBits` 1s in binary.
+       */
+      const chunk = (amount >> (chunkBitsBi * BigInt(i))) & ((1n << chunkBitsBi) - 1n);
+
+      // Add this extracted chunk to the chunks array.
+      chunks.push(chunk);
     }
 
+    // Return the array of chunked values.
     return chunks;
   }
 
