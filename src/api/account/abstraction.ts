@@ -145,7 +145,7 @@ export class AccountAbstraction {
   }
 
   /**
-   * Will return the authentication function if the account is abstracted, otherwise undefined.
+   * Will return true if the account is abstracted, otherwise false.
    *
    * @example
    * ```ts
@@ -161,7 +161,7 @@ export class AccountAbstraction {
    * ```
    *
    * @param args.accountAddress - The account to check.
-   * @returns The authentication function if the account is abstracted, otherwise undefined.
+   * @returns Whether the account is abstracted.
    */
   public isAccountAbstractionEnabled = async (args: {
     accountAddress: AccountAddressInput;
@@ -169,11 +169,13 @@ export class AccountAbstraction {
   }) => {
     const functionInfos = await this.getDispatchableAuthenticationFunction(args);
     const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction as MoveFunctionId);
-    return functionInfos?.some(
-      (functionInfo) =>
-        AccountAddress.fromString(moduleAddress).equals(functionInfo.moduleAddress) &&
-        moduleName === functionInfo.moduleName &&
-        functionName === functionInfo.functionName,
+    return (
+      functionInfos?.some(
+        (functionInfo) =>
+          AccountAddress.fromString(moduleAddress).equals(functionInfo.moduleAddress) &&
+          moduleName === functionInfo.moduleName &&
+          functionName === functionInfo.functionName,
+      ) ?? false
     );
   };
 
