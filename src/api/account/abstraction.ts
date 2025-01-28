@@ -5,8 +5,9 @@ import {
   removeDispatchableAuthenticatorTransaction,
 } from "../../internal/abstraction";
 import { view } from "../../internal/view";
-import { getFunctionParts, InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions";
+import { InputGenerateTransactionOptions, TypeTagAddress } from "../../transactions";
 import { MoveFunctionId } from "../../types";
+import { getFunctionParts } from "../../utils/helpers";
 import { AptosConfig } from "../aptosConfig";
 
 export class AccountAbstraction {

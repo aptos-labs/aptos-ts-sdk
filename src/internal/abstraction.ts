@@ -4,12 +4,12 @@ import {
   TypeTagAddress,
   TypeTagStruct,
   stringStructTag,
-  getFunctionParts,
 } from "../transactions";
 import { AccountAddressInput } from "../core";
 import { generateTransaction } from "./transactionSubmission";
 import { MoveFunctionId } from "../types";
 import { AptosConfig } from "../api/aptosConfig";
+import { getFunctionParts } from "../utils/helpers";
 
 export async function addDispatchableAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
