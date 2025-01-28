@@ -11,7 +11,7 @@ import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
 import { AbstractionAuthDataVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
-import { getFunctionParts, isValidFunctionInfo } from "../transactionBuilder/helpers";
+import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
 /**
  * Represents an account authenticator that can handle multiple authentication variants.

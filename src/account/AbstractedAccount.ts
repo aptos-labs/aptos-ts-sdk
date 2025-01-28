@@ -6,9 +6,9 @@ import { Account } from "./Account";
 import { AnyRawTransaction } from "../transactions/types";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
-import { isValidFunctionInfo } from "../transactions/transactionBuilder/helpers";
 import { Ed25519Account } from "./Ed25519Account";
 import { Serializer } from "../bcs/serializer";
+import { isValidFunctionInfo } from "../utils/helpers";
 
 type AbstractedAccountConstructorArgs = {
   /**
