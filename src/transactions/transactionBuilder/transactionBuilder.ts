@@ -77,9 +77,10 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { getFunctionParts } from "../../utils/helpers";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
