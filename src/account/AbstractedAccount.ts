@@ -11,8 +11,25 @@ import { Ed25519Account } from "./Ed25519Account";
 import { Serializer } from "../bcs/serializer";
 
 type AbstractedAccountConstructorArgs = {
+  /**
+   * The account address of the account.
+   */
   accountAddress: AccountAddress;
+  /**
+   * The signer function signs transactions and returns the `authenticator` bytes in the `AbstractionAuthData`.
+   *
+   * @param digest - The SHA256 hash of the transaction signing message
+   * @returns The `authenticator` bytes that can be used to verify the signature.
+   */
   signer: (digest: HexInput) => HexInput;
+  /**
+   * The authentication function that will be used to verify the signature.
+   *
+   * @example
+   * ```ts
+   * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
+   * ```
+   */
   authenticationFunction: string;
 };
 
@@ -38,6 +55,13 @@ export class AbstractedAccount extends Account {
     this.sign = (digest: HexInput) => new AbstractSignature(signer(digest));
   }
 
+  /**
+   * Creates an `AbstractedAccount` from an `Ed25519Account` that has a permissioned signer function and
+   * using the `0x1::permissioned_delegation::authenticate` function to verify the signature.
+   *
+   * @param signer - The `Ed25519Account` that can be used to sign permissioned transactions.
+   * @returns The `AbstractedAccount`
+   */
   public static fromPermissionedSigner({ signer }: { signer: Ed25519Account }) {
     return new AbstractedAccount({
       signer: (digest: HexInput) => {
