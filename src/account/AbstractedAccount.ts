@@ -1,5 +1,5 @@
 import { sha3_256 } from "@noble/hashes/sha3";
-import { AccountAddress, AccountPublicKey } from "../core";
+import { AccountAddress } from "../core";
 import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction";
 import { SigningScheme, HexInput } from "../types";
 import { Account } from "./Account";
@@ -34,7 +34,7 @@ type AbstractedAccountConstructorArgs = {
 };
 
 export class AbstractedAccount extends Account {
-  public readonly publicKey: AccountPublicKey;
+  public readonly publicKey: AbstractPublicKey;
 
   readonly accountAddress: AccountAddress;
 
@@ -71,7 +71,7 @@ export class AbstractedAccount extends Account {
         return serializer.toUint8Array();
       },
       accountAddress: signer.accountAddress,
-      authenticationFunction: `${signer.accountAddress}::permissioned_delegation::authenticate`,
+      authenticationFunction: "0x1::permissioned_delegation::authenticate",
     });
   }
 
