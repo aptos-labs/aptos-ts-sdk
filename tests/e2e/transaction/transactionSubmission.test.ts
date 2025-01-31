@@ -12,7 +12,7 @@ import {
   TransactionPayloadEntryFunction,
   Bool,
   MoveString,
-  callArgument,
+  CallArgument,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -64,16 +64,15 @@ describe("transaction submission", () => {
         expect(response.signature?.type).toBe("single_sender");
       });
       test("simple batch payload", async () => {
-  
         const transaction = await aptos.transaction.build.scriptComposer({
           sender: singleSignerED25519SenderAccount.accountAddress,
-          builder: async(builder) => {
+          builder: async (builder) => {
             await builder.addBatchedCalls({
               function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-              functionArguments: [callArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
+              functionArguments: [CallArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
             });
             return builder;
-          }
+          },
         });
 
         const response = await aptos.signAndSubmitTransaction({
@@ -93,7 +92,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [callArgument.new_signer(0), 1],
+              functionArguments: [CallArgument.new_signer(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 
@@ -234,7 +233,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [callArgument.new_signer(0), 1],
+              functionArguments: [CallArgument.new_signer(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 

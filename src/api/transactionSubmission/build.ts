@@ -132,7 +132,7 @@ export class Build {
    *     builder: builder: async (builder) => {
    *       const coin = await builder.addBatchedCalls({
    *          function: "0x1::coin::withdraw",
-   *          functionArguments: [callArgument.new_signer(0), 1],
+   *          functionArguments: [CallArgument.new_signer(0), 1],
    *          typeArguments: ["0x1::aptos_coin::AptosCoin"],
    *        });
    *

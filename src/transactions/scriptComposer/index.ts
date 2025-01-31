@@ -5,8 +5,8 @@ import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
 import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
-import { callArgument } from "../../types";
-import { convertcallArgument } from "../transactionBuilder/remoteAbi";
+import { CallArgument } from "../../types";
+import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer.
@@ -15,7 +15,7 @@ import { convertcallArgument } from "../transactionBuilder/remoteAbi";
 // and allow for arguments to be passed around.
 export class AptosScriptComposer {
   private config: AptosConfig;
-  
+
   private builder?: any;
 
   private static transactionComposer?: any;
@@ -31,20 +31,20 @@ export class AptosScriptComposer {
     if (!AptosScriptComposer.transactionComposer) {
       const module = await import("@aptos-labs/script-composer-pack");
       const { TransactionComposer, initSync, wasm } = module;
-      initSync({module: wasm});
+      initSync({ module: wasm });
       AptosScriptComposer.transactionComposer = TransactionComposer;
     }
     this.builder = AptosScriptComposer.transactionComposer.single_signer();
   }
-    
+
   // Add a move function invocation to the TransactionComposer.
   //
   // Similar to how to create an entry function, the difference is that input arguments could
-  // either be a `callArgument` which represents an abstract value returned from a previous Move call
+  // either be a `CallArgument` which represents an abstract value returned from a previous Move call
   // or the regular entry function arguments.
   //
-  // The function would also return a list of `callArgument` that can be passed on to future calls.
-  async addBatchedCalls(input: InputBatchedFunctionData): Promise<callArgument[]> {
+  // The function would also return a list of `CallArgument` that can be passed on to future calls.
+  async addBatchedCalls(input: InputBatchedFunctionData): Promise<CallArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
     const nodeUrl = this.config.getRequestUrl(AptosApiType.FULLNODE);
 
@@ -64,8 +64,8 @@ export class AptosScriptComposer {
       );
     }
 
-    const functionArguments: callArgument[] = input.functionArguments.map((arg, i) =>
-      convertcallArgument(arg, functionName, functionAbi, i, typeArguments),
+    const functionArguments: CallArgument[] = input.functionArguments.map((arg, i) =>
+      convertCallArgument(arg, functionName, functionAbi, i, typeArguments),
     );
 
     return this.builder.add_batched_call(
