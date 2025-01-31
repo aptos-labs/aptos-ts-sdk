@@ -1,9 +1,12 @@
-import { AbstractedAccount, Network } from "../../../src";
+import { AbstractedAccount, MoveVector, Network } from "../../../src";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
-import {} from "../../../src/core/crypto";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
-import { publishAnyAuthenticatorAAPackage, publishHelloWorldAAPackage } from "../transaction/helper";
+import {
+  addPermissionDelegationScriptBytecode,
+  publishAnyAuthenticatorAAPackage,
+  publishHelloWorldAAPackage,
+} from "../transaction/helper";
 
 describe("abstraction api", () => {
   // TODO: Change to localnet when CLI supports indexing aa signatures
@@ -171,6 +174,38 @@ describe("abstraction api", () => {
           }),
         });
       }).rejects.toThrow();
+    });
+  });
+
+  describe("enable permissioned delegation and send a transaction with permissions", () => {
+    const alice = Ed25519Account.generate();
+    const recipient = Ed25519Account.generate();
+
+    beforeAll(async () => {
+      await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
+      await aptos.fundAccount({ accountAddress: recipient.accountAddress, amount: FUND_AMOUNT });
+      const txn = await aptos.transaction.build.simple({
+        sender: alice.accountAddress,
+        data: {
+          bytecode: addPermissionDelegationScriptBytecode,
+          functionArguments: [MoveVector.U8(alice.publicKey.toUint8Array())],
+        },
+      });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    });
+
+    it("should be able to send a transaction with permissioned signer", async () => {
+      const abstractedAccount = AbstractedAccount.fromPermissionedSigner({ signer: alice });
+      const txn = await aptos.transferFungibleAsset({
+        amount: 100,
+        fungibleAssetMetadataAddress: "0xa",
+        recipient: recipient.accountAddress.toString(),
+        sender: abstractedAccount,
+      });
+      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: abstractedAccount, transaction: txn });
+      const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      expect(response.success).toBe(true);
     });
   });
 });

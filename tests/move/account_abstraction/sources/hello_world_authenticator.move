@@ -1,6 +1,5 @@
 module deployer::hello_world_authenticator {
     use aptos_framework::auth_data::{Self, AbstractionAuthData};
-    use std::bcs;
 
     const EINVALID_SIGNATURE: u64 = 1;
 
