@@ -9,54 +9,19 @@ import {
   VeiledKeyRotation,
   VeiledNormalization,
   RangeProofExecutor,
-  KangarooRistretto,
+  VeiledAmount,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
-import { VeiledAmount } from "../../../src/core/crypto/veiled/veiledAmount";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
-import { loadTableMap } from "./helpers";
+import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
 RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 
 describe("Generate 'veiled coin' proofs", () => {
-  it("Pre load table map", async () => {
-    const [table16, table32, table48] = await Promise.all([
-      loadTableMap(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_8_8000_16_64.json",
-      ),
-      loadTableMap(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_2048_4000_32_128.json",
-      ),
-      loadTableMap(
-        "https://raw.githubusercontent.com/distributed-lab/pollard-kangaroo-plus-testing/refs/heads/tables/output_65536_40000_48_128.json",
-      ),
-    ]);
-
-    KangarooRistretto.setTableWithParams({
-      table: table16,
-      n: 8_000,
-      w: 8n,
-      r: 64n,
-      secretSize: 16,
-    });
-    KangarooRistretto.setTableWithParams({
-      table: table32,
-      n: 4_000,
-      w: 2048n,
-      r: 128n,
-      secretSize: 32,
-    });
-    KangarooRistretto.setTableWithParams({
-      table: table48,
-      n: 40_000,
-      w: 65536n,
-      r: 128n,
-      secretSize: 48,
-    });
-
-    expect(Object.keys(KangarooRistretto.tablesMapWithParams).length).toEqual(3);
+  it("Pre load wasm table map", async () => {
+    await preloadTables();
   });
 
   const ALICE_BALANCE = 70n;
@@ -77,11 +42,7 @@ describe("Generate 'veiled coin' proofs", () => {
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
 
-    const sigmaProofStartTime = performance.now();
     veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
-    const sigmaProofStartTimeEnd = performance.now();
-
-    console.log("sigmaProofStartTime", sigmaProofStartTimeEnd - sigmaProofStartTime);
 
     expect(veiledWithdrawSigmaProof).toBeDefined();
   });
@@ -100,11 +61,7 @@ describe("Generate 'veiled coin' proofs", () => {
 
   let veiledWithdrawRangeProof: Uint8Array[];
   test("Generate withdraw range proof", async () => {
-    const rangeProofStartTime = performance.now();
     veiledWithdrawRangeProof = await veiledWithdraw.genRangeProof();
-    const rangeProofStartTimeEnd = performance.now();
-
-    console.log("rangeProofStartTime", rangeProofStartTimeEnd - rangeProofStartTime);
   });
   test("Verify withdraw range proof", async () => {
     const isValid = VeiledWithdraw.verifyRangeProof({

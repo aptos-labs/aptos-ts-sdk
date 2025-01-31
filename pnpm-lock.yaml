@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1
       '@distributedlab/aptos-wasm-bindings':
-        specifier: ^0.3.5
-        version: 0.3.5
+        specifier: ^0.3.13
+        version: 0.3.13
       '@noble/curves':
         specifier: ^1.4.0
         version: 1.4.0
@@ -29,6 +29,9 @@ importers:
       '@scure/bip39':
         specifier: ^1.3.0
         version: 1.3.0
+      comlink:
+        specifier: ^4.4.2
+        version: 4.4.2
       eventemitter3:
         specifier: ^5.0.1
         version: 5.0.1
@@ -596,8 +599,8 @@ packages:
   '@cucumber/tag-expressions@6.1.1':
     resolution: {integrity: sha512-0oj5KTzf2DsR3DhL3hYeI9fP3nyKzs7TQdpl54uJelJ3W3Hlyyet2Hib+8LK7kNnqJsXENnJg9zahRYyrtvNEg==}
 
-  '@distributedlab/aptos-wasm-bindings@0.3.5':
-    resolution: {integrity: sha512-utCn7E5DFIX7St4fTd0l65llu21smYg06qHMhTedglpEsbIoWr24a0SE1eiFPJux830ONKgSKVVVfzfBjiyizg==}
+  '@distributedlab/aptos-wasm-bindings@0.3.13':
+    resolution: {integrity: sha512-8cPRFZ5yBGCR0wJODNqzTcxmSwySeRkPBzYLQYNXxnarfIst1+AVQ8dN8fLBSw48zmGgOzTjXdwLRewa9btqag==}
 
   '@esbuild/aix-ppc64@0.24.0':
     resolution: {integrity: sha512-WtKdFM7ls47zkKHFVzMz8opM7LkcsIp9amDUBIAWirg70RM71WRSjdILPsY5Uv1D42ZpUfaPILDlfactHgsRkw==}
@@ -1972,6 +1975,9 @@ packages:
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
+
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
 
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
@@ -5170,7 +5176,7 @@ snapshots:
 
   '@cucumber/tag-expressions@6.1.1': {}
 
-  '@distributedlab/aptos-wasm-bindings@0.3.5': {}
+  '@distributedlab/aptos-wasm-bindings@0.3.13': {}
 
   '@esbuild/aix-ppc64@0.24.0':
     optional: true
@@ -7005,6 +7011,8 @@ snapshots:
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
+
+  comlink@4.4.2: {}
 
   comma-separated-tokens@2.0.3: {}
 

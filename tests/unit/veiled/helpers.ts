@@ -15,18 +15,31 @@ import {
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
   VeiledAmount,
+  RangeProofExecutor,
+  Ed25519Account,
 } from "../../../src";
-import { RangeProofExecutor } from "../../../src/core/crypto/rangeProof";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
-export async function loadTableMap(url: string) {
+export async function loadTableMapJSON(url: string): Promise<{
+  file_name: string;
+  s: string[];
+  slog: string[];
+  table: {
+    point: string;
+    value: string;
+  }[];
+}> {
   const tableMapResponse = await fetch(url);
 
   if (!tableMapResponse.ok) {
     throw new TypeError("Failed to load table map");
   }
 
-  return TableMap.createFromJson(JSON.stringify(await tableMapResponse.json()));
+  return tableMapResponse.json();
+}
+
+export async function loadTableMap(url: string) {
+  return TableMap.createFromJson(JSON.stringify(await loadTableMapJSON(url)));
 }
 
 /**
@@ -108,12 +121,16 @@ export const getTestAccount = () => {
   return Account.generate();
 };
 
-export const getTestVeiledAccount = () => {
+export const getTestVeiledAccount = (account?: Ed25519Account) => {
   if (process.env.TESTNET_DK) {
     return new TwistedEd25519PrivateKey(process.env.TESTNET_DK);
   }
 
-  return TwistedEd25519PrivateKey.generate();
+  if (!account) return TwistedEd25519PrivateKey.generate();
+
+  const signature = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
+
+  return TwistedEd25519PrivateKey.fromSignature(signature);
 };
 
 /** !important: for testing purposes */

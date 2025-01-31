@@ -6,8 +6,6 @@ import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { HexInput } from "../../types";
 import { H_RISTRETTO, RistPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 import { ed25519GenRandom, ed25519modN } from "./utils";
-import { KangarooRistretto } from "./kangaroo/kangarooRistretto";
-// import { ShanksRistretto } from "./bsgs";
 
 export interface DecryptionRange {
   start?: bigint;
@@ -94,6 +92,12 @@ export class TwistedElGamal {
     return new TwistedElGamalCiphertext(C.toRawBytes(), RistrettoPoint.ZERO.toRawBytes());
   }
 
+  static decryptionFn: (pk: Uint8Array) => Promise<bigint>;
+
+  static setDecryptionFn(fn: (pk: Uint8Array) => Promise<bigint>) {
+    this.decryptionFn = fn;
+  }
+
   /**
    * Decrypts the amount with Twisted ElGamal
    * @param ciphertext сiphertext points encrypted by Twisted ElGamal
@@ -109,34 +113,7 @@ export class TwistedElGamal {
     const sD = RistrettoPoint.fromHex(D.toRawBytes()).multiply(modS);
     const mG = RistrettoPoint.fromHex(C.toRawBytes()).subtract(sD);
 
-    /* Kangaroo Ristretto */
-
-    const decryptedAmount = await KangarooRistretto.solveDLP(bytesToNumberLE(mG.toRawBytes()));
-
-    /* Baby step Giant step Ristretto */
-
-    // const decryptedAmount = ShanksRistretto.babyStepGiantStepRistretto(mG);
-
-    // TODO: Replace brute-force search with another algorithm for optimization
-    // let amount = decryptionRange?.start ?? BigInt(0);
-    // if (amount === BigInt(0)) {
-    //   if (mG.equals(RistrettoPoint.ZERO)) return BigInt(0);
-    //
-    //   amount += BigInt(1);
-    // }
-    //
-    // let searchablePoint = RistrettoPoint.BASE.multiply(amount);
-    // const endAmount = decryptionRange?.end ?? ed25519.CURVE.n - 1n;
-    //
-    // while (!mG.equals(searchablePoint)) {
-    //   if (amount >= endAmount) throw new Error("Error while decrypting amount in specified range");
-    //
-    //   amount += BigInt(1);
-    //   searchablePoint = searchablePoint.add(RistrettoPoint.BASE);
-    // }
-    // return amount;
-
-    return decryptedAmount || 0n;
+    return TwistedElGamal.decryptionFn(mG.toRawBytes());
   }
 
   /**

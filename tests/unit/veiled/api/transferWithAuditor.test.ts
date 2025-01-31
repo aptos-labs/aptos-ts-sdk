@@ -1,9 +1,14 @@
 import { TwistedEd25519PrivateKey } from "../../../../src";
 import { aptos, getBalances, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 
 describe("Transfer with auditor", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount();
+  const aliceVeiled = getTestVeiledAccount(alice);
+
+  it("Pre load wasm table map", async () => {
+    await preloadTables();
+  });
 
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   const TRANSFER_AMOUNT = 2n;
@@ -21,6 +26,8 @@ describe("Transfer with auditor", () => {
       auditorEncryptionKeys: [AUDITOR.publicKey()],
     });
     const txResp = await sendAndWaitTx(transferTx, alice);
+
+    console.log("gas used:", txResp.gas_used);
 
     expect(txResp.success).toBeTruthy();
   });

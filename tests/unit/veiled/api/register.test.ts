@@ -1,9 +1,14 @@
 import { longTestTimeout } from "../../helper";
 import { aptos, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 
 describe("Register", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount();
+  const aliceVeiled = getTestVeiledAccount(alice);
+
+  it("Pre load wasm table map", async () => {
+    await preloadTables();
+  });
 
   it(
     "it should register Alice veiled balance",
@@ -15,6 +20,8 @@ describe("Register", () => {
       });
 
       const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
+
+      console.log("gas used:", aliceTxResp.gas_used);
 
       expect(aliceTxResp.success).toBeTruthy();
     },

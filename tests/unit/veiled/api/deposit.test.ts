@@ -1,7 +1,12 @@
 import { aptos, getTestAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 
 describe("Deposit", () => {
   const alice = getTestAccount();
+
+  it("Pre load wasm table map", async () => {
+    await preloadTables();
+  });
 
   const DEPOSIT_AMOUNT = 5n;
   it("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
@@ -11,6 +16,8 @@ describe("Deposit", () => {
       amount: DEPOSIT_AMOUNT,
     });
     const resp = await sendAndWaitTx(depositTx, alice);
+
+    console.log("gas used:", resp.gas_used);
 
     expect(resp.success).toBeTruthy();
   });
