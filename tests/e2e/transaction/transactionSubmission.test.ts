@@ -12,11 +12,7 @@ import {
   TransactionPayloadEntryFunction,
   Bool,
   MoveString,
-  AptosScriptComposer,
-  TransactionPayloadScript,
-  generateRawTransaction,
-  SimpleTransaction,
-  CallArgument,
+  callArgument,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
@@ -67,22 +63,22 @@ describe("transaction submission", () => {
 
         expect(response.signature?.type).toBe("single_sender");
       });
-      test("with batch payload", async () => {
-        const builder = new AptosScriptComposer(aptos.config);
-        await builder.init();
-        await builder.addBatchedCalls({
-          function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-          functionArguments: [CallArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
-        });
-        const bytes = builder.build();
-        const transaction = await generateRawTransaction({
-          aptosConfig: aptos.config,
+      test("simple batch payload", async () => {
+  
+        const transaction = await aptos.transaction.build.scriptComposer({
           sender: singleSignerED25519SenderAccount.accountAddress,
-          payload: TransactionPayloadScript.load(new Deserializer(bytes)),
+          builder: async(builder) => {
+            await builder.addBatchedCalls({
+              function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+              functionArguments: [callArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
+            });
+            return builder;
+          }
         });
+
         const response = await aptos.signAndSubmitTransaction({
           signer: singleSignerED25519SenderAccount,
-          transaction: new SimpleTransaction(transaction),
+          transaction,
         });
 
         await aptos.waitForTransaction({
@@ -97,7 +93,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [CallArgument.new_signer(0), 1],
+              functionArguments: [callArgument.new_signer(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 
@@ -238,7 +234,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [CallArgument.new_signer(0), 1],
+              functionArguments: [callArgument.new_signer(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 

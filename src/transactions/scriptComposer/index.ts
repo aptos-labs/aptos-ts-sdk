@@ -5,8 +5,8 @@ import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
 import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
-import { CallArgument } from "../../types";
-import { convertCallArgument } from "../transactionBuilder/remoteAbi";
+import { callArgument } from "../../types";
+import { convertcallArgument } from "../transactionBuilder/remoteAbi";
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer.
@@ -40,11 +40,11 @@ export class AptosScriptComposer {
   // Add a move function invocation to the TransactionComposer.
   //
   // Similar to how to create an entry function, the difference is that input arguments could
-  // either be a `CallArgument` which represents an abstract value returned from a previous Move call
+  // either be a `callArgument` which represents an abstract value returned from a previous Move call
   // or the regular entry function arguments.
   //
-  // The function would also return a list of `CallArgument` that can be passed on to future calls.
-  async addBatchedCalls(input: InputBatchedFunctionData): Promise<CallArgument[]> {
+  // The function would also return a list of `callArgument` that can be passed on to future calls.
+  async addBatchedCalls(input: InputBatchedFunctionData): Promise<callArgument[]> {
     const { moduleAddress, moduleName, functionName } = getFunctionParts(input.function);
     const nodeUrl = this.config.getRequestUrl(AptosApiType.FULLNODE);
 
@@ -53,10 +53,7 @@ export class AptosScriptComposer {
 
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
-      for (const typeTag of input.typeArguments) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.builder.load_type_tag(nodeUrl, typeTag.toString());
-      }
+      await Promise.all(input.typeArguments.map((typeTag) => this.builder.load_type_tag(nodeUrl, typeTag.toString())));
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
     const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);
@@ -67,8 +64,8 @@ export class AptosScriptComposer {
       );
     }
 
-    const functionArguments: CallArgument[] = input.functionArguments.map((arg, i) =>
-      convertCallArgument(arg, functionName, functionAbi, i, typeArguments),
+    const functionArguments: callArgument[] = input.functionArguments.map((arg, i) =>
+      convertcallArgument(arg, functionName, functionAbi, i, typeArguments),
     );
 
     return this.builder.add_batched_call(

@@ -45,7 +45,7 @@ import {
   throwTypeMismatch,
   convertNumber,
 } from "./helpers";
-import { CallArgument, MoveFunction } from "../../types";
+import { callArgument, MoveFunction } from "../../types";
 
 const TEXT_ENCODER = new TextEncoder();
 
@@ -220,27 +220,27 @@ export async function fetchViewFunctionAbi(
 }
 
 /**
- * Converts a entry function argument into CallArgument, if necessary.
+ * Converts a entry function argument into callArgument, if necessary.
  * This function checks the provided argument against the expected parameter type and converts it accordingly.
  *
  * @param functionName - The name of the function for which the argument is being converted.
  * @param functionAbi - The ABI (Application Binary Interface) of the function, which defines its parameters.
  * @param argument - The argument to be converted, which can be of various types. If the argument is already
- *                   CallArgument returned from TransactionComposer it would be returned immediately.
+ *                   callArgument returned from TransactionComposer it would be returned immediately.
  * @param position - The index of the argument in the function's parameter list.
  * @param genericTypeParams - An array of type tags for any generic type parameters.
  */
-export function convertCallArgument(
-  argument: CallArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
+export function convertcallArgument(
+  argument: callArgument | EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes,
   functionName: string,
   functionAbi: FunctionABI,
   position: number,
   genericTypeParams: Array<TypeTag>,
-): CallArgument {
-  if (argument instanceof CallArgument) {
+): callArgument {
+  if (argument instanceof callArgument) {
     return argument;
   }
-  return CallArgument.new_bytes(
+  return callArgument.new_bytes(
     convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
   );
 }

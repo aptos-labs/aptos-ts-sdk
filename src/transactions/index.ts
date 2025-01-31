@@ -7,4 +7,4 @@ export * from "./transactionBuilder";
 export * from "./typeTag";
 export * from "./typeTag/parser";
 export * from "./types";
-export * from "./script-composer";
+export * from "./scriptComposer";
