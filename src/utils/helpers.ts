@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { decode } from "js-base64";
-import { MoveStructId } from "../types";
+import { MoveFunctionId, MoveStructId } from "../types";
+import { AccountAddress } from "../core/accountAddress";
 
 /**
  * Sleep for the specified amount of time in milliseconds.
@@ -175,3 +176,29 @@ export const isEncodedStruct = (
   typeof structObj.account_address === "string" &&
   typeof structObj.module_name === "string" &&
   typeof structObj.struct_name === "string";
+
+/**
+ * Splits a function identifier into its constituent parts: module address, module name, and function name.
+ * This function helps in validating and extracting details from a function identifier string.
+ *
+ * @param functionArg - The function identifier string in the format "moduleAddress::moduleName::functionName".
+ * @returns An object containing the module address, module name, and function name.
+ * @throws Error if the function identifier does not contain exactly three parts.
+ * @group Implementation
+ * @category Transactions
+ */
+export function getFunctionParts(functionArg: MoveFunctionId) {
+  const funcNameParts = functionArg.split("::");
+  if (funcNameParts.length !== 3) {
+    throw new Error(`Invalid function ${functionArg}`);
+  }
+  const moduleAddress = funcNameParts[0];
+  const moduleName = funcNameParts[1];
+  const functionName = funcNameParts[2];
+  return { moduleAddress, moduleName, functionName };
+}
+
+export function isValidFunctionInfo(functionInfo: string): boolean {
+  const parts = functionInfo.split("::");
+  return parts.length === 3 && AccountAddress.isValid({ input: parts[0] }).valid;
+}
