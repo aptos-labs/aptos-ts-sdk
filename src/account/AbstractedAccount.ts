@@ -71,7 +71,7 @@ export class AbstractedAccount extends Account {
         return serializer.toUint8Array();
       },
       accountAddress: signer.accountAddress,
-      authenticationFunction: `${signer.accountAddress}::permissioned_delegation::authenticate`,
+      authenticationFunction: "0x1::permissioned_delegation::authenticate",
     });
   }
 
