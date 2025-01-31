@@ -15,11 +15,11 @@ export class AbstractSignature extends Signature {
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.value.toUint8Array());
+    serializer.serializeFixedBytes(this.value.toUint8Array());
   }
 
   static deserialize(deserializer: Deserializer): AbstractSignature {
-    return new AbstractSignature(deserializer.deserializeBytes());
+    return new AbstractSignature(deserializer.deserializeFixedBytes(deserializer.remaining()));
   }
 }
 
