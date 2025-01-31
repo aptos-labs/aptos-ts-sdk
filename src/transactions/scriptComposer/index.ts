@@ -1,10 +1,10 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { AptosApiType } from "../../utils";
+import { AptosApiType, getFunctionParts } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
-import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
+import { fetchMoveFunctionAbi, standardizeTypeTags } from "../transactionBuilder";
 import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
