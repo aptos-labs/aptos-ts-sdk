@@ -1,3 +1,5 @@
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import {
   TwistedEd25519PrivateKey,
   VeiledKeyRotationSigmaProof,
@@ -14,25 +16,31 @@ import {
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
+import { ed25519modN } from "../../../src/core/crypto/utils";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
 RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
+
+const toValidHex = (outsideHex: string) =>
+  bytesToHex(numberToBytesLE(ed25519modN(bytesToNumberLE(hexToBytes(outsideHex))), 32));
 
 describe("Generate 'veiled coin' proofs", () => {
   it("Pre load wasm table map", async () => {
     await preloadTables();
   });
 
-  const ALICE_BALANCE = 70n;
+  const ALICE_BALANCE = 18446744073709551716n;
 
-  const aliceVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
+  const aliceVeiledDecryptionKey: TwistedEd25519PrivateKey = new TwistedEd25519PrivateKey(
+    toValidHex("8f4bccf304a539586382e249b662790924aa7cb38effa824a4c88a420ffd3b08"),
+  );
   const bobVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
   const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
   aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
 
-  const WITHDRAW_AMOUNT = 15n;
+  const WITHDRAW_AMOUNT = 2n ** 16n;
   let veiledWithdraw: VeiledWithdraw;
   let veiledWithdrawSigmaProof: VeiledWithdrawSigmaProof;
   test("Generate withdraw sigma proof", async () => {
@@ -82,15 +90,15 @@ describe("Generate 'veiled coin' proofs", () => {
 
   test("Should generate and verify veiled withdraw with large amounts", async () => {
     const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
-    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 100n);
+    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 10n);
     newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
 
-    const newWithdrawAmount = 2n ** 32n + 10n;
+    const amountToWithdraw = 2n ** 16n + 10n - 10n;
 
     const largeVeiledWithdrawal = await VeiledWithdraw.create({
-      decryptionKey: newAliceDecryptionKey,
+      decryptionKey: toTwistedEd25519PrivateKey(newAliceDecryptionKey),
       encryptedActualBalance: newAliceBalance.amountEncrypted!,
-      amountToWithdraw: newWithdrawAmount,
+      amountToWithdraw,
     });
 
     const [{ sigmaProof, rangeProof }, vbNew] = await largeVeiledWithdrawal.authorizeWithdrawal();
@@ -102,14 +110,14 @@ describe("Generate 'veiled coin' proofs", () => {
     const isSigmaProofValid = VeiledWithdraw.verifySigmaProof({
       publicKey: newAliceDecryptionKey.publicKey(),
       encryptedActualBalance: largeVeiledWithdrawal.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
-      amountToWithdraw: newWithdrawAmount,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw.amountEncrypted!,
+      amountToWithdraw,
       sigmaProof,
     });
 
     const isRangeProofValid = VeiledWithdraw.verifyRangeProof({
       rangeProof,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw!.amountEncrypted!,
+      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.veiledAmountAfterWithdraw.amountEncrypted!,
     });
 
     expect(isSigmaProofValid).toBeTruthy();
@@ -249,8 +257,8 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Generate key rotation sigma proof", async () => {
     veiledKeyRotation = await VeiledKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
-      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
+      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
     });
 
     veiledKeyRotationSigmaProof = await veiledKeyRotation.genSigmaProof();
@@ -263,7 +271,7 @@ describe("Generate 'veiled coin' proofs", () => {
       currPublicKey: aliceVeiledDecryptionKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
-      newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.amountEncrypted!,
+      newEncryptedBalance: veiledKeyRotation.newVeiledAmount.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
@@ -293,9 +301,7 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const unnormalizedAliceVeiledAmount = VeiledAmount.fromChunks([
-    2n ** 32n + 100n,
-    2n ** 32n + 200n,
-    2n ** 32n + 300n,
+    ...Array.from({ length: VeiledAmount.CHUNKS_COUNT - 1 }, () => 2n ** VeiledAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
   unnormalizedAliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());

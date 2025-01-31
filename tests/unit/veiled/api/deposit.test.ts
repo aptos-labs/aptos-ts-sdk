@@ -1,8 +1,10 @@
-import { aptos, getTestAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { aptos, getTestAccount, mintFungibleTokens, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 
 describe("Deposit", () => {
   const alice = getTestAccount();
+
+  console.log(alice.accountAddress.toString());
 
   it("Pre load wasm table map", async () => {
     await preloadTables();
@@ -10,6 +12,8 @@ describe("Deposit", () => {
 
   const DEPOSIT_AMOUNT = 5n;
   it("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
+    await mintFungibleTokens(alice);
+
     const depositTx = await aptos.veiledCoin.deposit({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,

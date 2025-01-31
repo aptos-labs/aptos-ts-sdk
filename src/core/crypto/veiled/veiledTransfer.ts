@@ -90,11 +90,11 @@ export class VeiledTransfer {
   }
 
   static async create(args: CreateVeiledTransferOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
     const recipientPublicKeyU8 = publicKeyToU8(args.recipientEncryptionKey);
 
     const veiledAmountToTransfer = VeiledAmount.fromAmount(args.amountToTransfer, {
-      chunksCount: 2,
+      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
     });
     const encryptedAmountByRecipient = veiledAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
@@ -221,8 +221,8 @@ export class VeiledTransfer {
     );
 
     // Prover selects random x1, x2, x3i[], x4j[], x5, x6i[], where i in {0, 3} and j in {0, 1}
-    const i = 4;
-    const j = 2;
+    const i = VeiledAmount.CHUNKS_COUNT;
+    const j = VeiledAmount.CHUNKS_COUNT / 2;
 
     const x1 = ed25519GenRandom();
     const x2 = ed25519GenRandom();
@@ -240,13 +240,20 @@ export class VeiledTransfer {
       RistrettoPoint.ZERO,
     );
 
+    const lastHalfIndexesOfChunksCount = Array.from(
+      { length: VeiledAmount.CHUNKS_COUNT / 2 },
+      (_, i) => i + VeiledAmount.CHUNKS_COUNT / 2,
+    );
+
     const X1 = RistrettoPoint.BASE.multiply(x1)
       .add(DBal.multiply(x2))
       .subtract(DNewBal.multiply(x2))
       .add(
-        H_RISTRETTO.multiply(x3List[2])
-          .multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
-          .add(H_RISTRETTO.multiply(x3List[3]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n))),
+        lastHalfIndexesOfChunksCount.reduce(
+          (acc, curr) =>
+            acc.add(H_RISTRETTO.multiply(x3List[curr]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(curr)))),
+          RistrettoPoint.ZERO,
+        ),
       )
       .toRawBytes();
     const X2List = x3List.map((x3) => senderPKRistretto.multiply(x3).toRawBytes());
@@ -296,7 +303,7 @@ export class VeiledTransfer {
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map(
       (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer.amountChunks[idx]),
-      32,
+      VeiledAmount.CHUNK_BITS,
     );
 
     return {
@@ -385,7 +392,12 @@ export class VeiledTransfer {
       return acc.add(D.multiply(coef));
     }, RistrettoPoint.ZERO);
 
-    const j = 2;
+    const j = VeiledAmount.CHUNKS_COUNT / 2;
+
+    const lastHalfIndexesOfChunksCount = Array.from(
+      { length: VeiledAmount.CHUNKS_COUNT / 2 },
+      (_, i) => i + VeiledAmount.CHUNKS_COUNT / 2,
+    );
 
     const amountCSum = opts.encryptedTransferAmountByRecipient.slice(0, j).reduce((acc, { C }, i) => {
       const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
@@ -396,9 +408,13 @@ export class VeiledTransfer {
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
       .add(
-        H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 2n))
-          .multiply(alpha3LEList[2])
-          .add(H_RISTRETTO.multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * 3n)).multiply(alpha3LEList[3])),
+        lastHalfIndexesOfChunksCount.reduce(
+          (acc, curr) =>
+            acc.add(
+              H_RISTRETTO.multiply(alpha3LEList[curr]).multiply(2n ** (VeiledAmount.CHUNK_BITS_BI * BigInt(curr))),
+            ),
+          RistrettoPoint.ZERO,
+        ),
       )
       .add(oldCSum.multiply(p))
       .subtract(amountCSum.multiply(p));
@@ -450,6 +466,7 @@ export class VeiledTransfer {
           r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -463,6 +480,7 @@ export class VeiledTransfer {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.veiledAmountAfterTransfer.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -517,6 +535,7 @@ export class VeiledTransfer {
           commitment: opts.encryptedAmountByRecipient[i].C.toRawBytes(),
           valBase: RistrettoPoint.BASE.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
       ...opts.rangeProofNewBalance.map((proof, i) =>
@@ -526,6 +545,7 @@ export class VeiledTransfer {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.encryptedActualBalanceAfterTransfer[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     ]);

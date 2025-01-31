@@ -33,8 +33,9 @@ const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindi
  * @param opts.randBase A vector of bytes representing the generator point for the randomness.
  * @param opts.bits Bits size of value to create the range proof
  */
-export async function generateRangeZKP(opts: RangeProofInputs) {
+export async function generateRangeZKP(opts: RangeProofInputs): Promise<{ proof: Uint8Array; commitment: Uint8Array }> {
   await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
+
   const proof = rangeProof(opts.v, opts.r, opts.valBase, opts.randBase, opts.bits ?? 32);
 
   return {

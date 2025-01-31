@@ -57,13 +57,11 @@ export class VeiledWithdraw {
   }
 
   static async create(args: CreateVeiledWithdrawOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const veiledAmountToWithdraw = VeiledAmount.fromAmount(args.amountToWithdraw, {
-      chunksCount: 2,
+      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
     });
-    veiledAmountToWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
-
     const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.decryptionKey);
 
     const veiledAmountAfterWithdraw = VeiledAmount.fromAmount(actualBalance.amount - veiledAmountToWithdraw.amount);
@@ -138,14 +136,20 @@ export class VeiledWithdraw {
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom();
-
-    const x5List = ed25519GenListOfRandom();
+    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
-      this.encryptedActualBalanceAmount
-        .reduce((acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
-        .multiply(x2),
+      this.encryptedActualBalanceAmount.reduce((acc, el, i) => {
+        const { D } = el;
+        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
+
+        const DCoef = D.multiply(coef);
+
+        const DCoefX2 = DCoef.multiply(x2);
+
+        return acc.add(DCoefX2);
+      }, RistrettoPoint.ZERO),
     );
     const X2 = H_RISTRETTO.multiply(x3);
     const X3List = x4List.map((item, index) =>
@@ -209,7 +213,7 @@ export class VeiledWithdraw {
   }): boolean {
     const publicKeyU8 = publicKeyToU8(opts.publicKey);
     const veiledAmountToWithdraw = VeiledAmount.fromAmount(opts.amountToWithdraw, {
-      chunksCount: 2,
+      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
     });
 
     const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
@@ -222,7 +226,7 @@ export class VeiledWithdraw {
       utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
       ...veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
       publicKeyU8,
-      ...opts.encryptedActualBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       opts.sigmaProof.X1,
@@ -231,12 +235,9 @@ export class VeiledWithdraw {
       ...opts.sigmaProof.X4List,
     );
 
-    const chunkBitsBI = BigInt(VeiledAmount.CHUNK_BITS);
-
-    const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
     const { DOldSum, COldSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * chunkBitsBI);
+        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -244,14 +245,12 @@ export class VeiledWithdraw {
       },
       { DOldSum: RistrettoPoint.ZERO, COldSum: RistrettoPoint.ZERO },
     );
-    const alpha2DOld = DOldSum.multiply(alpha2LE);
-    const amountG = RistrettoPoint.BASE.multiply(opts.amountToWithdraw);
 
-    const alpha3H = H_RISTRETTO.multiply(alpha3LE);
-    const pP = RistrettoPoint.fromHex(publicKeyU8).multiply(p);
-
-    const X1 = alpha1G.add(alpha2DOld).add(COldSum.subtract(amountG).multiply(p));
-    const X2 = alpha3H.add(pP);
+    const X1 = RistrettoPoint.BASE.multiply(alpha1LE)
+      .add(DOldSum.multiply(alpha2LE))
+      .add(COldSum.multiply(p))
+      .subtract(RistrettoPoint.BASE.multiply(p).multiply(veiledAmountToWithdraw.amount));
+    const X2 = H_RISTRETTO.multiply(alpha3LE).add(RistrettoPoint.fromHex(publicKeyU8).multiply(p));
 
     const X3List = alpha4LEList.map((a, i) => {
       const aG = RistrettoPoint.BASE.multiply(a);
@@ -260,7 +259,7 @@ export class VeiledWithdraw {
       return aG.add(aH).add(pC);
     });
     const X4List = alpha5LEList.map((a, i) =>
-      RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.encryptedActualBalanceAfterWithdraw![i].D.multiply(p)),
+      RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.encryptedActualBalanceAfterWithdraw[i].D.multiply(p)),
     );
 
     return (
@@ -280,6 +279,7 @@ export class VeiledWithdraw {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -314,6 +314,7 @@ export class VeiledWithdraw {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );

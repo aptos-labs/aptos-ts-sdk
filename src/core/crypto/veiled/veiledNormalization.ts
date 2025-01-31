@@ -54,7 +54,7 @@ export class VeiledNormalization {
   }
 
   static async create(args: CreateVeiledNormalizationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
     normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
@@ -128,8 +128,8 @@ export class VeiledNormalization {
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom();
-    const x5List = ed25519GenListOfRandom();
+    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.unnormalizedEncryptedBalance
@@ -259,6 +259,7 @@ export class VeiledNormalization {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -278,6 +279,7 @@ export class VeiledNormalization {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );

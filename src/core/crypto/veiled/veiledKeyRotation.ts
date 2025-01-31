@@ -1,5 +1,5 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { utf8ToBytes } from "@noble/hashes/utils";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
 import { RangeProofExecutor } from "../rangeProof";
 import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
@@ -61,7 +61,7 @@ export class VeiledKeyRotation {
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
   static async create(args: CreateVeiledKeyRotationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom();
+    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
 
@@ -143,12 +143,15 @@ export class VeiledKeyRotation {
     const x3 = ed25519GenRandom();
     const x4 = ed25519GenRandom();
 
-    const x5List = ed25519GenListOfRandom();
-    const x6List = ed25519GenListOfRandom();
+    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x6List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.currEncryptedBalance
-        .reduce((acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * 32n))), RistrettoPoint.ZERO)
+        .reduce(
+          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          RistrettoPoint.ZERO,
+        )
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
@@ -166,8 +169,8 @@ export class VeiledKeyRotation {
       H_RISTRETTO.toRawBytes(),
       this.currDecryptionKey.publicKey().toUint8Array(),
       this.newDecryptionKey.publicKey().toUint8Array(),
-      ...this.currEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...this.newVeiledAmount.amountEncrypted!.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...this.newVeiledAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -184,22 +187,16 @@ export class VeiledKeyRotation {
     const alpha2 = ed25519modN(x2 - p * oldSLE);
     const alpha3 = ed25519modN(x3 - p * invertOldSLE);
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
-    const alpha5List = x5List.map((x5, i) => {
-      const pChunk = ed25519modN(p * this.currVeiledAmount.amountChunks[i]);
-      return numberToBytesLE(ed25519modN(x5 - pChunk), 32);
-    });
-    const alpha6List = x6List.map((x6, i) => {
-      const pRand = ed25519modN(p * this.randomness[i]);
-      return numberToBytesLE(ed25519modN(x6 - pRand), 32);
-    });
+    const alpha5List = x5List.map((x5, i) => ed25519modN(x5 - p * this.currVeiledAmount.amountChunks[i]));
+    const alpha6List = x6List.map((x6, i) => ed25519modN(x6 - p * this.randomness[i]));
 
     return {
       alpha1: numberToBytesLE(alpha1, 32),
       alpha2: numberToBytesLE(alpha2, 32),
       alpha3: numberToBytesLE(alpha3, 32),
       alpha4: numberToBytesLE(alpha4, 32),
-      alpha5List,
-      alpha6List,
+      alpha5List: alpha5List.map((el) => numberToBytesLE(el, 32)),
+      alpha6List: alpha6List.map((el) => numberToBytesLE(el, 32)),
       X1: X1.toRawBytes(),
       X2: X2.toRawBytes(),
       X3: X3.toRawBytes(),
@@ -219,8 +216,8 @@ export class VeiledKeyRotation {
     const alpha2LE = bytesToNumberLE(opts.sigmaProof.alpha2);
     const alpha3LE = bytesToNumberLE(opts.sigmaProof.alpha3);
     const alpha4LE = bytesToNumberLE(opts.sigmaProof.alpha4);
-    const alpha5LEList = opts.sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
-    const alpha6LEList = opts.sigmaProof.alpha6List.map((a) => bytesToNumberLE(a));
+    const alpha5LEList = opts.sigmaProof.alpha5List.map(bytesToNumberLE);
+    const alpha6LEList = opts.sigmaProof.alpha6List.map(bytesToNumberLE);
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(VeiledKeyRotation.FIAT_SHAMIR_SIGMA_DST),
@@ -228,8 +225,8 @@ export class VeiledKeyRotation {
       H_RISTRETTO.toRawBytes(),
       opts.currPublicKey.toUint8Array(),
       opts.newPublicKey.toUint8Array(),
-      ...opts.currEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
-      ...opts.newEncryptedBalance.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
+      ...opts.currEncryptedBalance.map((el) => el.serialize()).flat(),
+      ...opts.newEncryptedBalance.map((el) => el.serialize()).flat(),
       opts.sigmaProof.X1,
       opts.sigmaProof.X2,
       opts.sigmaProof.X3,
@@ -237,7 +234,9 @@ export class VeiledKeyRotation {
       ...opts.sigmaProof.X5List,
     );
 
-    const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
+    const pkOldRist = RistrettoPoint.fromHex(opts.currPublicKey.toUint8Array());
+    const pkNewRist = RistrettoPoint.fromHex(opts.newPublicKey.toUint8Array());
+
     const { DOldSum, COldSum } = opts.currEncryptedBalance.reduce(
       (acc, { C, D }, i) => {
         const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
@@ -249,15 +248,9 @@ export class VeiledKeyRotation {
       { DOldSum: RistrettoPoint.ZERO, COldSum: RistrettoPoint.ZERO },
     );
 
-    const X1 = alpha1G.add(DOldSum.multiply(alpha2LE)).add(COldSum.multiply(p));
-
-    const alpha3H = H_RISTRETTO.multiply(alpha3LE);
-    const alpha4H = H_RISTRETTO.multiply(alpha4LE);
-    const pkOldRist = RistrettoPoint.fromHex(opts.currPublicKey.toUint8Array());
-    const pkNewRist = RistrettoPoint.fromHex(opts.newPublicKey.toUint8Array());
-
-    const X2 = alpha3H.add(pkOldRist.multiply(p));
-    const X3 = alpha4H.add(pkNewRist.multiply(p));
+    const X1 = RistrettoPoint.BASE.multiply(alpha1LE).add(DOldSum.multiply(alpha2LE)).add(COldSum.multiply(p));
+    const X2 = H_RISTRETTO.multiply(alpha3LE).add(pkOldRist.multiply(p));
+    const X3 = H_RISTRETTO.multiply(alpha4LE).add(pkNewRist.multiply(p));
     const X4List = alpha5LEList.map((a, i) => {
       const aG = RistrettoPoint.BASE.multiply(a);
       const aH = H_RISTRETTO.multiply(alpha6LEList[i]);
@@ -289,6 +282,7 @@ export class VeiledKeyRotation {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -327,6 +321,7 @@ export class VeiledKeyRotation {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
+          bits: VeiledAmount.CHUNK_BITS,
         }),
       ),
     );

@@ -2,7 +2,6 @@ import { invert, mod } from "@noble/curves/abstract/modular";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { ed25519 } from "@noble/curves/ed25519";
 import { randomBytes } from "@noble/hashes/utils";
-import { Buffer } from "buffer";
 import { Hex } from "../hex";
 import { HexInput } from "../../types";
 
@@ -60,6 +59,6 @@ export function ed25519GenRandom(): bigint {
  * Generate list of random number less then order of curve ed25519
  * @param len - chunks count
  */
-export function ed25519GenListOfRandom(len = 4) {
+export function ed25519GenListOfRandom(len: number) {
   return new Array(len).fill(0n).map(() => ed25519GenRandom());
 }

@@ -17,6 +17,7 @@ import {
   VeiledAmount,
   RangeProofExecutor,
   Ed25519Account,
+  VeiledCoin,
 } from "../../../src";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
@@ -45,7 +46,7 @@ export async function loadTableMap(url: string) {
 /**
  * Address of the mocked fungible token on the testnet
  */
-export const TOKEN_ADDRESS = "0x4659b416f0ee349907881a5c422e307ea1838fbbf7041b78f5d3dec078a6faa4";
+export const TOKEN_ADDRESS = "0xea70167cd603ed1f982d8361343b279263c2408b5c0053a48e7dda0834ea5b1b";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
@@ -131,6 +132,18 @@ export const getTestVeiledAccount = (account?: Ed25519Account) => {
   const signature = account.sign(TwistedEd25519PrivateKey.decryptionKeyDerivationMessage);
 
   return TwistedEd25519PrivateKey.fromSignature(signature);
+};
+
+export const mintFungibleTokens = async (account: Account) => {
+  const transaction = await aptos.transaction.build.simple({
+    sender: account.accountAddress,
+    data: {
+      function: `${VeiledCoin.VEILED_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+      functionArguments: [500],
+    },
+  });
+  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction });
+  return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
 /** !important: for testing purposes */
