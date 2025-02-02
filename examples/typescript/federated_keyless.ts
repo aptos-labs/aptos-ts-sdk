@@ -43,7 +43,7 @@ const example = async () => {
 
   console.log("1. Open the link above");
   console.log("2. Log in with your Google account");
-  console.log("3. Click 'Exchange authorization code for tokens');
+  console.log("3. Click 'Exchange authorization code for tokens'");
   console.log("4. Copy the 'id_token' - (toggling 'Wrap lines' option at the bottom makes this easier)\n");
 
   function inputJwt(): string {
