@@ -1,13 +1,13 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { ScriptComposerWasm } from "@aptos-labs/script-composer-pack";
 import { AptosApiType } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
 import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
-import { ScriptComposerWasm } from "@aptos-labs/script-composer-pack";
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer.
@@ -32,8 +32,8 @@ export class AptosScriptComposer {
     if (!AptosScriptComposer.transactionComposer) {
       const module = await import("@aptos-labs/script-composer-pack");
       const { TransactionComposer, initSync } = module;
-      if( ! ScriptComposerWasm.isInitialized ){
-          ScriptComposerWasm.init();
+      if (!ScriptComposerWasm.isInitialized) {
+        ScriptComposerWasm.init();
       }
       initSync({ module: ScriptComposerWasm.wasm });
       AptosScriptComposer.transactionComposer = TransactionComposer;
