@@ -7,6 +7,7 @@ import { InputBatchedFunctionData } from "../types";
 import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../transactionBuilder";
 import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
+import { ScriptComposerWasm } from "@aptos-labs/script-composer-pack";
 
 // A wrapper class around TransactionComposer, which is a WASM library compiled
 // from aptos-core/aptos-move/script-composer.
@@ -30,8 +31,11 @@ export class AptosScriptComposer {
   async init() {
     if (!AptosScriptComposer.transactionComposer) {
       const module = await import("@aptos-labs/script-composer-pack");
-      const { TransactionComposer, initSync, wasm } = module;
-      initSync({ module: wasm });
+      const { TransactionComposer, initSync } = module;
+      if( ! ScriptComposerWasm.isInitialized ){
+          ScriptComposerWasm.init();
+      }
+      initSync({ module: ScriptComposerWasm.wasm });
       AptosScriptComposer.transactionComposer = TransactionComposer;
     }
     this.builder = AptosScriptComposer.transactionComposer.single_signer();
