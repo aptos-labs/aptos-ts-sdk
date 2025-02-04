@@ -14,6 +14,9 @@ dependencies:
   '@aptos-labs/aptos-client':
     specifier: ^0.1.1
     version: 0.1.1
+  '@aptos-labs/script-composer-pack':
+    specifier: ^0.0.9
+    version: 0.0.9
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.6.0
@@ -165,6 +168,16 @@ packages:
       got: 11.8.6
     transitivePeerDependencies:
       - debug
+    dev: false
+
+  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3:
+    resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
+    dev: false
+
+  /@aptos-labs/script-composer-pack@0.0.9:
+    resolution: {integrity: sha512-Y3kA1rgF65HETgoTn2omDymsgO+fnZouPLrKJZ9sbxTGdOekIIHtGee3A2gk84eCqa02ZKBumZmP+IDCXRtU/g==}
+    dependencies:
+      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.3
     dev: false
 
   /@ardatan/relay-compiler@12.0.0(graphql@16.9.0):
