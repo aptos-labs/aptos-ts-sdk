@@ -9,11 +9,12 @@ import { fetchMoveFunctionAbi, getFunctionParts, standardizeTypeTags } from "../
 import { CallArgument } from "../../types";
 import { convertCallArgument } from "../transactionBuilder/remoteAbi";
 
-// A wrapper class around TransactionComposer, which is a WASM library compiled
-// from aptos-core/aptos-move/script-composer.
-//
-// This class allows the SDK caller to build a transaction that invokes multiple Move functions
-// and allow for arguments to be passed around.
+/**
+ * A wrapper class around TransactionComposer, which is a WASM library compiled
+ * from aptos-core/aptos-move/script-composer.
+ * This class allows the SDK caller to build a transaction that invokes multiple Move functions
+ * and allow for arguments to be passed around.
+ * */
 export class AptosScriptComposer {
   private config: AptosConfig;
 
