@@ -1,7 +1,7 @@
 import { AccountAddress, AccountAddressInput } from "../../core";
 import {
-  addDispatchableAuthenticationFunctionTransaction,
-  removeDispatchableAuthenticationFunctionTransaction,
+  addAuthenticationFunctionTransaction,
+  removeAuthenticationFunctionTransaction,
   removeDispatchableAuthenticatorTransaction,
 } from "../../internal/abstraction";
 import { view } from "../../internal/view";
@@ -18,7 +18,7 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.addDispatchableAuthenticationFunctionTransaction({
+   * const txn = await aptos.abstraction.addAuthenticationFunctionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
@@ -32,13 +32,13 @@ export class AccountAbstraction {
    * @param args.options - The options for the transaction.
    * @returns A transaction to add the authentication function to the account.
    */
-  public async addDispatchableAuthenticationFunctionTransaction(args: {
+  public async addAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
     authenticationFunction: string;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
-    return addDispatchableAuthenticationFunctionTransaction({
+    return addAuthenticationFunctionTransaction({
       aptosConfig: this.config,
       authenticationFunction,
       sender: accountAddress,
@@ -51,7 +51,7 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const txn = await aptos.abstraction.removeDispatchableAuthenticationFunctionTransaction({
+   * const txn = await aptos.abstraction.removeAuthenticationFunctionTransaction({
    *   accountAddress: alice.accountAddress,
    *   authenticationFunction: `${alice.accountAddress}::any_authenticator::authenticate`,
    * });
@@ -65,13 +65,13 @@ export class AccountAbstraction {
    * @param args.options - The options for the transaction.
    * @returns A transaction to remove the authentication function from the account.
    */
-  public async removeDispatchableAuthenticationFunctionTransaction(args: {
+  public async removeAuthenticationFunctionTransaction(args: {
     accountAddress: AccountAddressInput;
     authenticationFunction: string;
     options?: InputGenerateTransactionOptions;
   }) {
     const { accountAddress, authenticationFunction, options } = args;
-    return removeDispatchableAuthenticationFunctionTransaction({
+    return removeAuthenticationFunctionTransaction({
       aptosConfig: this.config,
       sender: accountAddress,
       authenticationFunction,
@@ -109,7 +109,7 @@ export class AccountAbstraction {
    *
    * @example
    * ```ts
-   * const functionInfos = await aptos.abstraction.getDispatchableAuthenticationFunction({
+   * const functionInfos = await aptos.abstraction.getAuthenticationFunction({
    *   accountAddress: alice.accountAddress,
    * });
    *
@@ -123,7 +123,7 @@ export class AccountAbstraction {
    * @param args.accountAddress - The account to get the dispatchable authentication function for.
    * @returns The dispatchable authentication function for the account.
    */
-  public async getDispatchableAuthenticationFunction(args: { accountAddress: AccountAddressInput }) {
+  public async getAuthenticationFunction(args: { accountAddress: AccountAddressInput }) {
     const { accountAddress } = args;
     const [{ vec: functionInfoOption }] = await view<
       [{ vec: { function_name: string; module_name: string; module_address: string }[][] }]
@@ -168,7 +168,7 @@ export class AccountAbstraction {
     accountAddress: AccountAddressInput;
     authenticationFunction: string;
   }) => {
-    const functionInfos = await this.getDispatchableAuthenticationFunction(args);
+    const functionInfos = await this.getAuthenticationFunction(args);
     const { moduleAddress, moduleName, functionName } = getFunctionParts(args.authenticationFunction as MoveFunctionId);
     return (
       functionInfos?.some(
@@ -199,7 +199,7 @@ export class AccountAbstraction {
    * @param args.options - The options for the transaction.
    * @returns A transaction to enable account abstraction for the account.
    */
-  public enableAccountAbstractionTransaction = this.addDispatchableAuthenticationFunctionTransaction;
+  public enableAccountAbstractionTransaction = this.addAuthenticationFunctionTransaction;
 
   /**
    * Creates a transaction to disable account abstraction. If an authentication function is provided, it will specify to
@@ -228,7 +228,7 @@ export class AccountAbstraction {
   }) => {
     const { accountAddress, authenticationFunction, options } = args;
     if (authenticationFunction) {
-      return this.removeDispatchableAuthenticationFunctionTransaction({
+      return this.removeAuthenticationFunctionTransaction({
         accountAddress,
         authenticationFunction,
         options,

@@ -189,14 +189,20 @@ describe("abstraction api", () => {
     beforeAll(async () => {
       await aptos.fundAccount({ accountAddress: alice.accountAddress, amount: FUND_AMOUNT });
       await aptos.fundAccount({ accountAddress: recipient.accountAddress, amount: FUND_AMOUNT });
-      const txn = await aptos.transaction.build.simple({
+      let txn = await aptos.transaction.build.simple({
         sender: alice.accountAddress,
         data: {
           bytecode: addPermissionDelegationScriptBytecode,
           functionArguments: [MoveVector.U8(bob.publicKey.toUint8Array())],
         },
       });
-      const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
+      let pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+      txn = await aptos.abstraction.enableAccountAbstractionTransaction({
+        accountAddress: alice.accountAddress,
+        authenticationFunction: "0x1::permissioned_delegation::authenticate",
+      });
+      pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
       await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
     });
 

@@ -11,7 +11,7 @@ import { MoveFunctionId } from "../types";
 import { AptosConfig } from "../api/aptosConfig";
 import { getFunctionParts } from "../utils/helpers";
 
-export async function addDispatchableAuthenticationFunctionTransaction(args: {
+export async function addAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   authenticationFunction: string;
@@ -23,7 +23,7 @@ export async function addDispatchableAuthenticationFunctionTransaction(args: {
     aptosConfig,
     sender,
     data: {
-      function: "0x1::account_abstraction::add_dispatchable_authentication_function",
+      function: "0x1::account_abstraction::add_authentication_function",
       typeArguments: [],
       functionArguments: [moduleAddress, moduleName, functionName],
       abi: {
@@ -35,7 +35,7 @@ export async function addDispatchableAuthenticationFunctionTransaction(args: {
   });
 }
 
-export async function removeDispatchableAuthenticationFunctionTransaction(args: {
+export async function removeAuthenticationFunctionTransaction(args: {
   aptosConfig: AptosConfig;
   sender: AccountAddressInput;
   authenticationFunction: string;
@@ -47,7 +47,7 @@ export async function removeDispatchableAuthenticationFunctionTransaction(args: 
     aptosConfig,
     sender,
     data: {
-      function: "0x1::account_abstraction::remove_dispatchable_authentication_function",
+      function: "0x1::account_abstraction::remove_authentication_function",
       typeArguments: [],
       functionArguments: [moduleAddress, moduleName, functionName],
       abi: {
@@ -69,7 +69,7 @@ export async function removeDispatchableAuthenticatorTransaction(args: {
     aptosConfig,
     sender,
     data: {
-      function: "0x1::account_abstraction::remove_dispatchable_authenticator",
+      function: "0x1::account_abstraction::remove_authenticator",
       typeArguments: [],
       functionArguments: [],
       abi: { typeParameters: [], parameters: [] },
