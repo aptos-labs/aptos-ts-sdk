@@ -69,7 +69,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             await builder.addBatchedCalls({
               function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
-              functionArguments: [CallArgument.new_signer(0), 1, receiverAccounts[0].accountAddress],
+              functionArguments: [CallArgument.newSigner(0), 1, receiverAccounts[0].accountAddress],
             });
             return builder;
           },
@@ -92,7 +92,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [CallArgument.new_signer(0), 1],
+              functionArguments: [CallArgument.newSigner(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 
@@ -233,7 +233,7 @@ describe("transaction submission", () => {
           builder: async (builder) => {
             const coin = await builder.addBatchedCalls({
               function: "0x1::coin::withdraw",
-              functionArguments: [CallArgument.new_signer(0), 1],
+              functionArguments: [CallArgument.newSigner(0), 1],
               typeArguments: ["0x1::aptos_coin::AptosCoin"],
             });
 

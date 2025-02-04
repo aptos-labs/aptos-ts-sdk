@@ -240,7 +240,7 @@ export function convertCallArgument(
   if (argument instanceof CallArgument) {
     return argument;
   }
-  return CallArgument.new_bytes(
+  return CallArgument.newBytes(
     convertArgument(functionName, functionAbi, argument, position, genericTypeParams).bcsToBytes(),
   );
 }

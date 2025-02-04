@@ -15,8 +15,8 @@ dependencies:
     specifier: ^0.1.1
     version: 0.1.1
   '@aptos-labs/script-composer-pack':
-    specifier: ^0.0.8
-    version: 0.0.8
+    specifier: ^0.0.9
+    version: 0.0.9
   '@noble/curves':
     specifier: ^1.4.0
     version: 1.6.0
@@ -170,14 +170,14 @@ packages:
       - debug
     dev: false
 
-  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.2:
-    resolution: {integrity: sha512-Mm1DXfrXYBNU+FwlyTavIWt4OX/XeOyeC3xTHehBhQTBE5l+hbgkgfOI1+IiSXX7d0gdeZ3ZwnaArPU66h4ZJw==}
+  /@aptos-labs/aptos-dynamic-transaction-composer@0.1.3:
+    resolution: {integrity: sha512-bJl+Zq5QbhpcPIJakAkl9tnT3T02mxCYhZThQDhUmjsOZ5wMRlKJ0P7aaq1dmlybSHkVj7vRgOy2t86/NDKKng==}
     dev: false
 
-  /@aptos-labs/script-composer-pack@0.0.8:
-    resolution: {integrity: sha512-lFUKmlgbXgWtElJKrrzU8VW22XK1n5jYAaeUDpdCbuJS4ssxNynep0PsQhCqBaNkIeTSnDGJ28eB6ncoo9hQyg==}
+  /@aptos-labs/script-composer-pack@0.0.9:
+    resolution: {integrity: sha512-Y3kA1rgF65HETgoTn2omDymsgO+fnZouPLrKJZ9sbxTGdOekIIHtGee3A2gk84eCqa02ZKBumZmP+IDCXRtU/g==}
     dependencies:
-      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.2
+      '@aptos-labs/aptos-dynamic-transaction-composer': 0.1.3
     dev: false
 
   /@ardatan/relay-compiler@12.0.0(graphql@16.9.0):
