@@ -60,6 +60,7 @@ describe("abstraction api", () => {
 
   describe("enable account abstraction, send a transaction, and disable all account abstraction", () => {
     const alice = Ed25519Account.generate();
+    const recipient = Ed25519Account.generate();
     const deployer = Ed25519Account.generate();
     const authenticationFunction = `${deployer.accountAddress}::any_authenticator::authenticate`;
 
@@ -90,13 +91,14 @@ describe("abstraction api", () => {
         signer: abstractAccount,
         transaction: await aptos.transferCoinTransaction({
           sender: alice.accountAddress,
-          recipient: alice.accountAddress,
+          recipient: recipient.accountAddress,
           amount: 100,
         }),
       });
 
       const response = await aptos.waitForTransaction({ transactionHash: txn.hash });
       expect(response.success).toBe(true);
+      expect(await aptos.getAccountAPTAmount({ accountAddress: recipient.accountAddress })).toBe(100);
     });
 
     it("should disable account abstraction without specifying authentication function", async () => {
@@ -118,6 +120,7 @@ describe("abstraction api", () => {
   // eslint-disable-next-line max-len
   describe("enable custom account abstraction, send a transaction with custom signer, and send a transaction with an invalid signer", () => {
     const alice = Ed25519Account.generate();
+    const recipient = Ed25519Account.generate();
     const deployer = Ed25519Account.generate();
     const authenticationFunction = `${deployer.accountAddress}::hello_world_authenticator::authenticate`;
 
@@ -148,13 +151,14 @@ describe("abstraction api", () => {
         signer: abstractAccount,
         transaction: await aptos.transferCoinTransaction({
           sender: alice.accountAddress,
-          recipient: alice.accountAddress,
+          recipient: recipient.accountAddress,
           amount: 100,
         }),
       });
 
       const response = await aptos.waitForTransaction({ transactionHash: txn.hash });
       expect(response.success).toBe(true);
+      expect(await aptos.getAccountAPTAmount({ accountAddress: recipient.accountAddress })).toBe(100);
     });
 
     it("should fail to send a transaction with wrong custom signer", async () => {
@@ -179,6 +183,7 @@ describe("abstraction api", () => {
 
   describe("enable permissioned delegation and send a transaction with permissions", () => {
     const alice = Ed25519Account.generate();
+    const bob = Ed25519Account.generate();
     const recipient = Ed25519Account.generate();
 
     beforeAll(async () => {
@@ -188,7 +193,7 @@ describe("abstraction api", () => {
         sender: alice.accountAddress,
         data: {
           bytecode: addPermissionDelegationScriptBytecode,
-          functionArguments: [MoveVector.U8(alice.publicKey.toUint8Array())],
+          functionArguments: [MoveVector.U8(bob.publicKey.toUint8Array())],
         },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: alice, transaction: txn });
@@ -196,12 +201,17 @@ describe("abstraction api", () => {
     });
 
     it("should be able to send a transaction with permissioned signer", async () => {
-      const abstractedAccount = AbstractedAccount.fromPermissionedSigner({ signer: alice });
-      const txn = await aptos.transferFungibleAsset({
-        amount: 100,
-        fungibleAssetMetadataAddress: "0xa",
-        recipient: recipient.accountAddress.toString(),
-        sender: abstractedAccount,
+      const abstractedAccount = AbstractedAccount.fromPermissionedSigner({
+        signer: bob,
+        accountAddress: bob.accountAddress,
+      });
+      const txn = await aptos.transaction.build.simple({
+        sender: alice.accountAddress,
+        data: {
+          function: "0x1::primary_fungible_store::transfer",
+          typeArguments: ["0x1::fungible_asset::Metadata"],
+          functionArguments: ["0xa", recipient.accountAddress, "100"],
+        },
       });
       const pendingTxn = await aptos.signAndSubmitTransaction({ signer: abstractedAccount, transaction: txn });
       const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });

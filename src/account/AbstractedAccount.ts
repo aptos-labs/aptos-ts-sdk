@@ -62,7 +62,13 @@ export class AbstractedAccount extends Account {
    * @param signer - The `Ed25519Account` that can be used to sign permissioned transactions.
    * @returns The `AbstractedAccount`
    */
-  public static fromPermissionedSigner({ signer }: { signer: Ed25519Account }) {
+  public static fromPermissionedSigner({
+    signer,
+    accountAddress,
+  }: {
+    signer: Ed25519Account;
+    accountAddress?: AccountAddress;
+  }) {
     return new AbstractedAccount({
       signer: (digest: HexInput) => {
         const serializer = new Serializer();
@@ -70,7 +76,7 @@ export class AbstractedAccount extends Account {
         signer.sign(digest).serialize(serializer);
         return serializer.toUint8Array();
       },
-      accountAddress: signer.accountAddress,
+      accountAddress: accountAddress ?? signer.accountAddress,
       authenticationFunction: "0x1::permissioned_delegation::authenticate",
     });
   }

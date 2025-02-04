@@ -301,13 +301,16 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     const moduleAddress = AccountAddress.deserialize(deserializer);
     const moduleName = deserializer.deserializeStr();
     const functionName = deserializer.deserializeStr();
-    deserializer.deserializeUleb128AsU32();
-    const signingMessageDigest = deserializer.deserializeBytes();
-    const authenticator = deserializer.deserializeFixedBytes(deserializer.remaining());
-    return new AccountAuthenticatorAbstraction(
-      `${moduleAddress}::${moduleName}::${functionName}`,
-      signingMessageDigest,
-      authenticator,
-    );
+    const variant = deserializer.deserializeUleb128AsU32();
+    if (variant === AbstractionAuthDataVariant.V1) {
+      const signingMessageDigest = deserializer.deserializeBytes();
+      const authenticator = deserializer.deserializeFixedBytes(deserializer.remaining());
+      return new AccountAuthenticatorAbstraction(
+        `${moduleAddress}::${moduleName}::${functionName}`,
+        signingMessageDigest,
+        authenticator,
+      );
+    }
+    throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
   }
 }
