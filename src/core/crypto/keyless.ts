@@ -941,6 +941,7 @@ export function getIssAudAndUidValWithoutUnescaping(args: { jwt: string; uidKey?
   uidVal: string;
 } {
   const { jwt, uidKey = "sub" } = args;
+  // This checks that the JWT is valid and that the iss, aud, and uidVal are present
   getIssAudAndUidVal(args);
   return {
     iss: getClaimWithoutUnescaping(jwt, "iss"),
