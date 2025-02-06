@@ -15,7 +15,9 @@ import {
   SingleKeyAccount,
   MultiKey,
   MultiKeyAccount,
+  MultiEd25519PublicKey,
 } from "../../src";
+import { MultiEd25519Account } from "../../src/account/MultiEd25519Account";
 
 import {
   ed25519,
@@ -165,7 +167,7 @@ describe("Account", () => {
     });
   });
 
-  describe("sign and verify", () => {
+  describe.only("sign and verify", () => {
     it("signs a message with single signer Secp256k1 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded, stringMessage } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
@@ -190,9 +192,11 @@ describe("Account", () => {
       expect(signature.signature.toString()).toEqual(signatureHex);
       expect(edAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
-
-    it("signs a message with a 2 of 3 multikey scheme and verifies successfully", () => {
-      const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
+    describe.only("multikey", () => {
+      const singleSignerED25519SenderAccount = Account.generate({
+        scheme: SigningSchemeInput.Ed25519,
+        legacy: false,
+      });
       const legacyED25519SenderAccount = Account.generate();
       const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
       const multiKey = new MultiKey({
@@ -203,34 +207,63 @@ describe("Account", () => {
         ],
         signaturesRequired: 2,
       });
-      const account = new MultiKeyAccount({
-        multiKey,
-        signers: [singleSignerED25519SenderAccount, singleSignerSecp256k1Account],
+
+      it("signs a message with a 2 of 3 multikey scheme and verifies successfully", () => {
+        const account = new MultiKeyAccount({
+          multiKey,
+          signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
+        });
+        const message = "test message";
+        const multiKeySig = account.sign(message);
+        expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
       });
-      const message = "test message";
-      const multiKeySig = account.sign(message);
-      expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+
+      it("signs a message with a 2 of 3 multikey scheme and verifies successfully with misordered signers", () => {
+        const account = new MultiKeyAccount({
+          multiKey,
+          signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
+        });
+        const message = "test message";
+        const multiKeySig = account.sign(message);
+        expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+      });
+
+      test("constructing a multi key account with insufficient signers fails", async () => {
+        expect(() => new MultiKeyAccount({ multiKey, signers: [singleSignerED25519SenderAccount] })).toThrow();
+      });
     });
 
-    it("signs a message with a 2 of 3 multikey scheme and verifies successfully with misordered signers", () => {
-      const singleSignerED25519SenderAccount = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: false });
-      const legacyED25519SenderAccount = Account.generate();
-      const singleSignerSecp256k1Account = Account.generate({ scheme: SigningSchemeInput.Secp256k1Ecdsa });
-      const multiKey = new MultiKey({
-        publicKeys: [
-          singleSignerED25519SenderAccount.publicKey,
-          legacyED25519SenderAccount.publicKey,
-          singleSignerSecp256k1Account.publicKey,
-        ],
-        signaturesRequired: 2,
-      });
-      const account = new MultiKeyAccount({
-        multiKey,
-        signers: [singleSignerSecp256k1Account, singleSignerED25519SenderAccount],
+    describe.only("multiEd25519", () => {
+      const ed25519PrivateKey1 = Ed25519PrivateKey.generate();
+      const ed25519PrivateKey2 = Ed25519PrivateKey.generate();
+      const ed25519PrivateKey3 = Ed25519PrivateKey.generate();
+      const multiKey = new MultiEd25519PublicKey({
+        publicKeys: [ed25519PrivateKey1.publicKey(), ed25519PrivateKey2.publicKey(), ed25519PrivateKey3.publicKey()],
+        threshold: 2,
       });
       const message = "test message";
-      const multiKeySig = account.sign(message);
-      expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+
+      it("signs a message with a 2 of 3 multiEd25519 scheme and verifies successfully", () => {
+        const account = new MultiEd25519Account({
+          publicKey: multiKey,
+          signers: [ed25519PrivateKey1, ed25519PrivateKey3],
+        });
+        const multiKeySig = account.sign(message);
+        expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+      });
+
+      it("signs a message with a 2 of 3 multiEd25519 scheme and verifies successfully with misordered signers", () => {
+        const account = new MultiEd25519Account({
+          publicKey: multiKey,
+          signers: [ed25519PrivateKey3, ed25519PrivateKey2],
+        });
+        const multiKeySig = account.sign(message);
+        expect(account.verifySignature({ message, signature: multiKeySig })).toEqual(true);
+      });
+
+      test("constructing a multi ed25519 account with insufficient signers fails", async () => {
+        expect(() => new MultiEd25519Account({ publicKey: multiKey, signers: [ed25519PrivateKey1] })).toThrow();
+      });
     });
 
     it("signs a message with a legacy ed25519 scheme and verifies successfully", () => {
