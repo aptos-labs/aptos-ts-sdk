@@ -192,7 +192,7 @@ describe("Account", () => {
       expect(signature.signature.toString()).toEqual(signatureHex);
       expect(edAccount.verifySignature({ message: messageEncoded, signature })).toBeTruthy();
     });
-    describe.only("multikey", () => {
+    describe("multikey", () => {
       const singleSignerED25519SenderAccount = Account.generate({
         scheme: SigningSchemeInput.Ed25519,
         legacy: false,
