@@ -7,6 +7,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 - Add support for vectors as string as a valid argument
 
+- Add `AbstractedAccount` class to support account abstraction with custom signers.
+- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+
 # 1.33.2 (2025-01-22)
 
 - [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.

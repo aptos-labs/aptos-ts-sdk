@@ -106,6 +106,7 @@ export enum AccountAuthenticatorVariant {
   SingleKey = 2,
   MultiKey = 3,
   NoAccountAuthenticator = 4,
+  Abstraction = 5,
 }
 
 /**
