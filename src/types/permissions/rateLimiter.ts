@@ -1,8 +1,9 @@
 import { Serializer, Serializable } from "../../bcs/serializer";
 import { TokenBucket } from "./tokenBucket";
 import { Deserializer } from "../../bcs/deserializer";
+import { EntryFunctionArgument } from "../../transactions/instances/transactionArgument";
 
-export class RateLimiter extends Serializable {
+export class RateLimiter extends Serializable implements EntryFunctionArgument {
   readonly tokenBucket: TokenBucket;
 
   constructor({ tokenBucket }: { tokenBucket: TokenBucket }) {
@@ -25,5 +26,9 @@ export class RateLimiter extends Serializable {
       throw new Error("Invalid rate limiter variant");
     }
     return new RateLimiter({ tokenBucket: TokenBucket.deserialize(deserializer) });
+  }
+
+  serializeForEntryFunction(serializer: Serializer): void {
+    this.serialize(serializer);
   }
 }

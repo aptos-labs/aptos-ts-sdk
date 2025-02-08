@@ -329,4 +329,3 @@ export async function getHandleAddress({
     return null;
   }
 }
-

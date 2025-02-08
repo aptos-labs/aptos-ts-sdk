@@ -11,6 +11,8 @@ import {
 import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
 import { MoveFunction } from "../../types";
+import { RateLimiter } from "../../types/permissions/rateLimiter";
+import { DelegationKey } from "../../types/permissions/delegationKey";
 
 /**
  * Determines if the provided argument is of type boolean.
@@ -193,7 +195,9 @@ export function isEncodedEntryFunctionArgument(
      */
     isBcsFixedBytes(arg) ||
     arg instanceof MoveVector ||
-    arg instanceof MoveOption
+    arg instanceof MoveOption ||
+    arg instanceof RateLimiter ||
+    arg instanceof DelegationKey
   );
 }
 /**

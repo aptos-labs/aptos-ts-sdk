@@ -22,6 +22,8 @@ import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
 import { MultiAgentTransaction } from "./instances/multiAgentTransaction";
 import { Serialized } from "../bcs";
+import { RateLimiter } from "../types/permissions/rateLimiter";
+import { DelegationKey } from "../types/permissions/delegationKey";
 
 /**
  * Entry function arguments for building a raw transaction using remote ABI, supporting various data types including primitives and arrays.
@@ -56,7 +58,9 @@ export type EntryFunctionArgumentTypes =
   | MoveVector<EntryFunctionArgumentTypes>
   | MoveOption<EntryFunctionArgumentTypes>
   | MoveString
-  | FixedBytes;
+  | FixedBytes
+  | RateLimiter
+  | DelegationKey;
 
 /**
  * Script function arguments for building raw transactions using BCS serialized arguments.
