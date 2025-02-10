@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Account as AccountModule } from "../account";
-import { AccountAddress, PrivateKey, AccountAddressInput, createObjectAddress } from "../core";
+import {
+  AccountAddress,
+  PrivateKey,
+  AccountAddressInput,
+  createObjectAddress,
+  AccountPublicKey,
+  PublicKey,
+} from "../core";
 import {
   AccountData,
   AnyNumber,
@@ -10,6 +17,7 @@ import {
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
+  GetSignaturesResponse,
   GetObjectDataQueryResponse,
   LedgerVersionArg,
   MoveModuleBytecode,
@@ -30,11 +38,13 @@ import {
   getAccountOwnedObjects,
   getAccountOwnedTokens,
   getAccountOwnedTokensFromCollectionAddress,
+  getAccountsForPublicKey,
   getAccountTokensCount,
   getAccountTransactionsCount,
   getInfo,
   getModule,
   getModules,
+  getPublicKeyFromAccountAddress,
   getResource,
   getResources,
   getTransactions,
@@ -893,5 +903,28 @@ export class Account {
    */
   async deriveAccountFromPrivateKey(args: { privateKey: PrivateKey }): Promise<AccountModule> {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
+  }
+
+  async getAccountsForPublicKey(args: {
+    publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+    minimumLedgerVersion?: AnyNumber;
+    options?: { verified?: boolean };
+  }): Promise<
+    {
+      accountAddress: AccountAddress;
+      publicKey: PublicKey;
+      verified: boolean;
+      lastTransactionVersion: number;
+    }[]
+  > {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.DEFAULT,
+    });
+    return getAccountsForPublicKey({
+      aptosConfig: this.config,
+      ...args,
+    });
   }
 }

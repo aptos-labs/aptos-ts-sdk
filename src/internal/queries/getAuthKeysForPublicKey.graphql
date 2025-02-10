@@ -1,0 +1,9 @@
+query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp) {
+  public_key_auth_keys(where: $where_condition) {
+    public_key
+    public_key_type
+    auth_key
+    last_transaction_version
+    verified
+  }
+}

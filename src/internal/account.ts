@@ -12,11 +12,15 @@ import { AptosConfig } from "../api/aptosConfig";
 import { getAptosFullNode, paginateWithCursor, paginateWithObfuscatedCursor } from "../client";
 import {
   AccountData,
+  AnyPublicKeyVariant,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
+  GetMultiKeyForAuthKeyResponse,
   GetObjectDataQueryResponse,
+  GetSignaturesResponse,
+  isUserTransactionResponse,
   LedgerVersionArg,
   MoveModuleBytecode,
   MoveResource,
@@ -29,7 +33,18 @@ import {
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
+import {
+  AccountPublicKey,
+  AnyPublicKey,
+  Ed25519PublicKey,
+  FederatedKeylessPublicKey,
+  KeylessPublicKey,
+  MultiEd25519PublicKey,
+  MultiKey,
+  PrivateKey,
+  PublicKey,
+  Secp256k1PublicKey,
+} from "../core/crypto";
 import { queryIndexer } from "./general";
 import {
   GetAccountCoinsCountQuery,
@@ -40,6 +55,10 @@ import {
   GetAccountOwnedTokensQuery,
   GetAccountTokensCountQuery,
   GetAccountTransactionsCountQuery,
+  GetMultiKeyForAuthKeyQuery,
+  GetAuthKeysForPublicKeyQuery,
+  GetAccountAddressesForAuthKeyQuery,
+  GetSignaturesQuery,
 } from "../types/generated/operations";
 import {
   GetAccountCoinsCount,
@@ -50,13 +69,19 @@ import {
   GetAccountOwnedTokensFromCollection,
   GetAccountTokensCount,
   GetAccountTransactionsCount,
+  GetMultiKeyForAuthKey,
+  GetAuthKeysForPublicKey,
+  GetAccountAddressesForAuthKey,
+  GetSignatures,
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
-import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress } from "../core";
+import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
+import { Deserializer } from "../bcs";
+import { getTransactionByVersion } from "./transaction";
 
 /**
  * Retrieves account information for a specified account address.
@@ -814,4 +839,218 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
     }
     throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
   }
+}
+
+async function getMultiKeysForAuthenticationKeys(args: {
+  aptosConfig: AptosConfig;
+  authKeys: AuthenticationKey[];
+}): Promise<{ authKey: AuthenticationKey; publicKey: MultiKey | MultiEd25519PublicKey }[]> {
+  const { aptosConfig, authKeys } = args;
+  if (authKeys.length === 0) {
+    throw new Error("No authentication keys provided");
+  }
+
+  const whereCondition: { auth_key: { _in: string[] } } = {
+    auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
+  };
+
+  const graphqlQuery = {
+    query: GetMultiKeyForAuthKey,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+  const { auth_key_multikey_layout: data } = await queryIndexer<GetMultiKeyForAuthKeyQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getMultiKeysForAuthenticationKeys",
+  });
+
+  const authKeyToMultiKey = new Map(data.map((entry) => [entry.auth_key, entry]));
+
+  const result: { authKey: AuthenticationKey; publicKey: MultiKey | MultiEd25519PublicKey }[] = [];
+  for (let i = 0; i < authKeys.length; i += 1) {
+    const entry = authKeyToMultiKey.get(authKeys[i].toString());
+    if (!entry) {
+      throw new Error(`Failed to find multikey for authentication key ${authKeys[i]}`);
+    }
+    const publicKey = extractMultiKeyFromData(entry);
+    result.push({ authKey: authKeys[i], publicKey });
+  }
+
+  return result;
+}
+
+function extractMultiKeyFromData(data: GetMultiKeyForAuthKeyResponse): MultiKey | MultiEd25519PublicKey {
+  const signaturesRequired = data.signatures_required;
+  const multikeyLayout = data.multikey_layout_with_prefixes;
+  const multikeyType = data.multikey_type;
+
+  if (multikeyType === "multi_ed25519") {
+    const ed25519PublicKeys: Array<Ed25519PublicKey> = [];
+    for (const key of multikeyLayout) {
+      ed25519PublicKeys.push(new Ed25519PublicKey(key));
+    }
+    return new MultiEd25519PublicKey({
+      publicKeys: ed25519PublicKeys,
+      threshold: signaturesRequired,
+    });
+  }
+  if (multikeyType === "multi_key") {
+    const publicKeys: Array<PublicKey> = [];
+    for (const key of multikeyLayout) {
+      const deserializer = Deserializer.fromHex(key);
+      const variantIndex = deserializer.deserializeUleb128AsU32();
+      let publicKey: PublicKey;
+      switch (variantIndex) {
+        case AnyPublicKeyVariant.Ed25519:
+          publicKey = new Ed25519PublicKey(deserializer.deserializeFixedBytes(32));
+          break;
+        case AnyPublicKeyVariant.Secp256k1:
+          publicKey = new Secp256k1PublicKey(deserializer.deserializeFixedBytes(65));
+          break;
+        case AnyPublicKeyVariant.Keyless:
+          publicKey = KeylessPublicKey.deserialize(deserializer);
+          break;
+        case AnyPublicKeyVariant.FederatedKeyless:
+          publicKey = FederatedKeylessPublicKey.deserialize(deserializer);
+          break;
+        default:
+          throw new Error(`Unknown variant index for AnyPublicKey: ${variantIndex}`);
+      }
+      publicKeys.push(new AnyPublicKey(publicKey));
+    }
+    return new MultiKey({
+      publicKeys,
+      signaturesRequired,
+    });
+  }
+  throw new Error("Unknown multikey type");
+}
+
+async function getAuthKeysForPublicKey(args: {
+  aptosConfig: AptosConfig;
+  publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+  options?: { verified?: boolean };
+}): Promise<AuthenticationKey[]> {
+  const { aptosConfig, publicKey, options } = args;
+  const verified = options?.verified ?? true;
+  let baseKey: PublicKey = publicKey;
+  if (publicKey instanceof AnyPublicKey) {
+    baseKey = publicKey.publicKey;
+  }
+  const whereCondition: any = {
+    public_key: { _eq: baseKey.toString() },
+    verified: { _eq: verified },
+  };
+  const graphqlQuery = {
+    query: GetAuthKeysForPublicKey,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+  const { public_key_auth_keys: data } = await queryIndexer<GetAuthKeysForPublicKeyQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getAuthKeysForPublicKey",
+  });
+
+  const sortedData = data.sort((a, b) => Number(b.last_transaction_version) - Number(a.last_transaction_version));
+  const authKeys = sortedData.map((entry) => new AuthenticationKey({ data: entry.auth_key }));
+  return authKeys;
+}
+
+async function getAccountAddressesForAuthKeys(args: {
+  aptosConfig: AptosConfig;
+  authKeys: AuthenticationKey[];
+  options?: { verified?: boolean };
+}): Promise<
+  { authKey: AuthenticationKey; accountAddress: AccountAddress; verified: boolean; lastTransactionVersion: number }[]
+> {
+  const { aptosConfig, options, authKeys } = args;
+  const verified = options?.verified ?? true;
+  if (authKeys.length === 0) {
+    throw new Error("No authentication keys provided");
+  }
+
+  const whereCondition: any = {
+    auth_key: { _in: authKeys.map((authKey) => authKey.toString()) },
+    verified: { _eq: verified },
+  };
+
+  const graphqlQuery = {
+    query: GetAccountAddressesForAuthKey,
+    variables: {
+      where_condition: whereCondition,
+    },
+  };
+  const { auth_key_account_addresses: data } = await queryIndexer<GetAccountAddressesForAuthKeyQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getAccountAddressesForAuthKeys",
+  });
+  return data.map((entry) => ({
+    authKey: new AuthenticationKey({ data: entry.auth_key }),
+    accountAddress: new AccountAddress(Hex.hexInputToUint8Array(entry.address)),
+    verified: entry.verified,
+    lastTransactionVersion: Number(entry.last_transaction_version),
+  }));
+}
+
+export async function getAccountsForPublicKey(args: {
+  aptosConfig: AptosConfig;
+  publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+}): Promise<
+  { accountAddress: AccountAddress; publicKey: PublicKey; verified: boolean; lastTransactionVersion: number }[]
+> {
+  const { aptosConfig, publicKey } = args;
+
+  let baseKey: PublicKey = publicKey;
+  if (publicKey instanceof AnyPublicKey) {
+    baseKey = publicKey.publicKey;
+  }
+  const singleKeyPublicKeys: AccountPublicKey[] = [];
+  if (baseKey instanceof Ed25519PublicKey) {
+    singleKeyPublicKeys.push(baseKey);
+  }
+  const anyPublicKey = new AnyPublicKey(baseKey);
+  singleKeyPublicKeys.push(anyPublicKey);
+
+  const singleKeyAuthKeyPublicKeyPairs = singleKeyPublicKeys.map((publicKey) => {
+    const authKey = publicKey.authKey();
+    return { authKey, publicKey };
+  });
+
+  const multiKeyAuthKeys = await getAuthKeysForPublicKey({ aptosConfig, publicKey });
+
+  const [multiKeyPairs, authKeyAccountAddressPairs] = await Promise.all([
+    getMultiKeysForAuthenticationKeys({ aptosConfig, authKeys: multiKeyAuthKeys }),
+    getAccountAddressesForAuthKeys({
+      aptosConfig,
+      authKeys: multiKeyAuthKeys.concat(singleKeyAuthKeyPublicKeyPairs.map((pair) => pair.publicKey.authKey())),
+    }),
+  ]);
+
+  const authKeyPublicKeyPairs = singleKeyAuthKeyPublicKeyPairs.concat(multiKeyPairs);
+
+  const result: {
+    accountAddress: AccountAddress;
+    publicKey: PublicKey;
+    verified: boolean;
+    lastTransactionVersion: number;
+  }[] = [];
+  const authKeyToPublicKey = new Map(authKeyPublicKeyPairs.map((pair) => [pair.authKey.toString(), pair.publicKey]));
+  for (const authKeyAccountAddressPair of authKeyAccountAddressPairs) {
+    if (!authKeyToPublicKey.has(authKeyAccountAddressPair.authKey.toString())) {
+      throw new Error(`No publicKey found for authentication key ${authKeyAccountAddressPair.authKey}.`);
+    }
+    result.push({
+      accountAddress: authKeyAccountAddressPair.accountAddress,
+      publicKey: authKeyToPublicKey.get(authKeyAccountAddressPair.authKey.toString()) as PublicKey,
+      verified: authKeyAccountAddressPair.verified,
+      lastTransactionVersion: authKeyAccountAddressPair.lastTransactionVersion,
+    });
+  }
+
+  return result;
 }
