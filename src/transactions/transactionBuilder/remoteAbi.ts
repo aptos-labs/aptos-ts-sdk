@@ -423,6 +423,13 @@ function parseArg(
       }
     }
 
+    if (isString(arg)) {
+      // In a web env, arguments are passing as strings
+      if (arg.startsWith("[")) {
+        return checkOrConvertArgument(JSON.parse(arg), param, position, genericTypeParams);
+      }
+    }
+
     // TODO: Support Uint16Array, Uint32Array, BigUint64Array?
 
     if (Array.isArray(arg)) {
