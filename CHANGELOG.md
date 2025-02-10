@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
+
 # 1.34.0 (2025-02-06)
 
 - Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.

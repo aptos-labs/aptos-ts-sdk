@@ -59,8 +59,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
 
   /**
    * The signers used to sign messages.  These signers should correspond to public keys in the
-   * MultiKeyAccount's public key.  The number of signers should be equal or greater
-   * than this.publicKey.signaturesRequired
+   * MultiKeyAccount's public key.  The number of signers should be equal to this.publicKey.signaturesRequired.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
