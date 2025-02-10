@@ -25,6 +25,8 @@ import {
   getSigningMessage,
   publicPackageTransaction,
   rotateAuthKey,
+  rotateAuthKeyUnverified,
+  rotateAuthKeyWithVerificationTransaction,
   signAndSubmitAsFeePayer,
   signAndSubmitTransaction,
   signAsFeePayer,
@@ -36,7 +38,7 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, PrivateKeyInput } from "../core";
+import { AccountAddressInput, AuthenticationKey, PrivateKeyInput } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
@@ -508,6 +510,46 @@ export class Transaction {
    */
   async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKeyInput }): Promise<TransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Rotates the authentication key for a given account without a proof of ownership challenge. After
+   * rotation, the account will sign a no-op transaction with the new key to publish the public key on chain.
+   *
+   * @param args - The arguments for rotating the authentication key.
+   * @param args.fromAccount - The account for which the authentication key will be rotated.
+   * @param args.toAccount - The account whose authentication key will be used as the new authentication key for fromAccount.
+   *
+   * @remarks
+   * The authentication key of toAccount will be used, NOT the address of toAccount, though in most cases they will be the same.
+   *
+   * @returns PendingTransactionResponse
+   */
+  async rotateAuthKeyUnverified(args: {
+    fromAccount: Account;
+    newAuthKey: AuthenticationKey;
+  }): Promise<PendingTransactionResponse> {
+    return rotateAuthKeyUnverified({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Rotates the authentication key for a given account without a proof of ownership challenge. After
+   * rotation, the account will sign a no-op transaction with the new key to publish the public key on chain.
+   *
+   * @param args - The arguments for rotating the authentication key.
+   * @param args.fromAccount - The account for which the authentication key will be rotated.
+   * @param args.toAccount - The account whose authentication key will be used as the new authentication key for fromAccount.
+   *
+   * @remarks
+   * The authentication key of toAccount will be used, NOT the address of toAccount, though in most cases they will be the same.
+   *
+   * @returns PendingTransactionResponse
+   */
+  async rotateAuthKeyWithVerificationTransaction(args: {
+    fromAccount: Account;
+    toAccount: Account;
+  }): Promise<PendingTransactionResponse> {
+    return rotateAuthKeyWithVerificationTransaction({ aptosConfig: this.config, ...args });
   }
 
   /**
