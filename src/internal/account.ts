@@ -23,13 +23,14 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
+  PendingTransactionResponse,
   TokenStandardArg,
   TransactionResponse,
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
+import { AnyPublicKey, Ed25519PublicKey, PrivateKey, PrivateKeyInput } from "../core/crypto";
 import { queryIndexer } from "./general";
 import {
   GetAccountCoinsCountQuery,
@@ -57,6 +58,11 @@ import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
 import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
+import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
+import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
+import { U8, MoveVector } from "../bcs";
+import { transferCoinTransaction } from "./coin";
+import { waitForTransaction } from "./transaction";
 
 /**
  * Retrieves account information for a specified account address.
@@ -814,4 +820,167 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
     }
     throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
   }
+}
+
+const rotateAuthKeyAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+  ],
+};
+
+/**
+ * Rotates the authentication key for a given account, allowing for enhanced security and management of account access.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toNewPrivateKey - The new private key that will be associated with the account.
+ *
+ * @remarks
+ * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKey(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
+  toNewPrivateKey: PrivateKeyInput;
+}): Promise<TransactionResponse> {
+  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
+  const accountInfo = await getInfo({
+    aptosConfig,
+    accountAddress: fromAccount.accountAddress,
+  });
+
+  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
+
+  const challenge = new RotationProofChallenge({
+    sequenceNumber: BigInt(accountInfo.sequence_number),
+    originator: fromAccount.accountAddress,
+    currentAuthKey: AccountAddress.from(accountInfo.authentication_key),
+    newPublicKey: newAccount.publicKey,
+  });
+
+  // Sign the challenge
+  const challengeHex = challenge.bcsToBytes();
+  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
+  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
+
+  // Generate transaction
+  const rawTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::rotate_authentication_key",
+      functionArguments: [
+        new U8(fromAccount.signingScheme), // from scheme
+        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
+        new U8(newAccount.signingScheme), // to scheme
+        MoveVector.U8(newAccount.publicKey.toUint8Array()),
+        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
+        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
+      ],
+      abi: rotateAuthKeyAbi,
+    },
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: rawTxn,
+  });
+}
+
+const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [TypeTagVector.u8()],
+};
+
+/**
+ * Rotates the authentication key for a given account without a proof of ownership challenge.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.newAuthKey - The new authentication key.
+ *
+ * @remarks
+ * This function can result in loss of access to the account if you rotate to a MultiKey and do not publish the public keys.
+ * For example, even if you one of the keys in the MultiKey, you will not be able to access the account unless you know the other
+ * public keys.  Thus it is recommended to use rotateAuthKeyWithVerificationTransaction instead as by submitting transaction
+ * with the new key, the public keys are published on chain.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKeyUnverified(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
+  newAuthKey: AuthenticationKey;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount, newAuthKey } = args;
+  const rawTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::rotate_authentication_key_call",
+      functionArguments: [MoveVector.U8(newAuthKey.toUint8Array())],
+      abi: rotateAuthKeyUnverifiedAbi,
+    },
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: rawTxn,
+  });
+}
+
+/**
+ * Rotates the authentication key for a given account without a proof of ownership challenge. After
+ * rotation, the account will sign a no-op transaction with the new key to publish the public key on chain.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toAccount - The account that will receive the new authentication key.
+ *
+ * @remarks
+ * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKeyWithVerificationTransaction(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
+  toAccount: Account;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount, toAccount } = args;
+
+  const pendingTxn = await rotateAuthKeyUnverified({
+    aptosConfig,
+    fromAccount,
+    newAuthKey: toAccount.publicKey.authKey(),
+  });
+  const txnResponse = await waitForTransaction({
+    aptosConfig,
+    transactionHash: pendingTxn.hash,
+  });
+  if (!txnResponse.success) {
+    throw new Error(`Failed to rotate authentication key - ${txnResponse}`);
+  }
+  const coinTxn = await transferCoinTransaction({
+    aptosConfig,
+    sender: toAccount.accountAddress,
+    recipient: toAccount.accountAddress,
+    amount: 1,
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: coinTxn,
+  });
 }

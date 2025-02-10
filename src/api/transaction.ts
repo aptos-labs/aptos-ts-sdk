@@ -24,9 +24,6 @@ import {
   FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
   publicPackageTransaction,
-  rotateAuthKey,
-  rotateAuthKeyUnverified,
-  rotateAuthKeyWithVerificationTransaction,
   signAndSubmitAsFeePayer,
   signAndSubmitTransaction,
   signAsFeePayer,
@@ -45,6 +42,11 @@ import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import {
+  rotateAuthKey,
+  rotateAuthKeyUnverified,
+  rotateAuthKeyWithVerificationTransaction,
+} from "../internal/account";
 
 /**
  * Represents a transaction in the Aptos blockchain,
