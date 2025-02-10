@@ -823,6 +823,7 @@ describe("transaction submission", () => {
       });
       expect(accountInfo.authentication_key).toEqual(singleSignerSecp256k1Account.publicKey);
     });
+  });
   describe("MultiEd25519", () => {
     const ed25519PrivateKey1 = Ed25519PrivateKey.generate();
     const ed25519PrivateKey2 = Ed25519PrivateKey.generate();
