@@ -167,7 +167,7 @@ describe("Account", () => {
     });
   });
 
-  describe.only("sign and verify", () => {
+  describe("sign and verify", () => {
     it("signs a message with single signer Secp256k1 scheme and verifies successfully", () => {
       const { privateKey: privateKeyBytes, address, signatureHex, messageEncoded, stringMessage } = secp256k1TestObject;
       const privateKey = new Secp256k1PrivateKey(privateKeyBytes);
