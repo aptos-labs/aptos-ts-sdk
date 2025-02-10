@@ -4,9 +4,22 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.34.0 (2025-02-06)
+
+- Add new `scriptComposer` api in `transactionSubmission` api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
+- Add support for vectors as string as a valid argument
+- Add `AbstractedAccount` class to support account abstraction with custom signers.
+- Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
+
+# 1.33.2 (2025-01-22)
+
+- [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.
+- node now no longer supports older than v20
+- overriding cross spawn for patch
 - Add `AccountUtils` class to help with account serialization and deserialization
 - Add `SingleKeySigner` interface which adds the ability to get the `AnyPublicKey` from a `SingleKeyAccount`
 - We now throw an error earlier when you try to use the faucet with testnet or mainnet, rather than letting the call happen and then fail later.
+- Fix the keyless end-to-end test to properly wait for the account to be funded
 
 # 1.33.1 (2024-11-28)
 
@@ -23,7 +36,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # 1.32.1 (2024-11-11)
 
 - Add support for Firebase issuers in the `updateFederatedKeylessJwkSetTransaction` function
-- [`Breaking`] Revert new `scriptComposer` api in transactionSubmission api to allow SDK callers to invoke multiple Move functions inside a same transaction and compose the calls dynamically.
 
 # 1.32.0 (2024-11-08)
 
