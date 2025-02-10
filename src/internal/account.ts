@@ -999,7 +999,7 @@ async function getAccountAddressesForAuthKeys(args: {
 
 export async function getAccountsForPublicKey(args: {
   aptosConfig: AptosConfig;
-  publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+  publicKey: AccountPublicKey;
 }): Promise<
   { accountAddress: AccountAddress; publicKey: PublicKey; verified: boolean; lastTransactionVersion: number }[]
 > {
@@ -1053,4 +1053,144 @@ export async function getAccountsForPublicKey(args: {
   }
 
   return result;
+}
+
+export async function getPublicKeyFromAccountAddress(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+}): Promise<PublicKey> {
+  const { aptosConfig, accountAddress } = args;
+
+  const accountData = await getInfo({ aptosConfig, accountAddress });
+
+  const whereCondition: any = {
+    account_address: { _eq: AccountAddress.from(accountAddress).toString() },
+  };
+  const graphqlQuery = {
+    query: GetSignatures,
+    variables: {
+      where_condition: whereCondition,
+      limit: 1,
+      order_by: [{ transaction_version: "desc" }],
+    },
+  };
+  const { signatures: data } = await queryIndexer<GetSignaturesQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getPublicKeyFromAccountAddress",
+  });
+  if (data.length === 0) {
+    throw Error("Account has no signature history");
+  }
+  const info = data[0];
+  const publicKey = info.public_key;
+  if (info.type === "ed25519_signature") {
+    return new Ed25519PublicKey(publicKey);
+  }
+  if (info.type === "multi_ed25519_signature") {
+    return new MultiEd25519PublicKey({
+      publicKeys: data.map((entry) => new Ed25519PublicKey(entry.public_key)),
+      threshold: info.threshold,
+    });
+  }
+  if (info.type === "single_signer_signature") {
+    return new MultiEd25519PublicKey({
+      publicKeys: data.map((entry) => new Ed25519PublicKey(entry.public_key)),
+      threshold: info.threshold,
+    });
+  }
+
+  console.log(txn.signature);
+  // if (txn.signature?.type === "multi_ed25519_signature") {
+  //   return txn.signature.public_key;
+  // }
+  // throw Error("Account has no transaction history");
+
+  // return getMultiKeyFromAuthenticationKey({
+  //   aptosConfig,
+  //   authKey: new AuthenticationKey({ data: accountData.authentication_key }),
+  // });
+  return Ed25519PrivateKey.generate().publicKey();
+}
+
+export async function getMultiKeyFromAuthenticationKey(args: {
+  aptosConfig: AptosConfig;
+  authKey: AuthenticationKey;
+}): Promise<MultiKey | MultiEd25519PublicKey> {
+  const { aptosConfig, authKey } = args;
+
+  const result = await getMultiKeysForAuthenticationKeys({ aptosConfig, authKeys: [authKey] });
+
+  if (result.length === 0) {
+    throw new Error(`No multikey found for the given authentication key ${authKey}`);
+  }
+  if (result.length > 1) {
+    // This should never happen. Rows are uniquely keyed by auth key.
+    throw new Error(`More than one multikey found for the given authentication key ${authKey}`);
+  }
+
+  return result[0].publicKey;
+}
+
+async function getMultiKeyFromAccountAddress(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+}): Promise<MultiKey | MultiEd25519PublicKey> {
+  const { aptosConfig, accountAddress } = args;
+  const accountData = await getInfo({ aptosConfig, accountAddress });
+  return getMultiKeyFromAuthenticationKey({
+    aptosConfig,
+    authKey: new AuthenticationKey({ data: accountData.authentication_key }),
+  });
+}
+
+export async function getLatestSignatures(args: {
+  aptosConfig: AptosConfig;
+  accountAddress: AccountAddressInput;
+  options?: PaginationArgs & OrderByArg<GetSignaturesResponse>;
+}): Promise<number[]> {
+  const { aptosConfig, accountAddress, options } = args;
+  const whereCondition: any = {
+    account_address: { _eq: AccountAddress.from(accountAddress).toString() },
+  };
+  const graphqlQuery = {
+    query: GetSignatures,
+    variables: {
+      where_condition: whereCondition,
+      offset: options?.offset,
+      limit: options?.limit,
+      order_by: options?.orderBy,
+    },
+  };
+  const { signatures: data } = await queryIndexer<GetSignaturesQuery>({
+    aptosConfig,
+    query: graphqlQuery,
+    originMethod: "getLatestSignatures",
+  });
+  return data.map((entry) => Number(entry.transaction_version));
+}
+
+async function getUnrotatedAccount(args: { aptosConfig: AptosConfig; publicKey: AccountPublicKey }): Promise<{
+  accountAddress: AccountAddress;
+  publicKey: PublicKey;
+  verified: boolean;
+  lastTransactionVersion: number;
+}> {
+  const { aptosConfig, publicKey } = args;
+  const accountAddress = publicKey.authKey().derivedAddress();
+  const accountData = await getInfo({ aptosConfig, accountAddress });
+  if (accountData.authentication_key !== accountAddress.toString()) {
+    throw new Error("Account is rotated");
+  }
+  const transactionVersion = await getAccountsTransactionVersions({
+    aptosConfig,
+    accountAddress,
+    options: { limit: 1, orderBy: [{ transaction_version: "desc" }] },
+  });
+  return {
+    accountAddress,
+    publicKey,
+    verified: true,
+    lastTransactionVersion: transactionVersion[0] ?? 0,
+  };
 }

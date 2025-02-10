@@ -9,6 +9,7 @@ import {
   createObjectAddress,
   AccountPublicKey,
   PublicKey,
+  AbstractMultiKey,
 } from "../core";
 import {
   AccountData,
@@ -910,8 +911,23 @@ export class Account {
     return deriveAccountFromPrivateKey({ aptosConfig: this.config, ...args });
   }
 
+  async getPublicKeyFromAccountAddress(args: {
+    accountAddress: AccountAddressInput;
+    minimumLedgerVersion?: AnyNumber;
+  }): Promise<PublicKey> {
+    await waitForIndexerOnVersion({
+      config: this.config,
+      minimumLedgerVersion: args.minimumLedgerVersion,
+      processorType: ProcessorType.DEFAULT,
+    });
+    return getPublicKeyFromAccountAddress({
+      aptosConfig: this.config,
+      ...args,
+    });
+  }
+
   async getAccountsForPublicKey(args: {
-    publicKey: Exclude<AccountPublicKey, AbstractMultiKey>;
+    publicKey: AccountPublicKey;
     minimumLedgerVersion?: AnyNumber;
     options?: { verified?: boolean };
   }): Promise<
