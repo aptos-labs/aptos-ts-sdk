@@ -67,7 +67,7 @@ export function getClaimWithoutUnescaping(jwt: string, claim: string): string {
   let claimVal = "";
   let foundStart = false;
   for (let i = claimIdx; i < payloadStr.length; i += 1) {
-    if (payloadStr[i] === '"') {
+    if (payloadStr[i] === "\"") {
       if (foundStart) {
         break;
       }

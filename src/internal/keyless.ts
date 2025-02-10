@@ -29,7 +29,6 @@ import {
   Account,
   EphemeralKeyPair,
   KeylessAccount,
-  KeylessSigner,
   MultiKeyAccount,
   ProofFetchCallback,
 } from "../account";
@@ -185,7 +184,7 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<FederatedKeylessAccount | MultiKeyAccount>;
+}): Promise<FederatedKeylessAccount>;
 
 export async function deriveKeylessAccount(args: {
   aptosConfig: AptosConfig;
@@ -195,8 +194,11 @@ export async function deriveKeylessAccount(args: {
   uidKey?: string;
   pepper?: HexInput;
   proofFetchCallback?: ProofFetchCallback;
-}): Promise<KeylessSigner> {
+}): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+  if (isCognito(jwt)) {
+    throw new Error("This API does not support Cognito JWTs. Please use deriveCognitoKeylessAccount instead.");
+  };
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
 
   const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
@@ -209,32 +211,6 @@ export async function deriveKeylessAccount(args: {
 
   // Look up the original address to handle key rotations and then instantiate the account.
   if (jwkAddress !== undefined) {
-    if (isCognito(jwt)) {
-      const multiKey = new MultiKey({
-        publicKeys: [
-          FederatedKeylessPublicKey.fromJwtAndPepperWithoutUnescaping({ jwt, pepper, jwkAddress, uidKey }),
-          FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey }),
-        ],
-        signaturesRequired: 1,
-      });
-      const address = await lookupOriginalAccountAddress({
-        aptosConfig,
-        authenticationKey: multiKey.authKey().derivedAddress(),
-      });
-      const signer = FederatedKeylessAccount.create({
-        ...args,
-        address,
-        proof,
-        pepper,
-        proofFetchCallback,
-        jwkAddress,
-        verificationKey,
-      });
-      return new MultiKeyAccount({
-        multiKey,
-        signers: [signer],
-      });
-    }
     const publicKey = FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey });
     const address = await lookupOriginalAccountAddress({
       aptosConfig,
@@ -258,6 +234,51 @@ export async function deriveKeylessAccount(args: {
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
+}
+
+export async function deriveCognitoKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
+}): Promise<MultiKeyAccount> {
+  const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+  if (!isCognito(jwt)) {
+    throw new Error("JWT is not a Cognito JWT");
+  };
+
+  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+
+  const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
+  // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
+  // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
+  // allowing for faster rendering of UX.
+  //
+  // If no callback is provided, the just await the proof fetch and continue synchronously.
+  const proof = proofFetchCallback ? proofPromise : await proofPromise;
+
+  const multiKey = new MultiKey({
+    publicKeys: [
+      FederatedKeylessPublicKey.fromJwtAndPepperWithoutUnescaping({ jwt, pepper, jwkAddress, uidKey }),
+      FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey }),
+    ],
+    signaturesRequired: 1,
+  });
+  const signer = FederatedKeylessAccount.create({
+    ...args,
+    proof,
+    pepper,
+    proofFetchCallback,
+    jwkAddress,
+    verificationKey,
+  });
+  return new MultiKeyAccount({
+    multiKey,
+    signers: [signer],
+  });
 }
 
 function isCognito(jwt: string): boolean {

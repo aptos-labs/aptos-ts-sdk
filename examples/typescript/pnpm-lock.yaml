@@ -14,15 +14,9 @@ dependencies:
   '@types/readline-sync':
     specifier: ^1.4.8
     version: 1.4.8
-  axios:
-    specifier: ^1.7.7
-    version: 1.7.7
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
-  jwt-decode:
-    specifier: ^4.0.0
-    version: 4.0.0
   npm-run-all:
     specifier: latest
     version: 4.1.5
