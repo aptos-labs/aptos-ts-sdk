@@ -1576,7 +1576,7 @@ export type MoveType =
  *
  * `Object -> 0x${string}`
  *
- * `Vector -> Array<MoveValue>`
+ * `Vector -> Array<MoveValue> | { vec: MoveValue[] }`
  *
  * `Option -> MoveValue | null | undefined`
  */
@@ -1599,7 +1599,9 @@ export type MoveValue =
   | MoveObjectType
   | MoveStructId
   | MoveOptionType
-  | Array<MoveValue>;
+  | Array<MoveValue>
+  | { vec: MoveValue[] }
+  | { [key: string]: MoveValue };
 
 /**
  * A string representation of a Move module, formatted as `module_name::function_name`.
