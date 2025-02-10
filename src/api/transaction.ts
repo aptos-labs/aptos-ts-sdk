@@ -511,16 +511,20 @@ export class Transaction {
   }
 
   /**
-   * Rotates the authentication key for a given account without a proof of ownership challenge. After
-   * rotation, the account will sign a no-op transaction with the new key to publish the public key on chain.
+   * USE WITH CAUTION.
+   * 
+   * Rotates the authentication key for a given account without a proof of ownership challenge.
    *
    * @param args - The arguments for rotating the authentication key.
    * @param args.fromAccount - The account for which the authentication key will be rotated.
-   * @param args.toAccount - The account whose authentication key will be used as the new authentication key for fromAccount.
+   * @param args.newAuthKey - The authentication key to rotate to.
    *
    * @remarks
-   * The authentication key of toAccount will be used, NOT the address of toAccount, though in most cases they will be the same.
-   *
+   * This function can result in loss of access to the account if you rotate to a MultiKey and do not publish the public keys.
+   * For example, even if you one of the keys in the MultiKey, you will not be able to access the account unless you know the other
+   * public keys.  Thus it is recommended to use rotateAuthKeyWithVerificationTransaction instead as by submitting transaction
+   * with the new key, the public keys are published on chain.
+   * 
    * @returns PendingTransactionResponse
    */
   async rotateAuthKeyUnverified(args: {
