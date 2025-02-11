@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-env jest */
 import { MoveStructType, MoveAbility, MoveFunctionGenericTypeParam } from "../../src/types/types";
 
 test("should create a basic Move struct type", () => {
@@ -117,4 +118,4 @@ test("should create a Move struct type with all optional properties", () => {
     ],
     abilities: [MoveAbility.STORE, MoveAbility.DROP],
   });
-});
+}); 
