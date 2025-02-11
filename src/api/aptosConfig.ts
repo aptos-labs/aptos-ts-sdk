@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import aptosClient from "@aptos-labs/aptos-client";
+import aptosClient, { bcsRequest } from "@aptos-labs/aptos-client";
 import { AptosSettings, ClientConfig, Client, FullNodeConfig, IndexerConfig, FaucetConfig } from "../types";
 import {
   NetworkToNodeAPI,
@@ -140,7 +140,7 @@ export class AptosConfig {
     this.pepper = settings?.pepper;
     this.prover = settings?.prover;
     this.indexer = settings?.indexer;
-    this.client = settings?.client ?? { provider: aptosClient };
+    this.client = settings?.client ?? { provider: aptosClient, binaryProvider: bcsRequest };
     this.clientConfig = settings?.clientConfig ?? {};
     this.fullnodeConfig = settings?.fullnodeConfig ?? {};
     this.indexerConfig = settings?.indexerConfig ?? {};
