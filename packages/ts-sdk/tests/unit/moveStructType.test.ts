@@ -118,4 +118,4 @@ test("should create a Move struct type with all optional properties", () => {
     ],
     abilities: [MoveAbility.STORE, MoveAbility.DROP],
   });
-}); 
+});
