@@ -15,7 +15,13 @@ import {
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts } from "./helper";
-import { FungibleAssetPermission, GasPermission, NFTPermission } from "../../../src/types/permissions";
+import {
+  FungibleAssetPermission,
+  GasPermission,
+  NFTPermission,
+  Permission,
+  NFTPermissionCapability,
+} from "../../../src/types/permissions";
 
 const { aptos } = getAptosClient();
 
@@ -140,7 +146,13 @@ describe("transaction submission", () => {
         primaryAccountAddress: primaryAccount.accountAddress,
         delegationPublicKey: permissionedAccount1.publicKey,
         permissions: [
-          NFTPermission.from({ assetAddress: nftAddress, capabilities: { transfer: true, mutate: false } }),
+          NFTPermission.from({
+            assetAddress: nftAddress,
+            capabilities: {
+              [NFTPermissionCapability.transfer]: true,
+              [NFTPermissionCapability.mutate]: false,
+            },
+          }),
         ],
       }),
     });
@@ -274,7 +286,7 @@ describe("transaction submission", () => {
     expect(txn1.submittedTransaction.success).toBe(false);
   });
 
-  test.only("Aaron's test case", async () => {
+  test("Aaron's test case", async () => {
     await signSubmitAndWait({
       sender: primaryAccount,
       data: {
@@ -317,7 +329,7 @@ describe("transaction submission", () => {
     expect(txn2.submittedTransaction.success).toBe(false);
   });
 
-  test("Serializer", async () => {
+  describe.only("Serializer", () => {
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A,
       amount: 10,
@@ -327,19 +339,32 @@ describe("transaction submission", () => {
     });
     const NFT_PERMISSION = NFTPermission.from({
       assetAddress: AccountAddress.A,
-      capabilities: { transfer: true, mutate: false },
+      capabilities: {
+        [NFTPermissionCapability.transfer]: true,
+        [NFTPermissionCapability.mutate]: false,
+      },
     });
 
-    const serializer = new Serializer();
-    APT_PERMISSION.serialize(serializer);
-    GAS_PERMISSION.serialize(serializer);
-    NFT_PERMISSION.serialize(serializer);
-    const serialized = serializer.toUint8Array();
+    test("Serialize permissions individually", () => {
+      const serializer = new Serializer();
+      APT_PERMISSION.serialize(serializer);
+      GAS_PERMISSION.serialize(serializer);
+      NFT_PERMISSION.serialize(serializer);
+      const serialized = serializer.toUint8Array();
+      const deserializer = new Deserializer(serialized);
+      expect(FungibleAssetPermission.deserialize(deserializer)).toEqual(APT_PERMISSION);
+      expect(GasPermission.deserialize(deserializer)).toEqual(GAS_PERMISSION);
+      expect(NFTPermission.deserialize(deserializer)).toEqual(NFT_PERMISSION);
+    });
 
-    const deserializer = new Deserializer(serialized);
-    expect(FungibleAssetPermission.deserialize(deserializer)).toEqual(APT_PERMISSION);
-    expect(GasPermission.deserialize(deserializer)).toEqual(GAS_PERMISSION);
-    expect(NFTPermission.deserialize(deserializer)).toEqual(NFT_PERMISSION);
+    test("Serialize permissions as an array", () => {
+      const permissions: Permission[] = [APT_PERMISSION, GAS_PERMISSION, NFT_PERMISSION];
+      const serializer = new Serializer();
+      serializer.serializeVector(permissions);
+      const serialized = serializer.toUint8Array();
+      const deserializer = new Deserializer(serialized);
+      expect(deserializer.deserializeVector(Permission)).toEqual(permissions);
+    });
   });
 });
 

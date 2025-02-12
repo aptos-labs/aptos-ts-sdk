@@ -6,11 +6,13 @@ import { Transaction } from "../api/transaction";
 import { AccountAddress, PublicKey } from "../core";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import {
-  MoveVMPermissionType,
   Permission,
   FungibleAssetPermission,
   NFTPermission,
   GasPermission,
+  NFTPermissionCapability,
+  FungibleAssetPermissionCapability,
+  GasPermissionCapability,
 } from "../types/permissions";
 import { CallArgument } from "../types";
 import { DelegationKey } from "../types/permissions/delegationKey";
@@ -33,7 +35,8 @@ type PermissionResource = {
 };
 
 /**
- * TODO: We should be fetching this from the indexer, not the fullnode
+ * TODO: We should be fetching this from the indexer, not the fullnode.
+ * With the current refactor to a unified class, this function is broken.
  */
 export async function getPermissions<T extends Permission>({
   aptosConfig,
@@ -56,26 +59,71 @@ export async function getPermissions<T extends Permission>({
 
   const data = (await res.json()) as PermissionResource[];
   const permissions =
-    data?.[0]?.data?.perms?.data?.map((d) => {
+    data?.[0]?.data?.perms?.data?.reduce((acc, d) => {
       const address = AccountAddress.fromString(d.key.data);
 
       switch (d.key.type_name) {
-        case MoveVMPermissionType.FungibleAsset:
-          return FungibleAssetPermission.from({
-            asset: address,
-            amount: Number(d.value),
-          });
-        case MoveVMPermissionType.TransferPermission:
-          return NFTPermission.from({
-            assetAddress: address,
-            capabilities: { transfer: true, mutate: false },
-          });
+        case FungibleAssetPermissionCapability.Withdraw: {
+          acc.push(
+            FungibleAssetPermission.from({
+              asset: address,
+              amount: Number(d.value),
+            }),
+          );
+          break;
+        }
+
+        case GasPermissionCapability.Withdraw: {
+          acc.push(
+            GasPermission.from({
+              amount: Number(d.value),
+            }),
+          );
+          break;
+        }
+
+        case NFTPermissionCapability.transfer:
+        case NFTPermissionCapability.mutate: {
+          const existingIndex = acc.findIndex(
+            (p): p is NFTPermission => p instanceof NFTPermission && p.assetAddress.equals(address),
+          );
+
+          if (existingIndex !== -1) {
+            const existingNFT = acc[existingIndex] as NFTPermission;
+            // Create new NFT permission with merged capabilities
+            acc[existingIndex] = NFTPermission.from({
+              assetAddress: address,
+              capabilities: {
+                [NFTPermissionCapability.transfer]:
+                  existingNFT.capabilities[NFTPermissionCapability.transfer] ||
+                  d.key.type_name === NFTPermissionCapability.transfer,
+                [NFTPermissionCapability.mutate]:
+                  existingNFT.capabilities[NFTPermissionCapability.mutate] ||
+                  d.key.type_name === NFTPermissionCapability.mutate,
+              },
+            });
+          } else {
+            // Create new NFT permission
+            acc.push(
+              NFTPermission.from({
+                assetAddress: address,
+                capabilities: {
+                  [NFTPermissionCapability.transfer]: d.key.type_name === NFTPermissionCapability.transfer,
+                  [NFTPermissionCapability.mutate]: d.key.type_name === NFTPermissionCapability.mutate,
+                },
+              }),
+            );
+          }
+          break;
+        }
+
         default:
           throw new Error(`Unknown permission type: ${d.key.type_name}`);
       }
-    }) ?? [];
+      return acc;
+    }, [] as Permission[]) ?? [];
 
-  return (filter ? permissions.filter((p) => p instanceof filter) : permissions) as T[];
+  return filter ? (permissions.filter((p) => p instanceof filter) as unknown as T[]) : (permissions as unknown as T[]);
 }
 
 export async function requestPermission(args: {
@@ -142,11 +190,14 @@ export async function requestPermission(args: {
       const expandedPermissions = permissions.flatMap((permission) => {
         if (permission instanceof NFTPermission && permission.capabilities) {
           const expanded: Permission[] = [];
-          if (permission.capabilities.transfer) {
+          if (permission.capabilities[NFTPermissionCapability.transfer]) {
             expanded.push(
               NFTPermission.from({
                 assetAddress: permission.assetAddress,
-                capabilities: { transfer: true, mutate: false },
+                capabilities: {
+                  [NFTPermissionCapability.transfer]: true,
+                  [NFTPermissionCapability.mutate]: false,
+                },
               }),
             );
           }
@@ -154,7 +205,10 @@ export async function requestPermission(args: {
             expanded.push(
               NFTPermission.from({
                 assetAddress: permission.assetAddress,
-                capabilities: { transfer: false, mutate: true },
+                capabilities: {
+                  [NFTPermissionCapability.transfer]: false,
+                  [NFTPermissionCapability.mutate]: true,
+                },
               }),
             );
           }
@@ -184,7 +238,7 @@ export async function requestPermission(args: {
           }
 
           if (permission instanceof NFTPermission) {
-            if (permission.capabilities.transfer) {
+            if (permission.capabilities[NFTPermissionCapability.transfer]) {
               return builder.addBatchedCalls({
                 function: "0x1::object::grant_permission",
                 functionArguments: [CallArgument.newSigner(0), signerBorrow, permission.assetAddress],
