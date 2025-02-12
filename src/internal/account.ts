@@ -61,7 +61,6 @@ import { AptosApiError } from "../errors";
 import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
 import { U8, MoveVector } from "../bcs";
-import { transferCoinTransaction } from "./coin";
 import { waitForTransaction } from "./transaction";
 
 /**
@@ -377,10 +376,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-    {
-      owner_address: { _eq: address },
-      amount: { _gt: 0 },
-    };
+  {
+    owner_address: { _eq: address },
+    amount: { _gt: 0 },
+  };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
@@ -850,8 +849,48 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
 export async function rotateAuthKey(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
+} & (
+    | { toAccount: Account; dangerouslySkipVerification?: boolean; toAuthKey?: never; toNewPrivateKey?: never }
+    | { toNewPrivateKey: PrivateKeyInput; dangerouslySkipVerification?: never; toAuthKey?: never; toAccount?: never }
+    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true; toAccount?: never; toNewPrivateKey?: never }
+  )): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount, toNewPrivateKey, toAccount, dangerouslySkipVerification, toAuthKey } = args;
+  if (toNewPrivateKey) {
+    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey });
+  }
+  const pendingTxn = await rotateAuthKeyUnverified({ aptosConfig, fromAccount, toAuthKey: toAuthKey ?? toAccount.publicKey.authKey() });
+  if (dangerouslySkipVerification === true) {
+    return pendingTxn;
+  }
+
+  const rotateAuthKeyTxnResponse = await waitForTransaction({
+    aptosConfig,
+    transactionHash: pendingTxn.hash,
+  });
+  if (!rotateAuthKeyTxnResponse.success) {
+    throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
+  }
+  const coinTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::aptos_account::create_account",
+      typeArguments: [],
+      functionArguments: [fromAccount.accountAddress],
+    },
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: coinTxn,
+  });
+}
+
+async function rotateAuthKeyWithChallenge(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
   toNewPrivateKey: PrivateKeyInput;
-}): Promise<TransactionResponse> {
+}): Promise<PendingTransactionResponse> {
   const { aptosConfig, fromAccount, toNewPrivateKey } = args;
   const accountInfo = await getInfo({
     aptosConfig,
@@ -907,7 +946,7 @@ const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
  * @param args - The arguments for rotating the authentication key.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.newAuthKey - The new authentication key.
+ * @param args.toAuthKey - The new authentication key.
  *
  * @remarks
  * This function can result in loss of access to the account if you rotate to a MultiKey and do not publish the public keys.
@@ -917,18 +956,19 @@ const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
  *
  * @group Implementation
  */
-export async function rotateAuthKeyUnverified(args: {
+async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
-  newAuthKey: AuthenticationKey;
+  toAuthKey: AuthenticationKey;
 }): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, newAuthKey } = args;
+  const { aptosConfig, fromAccount, toAuthKey } = args;
+  const authKey = toAuthKey;
   const rawTxn = await generateTransaction({
     aptosConfig,
     sender: fromAccount.accountAddress,
     data: {
       function: "0x1::account::rotate_authentication_key_call",
-      functionArguments: [MoveVector.U8(newAuthKey.toUint8Array())],
+      functionArguments: [MoveVector.U8(authKey.toUint8Array())],
       abi: rotateAuthKeyUnverifiedAbi,
     },
   });
@@ -936,51 +976,5 @@ export async function rotateAuthKeyUnverified(args: {
     aptosConfig,
     signer: fromAccount,
     transaction: rawTxn,
-  });
-}
-
-/**
- * Rotates the authentication key for a given account without a proof of ownership challenge. After
- * rotation, the account will sign a no-op transaction with the new key to publish the public key on chain.
- *
- * @param args - The arguments for rotating the authentication key.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
- * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toAccount - The account that will receive the new authentication key.
- *
- * @remarks
- * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
- *
- * @group Implementation
- */
-export async function rotateAuthKeyWithVerificationTransaction(args: {
-  aptosConfig: AptosConfig;
-  fromAccount: Account;
-  toAccount: Account;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toAccount } = args;
-
-  const pendingTxn = await rotateAuthKeyUnverified({
-    aptosConfig,
-    fromAccount,
-    newAuthKey: toAccount.publicKey.authKey(),
-  });
-  const txnResponse = await waitForTransaction({
-    aptosConfig,
-    transactionHash: pendingTxn.hash,
-  });
-  if (!txnResponse.success) {
-    throw new Error(`Failed to rotate authentication key - ${txnResponse}`);
-  }
-  const coinTxn = await transferCoinTransaction({
-    aptosConfig,
-    sender: toAccount.accountAddress,
-    recipient: toAccount.accountAddress,
-    amount: 1,
-  });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: coinTxn,
   });
 }
