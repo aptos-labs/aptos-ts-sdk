@@ -24,7 +24,6 @@ import {
   FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
   publicPackageTransaction,
-  rotateAuthKey,
   signAndSubmitAsFeePayer,
   signAndSubmitTransaction,
   signAsFeePayer,
@@ -36,13 +35,14 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, PrivateKeyInput } from "../core";
+import { AccountAddressInput, AuthenticationKey, PrivateKeyInput } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { rotateAuthKey } from "../internal/account";
 
 /**
  * Represents a transaction in the Aptos blockchain,
@@ -506,7 +506,14 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKeyInput }): Promise<TransactionResponse> {
+  async rotateAuthKey(
+    args: {
+      fromAccount: Account;
+    } & (
+        | { toAccount: Account; dangerouslySkipVerification?: boolean; toAuthKey?: never; toNewPrivateKey?: never }
+        | { toNewPrivateKey: PrivateKeyInput; dangerouslySkipVerification?: never; toAuthKey?: never; toAccount?: never }
+        | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true; toAccount?: never; toNewPrivateKey?: never }
+      )): Promise<PendingTransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 

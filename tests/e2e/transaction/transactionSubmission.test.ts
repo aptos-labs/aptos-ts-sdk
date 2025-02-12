@@ -777,7 +777,53 @@ describe("transaction submission", () => {
       expect(() => new MultiKeyAccount({ multiKey, signers: [singleSignerED25519SenderAccount] })).toThrow();
     });
   });
-
+  describe("key rotation", () => {
+    test("it rotates the key successfully", async () => {
+      const account = Account.generate();
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      const response = await aptos.rotateAuthKey({
+        fromAccount: account,
+        toNewPrivateKey: singleSignerED25519SenderAccount.privateKey,
+      });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(singleSignerED25519SenderAccount.publicKey);
+    });
+    test("it rotates the key to an unverified authentication key and verifies it via submitting a txn", async () => {
+      const account = Account.generate();
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      const response = await aptos.rotateAuthKeyWithVerificationTransaction({
+        fromAccount: account,
+        toAccount: singleSignerED25519SenderAccount,
+      });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(singleSignerED25519SenderAccount.publicKey);
+    });
+    test("it rotates the key to an unverified authentication key", async () => {
+      const account = Account.generate();
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+      const response = await aptos.rotateAuthKeyUnverified({
+        fromAccount: account,
+        newAuthKey: singleSignerSecp256k1Account.publicKey.authKey(),
+      });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(singleSignerSecp256k1Account.publicKey);
+    });
+  });
   describe("MultiEd25519", () => {
     const ed25519PrivateKey1 = Ed25519PrivateKey.generate();
     const ed25519PrivateKey2 = Ed25519PrivateKey.generate();
