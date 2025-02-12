@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add permissioned signer support for FungibleAssetPermission, GasPermission, and NFTPermission using `Ed25519Account`s
+
 # 1.35.0 (2025-02-11)
 
 - Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
