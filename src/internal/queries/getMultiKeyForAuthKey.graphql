@@ -1,0 +1,9 @@
+query getMultiKeyForAuthKey($where_condition: auth_key_multikey_layout_bool_exp) {
+  auth_key_multikey_layout(where: $where_condition) {
+    auth_key
+    last_transaction_version
+    multikey_layout_with_prefixes
+    multikey_type
+    signatures_required
+  }
+}

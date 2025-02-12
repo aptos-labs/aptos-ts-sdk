@@ -82,6 +82,16 @@ export const CurrentTokenOwnershipFieldsFragmentDoc = `
   }
 }
     `;
+export const GetAccountAddressesForAuthKey = `
+    query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp) {
+  auth_key_account_addresses(where: $where_condition) {
+    auth_key
+    address
+    last_transaction_version
+    verified
+  }
+}
+    `;
 export const GetAccountCoinsCount = `
     query getAccountCoinsCount($address: String) {
   current_fungible_asset_balances_aggregate(
@@ -217,6 +227,17 @@ export const GetAccountTransactionsCount = `
     aggregate {
       count
     }
+  }
+}
+    `;
+export const GetAuthKeysForPublicKey = `
+    query getAuthKeysForPublicKey($where_condition: public_key_auth_keys_bool_exp) {
+  public_key_auth_keys(where: $where_condition) {
+    public_key
+    public_key_type
+    auth_key
+    last_transaction_version
+    verified
   }
 }
     `;
@@ -357,6 +378,17 @@ export const GetFungibleAssetMetadata = `
   }
 }
     `;
+export const GetMultiKeyForAuthKey = `
+    query getMultiKeyForAuthKey($where_condition: auth_key_multikey_layout_bool_exp) {
+  auth_key_multikey_layout(where: $where_condition) {
+    auth_key
+    last_transaction_version
+    multikey_layout_with_prefixes
+    multikey_type
+    signatures_required
+  }
+}
+    `;
 export const GetNames = `
     query getNames($offset: Int, $limit: Int, $where_condition: current_aptos_names_bool_exp, $order_by: [current_aptos_names_order_by!]) {
   current_aptos_names(
@@ -401,6 +433,25 @@ export const GetProcessorStatus = `
     last_success_version
     processor
     last_updated
+  }
+}
+    `;
+export const GetSignatures = `
+    query getSignatures($where_condition: signatures_bool_exp, $offset: Int, $limit: Int, $order_by: [signatures_order_by!]) {
+  signatures(
+    where: $where_condition
+    offset: $offset
+    limit: $limit
+    order_by: $order_by
+  ) {
+    signature
+    public_key
+    public_key_indices
+    type
+    signer
+    transaction_version
+    threshold
+    is_sender_primary
   }
 }
     `;
@@ -512,6 +563,21 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    getAccountAddressesForAuthKey(
+      variables?: Types.GetAccountAddressesForAuthKeyQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAccountAddressesForAuthKeyQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAccountAddressesForAuthKeyQuery>(GetAccountAddressesForAuthKey, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAccountAddressesForAuthKey",
+        "query",
+        variables,
+      );
+    },
     getAccountCoinsCount(
       variables?: Types.GetAccountCoinsCountQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -634,6 +700,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         variables,
       );
     },
+    getAuthKeysForPublicKey(
+      variables?: Types.GetAuthKeysForPublicKeyQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetAuthKeysForPublicKeyQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetAuthKeysForPublicKeyQuery>(GetAuthKeysForPublicKey, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getAuthKeysForPublicKey",
+        "query",
+        variables,
+      );
+    },
     getChainTopUserTransactions(
       variables?: Types.GetChainTopUserTransactionsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -736,6 +817,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
         variables,
       );
     },
+    getMultiKeyForAuthKey(
+      variables?: Types.GetMultiKeyForAuthKeyQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetMultiKeyForAuthKeyQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetMultiKeyForAuthKeyQuery>(GetMultiKeyForAuthKey, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getMultiKeyForAuthKey",
+        "query",
+        variables,
+      );
+    },
     getNames(
       variables?: Types.GetNamesQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
@@ -789,6 +885,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
             ...wrappedRequestHeaders,
           }),
         "getProcessorStatus",
+        "query",
+        variables,
+      );
+    },
+    getSignatures(
+      variables?: Types.GetSignaturesQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<Types.GetSignaturesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<Types.GetSignaturesQuery>(GetSignatures, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "getSignatures",
         "query",
         variables,
       );
