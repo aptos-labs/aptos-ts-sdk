@@ -29,7 +29,7 @@ import {
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../account";
+import { Account, Ed25519Account } from "../account";
 import { AnyPublicKey, Ed25519PublicKey, PrivateKey, PrivateKeyInput } from "../core/crypto";
 import { queryIndexer } from "./general";
 import {
@@ -858,7 +858,11 @@ export async function rotateAuthKey(args: {
   if (toNewPrivateKey) {
     return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey });
   }
+  if (toAccount && toAccount instanceof Ed25519Account) {
+    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: toAccount.privateKey });
+  }
   const pendingTxn = await rotateAuthKeyUnverified({ aptosConfig, fromAccount, toAuthKey: toAuthKey ?? toAccount.publicKey.authKey() });
+  
   if (dangerouslySkipVerification === true) {
     return pendingTxn;
   }
