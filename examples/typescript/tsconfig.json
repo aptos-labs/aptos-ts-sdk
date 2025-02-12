@@ -15,9 +15,9 @@
     "strict": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "paths": {
+      "@aptos/*": ["../.."]
+    }
   },
   "include": ["./*.ts"],
-  "paths": {
-    "@aptos/*": "../.."
-  }
 }
