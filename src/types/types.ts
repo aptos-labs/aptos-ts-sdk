@@ -952,7 +952,8 @@ export type TransactionSignature =
   | TransactionSecp256k1Signature
   | TransactionMultiEd25519Signature
   | TransactionMultiAgentSignature
-  | TransactionFeePayerSignature;
+  | TransactionFeePayerSignature
+  | TransactionSingleSenderSignature;
 
 /**
  * Determine if the provided signature is an Ed25519 signature.
@@ -962,8 +963,8 @@ export type TransactionSignature =
  * @param signature - The transaction signature to be checked.
  * @returns A boolean indicating whether the signature is an Ed25519 signature.
  */
-export function isEd25519Signature(signature: TransactionSignature): signature is TransactionFeePayerSignature {
-  return "signature" in signature && signature.signature === "ed25519_signature";
+export function isEd25519Signature(signature: TransactionSignature): signature is TransactionEd25519Signature {
+  return "signature" in signature && signature.type === "ed25519_signature";
 }
 
 /**
@@ -1009,6 +1010,18 @@ export function isMultiEd25519Signature(
 }
 
 /**
+ * Determine if the provided signature is of type "single_sender".
+ *
+ * @param signature - The transaction signature to check.
+ * @returns A boolean indicating whether the signature is a single-sender signature.
+ */
+export function isSingleSenderSignature(
+  signature: TransactionSignature,
+): signature is TransactionSingleSenderSignature {
+  return signature.type === "single_sender";
+}
+
+/**
  * The signature for a transaction using the Ed25519 algorithm.
  */
 export type TransactionEd25519Signature = {
@@ -1024,6 +1037,15 @@ export type TransactionSecp256k1Signature = {
   type: string;
   public_key: string;
   signature: "secp256k1_ecdsa_signature";
+};
+
+/**
+ * The structure for a multi-signature transaction using Ed25519.
+ */
+export type TransactionSingleSenderSignature = {
+  type: "single_sender";
+  public_key: { value: string; type: string };
+  signature: { value: string; type: string };
 };
 
 /**
