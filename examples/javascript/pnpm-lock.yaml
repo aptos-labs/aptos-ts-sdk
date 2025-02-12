@@ -9,7 +9,7 @@ dependencies:
     specifier: link:../..
     version: link:../..
   npm-run-all:
-    specifier: latest
+    specifier: 4.1.5
     version: 4.1.5
 
 packages:
