@@ -11,6 +11,7 @@ import {
   SigningSchemeInput,
   U64,
   AccountAddress,
+  MultiKeyAccount,
 } from "../../../src";
 import { getAptosClient } from "../helper";
 
@@ -381,5 +382,64 @@ describe("account api", () => {
       // Check if the lookup account address is the same as the original account address
       expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
     });
+  });
+
+  test("it should rotate ed25519 to multikey auth key correctly", async () => {
+    const config = new AptosConfig({ network: Network.LOCAL });
+    const aptos = new Aptos(config);
+
+    // Current Account
+    const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+    const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+      publicKeys: [mk1.publicKey, mk2.publicKey],
+      signaturesRequired: 1,
+      signers: [mk1],
+    });
+
+    // Rotate the key
+    const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
+    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+    // lookup original account address
+    const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
+      authenticationKey: multiKeyAccount.publicKey.authKey().derivedAddress(),
+      minimumLedgerVersion: BigInt(response.version),
+    });
+
+    // Check if the lookup account address is the same as the original account address
+    expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
+  });
+
+  test("it should rotate ed25519 to unverified auth key correctly", async () => {
+    const config = new AptosConfig({ network: Network.LOCAL });
+    const aptos = new Aptos(config);
+
+    // Current Account
+    const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+    // account that holds the new key
+    const newAuthKey = Ed25519PrivateKey.generate().publicKey().authKey();
+
+    // Rotate the key
+    const pendingTxn = await aptos.rotateAuthKey({
+      fromAccount: account,
+      toAuthKey: newAuthKey,
+      dangerouslySkipVerification: true,
+    });
+    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+    // lookup original account address
+    const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
+      authenticationKey: newAuthKey.derivedAddress(),
+      minimumLedgerVersion: BigInt(response.version),
+    });
+
+    // Check if the lookup account address is the same as the original account address
+    expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
   });
 });

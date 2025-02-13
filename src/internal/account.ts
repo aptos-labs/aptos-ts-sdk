@@ -376,10 +376,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-  {
-    owner_address: { _eq: address },
-    amount: { _gt: 0 },
-  };
+    {
+      owner_address: { _eq: address },
+      amount: { _gt: 0 },
+    };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
@@ -834,26 +834,42 @@ const rotateAuthKeyAbi: EntryFunctionABI = {
 };
 
 /**
- * Rotates the authentication key for a given account, allowing for enhanced security and management of account access.
+ * Rotates the authentication key for a given account.
  *
  * @param args - The arguments for rotating the authentication key.
  * @param args.aptosConfig - The configuration settings for the Aptos network.
  * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toNewPrivateKey - The new private key that will be associated with the account.
+ * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
+ * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
+ * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
+ * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
  *
  * @remarks
- * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
+ * This function supports three modes of rotation:
+ * 1. Using a target Account object (toAccount)
+ * 2. Using a new private key (toNewPrivateKey)
+ * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
+ *
+ * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
+ *
+ * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
+ * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
+ *
+ * @returns A promise that resolves to the pending transaction response.
+ * @throws Error if the rotation fails or verification fails.
  *
  * @group Implementation
  */
-export async function rotateAuthKey(args: {
-  aptosConfig: AptosConfig;
-  fromAccount: Account;
-} & (
+export async function rotateAuthKey(
+  args: {
+    aptosConfig: AptosConfig;
+    fromAccount: Account;
+  } & (
     | { toAccount: Account; dangerouslySkipVerification?: boolean; toAuthKey?: never; toNewPrivateKey?: never }
-    | { toNewPrivateKey: PrivateKeyInput; dangerouslySkipVerification?: never; toAuthKey?: never; toAccount?: never }
+    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never; toAuthKey?: never; toAccount?: never }
     | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true; toAccount?: never; toNewPrivateKey?: never }
-  )): Promise<PendingTransactionResponse> {
+  ),
+): Promise<PendingTransactionResponse> {
   const { aptosConfig, fromAccount, toNewPrivateKey, toAccount, dangerouslySkipVerification, toAuthKey } = args;
   if (toNewPrivateKey) {
     return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey });
@@ -861,8 +877,12 @@ export async function rotateAuthKey(args: {
   if (toAccount && toAccount instanceof Ed25519Account) {
     return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: toAccount.privateKey });
   }
-  const pendingTxn = await rotateAuthKeyUnverified({ aptosConfig, fromAccount, toAuthKey: toAuthKey ?? toAccount.publicKey.authKey() });
-  
+  const pendingTxn = await rotateAuthKeyUnverified({
+    aptosConfig,
+    fromAccount,
+    toAuthKey: toAuthKey ?? toAccount.publicKey.authKey(),
+  });
+
   if (dangerouslySkipVerification === true) {
     return pendingTxn;
   }
@@ -944,22 +964,6 @@ const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
   parameters: [TypeTagVector.u8()],
 };
 
-/**
- * Rotates the authentication key for a given account without a proof of ownership challenge.
- *
- * @param args - The arguments for rotating the authentication key.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
- * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toAuthKey - The new authentication key.
- *
- * @remarks
- * This function can result in loss of access to the account if you rotate to a MultiKey and do not publish the public keys.
- * For example, even if you one of the keys in the MultiKey, you will not be able to access the account unless you know the other
- * public keys.  Thus it is recommended to use rotateAuthKeyWithVerificationTransaction instead as by submitting transaction
- * with the new key, the public keys are published on chain.
- *
- * @group Implementation
- */
 async function rotateAuthKeyUnverified(args: {
   aptosConfig: AptosConfig;
   fromAccount: Account;
