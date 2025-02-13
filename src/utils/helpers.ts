@@ -198,7 +198,29 @@ export function getFunctionParts(functionArg: MoveFunctionId) {
   return { moduleAddress, moduleName, functionName };
 }
 
+/**
+ * Validates the provided function information.
+ *
+ * @param functionInfo - The function information to validate.
+ * @returns Whether the function information is valid.
+ * @group Implementation
+ * @category Utils
+ */
 export function isValidFunctionInfo(functionInfo: string): boolean {
   const parts = functionInfo.split("::");
   return parts.length === 3 && AccountAddress.isValid({ input: parts[0] }).valid;
+}
+
+/**
+ * Truncates the provided wallet address at the middle with an ellipsis.
+ *
+ * @param address - The wallet address to truncate.
+ * @param start - The number of characters to show at the beginning of the address.
+ * @param end - The number of characters to show at the end of the address.
+ * @returns The truncated address.
+ * @group Implementation
+ * @category Utils
+ */
+export function truncateAddress(address: string, start: number = 6, end: number = 5) {
+  return `${address.slice(0, start)}...${address.slice(-end)}`;
 }
