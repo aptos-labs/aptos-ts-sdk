@@ -1,5 +1,5 @@
 /**
- * This example demonstrate how we can use `aptos.publishPackageTransaction()` method to publish a move package
+ * This example demonstrates how we can use `aptos.publishPackageTransaction()` method to publish a move package
  * read from a local path.
  *
  * Before running this example, we should compile the package locally:
