@@ -11,7 +11,7 @@ import {
   VeiledKeyRotation,
   VeiledNormalization,
   RangeProofExecutor,
-  VeiledAmount,
+  ConfidentialAmount,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
@@ -37,7 +37,7 @@ describe("Generate 'veiled coin' proofs", () => {
   );
   const bobVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
-  const aliceVeiledAmount = VeiledAmount.fromAmount(ALICE_BALANCE);
+  const aliceVeiledAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);
   aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
@@ -90,7 +90,7 @@ describe("Generate 'veiled coin' proofs", () => {
 
   test("Should generate and verify veiled withdraw with large amounts", async () => {
     const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
-    const newAliceBalance = VeiledAmount.fromAmount(2n ** 64n + 10n);
+    const newAliceBalance = ConfidentialAmount.fromAmount(2n ** 64n + 10n);
     newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
 
     const amountToWithdraw = 2n ** 16n + 10n - 10n;
@@ -300,8 +300,8 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(newVB).toBeDefined();
   });
 
-  const unnormalizedAliceVeiledAmount = VeiledAmount.fromChunks([
-    ...Array.from({ length: VeiledAmount.CHUNKS_COUNT - 1 }, () => 2n ** VeiledAmount.CHUNK_BITS_BI + 100n),
+  const unnormalizedAliceVeiledAmount = ConfidentialAmount.fromChunks([
+    ...Array.from({ length: ConfidentialAmount.CHUNKS_COUNT - 1 }, () => 2n ** ConfidentialAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
   unnormalizedAliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());

@@ -1,4 +1,4 @@
-import { TwistedEd25519PrivateKey, TwistedElGamal, VeiledAmount } from "../../../../src";
+import { TwistedEd25519PrivateKey, TwistedElGamal, ConfidentialAmount } from "../../../../src";
 import { preloadTables, preloadTablesForBalances } from "./wasmPollardKangaroo";
 import { longTestTimeout } from "../../helper";
 
@@ -61,11 +61,11 @@ const executionBalance = async (
   for (const balance of randBalances) {
     const newAlice = TwistedEd25519PrivateKey.generate();
 
-    const veiledAmount = VeiledAmount.fromAmount(balance);
+    const veiledAmount = ConfidentialAmount.fromAmount(balance);
     veiledAmount.encrypt(newAlice.publicKey());
 
     const startMainTime = performance.now();
-    const decryptedBalance = await VeiledAmount.fromEncrypted(veiledAmount.amountEncrypted!, newAlice);
+    const decryptedBalance = await ConfidentialAmount.fromEncrypted(veiledAmount.amountEncrypted!, newAlice);
     const endMainTime = performance.now();
 
     const elapsedMainTime = endMainTime - startMainTime;

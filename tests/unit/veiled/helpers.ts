@@ -14,7 +14,7 @@ import {
   TableMap,
   TransactionWorkerEventsEnum,
   TwistedEd25519PrivateKey,
-  VeiledAmount,
+  ConfidentialAmount,
   RangeProofExecutor,
   Ed25519Account,
   ConfidentialCoin,
@@ -68,8 +68,14 @@ export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accou
     tokenAddress: TOKEN_ADDRESS,
   });
 
-  const aliceVeiledAmountPending = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.pending, decryptionKey);
-  const aliceVeiledAmountActual = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, decryptionKey);
+  const aliceVeiledAmountPending = await ConfidentialAmount.fromEncrypted(
+    aliceChunkedVeiledBalance.pending,
+    decryptionKey,
+  );
+  const aliceVeiledAmountActual = await ConfidentialAmount.fromEncrypted(
+    aliceChunkedVeiledBalance.actual,
+    decryptionKey,
+  );
 
   return {
     pending: aliceVeiledAmountPending,

@@ -6,7 +6,7 @@ import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519Pu
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { genFiatShamirChallenge } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { VeiledAmount } from "./veiledAmount";
+import { ConfidentialAmount } from "./confidentialAmount";
 
 export type VeiledKeyRotationSigmaProof = {
   alpha1: Uint8Array;
@@ -38,17 +38,17 @@ export class VeiledKeyRotation {
 
   currEncryptedBalance: TwistedElGamalCiphertext[];
 
-  currVeiledAmount: VeiledAmount;
+  currVeiledAmount: ConfidentialAmount;
 
-  newVeiledAmount: VeiledAmount;
+  newVeiledAmount: ConfidentialAmount;
 
   constructor(args: {
     currDecryptionKey: TwistedEd25519PrivateKey;
     newDecryptionKey: TwistedEd25519PrivateKey;
     currEncryptedBalance: TwistedElGamalCiphertext[];
     randomness: bigint[];
-    currVeiledAmount: VeiledAmount;
-    newVeiledAmount: VeiledAmount;
+    currVeiledAmount: ConfidentialAmount;
+    newVeiledAmount: ConfidentialAmount;
   }) {
     this.randomness = args.randomness;
     this.currDecryptionKey = args.currDecryptionKey;
@@ -61,11 +61,11 @@ export class VeiledKeyRotation {
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
   static async create(args: CreateVeiledKeyRotationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const currentBalance = await VeiledAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
+    const currentBalance = await ConfidentialAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
 
-    const newBalance = VeiledAmount.fromAmount(currentBalance.amount);
+    const newBalance = ConfidentialAmount.fromAmount(currentBalance.amount);
     newBalance.encrypt(args.newDecryptionKey.publicKey(), randomness);
 
     return new VeiledKeyRotation({
@@ -110,12 +110,12 @@ export class VeiledKeyRotation {
     const alpha2 = proofArr[1];
     const alpha3 = proofArr[2];
     const alpha4 = proofArr[3];
-    const alpha5List = proofArr.slice(4, 4 + VeiledAmount.CHUNKS_COUNT);
-    const alpha6List = proofArr.slice(8, 8 + VeiledAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(4, 4 + ConfidentialAmount.CHUNKS_COUNT);
+    const alpha6List = proofArr.slice(8, 8 + ConfidentialAmount.CHUNKS_COUNT);
     const X1 = proofArr[12];
     const X2 = proofArr[13];
     const X3 = proofArr[14];
-    const X4List = proofArr.slice(15, 15 + VeiledAmount.CHUNKS_COUNT);
+    const X4List = proofArr.slice(15, 15 + ConfidentialAmount.CHUNKS_COUNT);
     const X5List = proofArr.slice(19);
 
     return {
@@ -134,7 +134,7 @@ export class VeiledKeyRotation {
   }
 
   async genSigmaProof(): Promise<VeiledKeyRotationSigmaProof> {
-    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
@@ -143,13 +143,13 @@ export class VeiledKeyRotation {
     const x3 = ed25519GenRandom();
     const x4 = ed25519GenRandom();
 
-    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
-    const x6List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const x6List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.currEncryptedBalance
         .reduce(
-          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          (acc, el, i) => acc.add(el.D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
           RistrettoPoint.ZERO,
         )
         .multiply(x2),
@@ -239,7 +239,7 @@ export class VeiledKeyRotation {
 
     const { DOldSum, COldSum } = opts.currEncryptedBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -282,7 +282,7 @@ export class VeiledKeyRotation {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -321,7 +321,7 @@ export class VeiledKeyRotation {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );

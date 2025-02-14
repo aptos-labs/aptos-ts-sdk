@@ -11,7 +11,7 @@ const CHUNKS_COUNT = 8;
  */
 const CHUNK_BITS = 16;
 
-export class VeiledAmount {
+export class ConfidentialAmount {
   amount: bigint;
 
   amountChunks: bigint[];
@@ -26,7 +26,7 @@ export class VeiledAmount {
 
   static CHUNK_BITS = CHUNK_BITS;
 
-  static CHUNK_BITS_BI = BigInt(VeiledAmount.CHUNK_BITS);
+  static CHUNK_BITS_BI = BigInt(ConfidentialAmount.CHUNK_BITS);
 
   constructor(args: {
     amount: bigint;
@@ -57,7 +57,7 @@ export class VeiledAmount {
    *
    * amount = a0 + a1 * (2 ** 32) + a2 * (2 ** 64) ... a_i * (2 ** 32 * i)
    */
-  static chunksToAmount(chunks: bigint[], chunkBits = VeiledAmount.CHUNK_BITS): bigint {
+  static chunksToAmount(chunks: bigint[], chunkBits = ConfidentialAmount.CHUNK_BITS): bigint {
     const chunkBitsBi = BigInt(chunkBits);
 
     return chunks.reduce((acc, chunk, i) => acc + chunk * 2n ** (chunkBitsBi * BigInt(i)), 0n);
@@ -73,8 +73,8 @@ export class VeiledAmount {
    */
   static amountToChunks(
     amount: bigint,
-    chunksCount = VeiledAmount.CHUNKS_COUNT,
-    chunkBits = VeiledAmount.CHUNK_BITS,
+    chunksCount = ConfidentialAmount.CHUNKS_COUNT,
+    chunkBits = ConfidentialAmount.CHUNK_BITS,
   ): bigint[] {
     // Initialize an empty array that will hold the chunked values.
     const chunks: bigint[] = [];
@@ -107,16 +107,16 @@ export class VeiledAmount {
       chunksCount?: number;
       chunkBits?: number;
     },
-  ): VeiledAmount {
-    const amountChunks = VeiledAmount.amountToChunks(amount, opts?.chunksCount, opts?.chunkBits);
+  ): ConfidentialAmount {
+    const amountChunks = ConfidentialAmount.amountToChunks(amount, opts?.chunksCount, opts?.chunkBits);
 
-    return new VeiledAmount({ amount, amountChunks, ...opts });
+    return new ConfidentialAmount({ amount, amountChunks, ...opts });
   }
 
-  static fromChunks(chunks: bigint[]): VeiledAmount {
-    const amount = VeiledAmount.chunksToAmount(chunks);
+  static fromChunks(chunks: bigint[]): ConfidentialAmount {
+    const amount = ConfidentialAmount.chunksToAmount(chunks);
 
-    return new VeiledAmount({ amount, amountChunks: chunks });
+    return new ConfidentialAmount({ amount, amountChunks: chunks });
   }
 
   static decryptBalanceFn: (
@@ -124,8 +124,8 @@ export class VeiledAmount {
     privateKey: TwistedEd25519PrivateKey,
   ) => Promise<bigint[]>;
 
-  static setDecryptBalanceFn(fn: typeof VeiledAmount.decryptBalanceFn) {
-    VeiledAmount.decryptBalanceFn = fn;
+  static setDecryptBalanceFn(fn: typeof ConfidentialAmount.decryptBalanceFn) {
+    ConfidentialAmount.decryptBalanceFn = fn;
   }
 
   static async fromEncrypted(
@@ -137,15 +137,15 @@ export class VeiledAmount {
     },
   ) {
     const chunksCount = opts?.chunksCount || encrypted.length;
-    const chunkBits = opts?.chunkBits || VeiledAmount.CHUNK_BITS;
+    const chunkBits = opts?.chunkBits || ConfidentialAmount.CHUNK_BITS;
 
-    const decryptedAmountChunks: bigint[] = VeiledAmount.decryptBalanceFn
-      ? await VeiledAmount.decryptBalanceFn(encrypted, privateKey)
+    const decryptedAmountChunks: bigint[] = ConfidentialAmount.decryptBalanceFn
+      ? await ConfidentialAmount.decryptBalanceFn(encrypted, privateKey)
       : await Promise.all(encrypted.map((el) => TwistedElGamal.decryptWithPK(el, privateKey)));
 
-    const amount = VeiledAmount.chunksToAmount(decryptedAmountChunks, chunkBits);
+    const amount = ConfidentialAmount.chunksToAmount(decryptedAmountChunks, chunkBits);
 
-    return new VeiledAmount({
+    return new ConfidentialAmount({
       amount,
       amountChunks: decryptedAmountChunks,
       encryptedAmount: encrypted,

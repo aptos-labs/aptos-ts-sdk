@@ -7,7 +7,7 @@ import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "./consts";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { RangeProofExecutor } from "../rangeProof";
-import { VeiledAmount } from "./veiledAmount";
+import { ConfidentialAmount } from "./confidentialAmount";
 
 export type VeiledWithdrawSigmaProof = {
   alpha1: Uint8Array;
@@ -33,17 +33,17 @@ export class VeiledWithdraw {
 
   encryptedActualBalanceAmount: TwistedElGamalCiphertext[];
 
-  veiledAmountToWithdraw: VeiledAmount;
+  veiledAmountToWithdraw: ConfidentialAmount;
 
-  veiledAmountAfterWithdraw: VeiledAmount;
+  veiledAmountAfterWithdraw: ConfidentialAmount;
 
   randomness: bigint[];
 
   constructor(args: {
     decryptionKey: TwistedEd25519PrivateKey;
     encryptedActualBalance: TwistedElGamalCiphertext[];
-    veiledAmountToWithdraw: VeiledAmount;
-    veiledAmountAfterWithdraw: VeiledAmount;
+    veiledAmountToWithdraw: ConfidentialAmount;
+    veiledAmountAfterWithdraw: ConfidentialAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
@@ -57,14 +57,16 @@ export class VeiledWithdraw {
   }
 
   static async create(args: CreateVeiledWithdrawOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const veiledAmountToWithdraw = VeiledAmount.fromAmount(args.amountToWithdraw, {
-      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
+    const veiledAmountToWithdraw = ConfidentialAmount.fromAmount(args.amountToWithdraw, {
+      chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
-    const actualBalance = await VeiledAmount.fromEncrypted(args.encryptedActualBalance, args.decryptionKey);
+    const actualBalance = await ConfidentialAmount.fromEncrypted(args.encryptedActualBalance, args.decryptionKey);
 
-    const veiledAmountAfterWithdraw = VeiledAmount.fromAmount(actualBalance.amount - veiledAmountToWithdraw.amount);
+    const veiledAmountAfterWithdraw = ConfidentialAmount.fromAmount(
+      actualBalance.amount - veiledAmountToWithdraw.amount,
+    );
     veiledAmountAfterWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new VeiledWithdraw({
@@ -107,11 +109,11 @@ export class VeiledWithdraw {
     const alpha1 = proofArr[0];
     const alpha2 = proofArr[1];
     const alpha3 = proofArr[2];
-    const alpha4List = proofArr.slice(3, 3 + VeiledAmount.CHUNKS_COUNT);
-    const alpha5List = proofArr.slice(7, 7 + VeiledAmount.CHUNKS_COUNT);
+    const alpha4List = proofArr.slice(3, 3 + ConfidentialAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(7, 7 + ConfidentialAmount.CHUNKS_COUNT);
     const X1 = proofArr[11];
     const X2 = proofArr[12];
-    const X3List = proofArr.slice(13, 13 + VeiledAmount.CHUNKS_COUNT);
+    const X3List = proofArr.slice(13, 13 + ConfidentialAmount.CHUNKS_COUNT);
     const X4List = proofArr.slice(17);
 
     return {
@@ -128,7 +130,7 @@ export class VeiledWithdraw {
   }
 
   async genSigmaProof(): Promise<VeiledWithdrawSigmaProof> {
-    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
@@ -136,13 +138,13 @@ export class VeiledWithdraw {
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
-    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x4List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.encryptedActualBalanceAmount.reduce((acc, el, i) => {
         const { D } = el;
-        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
 
         const DCoef = D.multiply(coef);
 
@@ -212,8 +214,8 @@ export class VeiledWithdraw {
     amountToWithdraw: bigint;
   }): boolean {
     const publicKeyU8 = publicKeyToU8(opts.publicKey);
-    const veiledAmountToWithdraw = VeiledAmount.fromAmount(opts.amountToWithdraw, {
-      chunksCount: VeiledAmount.CHUNKS_COUNT / 2,
+    const veiledAmountToWithdraw = ConfidentialAmount.fromAmount(opts.amountToWithdraw, {
+      chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
 
     const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
@@ -237,7 +239,7 @@ export class VeiledWithdraw {
 
     const { DOldSum, COldSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
-        const coef = 2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI);
+        const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
         return {
           DOldSum: acc.DOldSum.add(D.multiply(coef)),
           COldSum: acc.COldSum.add(C.multiply(coef)),
@@ -279,7 +281,7 @@ export class VeiledWithdraw {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.veiledAmountAfterWithdraw.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -314,7 +316,7 @@ export class VeiledWithdraw {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );

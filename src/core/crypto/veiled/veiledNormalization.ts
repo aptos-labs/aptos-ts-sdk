@@ -7,7 +7,7 @@ import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN }
 import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { RangeProofExecutor } from "../rangeProof";
-import { VeiledAmount } from "./veiledAmount";
+import { ConfidentialAmount } from "./confidentialAmount";
 
 export type VeiledNormalizationSigmaProof = {
   alpha1: Uint8Array;
@@ -35,7 +35,7 @@ export class VeiledNormalization {
 
   balanceAmount: bigint;
 
-  normalizedVeiledAmount: VeiledAmount;
+  normalizedVeiledAmount: ConfidentialAmount;
 
   randomness: bigint[];
 
@@ -43,7 +43,7 @@ export class VeiledNormalization {
     decryptionKey: TwistedEd25519PrivateKey;
     unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     balanceAmount: bigint;
-    normalizedVeiledAmount: VeiledAmount;
+    normalizedVeiledAmount: ConfidentialAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
@@ -54,9 +54,9 @@ export class VeiledNormalization {
   }
 
   static async create(args: CreateVeiledNormalizationOpArgs) {
-    const randomness = args.randomness ?? ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const normalizedVeiledAmount = VeiledAmount.fromAmount(args.balanceAmount);
+    const normalizedVeiledAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
     normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new VeiledNormalization({
@@ -99,11 +99,11 @@ export class VeiledNormalization {
     const alpha1 = proofArr[0];
     const alpha2 = proofArr[1];
     const alpha3 = proofArr[2];
-    const alpha4List = proofArr.slice(3, 3 + VeiledAmount.CHUNKS_COUNT);
-    const alpha5List = proofArr.slice(7, 7 + VeiledAmount.CHUNKS_COUNT);
+    const alpha4List = proofArr.slice(3, 3 + ConfidentialAmount.CHUNKS_COUNT);
+    const alpha5List = proofArr.slice(7, 7 + ConfidentialAmount.CHUNKS_COUNT);
     const X1 = proofArr[11];
     const X2 = proofArr[12];
-    const X3List = proofArr.slice(13, 13 + VeiledAmount.CHUNKS_COUNT);
+    const X3List = proofArr.slice(13, 13 + ConfidentialAmount.CHUNKS_COUNT);
     const X4List = proofArr.slice(17);
 
     return {
@@ -120,7 +120,7 @@ export class VeiledNormalization {
   }
 
   async genSigmaProof(): Promise<VeiledNormalizationSigmaProof> {
-    if (this.randomness && this.randomness.length !== VeiledAmount.CHUNKS_COUNT) {
+    if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
 
@@ -128,13 +128,13 @@ export class VeiledNormalization {
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
-    const x4List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
-    const x5List = ed25519GenListOfRandom(VeiledAmount.CHUNKS_COUNT);
+    const x4List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
+    const x5List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const X1 = RistrettoPoint.BASE.multiply(x1).add(
       this.unnormalizedEncryptedBalance
         .reduce(
-          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+          (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
           RistrettoPoint.ZERO,
         )
         .multiply(x2),
@@ -216,13 +216,13 @@ export class VeiledNormalization {
     const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
     const alpha2D = opts.unnormalizedEncryptedBalance
       .reduce(
-        (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI))),
+        (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
         RistrettoPoint.ZERO,
       )
       .multiply(alpha2LE);
     const pBalOld = opts.unnormalizedEncryptedBalance
       .reduce((acc, ciphertext, i) => {
-        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * VeiledAmount.CHUNK_BITS_BI));
+        const chunk = ciphertext.C.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI));
         return acc.add(chunk);
       }, RistrettoPoint.ZERO)
       .multiply(p);
@@ -259,7 +259,7 @@ export class VeiledNormalization {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );
@@ -279,7 +279,7 @@ export class VeiledNormalization {
           valBase: RistrettoPoint.BASE.toRawBytes(),
           // randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
-          bits: VeiledAmount.CHUNK_BITS,
+          bits: ConfidentialAmount.CHUNK_BITS,
         }),
       ),
     );

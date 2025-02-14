@@ -16,7 +16,7 @@ import {
   VeiledNormalization,
   VeiledTransfer,
   VeiledWithdraw,
-  VeiledAmount,
+  ConfidentialAmount,
 } from "../core";
 import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
 import { generateTransaction } from "../internal/transactionSubmission";
@@ -209,7 +209,7 @@ export class ConfidentialCoin {
         tokenAddress: args.tokenAddress,
       });
 
-      const accountVB = await VeiledAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
+      const accountVB = await ConfidentialAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
       const normalizationTx = await ConfidentialCoin.buildNormalizationTxPayload({
         decryptionKey: args.decryptionKey,

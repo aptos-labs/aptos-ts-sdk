@@ -5,4 +5,4 @@ export * from "./veiledKeyRotation";
 export * from "./veiledNormalization";
 export * from "./veiledTransfer";
 export * from "./veiledWithdraw";
-export * from "./veiledAmount";
+export * from "./confidentialAmount";

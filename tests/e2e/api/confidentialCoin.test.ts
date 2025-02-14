@@ -16,7 +16,7 @@ import {
   Ed25519PrivateKey,
   TransactionWorkerEventsEnum,
   InputGenerateTransactionPayloadData,
-  VeiledAmount,
+  ConfidentialAmount,
   VeiledBalance,
   ConfidentialCoin,
   RangeProofExecutor,
@@ -195,8 +195,9 @@ describe("Veiled balance api", () => {
 
   test("it should decrypt Alice veiled balances", async () => {
     const [aliceDecryptedPendingBalance, aliceDecryptedActualBalance] = await Promise.all([
-      (await VeiledAmount.fromEncrypted(aliceVeiledBalances.pending, aliceDecryptionKey, { chunksCount: 2 })).amount,
-      (await VeiledAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey)).amount,
+      (await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.pending, aliceDecryptionKey, { chunksCount: 2 }))
+        .amount,
+      (await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey)).amount,
     ]);
 
     expect(aliceDecryptedPendingBalance).toBeDefined();
@@ -228,7 +229,10 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.pending, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
@@ -253,14 +257,17 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.actual,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
   const WITHDRAW_AMOUNT = 1n;
   test("it should withdraw Alice's veiled balance", async () => {
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey);
 
     const withdrawTx = await aptos.veiledCoin.withdraw({
       sender: alice.accountAddress,
@@ -281,7 +288,10 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.actual,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
   });
@@ -316,7 +326,10 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.actual, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.actual,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
   });
@@ -345,7 +358,10 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.pending, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
   });
@@ -381,7 +397,7 @@ describe("Veiled balance api", () => {
 
   test("it should normalize Alice's veiled balance", async () => {
     if (unnormalizedAliceEncryptedBalance && !isAliceBalanceNormalized) {
-      const unnormalizedVeiledAmount = await VeiledAmount.fromEncrypted(
+      const unnormalizedVeiledAmount = await ConfidentialAmount.fromEncrypted(
         unnormalizedAliceEncryptedBalance,
         aliceDecryptionKey,
         {
@@ -413,7 +429,10 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceVeiledAmount = await VeiledAmount.fromEncrypted(aliceChunkedVeiledBalance.pending, aliceDecryptionKey);
+    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedVeiledBalance.pending,
+      aliceDecryptionKey,
+    );
 
     expect(aliceVeiledAmount.amount).toBeDefined();
   });
@@ -451,7 +470,7 @@ describe("Veiled balance api", () => {
     });
     aliceVeiledBalances = aliceChunkedVeiledBalance;
 
-    const aliceActualVeiledAmount = await VeiledAmount.fromEncrypted(
+    const aliceActualVeiledAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedVeiledBalance.actual,
       ALICE_NEW_VEILED_PRIVATE_KEY,
     );
