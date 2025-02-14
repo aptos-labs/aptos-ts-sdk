@@ -4,28 +4,33 @@ import {
   aptos,
   getBalances,
   getTestAccount,
-  getTestVeiledAccount,
+  getTestConfidentialAccount,
   TOKEN_ADDRESS,
 } from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
-describe("Safely rotate Alice's veiled balance key", () => {
+describe("Safely rotate Alice's confidential balance key", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
-  const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
-  test("it should safely rotate Alice's veiled balance key", async () => {
-    const balances = await getBalances(aliceVeiled, alice.accountAddress);
+  const ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
+  test("it should safely rotate Alice's confidential balance key", async () => {
+    const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
     const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateVBKey(aptos, alice, {
       sender: alice.accountAddress,
 
-      currDecryptionKey: aliceVeiled,
-      newDecryptionKey: ALICE_NEW_VEILED_PRIVATE_KEY,
+      currDecryptionKey: aliceConfidential,
+      newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
 
       currEncryptedBalance: balances.actual.amountEncrypted!,
 
@@ -37,12 +42,12 @@ describe("Safely rotate Alice's veiled balance key", () => {
 
     /* eslint-disable no-console */
     console.log("\n\n\n");
-    console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
-    console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+    console.log("SAVE NEW ALICE'S CONFIDENTIAL PRIVATE KEY");
+    console.log(ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY.toString());
     console.log("\n\n\n");
     /* eslint-enable */
 
-    addNewContentLineToFile(".env.development", ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+    addNewContentLineToFile(".env.development", ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY.toString());
 
     expect(keyRotationAndUnfreezeTxResponse.success).toBeTruthy();
   });

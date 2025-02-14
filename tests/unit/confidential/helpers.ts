@@ -63,23 +63,23 @@ export const addNewContentLineToFile = (filename: string, data: string) => {
 };
 
 export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress) => {
-  const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
     accountAddress,
     tokenAddress: TOKEN_ADDRESS,
   });
 
-  const aliceVeiledAmountPending = await ConfidentialAmount.fromEncrypted(
-    aliceChunkedVeiledBalance.pending,
+  const aliceConfidentialAmountPending = await ConfidentialAmount.fromEncrypted(
+    aliceChunkedConfidentialBalance.pending,
     decryptionKey,
   );
-  const aliceVeiledAmountActual = await ConfidentialAmount.fromEncrypted(
-    aliceChunkedVeiledBalance.actual,
+  const aliceConfidentialAmountActual = await ConfidentialAmount.fromEncrypted(
+    aliceChunkedConfidentialBalance.actual,
     decryptionKey,
   );
 
   return {
-    pending: aliceVeiledAmountPending,
-    actual: aliceVeiledAmountActual,
+    pending: aliceConfidentialAmountPending,
+    actual: aliceConfidentialAmountActual,
   };
 };
 
@@ -128,7 +128,7 @@ export const getTestAccount = () => {
   return Account.generate();
 };
 
-export const getTestVeiledAccount = (account?: Ed25519Account) => {
+export const getTestConfidentialAccount = (account?: Ed25519Account) => {
   if (process.env.TESTNET_DK) {
     return new TwistedEd25519PrivateKey(process.env.TESTNET_DK);
   }

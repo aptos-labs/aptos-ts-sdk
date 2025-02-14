@@ -1,20 +1,25 @@
-import { aptos, getTestAccount, getTestVeiledAccount, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../helpers";
+import { aptos, getTestAccount, getTestConfidentialAccount, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 describe("Safely Rollover", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
-  it("Should safely rollover Alice veiled balance", async () => {
+  it("Should safely rollover Alice confidential balance", async () => {
     const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
-      decryptionKey: aliceVeiled,
+      decryptionKey: aliceConfidential,
     });
 
     const txResponses = await sendAndWaitBatchTxs(rolloverTxPayloads, alice);

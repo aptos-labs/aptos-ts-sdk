@@ -1,22 +1,34 @@
-import { aptos, getBalances, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import {
+  aptos,
+  getBalances,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 describe("Withdraw", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
   const WITHDRAW_AMOUNT = 1n;
-  it("should withdraw veiled amount", async () => {
-    const balances = await getBalances(aliceVeiled, alice.accountAddress);
+  it("should withdraw confidential amount", async () => {
+    const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
     const withdrawTx = await aptos.confidentialCoin.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: aliceVeiled,
+      decryptionKey: aliceConfidential,
       encryptedActualBalance: balances.actual.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
     });

@@ -24,7 +24,7 @@ import {
 import { longTestTimeout } from "../../unit/helper";
 import { generateRangeZKP, verifyRangeZKP } from "../../unit/confidential/wasmRangeProof";
 
-describe("Veiled balance api", () => {
+describe("Confidential balance api", () => {
   const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
   const config = new AptosConfig({ network: APTOS_NETWORK });
   const aptos = new Aptos(config);
@@ -148,7 +148,7 @@ describe("Veiled balance api", () => {
   // console.log("\n\n\n");
 
   let isAliceRegistered = false;
-  test("it should check Alice veiled balance registered", async () => {
+  test("it should check Alice confidential balance registered", async () => {
     isAliceRegistered = await aptos.confidentialCoin.hasUserRegistered({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -158,7 +158,7 @@ describe("Veiled balance api", () => {
   });
 
   test(
-    "it should register Alice veiled balance if necessary",
+    "it should register Alice confidential balance if necessary",
     async () => {
       if (isAliceRegistered) {
         expect(true).toBeTruthy();
@@ -178,26 +178,29 @@ describe("Veiled balance api", () => {
     longTestTimeout,
   );
 
-  let aliceVeiledBalances: ConfidentialBalance;
+  let aliceConfidentialBalances: ConfidentialBalance;
   test(
-    "it should check Alice veiled balances",
+    "it should check Alice confidential balances",
     async () => {
       const [aliceVB] = await Promise.all([
         aptos.confidentialCoin.getBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
       ]);
-      aliceVeiledBalances = aliceVB;
+      aliceConfidentialBalances = aliceVB;
 
-      expect(aliceVeiledBalances.pending.length).toBeDefined();
-      expect(aliceVeiledBalances.actual.length).toBeDefined();
+      expect(aliceConfidentialBalances.pending.length).toBeDefined();
+      expect(aliceConfidentialBalances.actual.length).toBeDefined();
     },
     longTestTimeout,
   );
 
-  test("it should decrypt Alice veiled balances", async () => {
+  test("it should decrypt Alice confidential balances", async () => {
     const [aliceDecryptedPendingBalance, aliceDecryptedActualBalance] = await Promise.all([
-      (await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.pending, aliceDecryptionKey, { chunksCount: 2 }))
-        .amount,
-      (await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey)).amount,
+      (
+        await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.pending, aliceDecryptionKey, {
+          chunksCount: 2,
+        })
+      ).amount,
+      (await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.actual, aliceDecryptionKey)).amount,
     ]);
 
     expect(aliceDecryptedPendingBalance).toBeDefined();
@@ -211,7 +214,7 @@ describe("Veiled balance api", () => {
   });
 
   const DEPOSIT_AMOUNT = 5n;
-  test("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
+  test("it should deposit Alice's balance of fungible token to her confidential balance", async () => {
     const depositTx = await aptos.confidentialCoin.deposit({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -222,22 +225,22 @@ describe("Veiled balance api", () => {
     expect(resp.success).toBeTruthy();
   });
 
-  test("it should fetch and decrypt Alice's veiled balance after deposit", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should fetch and decrypt Alice's confidential balance after deposit", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.pending,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.pending,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+    expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
-  test("it should safely rollover Alice's veiled balance", async () => {
+  test("it should safely rollover Alice's confidential balance", async () => {
     const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -250,30 +253,33 @@ describe("Veiled balance api", () => {
     expect(txResponses.every((el) => el.success)).toBeTruthy();
   });
 
-  test("it should check Alice's actual veiled balance after rollover", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should check Alice's actual confidential balance after rollover", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.actual,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.actual,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
+    expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
   });
 
   const WITHDRAW_AMOUNT = 1n;
-  test("it should withdraw Alice's veiled balance", async () => {
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey);
+  test("it should withdraw Alice's confidential balance", async () => {
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceConfidentialBalances.actual,
+      aliceDecryptionKey,
+    );
 
     const withdrawTx = await aptos.confidentialCoin.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceDecryptionKey,
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
     const txResp = await sendAndWaitTx(withdrawTx, alice);
@@ -281,19 +287,19 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
-  test("it should check Alice's veiled balance after withdrawal", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should check Alice's confidential balance after withdrawal", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.actual,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.actual,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+    expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(0n);
   });
 
   test("it should get global auditor", async () => {
@@ -308,7 +314,7 @@ describe("Veiled balance api", () => {
     const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceDecryptionKey,
       recipientEncryptionKey: aliceDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceVeiledBalances.actual,
+      encryptedActualBalance: aliceConfidentialBalances.actual,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -319,27 +325,27 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
-  test("it should check Alice's veiled balance after transfer", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should check Alice's confidential balance after transfer", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.actual,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.actual,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+    expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(0n);
   });
 
   const AUDITOR = TwistedEd25519PrivateKey.generate();
-  test("it should transfer Alice's tokens to Alice's veiled balance with auditor", async () => {
+  test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
     const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceDecryptionKey,
       recipientEncryptionKey: aliceDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceVeiledBalances.actual,
+      encryptedActualBalance: aliceConfidentialBalances.actual,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -351,19 +357,19 @@ describe("Veiled balance api", () => {
     expect(txResp.success).toBeTruthy();
   });
 
-  test("it should check Alice's veiled balance after transfer with auditors", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should check Alice's confidential balance after transfer with auditors", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.pending,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.pending,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
+    expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
   });
 
   test("it should check is Alice's balance not frozen", async () => {
@@ -377,7 +383,7 @@ describe("Veiled balance api", () => {
 
   let isAliceBalanceNormalized = true;
   let unnormalizedAliceEncryptedBalance: TwistedElGamalCiphertext[];
-  test("it should check Alice's veiled balance is normalized", async () => {
+  test("it should check Alice's confidential balance is normalized", async () => {
     isAliceBalanceNormalized = await aptos.confidentialCoin.isUserBalanceNormalized({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
@@ -395,9 +401,9 @@ describe("Veiled balance api", () => {
     expect(isAliceBalanceNormalized).toBeTruthy();
   });
 
-  test("it should normalize Alice's veiled balance", async () => {
+  test("it should normalize Alice's confidential balance", async () => {
     if (unnormalizedAliceEncryptedBalance && !isAliceBalanceNormalized) {
-      const unnormalizedVeiledAmount = await ConfidentialAmount.fromEncrypted(
+      const unnormalizedConfidentialAmount = await ConfidentialAmount.fromEncrypted(
         unnormalizedAliceEncryptedBalance,
         aliceDecryptionKey,
         {
@@ -409,7 +415,7 @@ describe("Veiled balance api", () => {
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceDecryptionKey,
         unnormalizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
-        balanceAmount: unnormalizedVeiledAmount.amount,
+        balanceAmount: unnormalizedConfidentialAmount.amount,
 
         sender: alice.accountAddress,
       });
@@ -422,30 +428,30 @@ describe("Veiled balance api", () => {
     }
   });
 
-  test("it should check Alice's veiled balance after normalization", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should check Alice's confidential balance after normalization", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.pending,
+    const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.pending,
       aliceDecryptionKey,
     );
 
-    expect(aliceVeiledAmount.amount).toBeDefined();
+    expect(aliceConfidentialAmount.amount).toBeDefined();
   });
 
-  const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
-  test("it should safely rotate Alice's veiled balance key", async () => {
+  const ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
+  test("it should safely rotate Alice's confidential balance key", async () => {
     const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateVBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceDecryptionKey,
-      newDecryptionKey: ALICE_NEW_VEILED_PRIVATE_KEY,
+      newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
 
-      currEncryptedBalance: aliceVeiledBalances.actual,
+      currEncryptedBalance: aliceConfidentialBalances.actual,
 
       withUnfreezeBalance: true,
       tokenAddress: TOKEN_ADDRESS,
@@ -453,28 +459,28 @@ describe("Veiled balance api", () => {
 
     /* eslint-disable no-console */
     console.log("\n\n\n");
-    console.log("SAVE NEW ALICE'S VEILED PRIVATE KEY");
-    console.log(ALICE_NEW_VEILED_PRIVATE_KEY.toString());
+    console.log("SAVE NEW ALICE'S CONFIDENTIAL PRIVATE KEY");
+    console.log(ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY.toString());
     console.log("\n\n\n");
     /* eslint-enable */
 
-    addNewContentLineToFile(".env.development", `#TESTNET_DK=${ALICE_NEW_VEILED_PRIVATE_KEY.toString()}`);
+    addNewContentLineToFile(".env.development", `#TESTNET_DK=${ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY.toString()}`);
 
     expect(keyRotationAndUnfreezeTxResponse.success).toBeTruthy();
   });
 
-  test("it should get new Alice's veiled balance", async () => {
-    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
+  test("it should get new Alice's confidential balance", async () => {
+    const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
-    aliceVeiledBalances = aliceChunkedVeiledBalance;
+    aliceConfidentialBalances = aliceChunkedConfidentialBalance;
 
-    const aliceActualVeiledAmount = await ConfidentialAmount.fromEncrypted(
-      aliceChunkedVeiledBalance.actual,
-      ALICE_NEW_VEILED_PRIVATE_KEY,
+    const aliceActualConfidentialAmount = await ConfidentialAmount.fromEncrypted(
+      aliceChunkedConfidentialBalance.actual,
+      ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
     );
 
-    expect(aliceActualVeiledAmount.amount).toBeGreaterThanOrEqual(0n);
+    expect(aliceActualConfidentialAmount.amount).toBeGreaterThanOrEqual(0n);
   });
 });

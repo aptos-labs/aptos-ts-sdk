@@ -1,20 +1,32 @@
-import { aptos, getBalances, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import {
+  aptos,
+  getBalances,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 describe("Normalize", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
-  it("it should normalize Alice's veiled balance", async () => {
-    const balances = await getBalances(aliceVeiled, alice.accountAddress);
+  it("it should normalize Alice's confidential balance", async () => {
+    const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
     const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
       tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: aliceVeiled,
+      decryptionKey: aliceConfidential,
       unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
       balanceAmount: balances.actual.amount,
 

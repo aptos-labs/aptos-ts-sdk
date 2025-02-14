@@ -1,23 +1,35 @@
 import { TwistedEd25519PrivateKey } from "../../../../src";
-import { aptos, getBalances, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import {
+  aptos,
+  getBalances,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { longTestTimeout } from "../../helper";
 
 describe("Transfer with auditor", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   const TRANSFER_AMOUNT = 2n;
-  test("it should transfer Alice's tokens to Alice's veiled balance with auditor", async () => {
-    const balances = await getBalances(aliceVeiled, alice.accountAddress);
+  test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
+    const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
     const transferTx = await aptos.confidentialCoin.transferCoin({
-      senderDecryptionKey: aliceVeiled,
-      recipientEncryptionKey: aliceVeiled.publicKey(),
+      senderDecryptionKey: aliceConfidential,
+      recipientEncryptionKey: aliceConfidential.publicKey(),
       encryptedActualBalance: balances.actual.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,

@@ -1,12 +1,19 @@
-import { aptos, getBalances, getTestAccount, getTestVeiledAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import {
+  aptos,
+  getBalances,
+  getTestAccount,
+  getTestConfidentialAccount,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../helpers";
 import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
 import { longTestTimeout } from "../../helper";
 
 describe("Transfer", () => {
   const alice = getTestAccount();
-  const aliceVeiled = getTestVeiledAccount(alice);
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
-  console.log(aliceVeiled.publicKey().toString());
+  console.log(aliceConfidential.publicKey().toString());
 
   const TRANSFER_AMOUNT = 2n;
   it(
@@ -18,11 +25,11 @@ describe("Transfer", () => {
   );
 
   it("should transfer money from Alice actual to pending balance", async () => {
-    const balances = await getBalances(aliceVeiled, alice.accountAddress);
+    const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
     const transferTx = await aptos.confidentialCoin.transferCoin({
-      senderDecryptionKey: aliceVeiled,
-      recipientEncryptionKey: aliceVeiled.publicKey(),
+      senderDecryptionKey: aliceConfidential,
+      recipientEncryptionKey: aliceConfidential.publicKey(),
       encryptedActualBalance: balances.actual.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,

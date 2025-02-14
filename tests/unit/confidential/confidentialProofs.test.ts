@@ -17,6 +17,7 @@ import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/confidentia
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
 import { ed25519modN } from "../../../src/core/crypto/utils";
+import { longTestTimeout } from "../helper";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
@@ -25,83 +26,87 @@ RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
 const toValidHex = (outsideHex: string) =>
   bytesToHex(numberToBytesLE(ed25519modN(bytesToNumberLE(hexToBytes(outsideHex))), 32));
 
-describe("Generate 'veiled coin' proofs", () => {
-  it("Pre load wasm table map", async () => {
-    await preloadTables();
-  });
+describe("Generate 'confidential coin' proofs", () => {
+  it(
+    "Pre load wasm table map",
+    async () => {
+      await preloadTables();
+    },
+    longTestTimeout,
+  );
 
   const ALICE_BALANCE = 18446744073709551716n;
 
-  const aliceVeiledDecryptionKey: TwistedEd25519PrivateKey = new TwistedEd25519PrivateKey(
+  const aliceConfidentialDecryptionKey: TwistedEd25519PrivateKey = new TwistedEd25519PrivateKey(
     toValidHex("8f4bccf304a539586382e249b662790924aa7cb38effa824a4c88a420ffd3b08"),
   );
-  const bobVeiledDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
+  const bobConfidentialDecryptionKey: TwistedEd25519PrivateKey = TwistedEd25519PrivateKey.generate();
 
-  const aliceVeiledAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);
-  aliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
+  const aliceConfidentialAmount = ConfidentialAmount.fromAmount(ALICE_BALANCE);
+  aliceConfidentialAmount.encrypt(aliceConfidentialDecryptionKey.publicKey());
 
   const WITHDRAW_AMOUNT = 2n ** 16n;
-  let veiledWithdraw: ConfidentialWithdraw;
-  let veiledWithdrawSigmaProof: ConfidentialWithdrawSigmaProof;
+  let confidentialWithdraw: ConfidentialWithdraw;
+  let confidentialWithdrawSigmaProof: ConfidentialWithdrawSigmaProof;
   test("Generate withdraw sigma proof", async () => {
-    veiledWithdraw = await ConfidentialWithdraw.create({
-      decryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
+    confidentialWithdraw = await ConfidentialWithdraw.create({
+      decryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
 
-    veiledWithdrawSigmaProof = await veiledWithdraw.genSigmaProof();
+    confidentialWithdrawSigmaProof = await confidentialWithdraw.genSigmaProof();
 
-    expect(veiledWithdrawSigmaProof).toBeDefined();
+    expect(confidentialWithdrawSigmaProof).toBeDefined();
   });
 
   test("Verify withdraw sigma proof", async () => {
     const isValid = ConfidentialWithdraw.verifySigmaProof({
-      publicKey: aliceVeiledDecryptionKey.publicKey(),
-      encryptedActualBalance: veiledWithdraw.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: veiledWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
+      publicKey: aliceConfidentialDecryptionKey.publicKey(),
+      encryptedActualBalance: confidentialWithdraw.encryptedActualBalanceAmount,
+      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
-      sigmaProof: veiledWithdrawSigmaProof,
+      sigmaProof: confidentialWithdrawSigmaProof,
     });
 
     expect(isValid).toBeTruthy();
   });
 
-  let veiledWithdrawRangeProof: Uint8Array[];
+  let confidentialWithdrawRangeProof: Uint8Array[];
   test("Generate withdraw range proof", async () => {
-    veiledWithdrawRangeProof = await veiledWithdraw.genRangeProof();
+    confidentialWithdrawRangeProof = await confidentialWithdraw.genRangeProof();
   });
   test("Verify withdraw range proof", async () => {
     const isValid = ConfidentialWithdraw.verifyRangeProof({
-      rangeProof: veiledWithdrawRangeProof,
-      encryptedActualBalanceAfterWithdraw: veiledWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
+      rangeProof: confidentialWithdrawRangeProof,
+      encryptedActualBalanceAfterWithdraw: confidentialWithdraw.confidentialAmountAfterWithdraw!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
   });
 
-  test("Should generate veiled withdraw authorization", async () => {
-    const [{ sigmaProof, rangeProof }, vbNew] = await veiledWithdraw.authorizeWithdrawal();
+  test("Should generate confidential withdraw authorization", async () => {
+    const [{ sigmaProof, rangeProof }, vbNew] = await confidentialWithdraw.authorizeWithdrawal();
 
     expect(sigmaProof).toBeDefined();
     expect(rangeProof).toBeDefined();
     expect(vbNew).toBeDefined();
   });
 
-  test("Should generate and verify veiled withdraw with large amounts", async () => {
+  test("Should generate and verify confidential withdraw with large amounts", async () => {
     const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
     const newAliceBalance = ConfidentialAmount.fromAmount(2n ** 64n + 10n);
     newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
 
     const amountToWithdraw = 2n ** 16n + 10n - 10n;
 
-    const largeVeiledWithdrawal = await ConfidentialWithdraw.create({
+    const largeConfidentialWithdrawal = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(newAliceDecryptionKey),
       encryptedActualBalance: newAliceBalance.amountEncrypted!,
       amountToWithdraw,
     });
 
-    const [{ sigmaProof, rangeProof }, vbNew] = await largeVeiledWithdrawal.authorizeWithdrawal();
+    const [{ sigmaProof, rangeProof }, vbNew] = await largeConfidentialWithdrawal.authorizeWithdrawal();
 
     expect(sigmaProof).toBeDefined();
     expect(rangeProof).toBeDefined();
@@ -109,15 +114,15 @@ describe("Generate 'veiled coin' proofs", () => {
 
     const isSigmaProofValid = ConfidentialWithdraw.verifySigmaProof({
       publicKey: newAliceDecryptionKey.publicKey(),
-      encryptedActualBalance: largeVeiledWithdrawal.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
+      encryptedActualBalance: largeConfidentialWithdrawal.encryptedActualBalanceAmount,
+      encryptedActualBalanceAfterWithdraw: largeConfidentialWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
       amountToWithdraw,
       sigmaProof,
     });
 
     const isRangeProofValid = ConfidentialWithdraw.verifyRangeProof({
       rangeProof,
-      encryptedActualBalanceAfterWithdraw: largeVeiledWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
+      encryptedActualBalanceAfterWithdraw: largeConfidentialWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
     });
 
     expect(isSigmaProofValid).toBeTruthy();
@@ -125,83 +130,80 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const TRANSFER_AMOUNT = 10n;
-  let veiledTransfer: ConfidentialTransfer;
-  let veiledTransferSigmaProof: ConfidentialTransferSigmaProof;
+  let confidentialTransfer: ConfidentialTransfer;
+  let confidentialTransferSigmaProof: ConfidentialTransferSigmaProof;
   test("Generate transfer sigma proof", async () => {
-    veiledTransfer = await ConfidentialTransfer.create({
-      senderDecryptionKey: aliceVeiledDecryptionKey,
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
+    confidentialTransfer = await ConfidentialTransfer.create({
+      senderDecryptionKey: aliceConfidentialDecryptionKey,
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
-      recipientEncryptionKey: bobVeiledDecryptionKey.publicKey(),
+      recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
     });
 
-    veiledTransferSigmaProof = await veiledTransfer.genSigmaProof();
+    confidentialTransferSigmaProof = await confidentialTransfer.genSigmaProof();
 
-    expect(veiledTransferSigmaProof).toBeDefined();
+    expect(confidentialTransferSigmaProof).toBeDefined();
   });
-  // const balanceAfterTransfer = ALICE_BALANCE - TRANSFER_AMOUNT;
-  // // const encryptedBalanceAfterTransfer = amountToChunks(balanceAfterTransfer, VEILED_BALANCE_CHUNK_SIZE).map((el) =>
-  // //   TwistedElGamal.encryptWithPK(el, aliceVeiledPrivateKey.publicKey()),
-  // // );
+
   test("Verify transfer sigma proof", () => {
     const isValid = ConfidentialTransfer.verifySigmaProof({
-      senderPrivateKey: aliceVeiledDecryptionKey,
-      recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransfer.confidentialAmountAfterTransfer?.amountEncrypted!,
-      encryptedTransferAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
-      sigmaProof: veiledTransferSigmaProof,
+      senderPrivateKey: aliceConfidentialDecryptionKey,
+      recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer?.amountEncrypted!,
+      encryptedTransferAmountByRecipient: confidentialTransfer.encryptedAmountByRecipient,
+      sigmaProof: confidentialTransferSigmaProof,
     });
 
     expect(isValid).toBeTruthy();
   });
 
-  let veiledTransferRangeProofs: {
+  let confidentialTransferRangeProofs: {
     rangeProofAmount: Uint8Array[];
     rangeProofNewBalance: Uint8Array[];
   };
   test("Generate transfer range proofs", async () => {
-    veiledTransferRangeProofs = await veiledTransfer.genRangeProof();
+    confidentialTransferRangeProofs = await confidentialTransfer.genRangeProof();
   });
   test("Verify transfer range proofs", async () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
-      encryptedAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
-      encryptedActualBalanceAfterTransfer: veiledTransfer.confidentialAmountAfterTransfer!.amountEncrypted!,
-      rangeProofAmount: veiledTransferRangeProofs.rangeProofAmount,
-      rangeProofNewBalance: veiledTransferRangeProofs.rangeProofNewBalance,
+      encryptedAmountByRecipient: confidentialTransfer.encryptedAmountByRecipient,
+      encryptedActualBalanceAfterTransfer: confidentialTransfer.confidentialAmountAfterTransfer!.amountEncrypted!,
+      rangeProofAmount: confidentialTransferRangeProofs.rangeProofAmount,
+      rangeProofNewBalance: confidentialTransferRangeProofs.rangeProofNewBalance,
     });
 
     expect(isValid).toBeTruthy();
   });
 
   const auditor = TwistedEd25519PrivateKey.generate();
-  let veiledTransferWithAuditors: ConfidentialTransfer;
-  let veiledTransferWithAuditorsSigmaProof: ConfidentialTransferSigmaProof;
+  let confidentialTransferWithAuditors: ConfidentialTransfer;
+  let confidentialTransferWithAuditorsSigmaProof: ConfidentialTransferSigmaProof;
   test("Generate transfer with auditors sigma proof", async () => {
-    veiledTransferWithAuditors = await ConfidentialTransfer.create({
-      senderDecryptionKey: aliceVeiledDecryptionKey,
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
+    confidentialTransferWithAuditors = await ConfidentialTransfer.create({
+      senderDecryptionKey: aliceConfidentialDecryptionKey,
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
-      recipientEncryptionKey: bobVeiledDecryptionKey.publicKey(),
+      recipientEncryptionKey: bobConfidentialDecryptionKey.publicKey(),
       auditorEncryptionKeys: [auditor.publicKey()],
     });
 
-    veiledTransferWithAuditorsSigmaProof = await veiledTransferWithAuditors.genSigmaProof();
+    confidentialTransferWithAuditorsSigmaProof = await confidentialTransferWithAuditors.genSigmaProof();
 
-    expect(veiledTransferWithAuditorsSigmaProof).toBeDefined();
+    expect(confidentialTransferWithAuditorsSigmaProof).toBeDefined();
   });
   test("Verify transfer with auditors sigma proof", () => {
     const isValid = ConfidentialTransfer.verifySigmaProof({
-      senderPrivateKey: aliceVeiledDecryptionKey,
-      recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
-      encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
-      sigmaProof: veiledTransferWithAuditorsSigmaProof,
+      senderPrivateKey: aliceConfidentialDecryptionKey,
+      recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer:
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+      encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
+      sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
-        // decryptionKeys: veiledTransferWithAuditors.auditorsDList!,
-        auditorsVBList: veiledTransferWithAuditors.auditorsVBList!,
+        auditorsVBList: confidentialTransferWithAuditors.auditorsVBList!,
       },
     });
 
@@ -209,139 +211,133 @@ describe("Generate 'veiled coin' proofs", () => {
   });
   test("Should fail transfer sigma proof verification with wrong auditors", () => {
     const invalidAuditor = TwistedEd25519PrivateKey.generate();
-    // const newRandomness = ed25519GenListOfRandom();
-    // const auditorsDList = [invalidAuditor.publicKey()].map(publicKeyToU8).map((pk) => {
-    //   const pkRist = RistrettoPoint.fromHex(pk);
-    //   return newRandomness.map((r) => pkRist.multiply(r).toRawBytes());
-    // });
 
     const isValid = ConfidentialTransfer.verifySigmaProof({
-      senderPrivateKey: aliceVeiledDecryptionKey,
-      recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
-      encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
-      encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
-      sigmaProof: veiledTransferWithAuditorsSigmaProof,
+      senderPrivateKey: aliceConfidentialDecryptionKey,
+      recipientPublicKey: bobConfidentialDecryptionKey.publicKey(),
+      encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer:
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+      encryptedTransferAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
+      sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],
         // decryptionKeys: auditorsDList,
-        auditorsVBList: veiledTransferWithAuditors.auditorsVBList!,
+        auditorsVBList: confidentialTransferWithAuditors.auditorsVBList!,
       },
     });
 
     expect(isValid).toBeFalsy();
   });
-  let veiledTransferWithAuditorsRangeProofs: {
+  let confidentialTransferWithAuditorsRangeProofs: {
     rangeProofAmount: Uint8Array[];
     rangeProofNewBalance: Uint8Array[];
   };
   test("Generate transfer with auditors range proofs", async () => {
-    veiledTransferWithAuditorsRangeProofs = await veiledTransferWithAuditors.genRangeProof();
+    confidentialTransferWithAuditorsRangeProofs = await confidentialTransferWithAuditors.genRangeProof();
 
-    expect(veiledTransferWithAuditorsRangeProofs).toBeDefined();
+    expect(confidentialTransferWithAuditorsRangeProofs).toBeDefined();
   });
   test("Verify transfer with auditors range proofs", async () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
-      encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
-      rangeProofAmount: veiledTransferWithAuditorsRangeProofs.rangeProofAmount,
-      rangeProofNewBalance: veiledTransferWithAuditorsRangeProofs.rangeProofNewBalance,
+      encryptedAmountByRecipient: confidentialTransferWithAuditors.encryptedAmountByRecipient,
+      encryptedActualBalanceAfterTransfer:
+        confidentialTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
+      rangeProofAmount: confidentialTransferWithAuditorsRangeProofs.rangeProofAmount,
+      rangeProofNewBalance: confidentialTransferWithAuditorsRangeProofs.rangeProofNewBalance,
     });
 
     expect(isValid).toBeTruthy();
   });
 
-  const newAliceVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
-  let veiledKeyRotation: ConfidentialKeyRotation;
-  let veiledKeyRotationSigmaProof: ConfidentialKeyRotationSigmaProof;
+  const newAliceConfidentialPrivateKey = TwistedEd25519PrivateKey.generate();
+  let confidentialKeyRotation: ConfidentialKeyRotation;
+  let confidentialKeyRotationSigmaProof: ConfidentialKeyRotationSigmaProof;
   test("Generate key rotation sigma proof", async () => {
-    veiledKeyRotation = await ConfidentialKeyRotation.create({
-      currDecryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
-      currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
-      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
+    confidentialKeyRotation = await ConfidentialKeyRotation.create({
+      currDecryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
+      currEncryptedBalance: aliceConfidentialAmount.amountEncrypted!,
+      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceConfidentialPrivateKey),
     });
 
-    veiledKeyRotationSigmaProof = await veiledKeyRotation.genSigmaProof();
+    confidentialKeyRotationSigmaProof = await confidentialKeyRotation.genSigmaProof();
 
-    expect(veiledKeyRotationSigmaProof).toBeDefined();
+    expect(confidentialKeyRotationSigmaProof).toBeDefined();
   });
   test("Verify key rotation sigma proof", () => {
     const isValid = ConfidentialKeyRotation.verifySigmaProof({
-      sigmaProof: veiledKeyRotationSigmaProof,
-      currPublicKey: aliceVeiledDecryptionKey.publicKey(),
-      newPublicKey: newAliceVeiledPrivateKey.publicKey(),
-      currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
-      newEncryptedBalance: veiledKeyRotation.newConfidentialAmount.amountEncrypted!,
+      sigmaProof: confidentialKeyRotationSigmaProof,
+      currPublicKey: aliceConfidentialDecryptionKey.publicKey(),
+      newPublicKey: newAliceConfidentialPrivateKey.publicKey(),
+      currEncryptedBalance: aliceConfidentialAmount.amountEncrypted!,
+      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
   });
 
-  let veiledKeyRotationRangeProof: Uint8Array[];
+  let confidentialKeyRotationRangeProof: Uint8Array[];
   test("Generate key rotation range proof", async () => {
-    veiledKeyRotationRangeProof = await veiledKeyRotation.genRangeProof();
+    confidentialKeyRotationRangeProof = await confidentialKeyRotation.genRangeProof();
 
-    expect(veiledKeyRotationRangeProof).toBeDefined();
+    expect(confidentialKeyRotationRangeProof).toBeDefined();
   });
   test("Verify key rotation range proof", async () => {
     const isValid = ConfidentialKeyRotation.verifyRangeProof({
-      rangeProof: veiledKeyRotationRangeProof,
-      newEncryptedBalance: veiledKeyRotation.newConfidentialAmount!.amountEncrypted!,
+      rangeProof: confidentialKeyRotationRangeProof,
+      newEncryptedBalance: confidentialKeyRotation.newConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
   });
 
   test("Authorize Key Rotation", async () => {
-    const [{ sigmaProof, rangeProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
+    const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
 
     expect(sigmaProof).toBeDefined();
     expect(rangeProof).toBeDefined();
     expect(newVB).toBeDefined();
   });
 
-  const unnormalizedAliceVeiledAmount = ConfidentialAmount.fromChunks([
+  const unnormalizedAliceConfidentialAmount = ConfidentialAmount.fromChunks([
     ...Array.from({ length: ConfidentialAmount.CHUNKS_COUNT - 1 }, () => 2n ** ConfidentialAmount.CHUNK_BITS_BI + 100n),
     0n,
   ]);
-  unnormalizedAliceVeiledAmount.encrypt(aliceVeiledDecryptionKey.publicKey());
-  // const unnormalizedAliceBalanceChunks = [2n ** 32n + 100n, 2n ** 32n + 200n, 2n ** 32n + 300n, 0n];
-  // const unnormalizedEncryptedBalanceAlice = unnormalizedAliceBalanceChunks.map((chunk) =>
-  //   TwistedElGamal.encryptWithPK(chunk, aliceVeiledPrivateKey.publicKey()),
-  // );
-  let veiledNormalization: ConfidentialNormalization;
-  let veiledNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
+  unnormalizedAliceConfidentialAmount.encrypt(aliceConfidentialDecryptionKey.publicKey());
+
+  let confidentialNormalization: ConfidentialNormalization;
+  let confidentialNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
   test("Generate normalization sigma proof", async () => {
-    veiledNormalization = await ConfidentialNormalization.create({
-      decryptionKey: aliceVeiledDecryptionKey,
-      unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
-      balanceAmount: unnormalizedAliceVeiledAmount.amount,
+    confidentialNormalization = await ConfidentialNormalization.create({
+      decryptionKey: aliceConfidentialDecryptionKey,
+      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.amountEncrypted!,
+      balanceAmount: unnormalizedAliceConfidentialAmount.amount,
     });
 
-    veiledNormalizationSigmaProof = await veiledNormalization.genSigmaProof();
+    confidentialNormalizationSigmaProof = await confidentialNormalization.genSigmaProof();
 
-    expect(veiledNormalizationSigmaProof).toBeDefined();
+    expect(confidentialNormalizationSigmaProof).toBeDefined();
   });
   test("Verify normalization sigma proof", () => {
     const isValid = ConfidentialNormalization.verifySigmaProof({
-      publicKey: aliceVeiledDecryptionKey.publicKey(),
-      sigmaProof: veiledNormalizationSigmaProof,
-      unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
-      normalizedEncryptedBalance: veiledNormalization.normalizedConfidentialAmount!.amountEncrypted!,
+      publicKey: aliceConfidentialDecryptionKey.publicKey(),
+      sigmaProof: confidentialNormalizationSigmaProof,
+      unnormalizedEncryptedBalance: unnormalizedAliceConfidentialAmount.amountEncrypted!,
+      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
   });
-  let veiledNormalizationRangeProof: Uint8Array[];
+  let confidentialNormalizationRangeProof: Uint8Array[];
   test("Generate normalization range proof", async () => {
-    veiledNormalizationRangeProof = await veiledNormalization.genRangeProof();
+    confidentialNormalizationRangeProof = await confidentialNormalization.genRangeProof();
 
-    expect(veiledNormalizationRangeProof).toBeDefined();
+    expect(confidentialNormalizationRangeProof).toBeDefined();
   });
   test("Verify normalization range proof", async () => {
     const isValid = ConfidentialNormalization.verifyRangeProof({
-      rangeProof: veiledNormalizationRangeProof,
-      normalizedEncryptedBalance: veiledNormalization.normalizedConfidentialAmount!.amountEncrypted!,
+      rangeProof: confidentialNormalizationRangeProof,
+      normalizedEncryptedBalance: confidentialNormalization.normalizedConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
