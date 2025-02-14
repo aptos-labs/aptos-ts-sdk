@@ -14,6 +14,7 @@ import {
   MultiKeyAccount,
 } from "../../../src";
 import { getAptosClient } from "../helper";
+import { simpleCoinTransactionHeler } from "../transaction/helper";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -381,6 +382,9 @@ describe("account api", () => {
 
       // Check if the lookup account address is the same as the original account address
       expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
+
+      const rotatedAccount = Account.fromPrivateKey({ privateKey: rotateToPrivateKey, address: account.accountAddress });
+      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
     });
   });
 
@@ -408,6 +412,14 @@ describe("account api", () => {
       accountAddress: account.accountAddress,
     });
     expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
+
+    const rotatedAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+      address: account.accountAddress,
+      publicKeys: [mk1.publicKey, mk2.publicKey],
+      signaturesRequired: 1,
+      signers: [mk1],
+    });
+    await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
   });
 
   test("it should rotate ed25519 to unverified auth key correctly", async () => {
@@ -419,7 +431,8 @@ describe("account api", () => {
     await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
 
     // account that holds the new key
-    const newAuthKey = Ed25519PrivateKey.generate().publicKey().authKey();
+    const newAccount = Account.generate();
+    const newAuthKey = newAccount.publicKey.authKey();
 
     // Rotate the key
     const pendingTxn = await aptos.rotateAuthKey({
@@ -433,5 +446,8 @@ describe("account api", () => {
       accountAddress: account.accountAddress,
     });
     expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
+
+    const rotatedAccount = Account.fromPrivateKey({ privateKey: newAccount.privateKey, address: newAccount.accountAddress });
+    await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
   });
 });
