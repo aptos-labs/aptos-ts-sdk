@@ -1155,15 +1155,3 @@ export async function getMultiKeyFromAuthenticationKey(args: {
 
   return result[0].publicKey;
 }
-
-async function getMultiKeyFromAccountAddress(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-}): Promise<MultiKey | MultiEd25519PublicKey> {
-  const { aptosConfig, accountAddress } = args;
-  const accountData = await getInfo({ aptosConfig, accountAddress });
-  return getMultiKeyFromAuthenticationKey({
-    aptosConfig,
-    authKey: new AuthenticationKey({ data: accountData.authentication_key }),
-  });
-}
