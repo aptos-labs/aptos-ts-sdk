@@ -1,5 +1,5 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
+import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
 import { RangeProofExecutor } from "../rangeProof";
 import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
@@ -8,7 +8,7 @@ import { genFiatShamirChallenge } from "./helpers";
 import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { ConfidentialAmount } from "./confidentialAmount";
 
-export type VeiledKeyRotationSigmaProof = {
+export type ConfidentialKeyRotationSigmaProof = {
   alpha1: Uint8Array;
   alpha2: Uint8Array;
   alpha3: Uint8Array;
@@ -22,14 +22,14 @@ export type VeiledKeyRotationSigmaProof = {
   X5List: Uint8Array[];
 };
 
-export type CreateVeiledKeyRotationOpArgs = {
+export type CreateConfidentialKeyRotationOpArgs = {
   currDecryptionKey: TwistedEd25519PrivateKey;
   newDecryptionKey: TwistedEd25519PrivateKey;
   currEncryptedBalance: TwistedElGamalCiphertext[];
   randomness?: bigint[];
 };
 
-export class VeiledKeyRotation {
+export class ConfidentialKeyRotation {
   randomness: bigint[];
 
   currDecryptionKey: TwistedEd25519PrivateKey;
@@ -60,7 +60,7 @@ export class VeiledKeyRotation {
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
 
-  static async create(args: CreateVeiledKeyRotationOpArgs) {
+  static async create(args: CreateConfidentialKeyRotationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const currentBalance = await ConfidentialAmount.fromEncrypted(args.currEncryptedBalance, args.currDecryptionKey);
@@ -68,7 +68,7 @@ export class VeiledKeyRotation {
     const newBalance = ConfidentialAmount.fromAmount(currentBalance.amount);
     newBalance.encrypt(args.newDecryptionKey.publicKey(), randomness);
 
-    return new VeiledKeyRotation({
+    return new ConfidentialKeyRotation({
       currDecryptionKey: args.currDecryptionKey,
       newDecryptionKey: args.newDecryptionKey,
       currEncryptedBalance: args.currEncryptedBalance,
@@ -78,7 +78,7 @@ export class VeiledKeyRotation {
     });
   }
 
-  static serializeSigmaProof(sigmaProof: VeiledKeyRotationSigmaProof): Uint8Array {
+  static serializeSigmaProof(sigmaProof: ConfidentialKeyRotationSigmaProof): Uint8Array {
     return concatBytes(
       sigmaProof.alpha1,
       sigmaProof.alpha2,
@@ -94,7 +94,7 @@ export class VeiledKeyRotation {
     );
   }
 
-  static deserializeSigmaProof(sigmaProof: Uint8Array): VeiledKeyRotationSigmaProof {
+  static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialKeyRotationSigmaProof {
     if (sigmaProof.length !== SIGMA_PROOF_KEY_ROTATION_SIZE) {
       throw new Error(
         `Invalid sigma proof length of veiled key rotation: got ${sigmaProof.length}, expected ${SIGMA_PROOF_KEY_ROTATION_SIZE}`,
@@ -133,7 +133,7 @@ export class VeiledKeyRotation {
     };
   }
 
-  async genSigmaProof(): Promise<VeiledKeyRotationSigmaProof> {
+  async genSigmaProof(): Promise<ConfidentialKeyRotationSigmaProof> {
     if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
@@ -164,7 +164,7 @@ export class VeiledKeyRotation {
     );
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledKeyRotation.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialKeyRotation.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.currDecryptionKey.publicKey().toUint8Array(),
@@ -206,7 +206,7 @@ export class VeiledKeyRotation {
   }
 
   static verifySigmaProof(opts: {
-    sigmaProof: VeiledKeyRotationSigmaProof;
+    sigmaProof: ConfidentialKeyRotationSigmaProof;
     currPublicKey: TwistedEd25519PublicKey;
     newPublicKey: TwistedEd25519PublicKey;
     currEncryptedBalance: TwistedElGamalCiphertext[];
@@ -220,7 +220,7 @@ export class VeiledKeyRotation {
     const alpha6LEList = opts.sigmaProof.alpha6List.map(bytesToNumberLE);
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledKeyRotation.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialKeyRotation.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       opts.currPublicKey.toUint8Array(),
@@ -293,7 +293,7 @@ export class VeiledKeyRotation {
   async authorizeKeyRotation(): Promise<
     [
       {
-        sigmaProof: VeiledKeyRotationSigmaProof;
+        sigmaProof: ConfidentialKeyRotationSigmaProof;
         rangeProof: Uint8Array[];
       },
       TwistedElGamalCiphertext[],

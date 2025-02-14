@@ -5,14 +5,14 @@ import { concatBytes } from "@noble/hashes/utils";
 import {
   AccountAddress,
   AccountAddressInput,
-  CreateVeiledKeyRotationOpArgs,
+  CreateConfidentialKeyRotationOpArgs,
   CreateVeiledNormalizationOpArgs,
   CreateVeiledTransferOpArgs,
   CreateVeiledWithdrawOpArgs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
-  VeiledKeyRotation,
+  ConfidentialKeyRotation,
   VeiledNormalization,
   VeiledTransfer,
   VeiledWithdraw,
@@ -314,7 +314,7 @@ export class ConfidentialCoin {
   }
 
   static async buildRotateVBKeyTxPayload(
-    args: CreateVeiledKeyRotationOpArgs & {
+    args: CreateConfidentialKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
 
@@ -322,7 +322,7 @@ export class ConfidentialCoin {
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
-    const veiledKeyRotation = await VeiledKeyRotation.create({
+    const veiledKeyRotation = await ConfidentialKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(args.currDecryptionKey),
       newDecryptionKey: toTwistedEd25519PrivateKey(args.newDecryptionKey),
       currEncryptedBalance: args.currEncryptedBalance,
@@ -344,13 +344,13 @@ export class ConfidentialCoin {
         newPublicKeyU8,
         serializedNewBalance,
         rangeProof,
-        VeiledKeyRotation.serializeSigmaProof(sigmaProof),
+        ConfidentialKeyRotation.serializeSigmaProof(sigmaProof),
       ],
     };
   }
 
   async rotateVBKey(
-    args: CreateVeiledKeyRotationOpArgs & {
+    args: CreateConfidentialKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
 
@@ -369,7 +369,7 @@ export class ConfidentialCoin {
   static async safeRotateVBKey(
     aptosClient: Aptos,
     signer: Account,
-    args: CreateVeiledKeyRotationOpArgs & {
+    args: CreateConfidentialKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
       withUnfreezeBalance: boolean;

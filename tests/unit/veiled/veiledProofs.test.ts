@@ -2,13 +2,13 @@ import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import {
   TwistedEd25519PrivateKey,
-  VeiledKeyRotationSigmaProof,
+  ConfidentialKeyRotationSigmaProof,
   VeiledNormalizationSigmaProof,
   VeiledTransferSigmaProof,
   VeiledWithdrawSigmaProof,
   VeiledWithdraw,
   VeiledTransfer,
-  VeiledKeyRotation,
+  ConfidentialKeyRotation,
   VeiledNormalization,
   RangeProofExecutor,
   ConfidentialAmount,
@@ -252,10 +252,10 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const newAliceVeiledPrivateKey = TwistedEd25519PrivateKey.generate();
-  let veiledKeyRotation: VeiledKeyRotation;
-  let veiledKeyRotationSigmaProof: VeiledKeyRotationSigmaProof;
+  let veiledKeyRotation: ConfidentialKeyRotation;
+  let veiledKeyRotationSigmaProof: ConfidentialKeyRotationSigmaProof;
   test("Generate key rotation sigma proof", async () => {
-    veiledKeyRotation = await VeiledKeyRotation.create({
+    veiledKeyRotation = await ConfidentialKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(aliceVeiledDecryptionKey),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
       newDecryptionKey: toTwistedEd25519PrivateKey(newAliceVeiledPrivateKey),
@@ -266,7 +266,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledKeyRotationSigmaProof).toBeDefined();
   });
   test("Verify key rotation sigma proof", () => {
-    const isValid = VeiledKeyRotation.verifySigmaProof({
+    const isValid = ConfidentialKeyRotation.verifySigmaProof({
       sigmaProof: veiledKeyRotationSigmaProof,
       currPublicKey: aliceVeiledDecryptionKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
@@ -284,7 +284,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledKeyRotationRangeProof).toBeDefined();
   });
   test("Verify key rotation range proof", async () => {
-    const isValid = VeiledKeyRotation.verifyRangeProof({
+    const isValid = ConfidentialKeyRotation.verifyRangeProof({
       rangeProof: veiledKeyRotationRangeProof,
       newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.amountEncrypted!,
     });
