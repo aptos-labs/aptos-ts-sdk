@@ -8,14 +8,14 @@ import {
   CreateConfidentialKeyRotationOpArgs,
   CreateConfidentialNormalizationOpArgs,
   CreateConfidentialTransferOpArgs,
-  CreateVeiledWithdrawOpArgs,
+  CreateConfidentialWithdrawOpArgs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
   ConfidentialKeyRotation,
   ConfidentialNormalization,
   ConfidentialTransfer,
-  VeiledWithdraw,
+  ConfidentialWithdraw,
   ConfidentialAmount,
 } from "../core";
 import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
@@ -131,13 +131,13 @@ export class ConfidentialCoin {
   }
 
   async withdraw(
-    args: CreateVeiledWithdrawOpArgs & {
+    args: CreateConfidentialWithdrawOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<SimpleTransaction> {
-    const veiledWithdraw = await VeiledWithdraw.create({
+    const veiledWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
       encryptedActualBalance: args.encryptedActualBalance,
       amountToWithdraw: args.amountToWithdraw,
@@ -157,7 +157,7 @@ export class ConfidentialCoin {
           String(args.amountToWithdraw),
           concatBytes(...veiledAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
-          VeiledWithdraw.serializeSigmaProof(sigmaProof),
+          ConfidentialWithdraw.serializeSigmaProof(sigmaProof),
         ],
       },
       options: args.options,

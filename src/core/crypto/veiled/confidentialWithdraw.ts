@@ -9,7 +9,7 @@ import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN }
 import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
 
-export type VeiledWithdrawSigmaProof = {
+export type ConfidentialWithdrawSigmaProof = {
   alpha1: Uint8Array;
   alpha2: Uint8Array;
   alpha3: Uint8Array;
@@ -21,14 +21,14 @@ export type VeiledWithdrawSigmaProof = {
   X4List: Uint8Array[];
 };
 
-export type CreateVeiledWithdrawOpArgs = {
+export type CreateConfidentialWithdrawOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
   encryptedActualBalance: TwistedElGamalCiphertext[];
   amountToWithdraw: bigint;
   randomness?: bigint[];
 };
 
-export class VeiledWithdraw {
+export class ConfidentialWithdraw {
   decryptionKey: TwistedEd25519PrivateKey;
 
   encryptedActualBalanceAmount: TwistedElGamalCiphertext[];
@@ -56,7 +56,7 @@ export class VeiledWithdraw {
     this.veiledAmountAfterWithdraw = args.veiledAmountAfterWithdraw;
   }
 
-  static async create(args: CreateVeiledWithdrawOpArgs) {
+  static async create(args: CreateConfidentialWithdrawOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const veiledAmountToWithdraw = ConfidentialAmount.fromAmount(args.amountToWithdraw, {
@@ -69,7 +69,7 @@ export class VeiledWithdraw {
     );
     veiledAmountAfterWithdraw.encrypt(args.decryptionKey.publicKey(), randomness);
 
-    return new VeiledWithdraw({
+    return new ConfidentialWithdraw({
       decryptionKey: args.decryptionKey,
       encryptedActualBalance: args.encryptedActualBalance,
       veiledAmountToWithdraw,
@@ -80,7 +80,7 @@ export class VeiledWithdraw {
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/WithdrawalProofFiatShamir";
 
-  static serializeSigmaProof(sigmaProof: VeiledWithdrawSigmaProof): Uint8Array {
+  static serializeSigmaProof(sigmaProof: ConfidentialWithdrawSigmaProof): Uint8Array {
     return concatBytes(
       sigmaProof.alpha1,
       sigmaProof.alpha2,
@@ -94,7 +94,7 @@ export class VeiledWithdraw {
     );
   }
 
-  static deserializeSigmaProof(sigmaProof: Uint8Array): VeiledWithdrawSigmaProof {
+  static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialWithdrawSigmaProof {
     if (sigmaProof.length !== SIGMA_PROOF_WITHDRAW_SIZE) {
       throw new Error(
         `Invalid sigma proof length of veiled withdraw: got ${sigmaProof.length}, expected ${SIGMA_PROOF_WITHDRAW_SIZE}`,
@@ -129,7 +129,7 @@ export class VeiledWithdraw {
     };
   }
 
-  async genSigmaProof(): Promise<VeiledWithdrawSigmaProof> {
+  async genSigmaProof(): Promise<ConfidentialWithdrawSigmaProof> {
     if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
@@ -162,7 +162,7 @@ export class VeiledWithdraw {
     );
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialWithdraw.FIAT_SHAMIR_SIGMA_DST),
       concatBytes(...this.veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32))),
       this.decryptionKey.publicKey().toUint8Array(),
       concatBytes(...this.encryptedActualBalanceAmount.map((el) => el.serialize()).flat()),
@@ -207,7 +207,7 @@ export class VeiledWithdraw {
   }
 
   static verifySigmaProof(opts: {
-    sigmaProof: VeiledWithdrawSigmaProof;
+    sigmaProof: ConfidentialWithdrawSigmaProof;
     encryptedActualBalance: TwistedElGamalCiphertext[];
     encryptedActualBalanceAfterWithdraw: TwistedElGamalCiphertext[];
     publicKey: TwistedEd25519PublicKey;
@@ -225,7 +225,7 @@ export class VeiledWithdraw {
     const alpha5LEList = opts.sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledWithdraw.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialWithdraw.FIAT_SHAMIR_SIGMA_DST),
       ...veiledAmountToWithdraw.amountChunks.map((a) => numberToBytesLE(a, 32)),
       publicKeyU8,
       ...opts.encryptedActualBalance.map((el) => el.serialize()).flat(),
@@ -292,7 +292,7 @@ export class VeiledWithdraw {
   async authorizeWithdrawal(): Promise<
     [
       {
-        sigmaProof: VeiledWithdrawSigmaProof;
+        sigmaProof: ConfidentialWithdrawSigmaProof;
         rangeProof: Uint8Array[];
       },
       TwistedElGamalCiphertext[],

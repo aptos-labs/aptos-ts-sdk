@@ -4,5 +4,5 @@
 export * from "./confidentialKeyRotation";
 export * from "./confidentialNormalization";
 export * from "./confidentialTransfer";
-export * from "./veiledWithdraw";
+export * from "./confidentialWithdraw";
 export * from "./confidentialAmount";
