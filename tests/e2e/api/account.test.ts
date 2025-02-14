@@ -422,7 +422,11 @@ describe("account api", () => {
     const newAuthKey = Ed25519PrivateKey.generate().publicKey().authKey();
 
     // Rotate the key
-    const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAuthKey: newAuthKey, dangerouslySkipVerification: true });
+    const pendingTxn = await aptos.rotateAuthKey({
+      fromAccount: account,
+      toAuthKey: newAuthKey,
+      dangerouslySkipVerification: true,
+    });
     await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
     const accountInfo = await aptos.account.getAccountInfo({
