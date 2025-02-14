@@ -383,7 +383,10 @@ describe("account api", () => {
       // Check if the lookup account address is the same as the original account address
       expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
 
-      const rotatedAccount = Account.fromPrivateKey({ privateKey: rotateToPrivateKey, address: account.accountAddress });
+      const rotatedAccount = Account.fromPrivateKey({
+        privateKey: rotateToPrivateKey,
+        address: account.accountAddress,
+      });
       await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
     });
   });
@@ -447,7 +450,10 @@ describe("account api", () => {
     });
     expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
 
-    const rotatedAccount = Account.fromPrivateKey({ privateKey: newAccount.privateKey, address: newAccount.accountAddress });
+    const rotatedAccount = Account.fromPrivateKey({
+      privateKey: newAccount.privateKey,
+      address: newAccount.accountAddress,
+    });
     await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
   });
 });
