@@ -7,14 +7,14 @@ import {
   AccountAddressInput,
   CreateConfidentialKeyRotationOpArgs,
   CreateConfidentialNormalizationOpArgs,
-  CreateVeiledTransferOpArgs,
+  CreateConfidentialTransferOpArgs,
   CreateVeiledWithdrawOpArgs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
   ConfidentialKeyRotation,
   ConfidentialNormalization,
-  VeiledTransfer,
+  ConfidentialTransfer,
   VeiledWithdraw,
   ConfidentialAmount,
 } from "../core";
@@ -239,7 +239,7 @@ export class ConfidentialCoin {
   }
 
   async transferCoin(
-    args: CreateVeiledTransferOpArgs & {
+    args: CreateConfidentialTransferOpArgs & {
       sender: AccountAddressInput;
       recipientAddress: AccountAddressInput;
       tokenAddress: string;
@@ -248,7 +248,7 @@ export class ConfidentialCoin {
   ): Promise<SimpleTransaction> {
     const [, { vec: globalAuditorPubKey }] = await this.getGlobalAuditor();
 
-    const veiledTransfer = await VeiledTransfer.create({
+    const veiledTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
       encryptedActualBalance: args.encryptedActualBalance,
       amountToTransfer: args.amountToTransfer,
@@ -292,7 +292,7 @@ export class ConfidentialCoin {
           concatBytes(...auditorBalances),
           rangeProofNewBalance,
           rangeProofAmount,
-          VeiledTransfer.serializeSigmaProof(sigmaProof),
+          ConfidentialTransfer.serializeSigmaProof(sigmaProof),
         ],
       },
       options: args.options,

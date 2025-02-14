@@ -10,7 +10,7 @@ import { HexInput } from "../../../types";
 import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
 
-export type VeiledTransferSigmaProof = {
+export type ConfidentialTransferSigmaProof = {
   alpha1: Uint8Array;
   alpha2: Uint8Array;
   alpha3List: Uint8Array[];
@@ -26,12 +26,12 @@ export type VeiledTransferSigmaProof = {
   X7List?: Uint8Array[];
 };
 
-export type VeiledTransferRangeProof = {
+export type ConfidentialTransferRangeProof = {
   rangeProofAmount: Uint8Array[];
   rangeProofNewBalance: Uint8Array[];
 };
 
-export type CreateVeiledTransferOpArgs = {
+export type CreateConfidentialTransferOpArgs = {
   senderDecryptionKey: TwistedEd25519PrivateKey;
   encryptedActualBalance: TwistedElGamalCiphertext[];
   amountToTransfer: bigint;
@@ -40,7 +40,7 @@ export type CreateVeiledTransferOpArgs = {
   randomness?: bigint[];
 };
 
-export class VeiledTransfer {
+export class ConfidentialTransfer {
   senderDecryptionKey: TwistedEd25519PrivateKey;
 
   recipientEncryptionKey: TwistedEd25519PublicKey;
@@ -89,7 +89,7 @@ export class VeiledTransfer {
     this.randomness = args.randomness;
   }
 
-  static async create(args: CreateVeiledTransferOpArgs) {
+  static async create(args: CreateConfidentialTransferOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
     const recipientPublicKeyU8 = publicKeyToU8(args.recipientEncryptionKey);
 
@@ -114,7 +114,7 @@ export class VeiledTransfer {
     );
     veiledAmountAfterTransfer.encrypt(args.senderDecryptionKey.publicKey(), randomness);
 
-    return new VeiledTransfer({
+    return new ConfidentialTransfer({
       senderDecryptionKey: args.senderDecryptionKey,
       recipientEncryptionKey: args.recipientEncryptionKey,
       recipientEncryptionKeyU8: recipientPublicKeyU8,
@@ -131,7 +131,7 @@ export class VeiledTransfer {
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferProofFiatShamir";
 
-  static serializeSigmaProof(sigmaProof: VeiledTransferSigmaProof): Uint8Array {
+  static serializeSigmaProof(sigmaProof: ConfidentialTransferSigmaProof): Uint8Array {
     return concatBytes(
       sigmaProof.alpha1,
       sigmaProof.alpha2,
@@ -149,7 +149,7 @@ export class VeiledTransfer {
     );
   }
 
-  static deserializeSigmaProof(sigmaProof: Uint8Array): VeiledTransferSigmaProof {
+  static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialTransferSigmaProof {
     if (sigmaProof.length % PROOF_CHUNK_SIZE !== 0) {
       throw new Error(`Invalid sigma proof length: the length must be a multiple of ${PROOF_CHUNK_SIZE}`);
     }
@@ -208,7 +208,7 @@ export class VeiledTransfer {
     };
   }
 
-  async genSigmaProof(): Promise<VeiledTransferSigmaProof> {
+  async genSigmaProof(): Promise<ConfidentialTransferSigmaProof> {
     if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
@@ -276,7 +276,7 @@ export class VeiledTransfer {
       ) ?? [];
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledTransfer.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialTransfer.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.senderDecryptionKey.publicKey().toUint8Array(),
@@ -333,7 +333,7 @@ export class VeiledTransfer {
     encryptedActualBalance: TwistedElGamalCiphertext[];
     encryptedActualBalanceAfterTransfer: TwistedElGamalCiphertext[];
     encryptedTransferAmountByRecipient: TwistedElGamalCiphertext[];
-    sigmaProof: VeiledTransferSigmaProof;
+    sigmaProof: ConfidentialTransferSigmaProof;
     auditors?: {
       publicKeys: (TwistedEd25519PublicKey | HexInput)[];
       // decryptionKeys: HexInput[][];
@@ -358,7 +358,7 @@ export class VeiledTransfer {
     const recipientPKRistretto = RistrettoPoint.fromHex(recipientPublicKeyU8);
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledTransfer.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialTransfer.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       senderPublicKeyU8,
@@ -464,7 +464,7 @@ export class VeiledTransfer {
     );
   }
 
-  async genRangeProof(): Promise<VeiledTransferRangeProof> {
+  async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
     const rangeProofAmountPromise = Promise.all(
       this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
@@ -504,7 +504,7 @@ export class VeiledTransfer {
 
   async authorizeTransfer(): Promise<
     [
-      { sigmaProof: VeiledTransferSigmaProof; rangeProof: VeiledTransferRangeProof },
+      { sigmaProof: ConfidentialTransferSigmaProof; rangeProof: ConfidentialTransferRangeProof },
       TwistedElGamalCiphertext[],
       TwistedElGamalCiphertext[],
       TwistedElGamalCiphertext[][],

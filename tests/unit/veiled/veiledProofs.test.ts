@@ -4,10 +4,10 @@ import {
   TwistedEd25519PrivateKey,
   ConfidentialKeyRotationSigmaProof,
   ConfidentialNormalizationSigmaProof,
-  VeiledTransferSigmaProof,
+  ConfidentialTransferSigmaProof,
   VeiledWithdrawSigmaProof,
   VeiledWithdraw,
-  VeiledTransfer,
+  ConfidentialTransfer,
   ConfidentialKeyRotation,
   ConfidentialNormalization,
   RangeProofExecutor,
@@ -125,10 +125,10 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const TRANSFER_AMOUNT = 10n;
-  let veiledTransfer: VeiledTransfer;
-  let veiledTransferSigmaProof: VeiledTransferSigmaProof;
+  let veiledTransfer: ConfidentialTransfer;
+  let veiledTransferSigmaProof: ConfidentialTransferSigmaProof;
   test("Generate transfer sigma proof", async () => {
-    veiledTransfer = await VeiledTransfer.create({
+    veiledTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: aliceVeiledDecryptionKey,
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
@@ -144,7 +144,7 @@ describe("Generate 'veiled coin' proofs", () => {
   // //   TwistedElGamal.encryptWithPK(el, aliceVeiledPrivateKey.publicKey()),
   // // );
   test("Verify transfer sigma proof", () => {
-    const isValid = VeiledTransfer.verifySigmaProof({
+    const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
@@ -164,7 +164,7 @@ describe("Generate 'veiled coin' proofs", () => {
     veiledTransferRangeProofs = await veiledTransfer.genRangeProof();
   });
   test("Verify transfer range proofs", async () => {
-    const isValid = await VeiledTransfer.verifyRangeProof({
+    const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
       encryptedActualBalanceAfterTransfer: veiledTransfer.veiledAmountAfterTransfer!.amountEncrypted!,
       rangeProofAmount: veiledTransferRangeProofs.rangeProofAmount,
@@ -175,10 +175,10 @@ describe("Generate 'veiled coin' proofs", () => {
   });
 
   const auditor = TwistedEd25519PrivateKey.generate();
-  let veiledTransferWithAuditors: VeiledTransfer;
-  let veiledTransferWithAuditorsSigmaProof: VeiledTransferSigmaProof;
+  let veiledTransferWithAuditors: ConfidentialTransfer;
+  let veiledTransferWithAuditorsSigmaProof: ConfidentialTransferSigmaProof;
   test("Generate transfer with auditors sigma proof", async () => {
-    veiledTransferWithAuditors = await VeiledTransfer.create({
+    veiledTransferWithAuditors = await ConfidentialTransfer.create({
       senderDecryptionKey: aliceVeiledDecryptionKey,
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
       amountToTransfer: TRANSFER_AMOUNT,
@@ -191,7 +191,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledTransferWithAuditorsSigmaProof).toBeDefined();
   });
   test("Verify transfer with auditors sigma proof", () => {
-    const isValid = VeiledTransfer.verifySigmaProof({
+    const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
@@ -215,7 +215,7 @@ describe("Generate 'veiled coin' proofs", () => {
     //   return newRandomness.map((r) => pkRist.multiply(r).toRawBytes());
     // });
 
-    const isValid = VeiledTransfer.verifySigmaProof({
+    const isValid = ConfidentialTransfer.verifySigmaProof({
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
@@ -241,7 +241,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledTransferWithAuditorsRangeProofs).toBeDefined();
   });
   test("Verify transfer with auditors range proofs", async () => {
-    const isValid = await VeiledTransfer.verifyRangeProof({
+    const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.amountEncrypted!,
       rangeProofAmount: veiledTransferWithAuditorsRangeProofs.rangeProofAmount,

@@ -3,6 +3,6 @@
 
 export * from "./confidentialKeyRotation";
 export * from "./confidentialNormalization";
-export * from "./veiledTransfer";
+export * from "./confidentialTransfer";
 export * from "./veiledWithdraw";
 export * from "./confidentialAmount";
