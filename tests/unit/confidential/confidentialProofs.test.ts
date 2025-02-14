@@ -13,7 +13,7 @@ import {
   RangeProofExecutor,
   ConfidentialAmount,
 } from "../../../src";
-import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/veiled/helpers";
+import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/confidential/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
 import { ed25519modN } from "../../../src/core/crypto/utils";

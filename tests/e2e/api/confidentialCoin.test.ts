@@ -22,7 +22,7 @@ import {
   RangeProofExecutor,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
-import { generateRangeZKP, verifyRangeZKP } from "../../unit/veiled/wasmRangeProof";
+import { generateRangeZKP, verifyRangeZKP } from "../../unit/confidential/wasmRangeProof";
 
 describe("Veiled balance api", () => {
   const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];

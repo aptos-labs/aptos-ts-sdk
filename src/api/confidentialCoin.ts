@@ -18,7 +18,11 @@ import {
   ConfidentialWithdraw,
   ConfidentialAmount,
 } from "../core";
-import { publicKeyToU8, toTwistedEd25519PrivateKey, toTwistedEd25519PublicKey } from "../core/crypto/veiled/helpers";
+import {
+  publicKeyToU8,
+  toTwistedEd25519PrivateKey,
+  toTwistedEd25519PublicKey,
+} from "../core/crypto/confidential/helpers";
 import { generateTransaction } from "../internal/transactionSubmission";
 import { view } from "../internal/view";
 import {
