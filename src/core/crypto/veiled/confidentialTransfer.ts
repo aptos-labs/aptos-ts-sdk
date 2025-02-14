@@ -55,9 +55,9 @@ export class ConfidentialTransfer {
 
   encryptedActualBalance: TwistedElGamalCiphertext[];
 
-  veiledAmountToTransfer: ConfidentialAmount;
+  confidentialAmountToTransfer: ConfidentialAmount;
 
-  veiledAmountAfterTransfer: ConfidentialAmount;
+  confidentialAmountAfterTransfer: ConfidentialAmount;
 
   encryptedAmountByRecipient: TwistedElGamalCiphertext[];
 
@@ -71,8 +71,8 @@ export class ConfidentialTransfer {
     auditorsU8EncryptionKeys: Uint8Array[];
     auditorsVBList: TwistedElGamalCiphertext[][];
     encryptedActualBalance: TwistedElGamalCiphertext[];
-    veiledAmountToTransfer: ConfidentialAmount;
-    veiledAmountAfterTransfer: ConfidentialAmount;
+    confidentialAmountToTransfer: ConfidentialAmount;
+    confidentialAmountAfterTransfer: ConfidentialAmount;
     encryptedAmountByRecipient: TwistedElGamalCiphertext[];
     randomness: bigint[];
   }) {
@@ -83,8 +83,8 @@ export class ConfidentialTransfer {
     this.auditorsU8EncryptionKeys = args.auditorsU8EncryptionKeys;
     this.auditorsVBList = args.auditorsVBList;
     this.encryptedActualBalance = args.encryptedActualBalance;
-    this.veiledAmountToTransfer = args.veiledAmountToTransfer;
-    this.veiledAmountAfterTransfer = args.veiledAmountAfterTransfer;
+    this.confidentialAmountToTransfer = args.confidentialAmountToTransfer;
+    this.confidentialAmountAfterTransfer = args.confidentialAmountAfterTransfer;
     this.encryptedAmountByRecipient = args.encryptedAmountByRecipient;
     this.randomness = args.randomness;
   }
@@ -93,10 +93,10 @@ export class ConfidentialTransfer {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
     const recipientPublicKeyU8 = publicKeyToU8(args.recipientEncryptionKey);
 
-    const veiledAmountToTransfer = ConfidentialAmount.fromAmount(args.amountToTransfer, {
+    const confidentialAmountToTransfer = ConfidentialAmount.fromAmount(args.amountToTransfer, {
       chunksCount: ConfidentialAmount.CHUNKS_COUNT / 2,
     });
-    const encryptedAmountByRecipient = veiledAmountToTransfer.amountChunks.map((chunk, i) =>
+    const encryptedAmountByRecipient = confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, new TwistedEd25519PublicKey(recipientPublicKeyU8), randomness[i]),
     );
 
@@ -104,15 +104,17 @@ export class ConfidentialTransfer {
 
     const auditorsVBList =
       args.auditorEncryptionKeys?.map((el) =>
-        veiledAmountToTransfer.amountChunks.map((chunk, i) => TwistedElGamal.encryptWithPK(chunk, el, randomness[i])),
+        confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
+          TwistedElGamal.encryptWithPK(chunk, el, randomness[i]),
+        ),
       ) || [];
 
     const actualBalance = await ConfidentialAmount.fromEncrypted(args.encryptedActualBalance, args.senderDecryptionKey);
 
-    const veiledAmountAfterTransfer = ConfidentialAmount.fromAmount(
-      actualBalance.amount - veiledAmountToTransfer.amount,
+    const confidentialAmountAfterTransfer = ConfidentialAmount.fromAmount(
+      actualBalance.amount - confidentialAmountToTransfer.amount,
     );
-    veiledAmountAfterTransfer.encrypt(args.senderDecryptionKey.publicKey(), randomness);
+    confidentialAmountAfterTransfer.encrypt(args.senderDecryptionKey.publicKey(), randomness);
 
     return new ConfidentialTransfer({
       senderDecryptionKey: args.senderDecryptionKey,
@@ -122,8 +124,8 @@ export class ConfidentialTransfer {
       auditorsU8EncryptionKeys: auditorsU8PublicKeys,
       auditorsVBList,
       encryptedActualBalance: args.encryptedActualBalance,
-      veiledAmountToTransfer,
-      veiledAmountAfterTransfer,
+      confidentialAmountToTransfer,
+      confidentialAmountAfterTransfer,
       encryptedAmountByRecipient,
       randomness,
     });
@@ -156,7 +158,7 @@ export class ConfidentialTransfer {
 
     if (sigmaProof.length < SIGMA_PROOF_TRANSFER_SIZE) {
       throw new Error(
-        `Invalid sigma proof length of veiled transfer: got ${sigmaProof.length}, expected minimum ${SIGMA_PROOF_TRANSFER_SIZE}`,
+        `Invalid sigma proof length of confidential transfer: got ${sigmaProof.length}, expected minimum ${SIGMA_PROOF_TRANSFER_SIZE}`,
       );
     }
 
@@ -212,13 +214,13 @@ export class ConfidentialTransfer {
     if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT)
       throw new TypeError("Invalid length list of randomness");
 
-    if (this.veiledAmountToTransfer.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
+    if (this.confidentialAmountToTransfer.amount > 2n ** (2n * ConfidentialAmount.CHUNK_BITS_BI) - 1n)
       throw new TypeError(`Amount must be less than 2n**${ConfidentialAmount.CHUNK_BITS_BI * 2n}`);
 
     const senderPKRistretto = RistrettoPoint.fromHex(this.senderDecryptionKey.publicKey().toUint8Array());
     const recipientPKRistretto = RistrettoPoint.fromHex(this.recipientEncryptionKeyU8);
 
-    const senderNewEncryptedBalance = this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
+    const senderNewEncryptedBalance = this.confidentialAmountAfterTransfer.amountChunks.map((chunk, i) =>
       TwistedElGamal.encryptWithPK(chunk, this.senderDecryptionKey.publicKey(), this.randomness[i]),
     );
 
@@ -298,15 +300,15 @@ export class ConfidentialTransfer {
     const sLE = bytesToNumberLE(this.senderDecryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const alpha1 = ed25519modN(x1 - p * this.veiledAmountAfterTransfer.amount);
+    const alpha1 = ed25519modN(x1 - p * this.confidentialAmountAfterTransfer.amount);
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - BigInt(p) * BigInt(this.randomness[idx])));
     const alpha4List = x4List
       .slice(0, j)
-      .map((el, idx) => ed25519modN(el - p * this.veiledAmountToTransfer.amountChunks[idx]));
+      .map((el, idx) => ed25519modN(el - p * this.confidentialAmountToTransfer.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
     const alpha6List = x6List.map(
-      (x6, idx) => ed25519modN(x6 - p * this.veiledAmountAfterTransfer.amountChunks[idx]),
+      (x6, idx) => ed25519modN(x6 - p * this.confidentialAmountAfterTransfer.amountChunks[idx]),
       ConfidentialAmount.CHUNK_BITS,
     );
 
@@ -466,7 +468,7 @@ export class ConfidentialTransfer {
 
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
     const rangeProofAmountPromise = Promise.all(
-      this.veiledAmountToTransfer.amountChunks.map((chunk, i) =>
+      this.confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
           r: numberToBytesLE(this.randomness[i], 32),
@@ -478,13 +480,11 @@ export class ConfidentialTransfer {
     );
 
     const rangeProofNewBalancePromise = Promise.all(
-      this.veiledAmountAfterTransfer.amountChunks.map((chunk, i) =>
+      this.confidentialAmountAfterTransfer.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          // r: this.senderDecryptionKey.toUint8Array(),
           r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: this.veiledAmountAfterTransfer.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
           bits: ConfidentialAmount.CHUNK_BITS,
         }),
@@ -514,15 +514,15 @@ export class ConfidentialTransfer {
 
     const rangeProof = await this.genRangeProof();
 
-    if (!this.veiledAmountAfterTransfer?.amountEncrypted)
-      throw new TypeError("this.veiledAmountAfterTransfer.encryptedAmount is not defined");
+    if (!this.confidentialAmountAfterTransfer?.amountEncrypted)
+      throw new TypeError("this.confidentialAmountAfterTransfer.encryptedAmount is not defined");
 
     return [
       {
         sigmaProof,
         rangeProof,
       },
-      this.veiledAmountAfterTransfer.amountEncrypted,
+      this.confidentialAmountAfterTransfer.amountEncrypted,
       this.encryptedAmountByRecipient,
       this.auditorsVBList,
     ];

@@ -148,7 +148,7 @@ describe("Generate 'veiled coin' proofs", () => {
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransfer.veiledAmountAfterTransfer?.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: veiledTransfer.confidentialAmountAfterTransfer?.amountEncrypted!,
       encryptedTransferAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
       sigmaProof: veiledTransferSigmaProof,
     });
@@ -166,7 +166,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify transfer range proofs", async () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: veiledTransfer.encryptedAmountByRecipient,
-      encryptedActualBalanceAfterTransfer: veiledTransfer.veiledAmountAfterTransfer!.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: veiledTransfer.confidentialAmountAfterTransfer!.amountEncrypted!,
       rangeProofAmount: veiledTransferRangeProofs.rangeProofAmount,
       rangeProofNewBalance: veiledTransferRangeProofs.rangeProofNewBalance,
     });
@@ -195,7 +195,7 @@ describe("Generate 'veiled coin' proofs", () => {
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
       encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
@@ -219,7 +219,7 @@ describe("Generate 'veiled coin' proofs", () => {
       senderPrivateKey: aliceVeiledDecryptionKey,
       recipientPublicKey: bobVeiledDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledAmount.amountEncrypted!,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
       encryptedTransferAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
       sigmaProof: veiledTransferWithAuditorsSigmaProof,
       auditors: {
@@ -243,7 +243,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify transfer with auditors range proofs", async () => {
     const isValid = await ConfidentialTransfer.verifyRangeProof({
       encryptedAmountByRecipient: veiledTransferWithAuditors.encryptedAmountByRecipient,
-      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.veiledAmountAfterTransfer!.amountEncrypted!,
+      encryptedActualBalanceAfterTransfer: veiledTransferWithAuditors.confidentialAmountAfterTransfer!.amountEncrypted!,
       rangeProofAmount: veiledTransferWithAuditorsRangeProofs.rangeProofAmount,
       rangeProofNewBalance: veiledTransferWithAuditorsRangeProofs.rangeProofNewBalance,
     });
