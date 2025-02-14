@@ -327,7 +327,7 @@ describe("Generate 'veiled coin' proofs", () => {
       publicKey: aliceVeiledDecryptionKey.publicKey(),
       sigmaProof: veiledNormalizationSigmaProof,
       unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
-      normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.amountEncrypted!,
+      normalizedEncryptedBalance: veiledNormalization.normalizedConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
@@ -341,7 +341,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify normalization range proof", async () => {
     const isValid = ConfidentialNormalization.verifyRangeProof({
       rangeProof: veiledNormalizationRangeProof,
-      normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.amountEncrypted!,
+      normalizedEncryptedBalance: veiledNormalization.normalizedConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();

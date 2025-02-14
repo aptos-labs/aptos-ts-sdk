@@ -35,7 +35,7 @@ export class ConfidentialNormalization {
 
   balanceAmount: bigint;
 
-  normalizedVeiledAmount: ConfidentialAmount;
+  normalizedConfidentialAmount: ConfidentialAmount;
 
   randomness: bigint[];
 
@@ -43,27 +43,27 @@ export class ConfidentialNormalization {
     decryptionKey: TwistedEd25519PrivateKey;
     unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     balanceAmount: bigint;
-    normalizedVeiledAmount: ConfidentialAmount;
+    normalizedConfidentialAmount: ConfidentialAmount;
     randomness: bigint[];
   }) {
     this.decryptionKey = args.decryptionKey;
     this.unnormalizedEncryptedBalance = args.unnormalizedEncryptedBalance;
     this.balanceAmount = args.balanceAmount;
-    this.normalizedVeiledAmount = args.normalizedVeiledAmount;
+    this.normalizedConfidentialAmount = args.normalizedConfidentialAmount;
     this.randomness = args.randomness;
   }
 
   static async create(args: CreateConfidentialNormalizationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const normalizedVeiledAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
-    normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
+    const normalizedConfidentialAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
+    normalizedConfidentialAmount.encrypt(args.decryptionKey.publicKey(), randomness);
 
     return new ConfidentialNormalization({
       decryptionKey: args.decryptionKey,
       unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
-      normalizedVeiledAmount,
+      normalizedConfidentialAmount,
       randomness,
     });
   }
@@ -87,7 +87,7 @@ export class ConfidentialNormalization {
   static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialNormalizationSigmaProof {
     if (sigmaProof.length !== SIGMA_PROOF_NORMALIZATION_SIZE) {
       throw new Error(
-        `Invalid sigma proof length of veiled normalization: got ${sigmaProof.length}, expected ${SIGMA_PROOF_NORMALIZATION_SIZE}`,
+        `Invalid sigma proof length of confidential normalization: got ${sigmaProof.length}, expected ${SIGMA_PROOF_NORMALIZATION_SIZE}`,
       );
     }
 
@@ -151,7 +151,7 @@ export class ConfidentialNormalization {
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
       ...this.unnormalizedEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.normalizedVeiledAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.normalizedConfidentialAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       ...X3List.map((X3) => X3.toRawBytes()),
@@ -169,7 +169,7 @@ export class ConfidentialNormalization {
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
     const alpha4List = x4List.map((x4, i) =>
-      numberToBytesLE(ed25519modN(x4 - p * this.normalizedVeiledAmount!.amountChunks![i]), 32),
+      numberToBytesLE(ed25519modN(x4 - p * this.normalizedConfidentialAmount!.amountChunks![i]), 32),
     );
     const alpha5List = x5List.map((x5, i) => numberToBytesLE(ed25519modN(x5 - p * this.randomness[i]), 32));
 
@@ -251,13 +251,11 @@ export class ConfidentialNormalization {
 
   async genRangeProof(): Promise<Uint8Array[]> {
     const rangeProof = await Promise.all(
-      this.normalizedVeiledAmount.amountChunks.map((chunk, i) =>
+      this.normalizedConfidentialAmount.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          // r: this.decryptionKey.toUint8Array(),
           r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: this.normalizedVeiledAmount!.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
           bits: ConfidentialAmount.CHUNK_BITS,
         }),
@@ -292,6 +290,6 @@ export class ConfidentialNormalization {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
 
-    return [{ sigmaProof, rangeProof }, this.normalizedVeiledAmount.amountEncrypted!];
+    return [{ sigmaProof, rangeProof }, this.normalizedConfidentialAmount.amountEncrypted!];
   }
 }
