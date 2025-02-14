@@ -1,7 +1,17 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Network, GraphqlQuery, ProcessorType, InputViewFunctionData, InputViewFunctionJsonData } from "../../../src";
+import {
+  Network,
+  GraphqlQuery,
+  ProcessorType,
+  InputViewFunctionData,
+  InputViewFunctionJsonData,
+  MoveVector,
+  U64,
+  Deserializer,
+  AuthenticationKey,
+} from "../../../src";
 import { getAptosClient } from "../helper";
 
 describe("general api", () => {
@@ -76,6 +86,43 @@ describe("general api", () => {
       const authKey = (await aptos.view<[string]>({ payload: payload2 }))[0];
 
       expect(authKey).toEqual("0x0000000000000000000000000000000000000000000000000000000000000001");
+    });
+
+    test("it fetches view function with address input and different output types and BCS", async () => {
+      const payload: InputViewFunctionData = {
+        function: "0x1::account::get_sequence_number",
+        functionArguments: ["0x1"],
+      };
+
+      // First try with manual deserialization, deserialize the array of outputs
+      const sequenceNumberBytes = await aptos.experimental.viewBinary({ payload });
+      const deserializer = new Deserializer(sequenceNumberBytes);
+      const vector = MoveVector.deserialize<U64>(deserializer, U64);
+      expect(vector.values[0].value).toEqual(BigInt(0));
+
+      const payload2: InputViewFunctionData = {
+        function: "0x1::account::get_authentication_key",
+        functionArguments: ["0x1"],
+      };
+
+      // Try with a callback
+      const authKey = await aptos.experimental.viewBinary({
+        payload: payload2,
+        options: {
+          convert: (input) => {
+            const des = new Deserializer(input);
+            // Remove vector wrapper, it should be 1 element because there's only one return value
+            expect(des.deserializeUleb128AsU32()).toEqual(1);
+            // Remove the authentication key wrapper
+            expect(des.deserializeUleb128AsU32()).toEqual(32);
+            return AuthenticationKey.deserialize(des);
+          },
+        },
+      });
+
+      expect(authKey).toEqual(
+        new AuthenticationKey({ data: "0x0000000000000000000000000000000000000000000000000000000000000001" }),
+      );
     });
 
     test("it fetches view functions with generics", async () => {
