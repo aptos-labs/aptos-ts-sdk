@@ -9,7 +9,6 @@ import {
   createObjectAddress,
   AccountPublicKey,
   PublicKey,
-  AbstractMultiKey,
 } from "../core";
 import {
   AccountData,
@@ -18,7 +17,6 @@ import {
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
   GetAccountOwnedTokensQueryResponse,
-  GetSignaturesResponse,
   GetObjectDataQueryResponse,
   LedgerVersionArg,
   MoveModuleBytecode,

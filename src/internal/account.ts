@@ -19,7 +19,6 @@ import {
   GetAccountOwnedTokensQueryResponse,
   GetMultiKeyForAuthKeyResponse,
   GetObjectDataQueryResponse,
-  GetSignaturesResponse,
   isEd25519Signature,
   isMultiEd25519Signature,
   isSingleSenderSignature,
@@ -62,7 +61,6 @@ import {
   GetMultiKeyForAuthKeyQuery,
   GetAuthKeysForPublicKeyQuery,
   GetAccountAddressesForAuthKeyQuery,
-  GetSignaturesQuery,
 } from "../types/generated/operations";
 import {
   GetAccountCoinsCount,
@@ -76,7 +74,6 @@ import {
   GetMultiKeyForAuthKey,
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
-  GetSignatures,
 } from "../types/generated/queries";
 import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
@@ -400,10 +397,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-    {
-      owner_address: { _eq: address },
-      amount: { _gt: 0 },
-    };
+  {
+    owner_address: { _eq: address },
+    amount: { _gt: 0 },
+  };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
@@ -1048,9 +1045,9 @@ export async function getAccountsForPublicKey(args: {
   const anyPublicKey = new AnyPublicKey(baseKey);
   singleKeyPublicKeys.push(anyPublicKey);
 
-  const singleKeyAuthKeyPublicKeyPairs = singleKeyPublicKeys.map((publicKey) => {
-    const authKey = publicKey.authKey();
-    return { authKey, publicKey };
+  const singleKeyAuthKeyPublicKeyPairs = singleKeyPublicKeys.map((pubKey) => {
+    const authKey = pubKey.authKey();
+    return { authKey, publicKey: pubKey };
   });
 
   const multiKeyAuthKeys = await getAuthKeysForPublicKey({ aptosConfig, publicKey });
@@ -1105,7 +1102,7 @@ export async function getPublicKeyFromAccountAddress(args: {
     throw new Error("Transaction is not a user transaction");
   }
 
-  const signature = transaction.signature;
+  const { signature } = transaction;
   if (!signature) {
     throw new Error("Transaction has no signature");
   }
@@ -1115,7 +1112,7 @@ export async function getPublicKeyFromAccountAddress(args: {
     publicKey = new Ed25519PublicKey(signature.public_key);
   } else if (isMultiEd25519Signature(signature)) {
     publicKey = new MultiEd25519PublicKey({
-      publicKeys: signature.public_keys.map((publicKey) => new Ed25519PublicKey(publicKey)),
+      publicKeys: signature.public_keys.map((pk) => new Ed25519PublicKey(pk)),
       threshold: signature.threshold,
     });
   } else if (isSingleSenderSignature(signature)) {
