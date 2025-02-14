@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account } from "./Account";
+import type { Account } from "./Account";
 import { MultiKey, MultiKeySignature, PublicKey } from "../core/crypto";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { HexInput, SigningScheme } from "../types";
@@ -9,6 +9,8 @@ import { AccountAuthenticatorMultiKey } from "../transactions/authenticator/acco
 import { AnyRawTransaction } from "../transactions/types";
 import { AbstractKeylessAccount, KeylessSigner } from "./AbstractKeylessAccount";
 import { AptosConfig } from "../api/aptosConfig";
+import { SingleKeyAccount, SingleKeySigner, SingleKeySignerOrLegacyEd25519Account } from "./SingleKeyAccount";
+import { Ed25519Account } from "./Ed25519Account";
 
 /**
  * Arguments required to verify a multi-key signature against a given message.
@@ -53,12 +55,11 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  readonly signingScheme: SigningScheme;
+  readonly signingScheme: SigningScheme = SigningScheme.MultiKey;
 
   /**
    * The signers used to sign messages.  These signers should correspond to public keys in the
-   * MultiKeyAccount's public key.  The number of signers should be equal or greater
-   * than this.publicKey.signaturesRequired
+   * MultiKeyAccount's public key.  The number of signers should be equal to this.publicKey.signaturesRequired.
    * @group Implementation
    * @category Account (On-Chain Model)
    */
@@ -85,26 +86,53 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  constructor(args: { multiKey: MultiKey; signers: Account[]; address?: AccountAddressInput }) {
-    const { multiKey, signers, address } = args;
+  constructor(args: {
+    multiKey: MultiKey;
+    signers: SingleKeySignerOrLegacyEd25519Account[];
+    address?: AccountAddressInput;
+  }) {
+    const { multiKey, address } = args;
+
+    const signers: SingleKeySigner[] = args.signers.map((signer) =>
+      signer instanceof Ed25519Account ? SingleKeyAccount.fromEd25519Account(signer) : signer,
+    );
+
+    if (multiKey.signaturesRequired > signers.length) {
+      throw new Error(
+        // eslint-disable-next-line max-len
+        `Not enough signers provided to satisfy the required signatures. Need ${multiKey.signaturesRequired} signers, but only ${signers.length} provided`,
+      );
+    } else if (multiKey.signaturesRequired < signers.length) {
+      throw new Error(
+        // eslint-disable-next-line max-len
+        `More signers provided than required. Need ${multiKey.signaturesRequired} signers, but ${signers.length} provided`,
+      );
+    }
 
     this.publicKey = multiKey;
-    this.signingScheme = SigningScheme.MultiKey;
 
     this.accountAddress = address ? AccountAddress.from(address) : this.publicKey.authKey().derivedAddress();
 
-    // Get the index of each respective signer in the bitmap
+    // For each signer, find its corresponding position in the MultiKey's public keys array
     const bitPositions: number[] = [];
     for (const signer of signers) {
-      bitPositions.push(this.publicKey.getIndex(signer.publicKey));
+      bitPositions.push(this.publicKey.getIndex(signer.getAnyPublicKey()));
     }
-    // Zip signers and bit positions and sort signers by bit positions in order
-    // to ensure the signature is signed in ascending order according to the bitmap.
-    // Authentication on chain will fail otherwise.
+
+    // Create pairs of [signer, position] and sort them by position
+    // This sorting is critical because:
+    // 1. The on-chain verification expects signatures to be in ascending order by bit position
+    // 2. The bitmap must match the order of signatures when verifying
     const signersAndBitPosition: [Account, number][] = signers.map((signer, index) => [signer, bitPositions[index]]);
     signersAndBitPosition.sort((a, b) => a[1] - b[1]);
+
+    // Extract the sorted signers and their positions into separate arrays
     this.signers = signersAndBitPosition.map((value) => value[0]);
     this.signerIndicies = signersAndBitPosition.map((value) => value[1]);
+
+    // Create a bitmap representing which public keys from the MultiKey are being used
+    // This bitmap is used during signature verification to identify which public keys
+    // should be used to verify each signature
     this.signaturesBitmap = this.publicKey.createBitmap({ bits: bitPositions });
   }
 
@@ -122,7 +150,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
   static fromPublicKeysAndSigners(args: {
     publicKeys: PublicKey[];
     signaturesRequired: number;
-    signers: Account[];
+    signers: SingleKeySignerOrLegacyEd25519Account[];
   }): MultiKeyAccount {
     const { publicKeys, signaturesRequired, signers } = args;
     const multiKey = new MultiKey({ publicKeys, signaturesRequired });

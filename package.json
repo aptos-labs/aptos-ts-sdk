@@ -1,10 +1,10 @@
 {
   "name": "@aptos-labs/ts-sdk",
   "description": "Aptos TypeScript SDK",
-  "packageManager": "pnpm@8.9.0",
+  "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=11.0.0"
+    "node": ">=20.0.0"
   },
   "bugs": {
     "url": "https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose"
@@ -51,12 +51,13 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
-    "@aptos-labs/aptos-client": "^0.1.1",
+    "@aptos-labs/aptos-client": "^1.0.0",
     "@distributedlab/aptos-wasm-bindings": "^0.3.13",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
     "@scure/bip39": "^1.3.0",
+    "@aptos-labs/script-composer-pack": "^0.0.9",
     "comlink": "^4.4.2",
     "eventemitter3": "^5.0.1",
     "form-data": "^4.0.0",
@@ -98,5 +99,5 @@
     "typedoc-plugin-missing-exports": "^3.0.0",
     "typescript": "^5.6.2"
   },
-  "version": "1.33.1"
+  "version": "1.35.0"
 }
