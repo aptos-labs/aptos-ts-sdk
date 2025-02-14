@@ -397,10 +397,10 @@ export async function getAccountOwnedTokens(args: {
   const address = AccountAddress.from(accountAddress).toStringLong();
 
   const whereCondition: { owner_address: { _eq: string }; amount: { _gt: number }; token_standard?: { _eq: string } } =
-  {
-    owner_address: { _eq: address },
-    amount: { _gt: 0 },
-  };
+    {
+      owner_address: { _eq: address },
+      amount: { _gt: 0 },
+    };
 
   if (options?.tokenStandard) {
     whereCondition.token_standard = { _eq: options?.tokenStandard };
