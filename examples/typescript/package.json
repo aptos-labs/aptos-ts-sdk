@@ -25,10 +25,7 @@
     "local_node": "ts-node local_node.ts",
     "swap": "ts-node swap.ts",
     "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction view_bcs",
-    "twisted_el_gamal": "ts-node twisted_el_gamal.ts",
-    "veiled_operations_zkp": "ts-node veiled_operations_zkp.ts",
-    "veiled_balance": "ts-node veiled_balance.ts",
-    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct publish_package_from_filepath external_signing your_coin your_fungible_asset"
+    "twisted_el_gamal": "ts-node twisted_el_gamal.ts"
   },
   "keywords": [],
   "author": "",
