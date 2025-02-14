@@ -271,7 +271,7 @@ describe("Generate 'veiled coin' proofs", () => {
       currPublicKey: aliceVeiledDecryptionKey.publicKey(),
       newPublicKey: newAliceVeiledPrivateKey.publicKey(),
       currEncryptedBalance: aliceVeiledAmount.amountEncrypted!,
-      newEncryptedBalance: veiledKeyRotation.newVeiledAmount.amountEncrypted!,
+      newEncryptedBalance: veiledKeyRotation.newConfidentialAmount.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();
@@ -286,7 +286,7 @@ describe("Generate 'veiled coin' proofs", () => {
   test("Verify key rotation range proof", async () => {
     const isValid = ConfidentialKeyRotation.verifyRangeProof({
       rangeProof: veiledKeyRotationRangeProof,
-      newEncryptedBalance: veiledKeyRotation.newVeiledAmount!.amountEncrypted!,
+      newEncryptedBalance: veiledKeyRotation.newConfidentialAmount!.amountEncrypted!,
     });
 
     expect(isValid).toBeTruthy();

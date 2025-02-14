@@ -38,24 +38,24 @@ export class ConfidentialKeyRotation {
 
   currEncryptedBalance: TwistedElGamalCiphertext[];
 
-  currVeiledAmount: ConfidentialAmount;
+  currConfidentialAmount: ConfidentialAmount;
 
-  newVeiledAmount: ConfidentialAmount;
+  newConfidentialAmount: ConfidentialAmount;
 
   constructor(args: {
     currDecryptionKey: TwistedEd25519PrivateKey;
     newDecryptionKey: TwistedEd25519PrivateKey;
     currEncryptedBalance: TwistedElGamalCiphertext[];
     randomness: bigint[];
-    currVeiledAmount: ConfidentialAmount;
-    newVeiledAmount: ConfidentialAmount;
+    currConfidentialAmount: ConfidentialAmount;
+    newConfidentialAmount: ConfidentialAmount;
   }) {
     this.randomness = args.randomness;
     this.currDecryptionKey = args.currDecryptionKey;
     this.newDecryptionKey = args.newDecryptionKey;
     this.currEncryptedBalance = args.currEncryptedBalance;
-    this.currVeiledAmount = args.currVeiledAmount;
-    this.newVeiledAmount = args.newVeiledAmount;
+    this.currConfidentialAmount = args.currConfidentialAmount;
+    this.newConfidentialAmount = args.newConfidentialAmount;
   }
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
@@ -73,8 +73,8 @@ export class ConfidentialKeyRotation {
       newDecryptionKey: args.newDecryptionKey,
       currEncryptedBalance: args.currEncryptedBalance,
       randomness,
-      currVeiledAmount: currentBalance,
-      newVeiledAmount: newBalance,
+      currConfidentialAmount: currentBalance,
+      newConfidentialAmount: newBalance,
     });
   }
 
@@ -97,7 +97,7 @@ export class ConfidentialKeyRotation {
   static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialKeyRotationSigmaProof {
     if (sigmaProof.length !== SIGMA_PROOF_KEY_ROTATION_SIZE) {
       throw new Error(
-        `Invalid sigma proof length of veiled key rotation: got ${sigmaProof.length}, expected ${SIGMA_PROOF_KEY_ROTATION_SIZE}`,
+        `Invalid sigma proof length of confidential key rotation: got ${sigmaProof.length}, expected ${SIGMA_PROOF_KEY_ROTATION_SIZE}`,
       );
     }
 
@@ -170,7 +170,7 @@ export class ConfidentialKeyRotation {
       this.currDecryptionKey.publicKey().toUint8Array(),
       this.newDecryptionKey.publicKey().toUint8Array(),
       ...this.currEncryptedBalance.map((el) => el.serialize()).flat(),
-      ...this.newVeiledAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
+      ...this.newConfidentialAmount.amountEncrypted!.map((el) => el.serialize()).flat(),
       X1.toRawBytes(),
       X2.toRawBytes(),
       X3.toRawBytes(),
@@ -183,11 +183,11 @@ export class ConfidentialKeyRotation {
     const newSLE = bytesToNumberLE(this.newDecryptionKey.toUint8Array());
     const invertNewSLE = ed25519InvertN(newSLE);
 
-    const alpha1 = ed25519modN(x1 - p * this.currVeiledAmount.amount);
+    const alpha1 = ed25519modN(x1 - p * this.currConfidentialAmount.amount);
     const alpha2 = ed25519modN(x2 - p * oldSLE);
     const alpha3 = ed25519modN(x3 - p * invertOldSLE);
     const alpha4 = ed25519modN(x4 - p * invertNewSLE);
-    const alpha5List = x5List.map((x5, i) => ed25519modN(x5 - p * this.currVeiledAmount.amountChunks[i]));
+    const alpha5List = x5List.map((x5, i) => ed25519modN(x5 - p * this.currConfidentialAmount.amountChunks[i]));
     const alpha6List = x6List.map((x6, i) => ed25519modN(x6 - p * this.randomness[i]));
 
     return {
@@ -274,13 +274,11 @@ export class ConfidentialKeyRotation {
 
   async genRangeProof(): Promise<Uint8Array[]> {
     const rangeProof = await Promise.all(
-      this.currVeiledAmount.amountChunks.map((chunk, i) =>
+      this.currConfidentialAmount.amountChunks.map((chunk, i) =>
         RangeProofExecutor.generateRangeZKP({
           v: chunk,
-          // r: this.newDecryptionKey.toUint8Array(),
           r: numberToBytesLE(this.randomness[i], 32),
           valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: this.newVeiledAmount.amountEncrypted![i].D.toRawBytes(),
           randBase: H_RISTRETTO.toRawBytes(),
           bits: ConfidentialAmount.CHUNK_BITS,
         }),
@@ -308,7 +306,7 @@ export class ConfidentialKeyRotation {
         sigmaProof,
         rangeProof,
       },
-      this.newVeiledAmount.amountEncrypted!,
+      this.newConfidentialAmount.amountEncrypted!,
     ];
   }
 
