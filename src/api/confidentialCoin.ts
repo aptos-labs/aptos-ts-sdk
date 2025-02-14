@@ -6,14 +6,14 @@ import {
   AccountAddress,
   AccountAddressInput,
   CreateConfidentialKeyRotationOpArgs,
-  CreateVeiledNormalizationOpArgs,
+  CreateConfidentialNormalizationOpArgs,
   CreateVeiledTransferOpArgs,
   CreateVeiledWithdrawOpArgs,
   TwistedEd25519PrivateKey,
   TwistedEd25519PublicKey,
   TwistedElGamalCiphertext,
   ConfidentialKeyRotation,
-  VeiledNormalization,
+  ConfidentialNormalization,
   VeiledTransfer,
   VeiledWithdraw,
   ConfidentialAmount,
@@ -458,14 +458,14 @@ export class ConfidentialCoin {
   }
 
   static async buildNormalizationTxPayload(
-    args: CreateVeiledNormalizationOpArgs & {
+    args: CreateConfidentialNormalizationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
 
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
-    const veiledNormalization = await VeiledNormalization.create({
+    const veiledNormalization = await ConfidentialNormalization.create({
       decryptionKey: args.decryptionKey,
       unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
@@ -480,13 +480,13 @@ export class ConfidentialCoin {
         args.tokenAddress,
         concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
         rangeProof,
-        VeiledNormalization.serializeSigmaProof(sigmaProof),
+        ConfidentialNormalization.serializeSigmaProof(sigmaProof),
       ],
     };
   }
 
   async normalizeUserBalance(
-    args: CreateVeiledNormalizationOpArgs & {
+    args: CreateConfidentialNormalizationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
 

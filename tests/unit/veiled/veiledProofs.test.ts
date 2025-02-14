@@ -3,13 +3,13 @@ import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
 import {
   TwistedEd25519PrivateKey,
   ConfidentialKeyRotationSigmaProof,
-  VeiledNormalizationSigmaProof,
+  ConfidentialNormalizationSigmaProof,
   VeiledTransferSigmaProof,
   VeiledWithdrawSigmaProof,
   VeiledWithdraw,
   VeiledTransfer,
   ConfidentialKeyRotation,
-  VeiledNormalization,
+  ConfidentialNormalization,
   RangeProofExecutor,
   ConfidentialAmount,
 } from "../../../src";
@@ -309,10 +309,10 @@ describe("Generate 'veiled coin' proofs", () => {
   // const unnormalizedEncryptedBalanceAlice = unnormalizedAliceBalanceChunks.map((chunk) =>
   //   TwistedElGamal.encryptWithPK(chunk, aliceVeiledPrivateKey.publicKey()),
   // );
-  let veiledNormalization: VeiledNormalization;
-  let veiledNormalizationSigmaProof: VeiledNormalizationSigmaProof;
+  let veiledNormalization: ConfidentialNormalization;
+  let veiledNormalizationSigmaProof: ConfidentialNormalizationSigmaProof;
   test("Generate normalization sigma proof", async () => {
-    veiledNormalization = await VeiledNormalization.create({
+    veiledNormalization = await ConfidentialNormalization.create({
       decryptionKey: aliceVeiledDecryptionKey,
       unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
       balanceAmount: unnormalizedAliceVeiledAmount.amount,
@@ -323,7 +323,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledNormalizationSigmaProof).toBeDefined();
   });
   test("Verify normalization sigma proof", () => {
-    const isValid = VeiledNormalization.verifySigmaProof({
+    const isValid = ConfidentialNormalization.verifySigmaProof({
       publicKey: aliceVeiledDecryptionKey.publicKey(),
       sigmaProof: veiledNormalizationSigmaProof,
       unnormalizedEncryptedBalance: unnormalizedAliceVeiledAmount.amountEncrypted!,
@@ -339,7 +339,7 @@ describe("Generate 'veiled coin' proofs", () => {
     expect(veiledNormalizationRangeProof).toBeDefined();
   });
   test("Verify normalization range proof", async () => {
-    const isValid = VeiledNormalization.verifyRangeProof({
+    const isValid = ConfidentialNormalization.verifyRangeProof({
       rangeProof: veiledNormalizationRangeProof,
       normalizedEncryptedBalance: veiledNormalization.normalizedVeiledAmount!.amountEncrypted!,
     });

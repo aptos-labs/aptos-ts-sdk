@@ -9,7 +9,7 @@ import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
 
-export type VeiledNormalizationSigmaProof = {
+export type ConfidentialNormalizationSigmaProof = {
   alpha1: Uint8Array;
   alpha2: Uint8Array;
   alpha3: Uint8Array;
@@ -21,14 +21,14 @@ export type VeiledNormalizationSigmaProof = {
   X4List: Uint8Array[];
 };
 
-export type CreateVeiledNormalizationOpArgs = {
+export type CreateConfidentialNormalizationOpArgs = {
   decryptionKey: TwistedEd25519PrivateKey;
   unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
   balanceAmount: bigint;
   randomness?: bigint[];
 };
 
-export class VeiledNormalization {
+export class ConfidentialNormalization {
   decryptionKey: TwistedEd25519PrivateKey;
 
   unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
@@ -53,13 +53,13 @@ export class VeiledNormalization {
     this.randomness = args.randomness;
   }
 
-  static async create(args: CreateVeiledNormalizationOpArgs) {
+  static async create(args: CreateConfidentialNormalizationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
     const normalizedVeiledAmount = ConfidentialAmount.fromAmount(args.balanceAmount);
     normalizedVeiledAmount.encrypt(args.decryptionKey.publicKey(), randomness);
 
-    return new VeiledNormalization({
+    return new ConfidentialNormalization({
       decryptionKey: args.decryptionKey,
       unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
@@ -70,7 +70,7 @@ export class VeiledNormalization {
 
   static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationProofFiatShamir";
 
-  static serializeSigmaProof(sigmaProof: VeiledNormalizationSigmaProof): Uint8Array {
+  static serializeSigmaProof(sigmaProof: ConfidentialNormalizationSigmaProof): Uint8Array {
     return concatBytes(
       sigmaProof.alpha1,
       sigmaProof.alpha2,
@@ -84,7 +84,7 @@ export class VeiledNormalization {
     );
   }
 
-  static deserializeSigmaProof(sigmaProof: Uint8Array): VeiledNormalizationSigmaProof {
+  static deserializeSigmaProof(sigmaProof: Uint8Array): ConfidentialNormalizationSigmaProof {
     if (sigmaProof.length !== SIGMA_PROOF_NORMALIZATION_SIZE) {
       throw new Error(
         `Invalid sigma proof length of veiled normalization: got ${sigmaProof.length}, expected ${SIGMA_PROOF_NORMALIZATION_SIZE}`,
@@ -119,7 +119,7 @@ export class VeiledNormalization {
     };
   }
 
-  async genSigmaProof(): Promise<VeiledNormalizationSigmaProof> {
+  async genSigmaProof(): Promise<ConfidentialNormalizationSigmaProof> {
     if (this.randomness && this.randomness.length !== ConfidentialAmount.CHUNKS_COUNT) {
       throw new Error("Invalid length list of randomness");
     }
@@ -146,7 +146,7 @@ export class VeiledNormalization {
     );
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledNormalization.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialNormalization.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       this.decryptionKey.publicKey().toUint8Array(),
@@ -188,7 +188,7 @@ export class VeiledNormalization {
 
   static verifySigmaProof(opts: {
     publicKey: TwistedEd25519PublicKey;
-    sigmaProof: VeiledNormalizationSigmaProof;
+    sigmaProof: ConfidentialNormalizationSigmaProof;
 
     unnormalizedEncryptedBalance: TwistedElGamalCiphertext[];
     normalizedEncryptedBalance: TwistedElGamalCiphertext[];
@@ -202,7 +202,7 @@ export class VeiledNormalization {
     const alpha5LEList = opts.sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
 
     const p = genFiatShamirChallenge(
-      utf8ToBytes(VeiledNormalization.FIAT_SHAMIR_SIGMA_DST),
+      utf8ToBytes(ConfidentialNormalization.FIAT_SHAMIR_SIGMA_DST),
       RistrettoPoint.BASE.toRawBytes(),
       H_RISTRETTO.toRawBytes(),
       publicKeyU8,
@@ -287,7 +287,7 @@ export class VeiledNormalization {
   }
 
   async authorizeNormalization(): Promise<
-    [{ sigmaProof: VeiledNormalizationSigmaProof; rangeProof: Uint8Array[] }, TwistedElGamalCiphertext[]]
+    [{ sigmaProof: ConfidentialNormalizationSigmaProof; rangeProof: Uint8Array[] }, TwistedElGamalCiphertext[]]
   > {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();
