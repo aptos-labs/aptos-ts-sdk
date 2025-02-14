@@ -2,12 +2,12 @@ import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
 import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
 
 /**
- * Number of chunks for veiled balance
+ * Number of chunks for confidential balance
  */
 const CHUNKS_COUNT = 8;
 
 /**
- * Max bits of amount in a chunk for normalized veiled balance
+ * Max bits of amount in a chunk for normalized confidential balance
  */
 const CHUNK_BITS = 16;
 
@@ -67,8 +67,8 @@ export class ConfidentialAmount {
    * Splits a given bigint amount into an array of smaller "chunk" values (also as bigints).
    *
    * @param amount - The original amount as a bigint.
-   * @param chunksCount - The number of chunks to split the amount into (default is VeiledAmount.CHUNKS_COUNT).
-   * @param chunkBits - The number of bits each chunk should contain (default is VeiledAmount.CHUNK_BITS).
+   * @param chunksCount - The number of chunks to split the amount into (default is ConfidentialAmount.CHUNKS_COUNT).
+   * @param chunkBits - The number of bits each chunk should contain (default is ConfidentialAmount.CHUNK_BITS).
    * @returns An array of bigints, where each element represents a segment of the original amount.
    */
   static amountToChunks(

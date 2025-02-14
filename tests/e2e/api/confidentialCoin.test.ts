@@ -17,7 +17,7 @@ import {
   TransactionWorkerEventsEnum,
   InputGenerateTransactionPayloadData,
   ConfidentialAmount,
-  VeiledBalance,
+  ConfidentialBalance,
   ConfidentialCoin,
   RangeProofExecutor,
 } from "../../../src";
@@ -178,7 +178,7 @@ describe("Veiled balance api", () => {
     longTestTimeout,
   );
 
-  let aliceVeiledBalances: VeiledBalance;
+  let aliceVeiledBalances: ConfidentialBalance;
   test(
     "it should check Alice veiled balances",
     async () => {

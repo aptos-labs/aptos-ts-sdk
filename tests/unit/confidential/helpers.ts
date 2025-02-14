@@ -144,7 +144,7 @@ export const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
     data: {
-      function: `${ConfidentialCoin.VEILED_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+      function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
       functionArguments: [500],
     },
   });

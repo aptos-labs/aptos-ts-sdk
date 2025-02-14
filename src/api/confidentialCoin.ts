@@ -35,53 +35,53 @@ import { AptosConfig } from "./aptosConfig";
 import type { Aptos } from "./aptos";
 import { Account } from "../account";
 
-export type VeiledBalanceResponse = {
+export type ConfidentialBalanceResponse = {
   chunks: {
     left: { data: string };
     right: { data: string };
   }[];
 }[];
 
-export type VeiledBalance = {
+export type ConfidentialBalance = {
   pending: TwistedElGamalCiphertext[];
   actual: TwistedElGamalCiphertext[];
 };
 
 // 8 chunks module
-const VEILED_COIN_MODULE_ADDRESS = "0x78812b8cb4980793621276f253f1be30e991beb8fca6c058362c39a9722d3503";
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x78812b8cb4980793621276f253f1be30e991beb8fca6c058362c39a9722d3503";
 
 /**
- * A class to handle veiled balance operations
+ * A class to handle confidential balance operations
  */
 export class ConfidentialCoin {
   constructor(readonly config: AptosConfig) {}
 
-  static VEILED_COIN_MODULE_ADDRESS = VEILED_COIN_MODULE_ADDRESS;
+  static CONFIDENTIAL_COIN_MODULE_ADDRESS = CONFIDENTIAL_COIN_MODULE_ADDRESS;
 
-  static setVeiledCoinModuleAddress(addr: string) {
-    this.VEILED_COIN_MODULE_ADDRESS = addr;
+  static setConfidentialCoinModuleAddress(addr: string) {
+    this.CONFIDENTIAL_COIN_MODULE_ADDRESS = addr;
   }
 
   async getBalance(args: {
     accountAddress: AccountAddress;
     tokenAddress: string;
     options?: LedgerVersionArg;
-  }): Promise<VeiledBalance> {
+  }): Promise<ConfidentialBalance> {
     const { accountAddress, tokenAddress, options } = args;
     const [[chunkedPendingBalance], [chunkedActualBalances]] = await Promise.all([
-      view<VeiledBalanceResponse>({
+      view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::pending_balance`,
+          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::pending_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
         options,
       }),
-      view<VeiledBalanceResponse>({
+      view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::actual_balance`,
+          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::actual_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -110,7 +110,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::register`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::register`,
         functionArguments: [args.tokenAddress, pkU8],
       },
       options: args.options,
@@ -127,7 +127,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::veil_to`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::veil_to`,
         functionArguments: [args.tokenAddress, args.sender, String(args.amount)],
       },
       options: args.options,
@@ -141,25 +141,26 @@ export class ConfidentialCoin {
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<SimpleTransaction> {
-    const veiledWithdraw = await ConfidentialWithdraw.create({
+    const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
       encryptedActualBalance: args.encryptedActualBalance,
       amountToWithdraw: args.amountToWithdraw,
       randomness: args.randomness,
     });
 
-    const [{ sigmaProof, rangeProof }, veiledAmountAfterWithdraw] = await veiledWithdraw.authorizeWithdrawal();
+    const [{ sigmaProof, rangeProof }, confidentialAmountAfterWithdraw] =
+      await confidentialWithdraw.authorizeWithdrawal();
 
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::unveil_to`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::unveil_to`,
         functionArguments: [
           args.tokenAddress,
           AccountAddress.from(args.sender),
           String(args.amountToWithdraw),
-          concatBytes(...veiledAmountAfterWithdraw.map((el) => el.serialize()).flat()),
+          concatBytes(...confidentialAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
           ConfidentialWithdraw.serializeSigmaProof(sigmaProof),
         ],
@@ -175,7 +176,7 @@ export class ConfidentialCoin {
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
 
     return {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
       functionArguments: [args.tokenAddress],
     };
   }
@@ -237,7 +238,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args?.options,
       payload: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::get_auditor`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::get_auditor`,
       },
     });
   }
@@ -252,7 +253,7 @@ export class ConfidentialCoin {
   ): Promise<SimpleTransaction> {
     const [, { vec: globalAuditorPubKey }] = await this.getGlobalAuditor();
 
-    const veiledTransfer = await ConfidentialTransfer.create({
+    const confidentialTransfer = await ConfidentialTransfer.create({
       senderDecryptionKey: toTwistedEd25519PrivateKey(args.senderDecryptionKey),
       encryptedActualBalance: args.encryptedActualBalance,
       amountToTransfer: args.amountToTransfer,
@@ -272,11 +273,11 @@ export class ConfidentialCoin {
       encryptedAmountAfterTransfer,
       encryptedAmountByRecipient,
       auditorsVBList,
-    ] = await veiledTransfer.authorizeTransfer();
+    ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
     const transferBalance = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
-    const auditorEks = veiledTransfer.auditorsU8EncryptionKeys;
+    const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
     const auditorBalances = auditorsVBList
       .flat()
       .map((el) => el.serialize())
@@ -286,7 +287,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::fully_veiled_transfer`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::fully_veiled_transfer`,
         functionArguments: [
           args.tokenAddress,
           args.recipientAddress,
@@ -308,7 +309,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args.options,
       payload: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_frozen`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::is_frozen`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -326,14 +327,14 @@ export class ConfidentialCoin {
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
-    const veiledKeyRotation = await ConfidentialKeyRotation.create({
+    const confidentialKeyRotation = await ConfidentialKeyRotation.create({
       currDecryptionKey: toTwistedEd25519PrivateKey(args.currDecryptionKey),
       newDecryptionKey: toTwistedEd25519PrivateKey(args.newDecryptionKey),
       currEncryptedBalance: args.currEncryptedBalance,
       randomness: args.randomness,
     });
 
-    const [{ sigmaProof, rangeProof }, newVB] = await veiledKeyRotation.authorizeKeyRotation();
+    const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
 
     const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newDecryptionKey).publicKey().toUint8Array();
 
@@ -342,7 +343,7 @@ export class ConfidentialCoin {
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
       functionArguments: [
         args.tokenAddress,
         newPublicKeyU8,
@@ -406,12 +407,12 @@ export class ConfidentialCoin {
         throw new TypeError("Failed to freeze balance"); // FIXME: mb create specified error class
       }
 
-      const currVeiledBalances = await aptosClient.confidentialCoin.getBalance({
+      const currConfidentialBalances = await aptosClient.confidentialCoin.getBalance({
         accountAddress: AccountAddress.from(args.sender),
         tokenAddress: args.tokenAddress,
       });
 
-      currEncryptedBalance = currVeiledBalances.actual;
+      currEncryptedBalance = currConfidentialBalances.actual;
     }
 
     const rotateKeyTxBody = await aptosClient.confidentialCoin.rotateVBKey({
@@ -433,7 +434,7 @@ export class ConfidentialCoin {
     const [isRegister] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::has_veiled_coin_store`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::has_veiled_coin_store`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -451,7 +452,7 @@ export class ConfidentialCoin {
     const [isNormalized] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::is_normalized`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::is_normalized`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -469,17 +470,17 @@ export class ConfidentialCoin {
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
-    const veiledNormalization = await ConfidentialNormalization.create({
+    const confidentialNormalization = await ConfidentialNormalization.create({
       decryptionKey: args.decryptionKey,
       unnormalizedEncryptedBalance: args.unnormalizedEncryptedBalance,
       balanceAmount: args.balanceAmount,
       randomness: args.randomness,
     });
 
-    const [{ sigmaProof, rangeProof }, normalizedVB] = await veiledNormalization.authorizeNormalization();
+    const [{ sigmaProof, rangeProof }, normalizedVB] = await confidentialNormalization.authorizeNormalization();
 
     return {
-      function: `${VEILED_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
       functionArguments: [
         args.tokenAddress,
         concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
