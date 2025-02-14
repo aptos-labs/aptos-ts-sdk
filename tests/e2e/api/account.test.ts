@@ -402,16 +402,12 @@ describe("account api", () => {
 
     // Rotate the key
     const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
-    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-    // lookup original account address
-    const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-      authenticationKey: multiKeyAccount.publicKey.authKey().derivedAddress(),
-      minimumLedgerVersion: BigInt(response.version),
+    const accountInfo = await aptos.account.getAccountInfo({
+      accountAddress: account.accountAddress,
     });
-
-    // Check if the lookup account address is the same as the original account address
-    expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
+    expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
   });
 
   test("it should rotate ed25519 to unverified auth key correctly", async () => {
@@ -426,20 +422,12 @@ describe("account api", () => {
     const newAuthKey = Ed25519PrivateKey.generate().publicKey().authKey();
 
     // Rotate the key
-    const pendingTxn = await aptos.rotateAuthKey({
-      fromAccount: account,
-      toAuthKey: newAuthKey,
-      dangerouslySkipVerification: true,
-    });
-    const response = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+    const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAuthKey: newAuthKey, dangerouslySkipVerification: true });
+    await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 
-    // lookup original account address
-    const lookupAccountAddress = await aptos.lookupOriginalAccountAddress({
-      authenticationKey: newAuthKey.derivedAddress(),
-      minimumLedgerVersion: BigInt(response.version),
+    const accountInfo = await aptos.account.getAccountInfo({
+      accountAddress: account.accountAddress,
     });
-
-    // Check if the lookup account address is the same as the original account address
-    expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
+    expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
   });
 });
