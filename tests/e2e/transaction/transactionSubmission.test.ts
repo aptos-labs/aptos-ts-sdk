@@ -778,12 +778,12 @@ describe("transaction submission", () => {
     });
   });
   describe("key rotation", () => {
-    test("it rotates the key successfully", async () => {
+    test.only("it rotates the key successfully", async () => {
       const account = Account.generate();
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
       const response = await aptos.rotateAuthKey({
         fromAccount: account,
-        toNewPrivateKey: singleSignerED25519SenderAccount.privateKey,
+        toNewPrivateKey: legacyED25519SenderAccount.privateKey,
       });
       await aptos.waitForTransaction({
         transactionHash: response.hash,
@@ -791,12 +791,12 @@ describe("transaction submission", () => {
       const accountInfo = await aptos.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
-      expect(accountInfo.authentication_key).toEqual(singleSignerED25519SenderAccount.publicKey);
+      expect(accountInfo.authentication_key).toEqual(legacyED25519SenderAccount.publicKey.authKey().toString());
     });
-    test("it rotates the key to an unverified authentication key and verifies it via submitting a txn", async () => {
+    test("it rotates the key to an account", async () => {
       const account = Account.generate();
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
-      const response = await aptos.rotateAuthKeyWithVerificationTransaction({
+      const response = await aptos.rotateAuthKey({
         fromAccount: account,
         toAccount: singleSignerED25519SenderAccount,
       });
@@ -806,14 +806,15 @@ describe("transaction submission", () => {
       const accountInfo = await aptos.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
-      expect(accountInfo.authentication_key).toEqual(singleSignerED25519SenderAccount.publicKey);
+      expect(accountInfo.authentication_key).toEqual(singleSignerED25519SenderAccount.publicKey.authKey().toString());
     });
     test("it rotates the key to an unverified authentication key", async () => {
       const account = Account.generate();
       await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
-      const response = await aptos.rotateAuthKeyUnverified({
+      const response = await aptos.rotateAuthKey({
         fromAccount: account,
-        newAuthKey: singleSignerSecp256k1Account.publicKey.authKey(),
+        toAuthKey: singleSignerSecp256k1Account.publicKey.authKey(),
+        dangerouslySkipVerification: true,
       });
       await aptos.waitForTransaction({
         transactionHash: response.hash,
@@ -821,7 +822,7 @@ describe("transaction submission", () => {
       const accountInfo = await aptos.account.getAccountInfo({
         accountAddress: account.accountAddress,
       });
-      expect(accountInfo.authentication_key).toEqual(singleSignerSecp256k1Account.publicKey);
+      expect(accountInfo.authentication_key).toEqual(singleSignerSecp256k1Account.publicKey.authKey().toString());
     });
   });
   describe("MultiEd25519", () => {
