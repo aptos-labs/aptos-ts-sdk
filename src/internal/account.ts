@@ -32,6 +32,7 @@ import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
 import { Account, Ed25519Account } from "../account";
 import { AnyPublicKey, Ed25519PublicKey, PrivateKey, PrivateKeyInput } from "../core/crypto";
 import { queryIndexer } from "./general";
+import { getModules as getModulesUtil, getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -52,7 +53,6 @@ import {
   GetAccountTokensCount,
   GetAccountTransactionsCount,
 } from "../types/generated/queries";
-import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
@@ -62,6 +62,7 @@ import { signAndSubmitTransaction, generateTransaction } from "./transactionSubm
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
 import { U8, MoveVector } from "../bcs";
 import { waitForTransaction } from "./transaction";
+import { transferCoinTransaction } from "./coin";
 
 /**
  * Retrieves account information for a specified account address.
@@ -75,13 +76,7 @@ export async function getInfo(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
 }): Promise<AccountData> {
-  const { aptosConfig, accountAddress } = args;
-  const { data } = await getAptosFullNode<{}, AccountData>({
-    aptosConfig,
-    originMethod: "getInfo",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}`,
-  });
-  return data;
+  return getInfoUtil(args);
 }
 
 /**
@@ -101,17 +96,7 @@ export async function getModules(args: {
   accountAddress: AccountAddressInput;
   options?: PaginationArgs & LedgerVersionArg;
 }): Promise<MoveModuleBytecode[]> {
-  const { aptosConfig, accountAddress, options } = args;
-  return paginateWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
-    aptosConfig,
-    originMethod: "getModules",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
-    params: {
-      ledger_version: options?.ledgerVersion,
-      offset: options?.offset,
-      limit: options?.limit ?? 1000,
-    },
-  });
+  return getModulesUtil(args);
 }
 
 /**
@@ -133,45 +118,7 @@ export async function getModule(args: {
   moduleName: string;
   options?: LedgerVersionArg;
 }): Promise<MoveModuleBytecode> {
-  // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
-  // by the developer directly
-  if (args.options?.ledgerVersion !== undefined) {
-    return getModuleInner(args);
-  }
-
-  return memoizeAsync(
-    async () => getModuleInner(args),
-    `module-${args.accountAddress}-${args.moduleName}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
-}
-
-/**
- * Retrieves the bytecode of a specified module from a given account address.
- *
- * @param args - The parameters for retrieving the module bytecode.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
- * @param args.accountAddress - The address of the account from which to retrieve the module.
- * @param args.moduleName - The name of the module to retrieve.
- * @param args.options - Optional parameters for specifying the ledger version.
- * @param args.options.ledgerVersion - The specific ledger version to query.
- * @group Implementation
- */
-async function getModuleInner(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-  moduleName: string;
-  options?: LedgerVersionArg;
-}): Promise<MoveModuleBytecode> {
-  const { aptosConfig, accountAddress, moduleName, options } = args;
-
-  const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
-    aptosConfig,
-    originMethod: "getModule",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/module/${moduleName}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-  return data;
+  return getModuleUtil(args);
 }
 
 /**
@@ -865,22 +812,35 @@ export async function rotateAuthKey(
     aptosConfig: AptosConfig;
     fromAccount: Account;
   } & (
-    | { toAccount: Account; dangerouslySkipVerification?: boolean; toAuthKey?: never; toNewPrivateKey?: never }
-    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never; toAuthKey?: never; toAccount?: never }
-    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true; toAccount?: never; toNewPrivateKey?: never }
+    | { toAccount: Account; dangerouslySkipVerification?: never }
+    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
+    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
   ),
 ): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toNewPrivateKey, toAccount, dangerouslySkipVerification, toAuthKey } = args;
-  if (toNewPrivateKey) {
-    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey });
+  const { aptosConfig, fromAccount, dangerouslySkipVerification } = args;
+  if ("toNewPrivateKey" in args) {
+    return rotateAuthKeyWithChallenge({
+      aptosConfig,
+      fromAccount,
+      toNewPrivateKey: args.toNewPrivateKey,
+    });
   }
-  if (toAccount && toAccount instanceof Ed25519Account) {
-    return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: toAccount.privateKey });
+  let authKey: AuthenticationKey;
+  if ("toAccount" in args) {
+    if (args.toAccount instanceof Ed25519Account) {
+      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: args.toAccount.privateKey });
+    }
+    authKey = args.toAccount.publicKey.authKey();
+  } else if ("toAuthKey" in args) {
+    authKey = args.toAuthKey;
+  } else {
+    throw new Error("Invalid arguments");
   }
+
   const pendingTxn = await rotateAuthKeyUnverified({
     aptosConfig,
     fromAccount,
-    toAuthKey: toAuthKey ?? toAccount.publicKey.authKey(),
+    toAuthKey: authKey,
   });
 
   if (dangerouslySkipVerification === true) {
@@ -894,19 +854,17 @@ export async function rotateAuthKey(
   if (!rotateAuthKeyTxnResponse.success) {
     throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
   }
-  const coinTxn = await generateTransaction({
+  // Verify the rotation by transferring a small amount to yourself.
+  const verificationTxn = await transferCoinTransaction({
     aptosConfig,
-    sender: fromAccount.accountAddress,
-    data: {
-      function: "0x1::aptos_account::create_account",
-      typeArguments: [],
-      functionArguments: [fromAccount.accountAddress],
-    },
+    sender: args.toAccount.accountAddress,
+    recipient: args.toAccount.accountAddress,
+    amount: 1,
   });
   return signAndSubmitTransaction({
     aptosConfig,
-    signer: fromAccount,
-    transaction: coinTxn,
+    signer: args.toAccount,
+    transaction: verificationTxn,
   });
 }
 

@@ -523,14 +523,9 @@ export class Transaction {
     args: {
       fromAccount: Account;
     } & (
-      | { toAccount: Account; dangerouslySkipVerification?: boolean; toAuthKey?: never; toNewPrivateKey?: never }
-      | {
-          toNewPrivateKey: Ed25519PrivateKey;
-          dangerouslySkipVerification?: never;
-          toAuthKey?: never;
-          toAccount?: never;
-        }
-      | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true; toAccount?: never; toNewPrivateKey?: never }
+      | { toAccount: Account; dangerouslySkipVerification?: never }
+      | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
+      | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
     ),
   ): Promise<PendingTransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });

@@ -25,7 +25,7 @@ import {
 } from "../types";
 import { Bool, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
-import { getModule } from "../../internal/account";
+import { getModule } from "../../internal/utils";
 import {
   findFirstNonSignerArg,
   isBcsAddress,
