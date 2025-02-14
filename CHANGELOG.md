@@ -4,7 +4,14 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
+
+# 1.35.0 (2025-02-11)
+
 - Add `MultiEd25519Account` to support the legacy MultiEd25519 authentication scheme.
+- Add `experimental` section to SDK
+- Add experimental BCS support for view function outputs
+- Upgrade to aptos-client 1.0.0 / remove override for cross-spawn
 
 # 1.34.0 (2025-02-06)
 

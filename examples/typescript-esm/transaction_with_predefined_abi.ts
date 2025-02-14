@@ -118,7 +118,7 @@ const example = async () => {
 
   console.log("\n=== Remote ABI, normal inputs ===\n");
   const aliceAddressString = alice.accountAddress.toString();
-  const bobAddressString = alice.accountAddress.toString();
+  const bobAddressString = bob.accountAddress.toString();
   await timeSubmission(aptos, alice, async () =>
     aptos.transaction.build.simple({
       sender: aliceAddressString,
