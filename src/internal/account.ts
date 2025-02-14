@@ -854,16 +854,18 @@ export async function rotateAuthKey(
   if (!rotateAuthKeyTxnResponse.success) {
     throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
   }
+
   // Verify the rotation by transferring a small amount to yourself.
   const verificationTxn = await transferCoinTransaction({
     aptosConfig,
-    sender: args.toAccount.accountAddress,
-    recipient: args.toAccount.accountAddress,
+    sender: args.fromAccount.accountAddress,
+    recipient: args.fromAccount.accountAddress,
     amount: 1,
   });
+
   return signAndSubmitTransaction({
     aptosConfig,
-    signer: args.toAccount,
+    signer: args.toAccount, // Use the new account to sign
     transaction: verificationTxn,
   });
 }
