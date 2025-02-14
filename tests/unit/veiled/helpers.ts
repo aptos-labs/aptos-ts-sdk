@@ -17,7 +17,7 @@ import {
   VeiledAmount,
   RangeProofExecutor,
   Ed25519Account,
-  VeiledCoin,
+  ConfidentialCoin,
 } from "../../../src";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
@@ -138,7 +138,7 @@ export const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
     data: {
-      function: `${VeiledCoin.VEILED_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+      function: `${ConfidentialCoin.VEILED_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
       functionArguments: [500],
     },
   });

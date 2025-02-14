@@ -49,7 +49,7 @@ const VEILED_COIN_MODULE_ADDRESS = "0x78812b8cb4980793621276f253f1be30e991beb8fc
 /**
  * A class to handle veiled balance operations
  */
-export class VeiledCoin {
+export class ConfidentialCoin {
   constructor(readonly config: AptosConfig) {}
 
   static VEILED_COIN_MODULE_ADDRESS = VEILED_COIN_MODULE_ADDRESS;
@@ -185,7 +185,7 @@ export class VeiledCoin {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: VeiledCoin.buildRolloverPendingBalanceTxPayload(args),
+      data: ConfidentialCoin.buildRolloverPendingBalanceTxPayload(args),
       options: args.options,
     });
   }
@@ -211,7 +211,7 @@ export class VeiledCoin {
 
       const accountVB = await VeiledAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
-      const normalizationTx = await VeiledCoin.buildNormalizationTxPayload({
+      const normalizationTx = await ConfidentialCoin.buildNormalizationTxPayload({
         decryptionKey: args.decryptionKey,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
@@ -221,7 +221,7 @@ export class VeiledCoin {
       txList.push(normalizationTx);
     }
 
-    const rolloverTx = VeiledCoin.buildRolloverPendingBalanceTxPayload(args);
+    const rolloverTx = ConfidentialCoin.buildRolloverPendingBalanceTxPayload(args);
 
     txList.push(rolloverTx);
 
@@ -361,7 +361,7 @@ export class VeiledCoin {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: await VeiledCoin.buildRotateVBKeyTxPayload(args),
+      data: await ConfidentialCoin.buildRotateVBKeyTxPayload(args),
       options: args.options,
     });
   }
@@ -496,7 +496,7 @@ export class VeiledCoin {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: await VeiledCoin.buildNormalizationTxPayload(args),
+      data: await ConfidentialCoin.buildNormalizationTxPayload(args),
       options: args.options,
     });
   }

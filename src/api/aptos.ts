@@ -17,7 +17,7 @@ import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
 import { AccountAbstraction } from "./account/abstraction";
 import { Experimental } from "./experimental";
-import { VeiledCoin } from "./veiledCoin";
+import { ConfidentialCoin } from "./confidentialCoin";
 
 /**
  * The main entry point for interacting with the Aptos APIs,
@@ -73,7 +73,7 @@ export class Aptos {
 
   readonly keyless: Keyless;
 
-  readonly veiledCoin: VeiledCoin;
+  readonly veiledCoin: ConfidentialCoin;
 
   readonly object: AptosObject;
 
@@ -114,7 +114,7 @@ export class Aptos {
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
-    this.veiledCoin = new VeiledCoin(this.config);
+    this.veiledCoin = new ConfidentialCoin(this.config);
     this.object = new AptosObject(this.config);
   }
 }

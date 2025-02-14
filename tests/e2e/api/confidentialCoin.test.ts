@@ -18,7 +18,7 @@ import {
   InputGenerateTransactionPayloadData,
   VeiledAmount,
   VeiledBalance,
-  VeiledCoin,
+  ConfidentialCoin,
   RangeProofExecutor,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
@@ -420,7 +420,7 @@ describe("Veiled balance api", () => {
 
   const ALICE_NEW_VEILED_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
   test("it should safely rotate Alice's veiled balance key", async () => {
-    const keyRotationAndUnfreezeTxResponse = await VeiledCoin.safeRotateVBKey(aptos, alice, {
+    const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateVBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceDecryptionKey,
