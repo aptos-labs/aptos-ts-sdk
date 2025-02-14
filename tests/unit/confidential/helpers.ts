@@ -63,7 +63,7 @@ export const addNewContentLineToFile = (filename: string, data: string) => {
 };
 
 export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress) => {
-  const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+  const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
     accountAddress,
     tokenAddress: TOKEN_ADDRESS,
   });

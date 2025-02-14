@@ -380,14 +380,14 @@ export class ConfidentialCoin {
       options?: InputGenerateTransactionOptions;
     },
   ): Promise<CommittedTransactionResponse> {
-    const isFrozen = await aptosClient.veiledCoin.isBalanceFrozen({
+    const isFrozen = await aptosClient.confidentialCoin.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
       tokenAddress: args.tokenAddress,
     });
 
     let currEncryptedBalance = [...args.currEncryptedBalance];
     if (!isFrozen) {
-      const rolloverWithFreezeTxBody = await aptosClient.veiledCoin.rolloverPendingBalance({
+      const rolloverWithFreezeTxBody = await aptosClient.confidentialCoin.rolloverPendingBalance({
         sender: args.sender,
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
@@ -406,7 +406,7 @@ export class ConfidentialCoin {
         throw new TypeError("Failed to freeze balance"); // FIXME: mb create specified error class
       }
 
-      const currVeiledBalances = await aptosClient.veiledCoin.getBalance({
+      const currVeiledBalances = await aptosClient.confidentialCoin.getBalance({
         accountAddress: AccountAddress.from(args.sender),
         tokenAddress: args.tokenAddress,
       });
@@ -414,7 +414,7 @@ export class ConfidentialCoin {
       currEncryptedBalance = currVeiledBalances.actual;
     }
 
-    const rotateKeyTxBody = await aptosClient.veiledCoin.rotateVBKey({
+    const rotateKeyTxBody = await aptosClient.confidentialCoin.rotateVBKey({
       ...args,
       currEncryptedBalance,
     });

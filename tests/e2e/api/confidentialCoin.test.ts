@@ -149,7 +149,7 @@ describe("Veiled balance api", () => {
 
   let isAliceRegistered = false;
   test("it should check Alice veiled balance registered", async () => {
-    isAliceRegistered = await aptos.veiledCoin.hasUserRegistered({
+    isAliceRegistered = await aptos.confidentialCoin.hasUserRegistered({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -165,7 +165,7 @@ describe("Veiled balance api", () => {
         return;
       }
 
-      const aliceRegisterVBTxBody = await aptos.veiledCoin.registerBalance({
+      const aliceRegisterVBTxBody = await aptos.confidentialCoin.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         publicKey: aliceDecryptionKey.publicKey(),
@@ -183,7 +183,7 @@ describe("Veiled balance api", () => {
     "it should check Alice veiled balances",
     async () => {
       const [aliceVB] = await Promise.all([
-        aptos.veiledCoin.getBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
+        aptos.confidentialCoin.getBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
       ]);
       aliceVeiledBalances = aliceVB;
 
@@ -212,7 +212,7 @@ describe("Veiled balance api", () => {
 
   const DEPOSIT_AMOUNT = 5n;
   test("it should deposit Alice's balance of fungible token to her veiled balance", async () => {
-    const depositTx = await aptos.veiledCoin.deposit({
+    const depositTx = await aptos.confidentialCoin.deposit({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       amount: DEPOSIT_AMOUNT,
@@ -223,7 +223,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should fetch and decrypt Alice's veiled balance after deposit", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -238,7 +238,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should safely rollover Alice's veiled balance", async () => {
-    const rolloverTxPayloads = await aptos.veiledCoin.safeRolloverPendingVB({
+    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
@@ -251,7 +251,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check Alice's actual veiled balance after rollover", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -269,7 +269,7 @@ describe("Veiled balance api", () => {
   test("it should withdraw Alice's veiled balance", async () => {
     const aliceVeiledAmount = await ConfidentialAmount.fromEncrypted(aliceVeiledBalances.actual, aliceDecryptionKey);
 
-    const withdrawTx = await aptos.veiledCoin.withdraw({
+    const withdrawTx = await aptos.confidentialCoin.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceDecryptionKey,
@@ -282,7 +282,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check Alice's veiled balance after withdrawal", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -297,7 +297,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should get global auditor", async () => {
-    const [address] = await aptos.veiledCoin.getGlobalAuditor();
+    const [address] = await aptos.confidentialCoin.getGlobalAuditor();
     const globalAuditorAddress = address.toString();
 
     expect(globalAuditorAddress).toBeDefined();
@@ -305,7 +305,7 @@ describe("Veiled balance api", () => {
 
   const TRANSFER_AMOUNT = 2n;
   test("it should transfer Alice's tokens to Alice's pending balance without auditor", async () => {
-    const transferTx = await aptos.veiledCoin.transferCoin({
+    const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceDecryptionKey,
       recipientEncryptionKey: aliceDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledBalances.actual,
@@ -320,7 +320,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check Alice's veiled balance after transfer", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -336,7 +336,7 @@ describe("Veiled balance api", () => {
 
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   test("it should transfer Alice's tokens to Alice's veiled balance with auditor", async () => {
-    const transferTx = await aptos.veiledCoin.transferCoin({
+    const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceDecryptionKey,
       recipientEncryptionKey: aliceDecryptionKey.publicKey(),
       encryptedActualBalance: aliceVeiledBalances.actual,
@@ -352,7 +352,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check Alice's veiled balance after transfer with auditors", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -367,7 +367,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check is Alice's balance not frozen", async () => {
-    const isFrozen = await aptos.veiledCoin.isBalanceFrozen({
+    const isFrozen = await aptos.confidentialCoin.isBalanceFrozen({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -378,13 +378,13 @@ describe("Veiled balance api", () => {
   let isAliceBalanceNormalized = true;
   let unnormalizedAliceEncryptedBalance: TwistedElGamalCiphertext[];
   test("it should check Alice's veiled balance is normalized", async () => {
-    isAliceBalanceNormalized = await aptos.veiledCoin.isUserBalanceNormalized({
+    isAliceBalanceNormalized = await aptos.confidentialCoin.isUserBalanceNormalized({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
 
     if (!isAliceBalanceNormalized) {
-      const unnormalizedAliceBalances = await aptos.veiledCoin.getBalance({
+      const unnormalizedAliceBalances = await aptos.confidentialCoin.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -405,7 +405,7 @@ describe("Veiled balance api", () => {
         },
       );
 
-      const normalizeTx = await aptos.veiledCoin.normalizeUserBalance({
+      const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceDecryptionKey,
         unnormalizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
@@ -423,7 +423,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should check Alice's veiled balance after normalization", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
@@ -464,7 +464,7 @@ describe("Veiled balance api", () => {
   });
 
   test("it should get new Alice's veiled balance", async () => {
-    const aliceChunkedVeiledBalance = await aptos.veiledCoin.getBalance({
+    const aliceChunkedVeiledBalance = await aptos.confidentialCoin.getBalance({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

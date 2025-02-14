@@ -15,7 +15,7 @@ describe("Transfer with auditor", () => {
   test("it should transfer Alice's tokens to Alice's veiled balance with auditor", async () => {
     const balances = await getBalances(aliceVeiled, alice.accountAddress);
 
-    const transferTx = await aptos.veiledCoin.transferCoin({
+    const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceVeiled,
       recipientEncryptionKey: aliceVeiled.publicKey(),
       encryptedActualBalance: balances.actual.amountEncrypted!,

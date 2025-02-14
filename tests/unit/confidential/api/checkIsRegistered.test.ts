@@ -4,7 +4,7 @@ describe("Check Registration status", () => {
   const alice = getTestAccount();
 
   it("should return true if the user is registered", async () => {
-    const isAliceRegistered = await aptos.veiledCoin.hasUserRegistered({
+    const isAliceRegistered = await aptos.confidentialCoin.hasUserRegistered({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

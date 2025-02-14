@@ -73,7 +73,7 @@ export class Aptos {
 
   readonly keyless: Keyless;
 
-  readonly veiledCoin: ConfidentialCoin;
+  readonly confidentialCoin: ConfidentialCoin;
 
   readonly object: AptosObject;
 
@@ -114,7 +114,7 @@ export class Aptos {
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
-    this.veiledCoin = new ConfidentialCoin(this.config);
+    this.confidentialCoin = new ConfidentialCoin(this.config);
     this.object = new AptosObject(this.config);
   }
 }
@@ -174,3 +174,4 @@ applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, Table, "table");
 applyMixin(Aptos, Keyless, "keyless");
 applyMixin(Aptos, AptosObject, "object");
+applyMixin(Aptos, ConfidentialCoin, "object");

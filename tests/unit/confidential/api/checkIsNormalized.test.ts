@@ -4,7 +4,7 @@ describe("Check is normalized", () => {
   const alice = getTestAccount();
 
   it("should check if user veiled balance is normalized", async () => {
-    const isAliceBalanceNormalized = await aptos.veiledCoin.isUserBalanceNormalized({
+    const isAliceBalanceNormalized = await aptos.confidentialCoin.isUserBalanceNormalized({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

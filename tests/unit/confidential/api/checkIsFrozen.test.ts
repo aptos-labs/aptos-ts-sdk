@@ -4,7 +4,7 @@ describe("should check if user veiled account is frozen", () => {
   const alice = getTestAccount();
 
   it("should check if user veiled account is frozen", async () => {
-    const isFrozen = await aptos.veiledCoin.isBalanceFrozen({
+    const isFrozen = await aptos.confidentialCoin.isBalanceFrozen({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

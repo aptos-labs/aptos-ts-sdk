@@ -10,7 +10,7 @@ describe("Safely Rollover", () => {
   });
 
   it("Should safely rollover Alice veiled balance", async () => {
-    const rolloverTxPayloads = await aptos.veiledCoin.safeRolloverPendingVB({
+    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,

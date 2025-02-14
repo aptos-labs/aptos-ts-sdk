@@ -13,7 +13,7 @@ describe("Withdraw", () => {
   it("should withdraw veiled amount", async () => {
     const balances = await getBalances(aliceVeiled, alice.accountAddress);
 
-    const withdrawTx = await aptos.veiledCoin.withdraw({
+    const withdrawTx = await aptos.confidentialCoin.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceVeiled,

@@ -13,7 +13,7 @@ describe("Register", () => {
   it(
     "it should register Alice veiled balance",
     async () => {
-      const aliceRegisterVBTxBody = await aptos.veiledCoin.registerBalance({
+      const aliceRegisterVBTxBody = await aptos.confidentialCoin.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         publicKey: aliceVeiled.publicKey(),

@@ -20,7 +20,7 @@ describe("Transfer", () => {
   it("should transfer money from Alice actual to pending balance", async () => {
     const balances = await getBalances(aliceVeiled, alice.accountAddress);
 
-    const transferTx = await aptos.veiledCoin.transferCoin({
+    const transferTx = await aptos.confidentialCoin.transferCoin({
       senderDecryptionKey: aliceVeiled,
       recipientEncryptionKey: aliceVeiled.publicKey(),
       encryptedActualBalance: balances.actual.amountEncrypted!,
