@@ -10,7 +10,7 @@ import {
 } from "../types";
 import { Bool, FixedBytes, MoveOption, MoveString, MoveVector, U128, U16, U256, U32, U64, U8 } from "../../bcs";
 import { AccountAddress } from "../../core";
-import { MoveFunction, MoveFunctionId } from "../../types";
+import { MoveFunction } from "../../types";
 
 /**
  * Determines if the provided argument is of type boolean.
@@ -316,25 +316,4 @@ export function findFirstNonSignerArg(functionAbi: MoveFunction): number {
     return functionAbi.params.length;
   }
   return index;
-}
-
-/**
- * Splits a function identifier into its constituent parts: module address, module name, and function name.
- * This function helps in validating and extracting details from a function identifier string.
- *
- * @param functionArg - The function identifier string in the format "moduleAddress::moduleName::functionName".
- * @returns An object containing the module address, module name, and function name.
- * @throws Error if the function identifier does not contain exactly three parts.
- * @group Implementation
- * @category Transactions
- */
-export function getFunctionParts(functionArg: MoveFunctionId) {
-  const funcNameParts = functionArg.split("::");
-  if (funcNameParts.length !== 3) {
-    throw new Error(`Invalid function ${functionArg}`);
-  }
-  const moduleAddress = funcNameParts[0];
-  const moduleName = funcNameParts[1];
-  const functionName = funcNameParts[2];
-  return { moduleAddress, moduleName, functionName };
 }

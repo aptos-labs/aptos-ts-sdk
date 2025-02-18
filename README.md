@@ -1,4 +1,4 @@
-# Typescript SDK for Aptos
+# TypeScript SDK for Aptos
 
 ![License][github-license]
 [![Discord][discord-image]][discord-url]
@@ -7,14 +7,13 @@
 ![NPM bundle size](https://img.shields.io/bundlephobia/min/%40aptos-labs/ts-sdk)
 [![NPM Package Downloads][npm-image-downloads]][npm-url]
 
-The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows you to connect, explore, and interact on the Aptos blockchain. You can use it to request data, send transactions, set up test environments, and more!
+The [TypeScript SDK](https://www.npmjs.com/package/@aptos-labs/ts-sdk) allows you to connect, explore, and interact with the Aptos blockchain. You can use it to request data, send transactions, set up test environments, and more!
 
 ## Learn How To Use The TypeScript SDK
 ### [Quickstart](https://aptos.dev/en/build/sdks/ts-sdk/quickstart)
 ### [Tutorials](https://aptos.dev/en/build/sdks/ts-sdk)
 ### [Examples](./examples/README.md)
 ### [Reference Docs (For looking up specific functions)](https://aptos-labs.github.io/aptos-ts-sdk/)
-
 
 ## Installation
 
@@ -26,12 +25,12 @@ Install with your favorite package manager such as npm, yarn, or pnpm:
 pnpm install @aptos-labs/ts-sdk
 ```
 
-### For use in a browser (<= 1.9.1 version only)
+### For use in a browser (<= version 1.9.1 only)
 
 You can add the SDK to your web application using a script tag:
 
 ```html
-<script src="https://unpkg.com/@aptos-labs/ts-sdk/dist/browser/index.global.js" />
+<script src="https://unpkg.com/@aptos-labs/ts-sdk/dist/browser/index.global.js"></script>
 ```
 
 Then, the SDK can be accessed through `window.aptosSDK`.
@@ -89,7 +88,6 @@ const account = await Account.fromPrivateKey({ privateKey });
 
 // Also, can use this function that resolves the provided private key type and derives the public key from it
 // to support key rotation and differentiation between Legacy Ed25519 and Unified authentications
-// Read more https://github.com/aptos-labs/aptos-ts-sdk/blob/main/src/api/account.ts#L364
 const aptos = new Aptos();
 const account = await aptos.deriveAccountFromPrivateKey({ privateKey });
 ```
@@ -208,19 +206,26 @@ example();
 
 ## Troubleshooting
 
-If you see import error when you do this
+If you see an import error when you do this:
 
 ```typescript
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 ```
 
-It could be your `tsconfig.json` is not using `node`. Make sure your `moduleResolution` in the `tsconfig.json` is set to `node` instead of `bundler`.
+It could be that your `tsconfig.json` is not using `node`. Make sure your `moduleResolution` in the `tsconfig.json` is set to `node` instead of `bundler`.
 
 ## Contributing
 
 If you found a bug or would like to request a feature, please file an [issue](https://github.com/aptos-labs/aptos-ts-sdk/issues/new/choose).
-If, based on the discussion on an issue you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/pulls).
+If, based on the discussion on an issue, you would like to offer a code change, please make a [pull request](https://github.com/aptos-labs/aptos-ts-sdk/pulls).
 If neither of these describes what you would like to contribute, check out the [contributing guide](https://github.com/aptos-labs/aptos-ts-sdk/blob/main/CONTRIBUTING.md).
+
+## Running unit tests
+
+To run a unit test in this repo, for example, the keyless end-to-end unit test in `tests/e2e/api/keyless.test.ts`:
+```
+pnpm jest keyless.test.ts
+```
 
 [npm-image-version]: https://img.shields.io/npm/v/%40aptos-labs%2Fts-sdk.svg
 [npm-image-downloads]: https://img.shields.io/npm/dm/%40aptos-labs%2Fts-sdk.svg

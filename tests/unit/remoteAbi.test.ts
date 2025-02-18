@@ -94,6 +94,9 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(new Uint8Array([0, 255]).buffer, parseTypeTag("vector<u8>"), 0, [])).toEqual(
         MoveVector.U8([0, 255]),
       );
+      expect(checkOrConvertArgument("[1, 2]", parseTypeTag("vector<u128>"), 0, [])).toEqual(
+        new MoveVector<U128>([new U128(1), new U128(2)]),
+      );
       // When using strings, it should be exactly the same as a Move String, but it should be a MoveVector
       const convertedString = checkOrConvertArgument("0xFF", parseTypeTag("vector<u8>"), 0, []);
       expect(convertedString).toBeInstanceOf(MoveVector<U8>);

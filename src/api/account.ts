@@ -47,12 +47,15 @@ import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { view } from "../internal/view";
 import { isEncodedStruct, parseEncodedStruct } from "../utils";
 import { memoizeAsync } from "../utils/memoize";
+import { AccountAbstraction } from "./account/abstraction";
 
 /**
  * A class to query all `Account` related queries on Aptos.
  * @group Account
  */
 export class Account {
+  abstraction: AccountAbstraction;
+
   /**
    * Creates an instance of the Aptos client with the provided configuration.
    *
@@ -73,7 +76,9 @@ export class Account {
    * ```
    * @group Account
    */
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: AptosConfig) {
+    this.abstraction = new AccountAbstraction(config);
+  }
 
   /**
    * Queries the current state for an Aptos account given its account address.
@@ -107,7 +112,7 @@ export class Account {
    * This function may call the API multiple times to auto paginate through results.
    *
    * @param args.accountAddress - The Aptos account address to query modules for.
-   * @param args.options.offset - The number of modules to start returning results from.
+   * @param args.options.offset - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
    *
@@ -229,7 +234,7 @@ export class Account {
    * This function may call the API multiple times to auto paginate through results.
    *
    * @param args.accountAddress - The Aptos account address to query resources for.
-   * @param args.options.offset - The number of resources to start returning results from.
+   * @param args.options.offset - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
    * @returns Account resources.
@@ -653,7 +658,7 @@ export class Account {
   }
 
   /**
-   * Retrieves the current amount of APT for a specified account.
+   * Retrieves the current amount of APT for a specified account. If the account does not exist, it will return 0.
    *
    * @param args The arguments for the account query.
    * @param args.accountAddress The account address for which to retrieve the APT amount.
