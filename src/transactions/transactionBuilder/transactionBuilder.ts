@@ -29,6 +29,7 @@ import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
@@ -38,6 +39,7 @@ import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
+  TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
 } from "../authenticator/transaction";
 import {
@@ -77,9 +79,10 @@ import {
 } from "../types";
 import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
-import { getFunctionParts, isScriptDataInput } from "./helpers";
+import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
+import { getFunctionParts } from "../../utils/helpers";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -696,6 +699,11 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
     );
   } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
     txnAuthenticator = new TransactionAuthenticatorEd25519(
+      senderAuthenticator.public_key,
+      senderAuthenticator.signature,
+    );
+  } else if (senderAuthenticator instanceof AccountAuthenticatorMultiEd25519) {
+    txnAuthenticator = new TransactionAuthenticatorMultiEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );

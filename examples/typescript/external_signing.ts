@@ -117,7 +117,7 @@ class ExternalSigner {
 }
 
 const example = async () => {
-  console.log("This example will pretend that hot is on a separate server, and never access information from it");
+  console.log("This example will pretend that hot is on a separate server, and never accesses information from it");
 
   // Set up the client
   const config = new AptosConfig({ network: APTOS_NETWORK });

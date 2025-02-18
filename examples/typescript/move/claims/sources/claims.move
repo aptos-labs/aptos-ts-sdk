@@ -65,7 +65,7 @@ module my_addr::claims {
         let claims = borrow_global<Claims>(sender);
         assert!(smart_table::contains(&claims.escrows, claim_number), E_NO_CLAIM);
 
-        // Verify that the public key bytes, match the onchcain authentication key
+        // Verify that the public key bytes, match the onchain authentication key
         let public_key = ed25519::new_unvalidated_public_key_from_bytes(sender_public_key_bytes);
         let authentication_key = ed25519::unvalidated_public_key_to_authentication_key(&public_key);
         let sender_auth_key = account::get_authentication_key(sender);

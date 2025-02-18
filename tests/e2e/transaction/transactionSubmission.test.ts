@@ -14,12 +14,16 @@ import {
   MoveString,
   Ed25519PublicKey,
   AnyPublicKey,
+  CallArgument,
+  MultiEd25519PublicKey,
+  Ed25519PrivateKey,
 } from "../../../src";
 import { MAX_U64_BIG_INT } from "../../../src/bcs/consts";
 import { longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import { fundAccounts, multiSignerScriptBytecode, publishTransferPackage, singleSignerScriptBytecode } from "./helper";
 import { AccountAuthenticatorNoAccountAuthenticator } from "../../../src/transactions";
+import { MultiEd25519Account } from "../../../src/account/MultiEd25519Account";
 
 const { aptos } = getAptosClient();
 
@@ -51,6 +55,63 @@ describe("transaction submission", () => {
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          },
+        });
+        const response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerED25519SenderAccount,
+          transaction,
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+
+        expect(response.signature?.type).toBe("single_sender");
+      });
+      test("simple batch payload", async () => {
+        const transaction = await aptos.transaction.build.scriptComposer({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          builder: async (builder) => {
+            await builder.addBatchedCalls({
+              function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+              functionArguments: [CallArgument.newSigner(0), 1, receiverAccounts[0].accountAddress],
+            });
+            return builder;
+          },
+        });
+
+        const response = await aptos.signAndSubmitTransaction({
+          signer: singleSignerED25519SenderAccount,
+          transaction,
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+
+        expect(response.signature?.type).toBe("single_sender");
+      });
+      test("with batch withdraw payload", async () => {
+        const transaction = await aptos.transaction.build.scriptComposer({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          builder: async (builder) => {
+            const coin = await builder.addBatchedCalls({
+              function: "0x1::coin::withdraw",
+              functionArguments: [CallArgument.newSigner(0), 1],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            const fungibleAsset = await builder.addBatchedCalls({
+              function: "0x1::coin::coin_to_fungible_asset",
+              functionArguments: [coin[0]],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            await builder.addBatchedCalls({
+              function: "0x1::primary_fungible_store::deposit",
+              functionArguments: [singleSignerED25519SenderAccount.accountAddress, fungibleAsset[0]],
+            });
+            return builder;
           },
         });
         const response = await aptos.signAndSubmitTransaction({
@@ -150,6 +211,48 @@ describe("transaction submission", () => {
           data: {
             bytecode: singleSignerScriptBytecode,
             functionArguments: [new U64(1), receiverAccounts[0].accountAddress],
+          },
+          withFeePayer: true,
+        });
+
+        const senderAuthenticator = aptos.transaction.sign({ signer: singleSignerED25519SenderAccount, transaction });
+        const feePayerSignerAuthenticator = aptos.transaction.signAsFeePayer({
+          signer: feePayerAccount,
+          transaction,
+        });
+
+        const response = await aptos.transaction.submit.simple({
+          transaction,
+          senderAuthenticator,
+          feePayerAuthenticator: feePayerSignerAuthenticator,
+        });
+
+        await aptos.waitForTransaction({
+          transactionHash: response.hash,
+        });
+        expect(response.signature?.type).toBe("fee_payer_signature");
+      });
+      test("with batch payload", async () => {
+        const transaction = await aptos.transaction.build.scriptComposer({
+          sender: singleSignerED25519SenderAccount.accountAddress,
+          builder: async (builder) => {
+            const coin = await builder.addBatchedCalls({
+              function: "0x1::coin::withdraw",
+              functionArguments: [CallArgument.newSigner(0), 1],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            const fungibleAsset = await builder.addBatchedCalls({
+              function: "0x1::coin::coin_to_fungible_asset",
+              functionArguments: [coin[0]],
+              typeArguments: ["0x1::aptos_coin::AptosCoin"],
+            });
+
+            await builder.addBatchedCalls({
+              function: "0x1::primary_fungible_store::deposit",
+              functionArguments: [singleSignerED25519SenderAccount.accountAddress, fungibleAsset[0]],
+            });
+            return builder;
           },
           withFeePayer: true,
         });
@@ -783,6 +886,67 @@ describe("transaction submission", () => {
         transactionHash: response3.hash,
       });
       expect(response3.signature?.type).toBe("single_sender");
+    });
+  });
+
+  describe("MultiEd25519", () => {
+    const ed25519PrivateKey1 = Ed25519PrivateKey.generate();
+    const ed25519PrivateKey2 = Ed25519PrivateKey.generate();
+    const ed25519PrivateKey3 = Ed25519PrivateKey.generate();
+    const multiKey = new MultiEd25519PublicKey({
+      publicKeys: [ed25519PrivateKey1.publicKey(), ed25519PrivateKey2.publicKey(), ed25519PrivateKey3.publicKey()],
+      threshold: 2,
+    });
+
+    test("it submits a multi ed25519 transaction", async () => {
+      const account = new MultiEd25519Account({
+        publicKey: multiKey,
+        signers: [ed25519PrivateKey1, ed25519PrivateKey3],
+      });
+
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("multi_ed25519_signature");
+    });
+
+    test("it submits a multi ed25519 transaction with misordered signers", async () => {
+      const account = new MultiEd25519Account({
+        publicKey: multiKey,
+        // the input to signers does not maintain ordering
+        signers: [ed25519PrivateKey3, ed25519PrivateKey1],
+      });
+
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 100_000_000 });
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.accountAddress,
+        data: {
+          function: `0x${contractPublisherAccount.accountAddress.toStringWithoutPrefix()}::transfer::transfer`,
+          functionArguments: [1, receiverAccounts[0].accountAddress],
+        },
+      });
+
+      const senderAuthenticator = aptos.transaction.sign({ signer: account, transaction });
+
+      const response = await aptos.transaction.submit.simple({ transaction, senderAuthenticator });
+      await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      expect(response.signature?.type).toBe("multi_ed25519_signature");
     });
   });
   describe("publish move module", () => {

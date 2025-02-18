@@ -23,6 +23,79 @@ function bitCount(byte: number) {
 }
 /* eslint-enable no-bitwise */
 
+export abstract class AbstractMultiKey extends AccountPublicKey {
+  publicKeys: PublicKey[];
+
+  constructor(args: { publicKeys: PublicKey[] }) {
+    super();
+    this.publicKeys = args.publicKeys;
+  }
+
+  /**
+   * Create a bitmap that holds the mapping from the original public keys
+   * to the signatures passed in
+   *
+   * @param args.bits array of the index mapping to the matching public keys
+   * @returns Uint8array bit map
+   * @group Implementation
+   * @category Serialization
+   */
+  createBitmap(args: { bits: number[] }): Uint8Array {
+    const { bits } = args;
+    // Bits are read from left to right. e.g. 0b10000000 represents the first bit is set in one byte.
+    // The decimal value of 0b10000000 is 128.
+    const firstBitInByte = 128;
+    const bitmap = new Uint8Array([0, 0, 0, 0]);
+
+    // Check if duplicates exist in bits
+    const dupCheckSet = new Set();
+
+    bits.forEach((bit: number, idx: number) => {
+      if (idx + 1 > this.publicKeys.length) {
+        throw new Error(`Signature index ${idx + 1} is out of public keys range, ${this.publicKeys.length}.`);
+      }
+
+      if (dupCheckSet.has(bit)) {
+        throw new Error(`Duplicate bit ${bit} detected.`);
+      }
+
+      dupCheckSet.add(bit);
+
+      const byteOffset = Math.floor(bit / 8);
+
+      let byte = bitmap[byteOffset];
+
+      // eslint-disable-next-line no-bitwise
+      byte |= firstBitInByte >> bit % 8;
+
+      bitmap[byteOffset] = byte;
+    });
+
+    return bitmap;
+  }
+
+  /**
+   * Get the index of the provided public key.
+   *
+   * This function retrieves the index of a specified public key within the MultiKey.
+   * If the public key does not exist, it throws an error.
+   *
+   * @param publicKey - The public key to find the index for.
+   * @returns The corresponding index of the public key, if it exists.
+   * @throws Error - If the public key is not found in the MultiKey.
+   * @group Implementation
+   * @category Serialization
+   */
+  getIndex(publicKey: PublicKey): number {
+    const index = this.publicKeys.findIndex((pk) => pk.toString() === publicKey.toString());
+
+    if (index !== -1) {
+      return index;
+    }
+    throw new Error(`Public key ${publicKey} not found in multi key set ${this.publicKeys}`);
+  }
+}
+
 /**
  * Represents a multi-key authentication scheme for accounts, allowing multiple public keys
  * to be associated with a single account. This class enforces a minimum number of valid signatures
@@ -34,7 +107,7 @@ function bitCount(byte: number) {
  * @group Implementation
  * @category Serialization
  */
-export class MultiKey extends AccountPublicKey {
+export class MultiKey extends AbstractMultiKey {
   /**
    * List of any public keys
    * @group Implementation
@@ -65,8 +138,8 @@ export class MultiKey extends AccountPublicKey {
    */
   // region Constructors
   constructor(args: { publicKeys: Array<PublicKey>; signaturesRequired: number }) {
-    super();
     const { publicKeys, signaturesRequired } = args;
+    super({ publicKeys });
 
     // Validate number of public keys is greater than signature required
     if (signaturesRequired < 1) {
@@ -216,16 +289,10 @@ export class MultiKey extends AccountPublicKey {
    * @returns The corresponding index of the public key, if it exists.
    * @throws Error - If the public key is not found in the MultiKey.
    * @group Implementation
-   * @category Serialization
    */
   getIndex(publicKey: PublicKey): number {
     const anyPublicKey = publicKey instanceof AnyPublicKey ? publicKey : new AnyPublicKey(publicKey);
-    const index = this.publicKeys.findIndex((pk) => pk.toString() === anyPublicKey.toString());
-
-    if (index !== -1) {
-      return index;
-    }
-    throw new Error(`Public key ${publicKey} not found in MultiKey ${this.publicKeys}`);
+    return super.getIndex(anyPublicKey);
   }
 
   public static isInstance(value: PublicKey): value is MultiKey {
