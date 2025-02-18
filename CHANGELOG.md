@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
 - Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
 
 # 1.35.0 (2025-02-11)
