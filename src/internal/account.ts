@@ -62,7 +62,6 @@ import { signAndSubmitTransaction, generateTransaction } from "./transactionSubm
 import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
 import { U8, MoveVector } from "../bcs";
 import { waitForTransaction } from "./transaction";
-import { transferCoinTransaction } from "./coin";
 
 /**
  * Retrieves account information for a specified account address.
@@ -858,12 +857,15 @@ export async function rotateAuthKey(
     throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
   }
 
-  // Verify the rotation by transferring a small amount to yourself.
-  const verificationTxn = await transferCoinTransaction({
+  // Verify the rotation by setting the originating address to the new account.
+  // This verifies the rotation even if the transaction payload fails to execute successfully.
+  const verificationTxn = await generateTransaction({
     aptosConfig,
-    sender: args.fromAccount.accountAddress,
-    recipient: args.fromAccount.accountAddress,
-    amount: 1,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::set_originating_address",
+      functionArguments: [],
+    },
   });
 
   return signAndSubmitTransaction({
