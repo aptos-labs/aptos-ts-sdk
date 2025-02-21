@@ -7,13 +7,12 @@
  */
 
 import { AptosConfig } from "../api/aptosConfig";
-import { Deserializer, MoveVector, U8 } from "../bcs";
+import { Deserializer, MoveVector } from "../bcs";
 import { postAptosFullNode } from "../client";
 import { Account, AbstractKeylessAccount, isKeylessSigner } from "../account";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature, PrivateKeyInput } from "../core/crypto";
+import { FederatedKeylessPublicKey, KeylessPublicKey, KeylessSignature } from "../core/crypto";
 import { AccountAuthenticator } from "../transactions/authenticator/account";
-import { RotationProofChallenge } from "../transactions/instances/rotationProofChallenge";
 import {
   buildTransaction,
   generateTransactionPayload,
@@ -32,9 +31,8 @@ import {
   AnyTransactionPayloadInstance,
   EntryFunctionABI,
 } from "../transactions/types";
-import { getInfo } from "./account";
-import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput, TransactionResponse } from "../types";
-import { SignedTransaction, TypeTagU8, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
+import { UserTransactionResponse, PendingTransactionResponse, MimeType, HexInput } from "../types";
+import { SignedTransaction, TypeTagVector, generateSigningMessageForTransaction } from "../transactions";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
 import { MultiAgentTransaction } from "../transactions/instances/multiAgentTransaction";
 
@@ -442,80 +440,5 @@ export async function publicPackageTransaction(args: {
       abi: packagePublishAbi,
     },
     options,
-  });
-}
-
-const rotateAuthKeyAbi: EntryFunctionABI = {
-  typeParameters: [],
-  parameters: [
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    new TypeTagU8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-    TypeTagVector.u8(),
-  ],
-};
-
-/**
- * Rotates the authentication key for a given account, allowing for enhanced security and management of account access.
- *
- * @param args - The arguments for rotating the authentication key.
- * @param args.aptosConfig - The configuration settings for the Aptos network.
- * @param args.fromAccount - The account from which the authentication key will be rotated.
- * @param args.toNewPrivateKey - The new private key that will be associated with the account.
- *
- * @remarks
- * This function requires the current authentication key and the new private key to sign a challenge that validates the rotation.
- *
- * TODO: Need to refactor and move this function out of transactionSubmission.
- * @group Implementation
- */
-export async function rotateAuthKey(args: {
-  aptosConfig: AptosConfig;
-  fromAccount: Account;
-  toNewPrivateKey: PrivateKeyInput;
-}): Promise<TransactionResponse> {
-  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
-  const accountInfo = await getInfo({
-    aptosConfig,
-    accountAddress: fromAccount.accountAddress,
-  });
-
-  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
-
-  const challenge = new RotationProofChallenge({
-    sequenceNumber: BigInt(accountInfo.sequence_number),
-    originator: fromAccount.accountAddress,
-    currentAuthKey: AccountAddress.from(accountInfo.authentication_key),
-    newPublicKey: newAccount.publicKey,
-  });
-
-  // Sign the challenge
-  const challengeHex = challenge.bcsToBytes();
-  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
-  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
-
-  // Generate transaction
-  const rawTxn = await generateTransaction({
-    aptosConfig,
-    sender: fromAccount.accountAddress,
-    data: {
-      function: "0x1::account::rotate_authentication_key",
-      functionArguments: [
-        new U8(fromAccount.signingScheme), // from scheme
-        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
-        new U8(newAccount.signingScheme), // to scheme
-        MoveVector.U8(newAccount.publicKey.toUint8Array()),
-        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
-        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
-      ],
-      abi: rotateAuthKeyAbi,
-    },
-  });
-  return signAndSubmitTransaction({
-    aptosConfig,
-    signer: fromAccount,
-    transaction: rawTxn,
   });
 }

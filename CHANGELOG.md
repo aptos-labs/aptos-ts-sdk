@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrade rotateAuthKey API to allow for unverified auth key rotations.
+- Upgrade rotateAuthKey API to support Account types other than Ed25519.
 - Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
 - Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
 
