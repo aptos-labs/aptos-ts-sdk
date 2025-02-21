@@ -29,8 +29,8 @@ import {
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account, Ed25519Account } from "../account";
-import { AnyPublicKey, Ed25519PublicKey, PrivateKey, PrivateKeyInput } from "../core/crypto";
+import { Account, Ed25519Account, MultiEd25519Account } from "../account";
+import { AnyPublicKey, Ed25519PublicKey, PrivateKey } from "../core/crypto";
 import { queryIndexer } from "./general";
 import { getModules as getModulesUtil, getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
@@ -830,6 +830,9 @@ export async function rotateAuthKey(
     if (args.toAccount instanceof Ed25519Account) {
       return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: args.toAccount.privateKey });
     }
+    if (args.toAccount instanceof MultiEd25519Account) {
+      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount });
+    }
     authKey = args.toAccount.publicKey.authKey();
   } else if ("toAuthKey" in args) {
     authKey = args.toAuthKey;
@@ -870,18 +873,24 @@ export async function rotateAuthKey(
   });
 }
 
-async function rotateAuthKeyWithChallenge(args: {
-  aptosConfig: AptosConfig;
-  fromAccount: Account;
-  toNewPrivateKey: PrivateKeyInput;
-}): Promise<PendingTransactionResponse> {
-  const { aptosConfig, fromAccount, toNewPrivateKey } = args;
+async function rotateAuthKeyWithChallenge(
+  args: {
+    aptosConfig: AptosConfig;
+    fromAccount: Account;
+  } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
+): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount } = args;
   const accountInfo = await getInfo({
     aptosConfig,
     accountAddress: fromAccount.accountAddress,
   });
 
-  const newAccount = Account.fromPrivateKey({ privateKey: toNewPrivateKey, legacy: true });
+  let newAccount: Account;
+  if ("toNewPrivateKey" in args) {
+    newAccount = Account.fromPrivateKey({ privateKey: args.toNewPrivateKey, legacy: true });
+  } else {
+    newAccount = args.toAccount;
+  }
 
   const challenge = new RotationProofChallenge({
     sequenceNumber: BigInt(accountInfo.sequence_number),
@@ -892,8 +901,8 @@ async function rotateAuthKeyWithChallenge(args: {
 
   // Sign the challenge
   const challengeHex = challenge.bcsToBytes();
-  const proofSignedByCurrentPrivateKey = fromAccount.sign(challengeHex);
-  const proofSignedByNewPrivateKey = newAccount.sign(challengeHex);
+  const proofSignedByCurrentKey = fromAccount.sign(challengeHex);
+  const proofSignedByNewKey = newAccount.sign(challengeHex);
 
   // Generate transaction
   const rawTxn = await generateTransaction({
@@ -906,8 +915,8 @@ async function rotateAuthKeyWithChallenge(args: {
         MoveVector.U8(fromAccount.publicKey.toUint8Array()),
         new U8(newAccount.signingScheme), // to scheme
         MoveVector.U8(newAccount.publicKey.toUint8Array()),
-        MoveVector.U8(proofSignedByCurrentPrivateKey.toUint8Array()),
-        MoveVector.U8(proofSignedByNewPrivateKey.toUint8Array()),
+        MoveVector.U8(proofSignedByCurrentKey.toUint8Array()),
+        MoveVector.U8(proofSignedByNewKey.toUint8Array()),
       ],
       abi: rotateAuthKeyAbi,
     },

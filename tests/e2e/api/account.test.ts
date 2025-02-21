@@ -12,6 +12,8 @@ import {
   U64,
   AccountAddress,
   MultiKeyAccount,
+  MultiEd25519Account,
+  MultiEd25519PublicKey,
 } from "../../../src";
 import { getAptosClient } from "../helper";
 import { simpleCoinTransactionHeler } from "../transaction/helper";
@@ -389,6 +391,44 @@ describe("account api", () => {
       });
       await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
     });
+  });
+
+  test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
+    const config = new AptosConfig({ network: Network.LOCAL });
+    const aptos = new Aptos(config);
+
+    // Current Account
+    const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+    const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+    const multiEdAccount = new MultiEd25519Account({
+      publicKey: new MultiEd25519PublicKey({
+        publicKeys: [mk1.publicKey, mk2.publicKey],
+        threshold: 1,
+      }),
+      signers: [mk1.privateKey],
+    });
+
+    // Rotate the key
+    const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+    await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+    const accountInfo = await aptos.account.getAccountInfo({
+      accountAddress: account.accountAddress,
+    });
+    expect(accountInfo.authentication_key).toEqual(multiEdAccount.publicKey.authKey().toString());
+
+    const rotatedAccount = new MultiEd25519Account({
+      publicKey: new MultiEd25519PublicKey({
+        publicKeys: [mk1.publicKey, mk2.publicKey],
+        threshold: 1,
+      }),
+      signers: [mk1.privateKey],
+      address: account.accountAddress,
+    });
+    await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
   });
 
   test("it should rotate ed25519 to multikey auth key correctly", async () => {
