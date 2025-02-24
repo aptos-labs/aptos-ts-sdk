@@ -58,7 +58,7 @@ export class AptosScriptComposer {
 
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
-      for(const ty of input.typeArguments) {
+      for (const ty of input.typeArguments) {
         await this.builder.load_type_tag(nodeUrl, ty.toString());
       }
     }
