@@ -11,8 +11,12 @@ import {
   SigningSchemeInput,
   U64,
   AccountAddress,
+  MultiKeyAccount,
+  MultiEd25519Account,
+  MultiEd25519PublicKey,
 } from "../../../src";
 import { getAptosClient } from "../helper";
+import { simpleCoinTransactionHeler } from "../transaction/helper";
 
 describe("account api", () => {
   const FUND_AMOUNT = 100_000_000;
@@ -380,6 +384,116 @@ describe("account api", () => {
 
       // Check if the lookup account address is the same as the original account address
       expect(lookupAccountAddress).toStrictEqual(account.accountAddress);
-    });
+
+      const rotatedAccount = Account.fromPrivateKey({
+        privateKey: rotateToPrivateKey,
+        address: account.accountAddress,
+      });
+      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+    }, 10000);
+
+    test("it should rotate ed25519 to multi-ed25519 auth key correctly", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      // Current Account
+      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+      const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const multiEdAccount = new MultiEd25519Account({
+        publicKey: new MultiEd25519PublicKey({
+          publicKeys: [mk1.publicKey, mk2.publicKey],
+          threshold: 1,
+        }),
+        signers: [mk1.privateKey],
+      });
+
+      // Rotate the key
+      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiEdAccount });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(multiEdAccount.publicKey.authKey().toString());
+
+      const rotatedAccount = new MultiEd25519Account({
+        publicKey: new MultiEd25519PublicKey({
+          publicKeys: [mk1.publicKey, mk2.publicKey],
+          threshold: 1,
+        }),
+        signers: [mk1.privateKey],
+        address: account.accountAddress,
+      });
+      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+    }, 10000);
+
+    test("it should rotate ed25519 to multikey auth key correctly", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      // Current Account
+      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+      const mk1 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const mk2 = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      const multiKeyAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+        publicKeys: [mk1.publicKey, mk2.publicKey],
+        signaturesRequired: 1,
+        signers: [mk1],
+      });
+
+      // Rotate the key
+      const pendingTxn = await aptos.rotateAuthKey({ fromAccount: account, toAccount: multiKeyAccount });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(multiKeyAccount.publicKey.authKey().toString());
+
+      const rotatedAccount = MultiKeyAccount.fromPublicKeysAndSigners({
+        address: account.accountAddress,
+        publicKeys: [mk1.publicKey, mk2.publicKey],
+        signaturesRequired: 1,
+        signers: [mk1],
+      });
+      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+    }, 10000);
+
+    test("it should rotate ed25519 to unverified auth key correctly", async () => {
+      const config = new AptosConfig({ network: Network.LOCAL });
+      const aptos = new Aptos(config);
+
+      // Current Account
+      const account = Account.generate({ scheme: SigningSchemeInput.Ed25519, legacy: true });
+      await aptos.fundAccount({ accountAddress: account.accountAddress, amount: 1_000_000_000 });
+
+      // account that holds the new key
+      const newAccount = Account.generate();
+      const newAuthKey = newAccount.publicKey.authKey();
+
+      // Rotate the key
+      const pendingTxn = await aptos.rotateAuthKey({
+        fromAccount: account,
+        toAuthKey: newAuthKey,
+        dangerouslySkipVerification: true,
+      });
+      await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
+
+      const accountInfo = await aptos.account.getAccountInfo({
+        accountAddress: account.accountAddress,
+      });
+      expect(accountInfo.authentication_key).toEqual(newAuthKey.toString());
+
+      const rotatedAccount = Account.fromPrivateKey({
+        privateKey: newAccount.privateKey,
+        address: newAccount.accountAddress,
+      });
+      await simpleCoinTransactionHeler(aptos, rotatedAccount, Account.generate());
+    }, 10000);
   });
 });
