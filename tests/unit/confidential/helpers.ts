@@ -46,7 +46,7 @@ export async function loadTableMap(url: string) {
 /**
  * Address of the mocked fungible token on the testnet
  */
-export const TOKEN_ADDRESS = "0xea70167cd603ed1f982d8361343b279263c2408b5c0053a48e7dda0834ea5b1b";
+export const TOKEN_ADDRESS = "0x2a0c0d0d3d213a120a0bac6aecf2bf4a59c4d5e5be0721ca2b3566f0013e7e3d";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });

@@ -21,22 +21,26 @@ describe("Normalize", () => {
     longTestTimeout,
   );
 
-  it("it should normalize Alice's confidential balance", async () => {
-    const balances = await getBalances(aliceConfidential, alice.accountAddress);
+  it(
+    "it should normalize Alice's confidential balance",
+    async () => {
+      const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
-      tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: aliceConfidential,
-      unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
-      balanceAmount: balances.actual.amount,
+      const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
+        tokenAddress: TOKEN_ADDRESS,
+        decryptionKey: aliceConfidential,
+        unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,
+        balanceAmount: balances.actual.amount,
 
-      sender: alice.accountAddress,
-    });
+        sender: alice.accountAddress,
+      });
 
-    const txResp = await sendAndWaitTx(normalizeTx, alice);
+      const txResp = await sendAndWaitTx(normalizeTx, alice);
 
-    console.log("gas used:", txResp.gas_used);
+      console.log("gas used:", txResp.gas_used);
 
-    expect(txResp.success).toBeTruthy();
-  });
+      expect(txResp.success).toBeTruthy();
+    },
+    longTestTimeout,
+  );
 });
