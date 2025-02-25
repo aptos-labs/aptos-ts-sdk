@@ -286,7 +286,7 @@ describe("transaction submission", () => {
     expect(txn1.submittedTransaction.success).toBe(false);
   });
 
-  test("Aaron's test case", async () => {
+  test.only("Basic test case", async () => {
     await signSubmitAndWait({
       sender: primaryAccount,
       data: {
@@ -329,7 +329,7 @@ describe("transaction submission", () => {
     expect(txn2.submittedTransaction.success).toBe(false);
   });
 
-  describe.only("Serializer", () => {
+  describe("Serializer", () => {
     const APT_PERMISSION = FungibleAssetPermission.from({
       asset: AccountAddress.A,
       amount: 10,
