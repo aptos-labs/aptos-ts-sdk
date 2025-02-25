@@ -141,7 +141,7 @@ describe("Confidential balance api", () => {
   });
 
   test("it should safely rollover Alice's confidential balance", async () => {
-    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
+    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingCB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
@@ -345,7 +345,7 @@ describe("Confidential balance api", () => {
 
   const ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY = TwistedEd25519PrivateKey.generate();
   test("it should safely rotate Alice's confidential balance key", async () => {
-    const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateVBKey(aptos, alice, {
+    const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateCBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceConfidential,

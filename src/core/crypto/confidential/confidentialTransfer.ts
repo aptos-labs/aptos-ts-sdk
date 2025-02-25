@@ -51,7 +51,7 @@ export class ConfidentialTransfer {
 
   auditorsU8EncryptionKeys: Uint8Array[];
 
-  auditorsVBList: TwistedElGamalCiphertext[][];
+  auditorsCBList: TwistedElGamalCiphertext[][];
 
   encryptedActualBalance: TwistedElGamalCiphertext[];
 
@@ -69,7 +69,7 @@ export class ConfidentialTransfer {
     recipientEncryptionKeyU8: Uint8Array;
     auditorEncryptionKeys: TwistedEd25519PublicKey[];
     auditorsU8EncryptionKeys: Uint8Array[];
-    auditorsVBList: TwistedElGamalCiphertext[][];
+    auditorsCBList: TwistedElGamalCiphertext[][];
     encryptedActualBalance: TwistedElGamalCiphertext[];
     confidentialAmountToTransfer: ConfidentialAmount;
     confidentialAmountAfterTransfer: ConfidentialAmount;
@@ -81,7 +81,7 @@ export class ConfidentialTransfer {
     this.recipientEncryptionKeyU8 = args.recipientEncryptionKeyU8;
     this.auditorEncryptionKeys = args.auditorEncryptionKeys;
     this.auditorsU8EncryptionKeys = args.auditorsU8EncryptionKeys;
-    this.auditorsVBList = args.auditorsVBList;
+    this.auditorsCBList = args.auditorsCBList;
     this.encryptedActualBalance = args.encryptedActualBalance;
     this.confidentialAmountToTransfer = args.confidentialAmountToTransfer;
     this.confidentialAmountAfterTransfer = args.confidentialAmountAfterTransfer;
@@ -102,7 +102,7 @@ export class ConfidentialTransfer {
 
     const auditorsU8PublicKeys = args.auditorEncryptionKeys?.map((pk) => publicKeyToU8(pk)) ?? [];
 
-    const auditorsVBList =
+    const auditorsCBList =
       args.auditorEncryptionKeys?.map((el) =>
         confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
           TwistedElGamal.encryptWithPK(chunk, el, randomness[i]),
@@ -122,7 +122,7 @@ export class ConfidentialTransfer {
       recipientEncryptionKeyU8: recipientPublicKeyU8,
       auditorEncryptionKeys: args.auditorEncryptionKeys ?? [],
       auditorsU8EncryptionKeys: auditorsU8PublicKeys,
-      auditorsVBList,
+      auditorsCBList,
       encryptedActualBalance: args.encryptedActualBalance,
       confidentialAmountToTransfer,
       confidentialAmountAfterTransfer,
@@ -287,7 +287,7 @@ export class ConfidentialTransfer {
       ...this.encryptedActualBalance.map((el) => el.serialize()).flat(),
       ...senderNewEncryptedBalance.map((el) => el.serialize()).flat(),
       ...this.encryptedAmountByRecipient.map((el) => el.serialize()).flat(),
-      ...(this.auditorsVBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
+      ...(this.auditorsCBList?.flat()?.map(({ D }) => D.toRawBytes()) ?? []),
       X1,
       ...X2List,
       ...X3List,
@@ -339,7 +339,7 @@ export class ConfidentialTransfer {
     auditors?: {
       publicKeys: (TwistedEd25519PublicKey | HexInput)[];
       // decryptionKeys: HexInput[][];
-      auditorsVBList: TwistedElGamalCiphertext[][];
+      auditorsCBList: TwistedElGamalCiphertext[][];
     };
   }): boolean {
     const auditorPKs = opts?.auditors?.publicKeys.map((pk) => publicKeyToU8(pk)) ?? [];
@@ -370,7 +370,7 @@ export class ConfidentialTransfer {
       ...opts.encryptedActualBalanceAfterTransfer.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       ...opts.encryptedTransferAmountByRecipient.map(({ C, D }) => [C.toRawBytes(), D.toRawBytes()]).flat(),
       // ...auditorDecryptionKeys.flat(),
-      ...(opts.auditors?.auditorsVBList?.flat().map(({ D }) => D.toRawBytes()) || []),
+      ...(opts.auditors?.auditorsCBList?.flat().map(({ D }) => D.toRawBytes()) || []),
       opts.sigmaProof.X1,
       ...opts.sigmaProof.X2List,
       ...opts.sigmaProof.X3List,
@@ -451,7 +451,7 @@ export class ConfidentialTransfer {
         .map((a3, idxJ) =>
           RistrettoPoint.fromHex(auPk)
             .multiply(a3)
-            .add(RistrettoPoint.fromHex(opts.auditors!.auditorsVBList[auPubKIdx][idxJ].D.toRawBytes()).multiply(p)),
+            .add(RistrettoPoint.fromHex(opts.auditors!.auditorsCBList[auPubKIdx][idxJ].D.toRawBytes()).multiply(p)),
         ),
     );
 
@@ -524,7 +524,7 @@ export class ConfidentialTransfer {
       },
       this.confidentialAmountAfterTransfer.amountEncrypted,
       this.encryptedAmountByRecipient,
-      this.auditorsVBList,
+      this.auditorsCBList,
     ];
   }
 

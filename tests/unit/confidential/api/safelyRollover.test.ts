@@ -15,7 +15,7 @@ describe("Safely Rollover", () => {
   );
 
   it("Should safely rollover Alice confidential balance", async () => {
-    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingVB({
+    const rolloverTxPayloads = await aptos.confidentialCoin.safeRolloverPendingCB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,

@@ -203,7 +203,7 @@ describe("Generate 'confidential coin' proofs", () => {
       sigmaProof: confidentialTransferWithAuditorsSigmaProof,
       auditors: {
         publicKeys: [auditor.publicKey()],
-        auditorsVBList: confidentialTransferWithAuditors.auditorsVBList!,
+        auditorsCBList: confidentialTransferWithAuditors.auditorsCBList!,
       },
     });
 
@@ -223,7 +223,7 @@ describe("Generate 'confidential coin' proofs", () => {
       auditors: {
         publicKeys: [invalidAuditor.publicKey()],
         // decryptionKeys: auditorsDList,
-        auditorsVBList: confidentialTransferWithAuditors.auditorsVBList!,
+        auditorsCBList: confidentialTransferWithAuditors.auditorsCBList!,
       },
     });
 

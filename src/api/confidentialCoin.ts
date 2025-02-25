@@ -195,7 +195,7 @@ export class ConfidentialCoin {
     });
   }
 
-  async safeRolloverPendingVB(args: {
+  async safeRolloverPendingCB(args: {
     sender: AccountAddressInput;
     tokenAddress: string;
     withFreezeBalance?: boolean;
@@ -214,14 +214,14 @@ export class ConfidentialCoin {
         tokenAddress: args.tokenAddress,
       });
 
-      const accountVB = await ConfidentialAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
+      const accountCB = await ConfidentialAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
       const normalizationTx = await ConfidentialCoin.buildNormalizationTxPayload({
         decryptionKey: args.decryptionKey,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
         unnormalizedEncryptedBalance: accountBalance.actual,
-        balanceAmount: accountVB.amount,
+        balanceAmount: accountCB.amount,
       });
       txList.push(normalizationTx);
     }
@@ -272,13 +272,13 @@ export class ConfidentialCoin {
       },
       encryptedAmountAfterTransfer,
       encryptedAmountByRecipient,
-      auditorsVBList,
+      auditorsCBList,
     ] = await confidentialTransfer.authorizeTransfer();
 
     const newBalance = encryptedAmountAfterTransfer.map((el) => el.serialize()).flat();
     const transferBalance = encryptedAmountByRecipient.map((el) => el.serialize()).flat();
     const auditorEks = confidentialTransfer.auditorsU8EncryptionKeys;
-    const auditorBalances = auditorsVBList
+    const auditorBalances = auditorsCBList
       .flat()
       .map((el) => el.serialize())
       .flat();
@@ -318,7 +318,7 @@ export class ConfidentialCoin {
     return isFrozen;
   }
 
-  static async buildRotateVBKeyTxPayload(
+  static async buildRotateCBKeyTxPayload(
     args: CreateConfidentialKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
@@ -334,11 +334,11 @@ export class ConfidentialCoin {
       randomness: args.randomness,
     });
 
-    const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
+    const [{ sigmaProof, rangeProof }, newCB] = await confidentialKeyRotation.authorizeKeyRotation();
 
     const newPublicKeyU8 = toTwistedEd25519PrivateKey(args.newDecryptionKey).publicKey().toUint8Array();
 
-    const serializedNewBalance = concatBytes(...newVB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
+    const serializedNewBalance = concatBytes(...newCB.map((el) => [el.C.toRawBytes(), el.D.toRawBytes()]).flat());
 
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
@@ -354,7 +354,7 @@ export class ConfidentialCoin {
     };
   }
 
-  async rotateVBKey(
+  async rotateCBKey(
     args: CreateConfidentialKeyRotationOpArgs & {
       sender: AccountAddressInput;
       tokenAddress: string;
@@ -366,12 +366,12 @@ export class ConfidentialCoin {
     return generateTransaction({
       aptosConfig: this.config,
       sender: args.sender,
-      data: await ConfidentialCoin.buildRotateVBKeyTxPayload(args),
+      data: await ConfidentialCoin.buildRotateCBKeyTxPayload(args),
       options: args.options,
     });
   }
 
-  static async safeRotateVBKey(
+  static async safeRotateCBKey(
     aptosClient: Aptos,
     signer: Account,
     args: CreateConfidentialKeyRotationOpArgs & {
@@ -415,7 +415,7 @@ export class ConfidentialCoin {
       currEncryptedBalance = currConfidentialBalances.actual;
     }
 
-    const rotateKeyTxBody = await aptosClient.confidentialCoin.rotateVBKey({
+    const rotateKeyTxBody = await aptosClient.confidentialCoin.rotateCBKey({
       ...args,
       currEncryptedBalance,
     });
@@ -477,13 +477,13 @@ export class ConfidentialCoin {
       randomness: args.randomness,
     });
 
-    const [{ sigmaProof, rangeProof }, normalizedVB] = await confidentialNormalization.authorizeNormalization();
+    const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();
 
     return {
       function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::normalize`,
       functionArguments: [
         args.tokenAddress,
-        concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),
+        concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
         rangeProof,
         ConfidentialNormalization.serializeSigmaProof(sigmaProof),
       ],
