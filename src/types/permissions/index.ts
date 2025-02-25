@@ -19,14 +19,7 @@ export abstract class Permission extends Serializable {
 
   abstract readonly capabilities: Record<string, boolean>;
 
-  serialize(serializer: Serializer): void {
-    // First serialize the type
-    serializer.serializeStr(Permission.type);
-    // Then serialize the specific permission data
-    this.serializeData(serializer);
-  }
-
-  abstract serializeData(serializer: Serializer): void;
+  abstract serialize(serializer: Serializer): void;
 
   static deserialize(deserializer: Deserializer): Permission {
     const type = deserializer.deserializeStr();
@@ -79,7 +72,8 @@ export class FungibleAssetPermission extends Permission {
     return new FungibleAssetPermission({ asset: args.asset, amount: 0n });
   }
 
-  serializeData(serializer: Serializer): void {
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(FungibleAssetPermission.type);
     this.asset.serialize(serializer);
     serializer.serializeStr(this.amount.toString());
   }
@@ -121,7 +115,8 @@ export class GasPermission extends Permission {
     return new GasPermission({ amount: 0n });
   }
 
-  serializeData(serializer: Serializer): void {
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(GasPermission.type);
     serializer.serializeStr(this.amount.toString());
   }
 
@@ -176,7 +171,8 @@ export class NFTPermission extends Permission {
     });
   }
 
-  serializeData(serializer: Serializer): void {
+  serialize(serializer: Serializer): void {
+    serializer.serializeStr(NFTPermission.type);
     this.assetAddress.serialize(serializer);
     const [capabilityKeys, capabilityValues] = Object.entries(this.capabilities).reduce(
       ([keys, values], [key, value]) => [keys.concat(key), values.concat(value)],
