@@ -14,6 +14,14 @@ export class AbstractSignature extends Signature {
     this.value = Hex.fromHexInput(value);
   }
 
+  toUint8Array(): Uint8Array {
+    return this.value.toUint8Array();
+  }
+
+  toBcsBytes(): Uint8Array {
+    return this.toUint8Array();
+  }
+
   serialize(serializer: Serializer): void {
     serializer.serializeBytes(this.value.toUint8Array());
   }
