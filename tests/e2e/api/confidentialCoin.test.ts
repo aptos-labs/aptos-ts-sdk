@@ -1,125 +1,34 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import path from "path";
-import fs from "fs";
 import {
-  AptosConfig,
-  Aptos,
-  Network,
-  Account,
-  NetworkToNetworkName,
   TwistedEd25519PrivateKey,
-  AnyRawTransaction,
-  CommittedTransactionResponse,
   TwistedElGamalCiphertext,
-  Ed25519PrivateKey,
-  TransactionWorkerEventsEnum,
-  InputGenerateTransactionPayloadData,
   ConfidentialAmount,
   ConfidentialBalance,
   ConfidentialCoin,
-  RangeProofExecutor,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
-import { generateRangeZKP, verifyRangeZKP } from "../../unit/confidential/wasmRangeProof";
+import {
+  addNewContentLineToFile,
+  aptos,
+  getTestAccount,
+  getTestConfidentialAccount,
+  mintFungibleTokens,
+  sendAndWaitBatchTxs,
+  sendAndWaitTx,
+  TOKEN_ADDRESS,
+} from "../../unit/confidential/helpers";
+import { preloadTables } from "../../unit/confidential/kangaroo/wasmPollardKangaroo";
 
 describe("Confidential balance api", () => {
-  const APTOS_NETWORK: Network = NetworkToNetworkName[Network.TESTNET];
-  const config = new AptosConfig({ network: APTOS_NETWORK });
-  const aptos = new Aptos(config);
-
-  const { TESTNET_PK, TESTNET_DK } = process.env;
-
-  /**
-   * Address of the mocked fungible token on the testnet
-   */
-  const TOKEN_ADDRESS = "0x4659b416f0ee349907881a5c422e307ea1838fbbf7041b78f5d3dec078a6faa4";
-  /**
-   * Address of the module for minting mocked fungible tokens on the testnet
-   */
-  const MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
-  // TODO: add tests with token with 10^18 precision
-  const TOKENS_TO_MINT = 1_000;
-
-  const INITIAL_APTOS_BALANCE = 0.5 * 10 ** 8;
-
-  const rootDir = path.resolve(__dirname, "../../../");
-
-  const addNewContentLineToFile = (filename: string, data: string) => {
-    const filePath = path.resolve(rootDir, filename);
-
-    const content = `\n${data}\n`;
-
-    fs.appendFileSync(filePath, content);
-  };
-
-  const mintFungibleTokens = async (account: Account) => {
-    const transaction = await aptos.transaction.build.simple({
-      sender: account.accountAddress,
-      data: {
-        function: `${MODULE_ADDRESS}::mock_token::mint_to`,
-        functionArguments: [TOKENS_TO_MINT],
-      },
-    });
-    const pendingTxn = await aptos.signAndSubmitTransaction({ signer: account, transaction });
-    return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-  };
-
-  const sendAndWaitTx = async (
-    transaction: AnyRawTransaction,
-    signer: Account,
-  ): Promise<CommittedTransactionResponse> => {
-    const pendingTxn = await aptos.signAndSubmitTransaction({ signer, transaction });
-    return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-  };
-
-  const sendAndWaitBatchTxs = async (
-    txPayloads: InputGenerateTransactionPayloadData[],
-    sender: Account,
-  ): Promise<CommittedTransactionResponse[]> => {
-    aptos.transaction.batch.forSingleAccount({
-      sender,
-      data: txPayloads,
-    });
-
-    let allTxSentPromiseResolve: (value: void | PromiseLike<void>) => void;
-
-    const txHashes: string[] = [];
-    aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
-      txHashes.push(data.transactionHash);
-
-      if (txHashes.length === txPayloads.length) {
-        allTxSentPromiseResolve();
-      }
-    });
-
-    await new Promise<void>((resolve) => {
-      allTxSentPromiseResolve = resolve;
-    });
-
-    return Promise.all(txHashes.map((txHash) => aptos.waitForTransaction({ transactionHash: txHash })));
-  };
-
-  const alice = Account.fromPrivateKey({
-    privateKey: new Ed25519PrivateKey(TESTNET_PK!),
-  });
-
-  /** !important: for testing purposes */
-  RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
-  RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
+  const alice = getTestAccount();
+  const aliceConfidential = getTestConfidentialAccount(alice);
 
   test(
-    "it should fund Alice aptos accounts balances",
+    "Pre load wasm table map",
     async () => {
-      const [aliceResponse] = await Promise.all([
-        aptos.fundAccount({
-          accountAddress: alice.accountAddress,
-          amount: INITIAL_APTOS_BALANCE,
-        }),
-      ]);
-
-      expect(aliceResponse.success).toBeTruthy();
+      await preloadTables();
     },
     longTestTimeout,
   );
@@ -137,15 +46,6 @@ describe("Confidential balance api", () => {
     },
     longTestTimeout,
   );
-
-  const aliceDecryptionKey = new TwistedEd25519PrivateKey(TESTNET_DK!);
-  // const aliceDecryptionKey = TwistedEd25519PrivateKey.generate();
-
-  // console.log("\n\n\n");
-  // console.log(aliceDecryptionKey.toString());
-  // console.log(aliceDecryptionKey.publicKey().toString());
-  // console.log(aliceDecryptionKey.publicKey().toUint8Array());
-  // console.log("\n\n\n");
 
   let isAliceRegistered = false;
   test("it should check Alice confidential balance registered", async () => {
@@ -168,7 +68,7 @@ describe("Confidential balance api", () => {
       const aliceRegisterVBTxBody = await aptos.confidentialCoin.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
-        publicKey: aliceDecryptionKey.publicKey(),
+        publicKey: aliceConfidential.publicKey(),
       });
 
       const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
@@ -196,11 +96,11 @@ describe("Confidential balance api", () => {
   test("it should decrypt Alice confidential balances", async () => {
     const [aliceDecryptedPendingBalance, aliceDecryptedActualBalance] = await Promise.all([
       (
-        await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.pending, aliceDecryptionKey, {
+        await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.pending, aliceConfidential, {
           chunksCount: 2,
         })
       ).amount,
-      (await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.actual, aliceDecryptionKey)).amount,
+      (await ConfidentialAmount.fromEncrypted(aliceConfidentialBalances.actual, aliceConfidential)).amount,
     ]);
 
     expect(aliceDecryptedPendingBalance).toBeDefined();
@@ -234,7 +134,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.pending,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
@@ -245,7 +145,7 @@ describe("Confidential balance api", () => {
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,
-      decryptionKey: aliceDecryptionKey,
+      decryptionKey: aliceConfidential,
     });
 
     const txResponses = await sendAndWaitBatchTxs(rolloverTxPayloads, alice);
@@ -262,7 +162,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.actual,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(DEPOSIT_AMOUNT);
@@ -272,13 +172,13 @@ describe("Confidential balance api", () => {
   test("it should withdraw Alice's confidential balance", async () => {
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceConfidentialBalances.actual,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     const withdrawTx = await aptos.confidentialCoin.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
-      decryptionKey: aliceDecryptionKey,
+      decryptionKey: aliceConfidential,
       encryptedActualBalance: aliceConfidentialAmount.amountEncrypted!,
       amountToWithdraw: WITHDRAW_AMOUNT,
     });
@@ -296,7 +196,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.actual,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(0n);
@@ -312,8 +212,8 @@ describe("Confidential balance api", () => {
   const TRANSFER_AMOUNT = 2n;
   test("it should transfer Alice's tokens to Alice's pending balance without auditor", async () => {
     const transferTx = await aptos.confidentialCoin.transferCoin({
-      senderDecryptionKey: aliceDecryptionKey,
-      recipientEncryptionKey: aliceDecryptionKey.publicKey(),
+      senderDecryptionKey: aliceConfidential,
+      recipientEncryptionKey: aliceConfidential.publicKey(),
       encryptedActualBalance: aliceConfidentialBalances.actual,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
@@ -334,7 +234,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.actual,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(0n);
@@ -343,8 +243,8 @@ describe("Confidential balance api", () => {
   const AUDITOR = TwistedEd25519PrivateKey.generate();
   test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
     const transferTx = await aptos.confidentialCoin.transferCoin({
-      senderDecryptionKey: aliceDecryptionKey,
-      recipientEncryptionKey: aliceDecryptionKey.publicKey(),
+      senderDecryptionKey: aliceConfidential,
+      recipientEncryptionKey: aliceConfidential.publicKey(),
       encryptedActualBalance: aliceConfidentialBalances.actual,
       amountToTransfer: TRANSFER_AMOUNT,
       sender: alice.accountAddress,
@@ -366,7 +266,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.pending,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeGreaterThanOrEqual(TRANSFER_AMOUNT);
@@ -405,7 +305,7 @@ describe("Confidential balance api", () => {
     if (unnormalizedAliceEncryptedBalance && !isAliceBalanceNormalized) {
       const unnormalizedConfidentialAmount = await ConfidentialAmount.fromEncrypted(
         unnormalizedAliceEncryptedBalance,
-        aliceDecryptionKey,
+        aliceConfidential,
         {
           chunksCount: 2,
         },
@@ -413,7 +313,7 @@ describe("Confidential balance api", () => {
 
       const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
-        decryptionKey: aliceDecryptionKey,
+        decryptionKey: aliceConfidential,
         unnormalizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
         balanceAmount: unnormalizedConfidentialAmount.amount,
 
@@ -437,7 +337,7 @@ describe("Confidential balance api", () => {
 
     const aliceConfidentialAmount = await ConfidentialAmount.fromEncrypted(
       aliceChunkedConfidentialBalance.pending,
-      aliceDecryptionKey,
+      aliceConfidential,
     );
 
     expect(aliceConfidentialAmount.amount).toBeDefined();
@@ -448,7 +348,7 @@ describe("Confidential balance api", () => {
     const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateVBKey(aptos, alice, {
       sender: alice.accountAddress,
 
-      currDecryptionKey: aliceDecryptionKey,
+      currDecryptionKey: aliceConfidential,
       newDecryptionKey: ALICE_NEW_CONFIDENTIAL_PRIVATE_KEY,
 
       currEncryptedBalance: aliceConfidentialBalances.actual,

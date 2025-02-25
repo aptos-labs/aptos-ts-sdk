@@ -68,7 +68,7 @@ export class ConfidentialNormalization {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/NormalizationProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/NormalizationProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialNormalizationSigmaProof): Uint8Array {
     return concatBytes(

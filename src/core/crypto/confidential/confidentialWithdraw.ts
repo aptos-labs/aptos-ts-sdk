@@ -78,7 +78,7 @@ export class ConfidentialWithdraw {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/WithdrawalProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/WithdrawalProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialWithdrawSigmaProof): Uint8Array {
     return concatBytes(

@@ -48,7 +48,7 @@ export type ConfidentialBalance = {
 };
 
 // 8 chunks module
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x78812b8cb4980793621276f253f1be30e991beb8fca6c058362c39a9722d3503";
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
 
 /**
  * A class to handle confidential balance operations
@@ -72,7 +72,7 @@ export class ConfidentialCoin {
       view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::pending_balance`,
+          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::pending_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -81,7 +81,7 @@ export class ConfidentialCoin {
       view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::actual_balance`,
+          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::actual_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -110,7 +110,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::register`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::register`,
         functionArguments: [args.tokenAddress, pkU8],
       },
       options: args.options,
@@ -127,7 +127,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::veil_to`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::deposit_to`,
         functionArguments: [args.tokenAddress, args.sender, String(args.amount)],
       },
       options: args.options,
@@ -155,7 +155,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::unveil_to`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::withdraw_to`,
         functionArguments: [
           args.tokenAddress,
           AccountAddress.from(args.sender),
@@ -176,7 +176,7 @@ export class ConfidentialCoin {
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::${method}`,
       functionArguments: [args.tokenAddress],
     };
   }
@@ -238,7 +238,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args?.options,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::get_auditor`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::get_auditor`,
       },
     });
   }
@@ -287,7 +287,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::fully_veiled_transfer`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::confidential_transfer`,
         functionArguments: [
           args.tokenAddress,
           args.recipientAddress,
@@ -309,7 +309,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args.options,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::is_frozen`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::is_frozen`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -343,7 +343,7 @@ export class ConfidentialCoin {
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::${method}`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::${method}`,
       functionArguments: [
         args.tokenAddress,
         newPublicKeyU8,
@@ -434,7 +434,7 @@ export class ConfidentialCoin {
     const [isRegister] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::has_veiled_coin_store`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::has_condifdential_asset_store`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -452,7 +452,7 @@ export class ConfidentialCoin {
     const [isNormalized] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::is_normalized`,
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::is_normalized`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -480,7 +480,7 @@ export class ConfidentialCoin {
     const [{ sigmaProof, rangeProof }, normalizedVB] = await confidentialNormalization.authorizeNormalization();
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::veiled_coin::normalize`,
+      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::confidential_asset::normalize`,
       functionArguments: [
         args.tokenAddress,
         concatBytes(...normalizedVB.map((el) => el.serialize()).flat()),

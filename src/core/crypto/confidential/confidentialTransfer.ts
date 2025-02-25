@@ -131,7 +131,7 @@ export class ConfidentialTransfer {
     });
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/TransferProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/TransferProofFiatShamir";
 
   static serializeSigmaProof(sigmaProof: ConfidentialTransferSigmaProof): Uint8Array {
     return concatBytes(

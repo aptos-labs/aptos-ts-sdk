@@ -58,7 +58,7 @@ export class ConfidentialKeyRotation {
     this.newConfidentialAmount = args.newConfidentialAmount;
   }
 
-  static FIAT_SHAMIR_SIGMA_DST = "AptosVeiledCoin/RotationProofFiatShamir";
+  static FIAT_SHAMIR_SIGMA_DST = "AptosConfidentialAsset/RotationProofFiatShamir";
 
   static async create(args: CreateConfidentialKeyRotationOpArgs) {
     const randomness = args.randomness ?? ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
