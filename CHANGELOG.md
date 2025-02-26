@@ -9,6 +9,9 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
 - Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
 - Fix scriptComposer addBatchedCalls more typeArguments error
+- Add support for skipping struct type tag validation.
+- Add support for known enum structs: DelegationKey and RateLimiter.
+- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
 
 # 1.35.0 (2025-02-11)
 
