@@ -223,9 +223,9 @@ export async function requestPermission(args: {
 
           if (permission instanceof FungibleAssetPermission) {
             return builder.addBatchedCalls({
-              function: "0x1::fungible_asset::grant_permission",
+              function: "0x1::fungible_asset::grant_permission_by_store",
               functionArguments: [CallArgument.newSigner(0), signerBorrow, permission.asset, permission.amount],
-              typeArguments: [],
+              typeArguments: ["0x1::fungible_asset::Metadata"],
             });
           }
 

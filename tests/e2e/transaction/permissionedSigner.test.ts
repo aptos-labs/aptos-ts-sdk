@@ -11,9 +11,11 @@ import {
   Deserializer,
   AbstractedAccount,
   SimpleTransaction,
+  Aptos,
+  Network,
+  AptosConfig,
 } from "../../../src";
 import { longTestTimeout } from "../../unit/helper";
-import { getAptosClient } from "../helper";
 import { fundAccounts } from "./helper";
 import {
   FungibleAssetPermission,
@@ -23,7 +25,7 @@ import {
   NFTPermissionCapability,
 } from "../../../src/types/permissions";
 
-const { aptos } = getAptosClient();
+const aptos = new Aptos(new AptosConfig({ network: Network.DEVNET }));
 
 describe("transaction submission", () => {
   let primaryAccount: Ed25519Account;
