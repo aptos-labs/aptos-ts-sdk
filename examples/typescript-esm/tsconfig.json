@@ -12,10 +12,11 @@
     "outDir": "./dist",
     "sourceMap": true,
     "target": "es2020",
-    "pretty": true
+    "pretty": true,
+    "paths": {
+      "@aptos/*": ["../.."]
+    }
   },
   "include": ["*.ts", "sponsored_transactions/*.ts"],
-  "paths": {
-    "@aptos/*": "../.."
-  }
+
 }

@@ -29,12 +29,13 @@ import {
   MoveStructId,
   OrderByArg,
   PaginationArgs,
+  PendingTransactionResponse,
   TokenStandardArg,
   TransactionResponse,
   WhereArg,
 } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Account } from "../account";
+import { Account, Ed25519Account, MultiEd25519Account } from "../account";
 import {
   AbstractMultiKey,
   AccountPublicKey,
@@ -49,6 +50,7 @@ import {
   Secp256k1PublicKey,
 } from "../core/crypto";
 import { queryIndexer } from "./general";
+import { getModules as getModulesUtil, getModule as getModuleUtil, getInfo as getInfoUtil } from "./utils";
 import {
   GetAccountCoinsCountQuery,
   GetAccountCoinsDataQuery,
@@ -75,7 +77,6 @@ import {
   GetAuthKeysForPublicKey,
   GetAccountAddressesForAuthKey,
 } from "../types/generated/queries";
-import { memoizeAsync } from "../utils/memoize";
 import { Secp256k1PrivateKey, AuthenticationKey, Ed25519PrivateKey, createObjectAddress, Hex } from "../core";
 import { CurrentFungibleAssetBalancesBoolExp } from "../types/generated/types";
 import { getTableItem } from "./table";
@@ -83,6 +84,10 @@ import { APTOS_COIN } from "../utils";
 import { AptosApiError } from "../errors";
 import { Deserializer } from "../bcs";
 import { getTransactionByVersion } from "./transaction";
+import { signAndSubmitTransaction, generateTransaction } from "./transactionSubmission";
+import { EntryFunctionABI, RotationProofChallenge, TypeTagU8, TypeTagVector } from "../transactions";
+import { U8, MoveVector } from "../bcs";
+import { waitForTransaction } from "./transaction";
 
 /**
  * Retrieves account information for a specified account address.
@@ -96,13 +101,7 @@ export async function getInfo(args: {
   aptosConfig: AptosConfig;
   accountAddress: AccountAddressInput;
 }): Promise<AccountData> {
-  const { aptosConfig, accountAddress } = args;
-  const { data } = await getAptosFullNode<{}, AccountData>({
-    aptosConfig,
-    originMethod: "getInfo",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}`,
-  });
-  return data;
+  return getInfoUtil(args);
 }
 
 /**
@@ -122,17 +121,7 @@ export async function getModules(args: {
   accountAddress: AccountAddressInput;
   options?: PaginationArgs & LedgerVersionArg;
 }): Promise<MoveModuleBytecode[]> {
-  const { aptosConfig, accountAddress, options } = args;
-  return paginateWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
-    aptosConfig,
-    originMethod: "getModules",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
-    params: {
-      ledger_version: options?.ledgerVersion,
-      offset: options?.offset,
-      limit: options?.limit ?? 1000,
-    },
-  });
+  return getModulesUtil(args);
 }
 
 /**
@@ -154,45 +143,7 @@ export async function getModule(args: {
   moduleName: string;
   options?: LedgerVersionArg;
 }): Promise<MoveModuleBytecode> {
-  // We don't memoize the account module by ledger version, as it's not a common use case, this would be handled
-  // by the developer directly
-  if (args.options?.ledgerVersion !== undefined) {
-    return getModuleInner(args);
-  }
-
-  return memoizeAsync(
-    async () => getModuleInner(args),
-    `module-${args.accountAddress}-${args.moduleName}`,
-    1000 * 60 * 5, // 5 minutes
-  )();
-}
-
-/**
- * Retrieves the bytecode of a specified module from a given account address.
- *
- * @param args - The parameters for retrieving the module bytecode.
- * @param args.aptosConfig - The configuration for connecting to the Aptos network.
- * @param args.accountAddress - The address of the account from which to retrieve the module.
- * @param args.moduleName - The name of the module to retrieve.
- * @param args.options - Optional parameters for specifying the ledger version.
- * @param args.options.ledgerVersion - The specific ledger version to query.
- * @group Implementation
- */
-async function getModuleInner(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-  moduleName: string;
-  options?: LedgerVersionArg;
-}): Promise<MoveModuleBytecode> {
-  const { aptosConfig, accountAddress, moduleName, options } = args;
-
-  const { data } = await getAptosFullNode<{}, MoveModuleBytecode>({
-    aptosConfig,
-    originMethod: "getModule",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/module/${moduleName}`,
-    params: { ledger_version: options?.ledgerVersion },
-  });
-  return data;
+  return getModuleUtil(args);
 }
 
 /**
@@ -840,6 +791,197 @@ export async function isAccountExist(args: { aptosConfig: AptosConfig; authKey: 
     }
     throw new Error(`Error while looking for an account info ${accountAddress.toString()}`);
   }
+}
+
+const rotateAuthKeyAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    new TypeTagU8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+    TypeTagVector.u8(),
+  ],
+};
+
+/**
+ * Rotates the authentication key for a given account.
+ *
+ * @param args - The arguments for rotating the authentication key.
+ * @param args.aptosConfig - The configuration settings for the Aptos network.
+ * @param args.fromAccount - The account from which the authentication key will be rotated.
+ * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
+ * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
+ * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
+ * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
+ *
+ * @remarks
+ * This function supports three modes of rotation:
+ * 1. Using a target Account object (toAccount)
+ * 2. Using a new private key (toNewPrivateKey)
+ * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
+ *
+ * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
+ *
+ * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
+ * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
+ *
+ * @returns A promise that resolves to the pending transaction response.
+ * @throws Error if the rotation fails or verification fails.
+ *
+ * @group Implementation
+ */
+export async function rotateAuthKey(
+  args: {
+    aptosConfig: AptosConfig;
+    fromAccount: Account;
+  } & (
+    | { toAccount: Account; dangerouslySkipVerification?: never }
+    | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
+    | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
+  ),
+): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount, dangerouslySkipVerification } = args;
+  if ("toNewPrivateKey" in args) {
+    return rotateAuthKeyWithChallenge({
+      aptosConfig,
+      fromAccount,
+      toNewPrivateKey: args.toNewPrivateKey,
+    });
+  }
+  let authKey: AuthenticationKey;
+  if ("toAccount" in args) {
+    if (args.toAccount instanceof Ed25519Account) {
+      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toNewPrivateKey: args.toAccount.privateKey });
+    }
+    if (args.toAccount instanceof MultiEd25519Account) {
+      return rotateAuthKeyWithChallenge({ aptosConfig, fromAccount, toAccount: args.toAccount });
+    }
+    authKey = args.toAccount.publicKey.authKey();
+  } else if ("toAuthKey" in args) {
+    authKey = args.toAuthKey;
+  } else {
+    throw new Error("Invalid arguments");
+  }
+
+  const pendingTxn = await rotateAuthKeyUnverified({
+    aptosConfig,
+    fromAccount,
+    toAuthKey: authKey,
+  });
+
+  if (dangerouslySkipVerification === true) {
+    return pendingTxn;
+  }
+
+  const rotateAuthKeyTxnResponse = await waitForTransaction({
+    aptosConfig,
+    transactionHash: pendingTxn.hash,
+  });
+  if (!rotateAuthKeyTxnResponse.success) {
+    throw new Error(`Failed to rotate authentication key - ${rotateAuthKeyTxnResponse}`);
+  }
+
+  // Verify the rotation by setting the originating address to the new account.
+  // This verifies the rotation even if the transaction payload fails to execute successfully.
+  const verificationTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::set_originating_address",
+      functionArguments: [],
+    },
+  });
+
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: args.toAccount, // Use the new account to sign
+    transaction: verificationTxn,
+  });
+}
+
+async function rotateAuthKeyWithChallenge(
+  args: {
+    aptosConfig: AptosConfig;
+    fromAccount: Account;
+  } & ({ toNewPrivateKey: Ed25519PrivateKey } | { toAccount: MultiEd25519Account }),
+): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount } = args;
+  const accountInfo = await getInfo({
+    aptosConfig,
+    accountAddress: fromAccount.accountAddress,
+  });
+
+  let newAccount: Account;
+  if ("toNewPrivateKey" in args) {
+    newAccount = Account.fromPrivateKey({ privateKey: args.toNewPrivateKey, legacy: true });
+  } else {
+    newAccount = args.toAccount;
+  }
+
+  const challenge = new RotationProofChallenge({
+    sequenceNumber: BigInt(accountInfo.sequence_number),
+    originator: fromAccount.accountAddress,
+    currentAuthKey: AccountAddress.from(accountInfo.authentication_key),
+    newPublicKey: newAccount.publicKey,
+  });
+
+  // Sign the challenge
+  const challengeHex = challenge.bcsToBytes();
+  const proofSignedByCurrentKey = fromAccount.sign(challengeHex);
+  const proofSignedByNewKey = newAccount.sign(challengeHex);
+
+  // Generate transaction
+  const rawTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::rotate_authentication_key",
+      functionArguments: [
+        new U8(fromAccount.signingScheme), // from scheme
+        MoveVector.U8(fromAccount.publicKey.toUint8Array()),
+        new U8(newAccount.signingScheme), // to scheme
+        MoveVector.U8(newAccount.publicKey.toUint8Array()),
+        MoveVector.U8(proofSignedByCurrentKey.toUint8Array()),
+        MoveVector.U8(proofSignedByNewKey.toUint8Array()),
+      ],
+      abi: rotateAuthKeyAbi,
+    },
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: rawTxn,
+  });
+}
+
+const rotateAuthKeyUnverifiedAbi: EntryFunctionABI = {
+  typeParameters: [],
+  parameters: [TypeTagVector.u8()],
+};
+
+async function rotateAuthKeyUnverified(args: {
+  aptosConfig: AptosConfig;
+  fromAccount: Account;
+  toAuthKey: AuthenticationKey;
+}): Promise<PendingTransactionResponse> {
+  const { aptosConfig, fromAccount, toAuthKey } = args;
+  const authKey = toAuthKey;
+  const rawTxn = await generateTransaction({
+    aptosConfig,
+    sender: fromAccount.accountAddress,
+    data: {
+      function: "0x1::account::rotate_authentication_key_call",
+      functionArguments: [MoveVector.U8(authKey.toUint8Array())],
+      abi: rotateAuthKeyUnverifiedAbi,
+    },
+  });
+  return signAndSubmitTransaction({
+    aptosConfig,
+    signer: fromAccount,
+    transaction: rawTxn,
+  });
 }
 
 async function getMultiKeysForAuthenticationKeys(args: {

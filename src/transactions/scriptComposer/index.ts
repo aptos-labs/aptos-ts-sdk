@@ -58,7 +58,9 @@ export class AptosScriptComposer {
 
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
-      await Promise.all(input.typeArguments.map((typeTag) => this.builder.load_type_tag(nodeUrl, typeTag.toString())));
+      for (const typeArgument of input.typeArguments) {
+        await this.builder.load_type_tag(nodeUrl, typeArgument.toString());
+      }
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
     const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);

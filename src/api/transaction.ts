@@ -24,7 +24,6 @@ import {
   FeePayerOrFeePayerAuthenticatorOrNeither,
   getSigningMessage,
   publicPackageTransaction,
-  rotateAuthKey,
   signAndSubmitAsFeePayer,
   signAndSubmitTransaction,
   signAsFeePayer,
@@ -36,13 +35,14 @@ import {
   InputGenerateTransactionOptions,
   InputGenerateTransactionPayloadData,
 } from "../transactions";
-import { AccountAddressInput, PrivateKeyInput } from "../core";
+import { AccountAddressInput, AuthenticationKey, Ed25519PrivateKey } from "../core";
 import { Account } from "../account";
 import { Build } from "./transactionSubmission/build";
 import { Simulate } from "./transactionSubmission/simulate";
 import { Submit } from "./transactionSubmission/submit";
 import { TransactionManagement } from "./transactionSubmission/management";
 import { SimpleTransaction } from "../transactions/instances/simpleTransaction";
+import { rotateAuthKey } from "../internal/account";
 
 /**
  * Represents a transaction in the Aptos blockchain,
@@ -474,13 +474,26 @@ export class Transaction {
   }
 
   /**
-   * Rotate an account's authentication key. After rotation, only the new private key can be used to sign transactions for the account.
-   * Note: Only legacy Ed25519 scheme is supported for now.
-   * More info: {@link https://aptos.dev/guides/account-management/key-rotation/}
+   * Rotates the authentication key for a given account.  Once an account is rotated, only the new private key
+   * or keyless signing scheme can be used to sign transactions for the account.
    *
-   * @param args The arguments for rotating the auth key.
-   * @param args.fromAccount The account to rotate the auth key for.
-   * @param args.toNewPrivateKey The new private key to rotate to.
+   * @param args - The arguments for rotating the authentication key.
+   * @param args.fromAccount - The account from which the authentication key will be rotated.
+   * @param args.toAccount - (Optional) The target account to rotate to. Required if not using toNewPrivateKey or toAuthKey.
+   * @param args.toNewPrivateKey - (Optional) The new private key to rotate to. Required if not using toAccount or toAuthKey.
+   * @param args.toAuthKey - (Optional) The new authentication key to rotate to. Can only be used with dangerouslySkipVerification=true.
+   * @param args.dangerouslySkipVerification - (Optional) If true, skips verification steps after rotation. Required when using toAuthKey.
+   *
+   * @remarks
+   * This function supports three modes of rotation:
+   * 1. Using a target Account object (toAccount)
+   * 2. Using a new private key (toNewPrivateKey)
+   * 3. Using a raw authentication key (toAuthKey) - requires dangerouslySkipVerification=true
+   *
+   * When not using dangerouslySkipVerification, the function performs additional safety checks and account setup.
+   *
+   * If the new key is a multi key, skipping verification is dangerous because verification will publish the public key onchain and
+   * prevent users from being locked out of the account from loss of knowledge of one of the public keys.
    *
    * @returns PendingTransactionResponse
    *
@@ -506,7 +519,15 @@ export class Transaction {
    * ```
    * @group Transaction
    */
-  async rotateAuthKey(args: { fromAccount: Account; toNewPrivateKey: PrivateKeyInput }): Promise<TransactionResponse> {
+  async rotateAuthKey(
+    args: {
+      fromAccount: Account;
+    } & (
+      | { toAccount: Account; dangerouslySkipVerification?: never }
+      | { toNewPrivateKey: Ed25519PrivateKey; dangerouslySkipVerification?: never }
+      | { toAuthKey: AuthenticationKey; dangerouslySkipVerification: true }
+    ),
+  ): Promise<PendingTransactionResponse> {
     return rotateAuthKey({ aptosConfig: this.config, ...args });
   }
 
