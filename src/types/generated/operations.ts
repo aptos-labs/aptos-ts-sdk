@@ -77,6 +77,19 @@ export type CurrentTokenOwnershipFieldsFragment = {
   } | null;
 };
 
+export type GetAccountAddressesForAuthKeyQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.AuthKeyAccountAddressesBoolExp>;
+}>;
+
+export type GetAccountAddressesForAuthKeyQuery = {
+  auth_key_account_addresses: Array<{
+    auth_key: string;
+    address: string;
+    last_transaction_version: any;
+    verified: boolean;
+  }>;
+};
+
 export type GetAccountCoinsCountQueryVariables = Types.Exact<{
   address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
@@ -96,15 +109,15 @@ export type GetAccountCoinsDataQueryVariables = Types.Exact<{
 
 export type GetAccountCoinsDataQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
+    is_primary: boolean;
     last_transaction_timestamp?: any | null;
     last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
     metadata?: {
       token_standard: string;
       symbol: string;
@@ -346,6 +359,20 @@ export type GetAccountTransactionsCountQuery = {
   account_transactions_aggregate: { aggregate?: { count: number } | null };
 };
 
+export type GetAuthKeysForPublicKeyQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.PublicKeyAuthKeysBoolExp>;
+}>;
+
+export type GetAuthKeysForPublicKeyQuery = {
+  public_key_auth_keys: Array<{
+    public_key: string;
+    public_key_type: string;
+    auth_key: string;
+    last_transaction_version: any;
+    verified: boolean;
+  }>;
+};
+
 export type GetChainTopUserTransactionsQueryVariables = Types.Exact<{
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
@@ -394,15 +421,15 @@ export type GetCurrentFungibleAssetBalancesQueryVariables = Types.Exact<{
 
 export type GetCurrentFungibleAssetBalancesQuery = {
   current_fungible_asset_balances: Array<{
-    amount?: any | null;
-    asset_type?: string | null;
+    amount: any;
+    asset_type: string;
     is_frozen: boolean;
-    is_primary?: boolean | null;
+    is_primary: boolean;
     last_transaction_timestamp?: any | null;
     last_transaction_version?: any | null;
     owner_address: string;
     storage_id: string;
-    token_standard?: string | null;
+    token_standard: string;
   }>;
 };
 
@@ -495,6 +522,20 @@ export type GetFungibleAssetMetadataQuery = {
   }>;
 };
 
+export type GetMultiKeyForAuthKeyQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.AuthKeyMultikeyLayoutBoolExp>;
+}>;
+
+export type GetMultiKeyForAuthKeyQuery = {
+  auth_key_multikey_layout: Array<{
+    auth_key: string;
+    last_transaction_version: any;
+    multikey_layout_with_prefixes: any;
+    multikey_type: string;
+    signatures_required: any;
+  }>;
+};
+
 export type GetNamesQueryVariables = Types.Exact<{
   offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
   limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
@@ -550,6 +591,26 @@ export type GetProcessorStatusQueryVariables = Types.Exact<{
 
 export type GetProcessorStatusQuery = {
   processor_status: Array<{ last_success_version: any; processor: string; last_updated: any }>;
+};
+
+export type GetSignaturesQueryVariables = Types.Exact<{
+  where_condition?: Types.InputMaybe<Types.SignaturesBoolExp>;
+  offset?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  limit?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  order_by?: Types.InputMaybe<Array<Types.SignaturesOrderBy> | Types.SignaturesOrderBy>;
+}>;
+
+export type GetSignaturesQuery = {
+  signatures: Array<{
+    signature: string;
+    public_key: string;
+    public_key_indices: any;
+    type: string;
+    signer: string;
+    transaction_version: any;
+    threshold: any;
+    is_sender_primary: boolean;
+  }>;
 };
 
 export type GetTableItemsDataQueryVariables = Types.Exact<{
