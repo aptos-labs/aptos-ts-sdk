@@ -260,6 +260,7 @@ export async function deriveCognitoKeylessAccount(args: {
   // If no callback is provided, the just await the proof fetch and continue synchronously.
   const proof = proofFetchCallback ? proofPromise : await proofPromise;
 
+  // We construct a multi key public key in order to handle escaped and unescaped JSON strings.
   const multiKey = new MultiKey({
     publicKeys: [
       FederatedKeylessPublicKey.fromJwtAndPepperWithoutUnescaping({ jwt, pepper, jwkAddress, uidKey }),
