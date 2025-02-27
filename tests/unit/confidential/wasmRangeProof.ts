@@ -4,25 +4,18 @@
 import initWasm, {
   range_proof as rangeProof,
   verify_proof as verifyProof,
+  batch_range_proof as batchRangeProof,
+  batch_verify_proof as batchVerifyProof,
 } from "@distributedlab/aptos-wasm-bindings/range-proofs";
+import {
+  BatchRangeProofInputs,
+  BatchVerifyRangeProofInputs,
+  RangeProofInputs,
+  VerifyRangeProofInputs,
+} from "../../../src";
 
-export interface RangeProofInputs {
-  v: bigint;
-  r: Uint8Array;
-  valBase: Uint8Array;
-  randBase: Uint8Array;
-  bits?: number;
-}
-
-export interface VerifyRangeProofInputs {
-  proof: Uint8Array;
-  commitment: Uint8Array;
-  valBase: Uint8Array;
-  randBase: Uint8Array;
-  bits?: number;
-}
-
-const RANGE_PROOF_WASM_URL = "https://unpkg.com/@distributedlab/aptos-wasm-bindings/range-proofs/aptos_rp_wasm_bg.wasm";
+const RANGE_PROOF_WASM_URL =
+  "https://unpkg.com/@distributedlab/aptos-wasm-bindings@0.3.16/range-proofs/aptos_rp_wasm_bg.wasm";
 
 /**
  * Generate range Zero Knowledge Proof
@@ -57,4 +50,23 @@ export async function verifyRangeZKP(opts: VerifyRangeProofInputs) {
   await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
 
   return verifyProof(opts.proof, opts.commitment, opts.valBase, opts.randBase, opts.bits ?? 32);
+}
+
+export async function genBatchRangeZKP(
+  opts: BatchRangeProofInputs,
+): Promise<{ proof: Uint8Array; commitments: Uint8Array[] }> {
+  await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
+
+  const proof = batchRangeProof(new BigUint64Array(opts.v), opts.rs, opts.val_base, opts.rand_base, opts.num_bits);
+
+  return {
+    proof: proof.proof(),
+    commitments: proof.comms(),
+  };
+}
+
+export async function verifyBatchRangeZKP(opts: BatchVerifyRangeProofInputs): Promise<boolean> {
+  await initWasm({ module_or_path: RANGE_PROOF_WASM_URL });
+
+  return batchVerifyProof(opts.proof, opts.comm, opts.val_base, opts.rand_base, opts.num_bits);
 }

@@ -273,26 +273,22 @@ export class ConfidentialWithdraw {
   }
 
   async genRangeProof() {
-    const rangeProof = await Promise.all(
-      this.confidentialAmountAfterWithdraw.amountChunks.map((chunk, i) =>
-        RangeProofExecutor.generateRangeZKP({
-          v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
+    const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
+      v: this.confidentialAmountAfterWithdraw.amountChunks.map((chunk) => chunk),
+      rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
-    return rangeProof.map((el) => el.proof);
+    return rangeProof.proof;
   }
 
   async authorizeWithdrawal(): Promise<
     [
       {
         sigmaProof: ConfidentialWithdrawSigmaProof;
-        rangeProof: Uint8Array[];
+        rangeProof: Uint8Array;
       },
       TwistedElGamalCiphertext[],
     ]
@@ -304,22 +300,15 @@ export class ConfidentialWithdraw {
   }
 
   static async verifyRangeProof(opts: {
-    rangeProof: Uint8Array[];
+    rangeProof: Uint8Array;
     encryptedActualBalanceAfterWithdraw: TwistedElGamalCiphertext[];
   }) {
-    const rangeProofVerificationResults = await Promise.all(
-      opts.rangeProof.map((proof, i) =>
-        RangeProofExecutor.verifyRangeZKP({
-          proof,
-          commitment: opts.encryptedActualBalanceAfterWithdraw[i].C.toRawBytes(),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: opts.encryptedActualBalanceAfterWithdraw[i].D.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
-
-    return rangeProofVerificationResults.every((isValid) => isValid);
+    return RangeProofExecutor.verifyBatchRangeZKP({
+      proof: opts.rangeProof,
+      comm: opts.encryptedActualBalanceAfterWithdraw.map((el) => el.C.toRawBytes()),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
   }
 }

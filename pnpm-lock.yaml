@@ -18,8 +18,8 @@ importers:
         specifier: ^0.0.9
         version: 0.0.9
       '@distributedlab/aptos-wasm-bindings':
-        specifier: ^0.3.14
-        version: 0.3.14
+        specifier: ^0.3.16
+        version: 0.3.16
       '@noble/curves':
         specifier: ^1.4.0
         version: 1.6.0
@@ -588,8 +588,8 @@ packages:
   '@cucumber/tag-expressions@6.1.1':
     resolution: {integrity: sha512-0oj5KTzf2DsR3DhL3hYeI9fP3nyKzs7TQdpl54uJelJ3W3Hlyyet2Hib+8LK7kNnqJsXENnJg9zahRYyrtvNEg==}
 
-  '@distributedlab/aptos-wasm-bindings@0.3.14':
-    resolution: {integrity: sha512-sTocPyP+F4+zA76E2RtnVrYRkGrUWdCcZipmTv3REuIvo7XS4dyoFEa0KJv+JHKvCilQ3/XphgccC9gJjoXLNA==}
+  '@distributedlab/aptos-wasm-bindings@0.3.16':
+    resolution: {integrity: sha512-15YPEPbwO/RW3rmdQ/xRxnv4L+uC/mMczAencdWrNKuUoCFyth8sMm13EtgumulCbxN+gWGPUHY36aUT4OAjng==}
 
   '@esbuild/aix-ppc64@0.23.1':
     resolution: {integrity: sha512-6VhYk1diRqrhBAqpJEdjASR/+WVRtfjpqKuNw11cLiaWpAT/Uu+nokB+UJnevzy/P9C/ty6AOe0dwueMrGh/iQ==}
@@ -5032,7 +5032,7 @@ snapshots:
 
   '@cucumber/tag-expressions@6.1.1': {}
 
-  '@distributedlab/aptos-wasm-bindings@0.3.14': {}
+  '@distributedlab/aptos-wasm-bindings@0.3.16': {}
 
   '@esbuild/aix-ppc64@0.23.1':
     optional: true

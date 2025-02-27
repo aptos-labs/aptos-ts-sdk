@@ -19,7 +19,7 @@ import {
   Ed25519Account,
   ConfidentialCoin,
 } from "../../../src";
-import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
+import { genBatchRangeZKP, generateRangeZKP, verifyBatchRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
 export async function loadTableMapJSON(url: string): Promise<{
   file_name: string;
@@ -152,6 +152,7 @@ export const mintFungibleTokens = async (account: Account) => {
   return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
-/** !important: for testing purposes */
+RangeProofExecutor.setGenBatchRangeZKP(genBatchRangeZKP);
+RangeProofExecutor.setVerifyBatchRangeZKP(verifyBatchRangeZKP);
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
 RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);
