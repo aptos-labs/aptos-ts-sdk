@@ -1,15 +1,10 @@
-import { sha3_256, sha3_256 as sha3Hash } from "@noble/hashes/sha3";
+import { sha3_256 } from "@noble/hashes/sha3";
 import { Serializer } from "../bcs/serializer";
-import { AccountAddress, Signature } from "../core";
-import {
-  AccountAuthenticatorAbstraction,
-  AnyRawTransaction,
-  generateSigningMessageForTransaction,
-} from "../transactions";
-import { HexInput, SigningScheme } from "../types";
+import { AccountAddress } from "../core/accountAddress";
+import { AccountAuthenticatorAbstraction } from "../transactions/authenticator/account";
+import { HexInput } from "../types";
 import { isValidFunctionInfo } from "../utils/helpers";
-import { Account } from "./Account";
-import { AbstractPublicKey, AbstractSignature } from "../core/crypto/abstraction";
+import { AbstractedAccount } from "./AbstractedAccount";
 
 type DomainAbstractedAccountArgs = {
   /**
@@ -37,7 +32,7 @@ type DomainAbstractedAccountArgs = {
   accountIdentity: Uint8Array;
 };
 
-export class DomainAbstractedAccount extends Account {
+export class DomainAbstractedAccount extends AbstractedAccount {
   /**
    * The identity of the account.
    * Depends on the use cases, most of the time it is the public key of the source wallet
@@ -45,47 +40,20 @@ export class DomainAbstractedAccount extends Account {
   readonly accountIdentity: Uint8Array;
 
   /**
-   * The address of the account.
-   * It is computed from the authentication function and the account identity
-   */
-  readonly accountAddress: AccountAddress;
-
-  /**
-   * The authentication function that will be used to verify the signature.
-   *
-   * @example
-   * ```ts
-   * const authenticationFunction = `${accountAddress}::permissioned_delegation::authenticate`;
-   * ```
-   */
-  readonly authenticationFunction: string;
-
-  /**
    * The domain separator used to calculate the DAA account address.
    */
   static readonly ADDRESS_DOMAIN_SEPERATOR: number = 5;
 
-  /**
-   * DAA does not have a Public Key, it is here because of the Account inheritance
-   */
-  readonly publicKey: AbstractPublicKey;
-  /**
-   * DAA does not have a Signing Scheme (it is based on the provided authentication and signer function),
-   * it is here because of the Account inheritance
-   */
-  readonly signingScheme = SigningScheme.SingleKey;
-
   constructor({ signer, authenticationFunction, accountIdentity }: DomainAbstractedAccountArgs) {
-    super();
-    this.accountIdentity = accountIdentity;
-    this.authenticationFunction = authenticationFunction;
-
-    this.accountAddress = new AccountAddress(
+    const daAccountAddress = new AccountAddress(
       DomainAbstractedAccount.computeAccountAddress(authenticationFunction, accountIdentity),
     );
-    this.sign = (digest: HexInput) => new AbstractSignature(signer(digest));
-
-    this.publicKey = new AbstractPublicKey(this.accountAddress);
+    super({
+      accountAddress: daAccountAddress,
+      signer,
+      authenticationFunction,
+    });
+    this.accountIdentity = accountIdentity;
   }
 
   /**
@@ -103,7 +71,7 @@ export class DomainAbstractedAccount extends Account {
     }
     const [moduleAddress, moduleName, functionName] = functionInfo.split("::");
 
-    const hash = sha3Hash.create();
+    const hash = sha3_256.create();
     // Serialize and append the function info
     const serializer = new Serializer();
     AccountAddress.fromString(moduleAddress).serialize(serializer);
@@ -122,8 +90,6 @@ export class DomainAbstractedAccount extends Account {
     return hash.digest();
   }
 
-  sign: (message: HexInput) => AbstractSignature;
-
   signWithAuthenticator(message: HexInput): AccountAuthenticatorAbstraction {
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
@@ -131,13 +97,5 @@ export class DomainAbstractedAccount extends Account {
       this.sign(sha3_256(message)).toUint8Array(),
       this.accountIdentity,
     );
-  }
-
-  signTransactionWithAuthenticator(transaction: AnyRawTransaction): AccountAuthenticatorAbstraction {
-    return this.signWithAuthenticator(generateSigningMessageForTransaction(transaction));
-  }
-
-  signTransaction(transaction: AnyRawTransaction): Signature {
-    return this.sign(generateSigningMessageForTransaction(transaction));
   }
 }

@@ -1,4 +1,4 @@
-import { AbstractedAccount, Account, Hex, MoveVector, Network, UserTransactionResponse } from "../../../src";
+import { AbstractedAccount, Account, Hex, MoveVector, Network } from "../../../src";
 import { DomainAbstractedAccount } from "../../../src/account/DomainAbstractedAccount";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
 import { FUND_AMOUNT } from "../../unit/helper";
