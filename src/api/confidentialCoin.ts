@@ -48,7 +48,9 @@ export type ConfidentialBalance = {
 };
 
 // 8 chunks module
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
+// const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
+// devnet with batches
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xa49a4dc2768b62f0bc5994f380986755bd72d1a22b580f1889eb559cc898a78e";
 const MODULE_NAME = "confidential_asset";
 
 /**

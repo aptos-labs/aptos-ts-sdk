@@ -272,27 +272,23 @@ export class ConfidentialKeyRotation {
     );
   }
 
-  async genRangeProof(): Promise<Uint8Array[]> {
-    const rangeProof = await Promise.all(
-      this.currConfidentialAmount.amountChunks.map((chunk, i) =>
-        RangeProofExecutor.generateRangeZKP({
-          v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
+  async genRangeProof(): Promise<Uint8Array> {
+    const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
+      v: this.currConfidentialAmount.amountChunks,
+      rs: this.randomness.map((chunk) => numberToBytesLE(chunk, 32)),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
-    return rangeProof.map(({ proof }) => proof);
+    return rangeProof.proof;
   }
 
   async authorizeKeyRotation(): Promise<
     [
       {
         sigmaProof: ConfidentialKeyRotationSigmaProof;
-        rangeProof: Uint8Array[];
+        rangeProof: Uint8Array;
       },
       TwistedElGamalCiphertext[],
     ]
@@ -310,20 +306,13 @@ export class ConfidentialKeyRotation {
     ];
   }
 
-  static async verifyRangeProof(opts: { rangeProof: Uint8Array[]; newEncryptedBalance: TwistedElGamalCiphertext[] }) {
-    const rangeProofValidations = await Promise.all(
-      opts.rangeProof.map((proof, i) =>
-        RangeProofExecutor.verifyRangeZKP({
-          proof,
-          commitment: opts.newEncryptedBalance[i].C.toRawBytes(),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: opts.newEncryptedBalance[i].D.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
-
-    return rangeProofValidations.every((isValid) => isValid);
+  static async verifyRangeProof(opts: { rangeProof: Uint8Array; newEncryptedBalance: TwistedElGamalCiphertext[] }) {
+    return RangeProofExecutor.verifyBatchRangeZKP({
+      proof: opts.rangeProof,
+      comm: opts.newEncryptedBalance.map((el) => el.C.toRawBytes()),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
   }
 }

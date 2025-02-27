@@ -249,43 +249,33 @@ export class ConfidentialNormalization {
     );
   }
 
-  async genRangeProof(): Promise<Uint8Array[]> {
-    const rangeProof = await Promise.all(
-      this.normalizedConfidentialAmount.amountChunks.map((chunk, i) =>
-        RangeProofExecutor.generateRangeZKP({
-          v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
+  async genRangeProof(): Promise<Uint8Array> {
+    const rangeProof = await RangeProofExecutor.genBatchRangeZKP({
+      v: this.normalizedConfidentialAmount.amountChunks,
+      rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
-    return rangeProof.map(({ proof }) => proof);
+    return rangeProof.proof;
   }
 
   static async verifyRangeProof(opts: {
-    rangeProof: Uint8Array[];
+    rangeProof: Uint8Array;
     normalizedEncryptedBalance: TwistedElGamalCiphertext[];
   }): Promise<boolean> {
-    const isRangeProofValidations = await Promise.all(
-      opts.rangeProof.map((proof, i) =>
-        RangeProofExecutor.verifyRangeZKP({
-          proof,
-          commitment: opts.normalizedEncryptedBalance[i].C.toRawBytes(),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: opts.normalizedEncryptedBalance[i].D.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
-    return isRangeProofValidations.every((isValid) => isValid);
+    return RangeProofExecutor.verifyBatchRangeZKP({
+      proof: opts.rangeProof,
+      comm: opts.normalizedEncryptedBalance.map((el) => el.C.toRawBytes()),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
   }
 
   async authorizeNormalization(): Promise<
-    [{ sigmaProof: ConfidentialNormalizationSigmaProof; rangeProof: Uint8Array[] }, TwistedElGamalCiphertext[]]
+    [{ sigmaProof: ConfidentialNormalizationSigmaProof; rangeProof: Uint8Array }, TwistedElGamalCiphertext[]]
   > {
     const sigmaProof = await this.genSigmaProof();
     const rangeProof = await this.genRangeProof();

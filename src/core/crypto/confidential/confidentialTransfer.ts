@@ -27,8 +27,8 @@ export type ConfidentialTransferSigmaProof = {
 };
 
 export type ConfidentialTransferRangeProof = {
-  rangeProofAmount: Uint8Array[];
-  rangeProofNewBalance: Uint8Array[];
+  rangeProofAmount: Uint8Array;
+  rangeProofNewBalance: Uint8Array;
 };
 
 export type CreateConfidentialTransferOpArgs = {
@@ -246,6 +246,7 @@ export class ConfidentialTransfer {
 
     const lastHalfIndexesOfChunksCount = Array.from(
       { length: ConfidentialAmount.CHUNKS_COUNT / 2 },
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       (_, i) => i + ConfidentialAmount.CHUNKS_COUNT / 2,
     );
 
@@ -467,38 +468,25 @@ export class ConfidentialTransfer {
   }
 
   async genRangeProof(): Promise<ConfidentialTransferRangeProof> {
-    const rangeProofAmountPromise = Promise.all(
-      this.confidentialAmountToTransfer.amountChunks.map((chunk, i) =>
-        RangeProofExecutor.generateRangeZKP({
-          v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
+    const rangeProofAmount = await RangeProofExecutor.genBatchRangeZKP({
+      v: this.confidentialAmountToTransfer.amountChunks,
+      rs: this.randomness.slice(0, ConfidentialAmount.CHUNKS_COUNT / 2).map((el) => numberToBytesLE(el, 32)),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
-    const rangeProofNewBalancePromise = Promise.all(
-      this.confidentialAmountAfterTransfer.amountChunks.map((chunk, i) =>
-        RangeProofExecutor.generateRangeZKP({
-          v: chunk,
-          r: numberToBytesLE(this.randomness[i], 32),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    );
-
-    const [rangeProofAmount, rangeProofNewBalance] = await Promise.all([
-      rangeProofAmountPromise,
-      rangeProofNewBalancePromise,
-    ]);
+    const rangeProofNewBalance = await RangeProofExecutor.genBatchRangeZKP({
+      v: this.confidentialAmountAfterTransfer.amountChunks,
+      rs: this.randomness.map((el) => numberToBytesLE(el, 32)),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
     return {
-      rangeProofAmount: rangeProofAmount.map((proof) => proof.proof),
-      rangeProofNewBalance: rangeProofNewBalance.map((proof) => proof.proof),
+      rangeProofAmount: rangeProofAmount.proof,
+      rangeProofNewBalance: rangeProofNewBalance.proof,
     };
   }
 
@@ -531,31 +519,24 @@ export class ConfidentialTransfer {
   static async verifyRangeProof(opts: {
     encryptedAmountByRecipient: TwistedElGamalCiphertext[];
     encryptedActualBalanceAfterTransfer: TwistedElGamalCiphertext[];
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
+    rangeProofAmount: Uint8Array;
+    rangeProofNewBalance: Uint8Array;
   }) {
-    const rangeProofsValidations = await Promise.all([
-      ...opts.rangeProofAmount.map((proof, i) =>
-        RangeProofExecutor.verifyRangeZKP({
-          proof,
-          commitment: opts.encryptedAmountByRecipient[i].C.toRawBytes(),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-      ...opts.rangeProofNewBalance.map((proof, i) =>
-        RangeProofExecutor.verifyRangeZKP({
-          proof,
-          commitment: opts.encryptedActualBalanceAfterTransfer[i].C.toRawBytes(),
-          valBase: RistrettoPoint.BASE.toRawBytes(),
-          // randBase: opts.encryptedActualBalanceAfterTransfer[i].D.toRawBytes(),
-          randBase: H_RISTRETTO.toRawBytes(),
-          bits: ConfidentialAmount.CHUNK_BITS,
-        }),
-      ),
-    ]);
+    const isRangeProofAmountValid = await RangeProofExecutor.verifyBatchRangeZKP({
+      proof: opts.rangeProofAmount,
+      comm: opts.encryptedAmountByRecipient.map((el) => el.C.toRawBytes()),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
+    const rangeProofNewBalance = await RangeProofExecutor.verifyBatchRangeZKP({
+      proof: opts.rangeProofNewBalance,
+      comm: opts.encryptedActualBalanceAfterTransfer.map((el) => el.C.toRawBytes()),
+      val_base: RistrettoPoint.BASE.toRawBytes(),
+      rand_base: H_RISTRETTO.toRawBytes(),
+      num_bits: ConfidentialAmount.CHUNK_BITS,
+    });
 
-    return rangeProofsValidations.every((isValid) => isValid);
+    return isRangeProofAmountValid && rangeProofNewBalance;
   }
 }

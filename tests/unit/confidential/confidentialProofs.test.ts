@@ -12,6 +12,7 @@ import {
   ConfidentialNormalization,
   RangeProofExecutor,
   ConfidentialAmount,
+  ConfidentialTransferRangeProof,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/confidential/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
@@ -115,10 +116,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  let confidentialTransferRangeProofs: {
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
-  };
+  let confidentialTransferRangeProofs: ConfidentialTransferRangeProof;
   test("Generate transfer range proofs", async () => {
     confidentialTransferRangeProofs = await confidentialTransfer.genRangeProof();
   });
@@ -186,10 +184,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
     expect(isValid).toBeFalsy();
   });
-  let confidentialTransferWithAuditorsRangeProofs: {
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
-  };
+  let confidentialTransferWithAuditorsRangeProofs: ConfidentialTransferRangeProof;
   test("Generate transfer with auditors range proofs", async () => {
     confidentialTransferWithAuditorsRangeProofs = await confidentialTransferWithAuditors.genRangeProof();
 
@@ -233,7 +228,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  let confidentialKeyRotationRangeProof: Uint8Array[];
+  let confidentialKeyRotationRangeProof: Uint8Array;
   test("Generate key rotation range proof", async () => {
     confidentialKeyRotationRangeProof = await confidentialKeyRotation.genRangeProof();
 
@@ -285,7 +280,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
     expect(isValid).toBeTruthy();
   });
-  let confidentialNormalizationRangeProof: Uint8Array[];
+  let confidentialNormalizationRangeProof: Uint8Array;
   test("Generate normalization range proof", async () => {
     confidentialNormalizationRangeProof = await confidentialNormalization.genRangeProof();
 
