@@ -152,7 +152,24 @@ export async function fetchEntryFunctionAbi(
   functionName: string,
   aptosConfig: AptosConfig,
 ): Promise<EntryFunctionABI> {
-  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  const moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, aptosConfig);
+  if (!moduleAbi) throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+  return parseEntryFunctionAbi({
+    moduleAbi,
+    moduleAddress,
+    moduleName,
+    functionName,
+  });
+}
+
+export function parseEntryFunctionAbi(args: {
+  moduleAbi: MoveModule;
+  moduleAddress: string;
+  moduleName: string;
+  functionName: string;
+}): EntryFunctionABI {
+  const { moduleAbi, moduleAddress, moduleName, functionName } = args;
+  const functionAbi = moduleAbi.exposed_functions.find((func) => func.name === functionName);
 
   // If there's no ABI, then the function is invalid
   if (!functionAbi) {
@@ -197,7 +214,24 @@ export async function fetchViewFunctionAbi(
   functionName: string,
   aptosConfig: AptosConfig,
 ): Promise<ViewFunctionABI> {
-  const functionAbi = await fetchFunctionAbi(moduleAddress, moduleName, functionName, aptosConfig);
+  const moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, aptosConfig);
+  if (!moduleAbi) throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+  return parseViewFunctionAbi({
+    moduleAbi,
+    moduleAddress,
+    moduleName,
+    functionName,
+  });
+}
+
+export function parseViewFunctionAbi(args: {
+  moduleAbi: MoveModule;
+  moduleAddress: string;
+  moduleName: string;
+  functionName: string;
+}): ViewFunctionABI {
+  const { moduleAbi, moduleAddress, moduleName, functionName } = args;
+  const functionAbi = moduleAbi.exposed_functions.find((func) => func.name === functionName);
 
   // If there's no ABI, then the function is invalid
   if (!functionAbi) {

@@ -76,13 +76,23 @@ import {
   InputViewFunctionDataWithRemoteABI,
   InputViewFunctionDataWithABI,
   FunctionABI,
+  ViewFunctionABI,
+  EntryFunctionABI,
 } from "../types";
-import { convertArgument, fetchEntryFunctionAbi, fetchViewFunctionAbi, standardizeTypeTags } from "./remoteAbi";
+import {
+  convertArgument,
+  fetchEntryFunctionAbi,
+  fetchViewFunctionAbi,
+  parseEntryFunctionAbi,
+  parseViewFunctionAbi,
+  standardizeTypeTags,
+} from "./remoteAbi";
 import { memoizeAsync } from "../../utils/memoize";
 import { isScriptDataInput } from "./helpers";
 import { SimpleTransaction } from "../instances/simpleTransaction";
 import { MultiAgentTransaction } from "../instances/multiAgentTransaction";
 import { getFunctionParts } from "../../utils/helpers";
+import { MoveModule } from "../../types";
 
 /**
  * Builds a transaction payload based on the provided arguments and returns a transaction payload.
@@ -145,6 +155,7 @@ export async function generateTransactionPayload(
     aptosConfig: args.aptosConfig,
     abi: args.abi,
     fetch: fetchEntryFunctionAbi,
+    parse: parseEntryFunctionAbi,
   });
 
   // Fill in the ABI
@@ -179,8 +190,15 @@ export function generateTransactionPayloadWithABI(args: InputMultiSigDataWithABI
 export function generateTransactionPayloadWithABI(
   args: InputGenerateTransactionPayloadDataWithABI,
 ): AnyTransactionPayloadInstance {
-  const functionAbi = args.abi;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  // Parse the ABI if it's the whole module (aka surf)
+  let functionAbi: EntryFunctionABI | undefined;
+  if ("exposed_functions" in args.abi) {
+    functionAbi = parseEntryFunctionAbi({ moduleAbi: args.abi, moduleAddress, moduleName, functionName });
+  } else {
+    functionAbi = args.abi;
+  }
 
   // Ensure that all type arguments are typed properly
   const typeArguments = standardizeTypeTags(args.typeArguments);
@@ -263,6 +281,7 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
     aptosConfig: args.aptosConfig,
     abi: args.abi,
     fetch: fetchViewFunctionAbi,
+    parse: parseViewFunctionAbi,
   });
 
   // Fill in the ABI
@@ -286,8 +305,15 @@ export async function generateViewFunctionPayload(args: InputViewFunctionDataWit
  * @category Transactions
  */
 export function generateViewFunctionPayloadWithABI(args: InputViewFunctionDataWithABI): EntryFunction {
-  const functionAbi = args.abi;
   const { moduleAddress, moduleName, functionName } = getFunctionParts(args.function);
+
+  // Parse the ABI if it's the whole module (aka surf)
+  let functionAbi: ViewFunctionABI | undefined;
+  if ("exposed_functions" in args.abi) {
+    functionAbi = parseViewFunctionAbi({ moduleAbi: args.abi, moduleAddress, moduleName, functionName });
+  } else {
+    functionAbi = args.abi;
+  }
 
   // Ensure that all type arguments are typed properly
   const typeArguments = standardizeTypeTags(args.typeArguments);
@@ -771,6 +797,7 @@ export function generateUserTransactionHash(args: InputSubmitTransactionData): s
  * @param aptosConfig - Configuration settings for Aptos.
  * @param abi - An optional ABI to use if already available.
  * @param fetch - A function to fetch the ABI if it is not provided.
+ * @param parse - A function to parse the ABI if as MoveModule ABI is provided.
  * @group Implementation
  * @category Transactions
  */
@@ -782,17 +809,23 @@ async function fetchAbi<T extends FunctionABI>({
   aptosConfig,
   abi,
   fetch,
+  parse,
 }: {
   key: string;
   moduleAddress: string;
   moduleName: string;
   functionName: string;
   aptosConfig: AptosConfig;
-  abi?: T;
+  abi?: T | MoveModule;
   fetch: (moduleAddress: string, moduleName: string, functionName: string, aptosConfig: AptosConfig) => Promise<T>;
+  parse: (args: { moduleAddress: string; moduleName: string; functionName: string; moduleAbi: MoveModule }) => T;
 }): Promise<T> {
   if (abi !== undefined) {
-    return abi;
+    if ("exposed_functions" in abi) {
+      return parse({ moduleAddress, moduleName, functionName, moduleAbi: abi });
+    } else {
+      return abi;
+    }
   }
 
   // We fetch the entry function ABI, and then pretend that we already had the ABI
