@@ -20,7 +20,7 @@ import {
   MultiKeySignature,
 } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { getInfo } from "../../internal/account";
+import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
@@ -638,7 +638,12 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: accountPublicKey.publicKeys.map(() => new AnySignature(invalidSignature)),
+        signatures: accountPublicKey.publicKeys.map((pubKey) => {
+          if (KeylessPublicKey.isInstance(pubKey.publicKey) || FederatedKeylessPublicKey.isInstance(pubKey.publicKey)) {
+            return new AnySignature(KeylessSignature.getSimulationSignature());
+          }
+          return new AnySignature(invalidSignature);
+        }),
         bitmap: accountPublicKey.createBitmap({
           bits: Array(accountPublicKey.publicKeys.length)
             .fill(0)

@@ -5,7 +5,14 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 # Unreleased
 
 - [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
+- Upgrade rotateAuthKey API to allow for unverified auth key rotations.
+- Upgrade rotateAuthKey API to support Account types other than Ed25519.
+- Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
 - Add `truncateAddress` helper function to truncate an address at the middle with an ellipsis.
+- Fix scriptComposer addBatchedCalls more typeArguments error
+- Add support for skipping struct type tag validation.
+- Add support for known enum structs: DelegationKey and RateLimiter.
+- Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
 
 # 1.35.0 (2025-02-11)
 

@@ -148,13 +148,14 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @category Account (On-Chain Model)
    */
   static fromPublicKeysAndSigners(args: {
+    address?: AccountAddressInput;
     publicKeys: PublicKey[];
     signaturesRequired: number;
     signers: SingleKeySignerOrLegacyEd25519Account[];
   }): MultiKeyAccount {
-    const { publicKeys, signaturesRequired, signers } = args;
+    const { address, publicKeys, signaturesRequired, signers } = args;
     const multiKey = new MultiKey({ publicKeys, signaturesRequired });
-    return new MultiKeyAccount({ multiKey, signers });
+    return new MultiKeyAccount({ multiKey, signers, address });
   }
 
   /**
