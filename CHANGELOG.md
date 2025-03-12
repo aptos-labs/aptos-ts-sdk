@@ -12,6 +12,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support for skipping struct type tag validation.
 - Add support for known enum structs: DelegationKey and RateLimiter.
 - Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
+- Allow passing in `MoveModule` as ABI for a function, rather than the parsed ABI
 
 # 1.35.0 (2025-02-11)
 

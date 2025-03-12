@@ -126,6 +126,18 @@ describe("Remote ABI", () => {
       expect(checkOrConvertArgument(null, parseTypeTag("0x1::option::Option<u8>"), 0, [])).toEqual(
         new MoveOption<U8>(),
       );
+      expect(checkOrConvertArgument(undefined, parseTypeTag("0x1::option::Option<signer>"), 0, [])).toEqual(
+        new MoveOption<U8>(),
+      );
+      expect(checkOrConvertArgument(null, parseTypeTag("0x1::option::Option<signer>"), 0, [])).toEqual(
+        new MoveOption<U8>(),
+      );
+      expect(checkOrConvertArgument(undefined, parseTypeTag("0x1::option::Option<&signer>"), 0, [])).toEqual(
+        new MoveOption<U8>(),
+      );
+      expect(checkOrConvertArgument(null, parseTypeTag("0x1::option::Option<&signer>"), 0, [])).toEqual(
+        new MoveOption<U8>(),
+      );
 
       // Objects are account addresses, and it doesn't matter about the type used
       expect(checkOrConvertArgument("0x1", parseTypeTag("0x1::object::Object<0x1::string::String>"), 0, [])).toEqual(
