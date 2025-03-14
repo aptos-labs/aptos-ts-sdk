@@ -1,0 +1,8 @@
+query getAccountAddressesForAuthKey($where_condition: auth_key_account_addresses_bool_exp) {
+  auth_key_account_addresses(where: $where_condition) {
+    auth_key
+    address
+    last_transaction_version
+    verified
+  }
+}
