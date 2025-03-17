@@ -18,7 +18,7 @@ import {
   MoveResource,
 } from "../../types";
 import { EphemeralPublicKey, EphemeralSignature } from "./ephemeral";
-import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, poseidonHash } from "./poseidon";
+import { bigIntToBytesLE, bytesToBigIntLE, hashStrToField, padAndPackBytesWithLen, poseidonHash } from "./poseidon";
 import { AuthenticationKey } from "../authenticationKey";
 import { Proof } from "./proof";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
@@ -32,8 +32,15 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { getErrorMessage } from "../../utils";
+import { base64UrlToBytes, getErrorMessage, nowInSeconds } from "../../utils";
 import { KeylessError, KeylessErrorType } from "../../errors";
+import { bn254 } from "@noble/curves/bn254";
+import { bytesToNumberBE } from "@noble/curves/abstract/utils";
+import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { encode } from "js-base64";
+import { generateSigningMessage } from "../..";
+import { ProjPointType } from "@noble/curves/abstract/weierstrass";
+import { Fp2 } from "@noble/curves/abstract/tower";
 
 /**
  * @group Implementation
@@ -162,7 +169,7 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not yet implemented");
+    throw new Error("Not implemented. Use `verifySignatureAsync` instead.");
   }
 
   /**
@@ -181,6 +188,28 @@ export class KeylessPublicKey extends AccountPublicKey {
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
     serializer.serializeBytes(this.idCommitment);
+  }
+
+  /**
+   * Verifies a keyless signature for a given message.  It will fetch the keyless configuration and the JWK to
+   * use for verification from the appropriate network as defined by the aptosConfig.
+   *
+   * @param args.aptosConfig The aptos config to use for fetching the keyless configuration.
+   * @param args.message The message to verify the signature against.
+   * @param args.signature The signature to verify.
+   * @param args.options.throwErrorWithReason Whether to throw an error with the reason for the failure instead of returning false.
+   * @returns true if the signature is valid
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: KeylessSignature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return verifyKeylessSignature({
+      ...args,
+      publicKey: this,
+    });
   }
 
   /**
@@ -291,6 +320,224 @@ export class KeylessPublicKey extends AccountPublicKey {
       publicKey.idCommitment instanceof Uint8Array
     );
   }
+}
+
+export async function verifyKeylessSignature(args: {
+  publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+  aptosConfig: AptosConfig;
+  message: HexInput;
+  signature: KeylessSignature;
+  keylessConfig?: KeylessConfiguration;
+  jwk?: MoveJWK;
+  options?: { throwErrorWithReason?: boolean };
+}): Promise<boolean> {
+  const {
+    aptosConfig,
+    publicKey,
+    message,
+    signature,
+    jwk = await fetchJWK({ aptosConfig: args.aptosConfig, publicKey: args.publicKey, kid: signature.getJwkKid() }),
+    keylessConfig = await getKeylessConfig({ aptosConfig }),
+    options,
+  } = args;
+  if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+      details: "Unsupported ephemeral certificate variant",
+    });
+  }
+  const zkSig = signature.ephemeralCertificate.signature;
+  if (!(zkSig.proof.proof instanceof Groth16Zkp)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+      details: "Unsupported proof variant",
+    });
+  }
+  try {
+    verifyKeylessSignatureWithJwkAndConfig({ publicKey, message, signature, keylessConfig, jwk });
+    return true;
+  } catch (error) {
+    if (options?.throwErrorWithReason) {
+      throw error;
+    }
+    return false;
+  }
+}
+
+/**
+ * Syncronously verifies a keyless signature for a given message.  You need to provide the keyless configuration and the
+ * JWK to use for verification.
+ *
+ * @param args.message The message to verify the signature against.
+ * @param args.signature The signature to verify.
+ * @param args.keylessConfig The keyless configuration.
+ * @param args.jwk The JWK to use for verification.
+ * @returns true if the signature is valid
+ * @throws KeylessError if the signature is invalid
+ */
+export function verifyKeylessSignatureWithJwkAndConfig(args: {
+  publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+  message: HexInput;
+  signature: KeylessSignature;
+  keylessConfig: KeylessConfiguration;
+  jwk: MoveJWK;
+}): boolean {
+  const { publicKey, message, signature, keylessConfig, jwk } = args;
+  const { verificationKey, maxExpHorizonSecs, trainingWheelsPubkey } = keylessConfig;
+  if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+      details: "Unsupported ephemeral certificate variant",
+    });
+  }
+  const zkSig = signature.ephemeralCertificate.signature;
+  if (!(zkSig.proof.proof instanceof Groth16Zkp)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+      details: "Unsupported proof variant for ZeroKnowledgeSig",
+    });
+  }
+  const groth16Proof = zkSig.proof.proof;
+  if (signature.expiryDateSecs < nowInSeconds()) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_EXPIRED,
+      details: "The expiryDateSecs is in the past",
+    });
+  }
+  if (zkSig.expHorizonSecs > maxExpHorizonSecs) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.MAX_EXPIRY_HORIZON_EXCEEDED,
+    });
+  }
+  if (!signature.ephemeralPublicKey.verifySignature({ message, signature: signature.ephemeralSignature })) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.EPHEMERAL_SIGNATURE_VERIFICATION_FAILED,
+    });
+  }
+  const publicInputsHash = getPublicInputsHash({ publicKey, signature, jwk, keylessConfig });
+  if (!verificationKey.verifyProof({ publicInputsHash, groth16Proof })) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.PROOF_VERIFICATION_FAILED,
+    });
+  }
+  if (trainingWheelsPubkey) {
+    if (!zkSig.trainingWheelsSignature) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.TRAINING_WHEELS_SIGNATURE_MISSING,
+      });
+    }
+    const proofAndStatement = new Groth16ProofAndStatement(groth16Proof, publicInputsHash);
+    if (
+      !trainingWheelsPubkey.verifySignature({
+        message: proofAndStatement.hash(),
+        signature: zkSig.trainingWheelsSignature,
+      })
+    ) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.TRAINING_WHEELS_SIGNATURE_VERIFICATION_FAILED,
+      });
+    }
+  }
+  return true;
+}
+
+/**
+ * Get the public inputs hash for the keyless signature.
+ *
+ * @param args.signature The signature
+ * @param args.jwk The JWK to use for the public inputs hash
+ * @param args.keylessConfig The keyless configuration which defines the byte lengths to use when hashing fields.
+ * @returns The public inputs hash
+ */
+function getPublicInputsHash(args: {
+  publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+  signature: KeylessSignature;
+  jwk: MoveJWK;
+  keylessConfig: KeylessConfiguration;
+}): bigint {
+  const { publicKey, signature, jwk, keylessConfig } = args;
+  const innerKeylessPublicKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
+  if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
+    throw new Error("Signature is not a ZeroKnowledgeSig");
+  }
+  const proof = signature.ephemeralCertificate.signature;
+  const fields = [];
+  fields.push(
+    ...padAndPackBytesWithLen(signature.ephemeralPublicKey.toUint8Array(), keylessConfig.maxCommitedEpkBytes),
+  );
+  fields.push(bytesToBigIntLE(innerKeylessPublicKey.idCommitment));
+  fields.push(signature.expiryDateSecs);
+  fields.push(proof.expHorizonSecs);
+  fields.push(hashStrToField(innerKeylessPublicKey.iss, keylessConfig.maxIssValBytes));
+  if (!proof.extraField) {
+    fields.push(0n);
+    fields.push(hashStrToField(" ", keylessConfig.maxExtraFieldBytes));
+  } else {
+    fields.push(1n);
+    fields.push(hashStrToField(proof.extraField, keylessConfig.maxExtraFieldBytes));
+  }
+  fields.push(hashStrToField(encode(signature.jwtHeader, true) + ".", keylessConfig.maxJwtHeaderB64Bytes));
+  fields.push(jwk.toScalar());
+  if (!proof.overrideAudVal) {
+    fields.push(hashStrToField("", MAX_AUD_VAL_BYTES));
+    fields.push(0n);
+  } else {
+    fields.push(hashStrToField(proof.overrideAudVal, MAX_AUD_VAL_BYTES));
+    fields.push(1n);
+  }
+  return poseidonHash(fields);
+}
+
+/**
+ * Fetches the JWK from the issuer's well-known JWKS endpoint.
+ *
+ * @param args.publicKey The keyless public key which contains the issuer the address to fetch the JWK from (0x1 if not federated).
+ * @param args.kid The kid of the JWK to fetch
+ * @returns A JWK matching the `kid` in the JWT header.
+ * @throws {KeylessError} If the JWK cannot be fetched
+ */
+export async function fetchJWK(args: {
+  aptosConfig: AptosConfig;
+  publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
+  kid: string;
+}): Promise<MoveJWK> {
+  const { aptosConfig, publicKey, kid } = args;
+  const keylessPubKey = publicKey instanceof KeylessPublicKey ? publicKey : publicKey.keylessPublicKey;
+  const { iss } = keylessPubKey;
+
+  let allJWKs: Map<string, MoveJWK[]>;
+  const jwkAddr = publicKey instanceof FederatedKeylessPublicKey ? publicKey.jwkAddress : undefined;
+  try {
+    allJWKs = await getKeylessJWKs({ aptosConfig, jwkAddr });
+  } catch (error) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.FULL_NODE_JWKS_LOOKUP_ERROR,
+      error,
+      details: `Failed to fetch ${jwkAddr ? "Federated" : "Patched"}JWKs ${jwkAddr ? `for address ${jwkAddr}` : "0x1"}`,
+    });
+  }
+
+  // Find the corresponding JWK set by `iss`
+  const jwksForIssuer = allJWKs.get(iss);
+
+  if (jwksForIssuer === undefined) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.INVALID_JWT_ISS_NOT_RECOGNIZED,
+      details: `JWKs for issuer ${iss} not found.`,
+    });
+  }
+
+  // Find the corresponding JWK by `kid`
+  const jwk = jwksForIssuer.find((key) => key.kid === kid);
+
+  if (jwk === undefined) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.INVALID_JWT_JWK_NOT_FOUND,
+      details: `JWK with kid '${kid}' for issuer '${iss}' not found.`,
+    });
+  }
+
+  return jwk;
 }
 
 function computeIdCommitment(args: { uidKey: string; uidVal: string; aud: string; pepper: HexInput }): Uint8Array {
@@ -435,7 +682,7 @@ export class EphemeralCertificate extends Signature {
    * @group Implementation
    * @category Serialization
    */
-  private readonly variant: EphemeralCertificateVariant;
+  readonly variant: EphemeralCertificateVariant;
 
   constructor(signature: Signature, variant: EphemeralCertificateVariant) {
     super();
@@ -479,6 +726,8 @@ export class EphemeralCertificate extends Signature {
  * @category Serialization
  */
 class G1Bytes extends Serializable {
+  private static readonly B = bn254.fields.Fp.create(3n);
+
   data: Uint8Array;
 
   constructor(data: HexInput) {
@@ -497,6 +746,43 @@ class G1Bytes extends Serializable {
     const bytes = deserializer.deserializeFixedBytes(32);
     return new G1Bytes(bytes);
   }
+
+  // Convert the projective coordinates to strings
+  toArray(): string[] {
+    const point = this.toProjectivePoint();
+    return [point.x.toString(), point.y.toString(), point.pz.toString()];
+  }
+
+  /**
+   * Converts the G1 bytes to a projective point.
+   * @returns The projective point.
+   */
+  toProjectivePoint(): ProjPointType<bigint> {
+    const bytes = new Uint8Array(this.data);
+    // Reverse the bytes to convert from little-endian to big-endian.
+    bytes.reverse();
+    // This gets the flag bit to determine which y to use.
+    const yFlag = (bytes[0] & 0x80) >> 7;
+    const { Fp } = bn254.fields;
+    const x = Fp.create(bytesToBn254FpBE(bytes));
+    const y = Fp.sqrt(Fp.add(Fp.pow(x, 3n), G1Bytes.B));
+    const negY = Fp.neg(y);
+    const yToUse = y > negY === (yFlag === 1) ? y : negY;
+    return bn254.G1.ProjectivePoint.fromAffine({
+      x: x,
+      y: yToUse,
+    });
+  }
+}
+
+function bytesToBn254FpBE(bytes: Uint8Array): bigint {
+  if (bytes.length !== 32) {
+    throw new Error("Input should be 32 bytes");
+  }
+  // Clear the first two bits of the first byte which removes any flags.
+  const result = new Uint8Array(bytes);
+  result[0] = result[0] & 0x3f; // 0x3F = 00111111 in binary
+  return bytesToNumberBE(result);
 }
 
 /**
@@ -508,6 +794,14 @@ class G1Bytes extends Serializable {
  * @category Serialization
  */
 class G2Bytes extends Serializable {
+  /**
+   * The constant b value used in G2 point calculations
+   */
+  private static readonly B = bn254.fields.Fp2.fromBigTuple([
+    19485874751759354771024239261021720505790618469301721065564631296452457478373n,
+    266929791119991161246907387137283842545076965332900288569378510910307636690n,
+  ]);
+
   data: Uint8Array;
 
   constructor(data: HexInput) {
@@ -525,6 +819,44 @@ class G2Bytes extends Serializable {
   static deserialize(deserializer: Deserializer): G2Bytes {
     const bytes = deserializer.deserializeFixedBytes(64);
     return new G2Bytes(bytes);
+  }
+
+  // Convert the projective coordinates to strings
+  toArray(): [string, string][] {
+    const point = this.toProjectivePoint();
+    return [
+      [
+        point.x.c0.toString(), // x real part
+        point.x.c1.toString(),
+      ], // x imaginary part
+      [
+        point.y.c0.toString(), // y real part
+        point.y.c1.toString(),
+      ], // y imaginary part
+      [
+        point.pz.c0.toString(), // z real part
+        point.pz.c1.toString(),
+      ], // z imaginary part
+    ];
+  }
+
+  toProjectivePoint(): ProjPointType<Fp2> {
+    const bytes = new Uint8Array(this.data);
+    // Reverse the bytes to convert from little-endian to big-endian for each part of x.
+    const x0 = bytes.slice(0, 32).reverse();
+    const x1 = bytes.slice(32, 64).reverse();
+    // This gets the flag bit to determine which y to use.
+    const yFlag = (x1[0] & 0x80) >> 7;
+    const { Fp2 } = bn254.fields;
+    const x = Fp2.fromBigTuple([bytesToBn254FpBE(x0), bytesToBn254FpBE(x1)]);
+    const y = Fp2.sqrt(Fp2.add(Fp2.pow(x, 3n), G2Bytes.B));
+    const negY = Fp2.neg(y);
+    const isYGreaterThanNegY = y.c1 > negY.c1 || (y.c1 === negY.c1 && y.c0 > negY.c0);
+    const yToUse = isYGreaterThanNegY === (yFlag === 1) ? y : negY;
+    return bn254.G2.ProjectivePoint.fromAffine({
+      x: x,
+      y: yToUse,
+    });
   }
 }
 
@@ -578,6 +910,72 @@ export class Groth16Zkp extends Proof {
     const c = G1Bytes.deserialize(deserializer).bcsToBytes();
     return new Groth16Zkp({ a, b, c });
   }
+
+  toSnarkJsJson() {
+    return {
+      protocol: "groth16",
+      curve: "bn128",
+      pi_a: this.a.toArray(),
+      pi_b: this.b.toArray(),
+      pi_c: this.c.toArray(),
+    };
+  }
+}
+
+/**
+ * Represents a Groth16 proof and statement, consisting of a Groth16 proof and a public inputs hash.
+ * This is used to generate the signing message for the training wheels signature.
+ *
+ * @extends Serializable
+ * @group Implementation
+ * @category Serialization
+ */
+export class Groth16ProofAndStatement extends Serializable {
+  /**
+   * The Groth16 proof
+   * @group Implementation
+   * @category Serialization
+   */
+  proof: Groth16Zkp;
+
+  /**
+   * The public inputs hash as a 32 byte Uint8Array
+   * @group Implementation
+   * @category Serialization
+   */
+  publicInputsHash: Uint8Array;
+
+  /**
+   * The domain separator prefix used when hashing.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  readonly domainSeparator = "APTOS::Groth16ProofAndStatement";
+
+  constructor(proof: Groth16Zkp, publicInputsHash: HexInput | bigint) {
+    super();
+    this.proof = proof;
+    this.publicInputsHash =
+      typeof publicInputsHash === "bigint"
+        ? bigIntToBytesLE(publicInputsHash, 32)
+        : Hex.fromHexInput(publicInputsHash).toUint8Array();
+    if (this.publicInputsHash.length !== 32) {
+      throw new Error("Invalid public inputs hash");
+    }
+  }
+
+  serialize(serializer: Serializer): void {
+    this.proof.serialize(serializer);
+    serializer.serializeFixedBytes(this.publicInputsHash);
+  }
+
+  static deserialize(deserializer: Deserializer): Groth16ProofAndStatement {
+    return new Groth16ProofAndStatement(Groth16Zkp.deserialize(deserializer), deserializer.deserializeFixedBytes(32));
+  }
+
+  hash(): Uint8Array {
+    return generateSigningMessage(this.bcsToBytes(), this.domainSeparator);
+  }
 }
 
 /**
@@ -595,7 +993,7 @@ export class ZkProof extends Serializable {
    * @group Implementation
    * @category Serialization
    */
-  private readonly variant: ZkpVariant;
+  readonly variant: ZkpVariant;
 
   constructor(proof: Proof, variant: ZkpVariant) {
     super();
@@ -733,22 +1131,93 @@ export class KeylessConfiguration {
    */
   readonly maxExpHorizonSecs: number;
 
-  constructor(verificationKey: Groth16VerificationKey, maxExpHorizonSecs: number) {
+  /**
+   * The public key of the training wheels account.
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly trainingWheelsPubkey?: EphemeralPublicKey;
+
+  /**
+   * The maximum number of bytes that can be used for the extra field.
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly maxExtraFieldBytes: number;
+
+  /**
+   * The maximum number of bytes that can be used for the JWT header.
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly maxJwtHeaderB64Bytes: number;
+
+  /**
+   * The maximum number of bytes that can be used for the issuer value.
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly maxIssValBytes: number;
+
+  /**
+   * The maximum number of bytes that can be used for the committed ephemeral public key.
+   * @group Implementation
+   * @category Serialization
+   */
+  readonly maxCommitedEpkBytes: number;
+
+  constructor(args: {
+    verificationKey: Groth16VerificationKey;
+    trainingWheelsPubkey?: HexInput;
+    maxExpHorizonSecs?: number;
+    maxExtraFieldBytes?: number;
+    maxJwtHeaderB64Bytes?: number;
+    maxIssValBytes?: number;
+    maxCommitedEpkBytes?: number;
+  }) {
+    const {
+      verificationKey,
+      trainingWheelsPubkey,
+      maxExpHorizonSecs = EPK_HORIZON_SECS,
+      maxExtraFieldBytes = MAX_EXTRA_FIELD_BYTES,
+      maxJwtHeaderB64Bytes = MAX_JWT_HEADER_B64_BYTES,
+      maxIssValBytes = MAX_ISS_VAL_BYTES,
+      maxCommitedEpkBytes = MAX_COMMITED_EPK_BYTES,
+    } = args;
+
     this.verificationKey = verificationKey;
     this.maxExpHorizonSecs = maxExpHorizonSecs;
+    if (trainingWheelsPubkey) {
+      this.trainingWheelsPubkey = new EphemeralPublicKey(new Ed25519PublicKey(trainingWheelsPubkey));
+    }
+    this.maxExtraFieldBytes = maxExtraFieldBytes;
+    this.maxJwtHeaderB64Bytes = maxJwtHeaderB64Bytes;
+    this.maxIssValBytes = maxIssValBytes;
+    this.maxCommitedEpkBytes = maxCommitedEpkBytes;
   }
 
-  static create(res: Groth16VerificationKeyResponse, maxExpHorizonSecs: number): KeylessConfiguration {
-    return new KeylessConfiguration(
-      new Groth16VerificationKey({
+  /**
+   * Creates a new KeylessConfiguration instance from a Groth16VerificationKeyResponse and a KeylessConfigurationResponse.
+   * @param res - The Groth16VerificationKeyResponse object containing the verification key data.
+   * @param config - The KeylessConfigurationResponse object containing the configuration data.
+   * @returns A new KeylessConfiguration instance.
+   */
+  static create(res: Groth16VerificationKeyResponse, config: KeylessConfigurationResponse): KeylessConfiguration {
+    return new KeylessConfiguration({
+      verificationKey: new Groth16VerificationKey({
         alphaG1: res.alpha_g1,
         betaG2: res.beta_g2,
         deltaG2: res.delta_g2,
         gammaAbcG1: res.gamma_abc_g1,
         gammaG2: res.gamma_g2,
       }),
-      maxExpHorizonSecs,
-    );
+      maxExpHorizonSecs: Number(config.max_exp_horizon_secs),
+      trainingWheelsPubkey: config.training_wheels_pubkey.vec[0],
+      maxExtraFieldBytes: config.max_extra_field_bytes,
+      maxJwtHeaderB64Bytes: config.max_jwt_header_b64_bytes,
+      maxIssValBytes: config.max_iss_val_bytes,
+      maxCommitedEpkBytes: config.max_commited_epk_bytes,
+    });
   }
 }
 
@@ -853,6 +1322,71 @@ export class Groth16VerificationKey {
       gammaG2: res.gamma_g2,
     });
   }
+
+  /**
+   * Verifies a Groth16 proof using the verification key given the public inputs hash and the proof.
+   *
+   * @param args.publicInputsHash The public inputs hash
+   * @param args.groth16Proof The Groth16 proof
+   * @returns true if the proof is valid
+   */
+  verifyProof(args: { publicInputsHash: bigint; groth16Proof: Groth16Zkp }): boolean {
+    const { publicInputsHash, groth16Proof } = args;
+
+    // Get proof points
+    const proofA = groth16Proof.a.toProjectivePoint();
+    const proofB = groth16Proof.b.toProjectivePoint();
+    const proofC = groth16Proof.c.toProjectivePoint();
+
+    // Get verification key points
+    const vkAlpha1 = this.alphaG1.toProjectivePoint();
+    const vkBeta2 = this.betaG2.toProjectivePoint();
+    const vkGamma2 = this.gammaG2.toProjectivePoint();
+    const vkDelta2 = this.deltaG2.toProjectivePoint();
+    const vkIC = this.gammaAbcG1.map((g1) => g1.toProjectivePoint());
+
+    const { Fp12 } = bn254.fields;
+
+    // Check that the following pairing equation holds:
+    // e(A_1, B_2) = e(\alpha_1, \beta_2) + e(\ic_0 + public_inputs_hash \ic_1, \gamma_2) + e(C_1, \delta_2)
+    // Where A_1, B_2, C_1 are the proof points and \alpha_1, \beta_2, \gamma_2, \delta_2, \ic_0, \ic_1
+    // are the verification key points
+
+    // \ic_0 + public_inputs_hash \ic_1
+    let accum = vkIC[0].add(vkIC[1].multiply(publicInputsHash));
+    // e(\ic_0 + public_inputs_hash \ic_1, \gamma_2)
+    const pairingAccumGamma = bn254.pairing(accum, vkGamma2);
+    // e(A_1, B_2)
+    const pairingAB = bn254.pairing(proofA, proofB);
+    // e(\alpha_1, \beta_2)
+    const pairingAlphaBeta = bn254.pairing(vkAlpha1, vkBeta2);
+    // e(C_1, \delta_2)
+    const pairingCDelta = bn254.pairing(proofC, vkDelta2);
+    // Get the result of the right hand side of the pairing equation
+    const product = Fp12.mul(pairingAlphaBeta, Fp12.mul(pairingAccumGamma, pairingCDelta));
+    // Check if the left hand side equals the right hand side
+    return Fp12.eql(pairingAB, product);
+  }
+
+  /**
+   * Converts the verification key to a JSON format compatible with snarkjs groth16.verify
+   *
+   * @returns An object containing the verification key in snarkjs format
+   * @group Implementation
+   * @category Serialization
+   */
+  toSnarkJsJson() {
+    return {
+      protocol: "groth16",
+      curve: "bn128",
+      nPublic: 1,
+      vk_alpha_1: this.alphaG1.toArray(),
+      vk_beta_2: this.betaG2.toArray(),
+      vk_gamma_2: this.gammaG2.toArray(),
+      vk_delta_2: this.deltaG2.toArray(),
+      IC: this.gammaAbcG1.map((g1) => g1.toArray()),
+    };
+  }
 }
 
 /**
@@ -875,9 +1409,11 @@ export async function getKeylessConfig(args: {
   try {
     return await memoizeAsync(
       async () => {
-        const config = await getKeylessConfigurationResource(args);
-        const vk = await getGroth16VerificationKeyResource(args);
-        return KeylessConfiguration.create(vk, Number(config.max_exp_horizon_secs));
+        const [config, vk] = await Promise.all([
+          getKeylessConfigurationResource(args),
+          getGroth16VerificationKeyResource(args),
+        ]);
+        return KeylessConfiguration.create(vk, config);
       },
       `keyless-configuration-${aptosConfig.network}`,
       1000 * 60 * 5, // 5 minutes
@@ -1076,14 +1612,45 @@ export class MoveJWK extends Serializable {
     return MoveJWK.deserialize(deserializer);
   }
 
+  toScalar(): bigint {
+    if (this.alg !== "RS256") {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_VERIFICATION_FAILED,
+        details:
+          "Failed to convert JWK to scalar when calculating the public inputs hash. Only RSA 256 is supported currently",
+      });
+    }
+    const uint8Array = base64UrlToBytes(this.n);
+    const chunks = chunkInto24Bytes(uint8Array.reverse());
+    const scalars = chunks.map((chunk) => bytesToBigIntLE(chunk));
+    scalars.push(256n); // Add the modulus size
+    return poseidonHash(scalars);
+  }
+
   static deserialize(deserializer: Deserializer): MoveJWK {
     const kid = deserializer.deserializeStr();
     const kty = deserializer.deserializeStr();
     const alg = deserializer.deserializeStr();
-    const n = deserializer.deserializeStr();
     const e = deserializer.deserializeStr();
+    const n = deserializer.deserializeStr();
     return new MoveJWK({ kid, kty, alg, n, e });
   }
+}
+
+function chunkInto24Bytes(data: Uint8Array): Uint8Array[] {
+  const chunks: Uint8Array[] = [];
+  for (let i = 0; i < data.length; i += 24) {
+    const chunk = data.slice(i, Math.min(i + 24, data.length));
+    // Pad last chunk with zeros if needed
+    if (chunk.length < 24) {
+      const paddedChunk = new Uint8Array(24);
+      paddedChunk.set(chunk);
+      chunks.push(paddedChunk);
+    } else {
+      chunks.push(chunk);
+    }
+  }
+  return chunks;
 }
 
 interface JwtHeader {

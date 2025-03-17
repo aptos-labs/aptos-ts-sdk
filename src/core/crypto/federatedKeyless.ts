@@ -6,7 +6,8 @@ import { Deserializer, Serializer } from "../../bcs";
 import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { KeylessPublicKey, KeylessSignature } from "./keyless";
+import { KeylessPublicKey, KeylessSignature, verifyKeylessSignature } from "./keyless";
+import { AptosConfig } from "../../api";
 
 /**
  * Represents the FederatedKeylessPublicKey public key
@@ -66,7 +67,7 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not yet implemented");
+    throw new Error("Not implemented. Use `verifySignatureAsync` instead.");
   }
 
   serialize(serializer: Serializer): void {
@@ -82,6 +83,28 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
 
   static isPublicKey(publicKey: PublicKey): publicKey is FederatedKeylessPublicKey {
     return publicKey instanceof FederatedKeylessPublicKey;
+  }
+
+  /**
+   * Verifies a keyless signature for a given message.  It will fetch the keyless configuration and the JWK to
+   * use for verification from the appropriate network as defined by the aptosConfig.
+   *
+   * @param args.aptosConfig The aptos config to use for fetching the keyless configuration.
+   * @param args.message The message to verify the signature against.
+   * @param args.signature The signature to verify.
+   * @param args.options.throwErrorWithReason Whether to throw an error with the reason for the failure instead of returning false.
+   * @returns true if the signature is valid
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: KeylessSignature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return verifyKeylessSignature({
+      ...args,
+      publicKey: this,
+    });
   }
 
   /**
