@@ -89,23 +89,20 @@ export class LocalNode {
     const cliArgs = ["aptos", "node", "run-localnet", "--force-restart", "--assume-yes", "--with-indexer-api"];
 
     const currentPlatform = platform();
-    let childProcess;
-    // Check if current OS is windows
-    if (currentPlatform === "win32") {
-      childProcess = spawn(cliCommand, cliArgs, { shell: true });
-    } else {
-      childProcess = spawn(cliCommand, cliArgs);
-    }
+    const spawnConfig = {
+      env: { ...process.env, ENABLE_KEYLESS_DEFAULT: "1" },
+      ...(currentPlatform === "win32" && { shell: true }),
+    };
 
-    this.process = childProcess;
+    this.process = spawn(cliCommand, cliArgs, spawnConfig);
 
-    childProcess.stderr?.on("data", (data: any) => {
+    this.process.stderr?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output error log
       console.log(str);
     });
 
-    childProcess.stdout?.on("data", (data: any) => {
+    this.process.stdout?.on("data", (data: any) => {
       const str = data.toString();
       // Print local node output log
       if (this.showStdout) {

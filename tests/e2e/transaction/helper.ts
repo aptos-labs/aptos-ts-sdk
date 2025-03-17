@@ -153,22 +153,20 @@ export async function createMultisigTransaction(
 }
 
 export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, recipient: Account) {
-  const senderFundTxn = await aptos.fundAccount({
+  await aptos.fundAccount({
     accountAddress: sender.accountAddress,
     amount: FUND_AMOUNT,
   });
-  const recipientFundTxn = await aptos.fundAccount({
+  await aptos.fundAccount({
     accountAddress: recipient.accountAddress,
     amount: FUND_AMOUNT,
   });
 
   const senderOldBalance = await aptos.getAccountAPTAmount({
     accountAddress: sender.accountAddress,
-    minimumLedgerVersion: Number(senderFundTxn.version),
   });
   const recipientOldBalance = await aptos.getAccountAPTAmount({
     accountAddress: recipient.accountAddress,
-    minimumLedgerVersion: Number(recipientFundTxn.version),
   });
 
   const transaction = await aptos.transferCoinTransaction({
@@ -177,17 +175,13 @@ export async function simpleCoinTransactionHeler(aptos: Aptos, sender: Account, 
     amount: TRANSFER_AMOUNT,
   });
 
-  const pendingTxn = await aptos.signAndSubmitTransaction({ signer: sender, transaction });
-  const committedTxn = await aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
-  const version = Number(committedTxn.version);
+  await aptos.signAndSubmitTransaction({ signer: sender, transaction });
 
   const senderNewBalance = await aptos.getAccountAPTAmount({
     accountAddress: sender.accountAddress,
-    minimumLedgerVersion: version,
   });
   const recipientNewBalance = await aptos.getAccountAPTAmount({
     accountAddress: recipient.accountAddress,
-    minimumLedgerVersion: version,
   });
 
   expect(senderOldBalance - senderNewBalance).toBeGreaterThan(TRANSFER_AMOUNT);

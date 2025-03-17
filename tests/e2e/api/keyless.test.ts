@@ -65,7 +65,7 @@ export const TEST_FEDERATED_JWT_TOKENS = [
 
 const KEYLESS_TEST_TIMEOUT = 12000;
 
-describe.skip("keyless api", () => {
+describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
   const { aptos } = getAptosClient();
   const jwkAccount = Account.generate();
