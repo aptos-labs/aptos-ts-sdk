@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback, MultiKeyAccount } from "../account";
 import { FederatedKeylessAccount } from "../account/FederatedKeylessAccount";
 import { AccountAddressInput, ZeroKnowledgeSig } from "../core";
 import {
@@ -9,6 +9,7 @@ import {
   getPepper,
   getProof,
   updateFederatedKeylessJwkSetTransaction,
+  deriveCognitoKeylessAccount,
 } from "../internal/keyless";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { HexInput } from "../types";
@@ -201,6 +202,59 @@ export class Keyless {
     proofFetchCallback?: ProofFetchCallback;
   }): Promise<KeylessAccount | FederatedKeylessAccount> {
     return deriveKeylessAccount({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Derives a Cognito Keyless Account from the provided JWT token and corresponding EphemeralKeyPair. This does the same as
+   * deriveKeylessAccount but derives the account as a MultiKeyAccount in order to support different JWT formattings.
+   *
+   * @param args - The arguments required to derive the Cognito Keyless Account.
+   * @param args.jwt - The JWT token used for deriving the account.
+   * @param args.ephemeralKeyPair - The EphemeralKeyPair used to generate the nonce in the JWT token.
+   * @param args.jwkAddress - The address the where the JWKs used to verify signatures are found.  Setting the value derives a
+   * FederatedKeylessAccount.
+   * @param args.uidKey - An optional key in the JWT token to set the uidVal in the IdCommitment.
+   * @param args.pepper - An optional pepper value.
+   * @param args.proofFetchCallback - An optional callback function for fetching the proof in the background, allowing for a more
+   * responsive user experience.
+   *
+   * @returns A MultiKeyAccount that can be used to sign transactions.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network, deriveKeylessAccount } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   const jwt = "your_jwt_token"; // replace with a real JWT token
+   *   const ephemeralKeyPair = new EphemeralKeyPair(); // create a new ephemeral key pair
+   *
+   *   // Deriving the Keyless Account
+   *   const keylessAccount = await deriveCognitoKeylessAccount({
+   *     jwt,
+   *     ephemeralKeyPair,
+   *     jwkAddress: "your_jwk_address",
+   *     uidKey: "your_uid_key", // optional
+   *     pepper: "your_pepper", // optional
+   *   });
+   *
+   *   console.log("Keyless Account derived:", keylessAccount);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Keyless
+   */
+  async deriveCognitoKeylessAccount(args: {
+    jwt: string;
+    ephemeralKeyPair: EphemeralKeyPair;
+    jwkAddress: AccountAddressInput;
+    uidKey?: string;
+    pepper?: HexInput;
+    proofFetchCallback?: ProofFetchCallback;
+  }): Promise<MultiKeyAccount> {
+    return deriveCognitoKeylessAccount({ aptosConfig: this.config, ...args });
   }
 
   /**

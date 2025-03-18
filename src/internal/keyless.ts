@@ -18,12 +18,20 @@ import {
   Hex,
   KeylessPublicKey,
   MoveJWK,
+  MultiKey,
   ZeroKnowledgeSig,
   ZkProof,
+  getIssAudAndUidVal,
   getKeylessConfig,
 } from "../core";
 import { HexInput, ZkpVariant } from "../types";
-import { Account, EphemeralKeyPair, KeylessAccount, ProofFetchCallback } from "../account";
+import {
+  Account,
+  EphemeralKeyPair,
+  KeylessAccount,
+  MultiKeyAccount,
+  ProofFetchCallback,
+} from "../account";
 import { PepperFetchRequest, PepperFetchResponse, ProverRequest, ProverResponse } from "../types/keyless";
 import { lookupOriginalAccountAddress } from "./account";
 import { FederatedKeylessPublicKey } from "../core/crypto/federatedKeyless";
@@ -32,7 +40,7 @@ import { MoveVector } from "../bcs";
 import { generateTransaction } from "./transactionSubmission";
 import { InputGenerateTransactionOptions, SimpleTransaction } from "../transactions";
 import { KeylessError, KeylessErrorType } from "../errors";
-import { FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
+import { COGNITO_ISS_PATTERN, FIREBASE_AUTH_ISS_PATTERN } from "../utils/const";
 
 /**
  * Retrieves a pepper value based on the provided configuration and authentication details.
@@ -188,6 +196,9 @@ export async function deriveKeylessAccount(args: {
   proofFetchCallback?: ProofFetchCallback;
 }): Promise<KeylessAccount | FederatedKeylessAccount> {
   const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+  if (isCognito(jwt)) {
+    throw new Error("This API does not support Cognito JWTs. Please use deriveCognitoKeylessAccount instead.");
+  };
   const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
 
   const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
@@ -223,6 +234,57 @@ export async function deriveKeylessAccount(args: {
     authenticationKey: publicKey.authKey().derivedAddress(),
   });
   return KeylessAccount.create({ ...args, address, proof, pepper, proofFetchCallback, verificationKey });
+}
+
+export async function deriveCognitoKeylessAccount(args: {
+  aptosConfig: AptosConfig;
+  jwt: string;
+  ephemeralKeyPair: EphemeralKeyPair;
+  jwkAddress: AccountAddressInput;
+  uidKey?: string;
+  pepper?: HexInput;
+  proofFetchCallback?: ProofFetchCallback;
+}): Promise<MultiKeyAccount> {
+  const { aptosConfig, jwt, jwkAddress, uidKey, proofFetchCallback, pepper = await getPepper(args) } = args;
+  if (!isCognito(jwt)) {
+    throw new Error("JWT is not a Cognito JWT");
+  };
+
+  const { verificationKey, maxExpHorizonSecs } = await getKeylessConfig({ aptosConfig });
+
+  const proofPromise = getProof({ ...args, pepper, maxExpHorizonSecs });
+  // If a callback is provided, pass in the proof as a promise to KeylessAccount.create.  This will make the proof be fetched in the
+  // background and the callback will handle the outcome of the fetch.  This allows the developer to not have to block on the proof fetch
+  // allowing for faster rendering of UX.
+  //
+  // If no callback is provided, the just await the proof fetch and continue synchronously.
+  const proof = proofFetchCallback ? proofPromise : await proofPromise;
+
+  // We construct a multi key public key in order to handle escaped and unescaped JSON strings.
+  const multiKey = new MultiKey({
+    publicKeys: [
+      FederatedKeylessPublicKey.fromJwtAndPepperWithoutUnescaping({ jwt, pepper, jwkAddress, uidKey }),
+      FederatedKeylessPublicKey.fromJwtAndPepper({ jwt, pepper, jwkAddress, uidKey }),
+    ],
+    signaturesRequired: 1,
+  });
+  const signer = FederatedKeylessAccount.create({
+    ...args,
+    proof,
+    pepper,
+    proofFetchCallback,
+    jwkAddress,
+    verificationKey,
+  });
+  return new MultiKeyAccount({
+    multiKey,
+    signers: [signer],
+  });
+}
+
+function isCognito(jwt: string): boolean {
+  const { iss } = getIssAudAndUidVal({ jwt });
+  return COGNITO_ISS_PATTERN.test(iss);
 }
 
 export interface JWKS {
