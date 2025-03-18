@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrade tsup to v8.4.0
+
 # 1.36.0 (2025-03-14)
 
 - Upgrade rotateAuthKey API to allow for unverified auth key rotations.
