@@ -1,5 +1,5 @@
 import { AbstractedAccount, Account, Hex, MoveVector, Network } from "../../../src";
-import { DerivedAbstractedAccount } from "../../../src/account/DerivedAbstractedAccount";
+import { DomainAbstractedAccount } from "../../../src/account/DomainAbstractedAccount";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -232,14 +232,14 @@ describe("abstraction api", () => {
     it("should be able to send a transaction with domain account abstraction", async () => {
       // solana uses the same Ed25519 curve
       const solanaAccount = Account.generate();
-      const daa = new DerivedAbstractedAccount({
+      const daa = new DomainAbstractedAccount({
         signer: (digest) => {
-          // The signing message
+          // The solana wallet sign function
           const hexDigest = new TextEncoder().encode(Hex.fromHexInput(digest).toString());
           return solanaAccount.sign(hexDigest).toUint8Array();
         },
         authenticationFunction: "0x1::domain_account_abstraction_ed25519_hex::authenticate",
-        abstractPublicKey: solanaAccount.publicKey.toUint8Array(),
+        accountIdentity: solanaAccount.publicKey.toUint8Array(),
       });
 
       const recipient = Account.generate();

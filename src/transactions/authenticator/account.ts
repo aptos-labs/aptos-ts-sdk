@@ -9,7 +9,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
-import { AbstractionAuthDataVariant, AbstractionDerivedAccountVariant } from "../../types/abstraction";
+import { AbstractionAuthDataVariant, AbstractionDomainAccountVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
 import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
@@ -279,13 +279,13 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   /**
    * DAA, which is extended of the AA module, requires an account identity
    */
-  public readonly abstractPublicKey?: Uint8Array;
+  public readonly accountIdentity?: Uint8Array;
 
   constructor(
     functionInfo: string,
     signingMessageDigest: HexInput,
     authenticator: HexInput,
-    abstractPublicKey?: Uint8Array,
+    accountIdentity?: Uint8Array,
   ) {
     super();
     if (!isValidFunctionInfo(functionInfo)) {
@@ -294,7 +294,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     this.functionInfo = functionInfo;
     this.authenticator = Hex.fromHexInput(authenticator);
     this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
-    this.abstractPublicKey = abstractPublicKey;
+    this.accountIdentity = accountIdentity;
   }
 
   serialize(serializer: Serializer): void {
@@ -303,16 +303,16 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     AccountAddress.fromString(moduleAddress).serialize(serializer);
     serializer.serializeStr(moduleName);
     serializer.serializeStr(functionName);
-    if (this.abstractPublicKey) {
-      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DerivableV1);
+    if (this.accountIdentity) {
+      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DomainV1);
     } else {
       serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.V1);
     }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
     serializer.serializeBytes(this.authenticator.toUint8Array());
-    if (this.abstractPublicKey) {
-      serializer.serializeU32AsUleb128(AbstractionDerivedAccountVariant.V1);
-      serializer.serializeBytes(this.abstractPublicKey);
+    if (this.accountIdentity) {
+      serializer.serializeU32AsUleb128(AbstractionDomainAccountVariant.V1);
+      serializer.serializeBytes(this.accountIdentity);
     }
   }
 
@@ -323,24 +323,24 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     const variant = deserializer.deserializeUleb128AsU32();
     if (variant === AbstractionAuthDataVariant.V1) {
       const signingMessageDigest = deserializer.deserializeBytes();
-      const abstractSignature = deserializer.deserializeBytes();
+      const authenticator = deserializer.deserializeBytes();
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
-        abstractSignature,
+        authenticator,
       );
     }
-    if (variant === AbstractionAuthDataVariant.DerivableV1) {
+    if (variant === AbstractionAuthDataVariant.DomainV1) {
       const signingMessageDigest = deserializer.deserializeBytes();
-      const abstractSignature = deserializer.deserializeBytes();
+      const authenticator = deserializer.deserializeBytes();
       const domainAccountVariant = deserializer.deserializeUleb128AsU32();
-      if (domainAccountVariant === AbstractionDerivedAccountVariant.V1) {
-        const abstractPublicKey = deserializer.deserializeBytes();
+      if (domainAccountVariant === AbstractionDomainAccountVariant.V1) {
+        const accountIdentity = deserializer.deserializeBytes();
         return new AccountAuthenticatorAbstraction(
           `${moduleAddress}::${moduleName}::${functionName}`,
           signingMessageDigest,
-          abstractSignature,
-          abstractPublicKey,
+          authenticator,
+          accountIdentity,
         );
       }
     }

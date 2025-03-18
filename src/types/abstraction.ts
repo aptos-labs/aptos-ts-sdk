@@ -3,9 +3,9 @@
  */
 export enum AbstractionAuthDataVariant {
   V1 = 0,
-  DerivableV1 = 1,
+  DomainV1 = 1,
 }
 
-export enum AbstractionDerivedAccountVariant {
+export enum AbstractionDomainAccountVariant {
   V1 = 0,
 }

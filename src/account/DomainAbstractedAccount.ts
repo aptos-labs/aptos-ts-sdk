@@ -6,14 +6,14 @@ import { HexInput } from "../types";
 import { isValidFunctionInfo } from "../utils/helpers";
 import { AbstractedAccount } from "./AbstractedAccount";
 
-type DerivedAbstractedAccountArgs = {
+type DomainAbstractedAccountArgs = {
   /**
    * The signer function signs transactions and returns the `authenticator` bytes in the `AbstractionAuthData`.
    *
    * @param digest - The SHA256 hash of the transaction signing message
    * @returns The `authenticator` bytes that can be used to verify the signature.
    */
-  signer: (digest: HexInput) => Uint8Array;
+  signer: (digest: HexInput) => HexInput;
 
   /**
    * The authentication function that will be used to verify the signature.
@@ -29,31 +29,31 @@ type DerivedAbstractedAccountArgs = {
    * The identity of the account.
    * Depends on the use cases, most of the time it is the public key of the source wallet
    */
-  abstractPublicKey: Uint8Array;
+  accountIdentity: Uint8Array;
 };
 
-export class DerivedAbstractedAccount extends AbstractedAccount {
+export class DomainAbstractedAccount extends AbstractedAccount {
   /**
    * The identity of the account.
    * Depends on the use cases, most of the time it is the public key of the source wallet
    */
-  readonly abstractPublicKey: Uint8Array;
+  readonly accountIdentity: Uint8Array;
 
   /**
    * The domain separator used to calculate the DAA account address.
    */
   static readonly ADDRESS_DOMAIN_SEPERATOR: number = 5;
 
-  constructor({ signer, authenticationFunction, abstractPublicKey }: DerivedAbstractedAccountArgs) {
+  constructor({ signer, authenticationFunction, accountIdentity }: DomainAbstractedAccountArgs) {
     const daAccountAddress = new AccountAddress(
-      DerivedAbstractedAccount.computeAccountAddress(authenticationFunction, abstractPublicKey),
+      DomainAbstractedAccount.computeAccountAddress(authenticationFunction, accountIdentity),
     );
     super({
       accountAddress: daAccountAddress,
       signer,
       authenticationFunction,
     });
-    this.abstractPublicKey = abstractPublicKey;
+    this.accountIdentity = accountIdentity;
   }
 
   /**
@@ -67,7 +67,7 @@ export class DerivedAbstractedAccount extends AbstractedAccount {
    */
   static computeAccountAddress(functionInfo: string, accountIdentifier: Uint8Array): Uint8Array {
     if (!isValidFunctionInfo(functionInfo)) {
-      throw new Error(`Invalid authentication function ${functionInfo} passed into DerivedAbstractedAccount`);
+      throw new Error(`Invalid authentication function ${functionInfo} passed into DomainAbstractedAccount`);
     }
     const [moduleAddress, moduleName, functionName] = functionInfo.split("::");
 
@@ -85,7 +85,7 @@ export class DerivedAbstractedAccount extends AbstractedAccount {
     hash.update(s2.toUint8Array());
 
     // Append the domain separator
-    hash.update(new Uint8Array([DerivedAbstractedAccount.ADDRESS_DOMAIN_SEPERATOR]));
+    hash.update(new Uint8Array([DomainAbstractedAccount.ADDRESS_DOMAIN_SEPERATOR]));
 
     return hash.digest();
   }
@@ -95,7 +95,7 @@ export class DerivedAbstractedAccount extends AbstractedAccount {
       this.authenticationFunction,
       sha3_256(message),
       this.sign(sha3_256(message)).toUint8Array(),
-      this.abstractPublicKey,
+      this.accountIdentity,
     );
   }
 }
