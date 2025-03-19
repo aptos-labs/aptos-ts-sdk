@@ -3,29 +3,32 @@
 
 import {
   Account,
-  Deserializer,
-  U64,
   AccountAddress,
-  EntryFunctionABI,
-  parseTypeTag,
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
-  FeePayerRawTransaction,
-  MultiAgentRawTransaction,
-  RawTransaction,
-  TransactionPayloadEntryFunction,
-  TransactionPayloadMultiSig,
-  TransactionPayloadScript,
   buildTransaction,
   deriveTransactionType,
+  Deserializer,
+  EntryFunctionABI,
+  FeePayerRawTransaction,
   generateRawTransaction,
   generateSignedTransaction,
   generateSignedTransactionForSimulation,
   generateTransactionPayload,
   generateTransactionPayloadWithABI,
-  SignedTransaction,
   generateUserTransactionHash,
   KeylessPublicKey,
+  MoveAbility,
+  MoveFunctionVisibility,
+  MoveModule,
+  MultiAgentRawTransaction,
+  parseTypeTag,
+  RawTransaction,
+  SignedTransaction,
+  TransactionPayloadEntryFunction,
+  TransactionPayloadMultiSig,
+  TransactionPayloadScript,
+  U64,
 } from "../../../src";
 import { FUND_AMOUNT, longTestTimeout } from "../../unit/helper";
 import { getAptosClient } from "../helper";
@@ -104,7 +107,24 @@ describe("transaction builder", () => {
   describe("generate transaction payload with preset ABI", () => {
     const functionAbi: EntryFunctionABI = {
       typeParameters: [],
-      parameters: [parseTypeTag("address"), parseTypeTag("0x1::object::Object<T0>", { allowGenerics: true })],
+      parameters: [parseTypeTag("address"), parseTypeTag("0x1::object::Object<0x1::object::ObjectCore>")],
+    };
+    const moduleAbi: MoveModule = {
+      address: contractPublisherAccount.accountAddress.toString(),
+      name: "transfer",
+      friends: [],
+      structs: [],
+      exposed_functions: [
+        {
+          name: "transfer",
+          visibility: MoveFunctionVisibility.PUBLIC,
+          is_entry: true,
+          is_view: false,
+          generic_type_params: [],
+          params: ["&signer", "address", "0x1::object::Object<0x1::object::ObjectCore>"],
+          return: [],
+        },
+      ],
     };
 
     test("it generates a multi sig transaction payload", async () => {
@@ -135,6 +155,21 @@ describe("transaction builder", () => {
         function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
         functionArguments: ["0x1", AccountAddress.ONE],
         abi: functionAbi,
+      });
+      expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
+    });
+
+    test("it generates an entry function transaction payload with mixed arguments and a module / surf ABI", async () => {
+      const payload = generateTransactionPayloadWithABI({
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: [AccountAddress.ONE, "0x1"],
+        abi: moduleAbi,
+      });
+      expect(payload instanceof TransactionPayloadEntryFunction).toBeTruthy();
+      const payload2 = generateTransactionPayloadWithABI({
+        function: `${contractPublisherAccount.accountAddress}::transfer::transfer`,
+        functionArguments: ["0x1", AccountAddress.ONE],
+        abi: moduleAbi,
       });
       expect(payload2 instanceof TransactionPayloadEntryFunction).toBeTruthy();
     });

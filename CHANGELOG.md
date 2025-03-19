@@ -6,6 +6,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Upgrade tsup to v8.4.0
 - Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Allow passing in `MoveModule` as ABI for a function, rather than the parsed ABI
 
 # 1.36.0 (2025-03-14)
 
