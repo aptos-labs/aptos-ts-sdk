@@ -30,6 +30,6 @@ module.exports = {
   },
   // To help avoid exhausting all the available fds.
   maxWorkers: 4,
-  globalSetup: "./tests/preTest.js",
-  globalTeardown: "./tests/postTest.js",
+  globalSetup: "./tests/preTest.cjs",
+  globalTeardown: "./tests/postTest.cjs",
 };

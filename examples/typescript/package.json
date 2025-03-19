@@ -34,8 +34,8 @@
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.5.0",
     "@types/readline-sync": "^1.4.8",
-    "dotenv": "^16.3.1",
-    "npm-run-all": "latest",
+    "dotenv": "^16.4.7",
+    "npm-run-all": "4.1.5",
     "readline-sync": "^1.4.10",
     "superagent": "^8.1.2"
   },
@@ -43,8 +43,13 @@
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "ts-node": "latest",
-    "typescript": "latest"
+    "@types/node": "^22.13.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "cross-spawn": ">=6.0.6"
+    }
   }
 }

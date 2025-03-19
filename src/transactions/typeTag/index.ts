@@ -639,6 +639,28 @@ export class TypeTagStruct extends TypeTag {
   isObject(): boolean {
     return this.isTypeTag(AccountAddress.ONE, "object", "Object");
   }
+
+  /**
+   * Checks if the provided value is a 'DelegationKey' for permissioned signers.
+   *
+   * @returns {boolean} Returns true if the value is a DelegationKey, otherwise false.
+   * @group Implementation
+   * @category Transactions
+   */
+  isDelegationKey(): boolean {
+    return this.isTypeTag(AccountAddress.ONE, "permissioned_delegation", "DelegationKey");
+  }
+
+  /**
+   * Checks if the provided value is of type `RateLimiter`.
+   *
+   * @returns {boolean} Returns true if the value is a RateLimiter, otherwise false.
+   * @group Implementation
+   * @category Transactions
+   */
+  isRateLimiter(): boolean {
+    return this.isTypeTag(AccountAddress.ONE, "rate_limiter", "RateLimiter");
+  }
 }
 
 /**
