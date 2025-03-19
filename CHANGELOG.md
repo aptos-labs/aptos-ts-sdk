@@ -4,6 +4,12 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrade tsup to v8.4.0
+- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Allow passing in `MoveModule` as ABI for a function, rather than the parsed ABI
+
+# 1.36.0 (2025-03-14)
+
 - Upgrade rotateAuthKey API to allow for unverified auth key rotations.
 - Upgrade rotateAuthKey API to support Account types other than Ed25519.
 - Update simulation for MultiKeyAccount to use signatures of the same type as the corresponding public key.
@@ -12,7 +18,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add support for skipping struct type tag validation.
 - Add support for known enum structs: DelegationKey and RateLimiter.
 - Deprecated `fetchMoveFunctionAbi` and `convertCallArgument`
-- Allow passing in `MoveModule` as ABI for a function, rather than the parsed ABI
+- Bump `aptos-client` to 1.1.0
 
 # 1.35.0 (2025-02-11)
 
