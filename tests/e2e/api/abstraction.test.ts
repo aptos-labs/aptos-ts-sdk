@@ -1,16 +1,25 @@
-import { AbstractedAccount, Account, Hex, MoveVector, Network } from "../../../src";
-import { DomainAbstractedAccount } from "../../../src/account/DomainAbstractedAccount";
+import {
+  AbstractedAccount,
+  Account,
+  AccountAddress,
+  DomainAbstractedAccount,
+  Ed25519PrivateKey,
+  Hex,
+  MoveVector,
+  Network,
+} from "../../../src";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {
   addPermissionDelegationScriptBytecode,
   publishAnyAuthenticatorAAPackage,
+  publishDAAEd25519HexPackage,
   publishHelloWorldAAPackage,
 } from "../transaction/helper";
 
 describe("abstraction api", () => {
-  const { aptos } = getAptosClient({ network: Network.LOCAL });
+  const { aptos } = getAptosClient({ network: Network.DEVNET });
 
   describe("account abstraction", () => {
     describe("enable and disable account abstraction", () => {
@@ -228,8 +237,32 @@ describe("abstraction api", () => {
   });
 
   // this daa account can be used on chain
-  describe("domain account abstraction", () => {
-    it("should be able to send a transaction with domain account abstraction", async () => {
+  describe.only("derived account abstraction", () => {
+    const deployer = Ed25519Account.generate();
+
+    beforeAll(async () => {
+      await aptos.fundAccount({ accountAddress: deployer.accountAddress, amount: FUND_AMOUNT });
+      await publishDAAEd25519HexPackage(aptos, deployer);
+    });
+    it("should derive the correct account address", async () => {
+      const solanaAccount = Account.fromPrivateKey({
+        privateKey: new Ed25519PrivateKey(
+          "ed25519-priv-0xc5338cd251c22daa8c9c9cc94f498cc8a5c7e1d2e75287a5dda91096fe64efa5",
+        ),
+      });
+      const functionInfo = "0x7::solana::authenticate";
+      const accountAddress = DomainAbstractedAccount.computeAccountAddress(
+        functionInfo,
+        solanaAccount.publicKey.toUint8Array(),
+      );
+      const derivedAccountAddress = new AccountAddress(accountAddress);
+      const expectedDerivedAccountAddress = "0x2a5387568cc6c1dd4a58b252785d66b0b35d62c8835e16d4423f2cbc5d1d17fc";
+      expect(derivedAccountAddress.toString()).toBe(expectedDerivedAccountAddress);
+    });
+
+    it("should be able to send a transaction with derived account abstraction", async () => {
+      console.log("deployer", deployer.accountAddress.toString());
+      const authenticationFunction = `${deployer.accountAddress}::domain_account_abstraction_ed25519_hex::authenticate`;
       // solana uses the same Ed25519 curve
       const solanaAccount = Account.generate();
       const daa = new DomainAbstractedAccount({
@@ -238,7 +271,7 @@ describe("abstraction api", () => {
           const hexDigest = new TextEncoder().encode(Hex.fromHexInput(digest).toString());
           return solanaAccount.sign(hexDigest).toUint8Array();
         },
-        authenticationFunction: "0x1::domain_account_abstraction_ed25519_hex::authenticate",
+        authenticationFunction,
         accountIdentity: solanaAccount.publicKey.toUint8Array(),
       });
 
