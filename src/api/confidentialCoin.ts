@@ -102,6 +102,23 @@ export class ConfidentialCoin {
     };
   }
 
+  async getEncryptionByAddr(args: {
+    accountAddress: AccountAddress;
+    tokenAddress: string;
+    options?: LedgerVersionArg;
+  }): Promise<string> {
+    const [{ point }] = await view<[{ point: { data: string } }]>({
+      aptosConfig: this.config,
+      options: args.options,
+      payload: {
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::encryption_key`,
+        functionArguments: [args.accountAddress, args.tokenAddress],
+      },
+    });
+
+    return point.data;
+  }
+
   async registerBalance(args: {
     sender: AccountAddressInput;
     tokenAddress: string;
