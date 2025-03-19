@@ -5,9 +5,9 @@ import { ScriptComposerWasm } from "@aptos-labs/script-composer-pack";
 import { AptosApiType, getFunctionParts } from "../../utils";
 import { AptosConfig } from "../../api/aptosConfig";
 import { InputBatchedFunctionData } from "../types";
-import { fetchMoveFunctionAbi, standardizeTypeTags } from "../transactionBuilder";
+import { standardizeTypeTags } from "../transactionBuilder";
 import { CallArgument } from "../../types";
-import { convertCallArgument } from "../transactionBuilder/remoteAbi";
+import { convertArgument, fetchModuleAbi } from "../transactionBuilder/remoteAbi";
 
 /**
  * A wrapper class around TransactionComposer, which is a WASM library compiled
@@ -58,19 +58,34 @@ export class AptosScriptComposer {
 
     // Load the calling type arguments into the loader.
     if (input.typeArguments !== undefined) {
-      await Promise.all(input.typeArguments.map((typeTag) => this.builder.load_type_tag(nodeUrl, typeTag.toString())));
+      for (const typeArgument of input.typeArguments) {
+        await this.builder.load_type_tag(nodeUrl, typeArgument.toString());
+      }
     }
     const typeArguments = standardizeTypeTags(input.typeArguments);
-    const functionAbi = await fetchMoveFunctionAbi(moduleAddress, moduleName, functionName, this.config);
+    const moduleAbi = await fetchModuleAbi(moduleAddress, moduleName, this.config);
+    if (!moduleAbi) {
+      throw new Error(`Could not find module ABI for '${moduleAddress}::${moduleName}'`);
+    }
+
     // Check the type argument count against the ABI
-    if (typeArguments.length !== functionAbi.typeParameters.length) {
+    const functionAbi = moduleAbi?.exposed_functions.find((func) => func.name === functionName);
+    if (!functionAbi) {
+      throw new Error(`Could not find function ABI for '${moduleAddress}::${moduleName}::${functionName}'`);
+    }
+
+    if (typeArguments.length !== functionAbi.generic_type_params.length) {
       throw new Error(
-        `Type argument count mismatch, expected ${functionAbi.typeParameters.length}, received ${typeArguments.length}`,
+        `Type argument count mismatch, expected ${functionAbi?.generic_type_params.length}, received ${typeArguments.length}`,
       );
     }
 
     const functionArguments: CallArgument[] = input.functionArguments.map((arg, i) =>
-      convertCallArgument(arg, functionName, functionAbi, i, typeArguments),
+      arg instanceof CallArgument
+        ? arg
+        : CallArgument.newBytes(
+            convertArgument(functionName, moduleAbi, arg, i, typeArguments, { allowUnknownStructs: true }).bcsToBytes(),
+          ),
     );
 
     return this.builder.add_batched_call(
