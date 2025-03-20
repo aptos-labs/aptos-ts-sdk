@@ -4,8 +4,10 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+- Upgrade tsup to v8.4.0
+- Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
 - [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
-
+- 
 # 1.36.0 (2025-03-14)
 
 - Upgrade rotateAuthKey API to allow for unverified auth key rotations.
