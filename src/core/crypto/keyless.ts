@@ -163,13 +163,19 @@ export class KeylessPublicKey extends AccountPublicKey {
    * @param args - The arguments for signature verification.
    * @param args.message - The message that was signed.
    * @param args.signature - The signature to verify against the message.
+   * @param args.jwk - The JWK to use for verification.
+   * @param args.keylessConfig - The keyless configuration to use for verification.
    * @returns true if the signature is valid; otherwise, false.
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not implemented. Use `verifySignatureAsync` instead.");
+  verifySignature(args: {
+    message: HexInput;
+    signature: KeylessSignature;
+    jwk: MoveJWK;
+    keylessConfig: KeylessConfiguration;
+  }): boolean {
+    return verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
   }
 
   /**
@@ -340,21 +346,8 @@ export async function verifyKeylessSignature(args: {
     keylessConfig = await getKeylessConfig({ aptosConfig }),
     options,
   } = args;
-  if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
-    throw KeylessError.fromErrorType({
-      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
-      details: "Unsupported ephemeral certificate variant",
-    });
-  }
-  const zkSig = signature.ephemeralCertificate.signature;
-  if (!(zkSig.proof.proof instanceof Groth16Zkp)) {
-    throw KeylessError.fromErrorType({
-      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
-      details: "Unsupported proof variant",
-    });
-  }
   try {
-    verifyKeylessSignatureWithJwkAndConfig({ publicKey, message, signature, keylessConfig, jwk });
+    publicKey.verifySignature({ message, signature, jwk, keylessConfig });
     return true;
   } catch (error) {
     if (options?.throwErrorWithReason) {

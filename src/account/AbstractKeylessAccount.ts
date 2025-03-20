@@ -16,6 +16,7 @@ import {
   MoveJWK,
   getKeylessConfig,
   fetchJWK,
+  KeylessConfiguration,
 } from "../core/crypto";
 
 import { EphemeralKeyPair } from "./EphemeralKeyPair";
@@ -445,19 +446,22 @@ export abstract class AbstractKeylessAccount extends Serializable implements Key
    *
    * Verifies a signature given the message.
    *
-   * TODO: Groth16 proof verification
-   *
    * @param args.message the message that was signed.
    * @param args.signature the KeylessSignature to verify
    * @returns boolean
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not implemented. Use `verifySignatureAsync` instead.");
+  verifySignature(args: {
+    message: HexInput;
+    signature: KeylessSignature;
+    jwk: MoveJWK;
+    keylessConfig: KeylessConfiguration;
+  }): boolean {
+    return this.publicKey.verifySignature(args);
   }
 
-  verifySignatureAsync(args: {
+  async verifySignatureAsync(args: {
     aptosConfig: AptosConfig;
     message: HexInput;
     signature: KeylessSignature;

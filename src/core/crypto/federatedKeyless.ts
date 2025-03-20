@@ -6,7 +6,14 @@ import { Deserializer, Serializer } from "../../bcs";
 import { HexInput, AnyPublicKeyVariant, SigningScheme } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { AccountAddress, AccountAddressInput } from "../accountAddress";
-import { KeylessPublicKey, KeylessSignature, verifyKeylessSignature } from "./keyless";
+import {
+  KeylessConfiguration,
+  KeylessPublicKey,
+  KeylessSignature,
+  MoveJWK,
+  verifyKeylessSignature,
+  verifyKeylessSignatureWithJwkAndConfig,
+} from "./keyless";
 import { AptosConfig } from "../../api";
 
 /**
@@ -61,13 +68,19 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    *
    * @param args.message message
    * @param args.signature The signature
+   * @param args.jwk - The JWK to use for verification.
+   * @param args.keylessConfig - The keyless configuration to use for verification.
    * @returns true if the signature is valid
    * @group Implementation
    * @category Serialization
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-  verifySignature(args: { message: HexInput; signature: KeylessSignature }): boolean {
-    throw new Error("Not implemented. Use `verifySignatureAsync` instead.");
+  verifySignature(args: {
+    message: HexInput;
+    signature: KeylessSignature;
+    jwk: MoveJWK;
+    keylessConfig: KeylessConfiguration;
+  }): boolean {
+    return verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
   }
 
   serialize(serializer: Serializer): void {
