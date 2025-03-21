@@ -4,6 +4,7 @@
 import { decode } from "js-base64";
 import { MoveFunctionId, MoveStructId } from "../types";
 import { AccountAddress } from "../core/accountAddress";
+import { createObjectAddress } from "../core/account/utils/address";
 
 /**
  * Sleep for the specified amount of time in milliseconds.
@@ -234,4 +235,53 @@ export function isValidFunctionInfo(functionInfo: string): boolean {
  */
 export function truncateAddress(address: string, start: number = 6, end: number = 5) {
   return `${address.slice(0, start)}...${address.slice(-end)}`;
+}
+
+/**
+ * Constants for metadata address calculation
+ */
+const APTOS_COIN_TYPE_STR = "0x1::aptos_coin::AptosCoin";
+const APT_METADATA_ADDRESS_HEX = AccountAddress.A.toStringLong();
+
+/**
+ * Helper function to standardize Move type string by converting all addresses to short form,
+ * including addresses within nested type parameters
+ */
+function standardizeMoveTypeString(input: string): string {
+  // Regular expression to match addresses in the type string, including those within type parameters
+  // This regex matches "0x" followed by hex digits, handling both standalone addresses and those within <>
+  const addressRegex = /0x[0-9a-fA-F]+/g;
+
+  return input.replace(addressRegex, (match) => {
+    // Use AccountAddress to handle the address
+    return AccountAddress.from(match, { maxMissingChars: 63 }).toStringShort();
+  });
+}
+
+/**
+ * Calculates the paired FA metadata address for a given coin type.
+ * This function is tolerant of various address formats in the coin type string,
+ * including complex nested types.
+ *
+ * @example
+ * // All these formats are valid and will produce the same result:
+ * pairedFaMetadataAddress("0x1::aptos_coin::AptosCoin")  // simple form
+ * pairedFaMetadataAddress("0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin")  // long form
+ * pairedFaMetadataAddress("0x00001::aptos_coin::AptosCoin")  // with leading zeros
+ * pairedFaMetadataAddress("0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>")  // nested type parameters
+ *
+ * @param coinType - The coin type string in any of these formats:
+ *   - Short form address: "0x1::aptos_coin::AptosCoin"
+ *   - Long form address: "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin"
+ *   - With leading zeros: "0x00001::aptos_coin::AptosCoin"
+ *   - With nested types: "0x1::coin::Coin<0x1412::a::struct<0x0001::aptos_coin::AptosCoin>>"
+ * @returns The calculated metadata address as an AccountAddress instance
+ */
+export function pairedFaMetadataAddress(coinType: `0x${string}::${string}::${string}`): AccountAddress {
+  // Standardize the coin type string to handle any address format
+  const standardizedMoveTypeName = standardizeMoveTypeString(coinType);
+
+  return standardizedMoveTypeName === APTOS_COIN_TYPE_STR
+    ? AccountAddress.A
+    : createObjectAddress(AccountAddress.A, standardizedMoveTypeName);
 }
