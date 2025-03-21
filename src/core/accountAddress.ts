@@ -184,6 +184,31 @@ export class AccountAddress extends Serializable implements TransactionArgument 
   }
 
   /**
+   * Convert the account address to a string in SHORT format, which is 0x followed by the shortest
+   * possible representation (no leading zeros).
+   *
+   * @returns AccountAddress as a string in SHORT form.
+   * @group Implementation
+   * @category Serialization
+   */
+  toStringShort(): `0x${string}` {
+    return `0x${this.toStringShortWithoutPrefix()}`;
+  }
+
+  /**
+   * Returns a lossless short string representation of the address by trimming leading zeros.
+   * If the address consists of all zeros, returns "0".
+   *
+   * @returns A string representation of the address without leading zeros
+   * @group Implementation
+   * @category Serialization
+   */
+  toStringShortWithoutPrefix(): string {
+    const hex = bytesToHex(this.data).replace(/^0+/, "");
+    return hex === "" ? "0" : hex;
+  }
+
+  /**
    * Get the inner data as a Uint8Array.
    * The inner data is already a Uint8Array, so no conversion takes place.
    *
