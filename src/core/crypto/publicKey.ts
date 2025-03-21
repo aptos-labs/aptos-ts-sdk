@@ -32,7 +32,6 @@ export interface VerifySignatureArgs {
  */
 export type VerifySignatureAsyncArgs = VerifySignatureArgs & {
   aptosConfig: AptosConfig;
-  options?: any;
 };
 
 /**
