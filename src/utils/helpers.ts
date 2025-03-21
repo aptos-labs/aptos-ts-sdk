@@ -72,6 +72,17 @@ export function base64UrlDecode(base64Url: string): string {
   return decodedString;
 }
 
+export function base64UrlToBytes(base64Url: string): Uint8Array {
+  // Convert Base64Url to Base64
+  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  // Add padding if needed
+  while (base64.length % 4 !== 0) {
+    base64 += "=";
+  }
+  // Use Buffer to convert base64 to Uint8Array
+  return new Uint8Array(Buffer.from(base64, "base64"));
+}
+
 /**
  * Amount is represented in the smallest unit format on chain, this function converts
  * a human-readable amount format to the smallest unit format

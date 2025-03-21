@@ -1,12 +1,18 @@
 import { Deserializer, Serializer } from "../../bcs";
-import { AnyPublicKeyVariant, AnySignatureVariant, SigningScheme as AuthenticationKeyScheme } from "../../types";
+import {
+  AnyPublicKeyVariant,
+  AnySignatureVariant,
+  SigningScheme as AuthenticationKeyScheme,
+  HexInput,
+} from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
 import { FederatedKeylessPublicKey } from "./federatedKeyless";
+import { AptosConfig } from "../../api";
 
 export type PrivateKeyInput = Ed25519PrivateKey | Secp256k1PrivateKey;
 
@@ -77,15 +83,34 @@ export class AnyPublicKey extends AccountPublicKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
-    if (!AnySignature.isInstance(signature)) {
-      return false;
-    }
-
     return this.publicKey.verifySignature({
       message,
       signature: signature.signature,
+    });
+  }
+
+  /**
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of AnySignature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: AnySignature;
+  }): Promise<boolean> {
+    return await this.publicKey.verifySignatureAsync({
+      ...args,
+      signature: args.signature.signature,
     });
   }
 

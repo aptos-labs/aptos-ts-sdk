@@ -58,7 +58,7 @@ export type KeylessConfigurationResponse = {
   max_jwt_header_b64_bytes: number;
   max_signatures_per_txn: number;
   override_aud_vals: string[];
-  training_wheels_pubkey: { vec: string[] };
+  training_wheels_pubkey: { vec: [string] };
 };
 
 /**
