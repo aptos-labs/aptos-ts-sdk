@@ -98,5 +98,11 @@
     "typedoc-plugin-missing-exports": "^3.1.0",
     "typescript": "^5.7.3"
   },
+  "pnpm": {
+      "overrides": {
+        "@babel/runtime": ">=7.26.10",
+        "@babel/helpers": ">=7.26.10"
+      }
+  },
   "version": "1.36.0"
 }
