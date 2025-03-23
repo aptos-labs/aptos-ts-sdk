@@ -10,6 +10,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Adds support for keyless signature verification.
 - Implements signature verification for MultiKey.
 - Override @babel/runtime and @babel/helpers to use an updated version
+- Allow passing in `MoveModule` as ABI for a function, rather than the parsed ABI
 
 # 1.36.0 (2025-03-14)
 

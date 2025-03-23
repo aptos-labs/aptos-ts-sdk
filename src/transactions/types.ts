@@ -16,7 +16,15 @@ import {
   TransactionPayloadMultiSig,
   TransactionPayloadScript,
 } from "./instances";
-import { AnyNumber, HexInput, MoveFunctionGenericTypeParam, MoveFunctionId, MoveStructId, MoveValue } from "../types";
+import {
+  AnyNumber,
+  HexInput,
+  MoveFunctionGenericTypeParam,
+  MoveFunctionId,
+  MoveModule,
+  MoveStructId,
+  MoveValue,
+} from "../types";
 import { TypeTag } from "./typeTag";
 import { AccountAuthenticator } from "./authenticator/account";
 import { SimpleTransaction } from "./instances/simpleTransaction";
@@ -159,7 +167,7 @@ export type InputEntryFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeArgument>;
   functionArguments: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
-  abi?: EntryFunctionABI;
+  abi?: EntryFunctionABI | MoveModule;
 };
 
 /**
@@ -175,7 +183,7 @@ export type InputGenerateTransactionPayloadDataWithABI = InputEntryFunctionDataW
  * @category Transactions
  */
 export type InputEntryFunctionDataWithABI = Omit<InputEntryFunctionData, "abi"> & {
-  abi: EntryFunctionABI;
+  abi: EntryFunctionABI | MoveModule;
 };
 
 /**
@@ -241,7 +249,7 @@ export type InputViewFunctionData = {
   function: MoveFunctionId;
   typeArguments?: Array<TypeArgument>;
   functionArguments?: Array<EntryFunctionArgumentTypes | SimpleEntryFunctionArgumentTypes>;
-  abi?: ViewFunctionABI;
+  abi?: ViewFunctionABI | MoveModule;
 };
 
 /**
@@ -278,7 +286,7 @@ export type InputViewFunctionDataWithRemoteABI = InputViewFunctionData & { aptos
  * @group Implementation
  * @category Transactions
  */
-export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI };
+export type InputViewFunctionDataWithABI = InputViewFunctionData & { abi: ViewFunctionABI | MoveModule };
 
 /**
  * Data needed for a generic function ABI, applicable to both view and entry functions.
