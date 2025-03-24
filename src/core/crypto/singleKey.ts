@@ -7,7 +7,7 @@ import {
 } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature } from "./ed25519";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey } from "./publicKey";
 import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from "./secp256k1";
 import { KeylessPublicKey, KeylessSignature } from "./keyless";
 import { Signature } from "./signature";
@@ -85,6 +85,9 @@ export class AnyPublicKey extends AccountPublicKey {
    */
   verifySignature(args: { message: HexInput; signature: AnySignature }): boolean {
     const { message, signature } = args;
+    if (this.publicKey instanceof KeylessPublicKey) {
+      throw new Error("Use verifySignatureAsync to verify Keyless signatures");
+    }
     return this.publicKey.verifySignature({
       message,
       signature: signature.signature,
@@ -106,8 +109,15 @@ export class AnyPublicKey extends AccountPublicKey {
   async verifySignatureAsync(args: {
     aptosConfig: AptosConfig;
     message: HexInput;
-    signature: AnySignature;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
   }): Promise<boolean> {
+    if (!(args.signature instanceof AnySignature)) {
+      if (args.options?.throwErrorWithReason) {
+        throw new Error("Signature must be an instance of AnySignature");
+      }
+      return false;
+    }
     return await this.publicKey.verifySignatureAsync({
       ...args,
       signature: args.signature.signature,
