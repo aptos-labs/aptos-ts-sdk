@@ -1,11 +1,20 @@
 import { AccountAuthenticatorSingleKey } from "../transactions/authenticator/account";
 import { type HexInput, SigningScheme, SigningSchemeInput } from "../types";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { AnyPublicKey, AnySignature, Ed25519PrivateKey, PrivateKeyInput, Secp256k1PrivateKey } from "../core/crypto";
+import {
+  AnyPublicKey,
+  AnySignature,
+  Ed25519PrivateKey,
+  KeylessSignature,
+  PrivateKeyInput,
+  Secp256k1PrivateKey,
+  Signature,
+} from "../core/crypto";
 import type { Account } from "./Account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
 import { AnyRawTransaction } from "../transactions/types";
 import { Ed25519Account } from "./Ed25519Account";
+import { AptosConfig } from "../api";
 
 /**
  * An interface which defines if an Account utilizes SingleKey signing.
@@ -186,6 +195,31 @@ export class SingleKeyAccount implements Account, SingleKeySigner {
    */
   verifySignature(args: VerifySingleKeySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
+  }
+
+  /**
+   * Verify the given message and signature with the account's public key.
+   *
+   * This function checks if the provided signature is valid for the given message using the account's public key.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The raw message data in HexInput format.
+   * @param args.signature - The signed message signature.
+   * @param args.options.throwErrorWithReason - Whether to throw an error with the reason for the verification failure.
+   * @returns A boolean indicating whether the signature is valid for the message.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return this.publicKey.verifySignatureAsync({
+      ...args,
+      signature: args.signature,
+    });
   }
 
   /**

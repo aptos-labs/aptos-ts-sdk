@@ -2,7 +2,7 @@ import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types"
 import { Deserializer } from "../../bcs/deserializer";
 import { Serializer } from "../../bcs/serializer";
 import { AuthenticationKey } from "../authenticationKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { AnyPublicKey, AnySignature } from "./singleKey";
 import { AptosConfig } from "../../api";
@@ -208,21 +208,32 @@ export class MultiKey extends AbstractMultiKey {
   async verifySignatureAsync(args: {
     aptosConfig: AptosConfig;
     message: HexInput;
-    signature: MultiKeySignature;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
   }): Promise<boolean> {
-    const { message, signature, aptosConfig } = args;
-    if (signature.signatures.length !== this.signaturesRequired) {
-      throw new Error("The number of signatures does not match the number of required signatures");
-    }
-    const signerIndices = signature.bitMapToSignerIndices();
-    for (let i = 0; i < signature.signatures.length; i += 1) {
-      const singleSignature = signature.signatures[i];
-      const publicKey = this.publicKeys[signerIndices[i]];
-      if (!(await publicKey.verifySignatureAsync({ aptosConfig, message, signature: singleSignature }))) {
-        return false;
+    const { signature } = args;
+    try {
+      if (!(signature instanceof MultiKeySignature)) {
+        throw new Error("Signature is not a MultiKeySignature");
       }
+      if (signature.signatures.length !== this.signaturesRequired) {
+        throw new Error("The number of signatures does not match the number of required signatures");
+      }
+      const signerIndices = signature.bitMapToSignerIndices();
+      for (let i = 0; i < signature.signatures.length; i += 1) {
+        const singleSignature = signature.signatures[i];
+        const publicKey = this.publicKeys[signerIndices[i]];
+        if (!(await publicKey.verifySignatureAsync({ ...args, signature: singleSignature }))) {
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      if (args.options?.throwErrorWithReason) {
+        throw error;
+      }
+      return false;
     }
-    return true;
   }
 
   /**

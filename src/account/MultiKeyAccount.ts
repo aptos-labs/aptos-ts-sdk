@@ -280,6 +280,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @param args - The arguments for verifying the signature.
    * @param args.message - The raw message data in HexInput format.
    * @param args.signature - The signed message MultiKeySignature containing multiple signatures.
+   * @param args.options.throwErrorWithReason - Whether to throw an error with the reason for the verification failure.
    * @returns A boolean indicating whether the signatures are valid for the message.
    * @group Implementation
    * @category Account (On-Chain Model)
@@ -288,6 +289,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
     aptosConfig: AptosConfig;
     message: HexInput;
     signature: MultiKeySignature;
+    options?: { throwErrorWithReason?: boolean };
   }): Promise<boolean> {
     return await this.publicKey.verifySignatureAsync(args);
   }

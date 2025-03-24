@@ -1,5 +1,6 @@
+import { AptosConfig } from "../api";
 import { AccountAddress, AccountAddressInput } from "../core/accountAddress";
-import { Ed25519PrivateKey } from "../core/crypto";
+import { Ed25519PrivateKey, Signature } from "../core/crypto";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../core/crypto/multiEd25519";
 import { AccountAuthenticatorMultiEd25519 } from "../transactions/authenticator/account";
 import { generateSigningMessageForTransaction } from "../transactions/transactionBuilder/signingMessage";
@@ -108,6 +109,32 @@ export class MultiEd25519Account implements Account {
    */
   verifySignature(args: VerifyMultiEd25519SignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
+  }
+
+  /**
+   * Verify the given message and signature with the public key.
+   *
+   * MultiEd25519 signatures do not depend on chain state, so this function is
+   * equivalent to the synchronous verifySignature method.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - Raw message data in HexInput format.
+   * @param args.signature - Signed message signature.
+   * @returns A boolean indicating whether the signature is valid.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return this.publicKey.verifySignatureAsync({
+      ...args,
+      signature: args.signature,
+    });
   }
 
   /**
