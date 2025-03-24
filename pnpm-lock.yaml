@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@babel/runtime': '>=7.26.10'
+  '@babel/helpers': '>=7.26.10'
+
 dependencies:
   '@aptos-labs/aptos-cli':
     specifier: ^1.0.2
@@ -54,7 +58,7 @@ devDependencies:
     version: 3.2.0
   '@graphql-codegen/cli':
     specifier: ^5.0.4
-    version: 5.0.4(@types/node@20.17.17)(graphql@16.10.0)(typescript@5.7.3)
+    version: 5.0.5(@types/node@20.17.17)(graphql@16.10.0)(typescript@5.7.3)
   '@graphql-codegen/import-types-preset':
     specifier: ^3.0.0
     version: 3.0.0(graphql@16.10.0)
@@ -199,7 +203,7 @@ packages:
       '@babel/core': 7.25.8
       '@babel/generator': 7.25.7
       '@babel/parser': 7.25.8
-      '@babel/runtime': 7.25.7
+      '@babel/runtime': 7.26.10
       '@babel/traverse': 7.26.8
       '@babel/types': 7.25.8
       babel-preset-fbjs: 3.4.0(@babel/core@7.25.8)
@@ -259,7 +263,7 @@ packages:
       '@babel/generator': 7.25.7
       '@babel/helper-compilation-targets': 7.25.7
       '@babel/helper-module-transforms': 7.25.7(@babel/core@7.25.8)
-      '@babel/helpers': 7.25.7
+      '@babel/helpers': 7.26.10
       '@babel/parser': 7.25.8
       '@babel/template': 7.25.7
       '@babel/traverse': 7.26.8
@@ -436,12 +440,12 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
-  /@babel/helpers@7.25.7:
-    resolution: {integrity: sha512-Sv6pASx7Esm38KQpF/U/OXLwPPrdGHNKoeblRxgZRLXnAtnkEe4ptJPDtAZM7fBLadbc1Q07kQpSiGQ0Jg6tRA==}
+  /@babel/helpers@7.26.10:
+    resolution: {integrity: sha512-UPYc3SauzZ3JGgj87GgZ89JVdC5dj0AoetR5Bw6wj4niittNyFh6+eOGonYvJ1ao6B8lEa3Q3klS7ADZ53bc5g==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/template': 7.25.7
-      '@babel/types': 7.25.8
+      '@babel/template': 7.26.9
+      '@babel/types': 7.26.10
     dev: true
 
   /@babel/highlight@7.25.7:
@@ -460,6 +464,14 @@ packages:
     hasBin: true
     dependencies:
       '@babel/types': 7.25.8
+    dev: true
+
+  /@babel/parser@7.26.10:
+    resolution: {integrity: sha512-6aQR2zGE/QFi8JpDLjUZEPYOs7+mhKXm86VaKFiLP35JQwQb6bwUE+XbvkH0EptsYhbNBSUGaUBLKqxH1xSgsA==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+    dependencies:
+      '@babel/types': 7.26.10
     dev: true
 
   /@babel/parser@7.26.8:
@@ -910,8 +922,8 @@ packages:
       '@babel/helper-plugin-utils': 7.25.7
     dev: true
 
-  /@babel/runtime@7.25.7:
-    resolution: {integrity: sha512-FjoyLe754PMiYsFaN5C94ttGiOmBNYTf6pLr4xXHAT5uctHb092PBszndLDR5XA/jghQvn4n7JMHl7dmTgbm9w==}
+  /@babel/runtime@7.26.10:
+    resolution: {integrity: sha512-2WJMeRQPHKSPemqk/awGrAiuFfzBmOIPXKizAsVhWH9YJqLZ0H+HS4c8loHGgW6utJ3E/ejXQUsiGaQy2NZ9Fw==}
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.1
@@ -933,6 +945,15 @@ packages:
       '@babel/code-frame': 7.26.2
       '@babel/parser': 7.26.8
       '@babel/types': 7.26.8
+    dev: true
+
+  /@babel/template@7.26.9:
+    resolution: {integrity: sha512-qyRplbeIpNZhmzOysF/wFMuP9sctmh2cFzRAZOn1YapxBsE1i9bJIY586R/WBLfLcmcBlM8ROBiQURnnNy+zfA==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      '@babel/code-frame': 7.26.2
+      '@babel/parser': 7.26.10
+      '@babel/types': 7.26.10
     dev: true
 
   /@babel/traverse@7.26.8:
@@ -957,6 +978,14 @@ packages:
       '@babel/helper-string-parser': 7.25.7
       '@babel/helper-validator-identifier': 7.25.7
       to-fast-properties: 2.0.0
+    dev: true
+
+  /@babel/types@7.26.10:
+    resolution: {integrity: sha512-emqcG3vHrpxUKTrxcblR36dcrcoRDvKmnL/dCL6ZsHaShW80qxCAcNhzQZrpeM765VzEos+xOi4s+r4IXzTwdQ==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      '@babel/helper-string-parser': 7.25.9
+      '@babel/helper-validator-identifier': 7.25.9
     dev: true
 
   /@babel/types@7.26.8:
@@ -1474,8 +1503,8 @@ packages:
       tslib: 2.6.3
     dev: true
 
-  /@graphql-codegen/cli@5.0.4(@types/node@20.17.17)(graphql@16.10.0)(typescript@5.7.3):
-    resolution: {integrity: sha512-vPO1mCtrttFVy8mPR+jMAvsYTv8E/7payIPaneeGE15mQjyvQXXsHoAg06Qpf6tykOdCwKVLWre0Mf6g0KBwUg==}
+  /@graphql-codegen/cli@5.0.5(@types/node@20.17.17)(graphql@16.10.0)(typescript@5.7.3):
+    resolution: {integrity: sha512-9p9SI5dPhJdyU+O6p1LUqi5ajDwpm6pUhutb1fBONd0GZltLFwkgWFiFtM6smxkYXlYVzw61p1kTtwqsuXO16w==}
     engines: {node: '>=16'}
     hasBin: true
     peerDependencies:
@@ -1486,11 +1515,11 @@ packages:
         optional: true
     dependencies:
       '@babel/generator': 7.26.8
-      '@babel/template': 7.26.8
-      '@babel/types': 7.26.8
+      '@babel/template': 7.26.9
+      '@babel/types': 7.26.10
       '@graphql-codegen/client-preset': 4.6.2(graphql@16.10.0)
       '@graphql-codegen/core': 4.0.2(graphql@16.10.0)
-      '@graphql-codegen/plugin-helpers': 5.0.4(graphql@16.10.0)
+      '@graphql-codegen/plugin-helpers': 5.1.0(graphql@16.10.0)
       '@graphql-tools/apollo-engine-loader': 8.0.2(graphql@16.10.0)
       '@graphql-tools/code-file-loader': 8.1.4(graphql@16.10.0)
       '@graphql-tools/git-loader': 8.0.8(graphql@16.10.0)
@@ -1539,7 +1568,7 @@ packages:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
       '@babel/helper-plugin-utils': 7.25.7
-      '@babel/template': 7.26.8
+      '@babel/template': 7.26.9
       '@graphql-codegen/add': 5.0.3(graphql@16.10.0)
       '@graphql-codegen/gql-tag-operations': 4.0.14(graphql@16.10.0)
       '@graphql-codegen/plugin-helpers': 5.1.0(graphql@16.10.0)
@@ -1562,7 +1591,7 @@ packages:
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@graphql-codegen/plugin-helpers': 5.0.4(graphql@16.10.0)
+      '@graphql-codegen/plugin-helpers': 5.1.0(graphql@16.10.0)
       '@graphql-tools/schema': 10.0.7(graphql@16.10.0)
       '@graphql-tools/utils': 10.5.5(graphql@16.10.0)
       graphql: 16.10.0
@@ -1628,20 +1657,6 @@ packages:
       import-from: 4.0.0
       lodash: 4.17.21
       tslib: 2.4.1
-    dev: true
-
-  /@graphql-codegen/plugin-helpers@5.0.4(graphql@16.10.0):
-    resolution: {integrity: sha512-MOIuHFNWUnFnqVmiXtrI+4UziMTYrcquljaI5f/T/Bc7oO7sXcfkAvgkNWEEi9xWreYwvuer3VHCuPI/lAFWbw==}
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      '@graphql-tools/utils': 10.5.5(graphql@16.10.0)
-      change-case-all: 1.0.15
-      common-tags: 1.8.2
-      graphql: 16.10.0
-      import-from: 4.0.0
-      lodash: 4.17.21
-      tslib: 2.6.3
     dev: true
 
   /@graphql-codegen/plugin-helpers@5.1.0(graphql@16.10.0):
@@ -1980,10 +1995,10 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       '@babel/core': 7.25.8
-      '@babel/parser': 7.26.8
+      '@babel/parser': 7.26.10
       '@babel/plugin-syntax-import-assertions': 7.25.7(@babel/core@7.25.8)
       '@babel/traverse': 7.26.8
-      '@babel/types': 7.26.8
+      '@babel/types': 7.26.10
       '@graphql-tools/utils': 10.5.5(graphql@16.10.0)
       graphql: 16.10.0
       tslib: 2.8.0
@@ -2070,7 +2085,7 @@ packages:
       '@types/js-yaml': 4.0.9
       '@whatwg-node/fetch': 0.9.21
       chalk: 4.1.2
-      debug: 4.3.7(supports-color@8.1.1)
+      debug: 4.4.0
       dotenv: 16.4.7
       graphql: 16.10.0
       graphql-request: 6.1.0(graphql@16.10.0)
@@ -3338,7 +3353,7 @@ packages:
     resolution: {integrity: sha512-H0TSyFNDMomMNJQBn8wFV5YC/2eJ+VXECwOadZJT554xP6cODZHPX3H9QMQECxvrgiSOP1pHjy1sMWQVYJOUOA==}
     engines: {node: '>= 14'}
     dependencies:
-      debug: 4.3.7(supports-color@8.1.1)
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5474,7 +5489,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.7(supports-color@8.1.1)
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5502,7 +5517,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.7(supports-color@8.1.1)
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7493,7 +7508,7 @@ packages:
   /relay-runtime@12.0.0:
     resolution: {integrity: sha512-QU6JKr1tMsry22DXNy9Whsq5rmvwr3LSZiiWV/9+DFpuTWvp+WFhobWMc8TC4OjKFfNhEZy7mOiqUAn5atQtug==}
     dependencies:
-      '@babel/runtime': 7.25.7
+      '@babel/runtime': 7.26.10
       fbjs: 3.0.5
       invariant: 2.2.4
     transitivePeerDependencies:

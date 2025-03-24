@@ -6,6 +6,13 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 - Upgrade tsup to v8.4.0
 - Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
+- Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
+- Adds support for keyless signature verification.
+- Implements signature verification for MultiKey.
+- Override @babel/runtime and @babel/helpers to use an updated version
+- Fix pagination of AccountResources and AccountModules
+- Add API for `getResourcesPage` and `getModulesPage` to support manual pagination
+- Added `pairedFaMetadataAddress` function to calculate the paired fungible asset metadata address for a given coin type, with enhanced support for various address formats (short form, long form, with leading zeros)
 
 # 1.36.0 (2025-03-14)
 

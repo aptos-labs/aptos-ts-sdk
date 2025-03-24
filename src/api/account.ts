@@ -6,6 +6,7 @@ import { AccountAddress, PrivateKey, AccountAddressInput, createObjectAddress } 
 import {
   AccountData,
   AnyNumber,
+  CursorPaginationArgs,
   GetAccountCoinsDataResponse,
   GetAccountCollectionsWithOwnedTokenResponse,
   GetAccountOwnedTokensFromCollectionResponse,
@@ -35,8 +36,10 @@ import {
   getInfo,
   getModule,
   getModules,
+  getModulesPage,
   getResource,
   getResources,
+  getResourcesPage,
   getTransactions,
   lookupOriginalAccountAddress,
 } from "../internal/account";
@@ -112,7 +115,6 @@ export class Account {
    * This function may call the API multiple times to auto paginate through results.
    *
    * @param args.accountAddress - The Aptos account address to query modules for.
-   * @param args.options.offset - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
    *
@@ -130,7 +132,6 @@ export class Account {
    *   const accountModules = await aptos.getAccountModules({
    *     accountAddress: "0x1", // replace with a real account address
    *     options: {
-   *       offset: 0, // starting from the first module
    *       limit: 10, // limiting to 10 modules
    *     },
    *   });
@@ -143,9 +144,50 @@ export class Account {
    */
   async getAccountModules(args: {
     accountAddress: AccountAddressInput;
-    options?: PaginationArgs & LedgerVersionArg;
+    options?: { limit?: number } & LedgerVersionArg;
   }): Promise<MoveModuleBytecode[]> {
     return getModules({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries for a page of modules in an account given an account address.
+   *
+   * @param args.accountAddress - The Aptos account address to query modules for.
+   * @param args.options.cursor - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
+   * @param args.options.limit - The maximum number of results to return.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it retrieves the latest version.
+   *
+   * @returns - The account modules associated with the specified address. Along with a cursor for future pagination. If the cursor is undefined, it means there are no more modules to fetch.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Fetching account modules for a specific account
+   *   const {modules, cursor} = await aptos.getAccountModulesPage({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       cursor: undefined, // starting from the first module
+   *       limit: 10, // limiting to 10 modules
+   *     },
+   *   });
+   *
+   *   console.log(modules);
+   *   console.log(`More to fetch: ${cursor !== undefined}`);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Account
+   */
+  async getAccountModulesPage(args: {
+    accountAddress: AccountAddressInput;
+    options?: CursorPaginationArgs & LedgerVersionArg;
+  }): Promise<{ modules: MoveModuleBytecode[]; cursor: string | undefined }> {
+    return getModulesPage({ aptosConfig: this.config, ...args });
   }
 
   /**
@@ -234,7 +276,6 @@ export class Account {
    * This function may call the API multiple times to auto paginate through results.
    *
    * @param args.accountAddress - The Aptos account address to query resources for.
-   * @param args.options.offset - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
    * @param args.options.limit - The maximum number of results to return.
    * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
    * @returns Account resources.
@@ -260,6 +301,45 @@ export class Account {
     options?: PaginationArgs & LedgerVersionArg;
   }): Promise<MoveResource[]> {
     return getResources({ aptosConfig: this.config, ...args });
+  }
+
+  /**
+   * Queries a page of account resources given an account address.
+   *
+   * @param args.accountAddress - The Aptos account address to query resources for.
+   * @param args.options.cursor - The cursor to start returning results from.  Note, this is obfuscated and is not an index.
+   * @param args.options.limit - The maximum number of results to return.
+   * @param args.options.ledgerVersion - The ledger version to query; if not provided, it will get the latest version.
+   * @returns Account resources.
+   *
+   * @example
+   * ```typescript
+   * import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+   *
+   * const config = new AptosConfig({ network: Network.TESTNET });
+   * const aptos = new Aptos(config);
+   *
+   * async function runExample() {
+   *   // Fetching account resources for a specific account address
+   *   const resources = await aptos.getAccountResourcesPage({
+   *     accountAddress: "0x1", // replace with a real account address
+   *     options: {
+   *       cursor: undefined, // starting from the first resource
+   *       limit: 10, // limiting to 10 resources
+   *     },
+   *   });
+   *   console.log(resources);
+   *   console.log(`More to fetch: ${resources.cursor !== undefined}`);
+   * }
+   * runExample().catch(console.error);
+   * ```
+   * @group Account
+   */
+  async getAccountResourcesPage(args: {
+    accountAddress: AccountAddressInput;
+    options?: CursorPaginationArgs & LedgerVersionArg;
+  }): Promise<{ resources: MoveResource[]; cursor: string | undefined }> {
+    return getResourcesPage({ aptosConfig: this.config, ...args });
   }
 
   /**

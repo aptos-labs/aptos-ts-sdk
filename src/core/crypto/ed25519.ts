@@ -9,7 +9,7 @@ import { Hex } from "../hex";
 import { HexInput, SigningScheme as AuthenticationKeyScheme, PrivateKeyVariants } from "../../types";
 import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { PrivateKey } from "./privateKey";
-import { AccountPublicKey, PublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, PublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
 import { convertSigningMessage } from "./utils";
 
@@ -118,6 +118,24 @@ export class Ed25519PublicKey extends AccountPublicKey {
     const signatureBytes = signature.toUint8Array();
     const publicKeyBytes = this.key.toUint8Array();
     return ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
+  }
+
+  /**
+   * Note: Ed25519Signatures can be verified syncronously.
+   *
+   * Verifies the provided signature against the given message.
+   * This function helps ensure the integrity and authenticity of the message by confirming that the signature is valid.
+   *
+   * @param args - The arguments for signature verification.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - The message that was signed.
+   * @param args.signature - The signature to verify, which must be an instance of Secp256k1Signature.
+   * @returns A boolean indicating whether the signature is valid for the given message.
+   * @group Implementation
+   * @category Serialization
+   */
+  async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**

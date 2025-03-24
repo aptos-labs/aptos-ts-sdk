@@ -1,12 +1,12 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
+import { AptosConfig } from "../../api";
 import { Deserializer, Serializer } from "../../bcs";
-import { SigningScheme as AuthenticationKeyScheme } from "../../types";
+import { SigningScheme as AuthenticationKeyScheme, HexInput } from "../../types";
 import { AuthenticationKey } from "../authenticationKey";
 import { Ed25519PublicKey, Ed25519Signature } from "./ed25519";
 import { AbstractMultiKey } from "./multiKey";
-import { VerifySignatureArgs } from "./publicKey";
 import { Signature } from "./signature";
 
 /**
@@ -106,7 +106,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: VerifySignatureArgs): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
     if (!(signature instanceof MultiEd25519Signature)) {
       return false;
@@ -139,6 +139,14 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
       }
     }
     return true;
+  }
+
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+  }): Promise<boolean> {
+    return this.verifySignature(args);
   }
 
   /**
