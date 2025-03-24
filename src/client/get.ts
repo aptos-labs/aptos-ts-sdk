@@ -234,7 +234,7 @@ export async function getAptosPepperService<Req extends {}, Res extends {}>(
 export async function paginateWithCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out: any[] = [];
+  const out: Res = new Array(0) as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   do {
@@ -261,14 +261,14 @@ export async function paginateWithCursor<Req extends Record<string, any>, Res ex
     out.push(...response.data);
     requestParams.start = cursor;
   } while (cursor !== null && cursor !== undefined);
-  return out as Res;
+  return out;
 }
 
 /// This function is a helper for paginating using a function wrapping an API using offset instead of start
 export async function paginateWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
   options: GetAptosRequestOptions,
 ): Promise<Res> {
-  const out: any[] = [];
+  const out: Res = new Array(0) as Res;
   let cursor: string | undefined;
   const requestParams = options.params as { start?: string; limit?: number };
   const totalLimit = requestParams.limit;
@@ -296,7 +296,7 @@ export async function paginateWithObfuscatedCursor<Req extends Record<string, an
       requestParams.limit = newLimit;
     }
   } while (cursor !== null && cursor !== undefined);
-  return out as Res;
+  return out;
 }
 
 export async function getPageWithObfuscatedCursor<Req extends Record<string, any>, Res extends Array<{}>>(
@@ -307,10 +307,10 @@ export async function getPageWithObfuscatedCursor<Req extends Record<string, any
 
   // Drop any other values
   // TODO: Throw error if cursor is not a string
-  if ("string" == typeof options.params?.cursor) {
+  if (typeof options.params?.cursor === "string") {
     requestParams.start = options.params.cursor;
   }
-  if ("number" == typeof options.params?.limit) {
+  if (typeof options.params?.limit === "number") {
     requestParams.limit = options.params.limit;
   }
 

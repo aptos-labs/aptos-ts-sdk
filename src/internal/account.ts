@@ -200,7 +200,7 @@ export async function getTransactions(args: {
  * @param args.aptosConfig - The configuration settings for Aptos.
  * @param args.accountAddress - The address of the account to fetch resources for.
  * @param args.options - Optional pagination and ledger version parameters.
- * @param args.options.limit - The maximum number of resources to retrieve (default is 1000).
+ * @param args.options.limit - The maximum number of resources to retrieve (default is 999).
  * @param args.options.ledgerVersion - The specific ledger version to query.
  * @group Implementation
  */
@@ -216,7 +216,7 @@ export async function getResources(args: {
     path: `accounts/${AccountAddress.from(accountAddress).toString()}/resources`,
     params: {
       ledger_version: options?.ledgerVersion,
-      limit: options?.limit ?? 1000,
+      limit: options?.limit ?? 999,
     },
   });
 }
