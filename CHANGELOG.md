@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 # Unreleased
 
+# 1.37.0 (2025-03-24)
+
 - Upgrade tsup to v8.4.0
 - Export the `crypto/abstraction.ts` file that includes the `AbstractSignature` and `AbstractPublicKey` classes.
 - Adds `verifySignatureAsync` to support signature verification that requires fetching chain state.
