@@ -45,5 +45,10 @@
     "@types/node": "^22.13.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "cross-spawn": ">=6.0.6"
+    }
   }
 }

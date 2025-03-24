@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
-    "@aptos-labs/aptos-client": "^1.0.0",
+    "@aptos-labs/aptos-client": "^1.1.0",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
@@ -93,10 +93,16 @@
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
-    "tsup": "^8.3.6",
+    "tsup": "^8.4.0",
     "typedoc": "^0.27.7",
     "typedoc-plugin-missing-exports": "^3.1.0",
     "typescript": "^5.7.3"
   },
-  "version": "1.35.0"
+  "pnpm": {
+      "overrides": {
+        "@babel/runtime": ">=7.26.10",
+        "@babel/helpers": ">=7.26.10"
+      }
+  },
+  "version": "1.36.0"
 }
