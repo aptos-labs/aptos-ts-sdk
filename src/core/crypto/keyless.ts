@@ -171,11 +171,41 @@ export class KeylessPublicKey extends AccountPublicKey {
    */
   verifySignature(args: {
     message: HexInput;
-    signature: KeylessSignature;
+    signature: Signature;
     jwk: MoveJWK;
     keylessConfig: KeylessConfiguration;
   }): boolean {
-    return verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
+    try {
+      verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
+      return true;
+    } catch (error) {
+      if (error instanceof KeylessError) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Verifies a keyless signature for a given message.  It will fetch the keyless configuration and the JWK to
+   * use for verification from the appropriate network as defined by the aptosConfig.
+   *
+   * @param args.aptosConfig The aptos config to use for fetching the keyless configuration.
+   * @param args.message The message to verify the signature against.
+   * @param args.signature The signature to verify.
+   * @param args.options.throwErrorWithReason Whether to throw an error with the reason for the failure instead of returning false.
+   * @returns true if the signature is valid
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return verifyKeylessSignature({
+      ...args,
+      publicKey: this,
+    });
   }
 
   /**
@@ -194,28 +224,6 @@ export class KeylessPublicKey extends AccountPublicKey {
   serialize(serializer: Serializer): void {
     serializer.serializeStr(this.iss);
     serializer.serializeBytes(this.idCommitment);
-  }
-
-  /**
-   * Verifies a keyless signature for a given message.  It will fetch the keyless configuration and the JWK to
-   * use for verification from the appropriate network as defined by the aptosConfig.
-   *
-   * @param args.aptosConfig The aptos config to use for fetching the keyless configuration.
-   * @param args.message The message to verify the signature against.
-   * @param args.signature The signature to verify.
-   * @param args.options.throwErrorWithReason Whether to throw an error with the reason for the failure instead of returning false.
-   * @returns true if the signature is valid
-   */
-  async verifySignatureAsync(args: {
-    aptosConfig: AptosConfig;
-    message: HexInput;
-    signature: KeylessSignature;
-    options?: { throwErrorWithReason?: boolean };
-  }): Promise<boolean> {
-    return verifyKeylessSignature({
-      ...args,
-      publicKey: this,
-    });
   }
 
   /**
@@ -332,7 +340,7 @@ export async function verifyKeylessSignature(args: {
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
   aptosConfig: AptosConfig;
   message: HexInput;
-  signature: KeylessSignature;
+  signature: Signature;
   keylessConfig?: KeylessConfiguration;
   jwk?: MoveJWK;
   options?: { throwErrorWithReason?: boolean };
@@ -342,12 +350,24 @@ export async function verifyKeylessSignature(args: {
     publicKey,
     message,
     signature,
-    jwk = await fetchJWK({ aptosConfig: args.aptosConfig, publicKey: args.publicKey, kid: signature.getJwkKid() }),
+    jwk,
     keylessConfig = await getKeylessConfig({ aptosConfig }),
     options,
   } = args;
   try {
-    publicKey.verifySignature({ message, signature, jwk, keylessConfig });
+    if (!(signature instanceof KeylessSignature)) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+        details: "Not a keyless signature",
+      });
+    }
+    verifyKeylessSignatureWithJwkAndConfig({
+      message,
+      publicKey,
+      signature,
+      jwk: jwk ? jwk : await fetchJWK({ aptosConfig, publicKey, kid: signature.getJwkKid() }),
+      keylessConfig,
+    });
     return true;
   } catch (error) {
     if (options?.throwErrorWithReason) {
@@ -371,12 +391,18 @@ export async function verifyKeylessSignature(args: {
 export function verifyKeylessSignatureWithJwkAndConfig(args: {
   publicKey: KeylessPublicKey | FederatedKeylessPublicKey;
   message: HexInput;
-  signature: KeylessSignature;
+  signature: Signature;
   keylessConfig: KeylessConfiguration;
   jwk: MoveJWK;
-}): boolean {
+}): void {
   const { publicKey, message, signature, keylessConfig, jwk } = args;
   const { verificationKey, maxExpHorizonSecs, trainingWheelsPubkey } = keylessConfig;
+  if (!(signature instanceof KeylessSignature)) {
+    throw KeylessError.fromErrorType({
+      type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
+      details: "Not a keyless signature",
+    });
+  }
   if (!(signature.ephemeralCertificate.signature instanceof ZeroKnowledgeSig)) {
     throw KeylessError.fromErrorType({
       type: KeylessErrorType.SIGNATURE_TYPE_INVALID,
@@ -431,7 +457,6 @@ export function verifyKeylessSignatureWithJwkAndConfig(args: {
       });
     }
   }
-  return true;
 }
 
 /**
@@ -1326,39 +1351,47 @@ export class Groth16VerificationKey {
   verifyProof(args: { publicInputsHash: bigint; groth16Proof: Groth16Zkp }): boolean {
     const { publicInputsHash, groth16Proof } = args;
 
-    // Get proof points
-    const proofA = groth16Proof.a.toProjectivePoint();
-    const proofB = groth16Proof.b.toProjectivePoint();
-    const proofC = groth16Proof.c.toProjectivePoint();
+    try {
+      // Get proof points
+      const proofA = groth16Proof.a.toProjectivePoint();
+      const proofB = groth16Proof.b.toProjectivePoint();
+      const proofC = groth16Proof.c.toProjectivePoint();
 
-    // Get verification key points
-    const vkAlpha1 = this.alphaG1.toProjectivePoint();
-    const vkBeta2 = this.betaG2.toProjectivePoint();
-    const vkGamma2 = this.gammaG2.toProjectivePoint();
-    const vkDelta2 = this.deltaG2.toProjectivePoint();
-    const vkIC = this.gammaAbcG1.map((g1) => g1.toProjectivePoint());
+      // Get verification key points
+      const vkAlpha1 = this.alphaG1.toProjectivePoint();
+      const vkBeta2 = this.betaG2.toProjectivePoint();
+      const vkGamma2 = this.gammaG2.toProjectivePoint();
+      const vkDelta2 = this.deltaG2.toProjectivePoint();
+      const vkIC = this.gammaAbcG1.map((g1) => g1.toProjectivePoint());
 
-    const { Fp12 } = bn254.fields;
+      const { Fp12 } = bn254.fields;
 
-    // Check that the following pairing equation holds:
-    // e(A_1, B_2) = e(\alpha_1, \beta_2) + e(\ic_0 + public_inputs_hash \ic_1, \gamma_2) + e(C_1, \delta_2)
-    // Where A_1, B_2, C_1 are the proof points and \alpha_1, \beta_2, \gamma_2, \delta_2, \ic_0, \ic_1
-    // are the verification key points
+      // Check that the following pairing equation holds:
+      // e(A_1, B_2) = e(\alpha_1, \beta_2) + e(\ic_0 + public_inputs_hash \ic_1, \gamma_2) + e(C_1, \delta_2)
+      // Where A_1, B_2, C_1 are the proof points and \alpha_1, \beta_2, \gamma_2, \delta_2, \ic_0, \ic_1
+      // are the verification key points
 
-    // \ic_0 + public_inputs_hash \ic_1
-    let accum = vkIC[0].add(vkIC[1].multiply(publicInputsHash));
-    // e(\ic_0 + public_inputs_hash \ic_1, \gamma_2)
-    const pairingAccumGamma = bn254.pairing(accum, vkGamma2);
-    // e(A_1, B_2)
-    const pairingAB = bn254.pairing(proofA, proofB);
-    // e(\alpha_1, \beta_2)
-    const pairingAlphaBeta = bn254.pairing(vkAlpha1, vkBeta2);
-    // e(C_1, \delta_2)
-    const pairingCDelta = bn254.pairing(proofC, vkDelta2);
-    // Get the result of the right hand side of the pairing equation
-    const product = Fp12.mul(pairingAlphaBeta, Fp12.mul(pairingAccumGamma, pairingCDelta));
-    // Check if the left hand side equals the right hand side
-    return Fp12.eql(pairingAB, product);
+      // \ic_0 + public_inputs_hash \ic_1
+      let accum = vkIC[0].add(vkIC[1].multiply(publicInputsHash));
+      // e(\ic_0 + public_inputs_hash \ic_1, \gamma_2)
+      const pairingAccumGamma = bn254.pairing(accum, vkGamma2);
+      // e(A_1, B_2)
+      const pairingAB = bn254.pairing(proofA, proofB);
+      // e(\alpha_1, \beta_2)
+      const pairingAlphaBeta = bn254.pairing(vkAlpha1, vkBeta2);
+      // e(C_1, \delta_2)
+      const pairingCDelta = bn254.pairing(proofC, vkDelta2);
+      // Get the result of the right hand side of the pairing equation
+      const product = Fp12.mul(pairingAlphaBeta, Fp12.mul(pairingAccumGamma, pairingCDelta));
+      // Check if the left hand side equals the right hand side
+      return Fp12.eql(pairingAB, product);
+    } catch (error) {
+      throw KeylessError.fromErrorType({
+        type: KeylessErrorType.PROOF_VERIFICATION_FAILED,
+        error,
+        details: "Error encountered when checking zero knowledge relation",
+      });
+    }
   }
 
   /**
