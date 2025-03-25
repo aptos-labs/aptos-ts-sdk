@@ -4,8 +4,6 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
-# 1.37.1 (2025-03-24)
-
 - Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
 
 # 1.37.0 (2025-03-24)
