@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
+
 # 1.37.1 (2025-03-24)
 
 - Upgrade min versions of @noble/curves and @noble/hashes to 1.6.0 and 1.5.0 respectively as they are required to use keyless signature verification.
