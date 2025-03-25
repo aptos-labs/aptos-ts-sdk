@@ -1,38 +1,8 @@
 import { AccountAddress, AccountAddressInput } from "../../core/accountAddress";
-import { MoveModuleBytecode, LedgerVersionArg, PaginationArgs, AccountData } from "../../types/types";
+import { MoveModuleBytecode, LedgerVersionArg, AccountData } from "../../types/types";
 import { AptosConfig } from "../../api/aptosConfig";
-import { getAptosFullNode, paginateWithObfuscatedCursor } from "../../client";
+import { getAptosFullNode } from "../../client";
 import { memoizeAsync } from "../../utils/memoize";
-
-/**
- * Retrieves the modules associated with a specified account address.
- *
- * @param args - The arguments for retrieving modules.
- * @param args.aptosConfig - The configuration for connecting to the Aptos blockchain.
- * @param args.accountAddress - The address of the account whose modules are to be retrieved.
- * @param args.options - Optional parameters for pagination and ledger version.
- * @param args.options.limit - The maximum number of modules to retrieve (default is 1000).
- * @param args.options.offset - The starting point for pagination.  Note, this is obfuscated and is not an index.
- * @param args.options.ledgerVersion - The specific ledger version to query.
- * @group Implementation
- */
-export async function getModules(args: {
-  aptosConfig: AptosConfig;
-  accountAddress: AccountAddressInput;
-  options?: PaginationArgs & LedgerVersionArg;
-}): Promise<MoveModuleBytecode[]> {
-  const { aptosConfig, accountAddress, options } = args;
-  return paginateWithObfuscatedCursor<{}, MoveModuleBytecode[]>({
-    aptosConfig,
-    originMethod: "getModules",
-    path: `accounts/${AccountAddress.from(accountAddress).toString()}/modules`,
-    params: {
-      ledger_version: options?.ledgerVersion,
-      offset: options?.offset,
-      limit: options?.limit ?? 1000,
-    },
-  });
-}
 
 /**
  * Retrieves account information for a specified account address.

@@ -106,7 +106,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
    * @group Implementation
    * @category Serialization
    */
-  verifySignature(args: { message: HexInput; signature: MultiEd25519Signature }): boolean {
+  verifySignature(args: { message: HexInput; signature: Signature }): boolean {
     const { message, signature } = args;
     if (!(signature instanceof MultiEd25519Signature)) {
       return false;
@@ -144,7 +144,7 @@ export class MultiEd25519PublicKey extends AbstractMultiKey {
   async verifySignatureAsync(args: {
     aptosConfig: AptosConfig;
     message: HexInput;
-    signature: MultiEd25519Signature;
+    signature: Signature;
   }): Promise<boolean> {
     return this.verifySignature(args);
   }

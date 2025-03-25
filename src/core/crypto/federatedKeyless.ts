@@ -15,6 +15,7 @@ import {
   verifyKeylessSignatureWithJwkAndConfig,
 } from "./keyless";
 import { AptosConfig } from "../../api";
+import { Signature } from "..";
 
 /**
  * Represents the FederatedKeylessPublicKey public key
@@ -76,11 +77,16 @@ export class FederatedKeylessPublicKey extends AccountPublicKey {
    */
   verifySignature(args: {
     message: HexInput;
-    signature: KeylessSignature;
+    signature: Signature;
     jwk: MoveJWK;
     keylessConfig: KeylessConfiguration;
   }): boolean {
-    return verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
+    try {
+      verifyKeylessSignatureWithJwkAndConfig({ ...args, publicKey: this });
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   serialize(serializer: Serializer): void {
