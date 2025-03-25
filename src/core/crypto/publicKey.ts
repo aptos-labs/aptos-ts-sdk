@@ -61,7 +61,9 @@ export abstract class PublicKey extends Serializable {
    * @group Implementation
    * @category Serialization
    */
-  abstract verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean>;
+  async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
+    return this.verifySignature(args);
+  }
 
   /**
    * Get the raw public key bytes
