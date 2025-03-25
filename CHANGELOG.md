@@ -46,6 +46,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 - Add `AbstractedAccount` class to support account abstraction with custom signers.
 - Add `aptos.abstraction` namespace to support account abstraction APIs. Notable functions are: `isAccountAbstractionEnabled`, `enableAccountAbstractionTransaction`, and `disableAccountAbstractionTransaction`.
 
+- Update default max gas amount to 100000 from 200000.  This has a very small chance to be breaking if you are submitting extremely expensive transactions.  In that case, you can set the `maxGasAmount` property on the transaction builder to the previous value of 200000.
+
 # 1.33.2 (2025-01-22)
 
 - [`Fix`] Fixes pagination for GetAccountModules and GetAccountResources. Also, adds more appropriate documentation on offset.
