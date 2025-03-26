@@ -30,7 +30,7 @@ import {
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } from "../types";
+import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg, MoveStructId } from "../types";
 import { AptosConfig } from "./aptosConfig";
 import type { Aptos } from "./aptos";
 import { Account } from "../account";
@@ -50,7 +50,7 @@ export type ConfidentialBalance = {
 // 8 chunks module
 // const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
 // devnet with batches
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xd4aa5d2b93935bae55ef5aee8043e78e09e91ad1d31ea9532963a036b1cd5df1";
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
 const MODULE_NAME = "confidential_asset";
 
 /**
@@ -141,6 +141,7 @@ export class ConfidentialCoin {
     sender: AccountAddressInput;
     tokenAddress: string;
     amount: AnyNumber;
+    to?: AccountAddress;
     options?: InputGenerateTransactionOptions;
   }): Promise<SimpleTransaction> {
     return generateTransaction({
@@ -148,7 +149,26 @@ export class ConfidentialCoin {
       sender: args.sender,
       data: {
         function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_to`,
-        functionArguments: [args.tokenAddress, args.sender, String(args.amount)],
+        functionArguments: [args.tokenAddress, args.to || args.sender, String(args.amount)],
+      },
+      options: args.options,
+    });
+  }
+
+  async depositCoin(args: {
+    sender: AccountAddressInput;
+    coinType: MoveStructId;
+    amount: AnyNumber;
+    to?: AccountAddress;
+    options?: InputGenerateTransactionOptions;
+  }) {
+    return generateTransaction({
+      aptosConfig: this.config,
+      sender: args.sender,
+      data: {
+        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_coins_to`,
+        functionArguments: [args.to || args.sender, String(args.amount)],
+        typeArguments: [args.coinType],
       },
       options: args.options,
     });
