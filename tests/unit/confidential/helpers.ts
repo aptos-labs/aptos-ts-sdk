@@ -18,6 +18,8 @@ import {
   RangeProofExecutor,
   Ed25519Account,
   ConfidentialCoin,
+  PrivateKeyVariants,
+  PrivateKey,
 } from "../../../src";
 import { genBatchRangeZKP, generateRangeZKP, verifyBatchRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
@@ -63,10 +65,10 @@ export const addNewContentLineToFile = (filename: string, data: string) => {
   fs.appendFileSync(filePath, content);
 };
 
-export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress) => {
+export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress, tokenAddress = TOKEN_ADDRESS) => {
   const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
     accountAddress,
-    tokenAddress: TOKEN_ADDRESS,
+    tokenAddress,
   });
 
   const aliceConfidentialAmountPending = await ConfidentialAmount.fromEncrypted(
@@ -122,7 +124,7 @@ export const sendAndWaitBatchTxs = async (
 export const getTestAccount = () => {
   if (process.env.TESTNET_PK) {
     return Account.fromPrivateKey({
-      privateKey: new Ed25519PrivateKey(process.env.TESTNET_PK),
+      privateKey: new Ed25519PrivateKey(PrivateKey.formatPrivateKey(process.env.TESTNET_PK, PrivateKeyVariants.Ed25519)),
     });
   }
 
