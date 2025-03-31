@@ -1,25 +1,15 @@
-import {
-  AbstractedAccount,
-  Account,
-  AccountAddress,
-  DomainAbstractedAccount,
-  Ed25519PrivateKey,
-  Hex,
-  MoveVector,
-  Network,
-} from "../../../src";
+import { AbstractedAccount, Account, DomainAbstractedAccount, Hex, MoveVector, Network } from "../../../src";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
 import { FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {
   addPermissionDelegationScriptBytecode,
   publishAnyAuthenticatorAAPackage,
-  publishDAAEd25519HexPackage,
   publishHelloWorldAAPackage,
 } from "../transaction/helper";
 
 describe("abstraction api", () => {
-  const { aptos } = getAptosClient({ network: Network.DEVNET });
+  const { aptos } = getAptosClient({ network: Network.LOCAL });
 
   describe("account abstraction", () => {
     describe("enable and disable account abstraction", () => {
@@ -238,13 +228,6 @@ describe("abstraction api", () => {
 
   // this daa account can be used on chain
   describe.only("derived account abstraction", () => {
-    const deployer = Ed25519Account.generate();
-
-    beforeAll(async () => {
-      await aptos.fundAccount({ accountAddress: deployer.accountAddress, amount: FUND_AMOUNT });
-      await publishDAAEd25519HexPackage(aptos, deployer);
-    });
-
     it("should be able to send a transaction with derived account abstraction", async () => {
       // solana uses the same Ed25519 curve
       const solanaAccount = Account.generate();
@@ -254,10 +237,10 @@ describe("abstraction api", () => {
           const hexDigest = new TextEncoder().encode(Hex.fromHexInput(digest).toString());
           return solanaAccount.sign(hexDigest).toUint8Array();
         },
-        authenticationFunction: `${deployer.accountAddress}::domain_account_abstraction_ed25519_hex::authenticate`,
+        authenticationFunction: `0x7::test_derivable_account_abstraction_ed25519_hex::authenticate`,
         accountIdentity: solanaAccount.publicKey.toUint8Array(),
       });
-
+      console.log("daa address", daa.accountAddress.toString());
       const recipient = Account.generate();
       await aptos.fundAccount({ accountAddress: recipient.accountAddress, amount: FUND_AMOUNT });
       await aptos.fundAccount({ accountAddress: daa.accountAddress, amount: FUND_AMOUNT });
