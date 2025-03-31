@@ -20,8 +20,8 @@ module deployer::domain_account_abstraction_ed25519_hex {
     public fun authenticate(account: signer, aa_auth_data: AbstractionAuthData): signer {
         let hex_digest = string_utils::to_string(aa_auth_data.digest());
 
-        let public_key = new_unvalidated_public_key_from_bytes(*aa_auth_data.domain_account_identity());
-        let signature = new_signature_from_bytes(*aa_auth_data.domain_authenticator());
+        let public_key = new_unvalidated_public_key_from_bytes(*aa_auth_data.derivable_abstract_public_key());
+        let signature = new_signature_from_bytes(*aa_auth_data.derivable_abstract_signature());
         assert!(
             ed25519::signature_verify_strict(
                 &signature,

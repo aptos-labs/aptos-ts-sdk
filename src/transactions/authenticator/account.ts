@@ -9,7 +9,7 @@ import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
 import { MultiEd25519PublicKey, MultiEd25519Signature } from "../../core/crypto/multiEd25519";
 import { MultiKey, MultiKeySignature } from "../../core/crypto/multiKey";
 import { AccountAuthenticatorVariant, HexInput, MoveFunctionId } from "../../types";
-import { AbstractionAuthDataVariant, AbstractionDomainAccountVariant } from "../../types/abstraction";
+import { AbstractionAuthDataVariant } from "../../types/abstraction";
 import { AccountAddress, Hex } from "../../core";
 import { getFunctionParts, isValidFunctionInfo } from "../../utils/helpers";
 
@@ -304,14 +304,18 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     serializer.serializeStr(moduleName);
     serializer.serializeStr(functionName);
     if (this.accountIdentity) {
-      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DomainV1);
+      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DerivableV1);
     } else {
       serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.V1);
     }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
-    serializer.serializeBytes(this.authenticator.toUint8Array());
     if (this.accountIdentity) {
-      serializer.serializeU32AsUleb128(AbstractionDomainAccountVariant.V1);
+      serializer.serializeBytes(this.authenticator.toUint8Array());
+    } else {
+      serializer.serializeFixedBytes(this.authenticator.toUint8Array());
+    }
+
+    if (this.accountIdentity) {
       serializer.serializeBytes(this.accountIdentity);
     }
   }
@@ -323,26 +327,24 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     const variant = deserializer.deserializeUleb128AsU32();
     if (variant === AbstractionAuthDataVariant.V1) {
       const signingMessageDigest = deserializer.deserializeBytes();
-      const authenticator = deserializer.deserializeBytes();
+      const authenticator = deserializer.deserializeFixedBytes(deserializer.remaining());
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
         authenticator,
       );
     }
-    if (variant === AbstractionAuthDataVariant.DomainV1) {
+    if (variant === AbstractionAuthDataVariant.DerivableV1) {
       const signingMessageDigest = deserializer.deserializeBytes();
       const authenticator = deserializer.deserializeBytes();
-      const domainAccountVariant = deserializer.deserializeUleb128AsU32();
-      if (domainAccountVariant === AbstractionDomainAccountVariant.V1) {
-        const accountIdentity = deserializer.deserializeBytes();
-        return new AccountAuthenticatorAbstraction(
-          `${moduleAddress}::${moduleName}::${functionName}`,
-          signingMessageDigest,
-          authenticator,
-          accountIdentity,
-        );
-      }
+
+      const accountIdentity = deserializer.deserializeBytes();
+      return new AccountAuthenticatorAbstraction(
+        `${moduleAddress}::${moduleName}::${functionName}`,
+        signingMessageDigest,
+        authenticator,
+        accountIdentity,
+      );
     }
     throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
   }
