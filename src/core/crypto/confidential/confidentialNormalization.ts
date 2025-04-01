@@ -10,11 +10,10 @@ import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
 
 export type ConfidentialNormalizationSigmaProof = {
-  alpha1: Uint8Array;
+  alpha1List: Uint8Array[];
   alpha2: Uint8Array;
   alpha3: Uint8Array;
   alpha4List: Uint8Array[];
-  alpha5List: Uint8Array[];
   X1: Uint8Array;
   X2: Uint8Array;
   X3List: Uint8Array[];
@@ -72,11 +71,10 @@ export class ConfidentialNormalization {
 
   static serializeSigmaProof(sigmaProof: ConfidentialNormalizationSigmaProof): Uint8Array {
     return concatBytes(
-      sigmaProof.alpha1,
+      ...sigmaProof.alpha1List,
       sigmaProof.alpha2,
       sigmaProof.alpha3,
       ...sigmaProof.alpha4List,
-      ...sigmaProof.alpha5List,
       sigmaProof.X1,
       sigmaProof.X2,
       ...sigmaProof.X3List,
@@ -96,22 +94,33 @@ export class ConfidentialNormalization {
       proofArr.push(sigmaProof.subarray(i, i + PROOF_CHUNK_SIZE));
     }
 
-    const alpha1 = proofArr[0];
-    const alpha2 = proofArr[1];
-    const alpha3 = proofArr[2];
-    const alpha4List = proofArr.slice(3, 3 + ConfidentialAmount.CHUNKS_COUNT);
-    const alpha5List = proofArr.slice(7, 7 + ConfidentialAmount.CHUNKS_COUNT);
-    const X1 = proofArr[11];
-    const X2 = proofArr[12];
-    const X3List = proofArr.slice(13, 13 + ConfidentialAmount.CHUNKS_COUNT);
-    const X4List = proofArr.slice(17);
+    const alpha1List = proofArr.slice(0, 3);
+    const alpha2 = proofArr[3];
+    const alpha3 = proofArr[4];
+    const alpha4List = proofArr.slice(
+      5,
+      5 + ConfidentialAmount.CHUNKS_COUNT,
+    );
+    const X1 = proofArr[
+      5 + 2 * ConfidentialAmount.CHUNKS_COUNT
+    ];
+    const X2 = proofArr[
+      5 + 2 * ConfidentialAmount.CHUNKS_COUNT + 1
+    ];
+    const X3List = proofArr.slice(
+      5 + 2 * ConfidentialAmount.CHUNKS_COUNT + 2,
+      5 + 3 * ConfidentialAmount.CHUNKS_COUNT + 2,
+    );
+    const X4List = proofArr.slice(
+      5 + 3 * ConfidentialAmount.CHUNKS_COUNT + 2,
+      5 + 4 * ConfidentialAmount.CHUNKS_COUNT + 2,
+    );
 
     return {
-      alpha1,
+      alpha1List,
       alpha2,
       alpha3,
       alpha4List,
-      alpha5List,
       X1,
       X2,
       X3List,
@@ -124,14 +133,22 @@ export class ConfidentialNormalization {
       throw new Error("Invalid length list of randomness");
     }
 
-    const x1 = ed25519GenRandom();
+    const x1List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
     const x2 = ed25519GenRandom();
     const x3 = ed25519GenRandom();
 
     const x4List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
-    const x5List = ed25519GenListOfRandom(ConfidentialAmount.CHUNKS_COUNT);
 
-    const X1 = RistrettoPoint.BASE.multiply(x1).add(
+    const X1 = RistrettoPoint.BASE.multiply(
+      ed25519modN(
+        x1List.reduce((acc, el, i) => {
+          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const x1i = el * coef
+
+          return acc + x1i
+        }, 0n)
+      )
+    ).add(
       this.unnormalizedEncryptedBalance
         .reduce(
           (acc, ciphertext, i) => acc.add(ciphertext.D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
@@ -140,9 +157,15 @@ export class ConfidentialNormalization {
         .multiply(x2),
     );
     const X2 = H_RISTRETTO.multiply(x3);
-    const X3List = x4List.map((x4, index) => RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x5List[index])));
-    const X4List = x5List.map((item) =>
-      RistrettoPoint.fromHex(this.decryptionKey.publicKey().toUint8Array()).multiply(item),
+    const X3List = x1List.map((el, index) => {
+      const x1iG = RistrettoPoint.BASE.multiply(el);
+
+      const x4iH = H_RISTRETTO.multiply(x4List[index]);
+
+      return x1iG.add(x4iH)
+    });
+    const X4List = x4List.map((el) =>
+      RistrettoPoint.fromHex(this.decryptionKey.publicKey().toUint8Array()).multiply(el),
     );
 
     const p = genFiatShamirChallenge(
@@ -165,20 +188,24 @@ export class ConfidentialNormalization {
     const ps = ed25519modN(p * sLE);
     const psInvert = ed25519modN(p * invertSLE);
 
-    const alpha1 = ed25519modN(x1 - pt);
+    const alpha1List = x1List.map((x1, i) => {
+      const pChunk = ed25519modN(p * this.normalizedConfidentialAmount.amountChunks[i]);
+
+      return ed25519modN(x1 - pChunk);
+    });
     const alpha2 = ed25519modN(x2 - ps);
     const alpha3 = ed25519modN(x3 - psInvert);
-    const alpha4List = x4List.map((x4, i) =>
-      numberToBytesLE(ed25519modN(x4 - p * this.normalizedConfidentialAmount!.amountChunks![i]), 32),
-    );
-    const alpha5List = x5List.map((x5, i) => numberToBytesLE(ed25519modN(x5 - p * this.randomness[i]), 32));
+    const alpha4List = x4List.map((el, i) => {
+      const pri = ed25519modN(p * this.randomness[i]);
+
+      return ed25519modN(el - pri)
+    });
 
     return {
-      alpha1: numberToBytesLE(alpha1, 32),
+      alpha1List: alpha1List.map((alpha1) => numberToBytesLE(alpha1, 32)),
       alpha2: numberToBytesLE(alpha2, 32),
       alpha3: numberToBytesLE(alpha3, 32),
-      alpha4List,
-      alpha5List,
+      alpha4List: alpha4List.map((alpha4) => numberToBytesLE(alpha4, 32)),
       X1: X1.toRawBytes(),
       X2: X2.toRawBytes(),
       X3List: X3List.map((X3) => X3.toRawBytes()),
@@ -195,11 +222,10 @@ export class ConfidentialNormalization {
   }): boolean {
     const publicKeyU8 = publicKeyToU8(opts.publicKey);
 
-    const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
+    const alpha1LEList = opts.sigmaProof.alpha1List.map((a) => bytesToNumberLE(a));
     const alpha2LE = bytesToNumberLE(opts.sigmaProof.alpha2);
     const alpha3LE = bytesToNumberLE(opts.sigmaProof.alpha3);
     const alpha4LEList = opts.sigmaProof.alpha4List.map((a) => bytesToNumberLE(a));
-    const alpha5LEList = opts.sigmaProof.alpha5List.map((a) => bytesToNumberLE(a));
 
     const p = genFiatShamirChallenge(
       utf8ToBytes(ConfidentialNormalization.FIAT_SHAMIR_SIGMA_DST),
@@ -213,7 +239,6 @@ export class ConfidentialNormalization {
       ...opts.sigmaProof.X3List,
       ...opts.sigmaProof.X4List,
     );
-    const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
     const alpha2D = opts.unnormalizedEncryptedBalance
       .reduce(
         (acc, { D }, i) => acc.add(D.multiply(2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI))),
@@ -229,17 +254,29 @@ export class ConfidentialNormalization {
 
     const alpha3H = H_RISTRETTO.multiply(alpha3LE);
     const pP = RistrettoPoint.fromHex(publicKeyU8).multiply(p);
-    const X1 = alpha1G.add(alpha2D).add(pBalOld);
+
+    const X1 = RistrettoPoint.BASE.multiply(
+      ed25519modN(
+        alpha1LEList.reduce((acc, el, i) => {
+          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const alpha1i = el * coef;
+          return acc + alpha1i;
+        }, 0n),
+      )
+    ).add(alpha2D).add(pBalOld);
     const X2 = alpha3H.add(pP);
-    const X3List = alpha4LEList.map((a, i) => {
-      const aG = RistrettoPoint.BASE.multiply(a);
-      const aH = H_RISTRETTO.multiply(alpha5LEList[i]);
+    const X3List = alpha1LEList.map((el, i) => {
+      const a1iG = RistrettoPoint.BASE.multiply(el);
+      const a4iH = H_RISTRETTO.multiply(alpha4LEList[i]);
       const pC = opts.normalizedEncryptedBalance[i].C.multiply(p);
-      return aG.add(aH).add(pC);
+      return a1iG.add(a4iH).add(pC);
     });
-    const X4List = alpha5LEList.map((a, i) =>
-      RistrettoPoint.fromHex(publicKeyU8).multiply(a).add(opts.normalizedEncryptedBalance[i].D.multiply(p)),
-    );
+    const X4List = alpha4LEList.map((el, i) => {
+      const a4iP = RistrettoPoint.fromHex(publicKeyU8).multiply(el);
+      const pDnew = opts.normalizedEncryptedBalance[i].D.multiply(p)
+
+      return a4iP.add(pDnew)
+    });
 
     return (
       X1.equals(RistrettoPoint.fromHex(opts.sigmaProof.X1)) &&
