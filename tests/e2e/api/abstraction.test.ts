@@ -1,6 +1,7 @@
-import { AbstractedAccount, Account, DomainAbstractedAccount, Hex, MoveVector, Network } from "../../../src";
+import { AbstractedAccount, Account, AccountAddress, Ed25519PrivateKey, Hex, MoveVector, Network } from "../../../src";
+import { DerivableAbstractedAccount } from "../../../src/account/DerivableAbstractedAccount";
 import { Ed25519Account } from "../../../src/account/Ed25519Account";
-import { FUND_AMOUNT } from "../../unit/helper";
+import { ed25519, FUND_AMOUNT } from "../../unit/helper";
 import { getAptosClient } from "../helper";
 import {
   addPermissionDelegationScriptBytecode,
@@ -228,19 +229,33 @@ describe("abstraction api", () => {
 
   // this daa account can be used on chain
   describe("derivable account abstraction", () => {
+    it("should calculate the correct account address", () => {
+      const { privateKey: privateKeyBytes, daa: derivableAccountAddress } = ed25519;
+      const privateKey = new Ed25519PrivateKey(privateKeyBytes);
+      const account = Account.fromPrivateKey({
+        privateKey,
+      });
+      const daaAddressBytes = DerivableAbstractedAccount.computeAccountAddress(
+        "0x7::test_derivable_account_abstraction_ed25519_hex::authenticate",
+        account.publicKey.toUint8Array(),
+      );
+      const daaAddressString = new AccountAddress(daaAddressBytes).toString();
+      expect(daaAddressString).toBe(derivableAccountAddress);
+    });
+
     it("should be able to send a transaction with derivable account abstraction", async () => {
       // solana uses the same Ed25519 curve
       const solanaAccount = Account.generate();
-      const daa = new DomainAbstractedAccount({
+      const daa = new DerivableAbstractedAccount({
         signer: (digest) => {
           // The solana wallet sign function
           const hexDigest = new TextEncoder().encode(Hex.fromHexInput(digest).toString());
           return solanaAccount.sign(hexDigest).toUint8Array();
         },
         authenticationFunction: `0x7::test_derivable_account_abstraction_ed25519_hex::authenticate`,
-        accountIdentity: solanaAccount.publicKey.toUint8Array(),
+        abstractPublicKey: solanaAccount.publicKey.toUint8Array(),
       });
-      console.log("daa address", daa.accountAddress.toString());
+
       const recipient = Account.generate();
       await aptos.fundAccount({ accountAddress: recipient.accountAddress, amount: FUND_AMOUNT });
       await aptos.fundAccount({ accountAddress: daa.accountAddress, amount: FUND_AMOUNT });

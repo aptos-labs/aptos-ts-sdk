@@ -336,14 +336,14 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     }
     if (variant === AbstractionAuthDataVariant.DerivableV1) {
       const signingMessageDigest = deserializer.deserializeBytes();
-      const authenticator = deserializer.deserializeBytes();
+      const abstractSignature = deserializer.deserializeBytes();
 
-      const accountIdentity = deserializer.deserializeBytes();
+      const abstractPublicKey = deserializer.deserializeBytes();
       return new AccountAuthenticatorAbstraction(
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
-        authenticator,
-        accountIdentity,
+        abstractSignature,
+        abstractPublicKey,
       );
     }
     throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);
