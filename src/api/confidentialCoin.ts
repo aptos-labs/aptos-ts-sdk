@@ -50,14 +50,14 @@ export type ConfidentialBalance = {
 // 8 chunks module
 // const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
 // devnet with batches
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
 const MODULE_NAME = "confidential_asset";
 
 /**
  * A class to handle confidential balance operations
  */
 export class ConfidentialCoin {
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: AptosConfig) { }
 
   static CONFIDENTIAL_COIN_MODULE_ADDRESS = CONFIDENTIAL_COIN_MODULE_ADDRESS;
 
