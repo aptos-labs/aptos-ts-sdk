@@ -227,8 +227,8 @@ describe("abstraction api", () => {
   });
 
   // this daa account can be used on chain
-  describe.only("derived account abstraction", () => {
-    it("should be able to send a transaction with derived account abstraction", async () => {
+  describe("derivable account abstraction", () => {
+    it("should be able to send a transaction with derivable account abstraction", async () => {
       // solana uses the same Ed25519 curve
       const solanaAccount = Account.generate();
       const daa = new DomainAbstractedAccount({

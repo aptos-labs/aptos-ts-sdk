@@ -13,7 +13,7 @@ type DomainAbstractedAccountArgs = {
    * @param digest - The SHA256 hash of the transaction signing message
    * @returns The `authenticator` bytes that can be used to verify the signature.
    */
-  signer: (digest: HexInput) => HexInput;
+  signer: (digest: HexInput) => Uint8Array;
 
   /**
    * The authentication function that will be used to verify the signature.
@@ -94,7 +94,7 @@ export class DomainAbstractedAccount extends AbstractedAccount {
     return new AccountAuthenticatorAbstraction(
       this.authenticationFunction,
       sha3_256(message),
-      this.sign(sha3_256(message)).toUint8Array(),
+      this.sign(sha3_256(message)).value,
       this.accountIdentity,
     );
   }

@@ -274,7 +274,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
 
   public readonly signingMessageDigest: Hex;
 
-  public readonly authenticator: Hex;
+  public readonly authenticator: Uint8Array;
 
   /**
    * DAA, which is extended of the AA module, requires an account identity
@@ -284,7 +284,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
   constructor(
     functionInfo: string,
     signingMessageDigest: HexInput,
-    authenticator: HexInput,
+    authenticator: Uint8Array,
     accountIdentity?: Uint8Array,
   ) {
     super();
@@ -292,7 +292,7 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
       throw new Error(`Invalid function info ${functionInfo} passed into AccountAuthenticatorAbstraction`);
     }
     this.functionInfo = functionInfo;
-    this.authenticator = Hex.fromHexInput(authenticator);
+    this.authenticator = authenticator;
     this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
     this.accountIdentity = accountIdentity;
   }
@@ -310,9 +310,9 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
     if (this.accountIdentity) {
-      serializer.serializeBytes(this.authenticator.toUint8Array());
+      serializer.serializeBytes(this.authenticator);
     } else {
-      serializer.serializeFixedBytes(this.authenticator.toUint8Array());
+      serializer.serializeFixedBytes(this.authenticator);
     }
 
     if (this.accountIdentity) {
