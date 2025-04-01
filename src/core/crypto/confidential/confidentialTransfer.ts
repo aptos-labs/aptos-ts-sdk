@@ -11,12 +11,11 @@ import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
 
 export type ConfidentialTransferSigmaProof = {
-  alpha1: Uint8Array;
+  alpha1List: Uint8Array[];
   alpha2: Uint8Array;
   alpha3List: Uint8Array[];
   alpha4List: Uint8Array[];
   alpha5: Uint8Array;
-  alpha6List: Uint8Array[];
   X1: Uint8Array;
   X2List: Uint8Array[];
   X3List: Uint8Array[];
@@ -135,12 +134,11 @@ export class ConfidentialTransfer {
 
   static serializeSigmaProof(sigmaProof: ConfidentialTransferSigmaProof): Uint8Array {
     return concatBytes(
-      sigmaProof.alpha1,
+      ...sigmaProof.alpha1List,
       sigmaProof.alpha2,
       ...sigmaProof.alpha3List,
       ...sigmaProof.alpha4List,
       sigmaProof.alpha5,
-      ...sigmaProof.alpha6List,
       sigmaProof.X1,
       ...sigmaProof.X2List,
       ...sigmaProof.X3List,
@@ -180,26 +178,48 @@ export class ConfidentialTransfer {
       }
     }
 
-    const alpha1 = baseProofArray[0];
-    const alpha2 = baseProofArray[1];
-    const alpha3List = baseProofArray.slice(2, 2 + ConfidentialAmount.CHUNKS_COUNT);
-    const alpha4List = baseProofArray.slice(6, 6 + ConfidentialAmount.CHUNKS_COUNT);
-    const alpha5 = baseProofArray[10];
-    const alpha6List = baseProofArray.slice(11, 11 + ConfidentialAmount.CHUNKS_COUNT);
-    const X1 = baseProofArray[15];
-    const X2List = baseProofArray.slice(16, 16 + ConfidentialAmount.CHUNKS_COUNT);
-    const X3List = baseProofArray.slice(20, 20 + ConfidentialAmount.CHUNKS_COUNT);
-    const X4List = baseProofArray.slice(24, 24 + ConfidentialAmount.CHUNKS_COUNT);
-    const X5 = baseProofArray[28];
-    const X6List = baseProofArray.slice(29);
+    const half = ConfidentialAmount.CHUNKS_COUNT / 2;
+
+    const alpha1List = baseProofArray.slice(0, half);
+    const alpha2 = baseProofArray[half];
+    const alpha3List = baseProofArray.slice(
+      half + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT,
+    )
+    const alpha4List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2,
+    )
+    const alpha5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2];
+    const alpha6List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3,
+    )
+    const X1 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3];
+    const X2List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4,
+    );
+    const X3List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 4 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5,
+    );
+    const X4List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 5 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6,
+    );
+    const X5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6];
+    const X6List = baseProofArray.slice(
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 6 + 1,
+      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 7,
+    );
 
     return {
-      alpha1,
+      alpha1List,
       alpha2,
       alpha3List,
       alpha4List,
       alpha5,
-      alpha6List,
       X1,
       X2List,
       X3List,
@@ -228,7 +248,7 @@ export class ConfidentialTransfer {
     const i = ConfidentialAmount.CHUNKS_COUNT;
     const j = ConfidentialAmount.CHUNKS_COUNT / 2;
 
-    const x1 = ed25519GenRandom();
+    const x1List = ed25519GenListOfRandom(i);
     const x2 = ed25519GenRandom();
     const x3List = ed25519GenListOfRandom(i);
     const x4List = ed25519GenListOfRandom(j);
@@ -250,7 +270,16 @@ export class ConfidentialTransfer {
       (_, i) => i + ConfidentialAmount.CHUNKS_COUNT / 2,
     );
 
-    const X1 = RistrettoPoint.BASE.multiply(x1)
+    const X1 = RistrettoPoint.BASE.multiply(
+      ed25519modN(
+        x1List.reduce((acc, el, i) => {
+          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const x1i = el * coef
+
+          return acc + x1i
+        }, 0n)
+      )
+    )
       .add(DBal.multiply(x2))
       .subtract(DNewBal.multiply(x2))
       .add(
@@ -269,9 +298,12 @@ export class ConfidentialTransfer {
       .slice(0, j)
       .map((x4, idx) => RistrettoPoint.BASE.multiply(x4).add(H_RISTRETTO.multiply(x3List[idx])).toRawBytes());
     const X5 = H_RISTRETTO.multiply(x5).toRawBytes();
-    const X6List = x6List.map((x6, idx) =>
-      RistrettoPoint.BASE.multiply(x6).add(H_RISTRETTO.multiply(x3List[idx])).toRawBytes(),
-    );
+    const X6List = x1List.map((el, idx) => {
+      const x1iG = RistrettoPoint.BASE.multiply(el);
+      const x3iH = H_RISTRETTO.multiply(x3List[idx]);
+
+      return x1iG.add(x3iH).toRawBytes()
+    });
 
     const X7List =
       this.auditorsU8EncryptionKeys?.map((pk) =>
@@ -301,25 +333,20 @@ export class ConfidentialTransfer {
     const sLE = bytesToNumberLE(this.senderDecryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const alpha1 = ed25519modN(x1 - p * this.confidentialAmountAfterTransfer.amount);
+    const alpha1List = x1List.map((x1, idx) => ed25519modN(x1 - ed25519modN(p * this.confidentialAmountAfterTransfer.amountChunks[idx])));
     const alpha2 = ed25519modN(x2 - p * sLE);
     const alpha3List = x3List.map((el, idx) => ed25519modN(BigInt(el) - BigInt(p) * BigInt(this.randomness[idx])));
     const alpha4List = x4List
       .slice(0, j)
       .map((el, idx) => ed25519modN(el - p * this.confidentialAmountToTransfer.amountChunks[idx]));
     const alpha5 = ed25519modN(x5 - p * invertSLE);
-    const alpha6List = x6List.map(
-      (x6, idx) => ed25519modN(x6 - p * this.confidentialAmountAfterTransfer.amountChunks[idx]),
-      ConfidentialAmount.CHUNK_BITS,
-    );
 
     return {
-      alpha1: numberToBytesLE(alpha1, 32),
+      alpha1List: alpha1List.map((a) => numberToBytesLE(a, 32)),
       alpha2: numberToBytesLE(alpha2, 32),
       alpha3List: alpha3List.map((a) => numberToBytesLE(a, 32)),
       alpha4List: alpha4List.map((a) => numberToBytesLE(a, 32)),
       alpha5: numberToBytesLE(alpha5, 32),
-      alpha6List: alpha6List.map((a) => numberToBytesLE(a, 32)),
       X1,
       X2List,
       X3List,
@@ -348,12 +375,11 @@ export class ConfidentialTransfer {
     //   opts?.auditors?.decryptionKeys.map((arr) => arr.map((key) => Hex.fromHexInput(key).toUint8Array())) ?? [];
     const proofX7List = opts.sigmaProof.X7List ?? [];
 
-    const alpha1LE = bytesToNumberLE(opts.sigmaProof.alpha1);
+    const alpha1LEList = opts.sigmaProof.alpha1List.map((a) => bytesToNumberLE(a));
     const alpha2LE = bytesToNumberLE(opts.sigmaProof.alpha2);
     const alpha3LEList = opts.sigmaProof.alpha3List.map((a) => bytesToNumberLE(a));
     const alpha4LEList = opts.sigmaProof.alpha4List.map((a) => bytesToNumberLE(a));
     const alpha5LE = bytesToNumberLE(opts.sigmaProof.alpha5);
-    const alpha6LEList = opts.sigmaProof.alpha6List.map((a) => bytesToNumberLE(a));
 
     const senderPublicKeyU8 = publicKeyToU8(opts.senderPrivateKey.publicKey());
     const recipientPublicKeyU8 = publicKeyToU8(opts.recipientPublicKey);
@@ -380,8 +406,6 @@ export class ConfidentialTransfer {
       ...opts.sigmaProof.X6List,
       ...proofX7List,
     );
-
-    const alpha1G = RistrettoPoint.BASE.multiply(alpha1LE);
 
     const { oldDSum, oldCSum } = opts.encryptedActualBalance.reduce(
       (acc, { C, D }, i) => {
@@ -411,7 +435,16 @@ export class ConfidentialTransfer {
       return acc.add(C.multiply(coef));
     }, RistrettoPoint.ZERO);
 
-    const X1 = alpha1G
+    const X1 = RistrettoPoint.BASE.multiply(
+      ed25519modN(
+        alpha1LEList.reduce((acc, curr, i) => {
+          const coef = 2n ** (BigInt(i) * ConfidentialAmount.CHUNK_BITS_BI);
+          const a1i = curr * coef;
+
+          return acc + a1i;
+        }, 0n)
+      )
+    )
       .add(oldDSum.multiply(alpha2LE))
       .subtract(newDSum.multiply(alpha2LE))
       .add(
@@ -440,11 +473,11 @@ export class ConfidentialTransfer {
       return a4G.add(a3H).add(pC);
     });
     const X5 = H_RISTRETTO.multiply(alpha5LE).add(senderPKRistretto.multiply(p));
-    const X6List = alpha6LEList.map((a6, i) => {
-      const aG = RistrettoPoint.BASE.multiply(a6);
-      const aH = H_RISTRETTO.multiply(alpha3LEList[i]);
+    const X6List = alpha1LEList.map((el, i) => {
+      const a1iG = RistrettoPoint.BASE.multiply(el);
+      const a3iH = H_RISTRETTO.multiply(alpha3LEList[i]);
       const pC = opts.encryptedActualBalanceAfterTransfer[i].C.multiply(p);
-      return aG.add(aH).add(pC);
+      return a1iG.add(a3iH).add(pC);
     });
     const X7List = auditorPKs.map((auPk, auPubKIdx) =>
       alpha3LEList
