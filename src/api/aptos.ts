@@ -16,7 +16,6 @@ import { Table } from "./table";
 import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
 import { AccountAbstraction } from "./account/abstraction";
-import { Experimental } from "./experimental";
 
 /**
  * The main entry point for interacting with the Aptos APIs,
@@ -55,8 +54,6 @@ export class Aptos {
   readonly digitalAsset: DigitalAsset;
 
   readonly event: Event;
-
-  readonly experimental: Experimental;
 
   readonly faucet: Faucet;
 
@@ -103,7 +100,6 @@ export class Aptos {
     this.coin = new Coin(this.config);
     this.digitalAsset = new DigitalAsset(this.config);
     this.event = new Event(this.config);
-    this.experimental = new Experimental(this.config);
     this.faucet = new Faucet(this.config);
     this.fungibleAsset = new FungibleAsset(this.config);
     this.general = new General(this.config);
@@ -123,7 +119,6 @@ export interface Aptos
     Coin,
     DigitalAsset,
     Event,
-    Experimental,
     Faucet,
     FungibleAsset,
     General,
@@ -161,7 +156,6 @@ applyMixin(Aptos, ANS, "ans");
 applyMixin(Aptos, Coin, "coin");
 applyMixin(Aptos, DigitalAsset, "digitalAsset");
 applyMixin(Aptos, Event, "event");
-applyMixin(Aptos, Experimental, "experimental");
 applyMixin(Aptos, Faucet, "faucet");
 applyMixin(Aptos, FungibleAsset, "fungibleAsset");
 applyMixin(Aptos, General, "general");
