@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AptosConfig } from "../api/aptosConfig";
-import { aptosBinaryRequest, aptosRequest } from "./core";
+import { aptosRequest } from "./core";
 import { AptosResponse, AnyNumber, ClientConfig, MimeType } from "../types";
 import { AptosApiType } from "../utils/const";
 
@@ -116,45 +116,6 @@ export async function post<Req extends {}, Res extends {}>(
 }
 
 /**
- * Executes a POST request to the specified URL with the provided options.
- *
- * @param options - The options for the POST request.
- * @param options.type - The type of the request.
- * @param options.originMethod - The original method that initiated the request.
- * @param options.path - The path for the request.
- * @param options.body - The body content to be sent with the request.
- * @param options.acceptType - The type of response expected from the server.
- * @param options.contentType - The content type of the request body.
- * @param options.params - Additional parameters to include in the request.
- * @param options.aptosConfig - Configuration settings for the Aptos request.
- * @param options.overrides - Any overrides for the default request behavior.
- * @returns The response from the POST request.
- * @group Implementation
- * @category Client
- * @experimental
- */
-export async function postBinary<Req extends {}>(options: PostRequestOptions): Promise<AptosResponse<Req, Buffer>> {
-  const { type, originMethod, path, body, acceptType, contentType, params, aptosConfig, overrides } = options;
-  const url = aptosConfig.getRequestUrl(type);
-
-  return aptosBinaryRequest<Req>(
-    {
-      url,
-      method: "POST",
-      originMethod,
-      path,
-      body,
-      contentType,
-      acceptType,
-      params,
-      overrides,
-    },
-    aptosConfig,
-    options.type,
-  );
-}
-
-/**
  * Sends a request to the Aptos full node using the specified options.
  * This function allows you to interact with the Aptos blockchain by sending requests to the full node.
  *
@@ -172,36 +133,6 @@ export async function postAptosFullNode<Req extends {}, Res extends {}>(
   const { aptosConfig } = options;
 
   return post<Req, Res>({
-    ...options,
-    type: AptosApiType.FULLNODE,
-    overrides: {
-      ...aptosConfig.clientConfig,
-      ...aptosConfig.fullnodeConfig,
-      ...options.overrides,
-      HEADERS: { ...aptosConfig.clientConfig?.HEADERS, ...aptosConfig.fullnodeConfig?.HEADERS },
-    },
-  });
-}
-
-/**
- * Sends a request to the Aptos full node using the specified options.
- * This function allows you to interact with the Aptos blockchain by sending requests to the full node.
- *
- * @param options - The options for the request.
- * @param options.aptosConfig - Configuration settings for the Aptos client.
- * @param options.aptosConfig.clientConfig - Client-specific configuration settings.
- * @param options.aptosConfig.fullnodeConfig - Full node-specific configuration settings.
- * @param options.overrides - Additional overrides for the request.
- * @group Implementation
- * @category Client
- * @experimental
- */
-export async function postBinaryAptosFullNode<Req extends {}>(
-  options: PostAptosRequestOptions,
-): Promise<AptosResponse<Req, Buffer>> {
-  const { aptosConfig } = options;
-
-  return postBinary<Req>({
     ...options,
     type: AptosApiType.FULLNODE,
     overrides: {
