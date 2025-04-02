@@ -4,6 +4,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
 - [`fix`] Allow variable length bitmaps in Multikey accounts, allowing for compatibility between SDKs properly
 
 # 1.37.1 (2025-03-24)
