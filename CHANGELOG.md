@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+# 1.38.0 (2025-04-02)
+
 - Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
 - Implement derivable abstracted account
 - Fix: Reverts experimental binary view functions, which caused `Buffer is undefined` errors in browsers.
