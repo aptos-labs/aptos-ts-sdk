@@ -16,12 +16,9 @@ const main = async () => {
   console.log("Finished funding accounts!");
 
   console.log("\n=== Compiling hello_world_authenticator package locally ===");
-  compilePackage(
-    "move/account_abstraction",
-    "move/account_abstraction/hello_world_authenticator.json",
-    [{ name: "deployer", address: alice.accountAddress }],
-    ["--move-2"],
-  );
+  compilePackage("move/account_abstraction", "move/account_abstraction/hello_world_authenticator.json", [
+    { name: "deployer", address: alice.accountAddress },
+  ]);
   const { metadataBytes, byteCode } = getPackageBytesToPublish(
     "move/account_abstraction/hello_world_authenticator.json",
   );

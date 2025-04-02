@@ -7,15 +7,15 @@ import { AccountPublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from 
 import { Signature } from "./signature";
 
 export class AbstractSignature extends Signature {
-  readonly value: Hex;
+  readonly value: Uint8Array;
 
   constructor(value: HexInput) {
     super();
-    this.value = Hex.fromHexInput(value);
+    this.value = Hex.fromHexInput(value).toUint8Array();
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.value.toUint8Array());
+    serializer.serializeBytes(this.value);
   }
 
   static deserialize(deserializer: Deserializer): AbstractSignature {

@@ -5,6 +5,7 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 ## Unreleased
 
 - Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
+- Implement derivable abstracted account
 
 # 1.37.1 (2025-03-24)
 
