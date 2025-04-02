@@ -177,6 +177,7 @@ export class ConfidentialCoin {
   async withdraw(
     args: CreateConfidentialWithdrawOpArgs & {
       sender: AccountAddressInput;
+      to?: AccountAddressInput;
       tokenAddress: string;
       options?: InputGenerateTransactionOptions;
     },
@@ -198,7 +199,7 @@ export class ConfidentialCoin {
         function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::withdraw_to`,
         functionArguments: [
           args.tokenAddress,
-          AccountAddress.from(args.sender),
+          args.to || AccountAddress.from(args.sender),
           String(args.amountToWithdraw),
           concatBytes(...confidentialAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
