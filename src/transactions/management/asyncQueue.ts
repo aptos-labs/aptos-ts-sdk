@@ -62,6 +62,32 @@ export class AsyncQueue<T> {
   }
 
   /**
+   * Dequeues all items from the queue and returns a promise that resolves to an array of items.
+   * If the queue is empty, it creates a new promise that will be resolved when an item is enqueued.
+   *
+   * @returns Promise<T[]> - A promise that resolves to an array of all items in the queue.
+   * @group Implementation
+   * @category Transactions
+   */
+  async dequeueAll(): Promise<T[]> {
+    if (this.queue.length > 0) {
+      // Get all items from the queue.
+      const items = [...this.queue];
+      // Clear the queue.
+      this.queue.length = 0;
+      return Promise.resolve(items);
+    }
+
+    return new Promise<T[]>((resolve, reject) => {
+      // When an item is added, it will resolve with that single item as an array.
+      this.pendingDequeue.push({
+        resolve: (item: T) => resolve([item]),
+        reject,
+      });
+    });
+  }
+
+  /**
    * Determine whether the queue is empty.
    *
    * @returns boolean - Returns true if the queue has no elements, otherwise false.

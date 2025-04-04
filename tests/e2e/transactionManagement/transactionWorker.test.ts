@@ -51,10 +51,9 @@ describe("transactionWorker", () => {
         function: "0x1::aptos_account::transfer",
         functionArguments: [recipient.accountAddress, 1],
       };
-      transactionWorker.push(txn).then(() => {
-        transactionWorker.stop();
-        expect(transactionWorker.transactionsQueue.queue).toHaveLength(1);
-      });
+      transactionWorker.push(txn);
+      transactionWorker.stop();
+      expect(transactionWorker.transactionsQueue.queue).toHaveLength(1);
     },
     longTestTimeout,
   );
