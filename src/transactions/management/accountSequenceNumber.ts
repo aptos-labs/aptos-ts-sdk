@@ -110,7 +110,7 @@ export class AccountSequenceNumber {
    * @group Implementation
    * @category Transactions
    */
-  async nextSequenceNumber(): Promise<bigint | null> {
+  async nextSequenceNumber(): Promise<bigint> {
     /* eslint-disable no-await-in-loop */
     while (this.lock) {
       await sleep(this.sleepTime);
