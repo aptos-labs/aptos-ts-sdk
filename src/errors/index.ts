@@ -7,6 +7,7 @@ export enum KeylessErrorCategory {
   EXTERNAL_API_ERROR,
   SESSION_EXPIRED,
   INVALID_STATE,
+  INVALID_SIGNATURE,
   UNKNOWN,
 }
 
@@ -78,6 +79,20 @@ export enum KeylessErrorType {
   FULL_NODE_JWKS_LOOKUP_ERROR,
 
   FULL_NODE_OTHER,
+
+  SIGNATURE_TYPE_INVALID,
+
+  SIGNATURE_EXPIRED,
+
+  MAX_EXPIRY_HORIZON_EXCEEDED,
+
+  EPHEMERAL_SIGNATURE_VERIFICATION_FAILED,
+
+  TRAINING_WHEELS_SIGNATURE_MISSING,
+
+  TRAINING_WHEELS_SIGNATURE_VERIFICATION_FAILED,
+
+  PROOF_VERIFICATION_FAILED,
 
   UNKNOWN,
 }
@@ -212,6 +227,41 @@ const KeylessErrors: { [key in KeylessErrorType]: [string, KeylessErrorCategory,
     "Unknown error from full node.",
     KeylessErrorCategory.API_ERROR,
     KeylessErrorResolutionTip.SERVER_ERROR,
+  ],
+  [KeylessErrorType.SIGNATURE_TYPE_INVALID]: [
+    "The signature is not a valid Keyless signature.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.JOIN_SUPPORT_GROUP,
+  ],
+  [KeylessErrorType.SIGNATURE_EXPIRED]: [
+    "The ephemeral key pair used to sign the message has expired.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
+  ],
+  [KeylessErrorType.MAX_EXPIRY_HORIZON_EXCEEDED]: [
+    "The expiry horizon on the signature exceeds the maximum allowed value.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
+  ],
+  [KeylessErrorType.EPHEMERAL_SIGNATURE_VERIFICATION_FAILED]: [
+    "Failed to verify the ephemeral signature with the ephemeral public key.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
+  ],
+  [KeylessErrorType.TRAINING_WHEELS_SIGNATURE_MISSING]: [
+    "The training wheels signature is missing but is required by the Keyless configuration.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
+  ],
+  [KeylessErrorType.TRAINING_WHEELS_SIGNATURE_VERIFICATION_FAILED]: [
+    "Failed to verify the training wheels signature with the training wheels public key.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
+  ],
+  [KeylessErrorType.PROOF_VERIFICATION_FAILED]: [
+    "The proof verification failed.",
+    KeylessErrorCategory.INVALID_SIGNATURE,
+    KeylessErrorResolutionTip.REAUTHENTICATE,
   ],
   [KeylessErrorType.UNKNOWN]: [
     "An unknown error has occurred.",

@@ -238,6 +238,16 @@ export interface PaginationArgs {
 }
 
 /**
+ * Defines the parameters for paginating query results, including the starting position and maximum number of items to return.
+ * @param cursor Specifies the starting position of the query result. Default is at the beginning if undefined.  This is not a number and must come from the API.
+ * @param limit Specifies the maximum number of items to return. Default is 25.
+ */
+export interface CursorPaginationArgs {
+  cursor?: string;
+  limit?: number;
+}
+
+/**
  * Represents the arguments for specifying a token standard.
  *
  * @param tokenStandard - Optional standard of the token.

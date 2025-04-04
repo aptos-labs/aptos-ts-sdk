@@ -274,16 +274,27 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
 
   public readonly signingMessageDigest: Hex;
 
-  public readonly authenticator: Hex;
+  public readonly authenticator: Uint8Array;
 
-  constructor(functionInfo: string, signingMessageDigest: HexInput, authenticator: HexInput) {
+  /**
+   * DAA, which is extended of the AA module, requires an account identity
+   */
+  public readonly accountIdentity?: Uint8Array;
+
+  constructor(
+    functionInfo: string,
+    signingMessageDigest: HexInput,
+    authenticator: Uint8Array,
+    accountIdentity?: Uint8Array,
+  ) {
     super();
     if (!isValidFunctionInfo(functionInfo)) {
       throw new Error(`Invalid function info ${functionInfo} passed into AccountAuthenticatorAbstraction`);
     }
     this.functionInfo = functionInfo;
-    this.authenticator = Hex.fromHexInput(authenticator);
+    this.authenticator = authenticator;
     this.signingMessageDigest = Hex.fromHexInput(Hex.fromHexInput(signingMessageDigest).toUint8Array());
+    this.accountIdentity = accountIdentity;
   }
 
   serialize(serializer: Serializer): void {
@@ -292,9 +303,21 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
     AccountAddress.fromString(moduleAddress).serialize(serializer);
     serializer.serializeStr(moduleName);
     serializer.serializeStr(functionName);
-    serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.V1);
+    if (this.accountIdentity) {
+      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.DerivableV1);
+    } else {
+      serializer.serializeU32AsUleb128(AbstractionAuthDataVariant.V1);
+    }
     serializer.serializeBytes(this.signingMessageDigest.toUint8Array());
-    serializer.serializeFixedBytes(this.authenticator.toUint8Array());
+    if (this.accountIdentity) {
+      serializer.serializeBytes(this.authenticator);
+    } else {
+      serializer.serializeFixedBytes(this.authenticator);
+    }
+
+    if (this.accountIdentity) {
+      serializer.serializeBytes(this.accountIdentity);
+    }
   }
 
   static load(deserializer: Deserializer): AccountAuthenticatorAbstraction {
@@ -309,6 +332,18 @@ export class AccountAuthenticatorAbstraction extends AccountAuthenticator {
         `${moduleAddress}::${moduleName}::${functionName}`,
         signingMessageDigest,
         authenticator,
+      );
+    }
+    if (variant === AbstractionAuthDataVariant.DerivableV1) {
+      const signingMessageDigest = deserializer.deserializeBytes();
+      const abstractSignature = deserializer.deserializeBytes();
+
+      const abstractPublicKey = deserializer.deserializeBytes();
+      return new AccountAuthenticatorAbstraction(
+        `${moduleAddress}::${moduleName}::${functionName}`,
+        signingMessageDigest,
+        abstractSignature,
+        abstractPublicKey,
       );
     }
     throw new Error(`Unknown variant index for AccountAuthenticatorAbstraction: ${variant}`);

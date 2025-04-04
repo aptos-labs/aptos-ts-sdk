@@ -20,7 +20,7 @@ import {
   MultiKeySignature,
 } from "../../core/crypto";
 import { Ed25519PublicKey, Ed25519Signature } from "../../core/crypto/ed25519";
-import { getInfo } from "../../internal/account";
+import { getInfo } from "../../internal/utils";
 import { getLedgerInfo } from "../../internal/general";
 import { getGasPriceEstimation } from "../../internal/transaction";
 import { NetworkToChainId } from "../../utils/apiEndpoints";
@@ -29,6 +29,7 @@ import { normalizeBundle } from "../../utils/normalizeBundle";
 import {
   AccountAuthenticator,
   AccountAuthenticatorEd25519,
+  AccountAuthenticatorMultiEd25519,
   AccountAuthenticatorMultiKey,
   AccountAuthenticatorNoAccountAuthenticator,
   AccountAuthenticatorSingleKey,
@@ -38,6 +39,7 @@ import {
   TransactionAuthenticatorEd25519,
   TransactionAuthenticatorFeePayer,
   TransactionAuthenticatorMultiAgent,
+  TransactionAuthenticatorMultiEd25519,
   TransactionAuthenticatorSingleSender,
 } from "../authenticator/transaction";
 import {
@@ -636,7 +638,12 @@ export function getAuthenticatorForSimulation(publicKey?: PublicKey) {
     return new AccountAuthenticatorMultiKey(
       accountPublicKey,
       new MultiKeySignature({
-        signatures: accountPublicKey.publicKeys.map(() => new AnySignature(invalidSignature)),
+        signatures: accountPublicKey.publicKeys.map((pubKey) => {
+          if (KeylessPublicKey.isInstance(pubKey.publicKey) || FederatedKeylessPublicKey.isInstance(pubKey.publicKey)) {
+            return new AnySignature(KeylessSignature.getSimulationSignature());
+          }
+          return new AnySignature(invalidSignature);
+        }),
         bitmap: accountPublicKey.createBitmap({
           bits: Array(accountPublicKey.publicKeys.length)
             .fill(0)
@@ -697,6 +704,11 @@ export function generateSignedTransaction(args: InputSubmitTransactionData): Uin
     );
   } else if (senderAuthenticator instanceof AccountAuthenticatorEd25519) {
     txnAuthenticator = new TransactionAuthenticatorEd25519(
+      senderAuthenticator.public_key,
+      senderAuthenticator.signature,
+    );
+  } else if (senderAuthenticator instanceof AccountAuthenticatorMultiEd25519) {
+    txnAuthenticator = new TransactionAuthenticatorMultiEd25519(
       senderAuthenticator.public_key,
       senderAuthenticator.signature,
     );

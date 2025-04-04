@@ -3,19 +3,19 @@ import { HexInput } from "../../types";
 import { AccountAddress } from "../accountAddress";
 import { AuthenticationKey } from "../authenticationKey";
 import { Hex } from "../hex";
-import { AccountPublicKey, VerifySignatureArgs } from "./publicKey";
+import { AccountPublicKey, VerifySignatureArgs, VerifySignatureAsyncArgs } from "./publicKey";
 import { Signature } from "./signature";
 
 export class AbstractSignature extends Signature {
-  readonly value: Hex;
+  readonly value: Uint8Array;
 
   constructor(value: HexInput) {
     super();
-    this.value = Hex.fromHexInput(value);
+    this.value = Hex.fromHexInput(value).toUint8Array();
   }
 
   serialize(serializer: Serializer): void {
-    serializer.serializeBytes(this.value.toUint8Array());
+    serializer.serializeBytes(this.value);
   }
 
   static deserialize(deserializer: Deserializer): AbstractSignature {
@@ -37,6 +37,11 @@ export class AbstractPublicKey extends AccountPublicKey {
 
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   verifySignature(args: VerifySignatureArgs): boolean {
+    throw new Error("This function is not implemented for AbstractPublicKey.");
+  }
+
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  async verifySignatureAsync(args: VerifySignatureAsyncArgs): Promise<boolean> {
     throw new Error("This function is not implemented for AbstractPublicKey.");
   }
 
