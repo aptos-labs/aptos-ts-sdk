@@ -69,6 +69,7 @@ export const ed25519 = {
   publicKey: "0xde19e5d1880cac87d57484ce9ed2e84cf0f9599f12e7cc3a52e4e7657a763f2c",
   authKey: "0x978c213990c4833df71548df7ce49d54c759d6b6d932de22b24d56060b7af2aa",
   address: "0x978c213990c4833df71548df7ce49d54c759d6b6d932de22b24d56060b7af2aa",
+  daa: "0xcebd25623966b16691a0bfc2307e0997cf83fcd30dab6be23b56f622ba668127",
   messageEncoded: "68656c6c6f20776f726c64",
   stringMessage: "hello world",
   signatureHex:

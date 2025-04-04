@@ -25,12 +25,9 @@ const main = async () => {
   console.log("Finished funding accounts!");
 
   console.log("\n=== Compiling public_key_authenticator package locally ===");
-  compilePackage(
-    "move/account_abstraction",
-    "move/account_abstraction/public_key_authenticator.json",
-    [{ name: "deployer", address: alice.accountAddress }],
-    ["--move-2"],
-  );
+  compilePackage("move/account_abstraction", "move/account_abstraction/public_key_authenticator.json", [
+    { name: "deployer", address: alice.accountAddress },
+  ]);
   const { metadataBytes, byteCode } = getPackageBytesToPublish(
     "move/account_abstraction/public_key_authenticator.json",
   );
