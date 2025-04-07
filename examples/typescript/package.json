@@ -17,14 +17,13 @@
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
     "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
-    "view_bcs": "ts-node view_bcs.ts",
     "federated_keyless": "ts-node federated_keyless.ts",
     "jwk_update": "ts-node jwk_update.ts",
     "keyless": "ts-node keyless.ts",
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",
     "swap": "ts-node swap.ts",
-    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction view_bcs"
+    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
   },
   "keywords": [],
   "author": "",
