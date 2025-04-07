@@ -17,38 +17,31 @@
     "your_fungible_asset": "ts-node your_fungible_asset.ts",
     "public_key_authenticator_account_abstraction": "ts-node public_key_authenticator_account_abstraction.ts",
     "hello_world_authenticator_account_abstraction": "ts-node hello_world_authenticator_account_abstraction.ts",
-    "view_bcs": "ts-node view_bcs.ts",
-    "multiagent_feepayer_external": "ts-node multiagent_feepayer_external.ts",
     "federated_keyless": "ts-node federated_keyless.ts",
     "jwk_update": "ts-node jwk_update.ts",
     "keyless": "ts-node keyless.ts",
     "keyless_mainnet": "ts-node keyless_mainnet.ts",
     "local_node": "ts-node local_node.ts",
     "swap": "ts-node swap.ts",
-    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction view_bcs multiagent_feepayer_external"
+    "test": "run-s simple_transfer multi_agent_transfer simple_sponsored_transaction transfer_coin custom_client publish_package_from_filepath external_signing sign_struct your_coin your_fungible_asset public_key_authenticator_account_abstraction hello_world_authenticator_account_abstraction"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@noble/curves": "^1.4.0",
-    "@types/readline-sync": "^1.4.8",
-    "dotenv": "^16.4.7",
+    "@noble/curves": "1.8.1",
+    "@types/readline-sync": "1.4.8",
+    "dotenv": "16.4.7",
     "npm-run-all": "4.1.5",
-    "readline-sync": "^1.4.10",
-    "superagent": "^8.1.2"
+    "readline-sync": "1.4.10",
+    "superagent": "10.2.0"
   },
   "peerDependencies": {
     "@aptos-labs/ts-sdk": "link:../.."
   },
   "devDependencies": {
-    "@types/node": "^22.13.1",
+    "@types/node": "^22.13.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "cross-spawn": ">=6.0.6"
-    }
+    "typescript": "^5.8.2"
   }
 }
