@@ -286,6 +286,56 @@ export class MultiKey extends AbstractMultiKey {
   // endregion
 
   /**
+   * Create a bitmap that holds the mapping from the original public keys
+   * to the signatures passed in
+   *
+   * @param args.bits array of the index mapping to the matching public keys
+   * @returns Uint8array bit map
+   * @group Implementation
+   * @category Serialization
+   */
+  createBitmap(args: { bits: number[] }): Uint8Array {
+    const { bits } = args;
+    // Bits are read from left to right. e.g. 0b10000000 represents the first bit is set in one byte.
+    // The decimal value of 0b10000000 is 128.
+    const firstBitInByte = 128;
+    const bitmap: number[] = [];
+
+    // Check if duplicates exist in bits
+    const dupCheckSet = new Set();
+
+    bits.forEach((bit: number, idx: number) => {
+      if (idx + 1 > this.publicKeys.length) {
+        throw new Error(`Signature index ${idx + 1} is out of public keys range, ${this.publicKeys.length}.`);
+      }
+
+      if (dupCheckSet.has(bit)) {
+        throw new Error(`Duplicate bit ${bit} detected.`);
+      }
+
+      dupCheckSet.add(bit);
+
+      const byteOffset = Math.floor(bit / 8);
+
+      // Extend by required number of bytes
+      if (bitmap.length < byteOffset) {
+        for (let i = bitmap.length; i < byteOffset; i += 1) {
+          bitmap.push(0);
+        }
+      }
+
+      let byte = bitmap[byteOffset];
+
+      // eslint-disable-next-line no-bitwise
+      byte |= firstBitInByte >> bit % 8;
+
+      bitmap[byteOffset] = byte;
+    });
+
+    return new Uint8Array(bitmap);
+  }
+
+  /**
    * Get the index of the provided public key.
    *
    * This function retrieves the index of a specified public key within the MultiKey.
@@ -374,8 +424,6 @@ export class MultiKeySignature extends Signature {
 
     if (!(bitmap instanceof Uint8Array)) {
       this.bitmap = MultiKeySignature.createBitmap({ bits: bitmap });
-    } else if (bitmap.length !== MultiKeySignature.BITMAP_LEN) {
-      throw new Error(`"bitmap" length should be ${MultiKeySignature.BITMAP_LEN}`);
     } else {
       this.bitmap = bitmap;
     }
