@@ -26,6 +26,7 @@ import {
   InputGenerateTransactionPayloadData,
   Network,
   NetworkToNetworkName,
+  TransactionWorker,
   TransactionWorkerEventsEnum,
   UserTransactionResponse,
 } from "@aptos-labs/ts-sdk";
@@ -38,11 +39,13 @@ const aptos = new Aptos(config);
 async function main() {
   const accountsCount = 2;
   const transactionsCount = 10;
-  const totalTransactions = accountsCount * transactionsCount;
+
+  const totalExpectedTransactions = accountsCount * transactionsCount;
 
   const start = Date.now() / 1000; // current time in seconds
 
-  console.log("starting...");
+  console.log("Starting...");
+
   // create senders and recipients accounts
   const senders: Account[] = [];
   const recipients: Account[] = [];
@@ -61,9 +64,9 @@ async function main() {
   // fund sender accounts
   const funds: Array<Promise<UserTransactionResponse>> = [];
 
-  for (let i = 0; i < senders.length; i += 1) {
+  for (const sender of senders) {
     funds.push(
-      aptos.fundAccount({ accountAddress: senders[i].accountAddress.toStringWithoutPrefix(), amount: 10000000000 }),
+      aptos.fundAccount({ accountAddress: sender.accountAddress.toStringWithoutPrefix(), amount: 10000000000 }),
     );
   }
 
@@ -72,21 +75,19 @@ async function main() {
   console.log(`${funds.length} sender accounts funded in ${Date.now() / 1000 - last} seconds`);
   last = Date.now() / 1000;
 
-  // read sender accounts
+  // Read sender accounts to check their balances.
   const balances: Array<Promise<AccountData>> = [];
-  for (let i = 0; i < senders.length; i += 1) {
-    balances.push(aptos.getAccountInfo({ accountAddress: senders[i].accountAddress }));
+  for (const sender of senders) {
+    balances.push(aptos.getAccountInfo({ accountAddress: sender.accountAddress }));
   }
   await Promise.all(balances);
 
   console.log(`${balances.length} sender account balances checked in ${Date.now() / 1000 - last} seconds`);
   last = Date.now() / 1000;
 
-  // create transactions
+  // Create transaction payloads.
   const payloads: InputGenerateTransactionPayloadData[] = [];
-  // 100 transactions
   for (let j = 0; j < transactionsCount; j += 1) {
-    // 5 recipients
     for (let i = 0; i < recipients.length; i += 1) {
       const txn: InputGenerateTransactionPayloadData = {
         function: "0x1::aptos_account::transfer",
@@ -96,33 +97,62 @@ async function main() {
     }
   }
 
-  console.log(`sends ${totalTransactions * senders.length} transactions to ${aptos.config.network}....`);
-  // emit batch transactions
-  senders.map((sender) => aptos.transaction.batch.forSingleAccount({ sender, data: payloads }));
+  console.log(
+    `Sending ${totalExpectedTransactions * senders.length} (${totalExpectedTransactions} transactions per sender) transactions to ${aptos.config.network}...`,
+  );
 
-  aptos.transaction.batch.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
-    console.log("message:", data.message);
-    console.log("transaction hash:", data.transactionHash);
-  });
+  const transactionWorkers: TransactionWorker[] = [];
+  for (const sender of senders) {
+    // Create a transaction worker for each sender.
+    const transactionWorker = new TransactionWorker(config, sender);
+    transactionWorkers.push(transactionWorker);
 
-  aptos.transaction.batch.on(TransactionWorkerEventsEnum.ExecutionFinish, async (data) => {
-    // log event output
-    console.log(data.message);
-
-    // verify accounts sequence number
-    const accounts = senders.map((sender) => aptos.getAccountInfo({ accountAddress: sender.accountAddress }));
-    const accountsData = await Promise.all(accounts);
-    accountsData.forEach((accountData) => {
-      console.log(
-        `account sequence number is ${(totalTransactions * senders.length) / 2}: ${
-          accountData.sequence_number === "20"
-        }`,
-      );
+    // Register listeners for certain events.
+    transactionWorker.on(TransactionWorkerEventsEnum.TransactionSent, async (data) => {
+      console.log(`Transaction sent. Hash: ${data.transactionHash}. Message: ${data.message}`);
     });
-    // worker finished execution, we can now unsubscribe from event listeners
-    aptos.transaction.batch.removeAllListeners();
-    process.exit(0);
+    transactionWorker.on(TransactionWorkerEventsEnum.TransactionExecuted, async (data) => {
+      console.log(`Transaction executed. Hash: ${data.transactionHash}. Message: ${data.message}`);
+    });
+    transactionWorker.on(TransactionWorkerEventsEnum.TransactionExecutionFailed, async (data) => {
+      console.log(`Transaction execution failed. Message: ${data.message}`);
+    });
+
+    // Push the payloads to the transaction worker.
+    transactionWorker.pushMany(payloads.map((payload) => [payload, undefined]));
+
+    // Start the transaction worker.
+    transactionWorker.start();
+  }
+
+  // Wait for all transaction workers to finish, up to 45 seconds.
+  const timeout = 45 * 1000;
+  const startTime = Date.now();
+  await Promise.all(
+    transactionWorkers.map(async (worker) => {
+      while (worker.executedTransactions.length < totalExpectedTransactions) {
+        console.debug("Waiting for transaction worker to finish...");
+
+        // Check if we've exceeded the timeout
+        if (Date.now() - startTime > timeout) {
+          console.error("Timeout waiting for transaction worker to finish");
+          worker.stop();
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }),
+  );
+
+  // Verify the sequence numbers of the accounts.
+  const accounts = senders.map((sender) => aptos.getAccountInfo({ accountAddress: sender.accountAddress }));
+  const accountsData = await Promise.all(accounts);
+  accountsData.forEach((accountData) => {
+    console.log(`Account sequence number is ${accountData.sequence_number}, it should be ${totalExpectedTransactions}`);
   });
+
+  process.exit(0);
 }
 
 main();

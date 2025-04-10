@@ -4,6 +4,9 @@ import { InputGenerateTransactionPayloadData, InputGenerateTransactionOptions } 
 import { AptosConfig } from "../aptosConfig";
 import { Account } from "../../account";
 
+/**
+ * For a safer, more ergonomic API, consider using {@link TransactionWorker} directly.
+ */
 export class TransactionManagement extends EventEmitter<TransactionWorkerEvents> {
   account!: Account;
 
@@ -178,6 +181,8 @@ export class TransactionManagement extends EventEmitter<TransactionWorkerEvents>
   }
 
   /**
+   * For a safer, more ergonomic API, consider using {@link TransactionWorker} directly.
+   *
    * Send batch transactions for a single account.
    *
    * This function uses a transaction worker that receives payloads to be processed

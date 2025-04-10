@@ -5,25 +5,26 @@ import { TransactionWorker } from "../../../src/transactions/management/transact
 import { TransactionResponseType, TypeTagAddress, TypeTagU64 } from "../../../src";
 import { getAptosClient } from "../helper";
 
-const { aptos, config: aptosConfig } = getAptosClient();
-
-const sender = Account.generate();
-const recipient = Account.generate();
+async function setup() {
+  const { aptos, config: aptosConfig } = getAptosClient();
+  const sender = Account.generate();
+  const recipient = Account.generate();
+  await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 1000000000 });
+  return { aptos, aptosConfig, sender, recipient };
+}
 
 describe("transactionWorker", () => {
-  beforeAll(async () => {
-    await aptos.fundAccount({ accountAddress: sender.accountAddress, amount: 1000000000 });
-  });
-
   test(
     "throws when starting an already started worker",
     async () => {
+      const { aptosConfig, sender } = await setup();
       // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
       transactionWorker.start();
       expect(async () => {
         transactionWorker.start();
       }).rejects.toThrow("worker has already started");
+      transactionWorker.stop();
     },
     longTestTimeout,
   );
@@ -31,6 +32,7 @@ describe("transactionWorker", () => {
   test(
     "throws when stopping an already stopped worker",
     async () => {
+      const { aptosConfig, sender } = await setup();
       // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
       transactionWorker.start();
@@ -45,68 +47,83 @@ describe("transactionWorker", () => {
   test(
     "adds transaction into the transactionsQueue",
     async () => {
+      const { aptosConfig, sender, recipient } = await setup();
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
       transactionWorker.start();
       const txn: InputGenerateTransactionPayloadData = {
         function: "0x1::aptos_account::transfer",
         functionArguments: [recipient.accountAddress, 1],
       };
-      transactionWorker.push(txn).then(() => {
-        transactionWorker.stop();
-        expect(transactionWorker.transactionsQueue.queue).toHaveLength(1);
-      });
+      transactionWorker.push(txn);
+      transactionWorker.stop();
+      expect(transactionWorker.transactionsQueue.queue).toHaveLength(1);
     },
     longTestTimeout,
   );
 
   test(
-    "submits 5 transactions to chain for a single account",
-    (done) => {
-      // Specify the number of assertions expected
-      expect.assertions(1);
-
-      // create 5 transactions
+    "submits 6 transactions to chain for a single account",
+    async () => {
+      const { aptos, aptosConfig, sender, recipient } = await setup();
+      // Create transactions.
       const txn: InputGenerateTransactionPayloadData = {
         function: "0x1::aptos_account::transfer",
         functionArguments: [recipient.accountAddress, 1],
       };
-      // create 5 transactions with ABI
+      // Create transactions with ABI.
       const txnWithAbi: InputGenerateTransactionPayloadData = {
         function: "0x1::aptos_account::transfer",
         functionArguments: [recipient.accountAddress, 1],
         abi: { typeParameters: [], parameters: [new TypeTagAddress(), new TypeTagU64()] },
       };
-      const payloads = [...Array(5).fill(txn), ...Array(5).fill(txnWithAbi)];
+      const txns = [...Array(3).fill(txn)];
+      const txnsWithAbi = [...Array(3).fill(txnWithAbi)];
+      const totalNumTxns = txns.length + txnsWithAbi.length;
 
-      // start transactions worker
       const transactionWorker = new TransactionWorker(aptosConfig, sender);
-      transactionWorker.start();
 
-      // push transactions to queue
-      for (const payload of payloads) {
+      // Push first half of transactions to queue.
+      for (const payload of txns) {
         transactionWorker.push(payload);
       }
 
-      // stop transaction worker for testing purposes.
-      setTimeout(async () => {
-        transactionWorker.stop();
-        const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
-        // call done() when all asynchronous operations are finished
-        done();
-        // expect sender sequence number to be 10
-        expect(accountData.sequence_number).toBe("10");
+      // Start transactions worker.
+      transactionWorker.start();
 
-        // Check all are successful
-        const txns = await aptos.getAccountTransactions({ accountAddress: sender.accountAddress });
-        txns.forEach((userTxn) => {
-          if (userTxn.type === TransactionResponseType.User) {
-            expect(userTxn.success).toBe(true);
-          } else {
-            // All of these should be user transactions, but in the event the API returns an invalid transaction
-            throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
-          }
-        });
-      }, 1000 * 30);
+      // Push second half of transactions to queue, to demonstrate you can keep pushing
+      // after the worker has started.
+      for (const payload of txnsWithAbi) {
+        transactionWorker.push(payload);
+      }
+
+      // Wait up to 30 seconds for all transactions to be sent and executed.
+      const startTime = Date.now();
+      const timeoutMs = 30 * 1000;
+      while (transactionWorker.executedTransactions.length < totalNumTxns) {
+        if (Date.now() > startTime + timeoutMs) {
+          throw new Error(`Timed out waiting for transactions to be sent after ${timeoutMs / 1000} seconds`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Stop the worker.
+      transactionWorker.stop();
+
+      // Ensure the sequence number is appropriate for the number of txn we submitted.
+      const accountData = await aptos.getAccountInfo({ accountAddress: sender.accountAddress });
+      expect(accountData.sequence_number).toBe(`${totalNumTxns}`);
+
+      // Check all are successful
+      const accountTxns = await aptos.getAccountTransactions({ accountAddress: sender.accountAddress });
+      expect(accountTxns.length).toBe(totalNumTxns);
+      accountTxns.forEach((userTxn) => {
+        if (userTxn.type === TransactionResponseType.User) {
+          expect(userTxn.success).toBe(true);
+        } else {
+          // All of these should be user transactions
+          throw new Error(`Transaction is not a user transaction ${userTxn.type}`);
+        }
+      });
     },
     longTestTimeout,
   );
