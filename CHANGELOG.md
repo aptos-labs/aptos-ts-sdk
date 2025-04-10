@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- [**Breaking Change**] Adds support to `TransactionWorker` for adding new transactions while the worker is running. Marked as breaking because the semantics of the worker are different, since before it would only submit the original batch of transactions and then do nothing with additional transactions pushed to the worker.
+
 # 1.38.0 (2025-04-02)
 
 - Adds and default implementation of `verifySignatureAsync` to `PublicKey`.

@@ -30,17 +30,31 @@ export class AsyncQueue<T> {
    * @category Transactions
    */
   enqueue(item: T): void {
+    this.enqueueMany([item]);
+  }
+
+  /**
+   * Enqueues multiple items to the queue.
+   *
+   * @param items - The items to be added to the queue.
+   * @group Implementation
+   * @category Transactions
+   */
+  enqueueMany(items: T[]): void {
     this.cancelled = false;
 
-    if (this.pendingDequeue.length > 0) {
+    // Process as many items as we have pending dequeues.
+    const numItemsToResolveImmediately = Math.min(this.pendingDequeue.length, items.length);
+
+    for (let i = 0; i < numItemsToResolveImmediately; i++) {
       const promise = this.pendingDequeue.shift();
-
-      promise?.resolve(item);
-
-      return;
+      promise?.resolve(items[i]);
     }
 
-    this.queue.push(item);
+    // Add remaining items to the queue.
+    if (numItemsToResolveImmediately < items.length) {
+      this.queue.push(...items.slice(numItemsToResolveImmediately));
+    }
   }
 
   /**
@@ -58,6 +72,33 @@ export class AsyncQueue<T> {
 
     return new Promise<T>((resolve, reject) => {
       this.pendingDequeue.push({ resolve, reject });
+    });
+  }
+
+  /**
+   * Dequeues all items from the queue and returns a promise that resolves to an array
+   * of items. If the queue is empty, it creates a new promise that will be resolved to
+   * an array with a single item when an item is enqueued.
+   *
+   * @returns Promise<T[]> - A promise that resolves to an array of all items in the queue.
+   * @group Implementation
+   * @category Transactions
+   */
+  async dequeueAll(): Promise<T[]> {
+    if (this.queue.length > 0) {
+      // Get all items from the queue.
+      const items = [...this.queue];
+      // Clear the queue.
+      this.queue.length = 0;
+      return Promise.resolve(items);
+    }
+
+    return new Promise<T[]>((resolve, reject) => {
+      // When an item is added, it will resolve with that single item as an array.
+      this.pendingDequeue.push({
+        resolve: (item: T) => resolve([item]),
+        reject,
+      });
     });
   }
 

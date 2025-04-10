@@ -5,8 +5,12 @@ import { AptosConfig } from "../../api/aptosConfig";
 import { Account } from "../../account";
 import { waitForTransaction } from "../../internal/transaction";
 import { generateTransaction, signAndSubmitTransaction } from "../../internal/transactionSubmission";
-import { PendingTransactionResponse, TransactionResponse } from "../../types";
-import { InputGenerateTransactionOptions, InputGenerateTransactionPayloadData } from "../types";
+import { TransactionResponse } from "../../types";
+import {
+  InputGenerateSingleSignerRawTransactionData,
+  InputGenerateTransactionOptions,
+  InputGenerateTransactionPayloadData,
+} from "../types";
 import { AccountSequenceNumber } from "./accountSequenceNumber";
 import { AsyncQueue, AsyncQueueCancelledError } from "./asyncQueue";
 import { SimpleTransaction } from "../instances/simpleTransaction";
@@ -18,25 +22,29 @@ import { SimpleTransaction } from "../instances/simpleTransaction";
 export const promiseFulfilledStatus = "fulfilled";
 
 /**
- * Events emitted by the transaction worker during its operation, allowing the dapp to respond to various transaction states.
+ * Events emitted by the transaction worker during its operation, allowing the dapp to
+ * respond to various transaction states.
+ *
  * @group Implementation
  * @category Transactions
  */
 export enum TransactionWorkerEventsEnum {
-  // fired after a transaction gets sent to the chain
+  /** Fired after a transaction gets sent to the chain */
   TransactionSent = "transactionSent",
-  // fired if there is an error sending the transaction to the chain
+  /** Fired if there is an error sending the transaction to the chain */
   TransactionSendFailed = "transactionSendFailed",
-  // fired when a single transaction has executed successfully
+  /** Fired when a single transaction has executed successfully */
   TransactionExecuted = "transactionExecuted",
-  // fired if a single transaction fails in execution
+  /** Fired if a single transaction fails in execution */
   TransactionExecutionFailed = "transactionExecutionFailed",
-  // fired when the worker has finished its job / when the queue has been emptied
+  /** Fired when the queue is empty. This can fire again if you push more things to the queue. */
   ExecutionFinish = "executionFinish",
 }
 
 /**
- * Defines the events emitted by the transaction worker during various stages of transaction processing. *
+ * Defines the events emitted by the transaction worker during various stages of
+ * transaction processing.
+ *
  * @group Implementation
  * @category Transactions
  */
@@ -80,14 +88,48 @@ export type FailureEventData = {
 /**
  * TransactionWorker provides a simple framework for receiving payloads to be processed.
  *
- * Once one `start()` the process and pushes a new transaction, the worker acquires
- * the current account's next sequence number (by using the AccountSequenceNumber class),
- * generates a signed transaction and pushes an async submission process into the `outstandingTransactions` queue.
- * At the same time, the worker processes transactions by reading the `outstandingTransactions` queue
- * and submits the next transaction to chain, it
- * 1) waits for resolution of the submission process or get pre-execution validation error
- * and 2) waits for the resolution of the execution process or get an execution error.
- * The worker fires events for any submission and/or execution success and/or failure.
+ * Once you `start()` the worker and push a new transaction, the worker acquires the
+ * current account's next sequence number (by using the AccountSequenceNumber class),
+ * generates a signed transaction and pushes an async submission process into the
+ * `outstandingTransactions` queue. At the same time, the worker processes transactions
+ * by reading the `outstandingTransactions` queue and submits the next transaction to
+ * chain, it
+ * 1) Waits for resolution of the submission process or get pre-execution validation
+ *    error and
+ * 2) Waits for the resolution of the execution process or get an execution error. The
+ *    worker fires events for any submission and/or execution success and/or failure.
+ *
+ * @example
+ * ```typescript
+ * import { Aptos, AptosConfig, Network, Account } from "@aptos-labs/ts-sdk";
+ *
+ * const config = new AptosConfig({ network: Network.TESTNET });
+ * const sender = Account.generate();
+ *
+ * const worker = new TransactionWorker(config, sender);
+ *
+ * // Register a handler for some TransactionWorkerEvents
+ * worker.on(TransactionWorkerEventsEnum.TransactionExecuted, (data) => {
+ *   console.log(`Transaction executed successfully: ${data.transactionHash}`);
+ * });
+ * worker.on(TransactionWorkerEventsEnum.TransactionExecutionFailed, (data) => {
+ *   console.log(`Transaction execution failed: ${data.error}`);
+ * });
+ *
+ * // Push a transaction to the worker
+ * worker.push({ function: "0x1::aptos_account::transfer", functionArguments: [recipient.accountAddress, 1] });
+ *
+ * // Start the worker. You can await this Promise if you'd like to handle any errors
+ * // that may occur with the worker's internal tasks.
+ * worker.start();
+ *
+ * // Keep pushing transactions as long as you like while the worker runs.
+ * worker.push({ function: "0x1::aptos_account::transfer", functionArguments: [recipient.accountAddress, 1] });
+ *
+ * // Once you're done, you can stop the worker.
+ * worker.stop();
+ * ```
+ *
  * @group Implementation
  * @category Transactions
  */
@@ -96,11 +138,14 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
 
   readonly account: Account;
 
+  /** These are used to build the transaction payload. */
+  readonly transactionData: Partial<InputGenerateSingleSignerRawTransactionData>;
+
   // current account sequence number
   // TODO: Rename Sequnce -> Sequence
-  readonly accountSequnceNumber: AccountSequenceNumber;
+  readonly accountSequenceNumber: AccountSequenceNumber;
 
-  readonly taskQueue: AsyncQueue<() => Promise<void>> = new AsyncQueue<() => Promise<void>>();
+  readonly internalTasks: AsyncQueue<() => Promise<void>> = new AsyncQueue<() => Promise<void>>();
 
   // process has started
   started: boolean;
@@ -117,11 +162,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   >();
 
   /**
-   * signed transactions waiting to be submitted
+   * Transaction hashes and sequence numbers waiting to be submitted.
    * @group Implementation
    * @category Transactions
    */
-  outstandingTransactions = new AsyncQueue<[Promise<PendingTransactionResponse>, bigint]>();
+  outstandingTransactions = new AsyncQueue<[Promise<string>, bigint]>();
 
   /**
    * transactions that have been submitted to chain
@@ -142,6 +187,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    *
    * @param aptosConfig - A configuration object for Aptos.
    * @param account - The account that will be used for sending transactions.
+   * @param transactionData - Additional parameters used for building transactions.
    * @param maxWaitTime - The maximum wait time to wait before re-syncing the sequence number to the current on-chain state,
    * default is 30 seconds.
    * @param maximumInFlight - The maximum number of transactions that can be submitted per account, default is 100.
@@ -153,6 +199,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
   constructor(
     aptosConfig: AptosConfig,
     account: Account,
+    transactionData: Partial<InputGenerateSingleSignerRawTransactionData> = {},
     maxWaitTime: number = 30,
     maximumInFlight: number = 100,
     sleepTime: number = 10,
@@ -160,8 +207,9 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     super();
     this.aptosConfig = aptosConfig;
     this.account = account;
+    this.transactionData = transactionData;
     this.started = false;
-    this.accountSequnceNumber = new AccountSequenceNumber(
+    this.accountSequenceNumber = new AccountSequenceNumber(
       aptosConfig,
       account,
       maxWaitTime,
@@ -183,16 +231,11 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     try {
       /* eslint-disable no-constant-condition */
       while (true) {
-        const sequenceNumber = await this.accountSequnceNumber.nextSequenceNumber();
-        if (sequenceNumber === null) return;
+        const sequenceNumber = await this.accountSequenceNumber.nextSequenceNumber();
+        // If the transaction queue is empty, we wait for a new transaction to be pushed.
         const transaction = await this.generateNextTransaction(this.account, sequenceNumber);
-        if (!transaction) return;
-        const pendingTransaction = signAndSubmitTransaction({
-          aptosConfig: this.aptosConfig,
-          transaction,
-          signer: this.account,
-        });
-        await this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
+        const pendingTransaction = this.buildSignAndSubmitTransactionPromise(transaction);
+        this.outstandingTransactions.enqueue([pendingTransaction, sequenceNumber]);
       }
     } catch (error: any) {
       if (error instanceof AsyncQueueCancelledError) {
@@ -200,6 +243,23 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
       }
       throw new Error(`Submit transaction failed for ${this.account.accountAddress.toString()} with error ${error}`);
     }
+  }
+
+  /**
+   * Signs and submits a transaction to the chain.
+   *
+   * @param transaction - The transaction to sign and submit.
+   * @returns A promise that resolves to the transaction hash.
+   * @group Implementation
+   * @category Transactions
+   */
+  buildSignAndSubmitTransactionPromise(transaction: SimpleTransaction): Promise<string> {
+    const pendingTransaction = signAndSubmitTransaction({
+      aptosConfig: this.aptosConfig,
+      transaction,
+      signer: this.account,
+    });
+    return pendingTransaction.then((tx) => tx.hash);
   }
 
   /**
@@ -219,32 +279,31 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
     try {
       /* eslint-disable no-constant-condition */
       while (true) {
-        const awaitingTransactions = [];
-        const sequenceNumbers = [];
-        let [pendingTransaction, sequenceNumber] = await this.outstandingTransactions.dequeue();
+        // Dequeue all outstanding transaction hashes and sequence numbers. If there are
+        // no outstanding transactions, it will wait until an item is enqueued.
+        const items = await this.outstandingTransactions.dequeueAll();
 
-        awaitingTransactions.push(pendingTransaction);
-        sequenceNumbers.push(sequenceNumber);
-
-        while (!this.outstandingTransactions.isEmpty()) {
-          [pendingTransaction, sequenceNumber] = await this.outstandingTransactions.dequeue();
-
-          awaitingTransactions.push(pendingTransaction);
+        // Extract transaction promises and sequence numbers.
+        const awaitingTransactions: Promise<string>[] = [];
+        const sequenceNumbers: bigint[] = [];
+        for (const [pendingTransactionHash, sequenceNumber] of items) {
+          awaitingTransactions.push(pendingTransactionHash);
           sequenceNumbers.push(sequenceNumber);
         }
+
         // send awaiting transactions to chain
         const sentTransactions = await Promise.allSettled(awaitingTransactions);
         for (let i = 0; i < sentTransactions.length && i < sequenceNumbers.length; i += 1) {
           // check sent transaction status
           const sentTransaction = sentTransactions[i];
-          sequenceNumber = sequenceNumbers[i];
+          const sequenceNumber = sequenceNumbers[i];
           if (sentTransaction.status === promiseFulfilledStatus) {
             // transaction sent to chain
-            this.sentTransactions.push([sentTransaction.value.hash, sequenceNumber, null]);
+            this.sentTransactions.push([sentTransaction.value, sequenceNumber, null]);
             // check sent transaction execution
             this.emit(TransactionWorkerEventsEnum.TransactionSent, {
-              message: `transaction hash ${sentTransaction.value.hash} has been committed to chain`,
-              transactionHash: sentTransaction.value.hash,
+              message: `transaction hash ${sentTransaction.value} has been committed to chain`,
+              transactionHash: sentTransaction.value,
             });
             await this.checkTransaction(sentTransaction, sequenceNumber);
           } else {
@@ -275,10 +334,10 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @group Implementation
    * @category Transactions
    */
-  async checkTransaction(sentTransaction: PromiseFulfilledResult<PendingTransactionResponse>, sequenceNumber: bigint) {
+  async checkTransaction(sentTransactionHash: PromiseFulfilledResult<string>, sequenceNumber: bigint) {
     try {
       const waitFor: Array<Promise<TransactionResponse>> = [];
-      waitFor.push(waitForTransaction({ aptosConfig: this.aptosConfig, transactionHash: sentTransaction.value.hash }));
+      waitFor.push(waitForTransaction({ aptosConfig: this.aptosConfig, transactionHash: sentTransactionHash.value }));
       const sentTransactions = await Promise.allSettled(waitFor);
 
       for (let i = 0; i < sentTransactions.length; i += 1) {
@@ -288,7 +347,7 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
           this.executedTransactions.push([executedTransaction.value.hash, sequenceNumber, null]);
           this.emit(TransactionWorkerEventsEnum.TransactionExecuted, {
             message: `transaction hash ${executedTransaction.value.hash} has been executed on chain`,
-            transactionHash: sentTransaction.value.hash,
+            transactionHash: sentTransactionHash.value,
           });
         } else {
           // transaction execution failed
@@ -317,11 +376,15 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @group Implementation
    * @category Transactions
    */
-  async push(
-    transactionData: InputGenerateTransactionPayloadData,
-    options?: InputGenerateTransactionOptions,
-  ): Promise<void> {
+  push(transactionData: InputGenerateTransactionPayloadData, options?: InputGenerateTransactionOptions) {
     this.transactionsQueue.enqueue([transactionData, options]);
+  }
+
+  /**
+   * Pushes multiple transactions to the transactions queue for processing. See {@link push} for more details.
+   */
+  pushMany(items: [InputGenerateTransactionPayloadData, InputGenerateTransactionOptions | undefined][]) {
+    this.transactionsQueue.enqueueMany(items);
   }
 
   /**
@@ -329,54 +392,41 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    *
    * @param account - An Aptos account used as the sender of the transaction.
    * @param sequenceNumber - A sequence number the transaction will be generated with.
-   * @returns A signed transaction object or undefined if the transaction queue is empty.
+   * @returns A signed transaction object.
    * @group Implementation
    * @category Transactions
    */
-  async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction | undefined> {
-    if (this.transactionsQueue.isEmpty()) return undefined;
+  async generateNextTransaction(account: Account, sequenceNumber: bigint): Promise<SimpleTransaction> {
     const [transactionData, options] = await this.transactionsQueue.dequeue();
-    return generateTransaction({
+    const tx = await generateTransaction({
       aptosConfig: this.aptosConfig,
       sender: account.accountAddress,
       data: transactionData,
       options: { ...options, accountSequenceNumber: sequenceNumber },
+      ...this.transactionData,
     });
+    return tx;
   }
 
   /**
-   * Starts transaction submission and processing by executing tasks from the queue until it is cancelled.
-   *
-   * @throws {Error} Throws an error if unable to start transaction batching.
-   * @group Implementation
-   * @category Transactions
-   */
-  async run() {
-    try {
-      while (!this.taskQueue.isCancelled()) {
-        const task = await this.taskQueue.dequeue();
-        await task();
-      }
-    } catch (error: any) {
-      throw new Error(`Unable to start transaction batching: ${error}`);
-    }
-  }
-
-  /**
-   * Starts the transaction management process.
+   * Starts the transaction management process. You can await the Promise returned by
+   * this method if you want to handle any errors that may occur with the worker's
+   * internal tasks.
    *
    * @throws {Error} Throws an error if the worker has already started.
    * @group Implementation
    * @category Transactions
    */
-  start() {
+  start(): Promise<[void, void]> {
     if (this.started) {
       throw new Error("worker has already started");
     }
     this.started = true;
-    this.taskQueue.enqueue(() => this.submitNextTransaction());
-    this.taskQueue.enqueue(() => this.processTransactions());
-    this.run();
+
+    return Promise.all([this.submitNextTransaction(), this.processTransactions()]).catch((error) => {
+      console.error(`One of the TransactionWorker tasks failed: ${error?.message ?? error}`);
+      throw new Error(`One of the TransactionWorker tasks failed: ${error?.message ?? error}`);
+    });
   }
 
   /**
@@ -387,10 +437,18 @@ export class TransactionWorker extends EventEmitter<TransactionWorkerEvents> {
    * @category Transactions
    */
   stop() {
-    if (this.taskQueue.isCancelled()) {
+    if (this.internalTasks.isCancelled()) {
       throw new Error("worker has already stopped");
     }
     this.started = false;
-    this.taskQueue.cancel();
+    this.internalTasks.cancel();
+  }
+
+  /**
+   * Call this to clear any state for sent / executed transactions.
+   */
+  clear() {
+    this.sentTransactions = [];
+    this.executedTransactions = [];
   }
 }

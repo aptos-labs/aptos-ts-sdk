@@ -623,11 +623,16 @@ export class Transaction {
   // TRANSACTION SUBMISSION //
 
   /**
-   * @deprecated Prefer to use `aptos.transaction.batch.forSingleAccount()`
+   * @deprecated For a safer, more ergonomic API, consider using `TransactionWorker` directly.
+   * You can also use `aptos.transaction.batch.forSingleAccount()`.
    *
-   * Batch transactions for a single account by submitting multiple transaction payloads.
-   * This function is useful for efficiently processing and submitting transactions that do not depend on each other, such as
-   * batch funding or batch token minting.
+   * Batch transactions for a single account by submitting multiple transaction
+   * payloads. This function is useful for efficiently processing and submitting
+   * transactions that do not depend on each other, such as batch funding or batch token
+   * minting.
+   *
+   * **Warning**: This does not actually use the batch submission API at
+   * /v1/transactions/batch，it still submits transactions sequentially.
    *
    * @param args - The arguments for batching transactions.
    * @param args.sender - The sender account to sign and submit the transactions.
