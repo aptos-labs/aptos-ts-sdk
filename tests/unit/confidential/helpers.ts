@@ -18,8 +18,10 @@ import {
   RangeProofExecutor,
   Ed25519Account,
   ConfidentialCoin,
+  PrivateKeyVariants,
+  PrivateKey,
 } from "../../../src";
-import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
+import { genBatchRangeZKP, generateRangeZKP, verifyBatchRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 
 export async function loadTableMapJSON(url: string): Promise<{
   file_name: string;
@@ -46,7 +48,8 @@ export async function loadTableMap(url: string) {
 /**
  * Address of the mocked fungible token on the testnet
  */
-export const TOKEN_ADDRESS = "0x2a0c0d0d3d213a120a0bac6aecf2bf4a59c4d5e5be0721ca2b3566f0013e7e3d";
+export const TOKEN_ADDRESS = "0x8b4dd7ebf8150f349675dde8bd2e9daa66461107b181a67e764de85d82bbac21";
+// export const TOKEN_ADDRESS = "0xb63fe2a70847e0b34b309eab304fc8854b482a2e8eb2ebfb8080c511def0dacf";
 
 const APTOS_NETWORK: Network = NetworkToNetworkName[Network.DEVNET];
 const config = new AptosConfig({ network: APTOS_NETWORK });
@@ -62,10 +65,10 @@ export const addNewContentLineToFile = (filename: string, data: string) => {
   fs.appendFileSync(filePath, content);
 };
 
-export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress) => {
+export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress, tokenAddress = TOKEN_ADDRESS) => {
   const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
     accountAddress,
-    tokenAddress: TOKEN_ADDRESS,
+    tokenAddress,
   });
 
   const aliceConfidentialAmountPending = await ConfidentialAmount.fromEncrypted(
@@ -121,7 +124,7 @@ export const sendAndWaitBatchTxs = async (
 export const getTestAccount = () => {
   if (process.env.TESTNET_PK) {
     return Account.fromPrivateKey({
-      privateKey: new Ed25519PrivateKey(process.env.TESTNET_PK),
+      privateKey: new Ed25519PrivateKey(PrivateKey.formatPrivateKey(process.env.TESTNET_PK, PrivateKeyVariants.Ed25519)),
     });
   }
 
@@ -140,6 +143,11 @@ export const getTestConfidentialAccount = (account?: Ed25519Account) => {
   return TwistedEd25519PrivateKey.fromSignature(signature);
 };
 
+/**
+ * TOKEN_ADDRESS is binded to ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS mock token, be aware of that when minting tokens
+ * Make sure you are minting the token that is actual TOKEN_ADDRESS
+ * @param account
+ */
 export const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
@@ -152,6 +160,7 @@ export const mintFungibleTokens = async (account: Account) => {
   return aptos.waitForTransaction({ transactionHash: pendingTxn.hash });
 };
 
-/** !important: for testing purposes */
+RangeProofExecutor.setGenBatchRangeZKP(genBatchRangeZKP);
+RangeProofExecutor.setVerifyBatchRangeZKP(verifyBatchRangeZKP);
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
 RangeProofExecutor.setVerifyRangeZKP(verifyRangeZKP);

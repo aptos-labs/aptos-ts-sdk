@@ -26,11 +26,11 @@ import {
 import { generateTransaction } from "../internal/transactionSubmission";
 import { view } from "../internal/view";
 import {
-  InputGenerateTransactionOptions,
+  InputGenerateSingleSignerRawTransactionArgs,
   InputGenerateTransactionPayloadData,
   SimpleTransaction,
 } from "../transactions";
-import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg } from "../types";
+import { AnyNumber, CommittedTransactionResponse, HexInput, LedgerVersionArg, MoveStructId } from "../types";
 import { AptosConfig } from "./aptosConfig";
 import type { Aptos } from "./aptos";
 import { Account } from "../account";
@@ -48,14 +48,16 @@ export type ConfidentialBalance = {
 };
 
 // 8 chunks module
-const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
+// const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0x9347002c5c76edf4ff7915ae90729a585ecfb3788f5de6e0dca4dbbd3207f107";
+// devnet with batches
+const CONFIDENTIAL_COIN_MODULE_ADDRESS = "0xcbd21318a3fe6eb6c01f3c371d9aca238a6cd7201d3fc75627767b11b87dcbf5";
 const MODULE_NAME = "confidential_asset";
 
 /**
  * A class to handle confidential balance operations
  */
 export class ConfidentialCoin {
-  constructor(readonly config: AptosConfig) {}
+  constructor(readonly config: AptosConfig) { }
 
   static CONFIDENTIAL_COIN_MODULE_ADDRESS = CONFIDENTIAL_COIN_MODULE_ADDRESS;
 
@@ -73,7 +75,7 @@ export class ConfidentialCoin {
       view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::pending_balance`,
+          function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::pending_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -82,7 +84,7 @@ export class ConfidentialCoin {
       view<ConfidentialBalanceResponse>({
         aptosConfig: this.config,
         payload: {
-          function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::actual_balance`,
+          function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::actual_balance`,
           typeArguments: [],
           functionArguments: [accountAddress, tokenAddress],
         },
@@ -100,36 +102,71 @@ export class ConfidentialCoin {
     };
   }
 
+  async getEncryptionByAddr(args: {
+    accountAddress: AccountAddress;
+    tokenAddress: string;
+    options?: LedgerVersionArg;
+  }): Promise<string> {
+    const [{ point }] = await view<[{ point: { data: string } }]>({
+      aptosConfig: this.config,
+      options: args.options,
+      payload: {
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::encryption_key`,
+        functionArguments: [args.accountAddress, args.tokenAddress],
+      },
+    });
+
+    return point.data;
+  }
+
   async registerBalance(args: {
-    sender: AccountAddressInput;
     tokenAddress: string;
     publicKey: HexInput | TwistedEd25519PublicKey;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>): Promise<SimpleTransaction> {
     const pkU8 = publicKeyToU8(args.publicKey);
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
+      aptosConfig: this.config,
+      data: {
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::register`,
+        functionArguments: [args.tokenAddress, pkU8],
+      },
+    });
+  }
+
+  async deposit(args: {
+    tokenAddress: string;
+    amount: AnyNumber;
+    to?: AccountAddress;
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>): Promise<SimpleTransaction> {
+    return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::register`,
-        functionArguments: [args.tokenAddress, pkU8],
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_to`,
+        functionArguments: [args.tokenAddress, args.to || args.sender, String(args.amount)],
       },
       options: args.options,
     });
   }
 
-  async deposit(args: {
-    sender: AccountAddressInput;
-    tokenAddress: string;
+  async depositCoin(args: {
+    coinType: MoveStructId;
     amount: AnyNumber;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+    to?: AccountAddress;
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>) {
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_to`,
-        functionArguments: [args.tokenAddress, args.sender, String(args.amount)],
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::deposit_coins_to`,
+        functionArguments: [args.to || args.sender, String(args.amount)],
+        typeArguments: [args.coinType],
       },
       options: args.options,
     });
@@ -137,10 +174,9 @@ export class ConfidentialCoin {
 
   async withdraw(
     args: CreateConfidentialWithdrawOpArgs & {
-      sender: AccountAddressInput;
+      to?: AccountAddressInput;
       tokenAddress: string;
-      options?: InputGenerateTransactionOptions;
-    },
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>,
   ): Promise<SimpleTransaction> {
     const confidentialWithdraw = await ConfidentialWithdraw.create({
       decryptionKey: toTwistedEd25519PrivateKey(args.decryptionKey),
@@ -153,13 +189,15 @@ export class ConfidentialCoin {
       await confidentialWithdraw.authorizeWithdrawal();
 
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::withdraw_to`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::withdraw_to`,
         functionArguments: [
           args.tokenAddress,
-          AccountAddress.from(args.sender),
+          args.to || AccountAddress.from(args.sender),
           String(args.amountToWithdraw),
           concatBytes(...confidentialAmountAfterWithdraw.map((el) => el.serialize()).flat()),
           rangeProof,
@@ -173,22 +211,22 @@ export class ConfidentialCoin {
   static buildRolloverPendingBalanceTxPayload(args: {
     tokenAddress: string;
     withFreezeBalance?: boolean;
-  }): InputGenerateTransactionPayloadData {
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>): InputGenerateTransactionPayloadData {
     const method = args.withFreezeBalance ? "rollover_pending_balance_and_freeze" : "rollover_pending_balance";
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
+      function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
       functionArguments: [args.tokenAddress],
     };
   }
 
   async rolloverPendingBalance(args: {
-    sender: AccountAddressInput;
     tokenAddress: string;
     withFreezeBalance?: boolean;
-    options?: InputGenerateTransactionOptions;
-  }): Promise<SimpleTransaction> {
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>): Promise<SimpleTransaction> {
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: ConfidentialCoin.buildRolloverPendingBalanceTxPayload(args),
@@ -201,8 +239,8 @@ export class ConfidentialCoin {
     tokenAddress: string;
     withFreezeBalance?: boolean;
     decryptionKey: TwistedEd25519PrivateKey;
-  }): Promise<InputGenerateTransactionPayloadData[]> {
-    const txList: InputGenerateTransactionPayloadData[] = [];
+  } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>): Promise<InputGenerateTransactionPayloadData[]> {
+    const txPayloadsList: InputGenerateTransactionPayloadData[] = [];
 
     const isNormalized = await this.isUserBalanceNormalized({
       accountAddress: AccountAddress.from(args.sender),
@@ -217,21 +255,21 @@ export class ConfidentialCoin {
 
       const accountCB = await ConfidentialAmount.fromEncrypted(accountBalance.actual, args.decryptionKey);
 
-      const normalizationTx = await ConfidentialCoin.buildNormalizationTxPayload({
+      const normalizationTxPayload = await ConfidentialCoin.buildNormalizationTxPayload({
+        ...args,
         decryptionKey: args.decryptionKey,
-        sender: args.sender,
         tokenAddress: args.tokenAddress,
         unnormalizedEncryptedBalance: accountBalance.actual,
         balanceAmount: accountCB.amount,
       });
-      txList.push(normalizationTx);
+      txPayloadsList.push(normalizationTxPayload);
     }
 
     const rolloverTx = ConfidentialCoin.buildRolloverPendingBalanceTxPayload(args);
 
-    txList.push(rolloverTx);
+    txPayloadsList.push(rolloverTx);
 
-    return txList;
+    return txPayloadsList;
   }
 
   async getAssetAuditor(args: { tokenAddress: string; options?: LedgerVersionArg }) {
@@ -239,7 +277,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args.options,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::get_auditor`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::get_auditor`,
         functionArguments: [args.tokenAddress],
       },
     });
@@ -247,11 +285,9 @@ export class ConfidentialCoin {
 
   async transferCoin(
     args: CreateConfidentialTransferOpArgs & {
-      sender: AccountAddressInput;
       recipientAddress: AccountAddressInput;
       tokenAddress: string;
-      options?: InputGenerateTransactionOptions;
-    },
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>,
   ): Promise<SimpleTransaction> {
     const [{ vec: globalAuditorPubKey }] = await this.getAssetAuditor({
       tokenAddress: args.tokenAddress,
@@ -288,10 +324,11 @@ export class ConfidentialCoin {
       .flat();
 
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
-      sender: args.sender,
       data: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::confidential_transfer`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::confidential_transfer`,
         functionArguments: [
           args.tokenAddress,
           args.recipientAddress,
@@ -304,7 +341,6 @@ export class ConfidentialCoin {
           ConfidentialTransfer.serializeSigmaProof(sigmaProof),
         ],
       },
-      options: args.options,
     });
   }
 
@@ -313,7 +349,7 @@ export class ConfidentialCoin {
       aptosConfig: this.config,
       options: args.options,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_frozen`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_frozen`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -324,11 +360,9 @@ export class ConfidentialCoin {
 
   static async buildRotateCBKeyTxPayload(
     args: CreateConfidentialKeyRotationOpArgs & {
-      sender: AccountAddressInput;
       tokenAddress: string;
 
       withUnfreezeBalance: boolean;
-      options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialKeyRotation = await ConfidentialKeyRotation.create({
@@ -347,7 +381,7 @@ export class ConfidentialCoin {
     const method = args.withUnfreezeBalance ? "rotate_encryption_key_and_unfreeze" : "rotate_encryption_key";
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
+      function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::${method}`,
       functionArguments: [
         args.tokenAddress,
         newPublicKeyU8,
@@ -360,14 +394,14 @@ export class ConfidentialCoin {
 
   async rotateCBKey(
     args: CreateConfidentialKeyRotationOpArgs & {
-      sender: AccountAddressInput;
       tokenAddress: string;
 
       withUnfreezeBalance: boolean;
-      options?: InputGenerateTransactionOptions;
-    },
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>,
   ): Promise<SimpleTransaction> {
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: await ConfidentialCoin.buildRotateCBKeyTxPayload(args),
@@ -379,11 +413,9 @@ export class ConfidentialCoin {
     aptosClient: Aptos,
     signer: Account,
     args: CreateConfidentialKeyRotationOpArgs & {
-      sender: AccountAddressInput;
       tokenAddress: string;
       withUnfreezeBalance: boolean;
-      options?: InputGenerateTransactionOptions;
-    },
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>,
   ): Promise<CommittedTransactionResponse> {
     const isFrozen = await aptosClient.confidentialCoin.isBalanceFrozen({
       accountAddress: AccountAddress.from(args.sender),
@@ -393,12 +425,14 @@ export class ConfidentialCoin {
     let currEncryptedBalance = [...args.currEncryptedBalance];
     if (!isFrozen) {
       const rolloverWithFreezeTxBody = await aptosClient.confidentialCoin.rolloverPendingBalance({
+        ...args,
         sender: args.sender,
         tokenAddress: args.tokenAddress,
         withFreezeBalance: true,
       });
 
       const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+        ...args,
         signer,
         transaction: rolloverWithFreezeTxBody,
       });
@@ -425,6 +459,7 @@ export class ConfidentialCoin {
     });
 
     const pendingTxResponse = await aptosClient.signAndSubmitTransaction({
+      ...args,
       signer,
       transaction: rotateKeyTxBody,
     });
@@ -438,7 +473,7 @@ export class ConfidentialCoin {
     const [isRegister] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::has_condifdential_asset_store`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::has_confidential_asset_store`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -456,7 +491,7 @@ export class ConfidentialCoin {
     const [isNormalized] = await view<[boolean]>({
       aptosConfig: this.config,
       payload: {
-        function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_normalized`,
+        function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::is_normalized`,
         typeArguments: [],
         functionArguments: [args.accountAddress, args.tokenAddress],
       },
@@ -468,10 +503,7 @@ export class ConfidentialCoin {
 
   static async buildNormalizationTxPayload(
     args: CreateConfidentialNormalizationOpArgs & {
-      sender: AccountAddressInput;
       tokenAddress: string;
-
-      options?: InputGenerateTransactionOptions;
     },
   ): Promise<InputGenerateTransactionPayloadData> {
     const confidentialNormalization = await ConfidentialNormalization.create({
@@ -484,7 +516,7 @@ export class ConfidentialCoin {
     const [{ sigmaProof, rangeProof }, normalizedCB] = await confidentialNormalization.authorizeNormalization();
 
     return {
-      function: `${CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::normalize`,
+      function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::${MODULE_NAME}::normalize`,
       functionArguments: [
         args.tokenAddress,
         concatBytes(...normalizedCB.map((el) => el.serialize()).flat()),
@@ -496,13 +528,13 @@ export class ConfidentialCoin {
 
   async normalizeUserBalance(
     args: CreateConfidentialNormalizationOpArgs & {
-      sender: AccountAddressInput;
       tokenAddress: string;
 
-      options?: InputGenerateTransactionOptions;
-    },
+    } & Omit<InputGenerateSingleSignerRawTransactionArgs, 'payload' | 'aptosConfig'>,
   ) {
     return generateTransaction({
+      ...args,
+      withFeePayer: Boolean(args.feePayerAddress),
       aptosConfig: this.config,
       sender: args.sender,
       data: await ConfidentialCoin.buildNormalizationTxPayload(args),

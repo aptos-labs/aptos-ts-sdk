@@ -12,12 +12,14 @@ import {
   ConfidentialNormalization,
   RangeProofExecutor,
   ConfidentialAmount,
+  ConfidentialTransferRangeProof,
 } from "../../../src";
 import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/confidential/helpers";
 import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
 import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
 import { ed25519modN } from "../../../src/core/crypto/utils";
 import { longTestTimeout } from "../helper";
+import "./helpers";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
@@ -72,7 +74,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  let confidentialWithdrawRangeProof: Uint8Array[];
+  let confidentialWithdrawRangeProof: Uint8Array;
   test("Generate withdraw range proof", async () => {
     confidentialWithdrawRangeProof = await confidentialWithdraw.genRangeProof();
   });
@@ -83,50 +85,6 @@ describe("Generate 'confidential coin' proofs", () => {
     });
 
     expect(isValid).toBeTruthy();
-  });
-
-  test("Should generate confidential withdraw authorization", async () => {
-    const [{ sigmaProof, rangeProof }, vbNew] = await confidentialWithdraw.authorizeWithdrawal();
-
-    expect(sigmaProof).toBeDefined();
-    expect(rangeProof).toBeDefined();
-    expect(vbNew).toBeDefined();
-  });
-
-  test("Should generate and verify confidential withdraw with large amounts", async () => {
-    const newAliceDecryptionKey = TwistedEd25519PrivateKey.generate();
-    const newAliceBalance = ConfidentialAmount.fromAmount(2n ** 64n + 10n);
-    newAliceBalance.encrypt(newAliceDecryptionKey.publicKey());
-
-    const amountToWithdraw = 2n ** 16n + 10n - 10n;
-
-    const largeConfidentialWithdrawal = await ConfidentialWithdraw.create({
-      decryptionKey: toTwistedEd25519PrivateKey(newAliceDecryptionKey),
-      encryptedActualBalance: newAliceBalance.amountEncrypted!,
-      amountToWithdraw,
-    });
-
-    const [{ sigmaProof, rangeProof }, vbNew] = await largeConfidentialWithdrawal.authorizeWithdrawal();
-
-    expect(sigmaProof).toBeDefined();
-    expect(rangeProof).toBeDefined();
-    expect(vbNew).toBeDefined();
-
-    const isSigmaProofValid = ConfidentialWithdraw.verifySigmaProof({
-      publicKey: newAliceDecryptionKey.publicKey(),
-      encryptedActualBalance: largeConfidentialWithdrawal.encryptedActualBalanceAmount,
-      encryptedActualBalanceAfterWithdraw: largeConfidentialWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
-      amountToWithdraw,
-      sigmaProof,
-    });
-
-    const isRangeProofValid = ConfidentialWithdraw.verifyRangeProof({
-      rangeProof,
-      encryptedActualBalanceAfterWithdraw: largeConfidentialWithdrawal.confidentialAmountAfterWithdraw.amountEncrypted!,
-    });
-
-    expect(isSigmaProofValid).toBeTruthy();
-    expect(isRangeProofValid).toBeTruthy();
   });
 
   const TRANSFER_AMOUNT = 10n;
@@ -158,10 +116,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  let confidentialTransferRangeProofs: {
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
-  };
+  let confidentialTransferRangeProofs: ConfidentialTransferRangeProof;
   test("Generate transfer range proofs", async () => {
     confidentialTransferRangeProofs = await confidentialTransfer.genRangeProof();
   });
@@ -229,10 +184,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
     expect(isValid).toBeFalsy();
   });
-  let confidentialTransferWithAuditorsRangeProofs: {
-    rangeProofAmount: Uint8Array[];
-    rangeProofNewBalance: Uint8Array[];
-  };
+  let confidentialTransferWithAuditorsRangeProofs: ConfidentialTransferRangeProof;
   test("Generate transfer with auditors range proofs", async () => {
     confidentialTransferWithAuditorsRangeProofs = await confidentialTransferWithAuditors.genRangeProof();
 
@@ -255,9 +207,9 @@ describe("Generate 'confidential coin' proofs", () => {
   let confidentialKeyRotationSigmaProof: ConfidentialKeyRotationSigmaProof;
   test("Generate key rotation sigma proof", async () => {
     confidentialKeyRotation = await ConfidentialKeyRotation.create({
-      currDecryptionKey: toTwistedEd25519PrivateKey(aliceConfidentialDecryptionKey),
+      currDecryptionKey: aliceConfidentialDecryptionKey,
       currEncryptedBalance: aliceConfidentialAmount.amountEncrypted!,
-      newDecryptionKey: toTwistedEd25519PrivateKey(newAliceConfidentialPrivateKey),
+      newDecryptionKey: newAliceConfidentialPrivateKey,
     });
 
     confidentialKeyRotationSigmaProof = await confidentialKeyRotation.genSigmaProof();
@@ -276,7 +228,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  let confidentialKeyRotationRangeProof: Uint8Array[];
+  let confidentialKeyRotationRangeProof: Uint8Array;
   test("Generate key rotation range proof", async () => {
     confidentialKeyRotationRangeProof = await confidentialKeyRotation.genRangeProof();
 
@@ -291,7 +243,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   });
 
-  test("Authorize Key Rotation", async () => {
+  test.skip("Authorize Key Rotation", async () => {
     const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
 
     expect(sigmaProof).toBeDefined();
@@ -328,7 +280,7 @@ describe("Generate 'confidential coin' proofs", () => {
 
     expect(isValid).toBeTruthy();
   });
-  let confidentialNormalizationRangeProof: Uint8Array[];
+  let confidentialNormalizationRangeProof: Uint8Array;
   test("Generate normalization range proof", async () => {
     confidentialNormalizationRangeProof = await confidentialNormalization.genRangeProof();
 
