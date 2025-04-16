@@ -17,7 +17,7 @@ export * from "./signature";
 export * from "./singleKey";
 export * from "./twistedEd25519";
 export * from "./twistedElGamal";
-export * from "./veiled";
+export * from "./confidential";
 export * from "./rangeProof";
 export * from "./kangaroo/kangarooRistretto";
 export * from "./kangaroo/tableMap";

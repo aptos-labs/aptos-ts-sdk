@@ -17,6 +17,22 @@ export interface VerifyRangeProofInputs {
   bits?: number;
 }
 
+export interface BatchRangeProofInputs {
+  v: bigint[];
+  rs: Uint8Array[];
+  val_base: Uint8Array;
+  rand_base: Uint8Array;
+  num_bits: number;
+}
+
+export interface BatchVerifyRangeProofInputs {
+  proof: Uint8Array;
+  comm: Uint8Array[];
+  val_base: Uint8Array;
+  rand_base: Uint8Array;
+  num_bits: number;
+}
+
 export class RangeProofExecutor {
   /**
    * Generate range Zero Knowledge Proof
@@ -40,11 +56,25 @@ export class RangeProofExecutor {
    */
   static verifyRangeZKP: (opts: VerifyRangeProofInputs) => Promise<boolean>;
 
+  static genBatchRangeZKP: (opts: BatchRangeProofInputs) => Promise<{ proof: Uint8Array; commitments: Uint8Array[] }>;
+
+  static verifyBatchRangeZKP: (opts: BatchVerifyRangeProofInputs) => Promise<boolean>;
+
   static setGenerateRangeZKP(func: (opts: RangeProofInputs) => Promise<{ proof: Uint8Array; commitment: Uint8Array }>) {
     this.generateRangeZKP = func;
   }
 
   static setVerifyRangeZKP(func: (opts: VerifyRangeProofInputs) => Promise<boolean>) {
     this.verifyRangeZKP = func;
+  }
+
+  static setGenBatchRangeZKP(
+    func: (opts: BatchRangeProofInputs) => Promise<{ proof: Uint8Array; commitments: Uint8Array[] }>,
+  ) {
+    this.genBatchRangeZKP = func;
+  }
+
+  static setVerifyBatchRangeZKP(func: (opts: BatchVerifyRangeProofInputs) => Promise<boolean>) {
+    this.verifyBatchRangeZKP = func;
   }
 }

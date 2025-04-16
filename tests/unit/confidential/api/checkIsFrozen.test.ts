@@ -1,10 +1,10 @@
 import { aptos, getTestAccount, TOKEN_ADDRESS } from "../helpers";
 
-describe("should check if user veiled account is frozen", () => {
+describe("should check if user confidential account is frozen", () => {
   const alice = getTestAccount();
 
-  it("should check if user veiled account is frozen", async () => {
-    const isFrozen = await aptos.veiledCoin.isBalanceFrozen({
+  it("should check if user confidential account is frozen", async () => {
+    const isFrozen = await aptos.confidentialCoin.isBalanceFrozen({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });

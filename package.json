@@ -1,5 +1,5 @@
 {
-  "name": "@aptos-labs/ts-sdk",
+  "name": "@lukachi/aptos-labs-ts-sdk",
   "description": "Aptos TypeScript SDK",
   "packageManager": "pnpm@8.15.1",
   "license": "Apache-2.0",
@@ -52,7 +52,7 @@
   "dependencies": {
     "@aptos-labs/aptos-cli": "^1.0.2",
     "@aptos-labs/aptos-client": "^1.1.0",
-    "@distributedlab/aptos-wasm-bindings": "^0.3.13",
+    "@distributedlab/aptos-wasm-bindings": "^0.3.16",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
     "@scure/bip32": "^1.4.0",
@@ -100,5 +100,5 @@
     "typedoc-plugin-missing-exports": "^3.1.0",
     "typescript": "^5.7.3"
   },
-  "version": "1.36.0"
+  "version": "1.37.4"
 }

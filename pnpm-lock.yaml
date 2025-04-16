@@ -15,7 +15,7 @@ dependencies:
     specifier: ^0.0.9
     version: 0.0.9
   '@distributedlab/aptos-wasm-bindings':
-    specifier: ^0.3.13
+    specifier: ^0.3.16
     version: 0.3.16
   '@noble/curves':
     specifier: ^1.4.0
