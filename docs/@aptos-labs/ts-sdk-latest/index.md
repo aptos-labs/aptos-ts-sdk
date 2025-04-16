@@ -1,5 +1,5 @@
 ---
 title: Latest Aptos TypeScript SDK Documentation
 permalink: /@aptos-labs/ts-sdk-latest
-redirect_to: /@aptos-labs/ts-sdk-1.36.0
+redirect_to: /@aptos-labs/ts-sdk-1.38.0
 ---

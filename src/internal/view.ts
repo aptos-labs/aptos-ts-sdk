@@ -27,7 +27,7 @@ export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: 
   viewFunctionPayload.serialize(serializer);
   const bytes = serializer.toUint8Array();
 
-  const { data } = await postAptosFullNode<Uint8Array, T>({
+  const { data } = await postAptosFullNode<Uint8Array, MoveValue[]>({
     aptosConfig,
     path: "view",
     originMethod: "view",
@@ -36,7 +36,7 @@ export async function view<T extends Array<MoveValue> = Array<MoveValue>>(args: 
     body: bytes,
   });
 
-  return data;
+  return data as T;
 }
 
 export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(args: {
@@ -45,7 +45,7 @@ export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(ar
   options?: LedgerVersionArg;
 }): Promise<T> {
   const { aptosConfig, payload, options } = args;
-  const { data } = await postAptosFullNode<ViewFunctionJsonPayload, T>({
+  const { data } = await postAptosFullNode<ViewFunctionJsonPayload, MoveValue[]>({
     aptosConfig,
     originMethod: "viewJson",
     path: "view",
@@ -57,5 +57,5 @@ export async function viewJson<T extends Array<MoveValue> = Array<MoveValue>>(ar
     },
   });
 
-  return data;
+  return data as T;
 }

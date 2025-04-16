@@ -259,6 +259,7 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * Verify the given message and signature with the public keys.
    *
    * This function checks if the provided signatures are valid for the given message using the corresponding public keys.
+   * Note: If you are using KeylessAccounts, you must use `verifySignatureAsync` instead.
    *
    * @param args - The arguments for verifying the signature.
    * @param args.message - The raw message data in HexInput format.
@@ -267,21 +268,29 @@ export class MultiKeyAccount implements Account, KeylessSigner {
    * @group Implementation
    * @category Account (On-Chain Model)
    */
-  verifySignature(args: VerifyMultiKeySignatureArgs): boolean {
-    const { message, signature } = args;
-    const isSignerIndicesSorted = this.signerIndicies.every(
-      (value, i) => i === 0 || value >= this.signerIndicies[i - 1],
-    );
-    if (!isSignerIndicesSorted) {
-      return false;
-    }
-    for (let i = 0; i < signature.signatures.length; i += 1) {
-      const singleSignature = signature.signatures[i];
-      const publicKey = this.publicKey.publicKeys[this.signerIndicies[i]];
-      if (!publicKey.verifySignature({ message, signature: singleSignature })) {
-        return false;
-      }
-    }
-    return true;
+  verifySignature(args: { message: HexInput; signature: MultiKeySignature }): boolean {
+    return this.publicKey.verifySignature(args);
+  }
+
+  /**
+   * Verify the given message and signature with the public keys.
+   *
+   * This function checks if the provided signatures are valid for the given message using the corresponding public keys.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.message - The raw message data in HexInput format.
+   * @param args.signature - The signed message MultiKeySignature containing multiple signatures.
+   * @param args.options.throwErrorWithReason - Whether to throw an error with the reason for the verification failure.
+   * @returns A boolean indicating whether the signatures are valid for the message.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: MultiKeySignature;
+    options?: { throwErrorWithReason?: boolean };
+  }): Promise<boolean> {
+    return await this.publicKey.verifySignatureAsync(args);
   }
 }

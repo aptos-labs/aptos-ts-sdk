@@ -65,7 +65,7 @@ export const TEST_FEDERATED_JWT_TOKENS = [
 
 const KEYLESS_TEST_TIMEOUT = 12000;
 
-describe.skip("keyless api", () => {
+describe("keyless api", () => {
   const ephemeralKeyPair = EPHEMERAL_KEY_PAIR;
   const { aptos } = getAptosClient();
   const jwkAccount = Account.generate();
@@ -360,7 +360,7 @@ describe.skip("keyless api", () => {
             : await aptos.deriveKeylessAccount({ jwt, ephemeralKeyPair, jwkAddress });
         const message = "hello world";
         const signature = sender.sign(message);
-        expect(sender.verifySignature({ message, signature })).toBe(true);
+        expect(await sender.verifySignatureAsync({ aptosConfig: aptos.config, message, signature })).toBe(true);
       },
       KEYLESS_TEST_TIMEOUT,
     );

@@ -6,6 +6,7 @@ import { AccountPublicKey, Ed25519PrivateKey, PrivateKeyInput, Signature, Verify
 import { Ed25519Account } from "./Ed25519Account";
 import { SingleKeyAccount } from "./SingleKeyAccount";
 import { AnyRawTransaction } from "../transactions/types";
+import { AptosConfig } from "../api";
 
 /**
  * Arguments for creating an `Ed25519Account` from an `Ed25519PrivateKey`.
@@ -330,5 +331,24 @@ export abstract class Account {
    */
   verifySignature(args: VerifySignatureArgs): boolean {
     return this.publicKey.verifySignature(args);
+  }
+
+  /**
+   * Verify the given message and signature with the public key. It fetches any on chain state if needed for verification.
+   *
+   * @param args - The arguments for verifying the signature.
+   * @param args.aptosConfig - The configuration object for connecting to the Aptos network
+   * @param args.message - Raw message data in HexInput format.
+   * @param args.signature - Signed message signature.
+   * @returns A boolean indicating whether the signature is valid.
+   * @group Implementation
+   * @category Account (On-Chain Model)
+   */
+  async verifySignatureAsync(args: {
+    aptosConfig: AptosConfig;
+    message: HexInput;
+    signature: Signature;
+  }): Promise<boolean> {
+    return this.publicKey.verifySignatureAsync(args);
   }
 }
