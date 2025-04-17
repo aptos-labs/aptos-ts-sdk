@@ -16,7 +16,7 @@ import { Table } from "./table";
 import { Keyless } from "./keyless";
 import { AptosObject } from "./object";
 import { AccountAbstraction } from "./account/abstraction";
-import { ConfidentialCoin } from "./confidentialCoin";
+import { ConfidentialAsset } from "./confidentialAsset";
 
 /**
  * The main entry point for interacting with the Aptos APIs,
@@ -70,7 +70,7 @@ export class Aptos {
 
   readonly keyless: Keyless;
 
-  readonly confidentialCoin: ConfidentialCoin;
+  readonly confidentialAsset: ConfidentialAsset;
 
   readonly object: AptosObject;
 
@@ -110,7 +110,7 @@ export class Aptos {
     this.transaction = new Transaction(this.config);
     this.table = new Table(this.config);
     this.keyless = new Keyless(this.config);
-    this.confidentialCoin = new ConfidentialCoin(this.config);
+    this.confidentialAsset = new ConfidentialAsset(this.config);
     this.object = new AptosObject(this.config);
   }
 }
@@ -119,18 +119,19 @@ export class Aptos {
 // from the other classes will be recognized by typescript.
 export interface Aptos
   extends Account,
-    ANS,
-    Coin,
-    DigitalAsset,
-    Event,
-    Faucet,
-    FungibleAsset,
-    General,
-    Keyless,
-    Staking,
-    Table,
-    AptosObject,
-    Omit<Transaction, "build" | "simulate" | "submit" | "batch"> {}
+  ANS,
+  Coin,
+  DigitalAsset,
+  Event,
+  Faucet,
+  FungibleAsset,
+  General,
+  Keyless,
+  Staking,
+  Table,
+  AptosObject,
+  ConfidentialAsset,
+  Omit<Transaction, "build" | "simulate" | "submit" | "batch"> { }
 
 /**
 In TypeScript, we can’t inherit or extend from more than one class,
@@ -168,4 +169,4 @@ applyMixin(Aptos, Transaction, "transaction");
 applyMixin(Aptos, Table, "table");
 applyMixin(Aptos, Keyless, "keyless");
 applyMixin(Aptos, AptosObject, "object");
-applyMixin(Aptos, ConfidentialCoin, "object");
+applyMixin(Aptos, ConfidentialAsset, "object");

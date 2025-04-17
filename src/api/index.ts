@@ -3,4 +3,4 @@
 
 export * from "./aptos";
 export * from "./aptosConfig";
-export * from "./confidentialCoin";
+export * from "./confidentialAsset";

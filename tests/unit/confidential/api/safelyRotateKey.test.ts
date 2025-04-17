@@ -1,4 +1,4 @@
-import { TwistedEd25519PrivateKey, ConfidentialCoin } from "../../../../src";
+import { TwistedEd25519PrivateKey, ConfidentialAsset } from "../../../../src";
 import {
   addNewContentLineToFile,
   aptos,
@@ -26,7 +26,7 @@ describe("Safely rotate Alice's confidential balance key", () => {
   test("it should safely rotate Alice's confidential balance key", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const keyRotationAndUnfreezeTxResponse = await ConfidentialCoin.safeRotateCBKey(aptos, alice, {
+    const keyRotationAndUnfreezeTxResponse = await ConfidentialAsset.safeRotateCBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceConfidential,

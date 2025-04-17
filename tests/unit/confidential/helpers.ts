@@ -17,7 +17,7 @@ import {
   ConfidentialAmount,
   RangeProofExecutor,
   Ed25519Account,
-  ConfidentialCoin,
+  ConfidentialAsset,
   PrivateKeyVariants,
   PrivateKey,
 } from "../../../src";
@@ -66,7 +66,7 @@ export const addNewContentLineToFile = (filename: string, data: string) => {
 };
 
 export const getBalances = async (decryptionKey: TwistedEd25519PrivateKey, accountAddress: AccountAddress, tokenAddress = TOKEN_ADDRESS) => {
-  const aliceChunkedConfidentialBalance = await aptos.confidentialCoin.getBalance({
+  const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
     accountAddress,
     tokenAddress,
   });
@@ -152,7 +152,7 @@ export const mintFungibleTokens = async (account: Account) => {
   const transaction = await aptos.transaction.build.simple({
     sender: account.accountAddress,
     data: {
-      function: `${ConfidentialCoin.CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
+      function: `${ConfidentialAsset.CONFIDENTIAL_COIN_MODULE_ADDRESS}::mock_token::mint_to`,
       functionArguments: [500],
     },
   });

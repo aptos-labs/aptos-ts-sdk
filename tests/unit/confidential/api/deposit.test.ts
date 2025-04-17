@@ -19,7 +19,7 @@ describe("Deposit", () => {
   it("it should deposit Alice's balance of fungible token to her confidential balance", async () => {
     await mintFungibleTokens(alice);
 
-    const depositTx = await aptos.confidentialCoin.deposit({
+    const depositTx = await aptos.confidentialAsset.deposit({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       amount: DEPOSIT_AMOUNT,

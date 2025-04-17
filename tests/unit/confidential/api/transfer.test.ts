@@ -30,14 +30,14 @@ describe("Transfer", () => {
 
     const recipientAccAddr = "0xbae983154b659e5d0e9cb7f84001fdedb06482125a8e2945f47c2bc6ccd00690";
 
-    const recipientEncKey = await aptos.confidentialCoin.getEncryptionByAddr({
+    const recipientEncKey = await aptos.confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress: TOKEN_ADDRESS,
     });
 
     console.log("recipientEncKey", recipientEncKey);
 
-    const transferTx = await aptos.confidentialCoin.transferCoin({
+    const transferTx = await aptos.confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
       recipientEncryptionKey: new TwistedEd25519PublicKey(recipientEncKey),
       encryptedActualBalance: balances.actual.amountEncrypted!,

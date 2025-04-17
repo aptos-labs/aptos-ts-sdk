@@ -25,7 +25,7 @@ describe("Withdraw", () => {
   it("should withdraw confidential amount", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const withdrawTx = await aptos.confidentialCoin.withdraw({
+    const withdrawTx = await aptos.confidentialAsset.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceConfidential,

@@ -26,7 +26,7 @@ describe("Normalize", () => {
     async () => {
       const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-      const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
+      const normalizeTx = await aptos.confidentialAsset.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
         unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,

@@ -13,13 +13,13 @@ import { ed25519modN } from "../../../../src/core/crypto/utils";
 
 describe("Transfer", () => {
   const alice = Account.generate();
-//   const aliceConfidential = getTestConfidentialAccount(alice);
+  //   const aliceConfidential = getTestConfidentialAccount(alice);
   const aliceConfidential = new TwistedEd25519PrivateKey("b761042f60932886fe0bb8677349ab9afc9bae40fdd108666a446d8434d1780b");
 
   const coinType = "0x1::aptos_coin::AptosCoin";
   const tokenAddress = '0x000000000000000000000000000000000000000000000000000000000000000a';
-  const fundAmount = 1 * 10**8;
-  const depositAmount = 0.5 * 10**8;
+  const fundAmount = 1 * 10 ** 8;
+  const depositAmount = 0.5 * 10 ** 8;
   const recipientAccAddr = "0x82094619a5e8621f2bf9e6479a62ed694dca9b8fd69b0383fce359a3070aa0d4";
   const normalizeAmount = -BigInt(depositAmount);
 
@@ -38,16 +38,16 @@ describe("Transfer", () => {
 
   it("should fund Alice's account", async () => {
     await aptos.fundAccount({
-        accountAddress: alice.accountAddress,
-        amount: fundAmount,
+      accountAddress: alice.accountAddress,
+      amount: fundAmount,
     })
   })
 
   it("should register Alice's balance", async () => {
-    const aliceRegisterVBTxBody = await aptos.confidentialCoin.registerBalance({
-        sender: alice.accountAddress,
-        tokenAddress: tokenAddress,
-        publicKey: aliceConfidential.publicKey(),
+    const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
+      sender: alice.accountAddress,
+      tokenAddress: tokenAddress,
+      publicKey: aliceConfidential.publicKey(),
     });
 
     const aliceTxResp = await sendAndWaitTx(aliceRegisterVBTxBody, alice);
@@ -56,10 +56,10 @@ describe("Transfer", () => {
   })
 
   it("should deposit money to Alice's account", async () => {
-    const depositTx = await aptos.confidentialCoin.depositCoin({
-        sender: alice.accountAddress,
-        coinType,
-        amount: depositAmount,
+    const depositTx = await aptos.confidentialAsset.depositCoin({
+      sender: alice.accountAddress,
+      coinType,
+      amount: depositAmount,
     });
 
     const resp = await sendAndWaitTx(depositTx, alice);
@@ -68,14 +68,14 @@ describe("Transfer", () => {
   })
 
   it("Should rollover the balance", async () => {
-    const rolloverTxs = await aptos.confidentialCoin.safeRolloverPendingCB({
+    const rolloverTxs = await aptos.confidentialAsset.safeRolloverPendingCB({
       sender: alice.accountAddress,
       tokenAddress,
       decryptionKey: aliceConfidential,
     })
 
     const txResponses = await sendAndWaitBatchTxs(rolloverTxs, alice);
-    
+
     console.log("gas used:", txResponses.map((el) => `${el.hash} - ${el.gas_used}`).join("\n"));
 
     expect(txResponses.every((el) => el.success)).toBeTruthy();
@@ -89,20 +89,20 @@ describe("Transfer", () => {
     const fakeBalance = ConfidentialAmount.fromAmount(normalizeAmount)
     fakeBalance.encrypt(aliceConfidential.publicKey());
 
-    const recipientEncKey = await aptos.confidentialCoin.getEncryptionByAddr({
+    const recipientEncKey = await aptos.confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress,
     });
 
     console.log({ recipientEncKey: recipientEncKey.toString() })
 
-    const normalizeTx = await aptos.confidentialCoin.normalizeUserBalance({
-        tokenAddress,
-        decryptionKey: aliceConfidential,
-        unnormalizedEncryptedBalance: fakeBalance.amountEncrypted!,
-        balanceAmount: fakeBalance.amount,
+    const normalizeTx = await aptos.confidentialAsset.normalizeUserBalance({
+      tokenAddress,
+      decryptionKey: aliceConfidential,
+      unnormalizedEncryptedBalance: fakeBalance.amountEncrypted!,
+      balanceAmount: fakeBalance.amount,
 
-        sender: alice.accountAddress,
+      sender: alice.accountAddress,
     });
 
     const txResp = await sendAndWaitTx(normalizeTx, alice);

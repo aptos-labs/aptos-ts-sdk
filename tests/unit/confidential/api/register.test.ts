@@ -17,7 +17,7 @@ describe("Register", () => {
   it(
     "it should register Alice confidential balance",
     async () => {
-      const aliceRegisterVBTxBody = await aptos.confidentialCoin.registerBalance({
+      const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         publicKey: aliceConfidential.publicKey(),
