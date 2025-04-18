@@ -9,6 +9,7 @@
     "multi_agent_transfer": "ts-node multi_agent_transfer.ts",
     "simple_sponsored_transaction": "ts-node simple_sponsored_transaction.ts",
     "transfer_coin": "ts-node transfer_coin.ts",
+    "transfer_secondary_store": "ts-node transfer_secondary_store.ts",
     "custom_client": "ts-node custom_client.ts",
     "publish_package_from_filepath": "ts-node publish_package_from_filepath.ts",
     "external_signing": "ts-node external_signing.ts",

@@ -4,6 +4,8 @@ All notable changes to the Aptos TypeScript SDK will be captured in this file. T
 
 ## Unreleased
 
+- Add a function to TS SDK to transfer Fungible Assets between (secondary) fungible stores. Includes an example file `transfer_secondary_store.ts` which uses a new example Move module `secondary_store.move`.
+
 # 1.38.0 (2025-04-02)
 
 - Adds and default implementation of `verifySignatureAsync` to `PublicKey`.
