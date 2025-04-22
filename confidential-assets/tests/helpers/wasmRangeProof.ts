@@ -12,7 +12,7 @@ import {
   BatchVerifyRangeProofInputs,
   RangeProofInputs,
   VerifyRangeProofInputs,
-} from "../../../src";
+} from "../../src";
 
 const RANGE_PROOF_WASM_URL =
   "https://unpkg.com/@distributedlab/aptos-wasm-bindings@0.3.16/range-proofs/aptos_rp_wasm_bg.wasm";

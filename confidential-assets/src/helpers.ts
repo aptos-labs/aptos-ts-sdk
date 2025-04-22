@@ -3,9 +3,9 @@
 
 import { sha512 } from "@noble/hashes/sha512";
 import { bytesToNumberLE, concatBytes } from "@noble/curves/abstract/utils";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { HexInput } from "../../../types";
-import { ed25519modN } from "../utils";
+import { HexInput } from "@aptos-labs/ts-sdk";
+import { TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "./twistedEd25519";
+import { ed25519modN } from "./utils";
 
 /*
  * Transform public keys to Uint8Array

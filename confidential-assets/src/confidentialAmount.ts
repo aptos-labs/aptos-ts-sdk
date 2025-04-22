@@ -1,5 +1,5 @@
-import { TwistedElGamal, TwistedElGamalCiphertext } from "../twistedElGamal";
-import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
+import { TwistedElGamal, TwistedElGamalCiphertext } from "./twistedElGamal";
+import { TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "./twistedEd25519";
 
 /**
  * Number of chunks for confidential balance

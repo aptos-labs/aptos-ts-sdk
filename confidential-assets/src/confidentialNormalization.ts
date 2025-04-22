@@ -3,11 +3,11 @@ import { utf8ToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_NORMALIZATION_SIZE } from "./consts";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { TwistedElGamalCiphertext } from "../twistedElGamal";
-import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
+import { RangeProofExecutor } from "./rangeProof";
+import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { TwistedElGamalCiphertext } from "./twistedElGamal";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 
 export type ConfidentialNormalizationSigmaProof = {
   alpha1List: Uint8Array[];

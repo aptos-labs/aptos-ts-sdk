@@ -3,13 +3,8 @@
 
 import { ed25519, RistrettoPoint } from "@noble/curves/ed25519";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
-import { Deserializer } from "../../bcs/deserializer";
-import { Serializable, Serializer } from "../../bcs/serializer";
-import { Hex } from "../hex";
-import { HexInput } from "../../types";
-import { CKDPriv, deriveKey, HARDENED_OFFSET, isValidHardenedPath, mnemonicToSeed, splitPath } from "./hdKey";
 import { ed25519InvertN, ed25519modN } from "./utils";
-import { Ed25519Signature } from "./ed25519";
+import { HexInput, Hex, Serializable, isValidHardenedPath, mnemonicToSeed, Ed25519Signature, HARDENED_OFFSET, deriveKey, splitPath, CKDPriv, Serializer, Deserializer } from "@aptos-labs/ts-sdk";
 
 export { RistrettoPoint } from "@noble/curves/ed25519";
 export type RistPoint = InstanceType<typeof RistrettoPoint>;

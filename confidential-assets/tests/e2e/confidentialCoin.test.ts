@@ -1,26 +1,9 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  TwistedEd25519PrivateKey,
-  TwistedElGamalCiphertext,
-  ConfidentialAmount,
-  ConfidentialBalance,
-  ConfidentialAsset,
-  TwistedEd25519PublicKey,
-} from "../../../src";
-import { longTestTimeout } from "../../unit/helper";
-import {
-  addNewContentLineToFile,
-  aptos,
-  getTestAccount,
-  getTestConfidentialAccount,
-  mintFungibleTokens,
-  sendAndWaitBatchTxs,
-  sendAndWaitTx,
-  TOKEN_ADDRESS,
-} from "../../unit/confidential/helpers";
-import { preloadTables } from "../../unit/confidential/kangaroo/wasmPollardKangaroo";
+import { ConfidentialBalance, ConfidentialAmount, TwistedEd25519PublicKey, TwistedEd25519PrivateKey, TwistedElGamalCiphertext, ConfidentialAsset } from "../../src";
+import { getTestAccount, getTestConfidentialAccount, aptos, TOKEN_ADDRESS, sendAndWaitTx, mintFungibleTokens, sendAndWaitBatchTxs, addNewContentLineToFile, longTestTimeout, confidentialAsset } from "../helpers";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Confidential balance api", () => {
   const alice = getTestAccount();
@@ -52,7 +35,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice confidential balance registered",
     async () => {
-      isAliceRegistered = await aptos.confidentialAsset.hasUserRegistered({
+      isAliceRegistered = await confidentialAsset.hasUserRegistered({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -70,7 +53,7 @@ describe("Confidential balance api", () => {
         return;
       }
 
-      const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
+      const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         publicKey: aliceConfidential.publicKey(),
@@ -88,7 +71,7 @@ describe("Confidential balance api", () => {
     "it should check Alice confidential balances",
     async () => {
       const [aliceVB] = await Promise.all([
-        aptos.confidentialAsset.getBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
+        confidentialAsset.getBalance({ accountAddress: alice.accountAddress, tokenAddress: TOKEN_ADDRESS }),
       ]);
       aliceConfidentialBalances = aliceVB;
 
@@ -130,7 +113,7 @@ describe("Confidential balance api", () => {
   test(
     "it should deposit Alice's balance of fungible token to her confidential balance",
     async () => {
-      const depositTx = await aptos.confidentialAsset.deposit({
+      const depositTx = await confidentialAsset.deposit({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         amount: DEPOSIT_AMOUNT,
@@ -145,7 +128,7 @@ describe("Confidential balance api", () => {
   test(
     "it should fetch and decrypt Alice's confidential balance after deposit",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -164,7 +147,7 @@ describe("Confidential balance api", () => {
   test(
     "it should safely rollover Alice's confidential balance",
     async () => {
-      const rolloverTxPayloads = await aptos.confidentialAsset.safeRolloverPendingCB({
+      const rolloverTxPayloads = await confidentialAsset.safeRolloverPendingCB({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         withFreezeBalance: false,
@@ -181,7 +164,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's actual confidential balance after rollover",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -206,7 +189,7 @@ describe("Confidential balance api", () => {
         aliceConfidential,
       );
 
-      const withdrawTx = await aptos.confidentialAsset.withdraw({
+      const withdrawTx = await confidentialAsset.withdraw({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
@@ -223,7 +206,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's confidential balance after withdrawal",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -242,7 +225,7 @@ describe("Confidential balance api", () => {
   test(
     "it should get global auditor",
     async () => {
-      const [{ vec }] = await aptos.confidentialAsset.getAssetAuditor({
+      const [{ vec }] = await confidentialAsset.getAssetAuditor({
         tokenAddress: TOKEN_ADDRESS,
       });
       const globalAuditorAddress = new TwistedEd25519PublicKey(vec);
@@ -256,7 +239,7 @@ describe("Confidential balance api", () => {
   test(
     "it should transfer Alice's tokens to Alice's pending balance without auditor",
     async () => {
-      const transferTx = await aptos.confidentialAsset.transferCoin({
+      const transferTx = await confidentialAsset.transferCoin({
         senderDecryptionKey: aliceConfidential,
         recipientEncryptionKey: aliceConfidential.publicKey(),
         encryptedActualBalance: aliceConfidentialBalances.actual,
@@ -275,7 +258,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's confidential balance after transfer",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -295,7 +278,7 @@ describe("Confidential balance api", () => {
   test(
     "it should transfer Alice's tokens to Alice's confidential balance with auditor",
     async () => {
-      const transferTx = await aptos.confidentialAsset.transferCoin({
+      const transferTx = await confidentialAsset.transferCoin({
         senderDecryptionKey: aliceConfidential,
         recipientEncryptionKey: aliceConfidential.publicKey(),
         encryptedActualBalance: aliceConfidentialBalances.actual,
@@ -315,7 +298,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's confidential balance after transfer with auditors",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -334,7 +317,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check is Alice's balance not frozen",
     async () => {
-      const isFrozen = await aptos.confidentialAsset.isBalanceFrozen({
+      const isFrozen = await confidentialAsset.isBalanceFrozen({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -349,13 +332,13 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's confidential balance is normalized",
     async () => {
-      isAliceBalanceNormalized = await aptos.confidentialAsset.isUserBalanceNormalized({
+      isAliceBalanceNormalized = await confidentialAsset.isUserBalanceNormalized({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
 
       if (!isAliceBalanceNormalized) {
-        const unnormalizedAliceBalances = await aptos.confidentialAsset.getBalance({
+        const unnormalizedAliceBalances = await confidentialAsset.getBalance({
           accountAddress: alice.accountAddress,
           tokenAddress: TOKEN_ADDRESS,
         });
@@ -380,7 +363,7 @@ describe("Confidential balance api", () => {
           },
         );
 
-        const normalizeTx = await aptos.confidentialAsset.normalizeUserBalance({
+        const normalizeTx = await confidentialAsset.normalizeUserBalance({
           tokenAddress: TOKEN_ADDRESS,
           decryptionKey: aliceConfidential,
           unnormalizedEncryptedBalance: unnormalizedAliceEncryptedBalance,
@@ -402,7 +385,7 @@ describe("Confidential balance api", () => {
   test(
     "it should check Alice's confidential balance after normalization",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });
@@ -422,7 +405,7 @@ describe("Confidential balance api", () => {
   test.skip(
     "it should safely rotate Alice's confidential balance key",
     async () => {
-      const keyRotationAndUnfreezeTxResponse = await ConfidentialAsset.safeRotateCBKey(aptos, alice, {
+      const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(aptos, alice, {
         sender: alice.accountAddress,
 
         currDecryptionKey: aliceConfidential,
@@ -451,7 +434,7 @@ describe("Confidential balance api", () => {
   test(
     "it should get new Alice's confidential balance",
     async () => {
-      const aliceChunkedConfidentialBalance = await aptos.confidentialAsset.getBalance({
+      const aliceChunkedConfidentialBalance = await confidentialAsset.getBalance({
         accountAddress: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
       });

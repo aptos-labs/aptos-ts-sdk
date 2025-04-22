@@ -2,12 +2,12 @@ import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abs
 import { RistrettoPoint } from "@noble/curves/ed25519";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { genFiatShamirChallenge, publicKeyToU8 } from "./helpers";
-import { H_RISTRETTO, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_WITHDRAW_SIZE } from "./consts";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
-import { RangeProofExecutor } from "../rangeProof";
 import { ConfidentialAmount } from "./confidentialAmount";
+import { RangeProofExecutor } from "./rangeProof";
+import { TwistedEd25519PrivateKey, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { TwistedElGamalCiphertext } from "./twistedElGamal";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 
 export type ConfidentialWithdrawSigmaProof = {
   alpha1List: Uint8Array[];

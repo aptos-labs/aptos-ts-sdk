@@ -4,12 +4,7 @@
 import initWasm, { create_kangaroo, WASMKangaroo } from "@distributedlab/aptos-wasm-bindings/pollard-kangaroo";
 
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
-import {
-  TwistedEd25519PrivateKey,
-  TwistedElGamal,
-  TwistedElGamalCiphertext,
-  ConfidentialAmount,
-} from "../../../../src";
+import { ConfidentialAmount, TwistedEd25519PrivateKey, TwistedElGamal, TwistedElGamalCiphertext } from "../../src";
 
 const POLLARD_KANGAROO_WASM_URL =
   "https://unpkg.com/@distributedlab/aptos-wasm-bindings@0.3.15/pollard-kangaroo/aptos_pollard_kangaroo_wasm_bg.wasm";

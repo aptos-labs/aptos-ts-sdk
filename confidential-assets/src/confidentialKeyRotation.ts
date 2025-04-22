@@ -1,12 +1,12 @@
 import { bytesToNumberLE, concatBytes, numberToBytesLE } from "@noble/curves/abstract/utils";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { PROOF_CHUNK_SIZE, SIGMA_PROOF_KEY_ROTATION_SIZE } from "./consts";
-import { RangeProofExecutor } from "../rangeProof";
-import { H_RISTRETTO, RistrettoPoint, TwistedEd25519PrivateKey, TwistedEd25519PublicKey } from "../twistedEd25519";
-import { TwistedElGamalCiphertext } from "../twistedElGamal";
 import { genFiatShamirChallenge } from "./helpers";
-import { ed25519GenListOfRandom, ed25519GenRandom, ed25519InvertN, ed25519modN } from "../utils";
 import { ConfidentialAmount } from "./confidentialAmount";
+import { RangeProofExecutor } from "./rangeProof";
+import { TwistedEd25519PrivateKey, RistrettoPoint, H_RISTRETTO, TwistedEd25519PublicKey } from "./twistedEd25519";
+import { TwistedElGamalCiphertext } from "./twistedElGamal";
+import { ed25519GenListOfRandom, ed25519GenRandom, ed25519modN, ed25519InvertN } from "./utils";
 
 export type ConfidentialKeyRotationSigmaProof = {
   alpha1List: Uint8Array[];
