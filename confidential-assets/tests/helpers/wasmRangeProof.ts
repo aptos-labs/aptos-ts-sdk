@@ -15,7 +15,7 @@ import {
 } from "../../src";
 
 const RANGE_PROOF_WASM_URL =
-  "https://unpkg.com/@distributedlab/aptos-wasm-bindings@0.3.16/range-proofs/aptos_rp_wasm_bg.wasm";
+  'https://unpkg.com/@aptos-labs/confidential-asset-wasm-bindings@0.0.2/range-proofs/aptos_rp_wasm_bg.wasm';
 
 /**
  * Generate range Zero Knowledge Proof

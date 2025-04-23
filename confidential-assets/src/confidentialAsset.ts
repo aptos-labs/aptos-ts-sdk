@@ -39,7 +39,7 @@ export class ConfidentialAsset {
 
   static CONFIDENTIAL_COIN_MODULE_ADDRESS = CONFIDENTIAL_COIN_MODULE_ADDRESS;
 
-  static setConfidentialCoinModuleAddress(addr: string) {
+  static setConfidentialAssetModuleAddress(addr: string) {
     this.CONFIDENTIAL_COIN_MODULE_ADDRESS = addr;
   }
 
