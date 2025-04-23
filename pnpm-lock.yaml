@@ -14,9 +14,6 @@ dependencies:
   '@aptos-labs/script-composer-pack':
     specifier: ^0.0.9
     version: 0.0.9
-  '@distributedlab/aptos-wasm-bindings':
-    specifier: ^0.3.16
-    version: 0.3.16
   '@noble/curves':
     specifier: ^1.6.0
     version: 1.6.0
@@ -29,9 +26,6 @@ dependencies:
   '@scure/bip39':
     specifier: ^1.3.0
     version: 1.4.0
-  comlink:
-    specifier: ^4.4.2
-    version: 4.4.2
   eventemitter3:
     specifier: ^5.0.1
     version: 5.0.1
@@ -1107,10 +1101,6 @@ packages:
   /@cucumber/tag-expressions@6.1.1:
     resolution: {integrity: sha512-0oj5KTzf2DsR3DhL3hYeI9fP3nyKzs7TQdpl54uJelJ3W3Hlyyet2Hib+8LK7kNnqJsXENnJg9zahRYyrtvNEg==}
     dev: true
-
-  /@distributedlab/aptos-wasm-bindings@0.3.16:
-    resolution: {integrity: sha512-15YPEPbwO/RW3rmdQ/xRxnv4L+uC/mMczAencdWrNKuUoCFyth8sMm13EtgumulCbxN+gWGPUHY36aUT4OAjng==}
-    dev: false
 
   /@esbuild/aix-ppc64@0.25.1:
     resolution: {integrity: sha512-kfYGy8IdzTGy+z0vFGvExZtxkFlA4zAxgKEahG9KE1ScBjpQnFsNOX8KTU5ojNru5ed5CVoJYXFtoxaq5nFbjQ==}
@@ -3987,10 +3977,6 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
-    dev: false
-
-  /comlink@4.4.2:
-    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
     dev: false
 
   /commander@10.0.1:

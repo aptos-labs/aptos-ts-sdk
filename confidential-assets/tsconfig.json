@@ -1,20 +1,37 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "declaration": true,
-    "declarationDir": "types",
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "module": "esnext",
-    "moduleDetection": "force",
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
+    "types": [
+      "@types/node",
+      "@types/jest"
+    ],
     "moduleResolution": "node",
-    "noImplicitAny": true,
-    "outDir": "./dist",
-    "sourceMap": true,
+    "declaration": false,
     "strict": true,
-    "target": "es2020"
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "newLine": "lf",
+    "useDefineForClassFields": true,
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "moduleDetection": "force"
   },
   "include": ["src", "tests"]
 }

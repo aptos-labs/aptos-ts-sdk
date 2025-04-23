@@ -1,7 +1,7 @@
 // Copyright © Aptos Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-import initWasm, { create_kangaroo, WASMKangaroo } from "@distributedlab/aptos-wasm-bindings/pollard-kangaroo";
+import initWasm, { create_kangaroo, WASMKangaroo } from "@aptos-labs/confidential-asset-wasm-bindings/pollard-kangaroo";
 
 import { bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { ConfidentialAmount, TwistedEd25519PrivateKey, TwistedElGamal, TwistedElGamalCiphertext } from "../../src";

@@ -184,7 +184,6 @@ export class ConfidentialNormalization {
     const sLE = bytesToNumberLE(this.decryptionKey.toUint8Array());
     const invertSLE = ed25519InvertN(sLE);
 
-    const pt = ed25519modN(p * this.balanceAmount);
     const ps = ed25519modN(p * sLE);
     const psInvert = ed25519modN(p * invertSLE);
 

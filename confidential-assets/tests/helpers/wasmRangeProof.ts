@@ -6,7 +6,7 @@ import initWasm, {
   verify_proof as verifyProof,
   batch_range_proof as batchRangeProof,
   batch_verify_proof as batchVerifyProof,
-} from "@distributedlab/aptos-wasm-bindings/range-proofs";
+} from "@aptos-labs/confidential-asset-wasm-bindings/range-proofs";
 import {
   BatchRangeProofInputs,
   BatchVerifyRangeProofInputs,

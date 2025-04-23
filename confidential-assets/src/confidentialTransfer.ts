@@ -191,10 +191,7 @@ export class ConfidentialTransfer {
       half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2,
     )
     const alpha5 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2];
-    const alpha6List = baseProofArray.slice(
-      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 2 + 1,
-      half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3,
-    )
+
     const X1 = baseProofArray[half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3];
     const X2List = baseProofArray.slice(
       half + 1 + ConfidentialAmount.CHUNKS_COUNT * 3 + 1,
@@ -253,7 +250,6 @@ export class ConfidentialTransfer {
     const x3List = ed25519GenListOfRandom(i);
     const x4List = ed25519GenListOfRandom(j);
     const x5 = ed25519GenRandom();
-    const x6List = ed25519GenListOfRandom(i);
 
     const DBal = this.encryptedActualBalance.reduce(
       (acc, { D }, idx) => acc.add(D.multiply(2n ** (BigInt(idx) * ConfidentialAmount.CHUNK_BITS_BI))),
