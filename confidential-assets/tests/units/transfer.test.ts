@@ -1,14 +1,16 @@
+import { AccountAddress } from "@aptos-labs/ts-sdk";
+import { TwistedEd25519PublicKey } from "../../src";
 import {
   aptos,
+  confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
+  longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
-import { AccountAddress, TwistedEd25519PublicKey } from "../../../../src";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
   const alice = getTestAccount();
@@ -30,14 +32,14 @@ describe("Transfer", () => {
 
     const recipientAccAddr = "0xbae983154b659e5d0e9cb7f84001fdedb06482125a8e2945f47c2bc6ccd00690";
 
-    const recipientEncKey = await aptos.confidentialAsset.getEncryptionByAddr({
+    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress: TOKEN_ADDRESS,
     });
 
     console.log("recipientEncKey", recipientEncKey);
 
-    const transferTx = await aptos.confidentialAsset.transferCoin({
+    const transferTx = await confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
       recipientEncryptionKey: new TwistedEd25519PublicKey(recipientEncKey),
       encryptedActualBalance: balances.actual.amountEncrypted!,

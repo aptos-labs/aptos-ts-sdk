@@ -1,6 +1,5 @@
-import { longTestTimeout } from "../../helper";
-import { aptos, getTestAccount, getTestConfidentialAccount, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
+import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Register", () => {
   const alice = getTestAccount();
@@ -17,7 +16,7 @@ describe("Register", () => {
   it(
     "it should register Alice confidential balance",
     async () => {
-      const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
+      const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
         sender: alice.accountAddress,
         tokenAddress: TOKEN_ADDRESS,
         publicKey: aliceConfidential.publicKey(),

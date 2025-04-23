@@ -1,6 +1,5 @@
-import { aptos, getTestAccount, getTestConfidentialAccount, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { confidentialAsset, getTestAccount, getTestConfidentialAccount, longTestTimeout, sendAndWaitBatchTxs, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Safely Rollover", () => {
   const alice = getTestAccount();
@@ -15,7 +14,7 @@ describe("Safely Rollover", () => {
   );
 
   it("Should safely rollover Alice confidential balance", async () => {
-    const rolloverTxPayloads = await aptos.confidentialAsset.safeRolloverPendingCB({
+    const rolloverTxPayloads = await confidentialAsset.safeRolloverPendingCB({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       withFreezeBalance: false,

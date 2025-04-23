@@ -1,14 +1,15 @@
-import { TwistedEd25519PrivateKey, ConfidentialAsset } from "../../../../src";
+import { TwistedEd25519PrivateKey } from "../../src";
 import {
   addNewContentLineToFile,
   aptos,
+  confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
+  longTestTimeout,
   TOKEN_ADDRESS,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Safely rotate Alice's confidential balance key", () => {
   const alice = getTestAccount();
@@ -26,7 +27,7 @@ describe("Safely rotate Alice's confidential balance key", () => {
   test("it should safely rotate Alice's confidential balance key", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const keyRotationAndUnfreezeTxResponse = await ConfidentialAsset.safeRotateCBKey(aptos, alice, {
+    const keyRotationAndUnfreezeTxResponse = await confidentialAsset.safeRotateCBKey(aptos, alice, {
       sender: alice.accountAddress,
 
       currDecryptionKey: aliceConfidential,

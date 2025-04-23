@@ -1,13 +1,14 @@
 import {
   aptos,
+  confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
+  longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Normalize", () => {
   const alice = getTestAccount();
@@ -26,7 +27,7 @@ describe("Normalize", () => {
     async () => {
       const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-      const normalizeTx = await aptos.confidentialAsset.normalizeUserBalance({
+      const normalizeTx = await confidentialAsset.normalizeUserBalance({
         tokenAddress: TOKEN_ADDRESS,
         decryptionKey: aliceConfidential,
         unnormalizedEncryptedBalance: balances.actual.amountEncrypted!,

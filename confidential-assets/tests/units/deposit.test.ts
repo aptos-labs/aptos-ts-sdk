@@ -1,6 +1,5 @@
-import { aptos, getTestAccount, mintFungibleTokens, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { confidentialAsset, getTestAccount, longTestTimeout, mintFungibleTokens, sendAndWaitTx, TOKEN_ADDRESS } from "../helpers";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Deposit", () => {
   const alice = getTestAccount();
@@ -19,7 +18,7 @@ describe("Deposit", () => {
   it("it should deposit Alice's balance of fungible token to her confidential balance", async () => {
     await mintFungibleTokens(alice);
 
-    const depositTx = await aptos.confidentialAsset.deposit({
+    const depositTx = await confidentialAsset.deposit({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       amount: DEPOSIT_AMOUNT,

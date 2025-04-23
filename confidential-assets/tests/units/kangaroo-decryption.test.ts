@@ -1,6 +1,6 @@
-import { TwistedEd25519PrivateKey, TwistedElGamal, ConfidentialAmount } from "../../../../src";
-import { preloadTables, preloadTablesForBalances } from "./wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { TwistedEd25519PrivateKey, TwistedElGamal, ConfidentialAmount } from "../../src";
+import { longTestTimeout } from "../helpers";
+import { preloadTables, preloadTablesForBalances } from "../helpers/wasmPollardKangaroo";
 
 function generateRandomInteger(bits: number): bigint {
   // eslint-disable-next-line no-bitwise

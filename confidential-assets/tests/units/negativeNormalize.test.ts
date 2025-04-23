@@ -1,15 +1,16 @@
+import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
 import {
   aptos,
+  confidentialAsset,
   getBalances,
+  longTestTimeout,
   sendAndWaitBatchTxs,
   sendAndWaitTx,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
-import { Account, AccountAddress, TwistedEd25519PublicKey, TwistedEd25519PrivateKey, ConfidentialAmount } from "../../../../src";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN } from "../../../../src/core/crypto/utils";
+import { TwistedEd25519PrivateKey, ed25519modN, ConfidentialAmount } from "../../src";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
   const alice = Account.generate();
@@ -44,7 +45,7 @@ describe("Transfer", () => {
   })
 
   it("should register Alice's balance", async () => {
-    const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
+    const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: tokenAddress,
       publicKey: aliceConfidential.publicKey(),
@@ -56,7 +57,7 @@ describe("Transfer", () => {
   })
 
   it("should deposit money to Alice's account", async () => {
-    const depositTx = await aptos.confidentialAsset.depositCoin({
+    const depositTx = await confidentialAsset.depositCoin({
       sender: alice.accountAddress,
       coinType,
       amount: depositAmount,
@@ -68,7 +69,7 @@ describe("Transfer", () => {
   })
 
   it("Should rollover the balance", async () => {
-    const rolloverTxs = await aptos.confidentialAsset.safeRolloverPendingCB({
+    const rolloverTxs = await confidentialAsset.safeRolloverPendingCB({
       sender: alice.accountAddress,
       tokenAddress,
       decryptionKey: aliceConfidential,
@@ -89,14 +90,14 @@ describe("Transfer", () => {
     const fakeBalance = ConfidentialAmount.fromAmount(normalizeAmount)
     fakeBalance.encrypt(aliceConfidential.publicKey());
 
-    const recipientEncKey = await aptos.confidentialAsset.getEncryptionByAddr({
+    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress,
     });
 
     console.log({ recipientEncKey: recipientEncKey.toString() })
 
-    const normalizeTx = await aptos.confidentialAsset.normalizeUserBalance({
+    const normalizeTx = await confidentialAsset.normalizeUserBalance({
       tokenAddress,
       decryptionKey: aliceConfidential,
       unnormalizedEncryptedBalance: fakeBalance.amountEncrypted!,

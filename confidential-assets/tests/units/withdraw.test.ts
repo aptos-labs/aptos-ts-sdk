@@ -1,13 +1,13 @@
 import {
-  aptos,
+  confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
+  longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Withdraw", () => {
   const alice = getTestAccount();
@@ -25,7 +25,7 @@ describe("Withdraw", () => {
   it("should withdraw confidential amount", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const withdrawTx = await aptos.confidentialAsset.withdraw({
+    const withdrawTx = await confidentialAsset.withdraw({
       sender: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
       decryptionKey: aliceConfidential,

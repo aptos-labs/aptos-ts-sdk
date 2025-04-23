@@ -1,25 +1,9 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { bytesToNumberLE, numberToBytesLE } from "@noble/curves/abstract/utils";
-import {
-  TwistedEd25519PrivateKey,
-  ConfidentialKeyRotationSigmaProof,
-  ConfidentialNormalizationSigmaProof,
-  ConfidentialTransferSigmaProof,
-  ConfidentialWithdrawSigmaProof,
-  ConfidentialWithdraw,
-  ConfidentialTransfer,
-  ConfidentialKeyRotation,
-  ConfidentialNormalization,
-  RangeProofExecutor,
-  ConfidentialAmount,
-  ConfidentialTransferRangeProof,
-} from "../../../src";
-import { toTwistedEd25519PrivateKey } from "../../../src/core/crypto/confidential/helpers";
-import { generateRangeZKP, verifyRangeZKP } from "./wasmRangeProof";
-import { preloadTables } from "./kangaroo/wasmPollardKangaroo";
-import { ed25519modN } from "../../../src/core/crypto/utils";
-import { longTestTimeout } from "../helper";
-import "./helpers";
+import { ConfidentialAmount, ConfidentialKeyRotation, ConfidentialKeyRotationSigmaProof, ConfidentialNormalization, ConfidentialNormalizationSigmaProof, ConfidentialTransfer, ConfidentialTransferRangeProof, ConfidentialTransferSigmaProof, ConfidentialWithdraw, ConfidentialWithdrawSigmaProof, ed25519modN, RangeProofExecutor, toTwistedEd25519PrivateKey, TwistedEd25519PrivateKey } from "../../src";
+import { generateRangeZKP, verifyRangeZKP } from "../helpers/wasmRangeProof";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
+import { longTestTimeout } from "../helpers";
 
 /** !important: for testing purposes */
 RangeProofExecutor.setGenerateRangeZKP(generateRangeZKP);
@@ -243,7 +227,7 @@ describe("Generate 'confidential coin' proofs", () => {
     expect(isValid).toBeTruthy();
   }, longTestTimeout);
 
-  test.skip("Authorize Key Rotation", async () => {
+  test("Authorize Key Rotation", async () => {
     const [{ sigmaProof, rangeProof }, newVB] = await confidentialKeyRotation.authorizeKeyRotation();
 
     expect(sigmaProof).toBeDefined();

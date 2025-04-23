@@ -1,14 +1,14 @@
-import { TwistedEd25519PrivateKey } from "../../../../src";
+import { TwistedEd25519PrivateKey } from "../../src";
 import {
-  aptos,
+  confidentialAsset,
   getBalances,
   getTestAccount,
   getTestConfidentialAccount,
+  longTestTimeout,
   sendAndWaitTx,
   TOKEN_ADDRESS,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Transfer with auditor", () => {
   const alice = getTestAccount();
@@ -27,7 +27,7 @@ describe("Transfer with auditor", () => {
   test("it should transfer Alice's tokens to Alice's confidential balance with auditor", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress);
 
-    const transferTx = await aptos.confidentialAsset.transferCoin({
+    const transferTx = await confidentialAsset.transferCoin({
       senderDecryptionKey: aliceConfidential,
       recipientEncryptionKey: aliceConfidential.publicKey(),
       encryptedActualBalance: balances.actual.amountEncrypted!,

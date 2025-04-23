@@ -1,15 +1,15 @@
+import { Account, AccountAddress } from "@aptos-labs/ts-sdk";
 import {
   aptos,
+  confidentialAsset,
   getBalances,
-  getTestConfidentialAccount,
+  longTestTimeout,
   sendAndWaitTx,
 } from "../helpers";
-import { preloadTables } from "../kangaroo/wasmPollardKangaroo";
-import { longTestTimeout } from "../../helper";
-import { Account, AccountAddress, TwistedEd25519PublicKey, TwistedEd25519PrivateKey } from "../../../../src";
 import { numberToBytesLE, bytesToNumberLE } from "@noble/curves/abstract/utils";
 import { bytesToHex } from "@noble/hashes/utils";
-import { ed25519modN } from "../../../../src/core/crypto/utils";
+import { TwistedEd25519PrivateKey, ed25519modN } from "../../src";
+import { preloadTables } from "../helpers/wasmPollardKangaroo";
 
 describe("Transfer", () => {
   const alice = Account.generate();
@@ -44,7 +44,7 @@ describe("Transfer", () => {
   })
 
   it("should register Alice's balance", async () => {
-    const aliceRegisterVBTxBody = await aptos.confidentialAsset.registerBalance({
+    const aliceRegisterVBTxBody = await confidentialAsset.registerBalance({
       sender: alice.accountAddress,
       tokenAddress: tokenAddress,
       publicKey: aliceConfidential.publicKey(),
@@ -56,7 +56,7 @@ describe("Transfer", () => {
   })
 
   it.skip("should deposit money to Alice's account", async () => {
-    const depositTx = await aptos.confidentialAsset.depositCoin({
+    const depositTx = await confidentialAsset.depositCoin({
       sender: alice.accountAddress,
       coinType,
       amount: depositAmount,
@@ -70,14 +70,14 @@ describe("Transfer", () => {
   it("should transfer money from Alice actual to pending balance", async () => {
     const balances = await getBalances(aliceConfidential, alice.accountAddress, tokenAddress);
 
-    const recipientEncKey = await aptos.confidentialAsset.getEncryptionByAddr({
+    const recipientEncKey = await confidentialAsset.getEncryptionByAddr({
       accountAddress: AccountAddress.from(recipientAccAddr),
       tokenAddress,
     });
 
     console.log({ recipientEncKey: recipientEncKey.toString() })
 
-    const withdrawTx = await aptos.confidentialAsset.withdraw({
+    const withdrawTx = await confidentialAsset.withdraw({
       sender: alice.accountAddress,
       tokenAddress,
       decryptionKey: aliceConfidential,

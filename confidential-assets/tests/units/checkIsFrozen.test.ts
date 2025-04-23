@@ -1,10 +1,10 @@
-import { aptos, getTestAccount, TOKEN_ADDRESS } from "../helpers";
+import { confidentialAsset, getTestAccount, TOKEN_ADDRESS } from "../helpers";
 
 describe("should check if user confidential account is frozen", () => {
   const alice = getTestAccount();
 
   it("should check if user confidential account is frozen", async () => {
-    const isFrozen = await aptos.confidentialAsset.isBalanceFrozen({
+    const isFrozen = await confidentialAsset.isBalanceFrozen({
       accountAddress: alice.accountAddress,
       tokenAddress: TOKEN_ADDRESS,
     });
